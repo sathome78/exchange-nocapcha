@@ -1,7 +1,6 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.service.RequestLimitExceededException;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;

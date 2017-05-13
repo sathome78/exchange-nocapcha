@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import org.apache.logging.log4j.LogManager;

@@ -1,13 +1,11 @@
 package me.exrates.service.impl;
 
+import me.exrates.model.Email;
+import me.exrates.service.SendMailService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-
-import me.exrates.model.Email;
-import me.exrates.service.SendMailService;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.javamail.JavaMailSender;

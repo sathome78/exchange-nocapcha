@@ -1,8 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
-import me.exrates.service.merchantStrategy.IMerchantService;
 
 import java.io.IOException;
 

@@ -2,22 +2,16 @@ package me.exrates.config;
 
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.enums.ChatLang;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.EnumMap;
-import java.util.List;
 
 import static me.exrates.model.enums.ChatLang.*;
 

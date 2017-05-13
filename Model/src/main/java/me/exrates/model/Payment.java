@@ -6,8 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 
-import javax.validation.constraints.Min;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */

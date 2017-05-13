@@ -4,21 +4,9 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.PendingPayment;
-import me.exrates.model.Transaction;
-import me.exrates.model.dto.*;
-import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.invoice.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +14,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Properties;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
@@ -49,17 +32,11 @@ public class BitcoinServiceImpl implements BitcoinService {
   private Boolean BLOCK_NOTIFYING;
 
   @Autowired
-  private PendingPaymentDao paymentDao;
+  private RefillService refillService;
   @Autowired
-  private TransactionService transactionService;
-  @Autowired
-  private AlgorithmService algorithmService;
-  @Autowired
-  private NotificationService notificationService;
-
+  private CurrencyService currencyService;
   @Autowired
   private MerchantService merchantService;
-
   @Autowired
   private MessageSource messageSource;
   @Autowired
@@ -120,7 +97,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private String address() {
     boolean isFreshAddress = false;
-    String address = bitcoinWalletService.getNewAddress();
+    String address = bitcoinWalletService.getNewAddress(walletPassword);
     Currency currency = currencyService.findByName("BTC");
     Merchant merchant = merchantService.findByName("Blockchain");
     if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
@@ -135,7 +112,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
-        address = bitcoinWalletService.getNewAddress();
+        address = bitcoinWalletService.getNewAddress(walletPassword);
         isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
         /*address = bitcoinWalletService.getNewAddress(walletPassword);
         isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList);*/

@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.EMPTY_LIST;
 import static me.exrates.model.enums.OperationType.INPUT;

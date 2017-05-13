@@ -2,7 +2,10 @@ package me.exrates.controller;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.NotAcceptableOrderException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.controller.exception.OrderParamsWrongException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
@@ -14,8 +17,8 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.stopOrder.StopOrderService;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,6 @@
 package me.exrates.model.dto.filterData;
 
 import lombok.Data;
-import me.exrates.model.dto.filterData.FilterDataItem;
-import me.exrates.model.dto.filterData.TableFilterData;
 
 import java.math.BigDecimal;
 

@@ -1,7 +1,6 @@
 package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
-import me.exrates.service.EDCService;
 import me.exrates.service.EDCServiceNode;
 import me.exrates.service.EthereumService;
 import org.apache.log4j.LogManager;

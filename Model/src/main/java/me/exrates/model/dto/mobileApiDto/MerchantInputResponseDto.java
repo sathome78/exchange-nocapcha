@@ -2,9 +2,6 @@ package me.exrates.model.dto.mobileApiDto;
 
 import me.exrates.model.enums.MerchantApiResponseType;
 
-import java.net.HttpCookie;
-import java.util.List;
-
 /**
  * Created by OLEG on 19.10.2016.
  */

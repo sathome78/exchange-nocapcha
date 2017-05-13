@@ -27,9 +27,7 @@ import java.util.Map;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
-import static me.exrates.model.enums.ActionType.ADD;
-import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
-import static me.exrates.model.enums.ActionType.SUBTRACT;
+import static me.exrates.model.enums.ActionType.*;
 import static me.exrates.model.enums.OperationType.*;
 
 @Service

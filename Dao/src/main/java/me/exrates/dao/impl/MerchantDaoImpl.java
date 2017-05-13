@@ -15,7 +15,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,10 +25,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -339,7 +335,7 @@ public class MerchantDaoImpl implements MerchantDao {
   @Override
   public List<String> retrieveBtcCoreBasedMerchantNames() {
     String sql = "SELECT name FROM MERCHANT JOIN CRYPTO_CORE_WALLET core ON MERCHANT.id = core.merchant_id";
-    return jdbcTemplate.queryForList(sql, Collections.EMPTY_MAP, String.class);
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
@@ -349,7 +345,7 @@ public class MerchantDaoImpl implements MerchantDao {
             "JOIN MERCHANT ON MERCHANT.id = core.merchant_id " +
             "WHERE MERCHANT.name = :merchant_name";
     try {
-      return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), String.class));
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), String.class));
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }

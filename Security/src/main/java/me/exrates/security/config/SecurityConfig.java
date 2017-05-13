@@ -24,14 +24,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static me.exrates.model.enums.AdminAuthority.MANAGE_ACCESS;
-import static me.exrates.model.enums.AdminAuthority.PROCESS_INVOICE;
-import static me.exrates.model.enums.AdminAuthority.PROCESS_WITHDRAW;
+import static me.exrates.model.enums.AdminAuthority.*;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 

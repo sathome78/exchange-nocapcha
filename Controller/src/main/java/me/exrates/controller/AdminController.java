@@ -117,8 +117,8 @@ public class AdminController {
   @Autowired
   WithdrawService withdrawService;
   
-  @Autowired
-  private BitcoinWalletService bitcoinWalletService;
+  /*@Autowired
+  private BitcoinWalletService bitcoinWalletService;*/
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -126,6 +126,7 @@ public class AdminController {
 
   public static String adminAnyAuthority;
   public static String pureAdminAnyAuthority;
+  public static String nonAdminAnyAuthority;
 
   @PostConstruct
   private void init() {
@@ -134,6 +135,7 @@ public class AdminController {
         .map(e -> "'" + e.name() + "'")
         .collect(Collectors.joining(","));
     adminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
+    nonAdminAnyAuthority = "!" + adminAnyAuthority;
     String pureAdminList = adminRoles.stream()
         .filter(e -> e != FIN_OPERATOR)
         .map(e -> "'" + e.name() + "'")
@@ -1018,6 +1020,8 @@ public class AdminController {
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
   
+  /*
+  TODO BitcoinWalletService
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
   public ModelAndView bitcoinWallet() {
     return new ModelAndView("/admin/btcWallet", "walletInfo", bitcoinWalletService.getWalletInfo());
@@ -1079,7 +1083,7 @@ public class AdminController {
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
     result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
     return result;
-  }
+  }*/
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody

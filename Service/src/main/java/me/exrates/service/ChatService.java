@@ -3,7 +3,6 @@ package me.exrates.service;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.exception.IllegalChatMessageException;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.SortedSet;
 

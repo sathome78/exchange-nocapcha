@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionStatus;
-import me.exrates.model.serializer.LocalDateTimeSerializer;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.Locale;
 

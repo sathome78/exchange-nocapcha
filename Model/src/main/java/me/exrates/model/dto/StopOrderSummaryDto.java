@@ -2,7 +2,6 @@ package me.exrates.model.dto;
 
 import lombok.Data;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
 
 import java.math.BigDecimal;
 

@@ -3,8 +3,6 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 

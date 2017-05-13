@@ -1,6 +1,5 @@
 package me.exrates.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.serializer.LocalDateSerializer;
 

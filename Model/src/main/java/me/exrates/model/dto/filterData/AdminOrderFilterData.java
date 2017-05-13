@@ -3,11 +3,10 @@ package me.exrates.model.dto.filterData;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 
-import static me.exrates.model.dto.filterData.FilterDataItem.*;
+import static me.exrates.model.dto.filterData.FilterDataItem.DATE_FORMAT;
 
 /**
  * Created by OLEG on 02.03.2017.

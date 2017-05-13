@@ -1,12 +1,10 @@
 package me.exrates.model.enums;
 
-import lombok.EqualsAndHashCode;
 import me.exrates.model.exceptions.UnsupportedOperationTypeException;
 import org.springframework.context.MessageSource;
 
 import java.util.*;
 
-import static me.exrates.model.enums.TransactionSourceType.ORDER;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 

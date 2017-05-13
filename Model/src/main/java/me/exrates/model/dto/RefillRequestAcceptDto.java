@@ -4,12 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 
 import java.math.BigDecimal;
-import java.util.Locale;
-import java.util.Optional;
 
 /**
  * @author ValkSam

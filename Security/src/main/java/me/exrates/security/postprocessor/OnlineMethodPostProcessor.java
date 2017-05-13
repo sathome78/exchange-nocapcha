@@ -6,7 +6,6 @@ import me.exrates.security.filter.CustomConcurrentSessionFilter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;

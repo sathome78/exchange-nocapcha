@@ -16,7 +16,6 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

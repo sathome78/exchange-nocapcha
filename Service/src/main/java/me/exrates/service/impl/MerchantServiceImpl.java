@@ -15,7 +15,10 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.MerchantCurrencyBlockedException;
+import me.exrates.service.exception.MerchantNotFoundException;
+import me.exrates.service.exception.ScaleForAmountNotSetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,17 +58,8 @@ public class MerchantServiceImpl implements MerchantService {
   private NotificationService notificationService;
 
   @Autowired
-  private InvoiceService invoiceService;
-
-  @Autowired
   @Qualifier("bitcoinServiceImpl")
   private BitcoinService bitcoinService;
-
-  @Autowired
-  private WithdrawRequestDao withdrawRequestDao;
-
-  private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
-  private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
   public List<Merchant> findAllByCurrency(Currency currency) {

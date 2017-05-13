@@ -3,7 +3,6 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
-import me.exrates.service.RequestLimitExceededException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;

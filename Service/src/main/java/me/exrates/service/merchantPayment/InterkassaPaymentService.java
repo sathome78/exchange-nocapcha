@@ -1,9 +1,6 @@
 package me.exrates.service.merchantPayment;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.MerchantService;
 import org.apache.logging.log4j.LogManager;
@@ -13,10 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.StringJoiner;
 
 /**
  * Created by OLEG on 05.09.2016.

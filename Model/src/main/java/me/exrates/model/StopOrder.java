@@ -1,7 +1,6 @@
 package me.exrates.model;
 
 import lombok.Data;
-import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 

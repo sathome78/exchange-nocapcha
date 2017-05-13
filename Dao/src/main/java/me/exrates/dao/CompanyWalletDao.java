@@ -1,10 +1,9 @@
 package me.exrates.dao;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+
+import java.math.BigDecimal;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

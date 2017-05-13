@@ -2,7 +2,6 @@ package me.exrates.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 
 import java.math.BigDecimal;

@@ -6,7 +6,10 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefFilterData;
+import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.ReferralProfitDto;
+import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -24,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 import static java.math.BigDecimal.ZERO;

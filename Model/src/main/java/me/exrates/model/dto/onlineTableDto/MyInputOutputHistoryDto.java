@@ -5,14 +5,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.model.enums.TransactionSourceType.*;
+import static me.exrates.model.enums.TransactionSourceType.REFILL;
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
 /**
  * Created by Ajet on 23.07.2016.

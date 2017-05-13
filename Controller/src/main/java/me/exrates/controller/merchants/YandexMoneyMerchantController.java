@@ -4,7 +4,6 @@ import com.yandex.money.api.methods.BaseRequestPayment;
 import com.yandex.money.api.methods.RequestPayment;
 import com.yandex.money.api.utils.Strings;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.YandexMoneyService;
@@ -13,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,9 +24,6 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
-import java.security.Principal;
-import java.util.Map;
 import java.util.Optional;
 
 /**
