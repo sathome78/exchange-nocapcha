@@ -3,6 +3,8 @@ package me.exrates.service.ripple;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,5 +38,13 @@ public class RippleServiceImpl implements RippleService {
         account.setUser(creditsOperation.getUser());
         /*persist data here*/
         return account.getName();
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+            throw new WithdrawRequestPostException("Currency not supported by merchant");
+        }
+        rippleTransactionService.
     }
 }
