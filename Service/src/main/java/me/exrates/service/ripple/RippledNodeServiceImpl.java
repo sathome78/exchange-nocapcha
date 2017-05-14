@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
-import java.math.BigDecimal;
 
 /**
  * Created by maks on 05.05.2017.
@@ -114,13 +111,14 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         return responseBody.getBoolean("validated");
     }
 
-    public void getAccountInfo(String accountName) {
+    @Override
+    public JSONObject getAccountInfo(String accountName) {
         String requestBody = String.format(GET_ACCOUNT_RPC, accountName);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
-            throw new RuntimeException("cant generate new address");
+            throw new RuntimeException("cant get account Info");
         }
-        String responseBody = response.getBody();
+        return new JSONObject(response.getBody());
     }
 
     @Override

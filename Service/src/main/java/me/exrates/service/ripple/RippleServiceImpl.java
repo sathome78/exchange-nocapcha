@@ -45,6 +45,6 @@ public class RippleServiceImpl implements RippleService {
         if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
         }
-        rippleTransactionService.
+        rippleTransactionService.withdraw(withdrawMerchantOperationDto);
     }
 }

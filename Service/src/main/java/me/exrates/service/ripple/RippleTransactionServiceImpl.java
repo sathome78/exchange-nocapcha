@@ -5,10 +5,13 @@ import me.exrates.dao.RippleTransactionDao;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.RippleTransactionStatus;
 import me.exrates.model.enums.RippleTransactionType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -40,6 +43,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     private static final Integer XRP_AMOUNT_MULTIPLIER = 1000000;
     private static final Integer XRP_DECIMALS = 6;
+    private static final BigDecimal XRP_MIN_BALANCE = new BigDecimal(20);
 
 
     @PostConstruct
@@ -59,7 +63,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     /*send xrp*/
     @Transactional
-    protected void sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, RippleTransactionType type) {
+    private void sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, RippleTransactionType type) {
         RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount);
         transaction.setUserId(account.getUser().getId());
         transaction.setType(type);
@@ -82,6 +86,17 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         }
     }
 
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        RippleAccount account = RippleAccount.builder().name(address).secret(secret).build();
+        BigDecimal accountFromBalance = getAccountBalance(address);
+        if (accountFromBalance.compareTo(XRP_MIN_BALANCE) < 0) {
+            throw new InsufficientCostsInWalletException();
+        }
+        this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
+                withdrawMerchantOperationDto.getAccountTo(), RippleTransactionType.WITHDRAW);
+    }
+
     /*for refill transactions*/
     private void provideTransactionAndTransferFunds(String address){
 
@@ -99,7 +114,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     }
 
     private String normalizeAmountToString(BigDecimal amount) {
-
         return amount
                 .setScale(XRP_DECIMALS, RoundingMode.HALF_DOWN)
                 .multiply(new BigDecimal(XRP_AMOUNT_MULTIPLIER))
@@ -107,7 +121,18 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
                 .toString();
     }
 
-    private void reserveCosts() {
-
+    private BigDecimal normalizeAmountToDecimal(String amount) {
+        return new BigDecimal(amount)
+                .divide(new BigDecimal(XRP_AMOUNT_MULTIPLIER))
+                .setScale(XRP_DECIMALS, RoundingMode.HALF_DOWN);
     }
+
+
+    private BigDecimal getAccountBalance(String accountName) {
+        JSONObject accountData = rippledNodeService.getAccountInfo(accountName)
+                .getJSONObject("result").getJSONObject("account_data");
+        return normalizeAmountToDecimal(accountData.getString("Balance"));
+    }
+
+
 }

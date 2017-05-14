@@ -2,6 +2,7 @@ package me.exrates.service.ripple;
 
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
+import org.json.JSONObject;
 
 /**
  * Created by maks on 05.05.2017.
@@ -13,6 +14,8 @@ public interface RippledNodeService {
     void submitTransaction(RippleTransaction transaction);
 
     boolean checkSendedTransactionConsensus(String txHash);
+
+    JSONObject getAccountInfo(String accountName);
 
     RippleAccount porposeAccount();
 }
