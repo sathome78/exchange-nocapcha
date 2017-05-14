@@ -1,41 +1,42 @@
 package me.exrates.service;
 
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface CommissionService {
-	
-	Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole);
 
-	Commission getDefaultCommission(OperationType operationType);
+  Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole);
 
-	/**
-	 * Returns individual commission for current merchant
-	 * @param merchant
-	 * @param currency
-	 * @param operationType
-	 * @return BigDecimal commission
-	 */
-	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
+  Commission getDefaultCommission(OperationType operationType);
 
-    List<Commission> getEditableCommissions();
+  BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
-    List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
+  BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType);
 
-    void updateCommission(Integer id, BigDecimal value);
+  List<Commission> getEditableCommissions();
 
-	void updateCommission(OperationType operationType, String roleName, BigDecimal value);
+  List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
 
-    @Transactional
-    void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
+  void updateCommission(Integer id, BigDecimal value);
 
-	BigDecimal getMinFixedCommission(String merchant, String currency);
+  void updateCommission(OperationType operationType, String roleName, BigDecimal value);
+
+  void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
+
+  BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
+
+  Map<String, String> computeCommissionAndMapAllToString(Integer userId, BigDecimal amount, OperationType operationType, Integer currencyId, Integer merchantId, Locale locale);
+
+  CommissionDataDto normalizeAmountAndCalculateCommission(Integer userId, BigDecimal amount, OperationType type, Integer currencyId, Integer merchantId);
+
+  BigDecimal calculateCommissionForRefillAmount(BigDecimal amount, Integer commissionId);
 }

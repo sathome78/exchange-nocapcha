@@ -1,7 +1,5 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NixMoneyService;
@@ -13,8 +11,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,10 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -50,25 +43,6 @@ public class NixMoneyMerchantController {
     private LocaleResolver localeResolver;
 
     private static final Logger logger = LogManager.getLogger(NixMoneyMerchantController.class);
-
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       BindingResult result, Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
-
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        return nixMoneyService.preparePayment(creditsOperation.get(), principal.getName());
-
-    }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {

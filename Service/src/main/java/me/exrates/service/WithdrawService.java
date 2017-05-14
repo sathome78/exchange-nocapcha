@@ -1,15 +1,13 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
+import me.exrates.model.ClientBank;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.WithdrawData;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,19 +17,19 @@ import java.util.Map;
  */
 public interface WithdrawService {
 
-  Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
-  
+  Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale);
+
   void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
-  
+
   void rejectError(int requestId, String reasonCode);
-  
+
   void rejectToReview(int requestId);
-  
+
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
@@ -43,13 +41,6 @@ public interface WithdrawService {
 
   WithdrawRequestsAdminTableDto getWithdrawRequestById(Integer id, String authorizedUserEmail);
 
-  List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
-  
-  List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-          String email,
-          Integer offset, Integer limit,
-          Locale locale);
-  
   void revokeWithdrawalRequest(int requestId);
 
   void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId);
@@ -63,4 +54,8 @@ public interface WithdrawService {
   void setAllAvailableInPostingStatus();
 
   List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status);
+
+  Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale);
+
+  boolean checkOutputRequestsLimit(int merchantId, String email);
 }

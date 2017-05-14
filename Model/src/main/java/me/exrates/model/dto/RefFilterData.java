@@ -2,9 +2,7 @@ package me.exrates.model.dto;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.apache.bcel.util.ClassLoaderRepository;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

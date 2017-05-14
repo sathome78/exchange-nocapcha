@@ -1,4 +1,4 @@
-<%@ page import="me.exrates.controller.AdminController" %><%--
+<%--
   Created by IntelliJ IDEA.
   User: ogolv
   Date: 27.07.2016

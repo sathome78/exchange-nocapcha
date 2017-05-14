@@ -2,7 +2,6 @@ package me.exrates.dao;
 
 import me.exrates.model.ApiAuthToken;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**

@@ -3,7 +3,6 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,7 +15,7 @@ public class PendingPaymentFlatForReportDto {
   private int invoiceId;
   private String transactionHash;
   private String address;
-  private PendingPaymentStatusEnum pendingPaymentStatus;
+//  private PendingPaymentStatusEnum pendingPaymentStatus;
   private LocalDateTime statusUpdateDate;
   private LocalDateTime acceptanceTime;
   private String hash;

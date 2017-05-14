@@ -2,31 +2,23 @@ package me.exrates.service.impl;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.service.AdvcashService;
 import me.exrates.service.AlgorithmService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/advcashmoney.properties")
@@ -47,16 +39,10 @@ public class AdvcashServiceImpl implements AdvcashService{
     private static final Logger logger = LogManager.getLogger(AdvcashServiceImpl.class);
 
     @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private PendingPaymentDao pendingPaymentDao;
-
-    @Autowired
     private AlgorithmService algorithmService;
 
-    @Override
-    public Map<String, String> getAdvcashParams(Transaction transaction) {
+
+    private Map<String, String> getAdvcashParams(Transaction transaction) {
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
         final String companyAccount;
@@ -84,7 +70,7 @@ public class AdvcashServiceImpl implements AdvcashService{
         };
     }
 
-    @Override
+   /* @Override
     @Transactional
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
 
@@ -121,44 +107,21 @@ public class AdvcashServiceImpl implements AdvcashService{
 
 
         return redirectView;
-    }
+    }*/
 
-    @Override
-    @Transactional
-    public Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation) {
-        return transactionService.createTransactionRequest(creditsOperation);
-    }
-
-
-    @Override
-    @Transactional
-    public void provideTransaction(Transaction transaction) {
-        if (transaction.getOperationType()== OperationType.INPUT){
-            pendingPaymentDao.delete(transaction.getId());
-        }
-        transactionService.provideTransaction(transaction);
-    }
-
-    @Override
-    @Transactional
-    public void invalidateTransaction(Transaction transaction) {
-        transactionService.invalidateTransaction(transaction);
-    }
-
-    @Override
-    public boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash) {
-        Optional<PendingPayment> pendingPayment = pendingPaymentDao.findByInvoiceId(invoiceId);
-
-        if (pendingPayment.isPresent()){
-            String transactionHash = pendingPayment.get().getTransactionHash();
-            return  transactionHash.equals(inputHash);
-        }else {
-            return false;
-        }
-    }
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public Map<String, String> refill(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

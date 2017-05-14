@@ -1,4 +1,4 @@
-﻿﻿﻿html,
+﻿html,
 body {
     width: 100%;
     background: #e2ebf9;
@@ -886,7 +886,7 @@ td.blue-white {
 ********************************/
 
 .right {
-    text-align: right;
+    text-align: right !important;
     padding-right: 5px;
 }
 
@@ -898,8 +898,16 @@ td.blue-white {
 }
 
 .left {
-    text-align: left;
+    text-align: left !important;
     padding-left: 5px;
+}
+
+.bold{
+    font-weight: bold !important;
+}
+
+.normal{
+    font-weight: normal !important;
 }
 
 .col-0 {
@@ -1960,7 +1968,7 @@ input[type=email], .dropdown-menu__form,
     background: #525f74;
 }
 
-#register_button:disabled, #submitAcceptInvoice:disabled, #submit-btc:disabled {
+#register_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 
@@ -2211,6 +2219,30 @@ textarea#remark {
     display: inline-block;
     margin-top: 20px;
     text-align: center;
+}
+
+.credits-operation-info__item {
+    font-size: 15px;
+    line-height: 25px;
+}
+
+.credits-operation-info__item>div:nth-child(2) {
+    font-weight: bold;
+}
+.credits-operation-info__item:nth-child(odd) {
+    /*background: rgba(128, 128, 128, 0.25);*/
+}
+
+.fail-enter {
+    border: 2px solid red !important;
+}
+
+.address-copy{
+    margin-left: 15px;
+    width: 60px;
+    height: 20px;
+    color: black;
+    padding: 0;
 }
 
 .stop {

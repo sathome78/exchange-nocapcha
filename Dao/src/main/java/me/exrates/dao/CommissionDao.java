@@ -20,7 +20,9 @@ public interface CommissionDao {
 
 	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
-    List<Commission> getEditableCommissions();
+  BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType);
+
+  List<Commission> getEditableCommissions();
 
     List<CommissionShortEditDto> getEditableCommissionsByRoles(List<Integer> roleIds, Locale locale);
 
@@ -30,6 +32,8 @@ public interface CommissionDao {
 
     void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value);
 
-    BigDecimal getMinFixedCommission(String merchant, String currency);
+    BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
+
+  Commission getCommissionById(Integer commissionId);
 }
 

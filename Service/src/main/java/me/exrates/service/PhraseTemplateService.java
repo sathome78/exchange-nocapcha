@@ -1,7 +1,6 @@
 package me.exrates.service;
 
 import me.exrates.model.enums.UserCommentTopicEnum;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

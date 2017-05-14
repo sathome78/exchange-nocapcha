@@ -2,7 +2,6 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
@@ -29,10 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static java.lang.Integer.valueOf;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
 @Service
@@ -172,20 +173,7 @@ public class TransactionServiceImpl implements TransactionService {
       throw new TransactionProvidingException("Failed to delete transaction #" + transaction.getId());
     }
   }
-  
-  private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
-    TransactionSourceType sourceType = transaction.getSourceType();
-    OperationType operationType = transaction.getOperationType();
-    BigDecimal amount = transaction.getAmount();
-    view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType, amount));
-    if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
-      view.setMerchant(transaction.getMerchant());
-    } else {
-      view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
-    }
 
-  }
-  
   @Override
   public DataTable<List<OperationViewDto>> showUserOperationHistory(
           Integer requesterUserId,
@@ -213,7 +201,7 @@ public class TransactionServiceImpl implements TransactionService {
       view.setOrder(t.getOrder());
       view.setStatus(merchantService.resolveTransactionStatus(t, locale));
       view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(t.getSourceType(), t.getOperationType(), t.getAmount()));
-      view.setMerchant(t.getMerchant() == null ? new Merchant(0, null, t.getSourceType().name(), null) : t.getMerchant());
+      view.setMerchant(t.getMerchant() == null ? new Merchant(0, null, t.getSourceType().name()) : t.getMerchant());
       view.setSourceType(t.getSourceType().name());
       view.setSourceId(t.getSourceId());
       setTransactionMerchantAndOrder(view, t);
@@ -223,7 +211,19 @@ public class TransactionServiceImpl implements TransactionService {
     result.setRecordsFiltered(transactions.getFiltered());
     result.setRecordsTotal(transactions.getTotal());
     return result;
-   
+  }
+
+  private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
+    TransactionSourceType sourceType = transaction.getSourceType();
+    OperationType operationType = transaction.getOperationType();
+    BigDecimal amount = transaction.getAmount();
+    view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType, amount));
+    if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
+      view.setMerchant(transaction.getMerchant());
+    } else {
+      view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
+    }
+
   }
 
   @Override
@@ -342,5 +342,17 @@ public class TransactionServiceImpl implements TransactionService {
   private String getCSVTransactionsHeader() {
     return "Date;Operation Type;Status;Currency;Amount;Comission;Merchant;Source Id";
   }
+
+  private void setTransactionMerchant(Transaction transaction) {
+    LOG.debug(transaction);
+    TransactionSourceType sourceType = transaction.getSourceType();
+    if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
+      transaction.setMerchant(transaction.getMerchant());
+    } else {
+      transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
+    }
+
+  }
+
 
 }

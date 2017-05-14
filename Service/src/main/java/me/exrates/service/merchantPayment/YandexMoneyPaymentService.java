@@ -1,20 +1,15 @@
 package me.exrates.service.merchantPayment;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
-import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -40,7 +35,7 @@ public class YandexMoneyPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         int paymentId = yandexMoneyService.saveInputPayment(payment);
@@ -49,9 +44,7 @@ public class YandexMoneyPaymentService implements MerchantPaymentService {
         String redirectURI = apiRedirectURI + "&paymentId=" + paymentId + "&userId=" + userService.getIdByEmail(email);
         dto.setData(yandexMoneyService.getTemporaryAuthCode(redirectURI));
         return dto;
-
-
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

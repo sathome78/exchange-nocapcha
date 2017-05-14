@@ -1,7 +1,7 @@
 <%--
   User: Valk
 --%>
-
+<script type="text/javascript" src="<c:url value="/client/js/inputOutput/valueInputControl.js"/>"></script>
 <div id="myinputoutput" data-submenuitemid="myhistory-button-inputoutput" class="myinputoutput center-frame-container hidden">
     <%----%>
         <%----%>
@@ -20,9 +20,8 @@
             <%@include file="inputoutput-center-tableBody.jsp" %>
         </table>
 
-        <%@include file="../fragments/modal/btc_invoice_revoke_modal.jsp" %>
-        <%@include file="../fragments/modal/btc_invoice_info_modal.jsp" %>
         <%@include file="../fragments/modal/confirm_with_info_modal.jsp" %>
+        <%@include file="../fragments/modal/dialogRefillConfirmationParamsEnter_modal.jsp" %>
 </div>
 
 

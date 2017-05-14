@@ -1,9 +1,6 @@
 package me.exrates.model.dto.mobileApiDto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 /**
  * Created by OLEG on 19.08.2016.

@@ -2,11 +2,9 @@ package me.exrates.controller.mobile;
 
 import com.yandex.money.api.methods.BaseRequestPayment;
 import com.yandex.money.api.methods.RequestPayment;
-import com.yandex.money.api.utils.Strings;
-import me.exrates.controller.merchants.YandexMoneyMerchantController;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.enums.OperationType;
+import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
@@ -22,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -47,6 +43,9 @@ public class YandexMoneyRestController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private InputOutputService inputOutputService;
+
     @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
     public ResponseEntity<String> processYandexPayment(@RequestParam String token,
                                                        @RequestParam Integer userId,
@@ -58,7 +57,7 @@ public class YandexMoneyRestController {
         Payment payment = yandexMoneyService.getPaymentById(paymentId).orElseThrow(()
                 -> new MerchantInternalException(messageSource.getMessage("merchants.authRejected", null, userLocale)));
 
-        final CreditsOperation creditsOperation = merchantService
+        final CreditsOperation creditsOperation = inputOutputService
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);

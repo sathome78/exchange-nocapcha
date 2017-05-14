@@ -1,14 +1,14 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.EthereumNodeDao;
-import me.exrates.model.*;
-import me.exrates.model.enums.OperationType;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.EthereumAccount;
+import me.exrates.model.Transaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.EthereumService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
-import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -215,7 +212,7 @@ public class EthereumServiceImpl implements EthereumService{
     }
 
     private void createTransaction(String address, String amount, String hash){
-        try {
+        /*try {
             String userEmail = ethereumNodeDao.findUserEmailByAddress(address);
             Payment payment = new Payment();
             Currency currency = currencyService.findByName("ETH");
@@ -245,7 +242,7 @@ public class EthereumServiceImpl implements EthereumService{
         }catch (EthereumException e){
             subscribeCreated = false;
             LOG.error(e);
-        }
+        }*/
     }
 
     private void provideTransactionAndTransferFunds(String merchantTransactionId){

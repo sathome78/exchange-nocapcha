@@ -28,8 +28,9 @@
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 
-
-    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numeral.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/inputOutput/valueInputControl.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/inputOutput/refillCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>

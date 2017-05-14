@@ -63,3 +63,14 @@ function getButtonsSet(id, sourceType, merchant, buttonDataList, tableIdFor) {
     });
     return buttonsSet;
 }
+
+function selectAndCopyText($e) {
+    var range = document.createRange();
+    range.selectNodeContents($e[0]);
+    var selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand("copy", true);
+    selection.removeAllRanges();
+    blink_green($e);
+}

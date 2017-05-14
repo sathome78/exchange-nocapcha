@@ -20,6 +20,7 @@ import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
@@ -27,6 +28,7 @@ import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.squareup.okhttp.MediaType.parse;
@@ -209,10 +212,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     @Override
     public int saveInputPayment(Payment payment) {
-        Integer merchantImageId = payment.getMerchantImage() > 0 ? payment.getMerchantImage() : null;
-
-
-        return yandexMoneyMerchantDao.savePayment(payment.getCurrency(), BigDecimal.valueOf(payment.getSum()), merchantImageId);
+        return yandexMoneyMerchantDao.savePayment(payment.getCurrency(), BigDecimal.valueOf(payment.getSum()));
     }
     @Override
     public Optional<Payment> getPaymentById(Integer id) {
@@ -226,5 +226,15 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public Map<String, String> refill(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

@@ -11,19 +11,20 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -96,7 +97,6 @@ public final class TransactionDaoImpl implements TransactionDao {
         withdraw.setId(resultSet.getInt("WITHDRAW_REQUEST.id"));
         withdraw.setWallet(resultSet.getString("WITHDRAW_REQUEST.wallet"));
         withdraw.setUserId(resultSet.getInt("WITHDRAW_REQUEST.user_id"));
-        withdraw.setMerchantImage(new MerchantImage(resultSet.getInt("WITHDRAW_REQUEST.merchant_image_id")));
         withdraw.setRecipientBankName(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_name"));
         withdraw.setRecipientBankCode(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_code"));
         withdraw.setUserFullName(resultSet.getString("WITHDRAW_REQUEST.user_full_name"));
@@ -110,6 +110,43 @@ public final class TransactionDaoImpl implements TransactionDao {
         withdraw.setCurrency(currency);
         withdraw.setMerchant(merchant);
         withdraw.setAdminHolderId(resultSet.getInt("WITHDRAW_REQUEST.admin_holder_id"));
+      }
+    } catch (SQLException e) {
+      //NOP
+    }
+
+    RefillRequest refill = null;
+    try {
+      resultSet.findColumn("REFILL_REQUEST.id");
+      if (resultSet.getObject("REFILL_REQUEST.id") != null) {
+        refill = new RefillRequest();
+        refill.setId(resultSet.getInt("REFILL_REQUEST.id"));
+        refill.setAddress(resultSet.getString("REFILL_REQUEST.address"));
+        refill.setUserId(resultSet.getInt("REFILL_REQUEST.user_id"));
+        refill.setPayerBankName(resultSet.getString("REFILL_REQUEST.payer_bank_name"));
+        refill.setPayerBankCode(resultSet.getString("REFILL_REQUEST.payer_bank_code"));
+        refill.setPayerAccount(resultSet.getString("REFILL_REQUEST.payer_account"));
+        refill.setRecipientBankAccount(resultSet.getString("REFILL_REQUEST.payer_account"));
+        refill.setUserFullName(resultSet.getString("REFILL_REQUEST.user_full_name"));
+        refill.setRemark(resultSet.getString("REFILL_REQUEST.remark"));
+        refill.setReceiptScan(resultSet.getString("REFILL_REQUEST.receipt_scan"));
+        refill.setReceiptScanName(resultSet.getString("REFILL_REQUEST.receipt_scan_name"));
+        refill.setAmount(resultSet.getBigDecimal("REFILL_REQUEST.amount"));
+        refill.setCommissionAmount(resultSet.getBigDecimal("REFILL_REQUEST.commission"));
+        refill.setCommissionId(resultSet.getInt("REFILL_REQUEST.commission_id"));
+        refill.setStatus(RefillStatusEnum.convert(resultSet.getInt("REFILL_REQUEST.status_id")));
+        refill.setDateCreation(resultSet.getTimestamp("REFILL_REQUEST.date_creation").toLocalDateTime());
+        refill.setStatusModificationDate(resultSet.getTimestamp("REFILL_REQUEST.status_modification_date").toLocalDateTime());
+        refill.setCurrencyId(resultSet.getInt("REFILL_REQUEST.currency_id"));
+        refill.setMerchantId(resultSet.getInt("REFILL_REQUEST.merchant_id"));
+        refill.setHash(resultSet.getString("REFILL_REQUEST.hash"));
+        refill.setMerchantTransactionId(resultSet.getString("REFILL_REQUEST.merchant_transaction_id"));
+        refill.setRecipientBankId(resultSet.getInt("REFILL_REQUEST.recipient_bank_id"));
+        refill.setRecipientBankName(resultSet.getString("INVOICE_BANK.name"));
+        refill.setRecipientBankAccount(resultSet.getString("INVOICE_BANK.account_number"));
+        refill.setRecipientBankRecipient(resultSet.getString("INVOICE_BANK.recipient"));
+        refill.setAdminHolderId(resultSet.getInt("REFILL_REQUEST.admin_holder_id"));
+        refill.setConfirmations(resultSet.getInt("confirmations"));
       }
     } catch (SQLException e) {
       //NOP
@@ -168,6 +205,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     transaction.setOrder(order);
     transaction.setCurrency(currency);
     transaction.setWithdrawRequest(withdraw);
+    transaction.setRefillRequest(refill);
     transaction.setProvided(resultSet.getBoolean("provided"));
     Integer confirmations = (Integer) resultSet.getObject("confirmation");
     transaction.setConfirmation(confirmations);
@@ -185,14 +223,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   JOIN USER ON WALLET.user_id = USER.id" +
           "   JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
           "   JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-          "   LEFT JOIN WITHDRAW_REQUEST ON (TRANSACTION.source_type='WITHDRAW') AND (WITHDRAW_REQUEST.id=TRANSACTION.source_id) " +
-          "   LEFT JOIN EXORDERS ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id)" +
-          "   LEFT JOIN MERCHANT ON " +
-          "             (" +
-          "               (TRANSACTION.merchant_id IS NOT NULL AND MERCHANT.id = TRANSACTION.merchant_id) OR " +
-          "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
-          "             )";
+          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id";
   private final String SELECT_ALL =
       " SELECT " +
           "   TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
@@ -207,7 +238,10 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
           "   EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
           "   EXORDERS.date_acception," +
-          "   WITHDRAW_REQUEST.* " +
+          "   WITHDRAW_REQUEST.*, " +
+          "   REFILL_REQUEST.*, " +
+          "   INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+          "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmations " +
           " FROM TRANSACTION " +
           "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
           "   JOIN USER ON WALLET.user_id = USER.id" +
@@ -215,10 +249,12 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
           "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
           "   LEFT JOIN WITHDRAW_REQUEST ON (TRANSACTION.source_type='WITHDRAW') AND (WITHDRAW_REQUEST.id=TRANSACTION.source_id) " +
+          "   LEFT JOIN REFILL_REQUEST ON (TRANSACTION.source_type='REFILL') AND (REFILL_REQUEST.id=TRANSACTION.source_id) " +
           "   LEFT JOIN EXORDERS ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id)" +
+          "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
           "   LEFT JOIN MERCHANT ON " +
           "             (" +
-          "               (TRANSACTION.merchant_id IS NOT NULL AND MERCHANT.id = TRANSACTION.merchant_id) OR " +
+          "               (REFILL_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = REFILL_REQUEST.merchant_id) OR " +
           "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
           "             )";
 
@@ -488,7 +524,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           }
         }
         String merchantName = rs.getString("merchant_name");
-        if (transactionSourceType != TransactionSourceType.MERCHANT) {
+        if (StringUtils.isEmpty(merchantName)) {
           merchantName = accountStatementDto.getSourceType();
         }
         accountStatementDto.setMerchantName(merchantName);

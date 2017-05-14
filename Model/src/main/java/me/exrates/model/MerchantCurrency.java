@@ -15,7 +15,6 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 public class MerchantCurrency {
-
     private int merchantId;
     private int currencyId;
     private String name;
@@ -25,6 +24,6 @@ public class MerchantCurrency {
     private BigDecimal outputCommission;
     private BigDecimal fixedMinCommission;
     private List<MerchantImage> listMerchantImage;
-
-
+    private String processType;
+    private String address;
 }

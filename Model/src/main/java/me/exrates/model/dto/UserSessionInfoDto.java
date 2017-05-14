@@ -2,8 +2,6 @@ package me.exrates.model.dto;
 
 import me.exrates.model.enums.UserRole;
 
-import java.util.List;
-
 /**
  * Created by OLEG on 06.09.2016.
  */

@@ -1,13 +1,8 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.SessionParamsDao;
-import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
-import me.exrates.model.User;
-import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -17,7 +12,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

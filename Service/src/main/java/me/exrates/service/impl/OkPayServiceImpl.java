@@ -3,15 +3,16 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.OkPayService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,6 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Autowired
     private TransactionService transactionService;
-
-    @Autowired
-    private PendingPaymentDao pendingPaymentDao;
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -142,5 +140,15 @@ public class OkPayServiceImpl implements OkPayService {
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public Map<String, String> refill(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

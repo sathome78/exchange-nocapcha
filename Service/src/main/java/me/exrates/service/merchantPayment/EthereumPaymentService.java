@@ -30,9 +30,8 @@ public class EthereumPaymentService implements MerchantPaymentService {
   @Autowired
   private EthereumService ethereumService;
   
-  @Override
-  public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
-    final CreditsOperation creditsOperation = merchantService
+  private MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
+    /*final CreditsOperation creditsOperation = merchantService
             .prepareCreditsOperation(payment, email)
             .orElseThrow(InvalidAmountException::new);
       final String account = ethereumService.createAddress(creditsOperation);
@@ -45,7 +44,8 @@ public class EthereumPaymentService implements MerchantPaymentService {
              + "/image.png");
      dto.setType(MerchantApiResponseType.NOTIFY);
      dto.setWalletNumber(account);
-     return dto;
+     return dto;*/
+    return null;
   }
   
   @Override

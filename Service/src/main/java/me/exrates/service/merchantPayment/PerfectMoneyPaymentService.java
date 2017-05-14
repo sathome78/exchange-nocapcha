@@ -1,10 +1,7 @@
 package me.exrates.service.merchantPayment;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.PerfectMoneyService;
 import org.apache.logging.log4j.LogManager;
@@ -14,10 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.StringJoiner;
 
 /**
  * Created by OLEG on 05.09.2016.
@@ -39,7 +34,7 @@ public class PerfectMoneyPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
@@ -55,7 +50,7 @@ public class PerfectMoneyPaymentService implements MerchantPaymentService {
         dto.setData(rootUrl + "/api/payments/merchantRedirect?" + paramJoiner.toString());
 
         return dto;
-    }
+    }*/
 
     @Override
     @Transactional

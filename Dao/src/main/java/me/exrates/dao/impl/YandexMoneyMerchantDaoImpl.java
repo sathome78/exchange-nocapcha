@@ -7,7 +7,6 @@ import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -88,14 +87,13 @@ public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao 
     }
 
     @Override
-    public int savePayment(Integer currencyId, BigDecimal amount, Integer merchantImageId) {
-        String sql = "INSERT INTO YANDEX_MONEY_PAYMENT(currency_id, amount, merchant_image_id) " +
-                "VALUES(:currency_id, :amount, :merchant_image_id)";
+    public int savePayment(Integer currencyId, BigDecimal amount) {
+        String sql = "INSERT INTO YANDEX_MONEY_PAYMENT(currency_id, amount) " +
+                "VALUES(:currency_id, :amount)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_id", currencyId)
-                .addValue("amount", amount)
-                .addValue("merchant_image_id", merchantImageId);
+                .addValue("amount", amount);
         int result = new NamedParameterJdbcTemplate(dataSource)
                 .update(sql, params, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
@@ -117,7 +115,6 @@ public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao 
                         payment.setMerchant(6);
                         payment.setOperationType(OperationType.INPUT);
                         payment.setCurrency(rs.getInt("currency_id"));
-                        payment.setMerchantImage(rs.getInt("merchant_image_id"));
                         return payment;
                     }));
         } catch (EmptyResultDataAccessException ex) {

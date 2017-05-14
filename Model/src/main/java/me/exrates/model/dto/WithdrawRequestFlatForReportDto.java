@@ -3,8 +3,6 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;

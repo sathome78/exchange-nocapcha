@@ -1,12 +1,20 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.*;
-import me.exrates.model.*;
-import me.exrates.model.dto.mobileApiDto.*;
+import me.exrates.controller.exception.InputRequestLimitExceededException;
+import me.exrates.controller.exception.InvalidNicknameException;
+import me.exrates.controller.exception.InvoiceNotFoundException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.model.ClientBank;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
+import me.exrates.model.Payment;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.UserTransferDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
@@ -33,10 +41,10 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -70,16 +78,16 @@ public class MobileInputOutputController {
     private WalletService walletService;
 
     @Autowired
-    private InvoiceService invoiceService;
-
-    @Autowired
-    private UserFilesService userFilesService;
+    private InputOutputService inputOutputService;
 
     @Autowired
     private MessageSource messageSource;
 
     @Autowired
     WithdrawService withdrawService;
+
+    @Autowired
+    RefillService refillService;
 
 
 
@@ -117,96 +125,6 @@ public class MobileInputOutputController {
      *      }
      *
      * */
-    
-    /**
-     * @apiDefine IllegalInvoiceStatusException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
-     * @apiErrorExample {json} Illegal Invoice Status:
-     * HTTP/1.1 406 Not Acceptable
-     *      {
-     *           "errorCode": "BAD_INVOICE_STATUS",
-     *           "url": "http://localhost:8080/api/payments/invoice/confirm",
-     *           "cause": "UnsupportedInvoiceStatusForActionException",
-     *           "detail": "current state: EXPIRED action: CONFIRM_USER"
-     *      }
-     *
-     * */
-    
-    /**
-     * @apiDefine InvoiceNotFoundException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
-     * @apiErrorExample {json} Invoice Not Found:
-     * HTTP/1.1 404 Not Found
-     *      {
-     *           "errorCode": "INVOICE_NOT_FOUND",
-     *           "url": "http://localhost:8080/api/payments/invoice/confirm",
-     *           "cause": "InvoiceNotFoundException",
-     *           "detail": "invoice id: 23423"
-     *      }
-     *
-     * */
-  
-    
-    
-    /**
-     * @apiDefine MerchantCurrencyBlockedException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
-     * @apiErrorExample {json} Merchant and Currency Blocked:
-     * HTTP/1.1 406 Not Acceptable
-     *      {
-     *           "errorCode": "BLOCKED_CURRENCY_FOR_MERCHANT",
-     *           "url": "http://127.0.0.1:8080/api/payments/preparePayment",
-     *           "cause": "MerchantCurrencyBlockedException",
-     *           "detail": "Operation INPUT is blocked for this currency! "
-     *      }
-     *
-     * */
-    
-    /**
-     * @apiDefine InputRequestLimitExceededException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
-     * @apiErrorExample {json} Insufficient Costs:
-     * HTTP/1.1 406 Not Acceptable
-     *      {
-     *           "errorCode": "INPUT_REQUEST_LIMIT_EXCEEDED",
-     *           "url": "http://127.0.0.1:8080/api/payments/preparePayment",
-     *           "cause": "InputRequestLimitExceededException",
-     *           "detail": "Ваш дневной лимит ввода для этой валюты превышен. Пожалуйста, попробуйте завтра."
-     *      }
-     *
-     * */
-    
-    /**
-     * @apiDefine OutputRequestLimitExceededException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
-     * @apiErrorExample {json} Insufficient Costs:
-     * HTTP/1.1 406 Not Acceptable
-     *      {
-     *           "errorCode": "OUTPUT_REQUEST_LIMIT_EXCEEDED",
-     *           "url": "http://127.0.0.1:8080/api/payments/withdraw",
-     *           "cause": "RequestLimitExceededException",
-     *           "detail": "Ваш дневной лимит вывода для этой валюты превышен. Пожалуйста, попробуйте завтра."
-     *      }
-     *
-     * */
-    
-    
-    
 
 
 
@@ -227,11 +145,7 @@ public class MobileInputOutputController {
      * @apiSuccess {Integer} data.currencyId currency id
      * @apiSuccess {String} data.name merchant name
      * @apiSuccess {String} data.detail merchant detail
-     * @apiSuccess {Number} data.minInputSum minimal sum of input payment
-     * @apiSuccess {Number} data.minOutputSum minimal sum of output payment
-     * @apiSuccess {Number} data.inputCommission merchant commission for input
-     * @apiSuccess {Number} data.outputCommission merchant commission for output
-     * @apiSuccess {Number} data.minFixedCommission minimal fixed amount of merchant commission
+     * @apiSuccess {Number} data.minSum minimal sum of payment
      * @apiSuccess {Array} data.merchantImageList List of merchant images
      * @apiSuccess {Object} merchantImage Merchant image
      * @apiSuccess {String} data.merchantImage.merchantId merchant id
@@ -239,8 +153,6 @@ public class MobileInputOutputController {
      * @apiSuccess {String} data.merchantImage.image_name image name
      * @apiSuccess {String} data.merchantImage.image_path - path for image on server
      * @apiSuccess {String} data.merchantImage.id - merchant image id
-     * @apiSuccess {Boolean} data.withdrawBlocked indicator of blocked output for merchant and currency
-     * @apiSuccess {Boolean} data.refillBlocked indicator of blocked input for merchant and currency
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *   [
@@ -250,17 +162,13 @@ public class MobileInputOutputController {
      *              "name": "Invoice",
      *              "minInputSum": 0.01,
      *              "minOutputSum": 131340,
-     *              "inputCommission": 0,
-     *              "outputCommission": 0,
-     *              "minFixedCommission": 0,
+     *              "commission": 0,
      *              "listMerchantImage": [
      *                  {
      *                      "id": 63,
      *                      "imagePath": "/client/img/merchants/invoice.png"
      *                  }
      *              ]
-     *              "withdrawBlocked": true,
-     *              "refillBlocked": true
      *          }
      *    ]
      *
@@ -305,7 +213,7 @@ public class MobileInputOutputController {
      *     HTTP/1.1 200 OK
      *   {
      *      "balance": "USD 17801.04",
-     *      "success": "Your withdrawal request #126,556 through system Interkassa has been accepted and will be processed."
+     *      "success": "Your withdrawal request #126,556 through system Interkassa has been accepted and it will be processed within 48 hours."
      *   }
      *
      *
@@ -317,32 +225,25 @@ public class MobileInputOutputController {
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
      * @apiUse InvalidParamError
-     * @apiUse MerchantCurrencyBlockedException
-     * @apiUse OutputRequestLimitExceededException
      * @apiUse InternalServerError
      */
     @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawDto withdrawDto) {
-    
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        
-        if (!merchantService.checkOutputRequestsLimit(withdrawDto.getCurrency(), userEmail)) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, userLocale));
-        }
-        
-        
+    public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
+
+
         Payment payment = new Payment();
-        payment.setCurrency(withdrawDto.getCurrency());
-        payment.setMerchant(withdrawDto.getMerchant());
-        payment.setSum(withdrawDto.getSum());
-        payment.setMerchantImage(withdrawDto.getMerchantImage());
-        payment.setDestination(withdrawDto.getDestination());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum().doubleValue());
+        payment.setDestination(requestParamsDto.getDestination());
         payment.setOperationType(OperationType.OUTPUT);
 
-
-        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
-        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), userEmail, userLocale);
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
         return new ResponseEntity<>(response, OK);
 
     }
@@ -366,18 +267,11 @@ public class MobileInputOutputController {
      *          "merchant": 10,
      *          "sum": 10.0
      *      }
-     * @apiSuccess {String} type GET, POST, NOTIFY
-     * @apiSuccess {String} walletNumber Wallet number to pay to
-     * @apiSuccess {String} data Vadies depending on type
-     * @apiSuccess {Object} qr String for qr generation (for cryptocurrencies)
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *   {
-     *      "type": "NOTIFY",
-     *      "walletNumber": "mxXwnytdLLsupwmQcKRzE4Rz5j8qtPzi4z",
-     *      "data": "Пожалуйста, оплатите 0.001 BTC на кошелек mxXwnytdLLsupwmQcKRzE4Rz5j8qtPzi4z в течение 96 часов",
-     *      "qr": "bitcoin:mxXwnytdLLsupwmQcKRzE4Rz5j8qtPzi4z?amount=0.001&message=Donation%20for%20project%20Exrates"
-     *   }
+     *
+     * @apiSuccess {String} notification Notification with payment details (for cryptocurrencies and invoice)
+     * @apiSuccess {String} url URL to redirect or send POST request
+     * @apiSuccess {Object} properties Request params
+     *
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -386,15 +280,13 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
-     * @apiUse MerchantCurrencyBlockedException
-     * @apiUse InputRequestLimitExceededException
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
+        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
 
@@ -402,14 +294,13 @@ public class MobileInputOutputController {
         payment.setCurrency(paymentDto.getCurrency());
         payment.setMerchant(paymentDto.getMerchant());
         payment.setSum(paymentDto.getSum());
-        payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
         final MerchantInputResponseDto result = merchantPaymentServices.get(beanName).preparePayment(userEmail, payment,
                 userLocale);
         return new ResponseEntity<>(result, OK);
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/invoice/prepare Prepare invoice
@@ -452,23 +343,23 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
-     * @apiUse InputRequestLimitExceededException
-     * @apiUse MerchantCurrencyBlockedException
      * @apiUse InternalServerError
      */
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
+        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrencyId());
-        payment.setMerchant(merchantService.findByNName("Invoice").getId());
+        payment.setMerchant(merchantService.findByName("Invoice").getId());
         payment.setSum(paymentDto.getAmount().doubleValue());
         payment.setOperationType(OperationType.INPUT);
-        final CreditsOperation creditsOperation = merchantService
+        final CreditsOperation creditsOperation = inputOutputService
                 .prepareCreditsOperation(payment, userEmail)
                 .orElseThrow(InvalidAmountException::new);
         InvoiceData invoiceData = new InvoiceData();
@@ -487,7 +378,7 @@ public class MobileInputOutputController {
         dto.setWalletNumber(invoiceService.findBankById(paymentDto.getBankId()).getAccountNumber());
         dto.setInvoiceId(transaction.getId());
         return new ResponseEntity<>(dto, OK);
-    }
+    }*/
 
 
     /**
@@ -520,45 +411,15 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
-     * @apiUse IllegalInvoiceStatusException
-     * @apiUse InvoiceNotFoundException
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale);
+//        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale); //TODO REFILL
         return new ResponseEntity<>(OK);
     }
-    
-    
-    /**
-     * @api {post} /api/payments/invoice/revoke Revoke invoice
-     * @apiName revokeInvoice
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription Revoke invoice by ID
-     * @apiParam {Integer} invoiceId invoice id
-     *
-     * @apiParamExample {json} Request Example:
-     *      {
-     *          "invoiceId": 130720
-     *      }
-     *
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InvalidParamError
-     * @apiUse MessageNotReadableError
-     * @apiUse InvalidAmountError
-     * @apiUse IllegalInvoiceStatusException
-     * @apiUse InvoiceNotFoundException
-     * @apiUse InternalServerError
-     */
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws Exception {
         String invoiceIdString = RestApiUtils.retrieveParamFormBody(params, "invoiceId", true);
@@ -567,7 +428,7 @@ public class MobileInputOutputController {
         invoiceConfirmData.setInvoiceId(invoiceId);
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale);
+//        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale); //TODO REFILL
         return new ResponseEntity<>(OK);
     }
 
@@ -618,126 +479,24 @@ public class MobileInputOutputController {
      */
     @RequestMapping(value = "/invoice/banks", method = GET)
     public List<InvoiceBank> getBanksByCurrency(@RequestParam Integer currencyId) {
-        return invoiceService.findBanksForCurrency(currencyId);
-    }
-    
-    
-    
-    /**
-     * @api {get} /api/payments/invoice/clientBanks Client banks info
-     * @apiName getClientBanksByCurrency
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription returns list of banks from where client can send costs
-     * @apiParam {Integer} currencyId - currency id
-     * @apiParamExample Request example
-     * /api/payments/invoice/clientBanks?currencyId=10
-     * @apiSuccess {Array} banks List of banks
-     * @apiSuccess {Object} data Container object
-     * @apiSuccess {Integer} data.id bank id
-     * @apiSuccess {Integer} data.currencyId currency id
-     * @apiSuccess {String} data.name bank name
-     * @apiSuccess {String} data.code bank code
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *   [
-     *      {
-     *          "id": 1,
-     *          "currencyId": 10,
-     *          "name": "BANK BCA",
-     *          "code": "014"
-     *      },
-     *      {
-     *          "id": 2,
-     *          "currencyId": 10,
-     *          "name": "BANK MANDIRI",
-     *          "code": "008"
-     *       }
-     *   ]
-     *
-     *
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InternalServerError
-     */
-    @RequestMapping(value = "/invoice/clientBanks", method = GET)
-    public List<ClientBank> getClientBanksByCurrency(@RequestParam Integer currencyId) {
-        return invoiceService.findClientBanksForCurrency(currencyId);
+        return refillService.findBanksForCurrency(currencyId);
     }
 
+    @RequestMapping(value = "/invoice/clientBanks", method = GET)
+    public List<ClientBank> getClientBanksByCurrency(@RequestParam Integer currencyId) {
+        return withdrawService.findClientBanksForCurrency(currencyId);
+    }
+
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/requests", method = GET)
     public List<InvoiceRequest> findInvoiceRequestsForUser() {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
 
-    }
-    
-    
-    /**
-     * @api {get} /api/payments/invoice/details Client banks info
-     * @apiName findInvoiceRequestDetails
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription returns details of invoice by id
-     * @apiParam {Integer} invoiceId - invoice id
-     * @apiParamExample Request example
-     * /api/payments/invoice/details?invoiceId=1775518
-     * @apiSuccess {Object} data Container object
-     * @apiSuccess {Integer} data.id invoice id
-     * @apiSuccess {Integer} data.currencyId currency id
-     * @apiSuccess {Number} data.amount amount of payment
-     * @apiSuccess {Number} data.commission commission amount
-     * @apiSuccess {Long} data.creationTime time of creation
-     * @apiSuccess {Long} data.acceptanceTime time of acceptance
-     * @apiSuccess {Object} data.targetBank target bank
-     * @apiSuccess {Integer} data.targetBank.id target bank id
-     * @apiSuccess {String} data.targetBank.name target bank name
-     * @apiSuccess {String} data.targetBank.accountNumber account number
-     * @apiSuccess {String} data.targetBank.recipient recipient name
-     * @apiSuccess {String} data.userFullName full name of user
-     * @apiSuccess {String} data.remark user remark
-     * @apiSuccess {String} data.payerBankName name of payer bank
-     * @apiSuccess {String} data.payerAccount account of payer
-     * @apiSuccess {String} data.invoiceRequestStatus request status
-     * @apiSuccess {Long} data.statusUpdateDate date of status change
-     * @apiSuccess {String} data.receiptScanFullPath path to receipt image
-     * @apiSuccess {String} data.receiptScanName name of receipt image
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *   {
-     *      "id": 1775518,
-     *      "currencyId": 10,
-     *      "amount": 100305,
-     *      "commissionAmount": 0,
-     *      "creationTime": 1494585059000,
-     *      "acceptanceTime": 1494585179000,
-     *      "targetBank": {
-     *          "id": 2,
-     *          "name": "MANDIRI",
-     *          "accountNumber": "1440099965557",
-     *          "recipient": "Nanda Rizal Pahlewi"
-     *          },
-     *      "userFullName": "asdf",
-     *      "remark": "dfg",
-     *      "payerBankName": "ANZ PANIN BANK",
-     *      "payerAccount": "234542345234",
-     *      "invoiceRequestStatus": "ACCEPTED_ADMIN",
-     *      "statusUpdateDate": 1494585179000,
-     *      "receiptScanFullPath": "http://localhost:8080/rest\\userFiles\\495\\receipts\\receipt_1775518_20170512_133244.jpeg",
-     *      "receiptScanName": "receipt_1775518_20170512_133244.jpeg"
-     *   }
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse InvoiceNotFoundException
-     * @apiUse AuthenticationError
-     * @apiUse InternalServerError
-     */
+    }*/
+
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/details", method = GET)
     public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId, HttpServletRequest request) {
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
@@ -748,109 +507,37 @@ public class MobileInputOutputController {
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/rest";
         return new InvoiceDetailsDto(invoiceRequest, baseUrl);
     }
-    
-    
-    /**
-     * @api {post} /api/payments/invoice/withdraw Withdraw invoice
-     * @apiName withdrawInvoice
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription Submit withdraw request through Invoice
-     * @apiParam {Integer} currency currency id
-     * @apiParam {Number} sum amount of payment
-     * @apiParam {String} recipientBankName name of destination bank
-     * @apiParam {String} recipientBankCode code of destination bank
-     * @apiParam {String} userFullName full name of user
-     * @apiParam {String} remark additional remark (OPTIONAL)
-     *
-     * @apiParamExample {json} Request Example:
-     *      {
-     *          "currency": 10,
-     *          "sum": 100000,
-     *          "walletNumber": "11111111111",
-     *          "recipientBankName": "BANK ABCD",
-     *          "recipientBankCode": "565",
-     *          "userFullName": "John Smith",
-     *          "remark": "qwerty qwerty"
-     *      }
-     *
-     * @apiSuccess {String} balance Balance left
-     * @apiSuccess {String} success Success notification
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *     {
-     *          "balance": "IDR 99999674305.00",
-     *          "success": "Запрос на вывод #11 407 через  Invoice принят и будет проведен"
-     *     }
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InvalidParamError
-     * @apiUse MessageNotReadableError
-     * @apiUse InvalidAmountError
-     * @apiUse MerchantCurrencyBlockedException
-     * @apiUse OutputRequestLimitExceededException
-     * @apiUse InternalServerError
-     */
+*/
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
-        LOGGER.debug(withdrawInvoiceDto);
+    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkOutputRequestsLimit(withdrawInvoiceDto.getCurrency(), userEmail)) {
+        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), userEmail)) {
             throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, userLocale));
         }
         Payment payment = new Payment();
-        payment.setSum(withdrawInvoiceDto.getSum());
-        payment.setCurrency(withdrawInvoiceDto.getCurrency());
-        payment.setMerchant(merchantService.findByNName("Invoice").getId());
+        payment.setSum(requestParamsDto.getSum().doubleValue());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(merchantService.findByName("Invoice").getId());
         payment.setOperationType(OperationType.OUTPUT);
-        payment.setDestination(withdrawInvoiceDto.getWalletNumber());
+        payment.setDestination(requestParamsDto.getWalletNumber());
 
         WithdrawData withdrawData = new WithdrawData();
-        withdrawData.setRecipientBankName(withdrawInvoiceDto.getRecipientBankName());
-        withdrawData.setRecipientBankCode(withdrawInvoiceDto.getRecipientBankCode());
-        withdrawData.setUserFullName(withdrawInvoiceDto.getUserFullName());
-        withdrawData.setRemark(withdrawInvoiceDto.getRemark());
+        withdrawData.setRecipientBankName(requestParamsDto.getRecipientBankName());
+        withdrawData.setRecipientBankCode(requestParamsDto.getRecipientBankCode());
+        withdrawData.setUserFullName(requestParamsDto.getUserFullName());
+        withdrawData.setRemark(requestParamsDto.getRemark());
 
 
-        
-        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
-        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, userEmail, userLocale);
+
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
         
         return new ResponseEntity<>(response, OK);
     }
     
-    /**
-     * @api {post} /api/payments/withdraw/revoke Revoke withdraw request
-     * @apiName revokeWithdrawRequest
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription Revoke withdraw request by ID
-     * @apiParam {Integer} invoiceId invoice id
-     *
-     * @apiParamExample {json} Request Example:
-     *      {
-     *          "invoiceId": 130720
-     *      }
-     *
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InvalidParamError
-     * @apiUse MessageNotReadableError
-     * @apiUse InvalidAmountError
-     * @apiUse IllegalInvoiceStatusException
-     * @apiUse InvoiceNotFoundException
-     * @apiUse InternalServerError
-     */
     @RequestMapping(value = "/withdraw/revoke", method = POST)
     @ResponseBody
     public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
@@ -871,14 +558,13 @@ public class MobileInputOutputController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> preparePostPayment(@RequestBody @Valid PaymentDto paymentDto) {
         LOGGER.debug(paymentDto);
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrency());
         payment.setMerchant(paymentDto.getMerchant());
         payment.setSum(paymentDto.getSum());
-        payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
         String userEmail = getAuthenticatedUserEmail();
         final CreditsOperation creditsOperation = merchantService
@@ -891,7 +577,7 @@ public class MobileInputOutputController {
                 userLocale);
         LOGGER.debug(result);
         return new ResponseEntity<>(result, OK);
-    }
+    }*/
 
     private String getAuthenticatedUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
@@ -976,7 +662,7 @@ public class MobileInputOutputController {
     }
 
   @ResponseStatus(NOT_ACCEPTABLE)
-  @ExceptionHandler({IllegalInvoiceStatusException.class, UnsupportedInvoiceStatusForActionException.class})
+  @ExceptionHandler({IllegalInvoiceStatusException.class})
   public ApiError illegalInvoiceRequestStatusExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ApiError(BAD_INVOICE_STATUS, req.getRequestURL(), exception);
   }
@@ -1022,7 +708,7 @@ public class MobileInputOutputController {
     public ApiError inputRequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
     }
-    
+
     @ResponseStatus(NOT_ACCEPTABLE)
     @ExceptionHandler(RequestLimitExceededException.class)
     @ResponseBody
