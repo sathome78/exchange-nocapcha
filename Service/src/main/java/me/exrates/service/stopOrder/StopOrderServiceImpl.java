@@ -15,6 +15,7 @@ import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotCreatableOrderException;
 import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -76,7 +77,7 @@ public class StopOrderServiceImpl implements StopOrderService {
         ExOrder exOrder = new ExOrder(orderCreateDto);
         exOrder.setId(orderId);
         this.onStopOrderCreate(exOrder);
-        return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
+        return "{\"result\":\"" + messageSource.getMessage("createdstoporder.text", null, locale) + "\"}";
     }
 
 
@@ -107,14 +108,19 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public void proceedStopOrderAndRemove(int stopOrderId) {
-        OrderCreateDto stopOrder = getOrderById(stopOrderId, true);
+        OrderCreateDto stopOrder = null;
+        stopOrder = getOrderById(stopOrderId, true);
         if (stopOrder == null || !stopOrder.getStatus().equals(OrderStatus.OPENED)) {
-            throw new RuntimeException(String.format(" order %s not found in db or illegal status ", stopOrderId));
+            throw new StopOrderNoConditionException(String.format(" order %s not found in db or illegal status ", stopOrderId));
         }
-        this.proceedStopOrder(new ExOrder(stopOrder));
         stopOrdersHolder.delete(stopOrder.getCurrencyPair().getId(),
                 new StopOrderSummaryDto(stopOrderId, stopOrder.getStop(), stopOrder.getOperationType()));
-
+        try {
+            this.proceedStopOrder(new ExOrder(stopOrder));
+        } catch (Exception e) {
+            log.error("error processing stop-order  {}", e);
+            stopOrdersHolder.addOrder(new ExOrder(stopOrder));
+        }
     }
 
 
