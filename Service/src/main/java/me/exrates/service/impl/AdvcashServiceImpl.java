@@ -111,7 +111,7 @@ public class AdvcashServiceImpl implements AdvcashService{
 
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

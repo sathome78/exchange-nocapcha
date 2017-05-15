@@ -7,5 +7,4 @@ import me.exrates.service.merchantStrategy.IMerchantService;
  * Created by maks on 11.05.2017.
  */
 public interface RippleService extends IMerchantService {
-    String createAddress(CreditsOperation creditsOperation);
 }

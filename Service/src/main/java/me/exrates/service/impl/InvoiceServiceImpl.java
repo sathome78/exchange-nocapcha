@@ -28,7 +28,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     throw new NotApplicableException("for " + withdrawMerchantOperationDto);
   }
 

@@ -113,7 +113,7 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

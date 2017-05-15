@@ -2,13 +2,11 @@ package me.exrates.service.ripple;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.RippleTransactionDao;
-import me.exrates.model.Transaction;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.RippleTransactionStatus;
 import me.exrates.model.enums.RippleTransactionType;
-import me.exrates.model.enums.TransactionStatus;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import org.json.JSONObject;
@@ -63,17 +61,15 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     /*send xrp*/
     @Transactional
-    private void sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, RippleTransactionType type) {
+    private String sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, RippleTransactionType type) {
         RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount);
         transaction.setUserId(account.getUser().getId());
         transaction.setType(type);
         rippledNodeService.signTransaction(transaction);
-        transaction.setStatus(RippleTransactionStatus.SIGNED);
-        transactionDao.createRippleTransaction(transaction);
         rippledNodeService.submitTransaction(transaction);
-        transaction.setStatus(RippleTransactionStatus.SUBMITTED);
-        transactionDao.updateRippleTransaction(transaction);
-        try {
+
+        /*verify transactions in the separate job*/
+        /*try {
             Thread.currentThread().wait(1500);
         } catch (InterruptedException e) {
             log.error("error thread waiting {}", e);
@@ -83,17 +79,18 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
             transaction.setStatus(RippleTransactionStatus.CONFIRMED);
 
             transactionDao.updateRippleTransaction(transaction);
-        }
+        }*/
+        return transaction.getTxHash();
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         RippleAccount account = RippleAccount.builder().name(address).secret(secret).build();
         BigDecimal accountFromBalance = getAccountBalance(address);
         if (accountFromBalance.compareTo(XRP_MIN_BALANCE) < 0) {
             throw new InsufficientCostsInWalletException();
         }
-        this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
+        return this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
                 withdrawMerchantOperationDto.getAccountTo(), RippleTransactionType.WITHDRAW);
     }
 

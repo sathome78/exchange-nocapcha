@@ -412,6 +412,32 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
+  public void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+    Integer requestId = requestAcceptDto.getRequestId();
+    if (requestId == null) {
+      Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+              requestAcceptDto.getAddress(),
+              requestAcceptDto.getMerchantId(),
+              requestAcceptDto.getCurrencyId());
+      if (requestIdOptional.isPresent()) {
+        requestId = requestIdOptional.get();
+      }
+    }
+    Optional<RefillRequestFlatDto> refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId);
+    if (requestId != null && refillRequest.isPresent()) {
+      String remark = concatAdminRemark(refillRequest.get(), requestAcceptDto.getRemark());
+      refillRequestDao.setRemarkById(requestId, remark);
+      RefillStatusEnum newStatus = (RefillStatusEnum) refillRequest.get().getStatus().nextState(ACCEPT_AUTO);
+      refillRequestDao.setStatusById(requestId, newStatus);
+     /**/
+    } else {
+      throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
+    }
+  }
+
+
+  @Override
+  @Transactional
   public void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
     Integer requestId = requestAcceptDto.getRequestId();
     RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
@@ -438,6 +464,8 @@ public class RefillServiceImpl implements RefillService {
           .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
       InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
+     /* InvoiceActionTypeEnum action = requestAcceptDto,getToMainAccountTransferringNeeded()? REQUEST_INNER_TRANSFER: refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
+    */
       RefillStatusEnum newStatus = requesterAdminId == null ?
           (RefillStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);

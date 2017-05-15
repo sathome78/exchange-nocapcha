@@ -224,7 +224,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

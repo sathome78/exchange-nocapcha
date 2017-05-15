@@ -1,25 +1,28 @@
 package me.exrates.service.ripple;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RippleAccount;
-import me.exrates.model.dto.RippleTransaction;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.*;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Created by maks on 11.05.2017.
  */
+@Log4j2
 @Service
 public class RippleServiceImpl implements RippleService {
 
@@ -27,6 +30,13 @@ public class RippleServiceImpl implements RippleService {
     private RippleTransactionService rippleTransactionService;
     @Autowired
     private RippledNodeService rippledNodeService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
 
     public void onTransactionReceive(JSONObject result) {
         String account = result.getString("account");
@@ -38,35 +48,49 @@ public class RippleServiceImpl implements RippleService {
     }
 
     @Override
-    public String createAddress(CreditsOperation creditsOperation) {
-        RippleAccount account = rippledNodeService.porposeAccount();
-        account.setUser(creditsOperation.getUser());
-        /*persist data here*/
-        return account.getName();
-    }
-
-    @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
         }
-        rippleTransactionService.withdraw(withdrawMerchantOperationDto);
+        return rippleTransactionService.withdraw(withdrawMerchantOperationDto);
     }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
         RippleAccount account = rippledNodeService.porposeAccount();
-
-        return null;
+        String message = messageSource.getMessage("merchants.refill.edr",
+                new Object[]{account.getName()}, request.getLocale());
+        return new HashMap<String, String>() {{
+            put("address", account.getName());
+            put("message", message);
+            put("qr", account.getName());
+            put("privKey", account.getSecret());
+        }};
     }
 
-    @Override
+
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
+        String merchantTransactionId = params.get("id");
+        String address = params.get("address");
+        String hash = params.get("hash");
+        Currency currency = currencyService.findByName("XRP");
+        Merchant merchant = merchantService.findByName("XRP");
+        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .address(address)
+                .merchantId(merchant.getId())
+                .currencyId(currency.getId())
+                .amount(amount)
+                .merchantTransactionId(StringUtils.isEmpty(merchantTransactionId) ? hash : merchantTransactionId)
+                .build();
+        try {
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            LOG.debug("RefillRequestNotFountException: " + params);
+            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        }
     }
 
-    @Override
-    public String generateFullUrl(String url, Properties properties) {
-        return null;
-    }
 }

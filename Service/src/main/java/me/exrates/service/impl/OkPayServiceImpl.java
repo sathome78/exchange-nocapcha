@@ -138,7 +138,7 @@ public class OkPayServiceImpl implements OkPayService {
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

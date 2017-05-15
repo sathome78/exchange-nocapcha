@@ -64,10 +64,11 @@ public class EDCServiceImpl implements EDCService {
   EDCServiceNode edcServiceNode;
 
   @Override
-  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     edcServiceNode.transferFromMainAccount(
         withdrawMerchantOperationDto.getAccountTo(),
         withdrawMerchantOperationDto.getAmount());
+    return "";
   }
 
   @Override

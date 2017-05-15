@@ -97,7 +97,7 @@ public class Privat24ServiceImpl implements Privat24Service {
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 
