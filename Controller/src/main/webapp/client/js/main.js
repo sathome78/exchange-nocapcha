@@ -69,6 +69,7 @@ $(function(){
     const PAYEER = 'Payeer';
     const ETHEREUM = 'Ethereum';
     const LITECOIIN = 'Litecoin';
+    const ETHEREUM_CLASSIC = 'Ethereum Classic';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -198,7 +199,8 @@ $(function(){
             payeer:'/merchants/payeer/payment/prepare/',
             ethereum:'/merchants/ethereum/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit',
-            litecoin: '/merchants/litecoin/payment/prepare/'
+            litecoin: '/merchants/litecoin/payment/prepare/',
+            ethereum:'/merchants/ethereum/ethereum_classic/payment/prepare'
 
         };
         if (operationType === 'INPUT') {
@@ -233,12 +235,13 @@ $(function(){
                 case PAYEER :
                     form.attr('action', formAction.payeer);
                     break;
-                case ETHEREUM :
-                    form.attr('action', formAction.ethereum);
-                    break;
+                // case ETHEREUM :
+                //     form.attr('action', formAction.ethereum);
+                //     break;
                 case INVOICE:
                     form.attr('action', formAction.invoice);
                     break;
+                case ETHEREUM :
                 case BLOCKCHAIN:
                 case LITECOIIN:
                 case EDC:
@@ -543,7 +546,7 @@ $(function(){
                     if ($($timeoutWarning).size() > 0) {
                         $($timeoutWarning).show();
                     }
-                    $.ajax('/merchants/ethereum/payment/prepare', {
+                    $.ajax('/merchants/ethereum/ethereum/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
                         },
@@ -562,7 +565,54 @@ $(function(){
                                 if(key=='notification'){
                                     $('.paymentInfo').html(response[key] + "<p>");
                                 }
-                             });
+                                if(key=='qr'){
+                                    // $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
+                                    $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
+                                }
+                            });
+
+                            responseControls();
+                        },
+                        error:function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            console.log(textStatus);
+                            console.log(errorThrown);
+                            $('.paymentInfo').html(jqXHR.responseJSON.error);
+
+                            responseControls();
+                        }
+                    });
+                    break;
+                case ETHEREUM_CLASSIC :
+                    $('#inputPaymentProcess')
+                        .prop('disabled', true)
+                        .html($('#mrcht-waiting').val());
+                    if ($($timeoutWarning).size() > 0) {
+                        $($timeoutWarning).show();
+                    }
+                    $.ajax('/merchants/ethereum/ethereum_classic/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify($(form).serializeObject()),
+                        success:function (response) {
+                            $('#inputPaymentProcess')
+                                .prop('disabled', false)
+                                .html($('#mrcht-ready').val());
+                            console.log(response);
+                            if ($($timeoutWarning).size() > 0) {
+                                $($timeoutWarning).hide();
+                            }
+                            $.each(response, function (key) {
+                                if(key=='notification'){
+                                    $('.paymentInfo').html(response[key] + "<p>");
+                                }
+                                if(key=='qr'){
+                                    $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
+                                }
+                            });
 
                             responseControls();
                         },
