@@ -31,7 +31,7 @@ public class RipplePaymentServiceImpl implements MerchantPaymentService {
     @Autowired
     private MerchantService merchantService;
 
-    @Override
+   /* @Override
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, email)
@@ -47,7 +47,7 @@ public class RipplePaymentServiceImpl implements MerchantPaymentService {
         dto.setType(MerchantApiResponseType.NOTIFY);
         dto.setWalletNumber(account);
         return dto;
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

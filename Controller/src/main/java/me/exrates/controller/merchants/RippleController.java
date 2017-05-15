@@ -42,7 +42,7 @@ public class RippleController {
     @Autowired
     MerchantService merchantService;
 
-    @RequestMapping(value = "/payment/prepare", method = POST)
+    /*@RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
                                                               final Principal principal,
                                                               final Locale locale)
@@ -55,7 +55,7 @@ public class RippleController {
         }
 
         final String email = principal.getName();
-        final CreditsOperation creditsOperation = merchantService
+        final CreditsOperation creditsOperation = merchantService.
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         try {
@@ -78,7 +78,7 @@ public class RippleController {
             log.error(e);
             return new ResponseEntity<>(error, NOT_FOUND);
         }
-    }
+    }*/
 }
 
 
