@@ -62,7 +62,7 @@
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 35px"/>
                     <div style="float: left; height: 20px;  width: 408px; text-align: left; margin-right: 10px; padding-left: 210px">
-                      <c:if test="${(merchantCurrency.minSum > 0)}">
+                      <c:if test="${(merchantCurrency.minSum > 0) && (merchantCurrency.processType != \"INVOICE\")}">
                         <span><loc:message code="mercnahts.output.minSum"/></span>
                         <span>${merchantCurrency.minSum.stripTrailingZeros().toPlainString()}</span>
                       </c:if>
@@ -75,6 +75,7 @@
                           data-merchant-id="${merchantCurrency.merchantId}"
                           data-merchant-name="${merchantCurrency.name}"
                           data-merchant-min-sum="${merchantCurrency.minSum}"
+                          data-simple-invoice="${merchantCurrency.simpleInvoice}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
                 </div>

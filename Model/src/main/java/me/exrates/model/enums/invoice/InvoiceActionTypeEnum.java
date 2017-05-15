@@ -82,7 +82,8 @@ public enum InvoiceActionTypeEnum {
   START_BCH_EXAMINE,
   REJECT_TO_REVIEW,
   REJECT_ERROR,
-  REQUEST_INNER_TRANSFER;
+  REQUEST_INNER_TRANSFER,
+  DECLINE_MERCHANT;
 
   private InvoiceActionParams property = new InvoiceActionParams();
 

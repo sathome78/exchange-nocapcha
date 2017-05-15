@@ -49,6 +49,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FROM_PENDING);
+      schemaMap.put(InvoiceActionTypeEnum.REQUEST_INNER_TRANSFER, ON_INNER_TRANSFERRING);
       schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
@@ -65,6 +66,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FROM_EXAM);
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_MERCHANT, WAITING_REVIEWING);
     }
   },
   IN_WORK_OF_ADMIN(7) {
@@ -114,6 +116,26 @@ public enum RefillStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, ON_BCH_EXAM);
+    }
+  },
+  ON_INNER_TRANSFERRING(15){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
+      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
+    }
+  },
+  WAITING_REVIEWING(16){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FOR_REFILL);
+    }
+  },
+  TAKEN_FOR_REFILL(17){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_ADMIN);
     }
   };
 

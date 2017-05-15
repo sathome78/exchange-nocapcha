@@ -48,7 +48,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
   private String receiptScan = "";
   private String userFullName = "";
   private String remark;
-  private String wifPrivKey = "";
+  private String privKey = "";
   private String pubKey = "";
   private String brainPrivKey = "";
   private String merchantTransactionId = "";
@@ -96,7 +96,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.receiptScan = refillRequestFlatDto.getReceiptScan();
     this.userFullName = refillRequestFlatDto.getUserFullName();
     this.remark = refillRequestFlatDto.getRemark();
-    this.wifPrivKey = null;
+    this.privKey = null;
     this.pubKey = null;
     this.brainPrivKey = null;
     this.status = refillRequestFlatDto.getStatus();
