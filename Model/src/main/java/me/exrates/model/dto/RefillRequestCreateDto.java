@@ -38,6 +38,9 @@ public class RefillRequestCreateDto {
   private String userFullName;
   private String remark;
   private String address;
+  private String privKey;
+  private String pubKey;
+  private String brainPrivKey;
   private Boolean generateNewAddress;
   private Locale locale;
 
@@ -52,6 +55,9 @@ public class RefillRequestCreateDto {
     this.userFullName = paramsDto.getUserFullName();
     this.remark = paramsDto.getRemark();
     this.address = paramsDto.getAddress();
+    this.privKey = null;
+    this.pubKey = null;
+    this.brainPrivKey = null;
     this.generateNewAddress = paramsDto.getGenerateNewAddress();
     /**/
     this.userId = creditsOperation.getUser().getId();

@@ -122,6 +122,9 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         request.setAddress(result.get("address"));
+        request.setPrivKey(result.get("privKey"));
+        request.setPubKey(result.get("pubKey"));
+        request.setBrainPrivKey(result.get("brainPrivKey"));
         Integer requestId = createRefill(request);
         request.setId(requestId);
       } catch (RefillRequestIdNeededException e) {

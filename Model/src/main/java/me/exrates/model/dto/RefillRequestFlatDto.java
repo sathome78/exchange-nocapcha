@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 public class RefillRequestFlatDto {
   private int id;
   private String address;
+  private String privKey;
+  private String pubKey;
+  private String brainPrivKey;
   private Integer userId;
   private String payerBankName;
   private String payerBankCode;

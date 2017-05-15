@@ -48,6 +48,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     RefillRequestFlatDto refillRequestFlatDto = new RefillRequestFlatDto();
     refillRequestFlatDto.setId(rs.getInt("id"));
     refillRequestFlatDto.setAddress(rs.getString("address"));
+    refillRequestFlatDto.setPrivKey(rs.getString("priv_key"));
+    refillRequestFlatDto.setPubKey(rs.getString("pub_key"));
+    refillRequestFlatDto.setBrainPrivKey(rs.getString("brain_priv_key"));
     refillRequestFlatDto.setUserId(rs.getInt("user_id"));
     refillRequestFlatDto.setPayerBankName(rs.getString("payer_bank_name"));
     refillRequestFlatDto.setPayerBankCode(rs.getString("payer_bank_code"));
@@ -295,14 +298,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       }
       if (refillRequestAddressId == null) {
         final String addAddressSql = "INSERT INTO REFILL_REQUEST_ADDRESS " +
-            " (id, currency_id, address, user_id) " +
+            " (id, currency_id, address, user_id, priv_key, pub_key, brain_priv_key) " +
             " VALUES " +
-            " (:id, :currency_id, :address, :user_id) ";
+            " (:id, :currency_id, :address, :user_id, :priv_key, :pub_key, :brain_priv_key) ";
         params = new MapSqlParameterSource()
             .addValue("id", refillRequestId)
             .addValue("currency_id", request.getCurrencyId())
             .addValue("address", request.getAddress())
-            .addValue("user_id", request.getUserId());
+            .addValue("user_id", request.getUserId())
+            .addValue("priv_key", request.getUserId())
+            .addValue("pub_key", request.getUserId())
+            .addValue("brain_priv_key", request.getUserId());
         namedParameterJdbcTemplate.update(addAddressSql, params);
         refillRequestAddressId = refillRequestId;
       }
