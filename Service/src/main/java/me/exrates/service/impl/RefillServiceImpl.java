@@ -118,7 +118,7 @@ public class RefillServiceImpl implements RefillService {
       profileData.setTime1();
       try {
         result = merchantService.refill(request);
-        if (result.keySet().contains("address") && StringUtils.isEmpty(result.get("address"))){
+        if (result.keySet().contains("address") && StringUtils.isEmpty(result.get("address"))) {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         request.setAddress(result.get("address"));
@@ -161,7 +161,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
-    merchantCurrencies.forEach(e->e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse("")));
+    merchantCurrencies.forEach(e -> e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse("")));
     return merchantCurrencies;
   }
 
@@ -222,8 +222,9 @@ public class RefillServiceImpl implements RefillService {
     } catch (IOException e) {
       throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null, locale));
     }
-    String remark = refillRequest.getRemark().concat("\nuser: ").concat(invoiceConfirmData.getRemark());
-    invoiceConfirmData.setRemark(remark);
+    String remark = invoiceConfirmData.getRemark();
+    String prefix = "user: ";
+    invoiceConfirmData.setRemark(remark, prefix);
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
   }
 
@@ -434,13 +435,13 @@ public class RefillServiceImpl implements RefillService {
     Integer requestId = requestAcceptDto.getRequestId();
     BigDecimal factAmount = requestAcceptDto.getAmount();
     Integer requesterAdminId = requestAcceptDto.getRequesterAdminId();
-    String remark = requestAcceptDto.getRemark();
     String merchantTransactionId = requestAcceptDto.getMerchantTransactionId();
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
-      InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
+      InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringNeeded() ? REQUEST_INNER_TRANSFER :
+          refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
       RefillStatusEnum newStatus = requesterAdminId == null ?
           (RefillStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
@@ -450,10 +451,14 @@ public class RefillServiceImpl implements RefillService {
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
       refillRequest.setMerchantTransactionId(merchantTransactionId);
-      remark = concatAdminRemark(refillRequest, remark);
+      String remark = requestAcceptDto.getRemark();
+      String prefix = "admin (#"
+          .concat(refillRequest.getAdminHolderId() == null ? "null" : refillRequest.getAdminHolderId().toString())
+          .concat("): ");
+      refillRequest.setRemark(remark, prefix);
+      remark = refillRequest.getRemark();
       if (!StringUtils.isEmpty(remark)) {
         refillRequestDao.setRemarkById(requestId, remark);
-        refillRequest.setRemark(remark);
       }
       profileData.setTime1();
       /**/
@@ -676,10 +681,13 @@ public class RefillServiceImpl implements RefillService {
       if (StringUtils.isEmpty(comment)) {
         comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
       }
-      String remark = concatAdminRemark(refillRequest, comment);
+      String prefix = "admin (#"
+          .concat(refillRequest.getAdminHolderId() == null ? "null" : refillRequest.getAdminHolderId().toString())
+          .concat("): ");
+      refillRequest.setRemark(comment, prefix);
+      String remark = refillRequest.getRemark();
       if (!StringUtils.isEmpty(remark)) {
         refillRequestDao.setRemarkById(requestId, remark);
-        refillRequest.setRemark(remark);
       }
       String userEmail = userService.getEmailById(refillRequest.getUserId());
       userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);

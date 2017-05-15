@@ -57,7 +57,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setPayerAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setRecipientBankAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
-    refillRequestFlatDto.setRemark(rs.getString("remark"));
+    refillRequestFlatDto.setRemark(rs.getString("remark"),"");
     refillRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
     refillRequestFlatDto.setReceiptScanName(rs.getString("receipt_scan_name"));
     refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
