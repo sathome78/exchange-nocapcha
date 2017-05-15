@@ -566,7 +566,6 @@ $(function(){
                                     $('.paymentInfo').html(response[key] + "<p>");
                                 }
                                 if(key=='qr'){
-                                    // $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
                                     $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
                                 }
                             });
