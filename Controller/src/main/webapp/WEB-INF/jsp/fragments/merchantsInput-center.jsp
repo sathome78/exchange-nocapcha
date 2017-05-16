@@ -85,22 +85,24 @@
                         <div>
                           <loc:message code="refill.messageAboutCurrentAddressSimple"/>
                           <div id="address-to-pay" style="font-size:16px">
-                            ${merchantCurrency.address}
+                              ${merchantCurrency.address}
                           </div>
                           <div>
                             <img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=<c:out value="${merchantCurrency.address}"/>'/>
                           </div>
                           <button id=address-copy class="btn" style="padding: 0 20px"><loc:message
                                   code="refill.copy"/></button>
-                          <button id=address-generate class="btn start-refill" style="padding: 0 20px"
-                                  data-currency-id="${currency.getId()}"
-                                  data-currency-name="${currency.getName()}"
-                                  data-merchant-id="${merchantCurrency.merchantId}"
-                                  data-merchant-name="${merchantCurrency.name}"
-                                  data-merchant-min-sum="${merchantCurrency.minSum}"
-                                  data-process_type="${merchantCurrency.processType}"
-                                  data-merchant-image-d="${merchantImage.id}"><loc:message
-                                  code="refill.generate"/></button>
+                          <c:if test="${merchantCurrency.generateAdditionalRefillAddressAvailable}">
+                            <button id=address-generate class="btn start-refill" style="padding: 0 20px"
+                                    data-currency-id="${currency.getId()}"
+                                    data-currency-name="${currency.getName()}"
+                                    data-merchant-id="${merchantCurrency.merchantId}"
+                                    data-merchant-name="${merchantCurrency.name}"
+                                    data-merchant-min-sum="${merchantCurrency.minSum}"
+                                    data-process_type="${merchantCurrency.processType}"
+                                    data-merchant-image-d="${merchantImage.id}"><loc:message
+                                    code="refill.generate"/></button>
+                          </c:if>
                         </div>
                       </div>
                     </c:otherwise>

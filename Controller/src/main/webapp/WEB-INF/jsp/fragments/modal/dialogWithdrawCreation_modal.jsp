@@ -27,6 +27,10 @@
             <loc:message code="merchants.modalOutputWallet"/>
           </label>
           <input class="form-control" autofocus name="walletUid" type="text" id="walletUid">
+          <label class="control-label" for="address-tag">
+            <loc:message code="merchants.modalOutputAddressTag"/>
+          </label>
+          <input class="form-control" name="address-tag" type="text" id="address-tag">
         </div>
         <div class="timeoutWarning">
           <c:forEach var="warningCode" items="${warningCodeList}">

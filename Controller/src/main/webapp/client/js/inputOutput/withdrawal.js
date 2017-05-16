@@ -252,6 +252,7 @@ function fillModal($modal, rowData) {
     var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
     $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
     $modal.find('#info-wallet').text(rowData.wallet);
+    $modal.find('#info-destination-tag').text(rowData.destinationTag);
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $modal.find('#info-userFullName').text(rowData.userFullName);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);

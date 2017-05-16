@@ -36,6 +36,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private BigDecimal netAmount;
   private String merchantName;
   private String wallet;
+  private String destinationTag;
   private Integer adminHolderId;
   private String adminHolderEmail;
   private String recipientBankName;
@@ -63,6 +64,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.netAmount = BigDecimalProcessing.doAction(this.amount, this.commissionAmount, ActionType.SUBTRACT);
     this.merchantName = withdrawRequestFlatAdditionalDataDto.getMerchantName();
     this.wallet = withdrawRequestFlatDto.getWallet();
+    this.destinationTag = withdrawRequestFlatDto.getDestinationTag();
     this.adminHolderId = withdrawRequestFlatDto.getAdminHolderId();
     this.adminHolderEmail = withdrawRequestFlatAdditionalDataDto.getAdminHolderEmail();
     this.recipientBankName = withdrawRequestFlatDto.getRecipientBankName();

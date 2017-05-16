@@ -46,6 +46,10 @@
                             <td id="info-wallet"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="merchants.withdrawDetails.destinationTag"/></td>
+                            <td id="info-destination-tag"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="merchants.withdrawDetails.recipientFullName"/></td>
                             <td id="info-userFullName"></td>
                         </tr>

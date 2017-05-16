@@ -240,6 +240,9 @@ $(function refillCreation() {
         $refillParamsDialog.find('#message').show();
         $refillParamsDialog.find('#message').html(message ? message : '');
         $refillParamsDialog.find('#payment-qr').html(qrTag ? qrTag : '');
+        $refillParamsDialog.one("hidden.bs.modal", function () {
+            window.location.reload(true);
+        });
         $refillParamsDialog.modal();
     }
 

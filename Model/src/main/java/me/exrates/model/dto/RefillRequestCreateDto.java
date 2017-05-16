@@ -42,6 +42,7 @@ public class RefillRequestCreateDto {
   private String pubKey;
   private String brainPrivKey;
   private Boolean generateNewAddress;
+  private Boolean generateAdditionalRefillAddressAvailable;
   private Locale locale;
 
   public RefillRequestCreateDto(RefillRequestParamsDto paramsDto,  CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
@@ -69,6 +70,7 @@ public class RefillRequestCreateDto {
     this.refillOperationCountLimitForUserPerDay = creditsOperation.getMerchant().getRefillOperationCountLimitForUserPerDay();
     this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
+    this.generateAdditionalRefillAddressAvailable = creditsOperation.getGenerateAdditionalRefillAddressAvailable();
     /**/
     this.status = status;
     /**/

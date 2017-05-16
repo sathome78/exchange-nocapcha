@@ -156,6 +156,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     Merchant merchant = merchantService.findById(payment.getMerchant());
     Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
+    String destinationTag = payment.getDestinationTag();
     if (!"CRYPTO".equals(merchant.getProcessType()) || amount.compareTo(BigDecimal.ZERO) != 0) {
       try {
         merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
@@ -185,7 +186,9 @@ public class InputOutputServiceImpl implements InputOutputService {
         .wallet(wallet)
         .merchant(merchant)
         .destination(destination)
+        .destinationTag(destinationTag)
         .transactionSourceType(transactionSourceType)
+        .generateAdditionalRefillAddressAvailable(merchant.getGenerateAdditionalRefillAddressAvailable())
         .build();
     return Optional.of(creditsOperation);
   }

@@ -22,5 +22,5 @@ public class RefillRequestAcceptDto {
   private String merchantTransactionId;
   private Integer requesterAdminId;
   private String remark;
-  private boolean toMainAccountTransferringNeeded;
+  private boolean toMainAccountTransferringConfirmNeeded;
 }

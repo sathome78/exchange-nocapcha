@@ -94,7 +94,7 @@ public class PayeerServiceImpl implements PayeerService {
         .currencyId(currency.getId())
         .amount(amount)
         .merchantTransactionId(merchantTransactionId)
-        .toMainAccountTransferringNeeded(merchant.getToMainAccountTransferringNeeded())
+        .toMainAccountTransferringConfirmNeeded(merchant.getToMainAccountTransferringConfirmNeeded())
         .build();
     refillService.autoAcceptRefillRequest(requestAcceptDto);
   }

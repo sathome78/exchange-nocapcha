@@ -42,6 +42,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     WithdrawRequestFlatDto withdrawRequestFlatDto = new WithdrawRequestFlatDto();
     withdrawRequestFlatDto.setId(rs.getInt("id"));
     withdrawRequestFlatDto.setWallet(rs.getString("wallet"));
+    withdrawRequestFlatDto.setDestinationTag(rs.getString("destination_tag"));
     withdrawRequestFlatDto.setUserId(rs.getInt("user_id"));
     withdrawRequestFlatDto.setRecipientBankName(rs.getString("recipient_bank_name"));
     withdrawRequestFlatDto.setRecipientBankCode(rs.getString("recipient_bank_code"));
@@ -132,12 +133,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   public int create(WithdrawRequestCreateDto withdrawRequest) {
     final String sql = "INSERT INTO WITHDRAW_REQUEST " +
         "(wallet, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
-        " date_creation, status_modification_date, currency_id, merchant_id, user_id, commission_id) " +
+        " date_creation, status_modification_date, currency_id, merchant_id, user_id, commission_id, destination_tag) " +
         "VALUES (:wallet, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
-        " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :commission_id)";
+        " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :commission_id, :destination_tag)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("wallet", withdrawRequest.getDestinationWallet())
+        .addValue("destination_tag", withdrawRequest.getDestinationTag())
         .addValue("payer_bank_name", withdrawRequest.getRecipientBankName())
         .addValue("payer_bank_code", withdrawRequest.getRecipientBankCode())
         .addValue("user_full_name", withdrawRequest.getUserFullName())
@@ -267,6 +269,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       WithdrawRequestPostDto result = new WithdrawRequestPostDto();
       result.setId(rs.getInt("id"));
       result.setWallet(rs.getString("wallet"));
+      result.setDestinationTag(rs.getString("destination_tag"));
       result.setRecipientBankName(rs.getString("recipient_bank_name"));
       result.setRecipientBankCode(rs.getString("recipient_bank_code"));
       result.setUserFullName(rs.getString("user_full_name"));

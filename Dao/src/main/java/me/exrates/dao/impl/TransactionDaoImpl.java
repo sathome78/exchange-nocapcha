@@ -96,6 +96,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         withdraw = new WithdrawRequest();
         withdraw.setId(resultSet.getInt("WITHDRAW_REQUEST.id"));
         withdraw.setWallet(resultSet.getString("WITHDRAW_REQUEST.wallet"));
+        withdraw.setDestinationTag(resultSet.getString("WITHDRAW_REQUEST.destination_tag"));
         withdraw.setUserId(resultSet.getInt("WITHDRAW_REQUEST.user_id"));
         withdraw.setRecipientBankName(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_name"));
         withdraw.setRecipientBankCode(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_code"));
@@ -117,6 +118,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     RefillRequest refill = null;
     try {
+      //TODO REFILL_REQUEST_Valk
       resultSet.findColumn("REFILL_REQUEST.id");
       if (resultSet.getObject("REFILL_REQUEST.id") != null) {
         refill = new RefillRequest();

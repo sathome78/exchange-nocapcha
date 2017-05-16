@@ -7,11 +7,9 @@ import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.WithdrawRequestPostException;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -108,8 +105,8 @@ public class RippleServiceImpl implements RippleService {
                 .amount(amount)
                 .merchantTransactionId(hash)
                 .build();
-        if(merchant.getToMainAccountTransferringNeeded()) {
-            requestAcceptDto.setToMainAccountTransferringNeeded(true);
+        if(merchant.getToMainAccountTransferringConfirmNeeded()) {
+            requestAcceptDto.setToMainAccountTransferringConfirmNeeded(true);
         }
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);

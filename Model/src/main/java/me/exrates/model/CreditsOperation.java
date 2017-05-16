@@ -23,7 +23,9 @@ public class CreditsOperation {
   private final Wallet wallet;
   private final Merchant merchant;
   private final Optional<String> destination;
+  private final Optional<String> destinationTag;
   private final TransactionSourceType transactionSourceType;
+  private Boolean generateAdditionalRefillAddressAvailable;
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
@@ -37,7 +39,10 @@ public class CreditsOperation {
     this.merchant = builder.merchant;
     this.destination = builder.destination == null ?
         Optional.empty() : builder.destination;
+    this.destinationTag = builder.destinationTag == null ?
+        Optional.empty() : builder.destinationTag;
     this.transactionSourceType = builder.transactionSourceType;
+    this.generateAdditionalRefillAddressAvailable = builder.generateAdditionalRefillAddressAvailable;
   }
 
 
@@ -53,7 +58,9 @@ public class CreditsOperation {
     private Wallet wallet;
     private Merchant merchant;
     private Optional<String> destination;
+    private Optional<String> destinationTag;
     private TransactionSourceType transactionSourceType;
+    private Boolean generateAdditionalRefillAddressAvailable;
 
     public Builder user(User user) {
       this.user = user;
@@ -105,8 +112,18 @@ public class CreditsOperation {
       return this;
     }
 
+    public Builder destinationTag(String destinationTag) {
+      this.destinationTag = Optional.ofNullable(destinationTag);
+      return this;
+    }
+
     public Builder transactionSourceType(TransactionSourceType transactionSourceType) {
       this.transactionSourceType = transactionSourceType;
+      return this;
+    }
+
+    public Builder generateAdditionalRefillAddressAvailable(Boolean generateAdditionalRefillAddressAvailable) {
+      this.generateAdditionalRefillAddressAvailable = generateAdditionalRefillAddressAvailable;
       return this;
     }
 
