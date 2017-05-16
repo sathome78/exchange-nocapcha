@@ -25,4 +25,5 @@ public class WithdrawRequestPostDto {
   private String currencyName;
   private String merchantName;
   private String merchantServiceBeanName;
+  private boolean withdrawTransferringConfirmNeeded;
 }

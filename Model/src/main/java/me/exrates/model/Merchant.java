@@ -16,7 +16,7 @@ public class Merchant {
     private  String serviceBeanName;
     private String processType;
     private Integer refillOperationCountLimitForUserPerDay;
-    private boolean toMainAccountTransferringNeeded;
+    private Boolean toMainAccountTransferringNeeded;
 
     public Merchant(int id) {
         this.id = id;

@@ -255,7 +255,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   public List<WithdrawRequestPostDto> getForPostByStatusList(Integer statusId) {
     String sql = " SELECT WR.*, " +
         " CUR.name AS currency_name, " +
-        " M.name AS merchant_name, M.service_bean_name " +
+        " M.name AS merchant_name, M.service_bean_name, M.withdraw_transferring_confirm_needed " +
         " FROM WITHDRAW_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
@@ -277,6 +277,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       result.setCurrencyName(rs.getString("currency_name"));
       result.setMerchantName(rs.getString("merchant_name"));
       result.setMerchantServiceBeanName(rs.getString("service_bean_name"));
+      result.setWithdrawTransferringConfirmNeeded(rs.getBoolean("withdraw_transferring_confirm_needed"));
       return result;
     });
   }

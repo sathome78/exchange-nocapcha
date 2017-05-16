@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  */
 @Getter @Setter
 @ToString
-public class RefillRequestFlatDto {
+public class RefillRequestFlatDto extends RequestWithRemarkAbstractDto {
   private int id;
   private String address;
   private String privKey;
@@ -25,7 +26,6 @@ public class RefillRequestFlatDto {
   private String payerBankCode;
   private String payerAccount;
   private String userFullName;
-  private String remark;
   private String receiptScan;
   private String receiptScanName;
   private BigDecimal amount;
@@ -44,4 +44,5 @@ public class RefillRequestFlatDto {
   private Integer refillRequestAddressId;
   private Integer refillRequestParamId;
   private InvoiceOperationPermission invoiceOperationPermission;
+
 }

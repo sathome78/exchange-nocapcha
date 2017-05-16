@@ -337,7 +337,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
       String title = messageSource.getMessage("withdrawal.declined.title", new Integer[]{requestId}, locale);
       String notification = String.join(": ", messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale),
-              comment);
+          comment);
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
       notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, notification);
@@ -364,7 +364,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional
   public void rejectError(int requestId, long timeoutInMinutes, String reasonCode) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
-            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     LocalDateTime rejectTimeLimit = withdrawRequest.getStatusModificationDate().plusMinutes(timeoutInMinutes);
     if (LocalDateTime.now().isAfter(rejectTimeLimit)) {
       InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_ERROR);
@@ -372,11 +372,11 @@ public class WithdrawServiceImpl implements WithdrawService {
       Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
       String description = transactionDescription.get(withdrawRequest.getStatus(), REJECT_ERROR);
       WalletTransferStatus result = walletService.walletInnerTransfer(
-              userWalletId,
-              withdrawRequest.getAmount(),
-              TransactionSourceType.WITHDRAW,
-              withdrawRequest.getId(),
-              description);
+          userWalletId,
+          withdrawRequest.getAmount(),
+          TransactionSourceType.WITHDRAW,
+          withdrawRequest.getId(),
+          description);
       if (result != SUCCESS) {
         throw new WithdrawRequestPostException(result.name());
       }
@@ -399,7 +399,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional
   public void rejectToReview(int requestId) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
-            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_TO_REVIEW);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
@@ -407,7 +407,6 @@ public class WithdrawServiceImpl implements WithdrawService {
     String message = messageSource.getMessage("withdraw.rejectReview.body", new Object[]{withdrawRequest.getId()}, locale);
     notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
   }
-
 
 
   @Override
@@ -420,7 +419,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .accountTo(withdrawRequest.getWallet())
         .build();
     try {
-      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null);
+      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
       merchantService.withdraw(withdrawMerchantOperation);
       /**/
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
@@ -429,12 +428,10 @@ public class WithdrawServiceImpl implements WithdrawService {
       String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
       userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
       notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
-    }
-    catch (MerchantException e) {
+    } catch (MerchantException e) {
       log.error(e);
       throw e;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }
@@ -442,7 +439,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
-    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId);
+    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false);
     /**/
     Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
     String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{requestId}, locale);
@@ -470,13 +467,14 @@ public class WithdrawServiceImpl implements WithdrawService {
     return result;
   }
 
-  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId) {
+  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId, boolean withdrawTransferringConfirmNeeded) {
     ProfileData profileData = new ProfileData(1000);
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
       WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
-      InvoiceActionTypeEnum action = withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+      InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
+          withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
       WithdrawStatusEnum newStatus = requesterAdminId == null ?
           (WithdrawStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);

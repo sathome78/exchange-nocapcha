@@ -98,6 +98,7 @@ public class EDCServiceImpl implements EDCService {
         .currencyId(currency.getId())
         .amount(amount)
         .merchantTransactionId(StringUtils.isEmpty(merchantTransactionId) ? hash : merchantTransactionId)
+        .toMainAccountTransferringNeeded(merchant.getToMainAccountTransferringNeeded())
         .build();
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
