@@ -427,8 +427,8 @@ public class RefillServiceImpl implements RefillService {
         requestId = requestIdOptional.get();
       }
     }
-    Optional<RefillRequestFlatDto> refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId);
-    if (requestId != null && refillRequest.isPresent()) {
+    Optional<RefillRequestFlatDto> refillRequest;
+    if (requestId != null && (refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)).isPresent()) {
       String remark = concatAdminRemark(refillRequest.get(), requestAcceptDto.getRemark());
       refillRequestDao.setRemarkById(requestId, remark);
       RefillStatusEnum newStatus = (RefillStatusEnum) refillRequest.get().getStatus().nextState(ACCEPT_AUTO);

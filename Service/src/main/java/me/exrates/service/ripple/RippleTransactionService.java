@@ -10,5 +10,9 @@ import java.math.BigDecimal;
 public interface RippleTransactionService {
     String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto);
 
+    BigDecimal normalizeAmountToDecimal(String amount);
+
     BigDecimal getAccountBalance(String accountName);
+
+    boolean checkSendedTransactionConsensus(String txHash);
 }

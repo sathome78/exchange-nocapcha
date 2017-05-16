@@ -36,6 +36,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
             "                                 \"Amount\":  \"%s\",\n" +
             "                                 \"Destination\": \"%s\",\n" +
             "                                 \"TransactionType\": \"Payment\"\n" +
+            "                                 \"DestinationTag\": \"%d\"\n" +
             "                             },\n" +
             "                             \"fee_mult_max\": 1000\n" +
             "                         }\n" +
@@ -80,7 +81,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
     @Override
     public void signTransaction(RippleTransaction transaction) {
         String requestBody = String.format(SIGN_RPC, transaction.getIssuerSecret(), transaction.getIssuerAddress(),
-                transaction.getSendAmount(), transaction.getDestinationAddress());
+                transaction.getSendAmount(), transaction.getDestinationAddress(), transaction.getDestinationTag());
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("cant generate new address");
@@ -100,15 +101,16 @@ public class RippledNodeServiceImpl implements RippledNodeService {
     }
 
     @Override
-    public boolean checkSendedTransactionConsensus(String txHash) {
+    public JSONObject getTransaction(String txHash) {
         String requestBody = String.format(GET_TRANSACTION_RPC, txHash);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
-        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+        JSONObject jsonResponse = new JSONObject(response.getBody()).getJSONObject("result");
+        if (RestUtil.isError(response.getStatusCode())
+                || (jsonResponse = new JSONObject(response.getBody()).getJSONObject("result")).has("error")) {
             log.error("error checking transaction {}", response.getBody());
-            throw new RippleCheckConsensusException(response.getBody());
+            throw new RippleCheckConsensusException(jsonResponse.getString("error_message"));
         }
-        JSONObject responseBody = new JSONObject(response.getBody()).getJSONObject("result");
-        return responseBody.getBoolean("validated");
+        return jsonResponse;
     }
 
     @Override

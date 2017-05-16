@@ -31,6 +31,7 @@ public class RippleTransaction {
     private LocalDateTime lastModifficaionDate;
     private Integer userId;
     private Integer transactionId;
+    private Integer destinationTag;
 
     @Tolerate
     public RippleTransaction() {

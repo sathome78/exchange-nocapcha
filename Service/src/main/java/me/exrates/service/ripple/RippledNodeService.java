@@ -13,7 +13,7 @@ public interface RippledNodeService {
 
     void submitTransaction(RippleTransaction transaction);
 
-    boolean checkSendedTransactionConsensus(String txHash);
+    JSONObject getTransaction(String txHash);
 
     JSONObject getAccountInfo(String accountName);
 
