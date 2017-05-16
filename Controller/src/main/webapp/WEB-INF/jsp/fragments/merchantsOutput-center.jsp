@@ -75,7 +75,6 @@
                           data-merchant-id="${merchantCurrency.merchantId}"
                           data-merchant-name="${merchantCurrency.name}"
                           data-merchant-min-sum="${merchantCurrency.minSum}"
-                          data-simple-invoice="${merchantCurrency.simpleInvoice}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
                 </div>

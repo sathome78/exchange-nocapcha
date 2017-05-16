@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.WithdrawRequestPostException;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -37,6 +39,8 @@ public class RippleServiceImpl implements RippleService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
+    private RefillService refillService;
+
 
     public void onTransactionReceive(JSONObject result) {
         String account = result.getString("account");
@@ -68,14 +72,16 @@ public class RippleServiceImpl implements RippleService {
         }};
     }
 
-
+    @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String merchantTransactionId = params.get("id");
         String address = params.get("address");
         String hash = params.get("hash");
         Currency currency = currencyService.findByName("XRP");
         Merchant merchant = merchantService.findByName("XRP");
+
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
+        BigDecimal accountBalance = rippleTransactionService.getAccountBalance(address);
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -83,10 +89,19 @@ public class RippleServiceImpl implements RippleService {
                 .amount(amount)
                 .merchantTransactionId(StringUtils.isEmpty(merchantTransactionId) ? hash : merchantTransactionId)
                 .build();
+        if(merchant.isToMainAccountTransferringNeeded()) {
+            requestAcceptDto.setToMainAccountTransferringNeeded(true);
+        }
         try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            if (accountBalance.compareTo(amount) <= 0) {
+                requestAcceptDto.setRemark(messageSource.getMessage("merchant.ripple.emptyRefill",
+                        new String[]{amount.toString()}, Locale.ENGLISH));
+                refillService.autoAcceptRefillEmptyRequest(requestAcceptDto);
+            } else {
+                refillService.autoAcceptRefillRequest(requestAcceptDto);
+            }
         } catch (RefillRequestAppropriateNotFoundException e) {
-            LOG.debug("RefillRequestNotFountException: " + params);
+            log.debug("RefillRequestNotFountException: " + params);
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
             refillService.autoAcceptRefillRequest(requestAcceptDto);

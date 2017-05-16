@@ -127,7 +127,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
             throw new RuntimeException("cant generate new address");
         }
-        JSONObject responseBody = new JSONObject(response.getBody());
+        JSONObject responseBody = new JSONObject(response.getBody()).getJSONObject("result");
         return RippleAccount.builder()
                 .name(responseBody.getString("account_id"))
                 .secret(responseBody.getString("master_seed"))

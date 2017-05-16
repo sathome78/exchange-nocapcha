@@ -1,0 +1,5 @@
+ALTER TABLE REFILL_REQUEST
+  ADD COLUMN `inner_transfer_hash` VARCHAR(200) NULL;
+
+ALTER TABLE MERCHANT
+  ADD COLUMN `to_main_account_transferring_needed` BOOLEAN DEFAULT FALSE;

@@ -125,7 +125,8 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     }
 
 
-    private BigDecimal getAccountBalance(String accountName) {
+    @Override
+    public BigDecimal getAccountBalance(String accountName) {
         JSONObject accountData = rippledNodeService.getAccountInfo(accountName)
                 .getJSONObject("result").getJSONObject("account_data");
         return normalizeAmountToDecimal(accountData.getString("Balance"));
