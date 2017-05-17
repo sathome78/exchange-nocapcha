@@ -419,6 +419,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .currency(withdrawRequest.getCurrencyName())
         .amount(BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT).toString())
         .accountTo(withdrawRequest.getWallet())
+        .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
