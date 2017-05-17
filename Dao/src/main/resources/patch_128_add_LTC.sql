@@ -35,8 +35,9 @@ create table CRYPTO_CORE_WALLET
 )
 ;
 
-INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, .CRYPTO_CORE_WALLET.title_code)
-VALUES (3, 4, 'btcWallet.title'), (17, 5, 'ltcWallet.title');
+INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
+VALUES ((SELECT id from MERCHANT WHERE name='Bitcoin'), (SELECT id from MERCHANT WHERE name='BTC'), 'btcWallet.title'),
+  ((SELECT id from MERCHANT WHERE name='Litecoin'), (SELECT id from MERCHANT WHERE name='LTC'), 'ltcWallet.title');
 
 UPDATE CURRENCY_PAIR SET hidden = 0, pair_order = 215 WHERE name = 'LTC/BTC';
 UPDATE CURRENCY_PAIR SET hidden = 0, pair_order = 216 WHERE name = 'LTC/USD';
