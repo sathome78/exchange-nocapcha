@@ -47,8 +47,8 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     /*send xrp*/
     @Transactional
-    private String sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount) {
-        RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount);
+    private String sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, Integer destinationTag) {
+        RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount, destinationTag);
         transaction.setUserId(account.getUser().getId());
         rippledNodeService.signTransaction(transaction);
         rippledNodeService.submitTransaction(transaction);
@@ -63,16 +63,17 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
             throw new InsufficientCostsInWalletException();
         }
         return this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
-                withdrawMerchantOperationDto.getAccountTo());
+                withdrawMerchantOperationDto.getAccountTo(), Integer.parseInt(withdrawMerchantOperationDto.getDestinationTag()));
     }
 
-    private RippleTransaction prepareTransaction(BigDecimal amount, RippleAccount account, String destinationAccount) {
+    private RippleTransaction prepareTransaction(BigDecimal amount, RippleAccount account, String destinationAccount, Integer destinationTag) {
         return RippleTransaction.builder()
                 .amount(amount)
                 .sendAmount(normalizeAmountToXRPString(amount))
                 .destinationAddress(destinationAccount)
                 .issuerAddress(account.getName())
                 .issuerSecret(account.getSecret())
+                .destinationTag(destinationTag)
                 .build();
     }
 
