@@ -42,7 +42,7 @@ function getStopOrderDetailedInfo(currentRow, orderId, enableDelete) {
 
 
 function deleteOrderByAdmin() {
-    var order_id = $('#id').find('span').text();
+    var order_id = $('#id_stop').find('span').text();
 
     $('#stop-order-delete-modal').one('hidden.bs.modal', function (e) {
             /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
@@ -218,7 +218,7 @@ $(function () {
         searchOrder();
     }
 
-    $("#delete-order-info__delete").on('click', function () {
+    $("#delete-order-info__delete_stop").on('click', function () {
         deleteOrderByAdmin();
     })
 });
