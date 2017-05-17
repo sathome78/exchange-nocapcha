@@ -20,7 +20,16 @@ public class RippleJobs {
     private WithdrawService withdrawService;
 
     @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
-    private void checkWithdraws() {
+    private void checkWithdrawals() {
 
+    }
+
+    private void checkWithdraw(int id) {
+
+
+        boolean declined = false;
+        if(declined) {
+            withdrawService.rejectToReview(id);
+        }
     }
 }
