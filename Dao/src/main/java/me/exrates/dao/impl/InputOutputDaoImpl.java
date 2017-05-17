@@ -50,7 +50,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id," +
         "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date," +
         "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
-        "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, RRP.remark) AS remark," +
+        "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
         "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id" +
         "  FROM TRANSACTION " +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
@@ -81,7 +81,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     RR.status_id, " +
         "     RR.status_modification_date, " +
         "     RRP.user_full_name, " +
-        "     RRP.remark, " +
+        "     RR.remark, " +
         "     RR.admin_holder_id" +
         "   FROM REFILL_REQUEST RR " +
         "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +

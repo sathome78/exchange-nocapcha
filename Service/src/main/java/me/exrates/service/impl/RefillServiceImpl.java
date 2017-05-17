@@ -452,14 +452,41 @@ public class RefillServiceImpl implements RefillService {
     Integer requestId = requestAcceptDto.getRequestId();
     RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
     /**/
-    Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
-    String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
-    String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
-        new Integer[]{requestId},
-        locale);
-    String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
-    userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+    if (refillRequestFlatDto.getStatus().isSuccessEndStatus()) {
+      Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+      String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+      String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+          new Integer[]{requestId},
+          locale);
+      String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+      userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+      notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void finalizeAcceptRefillRequest(Integer requestId) {
+    RefillRequestFlatDto refillRequestFlatDto = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+    try {
+      RefillStatusEnum currentStatus = refillRequestFlatDto.getStatus();
+      RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(ACCEPT_AUTO);
+      refillRequestDao.setStatusById(requestId, newStatus);
+      /**/
+      if (newStatus.isSuccessEndStatus()) {
+        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+            new Integer[]{requestId},
+            locale);
+        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      }
+    } catch (Exception e) {
+      throw new WithdrawRequestPostException(refillRequestFlatDto.toString());
+    }
   }
 
   private RefillRequestFlatDto acceptRefill(RefillRequestAcceptDto requestAcceptDto) {

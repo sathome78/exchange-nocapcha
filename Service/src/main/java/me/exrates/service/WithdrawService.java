@@ -28,6 +28,9 @@ public interface WithdrawService {
 
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
+  @Transactional
+  void finalizePostWithdrawalRequest(Integer requestId);
+
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
   List<ClientBank> findClientBanksForCurrency(Integer currencyId);

@@ -425,17 +425,42 @@ public class WithdrawServiceImpl implements WithdrawService {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
       merchantService.withdraw(withdrawMerchantOperation);
       /**/
-      Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
-      String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
-      String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
-      String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
-      userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-      notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
+        Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
+        String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+        String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
+        String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
+        userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+        notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      }
     } catch (MerchantException e) {
       log.error(e);
       throw e;
     } catch (Exception e) {
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
+    }
+  }
+
+  @Override
+  @Transactional
+  public void finalizePostWithdrawalRequest(Integer requestId) {
+    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    try {
+      WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
+      WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(POST_AUTO);
+      withdrawRequestDao.setStatusById(requestId, newStatus);
+      /**/
+      if (newStatus.isSuccessEndStatus()) {
+        Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
+        String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+        String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequest.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
+        String userEmail = userService.getEmailById(withdrawRequest.getUserId());
+        userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+        notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      }
+    } catch (Exception e) {
+      throw new WithdrawRequestPostException(withdrawRequest.toString());
     }
   }
 

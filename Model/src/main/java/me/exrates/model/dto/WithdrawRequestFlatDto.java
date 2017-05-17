@@ -2,6 +2,7 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
  * Created by ValkSam
  */
 @Getter @Setter
+@ToString
 public class WithdrawRequestFlatDto {
   private int id;
   private String wallet;
