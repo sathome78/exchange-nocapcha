@@ -11,7 +11,6 @@ import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.WithdrawRequestPostException;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 
 /**
  * Created by maks on 11.05.2017.
@@ -47,6 +47,8 @@ public class RippleServiceImpl implements RippleService {
     @Autowired
     private RefillService refillService;
 
+    private static final int MAX_TAG_DESTINATION_DIGITS = 10;
+
 
     /*method for admin manual check transaction by hash*/
     @Override
@@ -56,7 +58,7 @@ public class RippleServiceImpl implements RippleService {
     }
 
 
-    private void onTransactionReceive(JSONObject result) {
+    protected void onTransactionReceive(JSONObject result) {
         log.debug("income transaction {} ", result.toString());
         boolean validated = result.getBoolean("validated");
         Map<String, String> paramsMap = new HashMap<>();
@@ -85,7 +87,7 @@ public class RippleServiceImpl implements RippleService {
     /*generate max-10digits(Unsigned Integer) for identifying payment */
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
-        Integer destinationTag = 123343545;/*todo make tag generation */
+        Integer destinationTag = generateUniqDestinationTag(request.getUserId());
         String message = messageSource.getMessage("merchants.refill.edr",
                 new Object[]{systemAddress}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -119,6 +121,29 @@ public class RippleServiceImpl implements RippleService {
             requestAcceptDto.setRequestId(requestId);
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+    }
+
+    private Integer generateUniqDestinationTag(int userId) {
+        Currency currency = currencyService.findByName("XRP");
+        Merchant merchant = merchantService.findByName("XRP");
+        Optional<Integer> id = null;
+        int destinationTag;
+        do {
+            destinationTag = generateDestinationTag(userId);
+            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
+                    currency.getId(), merchant.getId());
+        } while (!id.isPresent());
+        return destinationTag;
+    }
+
+    private Integer generateDestinationTag(int userId) {
+        String idInString = String.valueOf(userId);
+        int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
+        if (randomNumberLength < 0 ) {
+            throw new MerchantInternalException("error generating new destination tag for ripple" + userId);
+        }
+        String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
+        return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
     }
 
 }

@@ -252,7 +252,8 @@ public class RefillServiceImpl implements RefillService {
         hash);
   }
 
-  private Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
+  @Override
+  public Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
