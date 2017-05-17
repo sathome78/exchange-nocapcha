@@ -133,6 +133,8 @@ $(function () {
                 getOrderDetailedInfo(sourceId, false);
             } else if (sourceType === "WITHDRAW") {
                 getWithdrawDetailedInfo(sourceId);
+            } else if (sourceType === "STOP_ORDER") {
+                getStopOrderDetailedInfo(null, sourceId, false)
             }
         }
 

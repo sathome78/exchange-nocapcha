@@ -133,8 +133,11 @@ public class StopOrderServiceImpl implements StopOrderService {
             throw new RuntimeException("error preparing new order");
         }
         cancelCostsReserveForStopOrder(exOrder, Locale.ENGLISH, OrderActionEnum.ACCEPT);
+        stopOrderDao.setStatus(exOrder.getId(), OrderStatus.CLOSED);
         Integer orderId = orderService.createOrderByStopOrder(newOrder, OrderActionEnum.CREATE, Locale.ENGLISH);
-        stopOrderDao.setStatusAndChildOrderId(exOrder.getId(), orderId, OrderStatus.CLOSED);
+        if (orderId != null) {
+            stopOrderDao.setStatusAndChildOrderId(exOrder.getId(), orderId, OrderStatus.CLOSED);
+        }
     }
 
     @Transactional
