@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 public class WithdrawRequestPostDto {
   private int id;
   private String wallet;
+  private String destinationTag;
   private String recipientBankName;
   private String recipientBankCode;
   private String userFullName;

@@ -14,6 +14,7 @@ $(function withdrawCreation() {
     const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
     const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
+    const $destinationTagHolder = $withdrawParamsDialog.find("#address-tag");
     const notifications = new NotificationsClass();
     const urlForWithdrawCreate = "/withdraw/request/create";
     const modalTemplate = $container.find('.paymentInfo p');
@@ -30,7 +31,9 @@ $(function withdrawCreation() {
     var merchantMinSum;
     var merchantImageId;
     var destination;
+    var destinationTag;
     var merchantIsSimpleInvoice;
+    var additionalFieldNeeded;
     var amount;
     var commissionPercent;
     var commissionAmount;
@@ -51,6 +54,7 @@ $(function withdrawCreation() {
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
         merchantIsSimpleInvoice = $(button).data("simple-invoice");
+        additionalFieldNeeded = $(button).data("additional-field-needed");
         amount = parseFloat($amountHolder.val());
         if (checkAmount()) {
             fillModalWindow();
@@ -99,6 +103,13 @@ $(function withdrawCreation() {
     }
 
     function showWithdrawDialog(message) {
+        if (additionalFieldNeeded) {
+            $withdrawParamsDialog.find("[for=address-tag]").show();
+            $withdrawParamsDialog.find("#address-tag").show();
+        } else {
+            $withdrawParamsDialog.find("[for=address-tag]").hide();
+            $withdrawParamsDialog.find("#address-tag").hide();
+        }
         if (merchantIsSimpleInvoice) {
             $withdrawParamsDialog.find("#merchant-commission-warning").hide();
             showFinPassModal();
@@ -111,6 +122,7 @@ $(function withdrawCreation() {
             /**/
             $withdrawParamsDialog.find("#continue-btn").off('click').on('click', function () {
                 destination = $destinationHolder.val();
+                destinationTag = $destinationTagHolder.val();
                 if (!checkWithdrawParamsEnter()) {
                     return;
                 }
@@ -144,6 +156,7 @@ $(function withdrawCreation() {
             merchant: merchant,
             sum: amount,
             destination: destination,
+            destinationTag: destinationTag,
             merchantImage: merchantImageId,
             operationType: operationType,
         };
@@ -172,7 +185,7 @@ $(function withdrawCreation() {
         }
     }
 
-    function sendRequest(data, finPassword){
+    function sendRequest(data, finPassword) {
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForWithdrawCreate + '?finpassword=' + finPassword,
@@ -248,7 +261,7 @@ $(function withdrawCreation() {
     }
 
     function checkWithdrawParamsEnter() {
-        return merchantIsSimpleInvoice || destination.length > 3;
+        return merchantIsSimpleInvoice || (destination.length > 3 && (!additionalFieldNeeded || destinationTag.length > 3));
     }
 
     function getCommission(callback) {

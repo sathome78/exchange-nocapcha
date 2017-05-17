@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class WithdrawRequestFlatDto {
   private int id;
   private String wallet;
+  private String destinationTag;
   private Integer userId;
   private String recipientBankName;
   private String recipientBankCode;

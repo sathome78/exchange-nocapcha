@@ -26,4 +26,6 @@ public class MerchantCurrency {
     private List<MerchantImage> listMerchantImage;
     private String processType;
     private String address;
+    private Boolean generateAdditionalRefillAddressAvailable;
+    private Boolean additionalTagForWithdrawAddressIsUsed;
 }

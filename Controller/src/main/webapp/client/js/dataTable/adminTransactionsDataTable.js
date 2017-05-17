@@ -168,6 +168,7 @@ $(function () {
                     $modal.find('#info-status').text(data.status);
                     $modal.find('#info-status-date').text(data.statusModificationDate);
                     $modal.find('#info-wallet').text(data.wallet);
+                    $modal.find('#info-destination-tag').text(data.destinationTag);
                     $modal.find('#info-userFullName').text(data.userFullName);
                     $modal.find('#info-remark').find('textarea').html(data.remark);
                     $modal.modal();

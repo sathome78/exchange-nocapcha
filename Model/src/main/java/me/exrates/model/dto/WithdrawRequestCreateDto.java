@@ -24,6 +24,7 @@ public class WithdrawRequestCreateDto {
   private BigDecimal commission;
   private Integer commissionId;
   private String destinationWallet;
+  private String destinationTag;
   private Integer merchantId;
   private String merchantDescription;
   private Integer statusId;
@@ -44,6 +45,7 @@ public class WithdrawRequestCreateDto {
     this.commission = creditsOperation.getCommissionAmount();
     this.commissionId = creditsOperation.getCommission().getId();
     this.destinationWallet = creditsOperation.getDestination().get();
+    this.destinationTag = creditsOperation.getDestinationTag().get();
     this.merchantId = creditsOperation.getMerchant().getId();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
     this.statusId = status.getCode();

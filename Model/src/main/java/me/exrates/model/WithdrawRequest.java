@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class WithdrawRequest {
   private Integer id;
   private String wallet;
+  private String destinationTag;
   private Integer userId;
   private String userEmail;
   private String recipientBankName;
@@ -36,6 +37,7 @@ public class WithdrawRequest {
   public WithdrawRequest(WithdrawRequestCreateDto withdrawRequestCreateDto) {
     this.id = withdrawRequestCreateDto.getId();
     this.wallet = withdrawRequestCreateDto.getDestinationWallet();
+    this.destinationTag = withdrawRequestCreateDto.getDestinationTag();
     this.userId = withdrawRequestCreateDto.getUserId();
     this.userEmail = withdrawRequestCreateDto.getUserEmail();
     this.recipientBankName = withdrawRequestCreateDto.getRecipientBankName();

@@ -17,6 +17,7 @@ public class WithdrawRequestParamsDto {
   private Integer merchant;
   private BigDecimal sum;
   private String destination;
+  private String destinationTag;
   private int merchantImage;
   private OperationType operationType;
   private String recipientBankName;

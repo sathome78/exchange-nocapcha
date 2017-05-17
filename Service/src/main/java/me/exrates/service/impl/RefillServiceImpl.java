@@ -118,8 +118,13 @@ public class RefillServiceImpl implements RefillService {
       profileData.setTime1();
       try {
         result = merchantService.refill(request);
-        if (result.keySet().contains("address") && StringUtils.isEmpty(result.get("address"))) {
-          throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
+        if (result.keySet().contains("address")) {
+          if (StringUtils.isEmpty(result.get("address"))) {
+            throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
+          }
+          if (!request.getGenerateAdditionalRefillAddressAvailable()) {
+            throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
+          }
         }
         request.setAddress(result.get("address"));
         request.setPrivKey(result.get("privKey"));
@@ -421,9 +426,9 @@ public class RefillServiceImpl implements RefillService {
     Integer requestId = requestAcceptDto.getRequestId();
     if (requestId == null) {
       Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
-              requestAcceptDto.getAddress(),
-              requestAcceptDto.getMerchantId(),
-              requestAcceptDto.getCurrencyId());
+          requestAcceptDto.getAddress(),
+          requestAcceptDto.getMerchantId(),
+          requestAcceptDto.getCurrencyId());
       if (requestIdOptional.isPresent()) {
         requestId = requestIdOptional.get();
       }
@@ -467,7 +472,7 @@ public class RefillServiceImpl implements RefillService {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
-      InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringNeeded() ? REQUEST_INNER_TRANSFER :
+      InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringConfirmNeeded() ? REQUEST_INNER_TRANSFER :
           refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
       RefillStatusEnum newStatus = requesterAdminId == null ?
           (RefillStatusEnum) currentStatus.nextState(action) :
