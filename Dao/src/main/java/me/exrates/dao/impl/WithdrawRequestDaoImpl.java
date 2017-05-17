@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -193,10 +194,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String searchClause = dataTableParams.getSearchClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
-            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-            "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
-            "				AND (IOP.user_id=:requester_user_id) " +
-            "				AND (IOP.operation_direction=:operation_direction) " +
+            getPermissionClause(requesterUserId) +
             (filter.isEmpty() ? "" : JOINS_FOR_FILTER) +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
 
@@ -205,7 +203,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
     String sqlMain = String.join(" ", "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ",
-            sqlBase, whereClauseFilter, whereClauseSearch, orderClause, offsetAndLimit);
+        sqlBase, whereClauseFilter, whereClauseSearch, orderClause, offsetAndLimit);
     String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter, whereClauseSearch);
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("status_id_list", statusIdList);
@@ -236,10 +234,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       Integer requesterUserId) {
     String sql = "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id " +
         " FROM WITHDRAW_REQUEST " +
-        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-        "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
-        "				AND (IOP.user_id=:requester_user_id) " +
-        "				AND (IOP.operation_direction=:operation_direction) " +
+        getPermissionClause(requesterUserId) +
         " WHERE WITHDRAW_REQUEST.id=:id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("id", id);
@@ -368,6 +363,31 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     params.put("currency_id", currencyId);
     params.put("email", email);
     return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+  }
+
+  @Override
+  public Optional<Integer> findUserIdById(Integer requestId) {
+    String sql = "SELECT WR.user_id " +
+        " FROM WITHDRAW_REQUEST WR " +
+        " WHERE WR.id = :id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("id", requestId);
+    }};
+    try {
+      return Optional.of(jdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  private String getPermissionClause(Integer requesterUserId) {
+    if (requesterUserId == null) {
+      return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";
+    }
+    return " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "	  			(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
+        "	  			AND (IOP.user_id=:requester_user_id) " +
+        "	  			AND (IOP.operation_direction=:operation_direction) ";
   }
 
 }

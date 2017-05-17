@@ -253,6 +253,8 @@ public class WithdrawServiceImpl implements WithdrawService {
       Integer id,
       String authorizedUserEmail) {
     Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    Integer userId = withdrawRequestDao.findUserIdById(id).orElse(null);
+    authorizedUserId = authorizedUserId.equals(userId) ? null : authorizedUserId;
     WithdrawRequestFlatDto withdraw = withdrawRequestDao.getPermittedFlatById(
         id,
         authorizedUserId);
@@ -417,6 +419,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .currency(withdrawRequest.getCurrencyName())
         .amount(BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT).toString())
         .accountTo(withdrawRequest.getWallet())
+        .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
@@ -582,6 +585,5 @@ public class WithdrawServiceImpl implements WithdrawService {
         "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
     return notification;
   }
-
 
 }

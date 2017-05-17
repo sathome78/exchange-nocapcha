@@ -38,11 +38,8 @@ public interface TransactionService {
   void provideTransaction(Transaction transaction);
 
   void invalidateTransaction(Transaction transaction);
-  
-  DataTable<List<OperationViewDto>> showUserOperationHistory(
-          Integer requesterUserId,
-          Integer userId,
-          AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
+
+  DataTable<List<OperationViewDto>> showUserOperationHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
   List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 

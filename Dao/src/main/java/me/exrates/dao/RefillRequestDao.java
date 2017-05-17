@@ -72,4 +72,6 @@ public interface RefillRequestDao {
   Integer findConfirmationsNumberByRequestId(Integer requestId);
 
   void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations);
+
+  Optional<Integer> findUserIdById(Integer requestId);
 }
