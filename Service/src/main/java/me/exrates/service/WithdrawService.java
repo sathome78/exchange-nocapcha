@@ -6,6 +6,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,6 +27,9 @@ public interface WithdrawService {
   void rejectToReview(int requestId);
 
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
+
+  @Transactional
+  void finalizePostWithdrawalRequest(Integer requestId);
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
