@@ -52,9 +52,17 @@ public class RippleServiceImpl implements RippleService {
 
     /*method for admin manual check transaction by hash*/
     @Override
-    public void manualCheckTransaction(String hash) {
+    public void manualCheckNotReceivedTransaction(String hash) {
         JSONObject response = rippledNodeService.getTransaction(hash);
         onTransactionReceive(response);
+    }
+
+
+    /*return: true if tx validated; false if not validated but validationin process,
+    throws Exception if declined*/
+    @Override
+    public boolean checkSendedTransaction(String hash) {
+
     }
 
 

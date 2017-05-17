@@ -48,4 +48,6 @@ public interface WithdrawRequestDao {
   boolean checkOutputRequests(int currencyId, String email);
 
   Optional<Integer> findUserIdById(Integer requestId);
+
+    List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 }
