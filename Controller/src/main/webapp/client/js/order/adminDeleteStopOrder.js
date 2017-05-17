@@ -4,31 +4,33 @@
 
 var currentRowGlobal;
 
-function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
+function getStopOrderDetailedInfo(currentRow, orderId, enableDelete) {
     $.ajax({
         url: '/2a8fy7b07dxe44/stopOrderinfo?id=' + orderId,
         type: 'GET',
         success: function (data) {
-            $("#id").find('span').html(data.id);
-            $("#dateCreation").find('span').html(data.dateCreation);
-            $("#dateAcception").find('span').html(data.dateAcception ? data.dateAcception : '-');
-            $("#currencyPairName").find('span').html(data.currencyPairName);
-            $("#orderStatusName").find('span').html(data.orderStatusName.toUpperCase());
-            $("#orderTypeName").find('span').html(data.orderTypeName);
-            $("#stop_rate").find('span').html(data.stopRate);
-            $("#exrate").find('span').html(data.exrate);
-            $("#amountBase").find('span').html(data.amountBase + ' ' + data.currencyBaseName);
-            $("#amountConvert").find('span').html(data.amountConvert + ' ' + data.currencyConvertName);
-            $("#orderCreatorEmail").find('span').html(data.orderCreatorEmail);
-            $("#companyCommission").find('span').html(data.companyCommission);
+            console.log(data);
+            $("#id_stop").find('span').html(data.id);
+            $("#dateCreation_stop").find('span').html(data.dateCreation);
+            $("#dateAcception_stop").find('span').html(data.dateAcception ? data.dateAcception : '-');
+            $("#currencyPairName_stop").find('span').html(data.currencyPairName);
+            $("#orderStatusName_stop").find('span').html(data.orderStatusName.toUpperCase());
+            $("#orderTypeName_stop").find('span').html(data.orderTypeName);
+            $("#stop_rate_stop").find('span').html(data.stopRate);
+            $("#exrate_stop").find('span').html(data.exrate);
+            $("#amountBase_stop").find('span').html(data.amountBase + ' ' + data.currencyBaseName);
+            $("#amountConvert_stop").find('span').html(data.amountConvert + ' ' + data.currencyConvertName);
+            $("#orderCreatorEmail_stop").find('span').html(data.orderCreatorEmail);
+            $("#companyCommission_stop").find('span').html(data.companyCommission);
            currentRowGlobal = currentRow;
              /**/
-            if (data.orderStatusName.toUpperCase() === 'DELETED'
-               /* || data.orderStatusName.toUpperCase() === 'CANCELLED'*/
-                ||/* data.orderStatusName.toUpperCase() === 'CLOSED' ||*/ !enableDelete) {
-                $("#delete-order-info__delete").toggle(false);
+            if (enableDelete && !(data.orderStatusName.toUpperCase() === 'DELETED'
+                || data.orderStatusName.toUpperCase() === 'CANCELLED'
+                || data.orderStatusName.toUpperCase() === 'CLOSED')) {
+                $("#delete-order-info__delete_stop").toggle(true);
+
             } else {
-                $("#delete-order-info__delete").toggle(true);
+                $("#delete-order-info__delete_stop").toggle(false);
                 /*$("#delete-order-info__delete").attr('onclick', 'deleteOrderByAdmin(' + data.id + ')');*/
             }
 
@@ -169,7 +171,7 @@ function searchOrder() {
             var currentRow = orderDataTable.row( this );
             var currentData = currentRow.data();
 
-            getOrderDetailedInfo(currentRow, currentRow.data().id, true);
+            getStopOrderDetailedInfo(currentRow, currentRow.data().id, true);
         } );
 
 

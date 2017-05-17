@@ -9,38 +9,38 @@
                 <h4 class="modal-title"><loc:message code="orderinfo.title"/></h4>
             </div>
             <div class="modal-body delete-order-info">
-                <div class="delete-order-info__item" id="id"><loc:message code="orderinfo.id"/><span></span></div>
-                <div class="delete-order-info__item" id="orderStatusName"><loc:message
+                <div class="delete-order-info__item" id="id_stop"><loc:message code="orderinfo.id"/><span></span></div>
+                <div class="delete-order-info__item" id="orderStatusName_stop"><loc:message
                         code="orderinfo.status"/><span></span></div>
                 </br>
                 </br>
-                <div class="delete-order-info__item" id="currencyPairName"><span></span></div>
-                <div class="delete-order-info__item" id="orderTypeName"><span></span></div>
-                <div class="delete-order-info__item" id="exrate"><loc:message code="orderinfo.rate"/><span></span></div>
-                <div class="delete-order-info__item" id="stop_rate"><loc:message code="myorders.stopRate"/><span></span></div>
-                <div class="delete-order-info__item" id="amountBase"><loc:message
+                <div class="delete-order-info__item" id="currencyPairName_stop"><span></span></div>
+                <div class="delete-order-info__item" id="orderTypeName_stop"><span></span></div>
+                <div class="delete-order-info__item" id="exrate_stop"><loc:message code="orderinfo.rate"/><span></span></div>
+                <div class="delete-order-info__item" id="stop_rate_stop"><loc:message code="myorders.stopRate"/><span></span></div>
+                <div class="delete-order-info__item" id="amountBase_stop"><loc:message
                         code="orderinfo.baseamount"/><span></span></div>
-                <div class="delete-order-info__item" id="amountConvert"><loc:message
+                <div class="delete-order-info__item" id="amountConvert_stop"><loc:message
                         code="orderinfo.convertamount"/><span></span></div>
                 </br>
                 </br>
-                <div class="delete-order-info__item" id="dateCreation"><loc:message
+                <div class="delete-order-info__item" id="dateCreation_stop"><loc:message
                         code="orderinfo.createdate"/><span></span></div>
-                <div class="delete-order-info__item" id="dateAcception"><loc:message
+                <div class="delete-order-info__item" id="dateAcception_stop"><loc:message
                         code="orderinfo.changed"/><span></span></div>
                 </br>
-                <div class="delete-order-info__item" id="orderCreatorEmail"><loc:message
+                <div class="delete-order-info__item" id="orderCreatorEmail_stop"><loc:message
                         code="orderinfo.creator"/><span></span></div>
                 </br>
                 </br>
-                <div class="delete-order-info__item" id="companyCommission"><loc:message
+                <div class="delete-order-info__item" id="companyCommission_stop"><loc:message
                         code="transaction.commissionAmount"/><span></span></div>
                 </br>
                 <div id="current-row" hidden></div>
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
-                    <button id="delete-order-info__delete" class="delete-order-info__button"
+                    <button id="delete-order-info__delete_stop" class="delete-order-info__button"
                     ><loc:message
                             code="deleteorder.submit"/></button>
                     <button class="delete-order-info__button" class="close" data-dismiss="modal"
