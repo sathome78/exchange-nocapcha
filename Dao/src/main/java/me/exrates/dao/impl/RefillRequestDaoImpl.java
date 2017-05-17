@@ -57,7 +57,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setPayerAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setRecipientBankAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
-    refillRequestFlatDto.setRemark(rs.getString("remark"),"");
+    refillRequestFlatDto.setRemark(rs.getString("remark"), "");
     refillRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
     refillRequestFlatDto.setReceiptScanName(rs.getString("receipt_scan_name"));
     refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
@@ -293,7 +293,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           .addValue("user_id", request.getUserId());
       try {
         refillRequestAddressId = namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class);
-      } catch (EmptyResultDataAccessException e){
+      } catch (EmptyResultDataAccessException e) {
         refillRequestAddressId = null;
       }
       if (refillRequestAddressId == null) {
@@ -315,25 +315,26 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
     if (request.getRecipientBankId() != null) {
       final String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
-          " (id, recipient_bank_id, user_full_name, remark) " +
+          " (id, recipient_bank_id, user_full_name) " +
           " VALUES " +
-          " (:id, :recipient_bank_id, :user_full_name, :remark) ";
+          " (:id, :recipient_bank_id, :user_full_name) ";
       params = new MapSqlParameterSource()
           .addValue("id", refillRequestId)
           .addValue("recipient_bank_id", request.getRecipientBankId())
-          .addValue("user_full_name", request.getUserFullName())
-          .addValue("remark", request.getRemark());
+          .addValue("user_full_name", request.getUserFullName());
       namedParameterJdbcTemplate.update(addParamSql, params);
       refillRequestParamId = refillRequestId;
     }
     final String setKeysSql = "UPDATE REFILL_REQUEST " +
         " SET refill_request_param_id = :refill_request_param_id," +
-        "     refill_request_address_id = :refill_request_address_id" +
+        "     refill_request_address_id = :refill_request_address_id, " +
+        "     remark = :remark" +
         " WHERE id = :id ";
     params = new MapSqlParameterSource()
         .addValue("id", refillRequestId)
         .addValue("refill_request_param_id", refillRequestParamId)
-        .addValue("refill_request_address_id", refillRequestAddressId);
+        .addValue("refill_request_address_id", refillRequestAddressId)
+        .addValue("remark", request.getRemark());
     namedParameterJdbcTemplate.update(setKeysSql, params);
     return refillRequestId;
   }
@@ -379,11 +380,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       InvoiceConfirmData invoiceConfirmData) {
     final String sql = "UPDATE REFILL_REQUEST " +
         "  SET status_id = :new_status_id, " +
-        "      status_modification_date = NOW() " +
+        "      status_modification_date = NOW(), " +
+        "      remark = :remark " +
         "  WHERE id = :id";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("new_status_id", newStatus.getCode());
+    params.put("remark", invoiceConfirmData.getRemark());
     namedParameterJdbcTemplate.update(sql, params);
     /**/
     final String updateParamSql = "UPDATE REFILL_REQUEST_PARAM " +
@@ -392,7 +395,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "      payer_bank_name = :payer_bank_name, " +
         "      payer_account = :payer_account, " +
         "      user_full_name = :user_full_name, " +
-        "      remark = :remark, " +
         "      receipt_scan_name = :receipt_scan_name, " +
         "      receipt_scan = :receipt_scan ";
     params = new HashMap<>();
@@ -401,7 +403,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("payer_bank_name", invoiceConfirmData.getPayerBankName());
     params.put("payer_account", invoiceConfirmData.getUserAccount());
     params.put("user_full_name", invoiceConfirmData.getUserFullName());
-    params.put("remark", invoiceConfirmData.getRemark());
     params.put("receipt_scan_name", invoiceConfirmData.getReceiptScanName());
     params.put("receipt_scan", invoiceConfirmData.getReceiptScanPath());
     namedParameterJdbcTemplate.update(updateParamSql, params);
@@ -544,10 +545,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
             " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
             " LEFT JOIN INVOICE_BANK IB ON (IB.id = RRP.recipient_bank_id) " +
-            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-            "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
-            "				AND (IOP.user_id=:requester_user_id) " +
-            "				AND (IOP.operation_direction=:operation_direction) " +
+            getPermissionClause(requesterUserId) +
             (filter.isEmpty() ? "" : JOINS_FOR_FILTER) +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
 
@@ -584,14 +582,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer id,
       Integer requesterUserId) {
     String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*, " +
+        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
         "                 IOP.invoice_operation_permission_id " +
         " FROM REFILL_REQUEST " +
         "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) " +
         "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
-        "   JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-        "	  			(IOP.currency_id=REFILL_REQUEST.currency_id) " +
-        "	  			AND (IOP.user_id=:requester_user_id) " +
-        "	  			AND (IOP.operation_direction=:operation_direction) " +
+        "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
+        getPermissionClause(requesterUserId) +
         " WHERE REFILL_REQUEST.id=:id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("id", id);
@@ -653,9 +650,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public void setRemarkById(Integer id, String remark) {
-    final String sql = "UPDATE REFILL_REQUEST_PARAM " +
-        "  JOIN REFILL_REQUEST ON (REFILL_REQUEST.refill_request_param_id = REFILL_REQUEST_PARAM.id) AND (REFILL_REQUEST.id = :id) " +
-        "  SET remark = :remark ";
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET remark = :remark " +
+        "  WHERE id = :id ";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("remark", remark);
@@ -708,6 +705,31 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("confirmation_number", confirmations)
         .addValue("amount", amount);
     namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public Optional<Integer> findUserIdById(Integer requestId) {
+    String sql = "SELECT RR.user_id " +
+        " FROM REFILL_REQUEST RR " +
+        " WHERE RR.id = :id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("id", requestId);
+    }};
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  private String getPermissionClause(Integer requesterUserId) {
+    if (requesterUserId == null) {
+      return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";
+    }
+    return " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "	  			(IOP.currency_id=REFILL_REQUEST.currency_id) " +
+        "	  			AND (IOP.user_id=:requester_user_id) " +
+        "	  			AND (IOP.operation_direction=:operation_direction) ";
   }
 
 }

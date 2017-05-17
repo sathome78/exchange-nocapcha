@@ -118,37 +118,36 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     RefillRequest refill = null;
     try {
-      //TODO REFILL_REQUEST_Valk
       resultSet.findColumn("REFILL_REQUEST.id");
       if (resultSet.getObject("REFILL_REQUEST.id") != null) {
         refill = new RefillRequest();
         refill.setId(resultSet.getInt("REFILL_REQUEST.id"));
-        refill.setAddress(resultSet.getString("REFILL_REQUEST.address"));
         refill.setUserId(resultSet.getInt("REFILL_REQUEST.user_id"));
-        refill.setPayerBankName(resultSet.getString("REFILL_REQUEST.payer_bank_name"));
-        refill.setPayerBankCode(resultSet.getString("REFILL_REQUEST.payer_bank_code"));
-        refill.setPayerAccount(resultSet.getString("REFILL_REQUEST.payer_account"));
-        refill.setRecipientBankAccount(resultSet.getString("REFILL_REQUEST.payer_account"));
-        refill.setUserFullName(resultSet.getString("REFILL_REQUEST.user_full_name"));
         refill.setRemark(resultSet.getString("REFILL_REQUEST.remark"));
-        refill.setReceiptScan(resultSet.getString("REFILL_REQUEST.receipt_scan"));
-        refill.setReceiptScanName(resultSet.getString("REFILL_REQUEST.receipt_scan_name"));
         refill.setAmount(resultSet.getBigDecimal("REFILL_REQUEST.amount"));
-        refill.setCommissionAmount(resultSet.getBigDecimal("REFILL_REQUEST.commission"));
         refill.setCommissionId(resultSet.getInt("REFILL_REQUEST.commission_id"));
         refill.setStatus(RefillStatusEnum.convert(resultSet.getInt("REFILL_REQUEST.status_id")));
         refill.setDateCreation(resultSet.getTimestamp("REFILL_REQUEST.date_creation").toLocalDateTime());
         refill.setStatusModificationDate(resultSet.getTimestamp("REFILL_REQUEST.status_modification_date").toLocalDateTime());
         refill.setCurrencyId(resultSet.getInt("REFILL_REQUEST.currency_id"));
         refill.setMerchantId(resultSet.getInt("REFILL_REQUEST.merchant_id"));
-        refill.setHash(resultSet.getString("REFILL_REQUEST.hash"));
         refill.setMerchantTransactionId(resultSet.getString("REFILL_REQUEST.merchant_transaction_id"));
-        refill.setRecipientBankId(resultSet.getInt("REFILL_REQUEST.recipient_bank_id"));
         refill.setRecipientBankName(resultSet.getString("INVOICE_BANK.name"));
         refill.setRecipientBankAccount(resultSet.getString("INVOICE_BANK.account_number"));
         refill.setRecipientBankRecipient(resultSet.getString("INVOICE_BANK.recipient"));
         refill.setAdminHolderId(resultSet.getInt("REFILL_REQUEST.admin_holder_id"));
         refill.setConfirmations(resultSet.getInt("confirmations"));
+        /**/
+        refill.setAddress(resultSet.getString("RRA.address"));
+        /**/
+        refill.setPayerBankName(resultSet.getString("RRP.payer_bank_name"));
+        refill.setPayerBankCode(resultSet.getString("RRP.payer_bank_code"));
+        refill.setPayerAccount(resultSet.getString("RRP.payer_account"));
+        refill.setRecipientBankAccount(resultSet.getString("RRP.payer_account"));
+        refill.setUserFullName(resultSet.getString("RRP.user_full_name"));
+        refill.setReceiptScan(resultSet.getString("RRP.receipt_scan"));
+        refill.setReceiptScanName(resultSet.getString("RRP.receipt_scan_name"));
+        refill.setRecipientBankId(resultSet.getInt("RRP.recipient_bank_id"));
       }
     } catch (SQLException e) {
       //NOP
@@ -241,7 +240,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
           "   EXORDERS.date_acception," +
           "   WITHDRAW_REQUEST.*, " +
-          "   REFILL_REQUEST.*, " +
+          "   REFILL_REQUEST.*, RRA.*, RRP.*, " +
           "   INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
           "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmations " +
           " FROM TRANSACTION " +
@@ -252,8 +251,10 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
           "   LEFT JOIN WITHDRAW_REQUEST ON (TRANSACTION.source_type='WITHDRAW') AND (WITHDRAW_REQUEST.id=TRANSACTION.source_id) " +
           "   LEFT JOIN REFILL_REQUEST ON (TRANSACTION.source_type='REFILL') AND (REFILL_REQUEST.id=TRANSACTION.source_id) " +
+          "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) " +
+          "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
           "   LEFT JOIN EXORDERS ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id)" +
-          "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+          "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
           "   LEFT JOIN MERCHANT ON " +
           "             (" +
           "               (REFILL_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = REFILL_REQUEST.merchant_id) OR " +
@@ -270,7 +271,6 @@ public final class TransactionDaoImpl implements TransactionDao {
       "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
       "  )) ";
 
-  
 
   @Autowired
   MessageSource messageSource;
@@ -358,10 +358,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     final Map<String, Integer> params = singletonMap("id", id);
     return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
   }
-  
+
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+      Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
@@ -640,7 +640,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }};
     return jdbcTemplate.update(sql, params) > 0;
   }
-  
+
   @Override
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       Integer requesterUserId,

@@ -29,8 +29,8 @@ INSERT INTO REFILL_REQUEST_ADDRESS
 /*------------------------------*/
 
 INSERT INTO REFILL_REQUEST_PARAM
-(id, recipient_bank_id, user_full_name, remark, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name)
-SELECT id, recipient_bank_id, user_full_name, remark, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name
+(id, recipient_bank_id, user_full_name, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name)
+SELECT id, recipient_bank_id, user_full_name, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name
 FROM REFILL_REQUEST_TEMP
 WHERE recipient_bank_id IS NOT NULL;
 
@@ -40,11 +40,13 @@ INSERT INTO REFILL_REQUEST
 (id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, admin_holder_id, import_note,
 refill_request_param_id,
 merchant_transaction_id,
-refill_request_address_id)
+refill_request_address_id,
+remark)
 SELECT id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, admin_holder_id, import_note,
 (SELECT id FROM REFILL_REQUEST_PARAM RRP WHERE RRP.id = RRT.id),
 IF (hash IS NOT NULL AND hash <> '', hash, merchant_transaction_id),
-(SELECT id FROM REFILL_REQUEST_ADDRESS RRA WHERE RRA.id = RRT.id)
+(SELECT id FROM REFILL_REQUEST_ADDRESS RRA WHERE RRA.id = RRT.id),
+remark
 FROM REFILL_REQUEST_TEMP RRT;
 
 SELECT COUNT(DISTINCT refill_request_address_id) FROM REFILL_REQUEST WHERE refill_request_address_id IS NOT NULL;

@@ -157,15 +157,6 @@ public class WithdrawRequestController {
     withdrawService.postWithdrawalRequest(id, requesterAdminId);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
-  @ResponseBody
-  public WithdrawRequestsAdminTableDto getInfo(
-      @RequestParam Integer id,
-      Principal principal) {
-    String requesterAdmin = principal.getName();
-    return withdrawService.getWithdrawRequestById(id, requesterAdmin);
-  }
-
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody

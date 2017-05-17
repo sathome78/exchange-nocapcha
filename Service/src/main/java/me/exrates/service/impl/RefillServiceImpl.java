@@ -736,6 +736,21 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(address, merchantId, currencyId, statusList) > 0;
   }
 
+  @Override
+  @Transactional
+  public RefillRequestsAdminTableDto getRefillRequestById(
+      Integer id,
+      String authorizedUserEmail) {
+    Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    Integer userId = refillRequestDao.findUserIdById(id).orElse(null);
+    authorizedUserId = authorizedUserId.equals(userId) ? null : authorizedUserId;
+    RefillRequestFlatDto withdraw = refillRequestDao.getPermittedFlatById(
+        id,
+        authorizedUserId);
+    DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
+    return new RefillRequestsAdminTableDto(withdraw, refillRequestDao.getAdditionalDataForId(withdraw.getId()));
+  }
+
   private Integer createRefill(RefillRequestCreateDto request) {
     RefillStatusEnum currentStatus = request.getStatus();
     Merchant merchant = merchantDao.findById(request.getMerchantId());

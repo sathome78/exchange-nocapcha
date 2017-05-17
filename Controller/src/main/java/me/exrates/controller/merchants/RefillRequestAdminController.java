@@ -2,6 +2,7 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestsAdminTableDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -95,6 +96,15 @@ public class RefillRequestAdminController {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     refillFilterData.initFilterItems();
     return refillService.getRefillRequestByStatusList(statusList, dataTableParams, refillFilterData, principal.getName(), locale);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/info", method = GET)
+  @ResponseBody
+  public RefillRequestsAdminTableDto getInfo(
+      @RequestParam Integer id,
+      Principal principal) {
+    String requesterAdmin = principal.getName();
+    return refillService.getRefillRequestById(id, requesterAdmin);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
