@@ -7,6 +7,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.WithdrawService;
+import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.ripple.RippleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -34,12 +35,13 @@ public class RippleJobs {
     private MerchantService merchantService;
     @Autowired
     private RippleService rippleService;
+    private static final String XRP_MERCHANT = "Ripple";
 
     private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(5);
 
     @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
     private void checkWithdrawals() {
-        Merchant merchant = merchantService.findByName("XRP");
+        Merchant merchant = merchantService.findByName(XRP_MERCHANT);
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),
                 Collections.singletonList(WithdrawStatusEnum.ON_BCH_EXAM.getCode()));
         if (dtos != null && !dtos.isEmpty()) {
@@ -58,9 +60,11 @@ public class RippleJobs {
             if (checked) {
                withdrawService.finalizePostWithdrawalRequest(id);
             }
-        } catch (Exception e) {
-            log.error("xrp transaction error " + e);
+        } catch (RippleCheckConsensusException e) {
+            log.error("xrp transaction validation error " + e);
             withdrawService.rejectToReview(id);
+        } catch (Exception e) {
+            log.error("xrp transaction check error, will check it next time " + e);
         }
 
     }

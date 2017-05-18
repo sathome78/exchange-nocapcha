@@ -27,7 +27,9 @@ public interface WithdrawRequestDao {
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
-  Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
+    void setHashById(Integer id, String hash);
+
+    Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
 
   Optional<WithdrawRequestFlatDto> getFlatById(int id);
 

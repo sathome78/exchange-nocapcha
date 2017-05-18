@@ -170,6 +170,18 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   }
 
   @Override
+  public void setHashById(Integer id, String hash) {
+    final String sql = "UPDATE WITHDRAW_REQUEST " +
+            "  SET transaction_hash = :hash, " +
+            "      status_modification_date = NOW() " +
+            "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("hash", hash);
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
   public Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id) {
     blockById(id);
     return getFlatById(id);
@@ -385,7 +397,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   public List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId) {
     String sql = "SELECT WITHDRAW_REQUEST.* " +
             " FROM WITHDRAW_REQUEST " +
-            " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.status_id IN :statuses";
+            " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.status_id IN (:statuses)";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("merchant_id", merchantId);
       put("statuses", statusId);
