@@ -90,7 +90,7 @@ public class RippleServiceImpl implements RippleService {
         return rippleTransactionService.withdraw(withdrawMerchantOperationDto);
     }
 
-    /*generate max-10digits(Unsigned Integer) for identifying payment */
+    /*generate max-10digits in fact - 9 digits(Unsigned Integer) for identifying payment */
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());

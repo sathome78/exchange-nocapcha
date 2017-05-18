@@ -9,6 +9,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.ripple.RippleService;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -54,7 +55,11 @@ public class RippleJobs {
         }
     }
 
-    private void checkWithdraw(int id, String hash) {
+    private void checkWithdraw(int id, String paramsJson) {
+        JSONObject params = new JSONObject(paramsJson);
+        String hash = params.getString("hash");
+        String ledger = params.getString("ledger");
+        String sequence = params.getString("sequence");
         try {
             boolean checked = rippleService.checkSendedTransaction(hash);
             if (checked) {
@@ -66,6 +71,5 @@ public class RippleJobs {
         } catch (Exception e) {
             log.error("xrp transaction check error, will check it next time " + e);
         }
-
     }
 }
