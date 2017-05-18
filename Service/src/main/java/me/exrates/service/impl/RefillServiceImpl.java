@@ -1,6 +1,6 @@
 package me.exrates.service.impl;
 
-import exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.*;
