@@ -37,6 +37,6 @@ public interface IMerchantService {
   }
 
   default String getMainAddress() {
-    return "";
+    return "qwqwqqqw";
   }
 }

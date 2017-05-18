@@ -168,13 +168,16 @@ public class RefillServiceImpl implements RefillService {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
       e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
-      e.setMainAddress("");
+      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+        e.setMainAddress(getMainAddress(e.getMerchantId()));
+      }
     });
     return merchantCurrencies;
   }
 
-  private String getMainAddress(){
-    return "";
+  private String getMainAddress(Integer merchantId) {
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(merchantId);
+    return merchantService.getMainAddress();
   }
 
   @Override

@@ -84,7 +84,7 @@
                       <div style="display: inline-block; ">
                         <div>
                           <c:choose>
-                            <c:when test="${refill.additionalTagForWithdrawAddressIsUsed}">
+                            <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
                               <div id="address-to-pay" style="font-size:16px">
                                   ${merchantCurrency.mainAddress}
