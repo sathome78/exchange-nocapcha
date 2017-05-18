@@ -39,8 +39,8 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 /**
  * Created by OLEG on 17.03.2017.
  */
-@Log4j2
 @Service
+@Log4j2
 public class BitcoinTransactionServiceImpl implements BitcoinTransactionService {
   
   @Autowired

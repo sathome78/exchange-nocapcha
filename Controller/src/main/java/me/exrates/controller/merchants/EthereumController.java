@@ -2,17 +2,19 @@ package me.exrates.controller.merchants;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.service.EthereumService;
+import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -26,11 +28,16 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
-@RequestMapping("/merchants/ethereum")
+@RequestMapping("/merchants/ethereum/{merchantName}")
 public class EthereumController {
 
     @Autowired
-    EthereumService ethereumService;
+    @Qualifier("ethereumServiceImpl")
+    EthereumCommonService ethereumService;
+
+    @Autowired
+    @Qualifier("ethereumClassicServiceImpl")
+    EthereumCommonService ethereumClassicService;
 
     @Autowired
     MessageSource messageSource;
@@ -43,9 +50,11 @@ public class EthereumController {
 
     @RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
+                                                 final @PathVariable String merchantName,
                                                  final Principal principal,
                                                  final Locale locale)
     {
+        System.out.println(merchantName);
         if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
@@ -58,7 +67,12 @@ public class EthereumController {
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         try {
-            final String account = ethereumService.createAddress(creditsOperation);
+            String account = "";
+            if (merchantName.equals("ethereum")){
+                account = ethereumService.createAddress(creditsOperation);
+            }else if (merchantName.equals("ethereum_classic")){
+                account = ethereumClassicService.createAddress(creditsOperation);
+            }
 
             final String notification = merchantService
                     .sendDepositNotification(account,email ,locale, creditsOperation, "merchants.depositNotification.body");
@@ -66,9 +80,9 @@ public class EthereumController {
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             Map<String,String> responseMap = new TreeMap<>();
             responseMap.put("notification", notification);
-            responseMap.put("qr", account + "/"
-                    + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue()
-                    + "/image.png");
+
+            responseMap.put("qr", account);
+
 
             return new ResponseEntity<>(responseMap, HttpStatus.OK);
         } catch (Exception e) {

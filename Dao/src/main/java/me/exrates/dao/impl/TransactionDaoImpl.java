@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -32,6 +34,7 @@ import java.util.*;
 
 import static java.util.Collections.singletonMap;
 
+@Log4j2
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
 
@@ -226,7 +229,8 @@ public final class TransactionDaoImpl implements TransactionDao {
       "  ( " +
       "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
       "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
+      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') OR " +
+      "  (TRANSACTION.operation_type_id=8 AND IOP.operation_direction='REFILL')" +
       "  )) ";
 
   
@@ -249,32 +253,36 @@ public final class TransactionDaoImpl implements TransactionDao {
         "   :source_type, " +
         "   :source_id, :description)";
     final KeyHolder keyHolder = new GeneratedKeyHolder();
-    final Map<String, Object> params = new HashMap<String, Object>() {
-      {
-        put("userWallet", transaction.getUserWallet().getId());
-        put("companyWallet", transaction.getCompanyWallet() == null ? null : transaction.getCompanyWallet().getId());
-        put("amount", transaction.getAmount());
-        put("commissionAmount", transaction.getCommissionAmount());
-        put("commission", transaction.getCommission() == null ? null : transaction.getCommission().getId());
-        put("operationType", transaction.getOperationType().type);
-        put("currency", transaction.getCurrency().getId());
-        put("merchant", transaction.getMerchant() == null ? null : transaction.getMerchant().getId());
-        put("datetime", transaction.getDatetime() == null ? null : Timestamp.valueOf(transaction.getDatetime()));
-        put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
-        put("confirmation", transaction.getConfirmation());
-        put("provided", transaction.isProvided());
-        put("active_balance_before", transaction.getActiveBalanceBefore());
-        put("reserved_balance_before", transaction.getReservedBalanceBefore());
-        put("company_balance_before", transaction.getCompanyBalanceBefore());
-        put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
-        put("source_type", transaction.getSourceType() == null ? null : transaction.getSourceType().toString());
-        put("source_id", transaction.getSourceId());
-        put("description", transaction.getDescription());
+    try {
+      final Map<String, Object> params = new HashMap<String, Object>() {
+        {
+          put("userWallet", transaction.getUserWallet().getId());
+          put("companyWallet", transaction.getCompanyWallet() == null ? null : transaction.getCompanyWallet().getId());
+          put("amount", transaction.getAmount());
+          put("commissionAmount", transaction.getCommissionAmount());
+          put("commission", transaction.getCommission() == null ? null : transaction.getCommission().getId());
+          put("operationType", transaction.getOperationType().type);
+          put("currency", transaction.getCurrency().getId());
+          put("merchant", transaction.getMerchant() == null ? null : transaction.getMerchant().getId());
+          put("datetime", transaction.getDatetime() == null ? null : Timestamp.valueOf(transaction.getDatetime()));
+          put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
+          put("confirmation", transaction.getConfirmation());
+          put("provided", transaction.isProvided());
+          put("active_balance_before", transaction.getActiveBalanceBefore());
+          put("reserved_balance_before", transaction.getReservedBalanceBefore());
+          put("company_balance_before", transaction.getCompanyBalanceBefore());
+          put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
+          put("source_type", transaction.getSourceType() == null ? null : transaction.getSourceType().toString());
+          put("source_id", transaction.getSourceId());
+          put("description", transaction.getDescription());
+        }
+      };
+      if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {
+        transaction.setId(keyHolder.getKey().intValue());
+        return transaction;
       }
-    };
-    if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {
-      transaction.setId(keyHolder.getKey().intValue());
-      return transaction;
+    } catch (Exception e) {
+      log.error("exception {}", e);
     }
     throw new RuntimeException("Transaction creating failed");
   }
@@ -595,27 +603,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }};
     return jdbcTemplate.update(sql, params) > 0;
   }
-
-  @Override
-  public List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection) {
-    /*final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
-    Map<String, Object> params = new HashMap<>();
-    params.put("date_from", startDate);
-    params.put("date_to", endDate);
-    String criteria = defineFilterClause(params);
-    String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
-    params.put("ids", walletIds);
-    StringJoiner sqlJoiner = new StringJoiner(" ")
-        .add(SELECT_ALL)
-        .add(whereClauseBasic)
-        .add(filterClause)
-        .add("ORDER BY").add(sortColumn).add(sortDirection);
-    final String selectLimitedAllSql = sqlJoiner.toString();
-    LOGGER.debug(selectLimitedAllSql);
-    return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);*/
-    return Collections.EMPTY_LIST;
-  }
-
+  
   @Override
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       Integer requesterUserId,

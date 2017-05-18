@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -9,9 +10,10 @@ import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
@@ -28,11 +30,11 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OrderActionEnum.CREATE;
 
+@Log4j2
 @RestController
 public class OrderControllerRest {
     private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
@@ -58,20 +60,28 @@ public class OrderControllerRest {
     @Autowired
     LocaleResolver localeResolver;
 
+    @Autowired
+    StopOrderService stopOrderService;
+
     @RequestMapping("/order/submitnew/{orderType}")
     public OrderCreateSummaryDto newOrderToSell(@PathVariable OperationType orderType,
                                                 Principal principal,
                                                 BigDecimal amount,
                                                 BigDecimal rate,
+                                                OrderBaseType baseType,
+                                                @RequestParam(value = "stop", required = false) BigDecimal stop,
                                                 HttpServletRequest request) {
         long before = System.currentTimeMillis();
         try {
             OrderCreateSummaryDto orderCreateSummaryDto;
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
+            if (/*baseType == null*/true) baseType = OrderBaseType.LIMIT; /*todo: uncomment for stop-orders*/
             CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
-        /**/
+            orderCreateDto.setOrderBaseType(baseType);
+            orderCreateDto.setStop(stop);
+            /**/
             OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
@@ -115,18 +125,14 @@ public class OrderControllerRest {
                 throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
             }
             try {
-                Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
-                profileData.setTime1();
-                if (autoAcceptResult.isPresent()) {
-                    LOGGER.debug(autoAcceptResult.get());
-                    return autoAcceptResult.get();
+                switch (orderCreateDto.getOrderBaseType()) {
+                    case STOP_LIMIT: {
+                        return stopOrderService.create(orderCreateDto, CREATE, localeResolver.resolveLocale(request));
+                    }
+                    default: {
+                        return orderService.createOrder(orderCreateDto, CREATE, localeResolver.resolveLocale(request));
+                    }
                 }
-                Integer orderId = orderService.createOrder(orderCreateDto, CREATE);
-                profileData.setTime2();
-                if (orderId <= 0) {
-                    throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
-                }
-                return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request)) + "\"}";
             } catch (NotEnoughUserWalletMoneyException e) {
                 throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
             } catch (OrderCreationException e) {
@@ -171,16 +177,32 @@ public class OrderControllerRest {
 
 
     @RequestMapping("/order/submitdelete/{orderId}")
-    public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId, HttpServletRequest request) {
+    public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId,
+                                                   @RequestParam(value = "baseType", defaultValue = "1") int typeId,
+                                                   HttpServletRequest request, Principal principal) {
         long before = System.currentTimeMillis();
+        OrderBaseType orderBaseType = /*OrderBaseType.convert(typeId)*/OrderBaseType.LIMIT;/*todo: uncomment for stop-orders*/
         try {
-            OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
+            OrderCreateDto orderCreateDto;
+            switch (orderBaseType) {
+                case STOP_LIMIT: {
+                    orderCreateDto = stopOrderService.getOrderById(orderId, false);
+                    break;
+                }
+                default: {
+                    orderCreateDto = orderService.getMyOrderById(orderId);
+                }
+            }
             if (orderCreateDto == null) {
                 throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, localeResolver.resolveLocale(request)));
             }
+            String userEmail = userService.getEmailById(orderCreateDto.getUserId());
+            if (principal == null || !principal.getName().equals(userEmail)) {
+                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
+            }
+            orderCreateDto.setOrderBaseType(orderBaseType);
             request.getSession().setAttribute("/order/submitdelete/orderCreateDto", orderCreateDto);
-            OrderCreateSummaryDto orderForDelete = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
-            return orderForDelete;
+            return new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -200,7 +222,17 @@ public class OrderControllerRest {
             if (orderCreateDto == null) {
                 throw new OrderCreationException(messageSource.getMessage("order.redeleteerror", null, localeResolver.resolveLocale(request)));
             }
-            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request))) {
+            boolean result;
+            switch (orderCreateDto.getOrderBaseType()) {
+                case STOP_LIMIT: {
+                    result = stopOrderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    break;
+                }
+                default: {
+                    result = orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                }
+            }
+            if (!result) {
                 throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
             }
             return "{\"result\":\"" + messageSource.getMessage("myorders.deletesuccess", null, localeResolver.resolveLocale(request)) + "\"}";

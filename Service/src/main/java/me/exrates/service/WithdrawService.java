@@ -1,7 +1,6 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -10,10 +9,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,7 +20,13 @@ import java.util.Map;
 public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
-
+  
+  void rejectError(int requestId, long timeoutInMinutes, String reasonCode);
+  
+  void rejectError(int requestId, String reasonCode);
+  
+  void rejectToReview(int requestId);
+  
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);

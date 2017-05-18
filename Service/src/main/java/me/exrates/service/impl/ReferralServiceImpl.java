@@ -9,6 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
@@ -153,7 +154,7 @@ public class ReferralServiceImpl implements ReferralService {
                 companyWalletService.withdrawReservedBalance(cWallet, amount);
                 notificationService.createLocalizedNotification(parent, NotificationEvent.IN_OUT,
                         "referral.title", "referral.message",
-                        new Object[]{amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString(), currency.getName()});
+                        new Object[]{BigDecimalProcessing.formatNonePoint(amount, false), currency.getName()});
             } else {
                 break;
             }

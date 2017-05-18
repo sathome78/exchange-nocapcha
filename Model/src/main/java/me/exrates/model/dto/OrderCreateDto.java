@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
@@ -36,9 +37,11 @@ that consists two forms: for BUY and for SELL. After submit this field will be s
 However if we transfered to form the orders from dashboard, the fields one form (of two forms: SELL or BUY) must be filled.
 To determine which of these forms to be filled, we must set field operationType
 */
+    private BigDecimal stop; //stop rate for stop order
     private OperationType operationType;
     private BigDecimal exchangeRate;
     private BigDecimal amount; //amount of base currency: base currency can be bought or sold dependending on operationType
+    private OrderBaseType orderBaseType;
     //
     /*
     * these fields will be calculated after submitting the order and before final creation confirmation the order
@@ -277,12 +280,28 @@ To determine which of these forms to be filled, we must set field operationType
     public void setTotalWithComission(BigDecimal totalWithComission) {
         this.totalWithComission = totalWithComission;
     }
-    
+
     public Integer getSourceId() {
         return sourceId;
     }
-    
+
     public void setSourceId(Integer sourceId) {
         this.sourceId = sourceId;
+    }
+
+    public BigDecimal getStop() {
+        return stop;
+    }
+
+    public void setStop(BigDecimal stop) {
+        this.stop = stop;
+    }
+
+    public OrderBaseType getOrderBaseType() {
+        return orderBaseType;
+    }
+
+    public void setOrderBaseType(OrderBaseType orderBaseType) {
+        this.orderBaseType = orderBaseType;
     }
 }

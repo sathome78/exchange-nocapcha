@@ -19,11 +19,11 @@ import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -407,12 +408,11 @@ public class WithdrawServiceImpl implements WithdrawService {
       /**/
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
       String title = messageSource.getMessage("withdrawal.declined.title", new Integer[]{requestId}, locale);
-      if (StringUtils.isEmpty(comment)) {
-        comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
-      }
+      String notification = String.join(": ", messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale),
+              comment);
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
-      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, notification);
       profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow decline WithdrawalRequest: " + requestId + " profile: " + profileData);
@@ -434,6 +434,56 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
+  public void rejectError(int requestId, long timeoutInMinutes, String reasonCode) {
+    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    LocalDateTime rejectTimeLimit = withdrawRequest.getStatusModificationDate().plusMinutes(timeoutInMinutes);
+    if (LocalDateTime.now().isAfter(rejectTimeLimit)) {
+      InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_ERROR);
+      withdrawRequestDao.setStatusById(requestId, newStatus);
+      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      String description = transactionDescription.get(withdrawRequest.getStatus(), REJECT_ERROR);
+      WalletTransferStatus result = walletService.walletInnerTransfer(
+              userWalletId,
+              withdrawRequest.getAmount(),
+              TransactionSourceType.WITHDRAW,
+              withdrawRequest.getId(),
+              description);
+      if (result != SUCCESS) {
+        throw new WithdrawRequestPostException(result.name());
+      }
+      Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
+      String title = messageSource.getMessage("withdraw.rejectError.title", null, locale);
+      String reason = messageSource.getMessage(reasonCode, null, locale);
+      String message = messageSource.getMessage("withdraw.rejectError.body", new Object[]{withdrawRequest.getId(), reason}, locale);
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void rejectError(int requestId, String reasonCode) {
+    rejectError(requestId, 0, reasonCode);
+  }
+
+
+  @Override
+  @Transactional
+  public void rejectToReview(int requestId) {
+    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    InvoiceStatus newStatus = withdrawRequest.getStatus().nextState(REJECT_TO_REVIEW);
+    withdrawRequestDao.setStatusById(requestId, newStatus);
+    Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
+    String title = messageSource.getMessage("withdraw.rejectReview.title", null, locale);
+    String message = messageSource.getMessage("withdraw.rejectReview.body", new Object[]{withdrawRequest.getId()}, locale);
+    notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
+  }
+
+
+
+  @Override
+  @Transactional
   public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
     IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
@@ -451,7 +501,12 @@ public class WithdrawServiceImpl implements WithdrawService {
       String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
       userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
       notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
-    } catch (Exception e) {
+    }
+    catch (MerchantException e) {
+      log.error(e);
+      throw e;
+    }
+    catch (Exception e) {
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }

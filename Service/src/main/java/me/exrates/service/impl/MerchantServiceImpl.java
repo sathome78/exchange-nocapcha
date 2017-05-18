@@ -16,13 +16,11 @@ import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.exception.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.mail.MailException;
@@ -72,6 +70,7 @@ public class MerchantServiceImpl implements MerchantService {
   private InvoiceService invoiceService;
 
   @Autowired
+  @Qualifier("bitcoinServiceImpl")
   private BitcoinService bitcoinService;
 
   @Autowired
@@ -425,6 +424,16 @@ public class MerchantServiceImpl implements MerchantService {
     if (isBlocked) {
       throw new MerchantCurrencyBlockedException("Operation " + operationType + " is blocked for this currency! ");
     }
+  }
+  
+  @Override
+  public List<String> retrieveBtcCoreBasedMerchantNames() {
+    return merchantDao.retrieveBtcCoreBasedMerchantNames();
+  }
+  
+  @Override
+  public String retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
+    return merchantDao.retrieveCoreWalletCurrencyNameByMerchant(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
   }
 
 

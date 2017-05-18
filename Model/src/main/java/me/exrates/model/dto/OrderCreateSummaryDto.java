@@ -17,6 +17,8 @@ public class OrderCreateSummaryDto {
     private String total;
     private String commission;
     private String totalWithComission;
+    private String stop;
+    private String baseType;
 
     /*constructors*/
 
@@ -32,6 +34,8 @@ public class OrderCreateSummaryDto {
         this.total = BigDecimalProcessing.formatLocale(orderCreateDto.getTotal(), locale, 2);
         this.commission = BigDecimalProcessing.formatLocale(orderCreateDto.getComission(), locale, 2);
         this.totalWithComission = BigDecimalProcessing.formatLocale(orderCreateDto.getTotalWithComission(), locale, 2);
+        this.stop = BigDecimalProcessing.formatLocale(orderCreateDto.getStop(), locale, 2);
+        this.baseType = orderCreateDto.getOrderBaseType().name();
     }
 
     /*getters setters*/
@@ -98,6 +102,22 @@ public class OrderCreateSummaryDto {
 
     public void setTotalWithComission(String totalWithComission) {
         this.totalWithComission = totalWithComission;
+    }
+
+    public String getStop() {
+        return stop;
+    }
+
+    public void setStop(String stop) {
+        this.stop = stop;
+    }
+
+    public String getBaseType() {
+        return baseType;
+    }
+
+    public void setBaseType(String baseType) {
+        this.baseType = baseType;
     }
 
     @Override

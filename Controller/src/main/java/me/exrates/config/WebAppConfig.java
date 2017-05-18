@@ -8,14 +8,14 @@ import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
-import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
-import me.exrates.service.BitcoinWalletService;
-import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
-import me.exrates.service.impl.bitcoinWallet.BitcoinJWalletServiceImpl;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.EthereumCommonService;
+import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -56,6 +56,7 @@ import java.util.Properties;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
@@ -71,8 +72,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
   "classpath:/db.properties",
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
-        "classpath:/mail.properties",
-    "classpath:/merchants/btc_wallet.properties"})
+    "classpath:/mail.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -136,9 +136,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
-
-    @Value("${bitcoin.service.class}")
-    String bitcoinConcreteClassName;
+    
+    
 
 
     @Bean
@@ -338,21 +337,31 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StoreSessionListenerImpl();
     }
 
-
-    @Bean
-    public BitcoinWalletService bitcoinWalletService() {
-        if ("BitcoinCoreWalletServiceImpl".equals(bitcoinConcreteClassName)) {
-            return new BitcoinCoreWalletServiceImpl();
-        } else if ("BitcoinJWalletServiceImpl".equals(bitcoinConcreteClassName)) {
-            return new BitcoinJWalletServiceImpl();
-        } else {
-            throw new AssertionError(bitcoinConcreteClassName);
-        }
-    }
     
     @Bean
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();
+    }
+    
+    
+    @Bean(name = "bitcoinServiceImpl")
+    public BitcoinService bitcoinService() {
+        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties");
+    }
+    
+    @Bean(name = "litecoinServiceImpl")
+    public BitcoinService litecoinService() {
+        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties");
+    }
+
+    @Bean(name = "ethereumServiceImpl")
+    public EthereumCommonService ethereumService() {
+        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
+    }
+
+    @Bean(name = "ethereumClassicServiceImpl")
+    public EthereumCommonService ethereumClassicService() {
+        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
     }
 
 }

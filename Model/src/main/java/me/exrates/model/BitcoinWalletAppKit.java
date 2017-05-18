@@ -19,7 +19,6 @@ import java.io.File;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Component
 @PropertySource("classpath:bitcoinj.properties")
 public class BitcoinWalletAppKit {
 

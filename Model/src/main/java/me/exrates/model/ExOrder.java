@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,8 @@ public class ExOrder {
     private OrderStatus status;
     private CurrencyPair currencyPair;
     private Integer sourceId;
+    private BigDecimal stop;
+    private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
 
     /*constructors*/
     public ExOrder() {
@@ -49,6 +52,8 @@ public class ExOrder {
         this.status = orderCreateDto.getStatus();
         this.currencyPair = orderCreateDto.getCurrencyPair();
         this.sourceId = orderCreateDto.getSourceId();
+        this.stop = orderCreateDto.getStop();
+        this.orderBaseType = orderCreateDto.getOrderBaseType();
     }
 
     /*hash equals*/

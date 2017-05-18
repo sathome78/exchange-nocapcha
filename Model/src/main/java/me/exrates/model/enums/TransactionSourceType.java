@@ -19,7 +19,8 @@ public enum TransactionSourceType {
   USER_TRANSFER(6),
   INVOICE(7),
   BTC_INVOICE(8),
-  WITHDRAW(9);
+  WITHDRAW(9),
+  STOP_ORDER(10);
 
   private final int code;
 

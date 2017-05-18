@@ -1,11 +1,11 @@
 package me.exrates.controller.advice;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.NoPermissionForOperationException;
-import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -61,6 +61,8 @@ public class GlobalControllerExceptionHandler {
     public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+    
+    
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)

@@ -3,21 +3,18 @@ package me.exrates.controller.merchants;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.ErrorInfoDto;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -39,11 +36,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Controller
-@RequestMapping("/merchants/bitcoin")
+@RequestMapping("/merchants/{merchantName}")
 @Log4j2
 public class BitcoinController {
-
-  private final BitcoinService bitcoinService;
+  
+  private final Map<String, BitcoinService> bitcoinServices;
   private final MerchantService merchantService;
   private final MessageSource messageSource;
 
@@ -51,10 +48,10 @@ public class BitcoinController {
   private LocaleResolver localeResolver;
 
   @Autowired
-  public BitcoinController(final BitcoinService bitcoinService,
+  public BitcoinController(final Map<String, BitcoinService> bitcoinServices,
                            final MerchantService merchantService,
                            final MessageSource messageSource) {
-    this.bitcoinService = bitcoinService;
+    this.bitcoinServices = bitcoinServices;
     this.merchantService = merchantService;
     this.messageSource = messageSource;
   }
@@ -62,6 +59,7 @@ public class BitcoinController {
   @RequestMapping(value = "/payment/prepare", method = POST)
   public ResponseEntity<Map<String, String>> preparePayment(
       @RequestBody Payment payment,
+      @PathVariable String merchantName,
       Principal principal,
       Locale locale) {
     if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())) {
@@ -69,27 +67,9 @@ public class BitcoinController {
       error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
       return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
-    String email = principal.getName();
-    CreditsOperation creditsOperation = merchantService
-        .prepareCreditsOperation(payment, email)
-        .orElseThrow(InvalidAmountException::new);
     try {
-      PendingPayment pendingPayment = bitcoinService.createInvoice(creditsOperation);
-      String notification = merchantService
-          .sendDepositNotification(Optional.ofNullable(pendingPayment
-                  .getAddress()).orElseThrow(
-              () -> new MerchantInternalException("Address not presented"))
-              , email, locale, creditsOperation, "merchants.depositNotification.body");
-
-      HttpHeaders httpHeaders = new HttpHeaders();
-      httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-      Map<String, String> responseMap = new TreeMap<>();
-      responseMap.put("notification", notification);
-      responseMap.put("qr", "bitcoin:" + Optional.ofNullable(pendingPayment
-          .getAddress()).orElseThrow(
-          () -> new MerchantInternalException("Address not presented")) + "?amount="
-          + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
-
+      Map<String, String> responseMap = resolveServiceBeanFromMerchantName(merchantName).prepareBitcoinPayment(payment, principal.getName(),
+              merchantName.toLowerCase(), locale);
       return new ResponseEntity<>(responseMap, HttpStatus.OK);
     } catch (final InvalidAmountException | RejectedPaymentInvoice e) {
       Map<String, String> error = new HashMap<>();
@@ -106,21 +86,23 @@ public class BitcoinController {
 
   @RequestMapping(value = "/payment/accept", method = GET)
   public RedirectView acceptPayment(
+      @PathVariable String merchantName,
       @RequestParam(name = "id") Integer pendingPaymentId,
       @RequestParam String hash,
       @RequestParam BigDecimal amount,
       Principal principal) throws Exception {
-    bitcoinService.provideTransaction(pendingPaymentId, hash, amount, principal.getName());
+    resolveServiceBeanFromMerchantName(merchantName).provideTransaction(pendingPaymentId, hash, amount, principal.getName());
     return new RedirectView("/2a8fy7b07dxe44/bitcoinConfirmation");
   }
 
   @RequestMapping(value = "/payment/revoke", method = POST)
   @ResponseBody
   public void confirmInvoice(
+      @PathVariable String merchantName,
       @RequestParam(name = "id") Integer pendingPaymentId,
       HttpServletRequest request) throws Exception {
     try {
-      bitcoinService.revoke(pendingPaymentId);
+      resolveServiceBeanFromMerchantName(merchantName).revoke(pendingPaymentId);
     } catch (IllegalInvoiceStatusException e) {
       throw new IllegalInvoiceStatusException(messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
     } catch (InvoiceNotFoundException e) {
@@ -131,14 +113,20 @@ public class BitcoinController {
   @RequestMapping(value = "/payment/address", method = GET)
   @ResponseBody
   public PendingPaymentSimpleDto getAddress(
+      @PathVariable String merchantName,
       @RequestParam(name = "id") Integer pendingPaymentId,
       HttpServletRequest request) throws Exception {
     try {
-      return bitcoinService.getPendingPaymentSimple(pendingPaymentId);
+      return resolveServiceBeanFromMerchantName(merchantName).getPendingPaymentSimple(pendingPaymentId);
     } catch (InvoiceNotFoundException e) {
       throw new InvoiceNotFoundException(messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
     }
   }
+  
+  private BitcoinService resolveServiceBeanFromMerchantName(String merchantName) {
+    return bitcoinServices.get(merchantName.toLowerCase().concat("ServiceImpl"));
+  }
+  
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({
