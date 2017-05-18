@@ -365,7 +365,11 @@ public class RefillServiceImpl implements RefillService {
     InvoiceActionTypeEnum action = START_BCH_EXAMINE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
     refillRequestDao.setStatusById(requestId, newStatus);
-    refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+    try {
+      refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+    } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+      throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
+    }
     refillRequest.setStatus(newStatus);
     refillRequest.setMerchantTransactionId(hash);
     refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
@@ -402,7 +406,11 @@ public class RefillServiceImpl implements RefillService {
         throw new RefillRequestIllegalStatusException(refillRequest.toString());
       }
       if (!hash.equals(refillRequest.getMerchantTransactionId())) {
-        refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+        try {
+          refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+        } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
+        }
       }
       refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
     } else {
@@ -526,7 +534,11 @@ public class RefillServiceImpl implements RefillService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
-      refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+      try {
+        refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+      } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+        throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(requestAcceptDto.toString());
+      }
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
       refillRequest.setMerchantTransactionId(merchantTransactionId);

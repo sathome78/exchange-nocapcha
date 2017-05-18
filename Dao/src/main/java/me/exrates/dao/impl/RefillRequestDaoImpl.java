@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
@@ -660,7 +661,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) {
+  public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) throws RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException {
     final String sql = "UPDATE REFILL_REQUEST RR" +
         "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
         "  SET RR.merchant_transaction_id = :merchant_transaction_id " +
@@ -668,7 +669,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("merchant_transaction_id", merchantTransactionId);
-    namedParameterJdbcTemplate.update(sql, params);
+    int result = namedParameterJdbcTemplate.update(sql, params);
+    if (result == 0){
+      throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(merchantTransactionId.toString());
+    }
   }
 
   @Override

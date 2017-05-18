@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
@@ -62,7 +63,7 @@ public interface RefillRequestDao {
 
   void setRemarkById(Integer id, String remark);
 
-  void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
+  void setMerchantTransactionIdById(Integer id, String merchantTransactionId) throws RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 
   boolean checkInputRequests(int currencyId, String email);
 
