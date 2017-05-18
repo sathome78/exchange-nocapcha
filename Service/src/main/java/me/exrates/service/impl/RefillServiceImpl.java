@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.*;
@@ -367,7 +368,7 @@ public class RefillServiceImpl implements RefillService {
     refillRequestDao.setStatusById(requestId, newStatus);
     try {
       refillRequestDao.setMerchantTransactionIdById(requestId, hash);
-    } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+    } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
       throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
     }
     refillRequest.setStatus(newStatus);
@@ -408,7 +409,7 @@ public class RefillServiceImpl implements RefillService {
       if (!hash.equals(refillRequest.getMerchantTransactionId())) {
         try {
           refillRequestDao.setMerchantTransactionIdById(requestId, hash);
-        } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+        } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
           throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
         }
       }
@@ -536,7 +537,7 @@ public class RefillServiceImpl implements RefillService {
       refillRequestDao.setHolderById(requestId, requesterAdminId);
       try {
         refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
-      } catch (exception.RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+      } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
         throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(requestAcceptDto.toString());
       }
       refillRequest.setStatus(newStatus);
