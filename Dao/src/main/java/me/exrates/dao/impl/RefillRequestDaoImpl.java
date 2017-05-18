@@ -661,9 +661,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) {
-    final String sql = "UPDATE REFILL_REQUEST " +
-        "  SET merchant_transaction_id = :merchant_transaction_id " +
-        "  WHERE id = :id";
+    final String sql = "UPDATE REFILL_REQUEST RR" +
+        "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
+        "  SET RR.merchant_transaction_id = :merchant_transaction_id " +
+        "  WHERE RR.id = :id AND RRI.id IS NULL ";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("merchant_transaction_id", merchantTransactionId);

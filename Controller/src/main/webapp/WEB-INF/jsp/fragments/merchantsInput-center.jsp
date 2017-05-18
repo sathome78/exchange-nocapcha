@@ -83,9 +83,21 @@
                     <c:otherwise>
                       <div style="display: inline-block; ">
                         <div>
-                          <loc:message code="refill.messageAboutCurrentAddressSimple"/>
-                          <div id="address-to-pay" style="font-size:16px">
-                              ${merchantCurrency.address}
+                          <c:choose>
+                            <c:when test="refill.additionalTagForWithdrawAddressIsUsed">
+
+                            </c:when>
+                            <c:otherwise>
+                              <loc:message code="refill.messageAboutCurrentAddressSimple"/>
+                              <div id="address-to-pay" style="font-size:16px">
+                                  ${merchantCurrency.address}
+                              </div>
+                            </c:otherwise>
+                          </c:choose>
+                          <div class="timeoutWarning">
+                            <c:forEach var="warningCode" items="${warningCodeList}">
+                              <div><strong><loc:message code="${warningCode}"/></strong></div>
+                            </c:forEach>
                           </div>
                           <div>
                             <img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=<c:out value="${merchantCurrency.address}"/>'/>
