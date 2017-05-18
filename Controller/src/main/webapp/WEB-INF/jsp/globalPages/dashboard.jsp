@@ -69,7 +69,7 @@
     <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%--ZOPIM CHAT--%>
     <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/yandex.jsp" %>
+    <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
 </head>
