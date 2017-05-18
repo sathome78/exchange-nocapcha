@@ -58,6 +58,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
     withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
     withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+    withdrawRequestFlatDto.setTransactionHash(rs.getString("transaction_hash"));
     return withdrawRequestFlatDto;
   };
 
@@ -165,6 +166,18 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("new_status_id", newStatus.getCode());
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setHashById(Integer id, String hash) {
+    final String sql = "UPDATE WITHDRAW_REQUEST " +
+            "  SET transaction_hash = :hash, " +
+            "      status_modification_date = NOW() " +
+            "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("hash", hash);
     jdbcTemplate.update(sql, params);
   }
 
@@ -378,6 +391,20 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId) {
+    String sql = "SELECT WITHDRAW_REQUEST.* " +
+            " FROM WITHDRAW_REQUEST " +
+            " WHERE WITHDRAW_REQUEST.merchant_id = :merchant_id  AND WITHDRAW_REQUEST.status_id IN (:statuses)";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("statuses", statusId);
+    }};
+    return jdbcTemplate.query(sql, params, (rs, i) -> {
+      return withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+    });
   }
 
   private String getPermissionClause(Integer requesterUserId) {

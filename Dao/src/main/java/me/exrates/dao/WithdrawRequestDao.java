@@ -27,7 +27,9 @@ public interface WithdrawRequestDao {
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
-  Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
+    void setHashById(Integer id, String hash);
+
+    Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
 
   Optional<WithdrawRequestFlatDto> getFlatById(int id);
 
@@ -48,4 +50,6 @@ public interface WithdrawRequestDao {
   boolean checkOutputRequests(int currencyId, String email);
 
   Optional<Integer> findUserIdById(Integer requestId);
+
+    List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 }

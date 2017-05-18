@@ -2,10 +2,19 @@ package me.exrates.service.ripple;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import org.json.JSONObject;
 
 /**
  * Created by maks on 11.05.2017.
  */
 public interface RippleService extends IMerchantService {
-    void manualCheckTransaction(String hash);
+
+    /*method for admin manual check transaction by hash*/
+    void manualCheckNotReceivedTransaction(String hash);
+
+    /*return: true if tx validated; false if not validated but validationin process,
+        throws Exception if declined*/
+    boolean checkSendedTransaction(String hash);
+
+    void onTransactionReceive(JSONObject result);
 }

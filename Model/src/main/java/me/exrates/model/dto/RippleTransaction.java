@@ -32,6 +32,8 @@ public class RippleTransaction {
     private Integer userId;
     private Integer transactionId;
     private Integer destinationTag;
+    private Integer sequence;
+    private Integer lastValidatedLedger;
 
     @Tolerate
     public RippleTransaction() {

@@ -35,4 +35,8 @@ public interface IMerchantService {
             .collect(Collectors.joining("&"))
     );
   }
+
+  default String getMainAddress() {
+    return "";
+  }
 }

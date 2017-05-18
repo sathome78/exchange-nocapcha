@@ -423,7 +423,8 @@ public class WithdrawServiceImpl implements WithdrawService {
         .build();
     try {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
-      merchantService.withdraw(withdrawMerchantOperation);
+      String hash = merchantService.withdraw(withdrawMerchantOperation);
+      withdrawRequestDao.setHashById(withdrawRequestResult.getId(), hash);
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
         Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
@@ -575,6 +576,12 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional(readOnly = true)
   public boolean checkOutputRequestsLimit(int merchantId, String email) {
     return withdrawRequestDao.checkOutputRequests(merchantId, email);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<WithdrawRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses) {
+    return withdrawRequestDao.findRequestsByStatusAndMerchant(merchantId, statuses);
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

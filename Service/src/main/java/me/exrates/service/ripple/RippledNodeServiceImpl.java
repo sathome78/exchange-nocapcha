@@ -33,6 +33,8 @@ public class RippledNodeServiceImpl implements RippledNodeService {
             "                             \"secret\": \"%s\",\n" +
             "                             \"tx_json\": {\n" +
             "                                 \"Account\": \"%s\",\n" +
+            "                                 \"Sequence\": \"%d\",\n" +
+            "                                 \"LastLedgerSequence\": \"%d\",\n" +
             "                                 \"Amount\":  \"%s\",\n" +
             "                                 \"Destination\": \"%s\",\n" +
             "                                 \"TransactionType\": \"Payment\"\n" +
@@ -77,10 +79,14 @@ public class RippledNodeServiceImpl implements RippledNodeService {
             "\n" +
             "                                           ]}";
 
+    private static final String SERVER_STATE = "{\"method\": \"server_state\",\n" +
+            "                                           \"id\": \"1\"}";
+
 
     @Override
     public void signTransaction(RippleTransaction transaction) {
         String requestBody = String.format(SIGN_RPC, transaction.getIssuerSecret(), transaction.getIssuerAddress(),
+                transaction.getSequence(), transaction.getLastValidatedLedger(),
                 transaction.getSendAmount(), transaction.getDestinationAddress(), transaction.getDestinationTag());
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
@@ -105,10 +111,9 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         String requestBody = String.format(GET_TRANSACTION_RPC, txHash);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         JSONObject jsonResponse = new JSONObject(response.getBody()).getJSONObject("result");
-        if (RestUtil.isError(response.getStatusCode())
-                || (jsonResponse = new JSONObject(response.getBody()).getJSONObject("result")).has("error")) {
+        if (RestUtil.isError(response.getStatusCode())) {
             log.error("error checking transaction {}", response.getBody());
-            throw new RippleCheckConsensusException(jsonResponse.getString("error_message"));
+            throw new RuntimeException(jsonResponse.getString("error_message"));
         }
         return jsonResponse;
     }
@@ -120,7 +125,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("cant get account Info");
         }
-        return new JSONObject(response.getBody());
+        return new JSONObject(response.getBody()).getJSONObject("result");
     }
 
     @Override
@@ -134,6 +139,15 @@ public class RippledNodeServiceImpl implements RippledNodeService {
                 .name(responseBody.getString("account_id"))
                 .secret(responseBody.getString("master_seed"))
                 .build();
+    }
+
+    @Override
+    public JSONObject getServerState() {
+        ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, SERVER_STATE, String.class);
+        if (RestUtil.isError(response.getStatusCode())) {
+            throw new RuntimeException("cant get server state xrp");
+        }
+        return new JSONObject(response.getBody()).getJSONObject("result");
     }
 
 }
