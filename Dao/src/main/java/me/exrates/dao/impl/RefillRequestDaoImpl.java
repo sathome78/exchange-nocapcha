@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
