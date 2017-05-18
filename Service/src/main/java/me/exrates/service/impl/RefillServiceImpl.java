@@ -233,6 +233,16 @@ public class RefillServiceImpl implements RefillService {
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
   }
 
+  @Override
+  @Transactional
+  public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList) {
+    return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
+  }
+
   private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
       String address,
       Integer merchantId,

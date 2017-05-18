@@ -3,10 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.OperationUserDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -27,11 +24,14 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 
 
@@ -720,6 +720,64 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList) {
+    String sql = "SELECT RR.*, RRA.*, RRP.*, " +
+        "         TX.amount AS transaction_amount, TX.commission_amount AS commission, " +
+        "         INVOICE_BANK.name AS recipient_bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+        "         USER.email AS user_email, USER.nickname AS nickname, " +
+        "         ADM.email AS admin_email, " +
+        "         MERCHANT.name AS merchant_name, " +
+        "         CURRENCY.name AS currency_name" +
+        " FROM REFILL_REQUEST RR " +
+        " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
+        " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+        " JOIN CURRENCY ON CURRENCY.id = RR.currency_id " +
+        " JOIN MERCHANT ON MERCHANT.id = RR.merchant_id " +
+        " JOIN USER AS USER ON USER.id = RR.user_id " +
+        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
+        " LEFT JOIN USER AS ADM ON ADM.id = RR.admin_holder_id " +
+        " LEFT JOIN TRANSACTION AS TX ON (TX.source_type = 'REFILL') AND (TX.source_id = RR.id) " +
+        " WHERE " +
+        "    RR.date_creation BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+        "    AND (RR.currency_id IN (:currency_list)) " +
+        (roleIdList.isEmpty() ? "" : " AND USER.roleid IN (:role_id_list)");
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+      if (!roleIdList.isEmpty()) {
+        put("role_id_list", roleIdList);
+      }
+      put("currency_list", currencyList);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
+      @Override
+      public RefillRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
+        RefillRequestFlatForReportDto withdrawRequestFlatForReportDto = new RefillRequestFlatForReportDto();
+        withdrawRequestFlatForReportDto.setId(rs.getInt("RR.id"));
+        withdrawRequestFlatForReportDto.setAddress(ofNullable(rs.getString("address")).orElse(rs.getString("account_number")));
+        withdrawRequestFlatForReportDto.setRecipientBankName(rs.getString("recipient_bank_name"));
+        withdrawRequestFlatForReportDto.setAdminEmail(rs.getString("admin_email"));
+        withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+        withdrawRequestFlatForReportDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
+        withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+        withdrawRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
+        withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
+        withdrawRequestFlatForReportDto.setAmount(ofNullable(rs.getBigDecimal("transaction_amount")).orElse(BigDecimal.ZERO));
+        withdrawRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission"));
+        withdrawRequestFlatForReportDto.setDatetime(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
+        withdrawRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
+        withdrawRequestFlatForReportDto.setSourceType(REFILL);
+        withdrawRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+        return withdrawRequestFlatForReportDto;
+      }
+    });
   }
 
   private String getPermissionClause(Integer requesterUserId) {

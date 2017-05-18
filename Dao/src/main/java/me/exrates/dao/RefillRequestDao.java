@@ -2,10 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.OperationUserDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -74,4 +71,10 @@ public interface RefillRequestDao {
   void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations);
 
   Optional<Integer> findUserIdById(Integer requestId);
+
+  List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList);
 }

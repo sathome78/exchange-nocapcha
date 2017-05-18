@@ -46,6 +46,9 @@ public class ReportServiceImpl implements ReportService {
   WithdrawService withdrawService;
 
   @Autowired
+  RefillService refillService;
+
+  @Autowired
   OrderService orderService;
 
   @Override
@@ -111,6 +114,14 @@ public class ReportServiceImpl implements ReportService {
       List<WithdrawRequestFlatForReportDto> withdrawRequestList = withdrawService.findAllByDateIntervalAndRoleAndCurrency(
           startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
       result.addAll(withdrawRequestList.stream()
+          .map(InvoiceReportDto::new)
+          .collect(Collectors.toList()));
+    }
+    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL)
+        && !currencyListForRefillOperation.isEmpty()) {
+      List<RefillRequestFlatForReportDto> refillRequestList = refillService.findAllByDateIntervalAndRoleAndCurrency(
+          startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
+      result.addAll(refillRequestList.stream()
           .map(InvoiceReportDto::new)
           .collect(Collectors.toList()));
     }
