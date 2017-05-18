@@ -25,6 +25,7 @@ public class MerchantCurrency {
     private BigDecimal fixedMinCommission;
     private List<MerchantImage> listMerchantImage;
     private String processType;
+    private String mainAddress;
     private String address;
     private Boolean generateAdditionalRefillAddressAvailable;
     private Boolean additionalTagForWithdrawAddressIsUsed;

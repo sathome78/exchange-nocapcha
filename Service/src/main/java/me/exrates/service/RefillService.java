@@ -25,7 +25,7 @@ public interface RefillService {
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-  List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail);
+  List<MerchantCurrency> retrieveAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 

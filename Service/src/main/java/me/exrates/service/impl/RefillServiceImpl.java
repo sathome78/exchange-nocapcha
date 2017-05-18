@@ -164,10 +164,17 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
+  public List<MerchantCurrency> retrieveAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
-    merchantCurrencies.forEach(e -> e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse("")));
+    merchantCurrencies.forEach(e -> {
+      e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      e.setMainAddress("");
+    });
     return merchantCurrencies;
+  }
+
+  private String getMainAddress(){
+    return "";
   }
 
   @Override
