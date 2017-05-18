@@ -58,7 +58,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     private RippleTransaction sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, Integer destinationTag) {
         RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount, destinationTag);
         log.debug("prepared transaction {}", transaction);
-        transaction.setUserId(account.getUser().getId());
         rippledNodeService.signTransaction(transaction);
         rippledNodeService.submitTransaction(transaction);
         return transaction;
@@ -106,7 +105,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     @Override
     public BigDecimal getAccountBalance(String accountName) {
         JSONObject accountData = rippledNodeService.getAccountInfo(accountName)
-                .getJSONObject("result").getJSONObject("account_data");
+                .getJSONObject("account_data");
         return normalizeAmountToDecimal(accountData.getString("Balance"));
     }
 

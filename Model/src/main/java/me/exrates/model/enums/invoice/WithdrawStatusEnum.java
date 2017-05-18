@@ -99,7 +99,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   ON_BCH_EXAM(13){
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO);
+     /* schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO); todo fix it!!!*/
       schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
     }
   },

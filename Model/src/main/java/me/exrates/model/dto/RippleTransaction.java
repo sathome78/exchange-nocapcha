@@ -23,7 +23,7 @@ public class RippleTransaction {
     private String destinationAddress;
     private String issuerSecret;
     private String txHash;
-    private String blop;
+    private String blob;
     private boolean isTxSigned = false;
     private RippleTransactionStatus status = RippleTransactionStatus.CREATED;
     private RippleTransactionType type;
