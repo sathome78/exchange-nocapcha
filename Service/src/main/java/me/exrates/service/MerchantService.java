@@ -46,10 +46,8 @@ public interface MerchantService {
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail);
 
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
-
-    List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
-
-    boolean checkInputRequestsLimit(int currencyId, String email);
+  
+  boolean checkInputRequestsLimit(int currencyId, String email);
 
     boolean checkOutputRequestsLimit(int currencyId, String email);
 
