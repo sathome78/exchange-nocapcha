@@ -51,5 +51,7 @@ public interface WithdrawRequestDao {
 
   Optional<Integer> findUserIdById(Integer requestId);
 
+    Optional<Integer> getIdByHashAndMerchantId(String hash, Integer merchantId);
+
     List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 }

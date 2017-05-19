@@ -5,7 +5,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.enums.MerchantApiResponseType;
-import me.exrates.service.EthereumService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.ripple.RippleService;

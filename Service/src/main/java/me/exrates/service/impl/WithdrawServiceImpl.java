@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -36,10 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.OUTPUT;
@@ -582,6 +580,12 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   public List<WithdrawRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses) {
     return withdrawRequestDao.findRequestsByStatusAndMerchant(merchantId, statuses);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public Optional<Integer> getRequestIdByHashAndMerchantId(String hash, int merchantId) {
+    return withdrawRequestDao.getIdByHashAndMerchantId(hash, merchantId);
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

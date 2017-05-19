@@ -18,6 +18,7 @@ import javax.annotation.PreDestroy;
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -79,8 +80,8 @@ public class RippleWsServiceImpl {
                         .equals("Payment") && transaction.get("Account").equals(address)) {
                     /*its withdraw transaction, we can finalize it*/
                     String hash = transaction.getString("hash");
-                    int requestId = 0; /*todo: get request id*/
-                    withdrawService.finalizePostWithdrawalRequest(0);
+                    Optional<Integer> requestId = withdrawService.getRequestIdByHashAndMerchantId(hash, merchant.getId()); /*todo: get request id*/
+                    requestId.ifPresent(integer -> withdrawService.finalizePostWithdrawalRequest(requestId.get()));
                 }
             }
             if ("response".equals(messageType)) {

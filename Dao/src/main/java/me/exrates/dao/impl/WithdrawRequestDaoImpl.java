@@ -195,6 +195,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), withdrawRequestFlatDtoRowMapper));
   }
 
+
   @Override
   public PagingData<List<WithdrawRequestFlatDto>> getPermittedFlatByStatus(
       List<Integer> statusIdList,
@@ -385,6 +386,22 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         " WHERE WR.id = :id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("id", requestId);
+    }};
+    try {
+      return Optional.of(jdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Optional<Integer> getIdByHashAndMerchantId(String hash, Integer merchantId) {
+    String sql = "SELECT WR.id " +
+            " FROM WITHDRAW_REQUEST WR " +
+            " WHERE WR.transaction_hash = :hash AND WR.merchant_id = :merchant_id";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("hash", hash);
+      put("merchant_id", merchantId);
     }};
     try {
       return Optional.of(jdbcTemplate.queryForObject(sql, params, Integer.class));
