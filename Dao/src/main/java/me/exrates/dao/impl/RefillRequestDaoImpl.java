@@ -1,7 +1,7 @@
 package me.exrates.dao.impl;
 
-import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.RefillRequestDao;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
@@ -266,90 +266,113 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public int create(RefillRequestCreateDto request) {
-    final String sql = "INSERT INTO REFILL_REQUEST " +
-        " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
-        "  date_creation, status_modification_date) " +
-        " VALUES " +
-        " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
-        " NOW(), NOW())";
-    KeyHolder keyHolder = new GeneratedKeyHolder();
-    MapSqlParameterSource params = new MapSqlParameterSource()
-        .addValue("amount", request.getAmount())
-        .addValue("status_id", request.getStatus().getCode())
-        .addValue("currency_id", request.getCurrencyId())
-        .addValue("user_id", request.getUserId())
-        .addValue("commission_id", request.getCommissionId())
-        .addValue("merchant_id", request.getMerchantId());
-    namedParameterJdbcTemplate.update(sql, params, keyHolder);
-    Integer refillRequestId = (int) keyHolder.getKey().longValue();
-    Integer refillRequestAddressId = null;
-    Integer refillRequestParamId = null;
-    if (!StringUtils.isEmpty(request.getAddress())) {
-      final String findAddressSql = "SELECT id FROM REFILL_REQUEST_ADDRESS " +
-          " WHERE currency_id = :currency_id AND address = :address AND user_id = :user_id ";
-      params = new MapSqlParameterSource()
-          .addValue("currency_id", request.getCurrencyId())
-          .addValue("address", request.getAddress())
-          .addValue("user_id", request.getUserId());
-      try {
-        refillRequestAddressId = namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class);
-      } catch (EmptyResultDataAccessException e) {
-        refillRequestAddressId = null;
-      }
-      if (refillRequestAddressId == null) {
-        final String addAddressSql = "INSERT INTO REFILL_REQUEST_ADDRESS " +
-            " (id, currency_id, address, user_id, priv_key, pub_key, brain_priv_key) " +
-            " VALUES " +
-            " (:id, :currency_id, :address, :user_id, :priv_key, :pub_key, :brain_priv_key) ";
-        params = new MapSqlParameterSource()
-            .addValue("id", refillRequestId)
-            .addValue("currency_id", request.getCurrencyId())
-            .addValue("address", request.getAddress())
-            .addValue("user_id", request.getUserId())
-            .addValue("priv_key", request.getUserId())
-            .addValue("pub_key", request.getUserId())
-            .addValue("brain_priv_key", request.getUserId());
-        namedParameterJdbcTemplate.update(addAddressSql, params);
-        refillRequestAddressId = refillRequestId;
-      }
-    }
-    if (request.getRecipientBankId() != null) {
-      final String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
-          " (id, recipient_bank_id, user_full_name) " +
+  public Optional<Integer> create(RefillRequestCreateDto request) {
+    Optional<Integer> result = Optional.empty();
+    if (!request.getMayBeCreatedByFactOnly()) {
+      final String sql = "INSERT INTO REFILL_REQUEST " +
+          " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
+          "  date_creation, status_modification_date) " +
           " VALUES " +
-          " (:id, :recipient_bank_id, :user_full_name) ";
+          " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
+          " NOW(), NOW())";
+      KeyHolder keyHolder = new GeneratedKeyHolder();
+      MapSqlParameterSource params = new MapSqlParameterSource()
+          .addValue("amount", request.getAmount())
+          .addValue("status_id", request.getStatus().getCode())
+          .addValue("currency_id", request.getCurrencyId())
+          .addValue("user_id", request.getUserId())
+          .addValue("commission_id", request.getCommissionId())
+          .addValue("merchant_id", request.getMerchantId());
+      namedParameterJdbcTemplate.update(sql, params, keyHolder);
+      Integer refillRequestId = (int) keyHolder.getKey().longValue();
+      request.setId(refillRequestId);
+      result = of(refillRequestId);
+      Integer refillRequestAddressId = null;
+      Integer refillRequestParamId = null;
+      if (!StringUtils.isEmpty(request.getAddress())) {
+        if (!isThereSuchAddress(request)) {
+          refillRequestAddressId = storeRefillRequestAddress(request);
+        }
+      }
+      if (request.getRecipientBankId() != null) {
+        refillRequestParamId = storeRefillRequestParam(request);
+      }
+      final String setKeysSql = "UPDATE REFILL_REQUEST " +
+          " SET refill_request_param_id = :refill_request_param_id," +
+          "     refill_request_address_id = :refill_request_address_id, " +
+          "     remark = :remark" +
+          " WHERE id = :id ";
       params = new MapSqlParameterSource()
           .addValue("id", refillRequestId)
-          .addValue("recipient_bank_id", request.getRecipientBankId())
-          .addValue("user_full_name", request.getUserFullName());
-      namedParameterJdbcTemplate.update(addParamSql, params);
-      refillRequestParamId = refillRequestId;
+          .addValue("refill_request_param_id", refillRequestParamId)
+          .addValue("refill_request_address_id", refillRequestAddressId)
+          .addValue("remark", request.getRemark());
+      namedParameterJdbcTemplate.update(setKeysSql, params);
+    } else {
+      storeRefillRequestAddress(request);
     }
-    final String setKeysSql = "UPDATE REFILL_REQUEST " +
-        " SET refill_request_param_id = :refill_request_param_id," +
-        "     refill_request_address_id = :refill_request_address_id, " +
-        "     remark = :remark" +
-        " WHERE id = :id ";
+    return result;
+  }
+
+  private Boolean isThereSuchAddress(RefillRequestCreateDto request) {
+    MapSqlParameterSource params;
+    final String findAddressSql = "SELECT COUNT(*) > 0 " +
+        " FROM REFILL_REQUEST_ADDRESS " +
+        " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address ";
     params = new MapSqlParameterSource()
-        .addValue("id", refillRequestId)
-        .addValue("refill_request_param_id", refillRequestParamId)
-        .addValue("refill_request_address_id", refillRequestAddressId)
-        .addValue("remark", request.getRemark());
-    namedParameterJdbcTemplate.update(setKeysSql, params);
-    return refillRequestId;
+        .addValue("currency_id", request.getCurrencyId())
+        .addValue("merchant_id", request.getMerchantId())
+        .addValue("address", request.getAddress())
+        .addValue("user_id", request.getUserId());
+    return namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Boolean.class);
+  }
+
+  private Integer storeRefillRequestParam(RefillRequestCreateDto request) {
+    MapSqlParameterSource params;
+    Integer refillRequestParamId;
+    final String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
+        " (id, recipient_bank_id, user_full_name) " +
+        " VALUES " +
+        " (:id, :recipient_bank_id, :user_full_name) ";
+    params = new MapSqlParameterSource()
+        .addValue("id", request.getId())
+        .addValue("recipient_bank_id", request.getRecipientBankId())
+        .addValue("user_full_name", request.getUserFullName());
+    namedParameterJdbcTemplate.update(addParamSql, params);
+    refillRequestParamId = request.getId();
+    return refillRequestParamId;
+  }
+
+  private Integer storeRefillRequestAddress(RefillRequestCreateDto request) {
+    MapSqlParameterSource params;
+    Integer refillRequestAddressId;
+    final String addAddressSql = "INSERT INTO REFILL_REQUEST_ADDRESS " +
+        " (id, currency_id, merchant_id, address, user_id, priv_key, pub_key, brain_priv_key) " +
+        " VALUES " +
+        " (:id, :currency_id, :merchant_id, :address, :user_id, :priv_key, :pub_key, :brain_priv_key) ";
+    params = new MapSqlParameterSource()
+        .addValue("id", request.getId())
+        .addValue("currency_id", request.getCurrencyId())
+        .addValue("merchant_id", request.getMerchantId())
+        .addValue("address", request.getAddress())
+        .addValue("user_id", request.getUserId())
+        .addValue("priv_key", request.getUserId())
+        .addValue("pub_key", request.getUserId())
+        .addValue("brain_priv_key", request.getUserId());
+    namedParameterJdbcTemplate.update(addAddressSql, params);
+    refillRequestAddressId = request.getId();
+    return refillRequestAddressId;
   }
 
   @Override
-  public Optional<String> findAddressByMerchantIdAndCurrencyIdAndUserId(
+  public Optional<String> findLastAddressByMerchantIdAndCurrencyIdAndUserId(
       Integer merchantId,
       Integer currencyId,
       Integer userId) {
     final String sql = "SELECT RRA.address " +
-        " FROM REFILL_REQUEST RR " +
-        " JOIN REFILL_REQUEST_ADDRESS RRA ON RRA.id = RR.refill_request_address_id" +
-        " WHERE RR.currency_id = :currency_id AND RR.merchant_id = :merchant_id AND RR.user_id = :user_id " +
-        " ORDER BY RR.id DESC " +
+        " FROM REFILL_REQUEST_ADDRESS RRA " +
+        " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND RRA.user_id = :user_id " +
+        " ORDER BY RRA.id DESC " +
         " LIMIT 1 ";
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("currency_id", currencyId)
@@ -670,7 +693,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("id", id);
     params.put("merchant_transaction_id", merchantTransactionId);
     int result = namedParameterJdbcTemplate.update(sql, params);
-    if (result == 0){
+    if (result == 0) {
       throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(merchantTransactionId.toString());
     }
   }

@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -43,6 +44,7 @@ public class RefillRequestCreateDto {
   private String brainPrivKey;
   private Boolean generateNewAddress;
   private Boolean generateAdditionalRefillAddressAvailable;
+  private Boolean mayBeCreatedByFactOnly;
   private Locale locale;
 
   public RefillRequestCreateDto(RefillRequestParamsDto paramsDto,  CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
@@ -56,6 +58,7 @@ public class RefillRequestCreateDto {
     this.userFullName = paramsDto.getUserFullName();
     this.remark = paramsDto.getRemark();
     this.address = paramsDto.getAddress();
+    this.mayBeCreatedByFactOnly = !StringUtils.isEmpty(this.address);
     this.privKey = null;
     this.pubKey = null;
     this.brainPrivKey = null;
