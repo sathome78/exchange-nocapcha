@@ -135,6 +135,8 @@ $(function () {
                 getWithdrawDetailedInfo(sourceId);
             } else if (sourceType === "REFILL") {
                 getRefillDetailedInfo(sourceId);
+            } else if (sourceType === "STOP_ORDER") {
+                getStopOrderDetailedInfo(null, sourceId, false)
             }
         }
 

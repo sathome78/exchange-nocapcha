@@ -5,16 +5,13 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.EthereumAccount;
 import me.exrates.model.Transaction;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.EthereumService;
+import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.CipherException;
@@ -41,6 +38,7 @@ import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,13 +47,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
-@Service
-@PropertySource("classpath:/merchants/ethereum.properties")
-public class EthereumServiceImpl implements EthereumService{
+//@Service
+public class EthereumCommonServiceImpl implements EthereumCommonService {
 
-    private @Value("${ethereum.destinationDir}") String destinationDir;
-    private @Value("${ethereum.password}") String password;
-    private @Value("${ethereum.mainAddress}") String mainAddress;
+//    private @Value("${ethereum.destinationDir}") String destinationDir;
+//    private @Value("${ethereum.password}") String password;
+//    private @Value("${ethereum.mainAddress}") String mainAddress;
 
     @Autowired
     private EthereumNodeDao ethereumNodeDao;
@@ -72,13 +69,24 @@ public class EthereumServiceImpl implements EthereumService{
     @Autowired
     private PlatformTransactionManager txManager;
 
+
+    private String currentCurrency;
+
+    private String url;
+
+    private String destinationDir;
+
+    private String password;
+
+    private String mainAddress;
+
     private final List<String> accounts = new ArrayList<>();
 
     private final List<String> pendingTransactions = new ArrayList<>();
 
-    private Web3j web3j = Web3j.build(new HttpService());
+    private Web3j web3j;
 
-    private Observable<org.web3j.protocol.core.methods.response.Transaction> observable = web3j.transactionObservable();
+    private Observable<org.web3j.protocol.core.methods.response.Transaction> observable;
 
     private Subscription subscription;
 
@@ -90,8 +98,24 @@ public class EthereumServiceImpl implements EthereumService{
 
     private final Logger LOG = LogManager.getLogger("node_ethereum");
 
+    public EthereumCommonServiceImpl(String propertySource) {
+        Properties props = new Properties();
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.currentCurrency = props.getProperty("ethereum.currency");
+            this.url = props.getProperty("ethereum.url");
+            this.destinationDir = props.getProperty("ethereum.destinationDir");
+            this.password = props.getProperty("ethereum.password");
+            this.mainAddress = props.getProperty("ethereum.mainAddress");
+        } catch (IOException e) {
+            LOG.error(e);
+        }
+    }
+
     @PostConstruct
-    public void start() {
+    void start() {
+
+        web3j = Web3j.build(new HttpService(url));
 
         scheduler.scheduleAtFixedRate(new Runnable() {
             public void run() {
@@ -105,19 +129,20 @@ public class EthereumServiceImpl implements EthereumService{
         }
     }
 
-    private void createSubscribe(){
+    public void createSubscribe(){
         try {
-            LOG.debug("Connecting ethereum...");
-            ethereumNodeDao.findAllAddresses().forEach(address -> accounts.add(address));
-            ethereumNodeDao.findPendingTransactions().forEach(transaction -> pendingTransactions.add(transaction));
+            LOG.debug(currentCurrency + " Connecting ethereum...");
+            ethereumNodeDao.findAllAddresses(currentCurrency).forEach(address -> accounts.add(address));
+            ethereumNodeDao.findPendingTransactions(currentCurrency).forEach(transaction -> pendingTransactions.add(transaction));
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
+            observable = web3j.transactionObservable();
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
-                    System.out.println("Current block number: " + ethBlock.getBlockNumber());
-                    LOG.debug("Current block number: " + ethBlock.getBlockNumber());
+                    System.out.println(currentCurrency + " Current block number: " + ethBlock.getBlockNumber());
+                    LOG.debug(currentCurrency + " Current block number: " + ethBlock.getBlockNumber());
 
                     List<String> providedTransactions = new ArrayList<String>();
                     pendingTransactions.forEach(transaction ->
@@ -129,16 +154,16 @@ public class EthereumServiceImpl implements EthereumService{
                                     BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction).send().getResult().getBlockNumber();
                                     if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > 12){
                                         provideTransactionAndTransferFunds(transaction);
-                                        LOG.debug("Transaction: " + transaction + " - PROVIDED!!!");
-                                        LOG.debug("Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
+                                        LOG.debug(currentCurrency + " Transaction: " + transaction + " - PROVIDED!!!");
+                                        LOG.debug(currentCurrency + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
                                         providedTransactions.add(transaction);
                                     }
                                 } catch (EthereumException | IOException e) {
                                     subscribeCreated = false;
-                                    LOG.error(e);
+                                    LOG.error(currentCurrency + " " + e);
                                 }
 
-                                System.out.println("Pending transaction: " + transaction);
+                                System.out.println(currentCurrency + " Pending transaction: " + transaction);
                             }
 
                     );
@@ -146,13 +171,13 @@ public class EthereumServiceImpl implements EthereumService{
                 }
 
                 currentBlockNumber = ethBlock.getBlockNumber();
-                LOG.info("Ethereum block: " + ethBlock.getBlockNumber());
+                LOG.info(currentCurrency + " block: " + ethBlock.getBlockNumber());
 
                 String recipient = ethBlock.getTo();
                 if (accounts.contains(recipient)){
-                    if (!ethereumNodeDao.isMerchantTransactionExists(ethBlock.getHash())){
+                    if (!ethereumNodeDao.isMerchantTransactionExists(ethBlock.getHash(), currentCurrency)){
                         BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
-                        LOG.debug("recipient: " + recipient + ", amount: " + amount);
+                        LOG.debug(currentCurrency + " recipient: " + recipient + ", amount: " + amount);
                         pendingTransactions.add(ethBlock.getHash());
                         createTransaction(recipient, String.valueOf(amount), ethBlock.getHash());
                     }
@@ -162,7 +187,7 @@ public class EthereumServiceImpl implements EthereumService{
 
         } catch (EthereumException e) {
             subscribeCreated = false;
-            LOG.error(e);
+            LOG.error(currentCurrency + " " + e);
         }
     }
 
@@ -175,7 +200,7 @@ public class EthereumServiceImpl implements EthereumService{
             }
             subscribeCreated = true;
         } catch (IOException e) {
-            LOG.error(e);
+            LOG.error(currentCurrency + " " + e);
             subscribeCreated = false;
         }
     }
@@ -186,11 +211,11 @@ public class EthereumServiceImpl implements EthereumService{
         try {
 
             File destination = new File(destinationDir);
-            LOG.debug(destinationDir);
+            LOG.debug(currentCurrency + " " + destinationDir);
 
             String fileName = "";
             fileName = WalletUtils.generateLightNewWalletFile(password, destination);
-            LOG.debug(fileName);
+            LOG.debug(currentCurrency + " " + fileName);
             Credentials credentials = WalletUtils.loadCredentials(password, destinationDir + fileName);
 
             EthereumAccount ethereumAccount = new EthereumAccount();
@@ -198,24 +223,29 @@ public class EthereumServiceImpl implements EthereumService{
             ethereumAccount.setUser(creditsOperation.getUser());
             ethereumAccount.setPrivateKey(credentials.getEcKeyPair().getPrivateKey());
             ethereumAccount.setPublicKey(credentials.getEcKeyPair().getPublicKey());
-            ethereumNodeDao.createAddress(ethereumAccount);
+            ethereumNodeDao.createAddress(ethereumAccount, currentCurrency);
             accounts.add(ethereumAccount.getAddress());
-            LOG.debug(ethereumAccount.getAddress());
+            LOG.debug(currentCurrency + " " + ethereumAccount.getAddress());
 
             return ethereumAccount.getAddress();
 
         }catch (EthereumException | IOException | NoSuchAlgorithmException
                 | InvalidAlgorithmParameterException | NoSuchProviderException | CipherException e){
-            LOG.error(e);
+            LOG.error(currentCurrency + " " + e);
             return "";
         }
     }
 
     private void createTransaction(String address, String amount, String hash){
         /*try {
-            String userEmail = ethereumNodeDao.findUserEmailByAddress(address);
+            String userEmail = ethereumNodeDao.findUserEmailByAddress(address, currentCurrency);
             Payment payment = new Payment();
-            Currency currency = currencyService.findByName("ETH");
+            Currency currency;
+            if (currentCurrency.equals("Ethereum")){
+                currency = currencyService.findByName("ETH");
+            }else {
+                currency = currencyService.findByName("ETC");
+            }
             payment.setCurrency(currency.getId());
             List<Integer> list = new ArrayList<>();
             list.add(currency.getId());
@@ -232,50 +262,50 @@ public class EthereumServiceImpl implements EthereumService{
             tmpl1.execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    LOG.debug("Creating transaction request ");
+                    LOG.debug(currentCurrency + " Creating transaction request ");
                     Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
                     ethereumNodeDao.createMerchantTransaction(address, hash, transaction.getId());
-                    LOG.debug("Ethereum transaction " + transaction.toString() + " --- was created!!!");
+                    LOG.debug(currentCurrency + " transaction " + transaction.toString() + " --- was created!!!");
                 }
             });
 
         }catch (EthereumException e){
             subscribeCreated = false;
-            LOG.error(e);
+            LOG.error(currentCurrency + " " + e);
         }*/
     }
 
     private void provideTransactionAndTransferFunds(String merchantTransactionId){
 
-        Transaction transaction = transactionService.findById(ethereumNodeDao.findTransactionId(merchantTransactionId));
+        Transaction transaction = transactionService.findById(ethereumNodeDao.findTransactionId(merchantTransactionId, currentCurrency));
         if (!transaction.isProvided()){
             transactionService.provideTransaction(transaction);
 
-            LOG.debug("Ethereum transaction " + transaction.toString() + " --- PROVIDED!!!");
-            transferFundsToMainAccount(ethereumNodeDao.findAddressByMerchantTransactionId(merchantTransactionId), transaction.getAmount());
+            LOG.debug(currentCurrency + " Ethereum transaction " + transaction.toString() + " --- PROVIDED!!!");
+            transferFundsToMainAccount(ethereumNodeDao.findAddressByMerchantTransactionId(merchantTransactionId, currentCurrency), transaction.getAmount());
         }
     }
 
     private void transferFundsToMainAccount(String address, BigDecimal amount){
         try {
-            Optional<EthereumAccount> ethereumAccount = ethereumNodeDao.findByAddress(address);
+            Optional<EthereumAccount> ethereumAccount = ethereumNodeDao.findByAddress(address, currentCurrency);
             Credentials credentials = Credentials.create(new ECKeyPair(ethereumAccount.get().getPrivateKey(),
                     ethereumAccount.get().getPublicKey()));
             Transfer.sendFunds(
                     web3j, credentials, mainAddress, amount
                             .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(Transfer.GAS_PRICE).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
-            LOG.debug("Funds " + amount + " sent to main account!!!");
+            LOG.debug(currentCurrency + " Funds " + amount + " sent to main account!!!");
         } catch (EthereumException| InterruptedException | ExecutionException | TransactionTimeoutException e) {
             subscribeCreated = false;
-            LOG.error(e);
+            LOG.error(currentCurrency + " " + e);
         }
     }
 
     @PreDestroy
     public void destroy() {
-        LOG.debug("Destroing ethereum");
+        LOG.debug("Destroing " + currentCurrency);
         scheduler.shutdown();
         subscription.unsubscribe();
-        LOG.debug("Ethereum destroyed");
+        LOG.debug(currentCurrency + " destroyed");
     }
 }

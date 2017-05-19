@@ -167,7 +167,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId) {
-		final String sql = "SELECT merchant_fixed_commission FROM birzha.MERCHANT_CURRENCY " +
+		final String sql = "SELECT merchant_fixed_commission FROM MERCHANT_CURRENCY " +
 				"where merchant_id = :merchant " +
 				"and currency_id = :currency ";
 		final HashMap<String, Object> params = new HashMap<>();

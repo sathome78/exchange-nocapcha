@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCServiceNode;
-import me.exrates.service.EthereumService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +19,13 @@ public class UnsafeController {
 
     private final EDCClientWebSocketHandler blockchainEDC;
     private final EDCServiceNode edcService;
-    private final EthereumService ethereumService;
 
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
 
     @Autowired
-    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCServiceNode edcService, EthereumService ethereumService) {
+    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCServiceNode edcService) {
         this.blockchainEDC = blockchainEDC;
         this.edcService = edcService;
-        this.ethereumService = ethereumService;
     }
 
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")

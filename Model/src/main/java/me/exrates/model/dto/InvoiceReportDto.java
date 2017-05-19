@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 
+import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 
 /**
@@ -76,6 +77,29 @@ public class InvoiceReportDto {
     this.operation = OUTPUT.name();
     this.system = withdrawRequestFlatForReportDto.getSourceType().name();
     this.merchant = withdrawRequestFlatForReportDto.getMerchant();
+  }
+
+  public InvoiceReportDto(RefillRequestFlatForReportDto refillRequestFlatForReportDto) {
+    this.docId = refillRequestFlatForReportDto.getId();
+    this.currency = refillRequestFlatForReportDto.getCurrency();
+    this.creationDate = refillRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = refillRequestFlatForReportDto.getUserNickname();
+    this.userEmail = refillRequestFlatForReportDto.getUserEmail();
+    this.recipientBank = !StringUtils.isEmpty(refillRequestFlatForReportDto.getRecipientBankName()) ?
+        refillRequestFlatForReportDto.getRecipientBankName() :
+        StringUtils.isEmpty(refillRequestFlatForReportDto.getAddress()) ?
+            "" :
+            refillRequestFlatForReportDto.getAddress();
+    this.amount = refillRequestFlatForReportDto.getAmount();
+    this.payerName = refillRequestFlatForReportDto.getMerchant();
+    this.payerBankCode = refillRequestFlatForReportDto.getMerchant();
+    this.status = refillRequestFlatForReportDto.getStatus().name();
+    this.statusEnum = refillRequestFlatForReportDto.getStatus();
+    this.acceptorUserEmail = refillRequestFlatForReportDto.getAdminEmail();
+    this.acceptanceDate = refillRequestFlatForReportDto.getAcceptanceTime() == null ? "" : refillRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = INPUT.name();
+    this.system = refillRequestFlatForReportDto.getSourceType().name();
+    this.merchant = refillRequestFlatForReportDto.getMerchant();
   }
 
   public static String getTitle() {

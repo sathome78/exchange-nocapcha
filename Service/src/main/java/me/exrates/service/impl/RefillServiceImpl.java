@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.*;
@@ -164,10 +165,20 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
+  public List<MerchantCurrency> retrieveAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
-    merchantCurrencies.forEach(e -> e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse("")));
+    merchantCurrencies.forEach(e -> {
+      e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+        e.setMainAddress(getMainAddress(e.getMerchantId()));
+      }
+    });
     return merchantCurrencies;
+  }
+
+  private String getMainAddress(Integer merchantId) {
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(merchantId);
+    return merchantService.getMainAddress();
   }
 
   @Override
@@ -231,6 +242,16 @@ public class RefillServiceImpl implements RefillService {
     String prefix = "user: ";
     invoiceConfirmData.setRemark(remark, prefix);
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
+  }
+
+  @Override
+  @Transactional
+  public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList) {
+    return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
   private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
@@ -345,7 +366,11 @@ public class RefillServiceImpl implements RefillService {
     InvoiceActionTypeEnum action = START_BCH_EXAMINE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
     refillRequestDao.setStatusById(requestId, newStatus);
-    refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+    try {
+      refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+    } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+      throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
+    }
     refillRequest.setStatus(newStatus);
     refillRequest.setMerchantTransactionId(hash);
     refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
@@ -382,7 +407,11 @@ public class RefillServiceImpl implements RefillService {
         throw new RefillRequestIllegalStatusException(refillRequest.toString());
       }
       if (!hash.equals(refillRequest.getMerchantTransactionId())) {
-        refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+        try {
+          refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+        } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
+        }
       }
       refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
     } else {
@@ -506,7 +535,11 @@ public class RefillServiceImpl implements RefillService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
-      refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+      try {
+        refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+      } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+        throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(requestAcceptDto.toString());
+      }
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
       refillRequest.setMerchantTransactionId(merchantTransactionId);

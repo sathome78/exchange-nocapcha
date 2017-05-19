@@ -33,6 +33,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminOrdersDataTable.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCommentsDataTable.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteStopOrder.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/userCurrencyOperationPermissions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
@@ -827,6 +828,7 @@
 <%@include file='order-modals.jsp' %>
 <%@include file='../fragments/modal/withdraw_info_modal.jsp' %>
 <%@include file='../fragments/modal/dialogRefill_info_modal.jsp' %>
+<%@include file='stop-order-modals.jsp' %>
 
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>

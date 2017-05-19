@@ -13,8 +13,10 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.EthereumCommonService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.handler.RestResponseErrorHandler;
+import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -357,6 +359,23 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties");
+    }
+    
+    @Bean(name = "dashServiceImpl")
+    public BitcoinService dashService() {
+        return new BitcoinServiceImpl("merchants/dash_wallet.properties");
+    }
+    
+    
+
+    @Bean(name = "ethereumServiceImpl")
+    public EthereumCommonService ethereumService() {
+        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
+    }
+
+    @Bean(name = "ethereumClassicServiceImpl")
+    public EthereumCommonService ethereumClassicService() {
+        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
     }
 
     @Bean
