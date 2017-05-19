@@ -116,7 +116,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     }
 
     @Override
-    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

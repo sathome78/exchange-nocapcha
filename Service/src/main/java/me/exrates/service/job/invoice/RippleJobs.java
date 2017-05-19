@@ -49,19 +49,15 @@ public class RippleJobs {
             dtos.forEach(p-> ordersExecutors.execute(new Runnable() {
                 @Override
                 public void run() {
-                    checkWithdraw(p.getId(), p.getTransactionHash());
+                    checkWithdraw(p.getId(), p.getTransactionHash(), p.getAdditionalParams());
                 }
             }));
         }
     }
 
-    private void checkWithdraw(int id, String paramsJson) {
-        JSONObject params = new JSONObject(paramsJson);
-        String hash = params.getString("hash");
-        String ledger = params.getString("ledger");
-        String sequence = params.getString("sequence");
+    private void checkWithdraw(int id, String hash, String additionalParams) {
         try {
-            boolean checked = rippleService.checkSendedTransaction(hash);
+            boolean checked = rippleService.checkSendedTransaction(hash, additionalParams);
             if (checked) {
                withdrawService.finalizePostWithdrawalRequest(id);
             }

@@ -624,7 +624,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             }
         });
         data.baseType = 'STOP_LIMIT';
-        that.clearOrdersCreationForm();
         showOrderCreateDialog(data);
     }
 
@@ -720,7 +719,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         leftSider.getStatisticsForAllCurrencies();
-        that.clearOrdersCreationForm();
+        that.fillOrderCreationFormFields();
+        /*that.clearOrdersCreationForm();*/
         successNoty(data.result, 'successOrder');
     }
 

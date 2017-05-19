@@ -8,6 +8,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -27,7 +28,7 @@ public interface WithdrawRequestDao {
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
-    void setHashById(Integer id, String hash);
+    void setHashAndParamsById(Integer id, Map<String, String> hash);
 
     Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
 
@@ -50,6 +51,8 @@ public interface WithdrawRequestDao {
   boolean checkOutputRequests(int currencyId, String email);
 
   Optional<Integer> findUserIdById(Integer requestId);
+
+    Optional<Integer> getIdByHashAndMerchantId(String hash, Integer merchantId);
 
     List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 }

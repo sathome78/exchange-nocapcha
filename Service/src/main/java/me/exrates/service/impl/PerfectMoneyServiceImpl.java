@@ -183,7 +183,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
-    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 

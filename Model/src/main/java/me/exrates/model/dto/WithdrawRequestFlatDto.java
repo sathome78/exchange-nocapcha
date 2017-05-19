@@ -34,4 +34,5 @@ public class WithdrawRequestFlatDto {
   private Integer adminHolderId;
   private InvoiceOperationPermission invoiceOperationPermission;
   private String transactionHash;
+  private String additionalParams;
 }

@@ -21,6 +21,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotCreatableOrderException;
 import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -82,7 +83,7 @@ public class StopOrderServiceImpl implements StopOrderService {
         ExOrder exOrder = new ExOrder(orderCreateDto);
         exOrder.setId(orderId);
         this.onStopOrderCreate(exOrder);
-        return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
+        return "{\"result\":\"" + messageSource.getMessage("createdstoporder.text", null, locale) + "\"}";
     }
 
 
@@ -113,14 +114,19 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public void proceedStopOrderAndRemove(int stopOrderId) {
-        OrderCreateDto stopOrder = getOrderById(stopOrderId, true);
+        OrderCreateDto stopOrder = null;
+        stopOrder = getOrderById(stopOrderId, true);
         if (stopOrder == null || !stopOrder.getStatus().equals(OrderStatus.OPENED)) {
-            throw new RuntimeException(String.format(" order %s not found in db or illegal status ", stopOrderId));
+            throw new StopOrderNoConditionException(String.format(" order %s not found in db or illegal status ", stopOrderId));
         }
-        this.proceedStopOrder(new ExOrder(stopOrder));
         stopOrdersHolder.delete(stopOrder.getCurrencyPair().getId(),
                 new StopOrderSummaryDto(stopOrderId, stopOrder.getStop(), stopOrder.getOperationType()));
-
+        try {
+            this.proceedStopOrder(new ExOrder(stopOrder));
+        } catch (Exception e) {
+            log.error("error processing stop-order  {}", e);
+            stopOrdersHolder.addOrder(new ExOrder(stopOrder));
+        }
     }
 
 
@@ -133,8 +139,11 @@ public class StopOrderServiceImpl implements StopOrderService {
             throw new RuntimeException("error preparing new order");
         }
         cancelCostsReserveForStopOrder(exOrder, Locale.ENGLISH, OrderActionEnum.ACCEPT);
+        stopOrderDao.setStatus(exOrder.getId(), OrderStatus.CLOSED);
         Integer orderId = orderService.createOrderByStopOrder(newOrder, OrderActionEnum.CREATE, Locale.ENGLISH);
-        stopOrderDao.setStatusAndChildOrderId(exOrder.getId(), orderId, OrderStatus.CLOSED);
+        if (orderId != null) {
+            stopOrderDao.setStatusAndChildOrderId(exOrder.getId(), orderId, OrderStatus.CLOSED);
+        }
     }
 
     @Transactional

@@ -3,7 +3,6 @@ package me.exrates.service.ripple;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
-import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.util.RestUtil;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
             "                                 \"LastLedgerSequence\": \"%d\",\n" +
             "                                 \"Amount\":  \"%s\",\n" +
             "                                 \"Destination\": \"%s\",\n" +
-            "                                 \"TransactionType\": \"Payment\"\n" +
+            "                                 \"TransactionType\": \"Payment\",\n" +
             "                                 \"DestinationTag\": \"%d\"\n" +
             "                             },\n" +
             "                             \"fee_mult_max\": 1000\n" +
@@ -88,22 +87,28 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         String requestBody = String.format(SIGN_RPC, transaction.getIssuerSecret(), transaction.getIssuerAddress(),
                 transaction.getSequence(), transaction.getLastValidatedLedger(),
                 transaction.getSendAmount(), transaction.getDestinationAddress(), transaction.getDestinationTag());
+        log.debug("xrp_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
-            throw new RuntimeException("cant generate new address");
+            throw new RuntimeException("cant sign transaction");
         }
-        String blop = new JSONObject(response.getBody()).getString("blop");
-        transaction.setBlop(blop);
+        log.debug("resp {}", response.getBody());
+        String blob = new JSONObject(response.getBody()).getJSONObject("result").getString("tx_blob");
+        transaction.setBlob(blob);
         transaction.setTxSigned(true);
     }
 
     @Override
     public void submitTransaction(RippleTransaction transaction) {
-        String requestBody = String.format(SUBMIT_TRANSACTION_RPC, transaction.getBlop());
+        String requestBody = String.format(SUBMIT_TRANSACTION_RPC, transaction.getBlob());
+        log.debug("xrps_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
-        if (RestUtil.isError(response.getStatusCode())) {
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
             throw new RuntimeException("can't submit transaction");
         }
+        log.debug("response {}", response.getBody());
+        JSONObject respTransaction = new JSONObject(response.getBody()).getJSONObject("result").getJSONObject("tx_json");
+        transaction.setTxHash(respTransaction.getString("hash"));
     }
 
     @Override

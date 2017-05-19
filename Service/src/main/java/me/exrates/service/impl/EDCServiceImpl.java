@@ -64,11 +64,11 @@ public class EDCServiceImpl implements EDCService {
   EDCServiceNode edcServiceNode;
 
   @Override
-  public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     edcServiceNode.transferFromMainAccount(
         withdrawMerchantOperationDto.getAccountTo(),
         withdrawMerchantOperationDto.getAmount());
-    return "";
+    return new HashMap<>();
   }
 
   @Override

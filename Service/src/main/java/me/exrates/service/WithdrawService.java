@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author ValkSam
@@ -63,6 +64,9 @@ public interface WithdrawService {
 
   boolean checkOutputRequestsLimit(int merchantId, String email);
 
-    @Transactional(readOnly = true)
-    List<WithdrawRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
+  @Transactional(readOnly = true)
+  List<WithdrawRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
+
+  @Transactional(readOnly = true)
+  Optional<Integer> getRequestIdByHashAndMerchantId(String hash, int merchantId);
 }

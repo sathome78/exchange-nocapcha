@@ -1,6 +1,9 @@
 package me.exrates.service.ripple;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Merchant;
+import me.exrates.service.MerchantService;
+import me.exrates.service.WithdrawService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +18,7 @@ import javax.annotation.PreDestroy;
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -36,15 +40,22 @@ public class RippleWsServiceImpl {
     private AtomicInteger id = new AtomicInteger(1);
     private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";
     private volatile boolean shutdown = false;
+    private Merchant merchant;
+    private static final String XRP_MERCHANT = "Ripple";
 
     @Autowired
     private RippleService rippleService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private WithdrawService withdrawService;
 
 
     @PostConstruct
     public void init() throws IOException, DeploymentException {
         WS_SERVER_URL = URI.create(wsUrl);
         connectAndSubscribe();
+        merchant = merchantService.findByName(XRP_MERCHANT);
     }
 
     @OnMessage
@@ -63,7 +74,14 @@ public class RippleWsServiceImpl {
                 JSONObject transaction = jsonMessage.getJSONObject("transaction");
                 if(jsonMessage.getBoolean("validated") && transaction.get("TransactionType")
                         .equals("Payment") && transaction.get("Destination").equals(address)) {
+                    /*its refill transaction, we can process it*/
                     rippleService.onTransactionReceive(transaction);
+                } else if(jsonMessage.getBoolean("validated") && transaction.get("TransactionType")
+                        .equals("Payment") && transaction.get("Account").equals(address)) {
+                    /*its withdraw transaction, we can finalize it*/
+                    String hash = transaction.getString("hash");
+                    Optional<Integer> requestId = withdrawService.getRequestIdByHashAndMerchantId(hash, merchant.getId()); /*todo: get request id*/
+                    requestId.ifPresent(integer -> withdrawService.finalizePostWithdrawalRequest(requestId.get()));
                 }
             }
             if ("response".equals(messageType)) {

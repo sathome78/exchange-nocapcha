@@ -14,7 +14,6 @@ public class RippleAccount {
 
     private String name;
     private String secret;
-    private User user;
 
     @Tolerate
     public RippleAccount() {

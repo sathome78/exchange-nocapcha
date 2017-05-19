@@ -14,7 +14,7 @@ public interface RippleService extends IMerchantService {
 
     /*return: true if tx validated; false if not validated but validationin process,
         throws Exception if declined*/
-    boolean checkSendedTransaction(String hash);
+    boolean checkSendedTransaction(String hash, String additionalParams);
 
     void onTransactionReceive(JSONObject result);
 }
