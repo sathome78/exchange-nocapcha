@@ -27,7 +27,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
   WHERE OPERATION_TYPE.id IN (1, 2, 9) AND USER_ROLE.id != 5;
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden)
-VALUES((SELECT id from CURRENCY WHERE name='DASH'), 1, 'DASH/USD', 217, 0),
+VALUES((SELECT id from CURRENCY WHERE name='DASH'), 2, 'DASH/USD', 217, 0),
   ((SELECT id from CURRENCY WHERE name='DASH'), 4, 'DASH/BTC', 218, 0);
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
