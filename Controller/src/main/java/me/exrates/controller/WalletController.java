@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.CompanyWallet;
@@ -13,6 +14,9 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -121,7 +125,15 @@ public class WalletController {
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
     }
-
+    
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
+    @ResponseBody
+    public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+    
+    
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody

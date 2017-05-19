@@ -7,21 +7,21 @@ import java.util.Optional;
 
 public interface EthereumNodeDao {
 
-    void createAddress(EthereumAccount ethereumAccount);
+    void createAddress(EthereumAccount ethereumAccount, String merchant);
 
-    Optional<EthereumAccount> findByAddress(String address);
+    Optional<EthereumAccount> findByAddress(String address, String merchant);
 
-    List<String> findAllAddresses();
+    List<String> findAllAddresses(String merchant);
 
-    String findUserEmailByAddress(String address);
+    String findUserEmailByAddress(String address, String merchant);
 
     void createMerchantTransaction(String address, String merchantTransactionId, Integer transactionId);
 
-    List<String> findPendingTransactions();
+    List<String> findPendingTransactions(String merchant);
 
-    Integer findTransactionId(String merchantTransactionId);
+    Integer findTransactionId(String merchantTransactionId, String merchant);
 
-    boolean isMerchantTransactionExists(String merchantTransactionId);
+    boolean isMerchantTransactionExists(String merchantTransactionId, String merchant);
 
-    String findAddressByMerchantTransactionId(String merchantTransactionId);
+    String findAddressByMerchantTransactionId(String merchantTransactionId, String merchant);
 }

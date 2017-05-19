@@ -268,7 +268,8 @@ public final class TransactionDaoImpl implements TransactionDao {
       "  ( " +
       "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
       "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
+      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') OR " +
+      "  (TRANSACTION.operation_type_id=8 AND IOP.operation_direction='REFILL')" +
       "  )) ";
 
 

@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
@@ -12,8 +13,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.service.*;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -183,6 +183,13 @@ public class WithdrawRequestController {
   @ResponseBody
   public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+  
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
+  @ResponseBody
+  public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 

@@ -79,7 +79,7 @@ public class OrderControllerRest {
             OrderCreateSummaryDto orderCreateSummaryDto;
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
-            if (baseType == null) baseType = OrderBaseType.LIMIT;
+            if (/*baseType == null*/true) baseType = OrderBaseType.LIMIT; /*todo: uncomment for stop-orders*/
             CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
             orderCreateDto.setOrderBaseType(baseType);
@@ -184,7 +184,7 @@ public class OrderControllerRest {
                                                    @RequestParam(value = "baseType", defaultValue = "1") int typeId,
                                                    HttpServletRequest request, Principal principal) {
         long before = System.currentTimeMillis();
-        OrderBaseType orderBaseType = OrderBaseType.convert(typeId);
+        OrderBaseType orderBaseType = /*OrderBaseType.convert(typeId)*/OrderBaseType.LIMIT;/*todo: uncomment for stop-orders*/
         try {
             OrderCreateDto orderCreateDto;
             switch (orderBaseType) {
