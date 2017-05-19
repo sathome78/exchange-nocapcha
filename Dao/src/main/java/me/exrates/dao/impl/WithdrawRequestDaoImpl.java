@@ -204,6 +204,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "    left join WALLET on TRANSACTION.user_wallet_id=WALLET.id" +
         "    left join USER on WALLET.user_id=USER.id" +
         "  WHERE " +
+            "TRANSACTION.source_type IN ('MERCHANT', 'INVOICE', 'BTC_INVOICE', 'WITHDRAW') AND " +
         "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
         "    USER.email=:email " +
         "  UNION " +
