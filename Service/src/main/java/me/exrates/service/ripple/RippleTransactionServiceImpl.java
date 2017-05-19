@@ -5,6 +5,7 @@ import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by maks on 11.05.2017.
@@ -36,11 +39,12 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     private static final Integer XRP_AMOUNT_MULTIPLIER = 1000000;
     private static final Integer XRP_DECIMALS = 6;
     private static final BigDecimal XRP_MIN_BALANCE = new BigDecimal(20);
-
+    private static final String SEQUENCE_PARAM = "sequence";
+    private static final String LEDGER = "ledger";
 
 
     @Override
-    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         RippleAccount account = RippleAccount.builder().name(address).secret(secret).build();
         BigDecimal accountFromBalance = getAccountBalance(address);
         log.debug("main acc balance {}", accountFromBalance);
@@ -50,7 +54,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         RippleTransaction transaction = this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
                 withdrawMerchantOperationDto.getAccountTo(), Integer.parseInt(withdrawMerchantOperationDto.getDestinationTag()));
         log.debug("xrp transaction sended {}", transaction);
-        return  rippleTransactionToJsonString(transaction);
+        return  rippleTransactionToMap(transaction);
     }
 
     /*send xrp*/
@@ -109,21 +113,41 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         return normalizeAmountToDecimal(accountData.getString("Balance"));
     }
 
+    /*this check is based on https://ripple.com/build/reliable-transaction-submission/*/
     @Override
-    public boolean checkSendedTransactionConsensus(String txHash) {
+    public boolean checkSendedTransactionConsensus(String txHash, String additionalParams) {
+        JSONObject params = new JSONObject(additionalParams);
         JSONObject responseBody = new JSONObject(rippledNodeService.getTransaction(txHash));
         String result = responseBody.getJSONObject("meta").getString("TransactionResult");
-        return result.equals("tesSUCCESS") && responseBody.getBoolean("validated");
+        Integer ledger = Integer.parseInt(params.getString(LEDGER));
+        if (responseBody.has("inLedger")) {
+            if (result.equals("tesSUCCESS")) {
+                if (responseBody.getBoolean("validated")) {
+                    return true;
+                }
+            } else {
+                throw new RippleCheckConsensusException();
+            }
+        } else if (ledger > responseBody.getInt("ledger_index")) {
+            return false;
+        } else {
+            throw new RippleCheckConsensusException();
+        }
+        return false;
     }
 
-    private String rippleTransactionToJsonString(RippleTransaction rippleTransaction) {
+    private Map<String, String> rippleTransactionToMap(RippleTransaction rippleTransaction) {
+        Map<String, String> map = new HashMap<>();
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("hash", rippleTransaction.getTxHash());
-        jsonObject.put("sequence", rippleTransaction.getSequence());
-        jsonObject.put("ledger", rippleTransaction.getLastValidatedLedger());
-        log.debug("transaction {}", jsonObject);
-        return jsonObject.toString();
+        jsonObject.put(SEQUENCE_PARAM, rippleTransaction.getSequence());
+        jsonObject.put(LEDGER, rippleTransaction.getLastValidatedLedger());
+        log.debug("transaction {}", jsonObject + " " + rippleTransaction.getTxHash());
+        map.put("hash", rippleTransaction.getTxHash());
+        map.put("params", jsonObject.toString());
+        return map;
     }
+
+
 
 
 

@@ -72,7 +72,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   @Transactional
-  public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
   }
 

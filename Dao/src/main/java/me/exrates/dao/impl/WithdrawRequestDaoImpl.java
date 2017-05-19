@@ -59,6 +59,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
     withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
     withdrawRequestFlatDto.setTransactionHash(rs.getString("transaction_hash"));
+    withdrawRequestFlatDto.setAdditionalParams(rs.getString("additional_params"));
     return withdrawRequestFlatDto;
   };
 
@@ -170,15 +171,16 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   }
 
   @Override
-  public void setHashById(Integer id, String hash) {
+  public void setHashAndParamsById(Integer id, Map<String, String> params) {
     final String sql = "UPDATE WITHDRAW_REQUEST " +
             "  SET transaction_hash = :hash, " +
-            "      status_modification_date = NOW() " +
+            "      status_modification_date = NOW(), additional_params = :additional_params " +
             "  WHERE id = :id";
-    Map<String, Object> params = new HashMap<>();
-    params.put("id", id);
-    params.put("hash", hash);
-    jdbcTemplate.update(sql, params);
+    Map<String, Object> sqlParams = new HashMap<>();
+    sqlParams.put("id", id);
+    sqlParams.put("hash", params.get("hash"));
+    sqlParams.put("additional_params", params.get("params"));
+    jdbcTemplate.update(sql, sqlParams);
   }
 
   @Override

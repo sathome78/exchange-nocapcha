@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * Created by ValkSam on 24.03.2017.
  */
 public interface IMerchantService {
-  String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
+  Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
 
   /**
    * КОНТРАКТ: если методу необходим id заявки, то в случае его отсутствия необходимо выкинуть RefillRequestIdNeededException

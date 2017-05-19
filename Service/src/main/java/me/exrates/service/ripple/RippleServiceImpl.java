@@ -62,8 +62,8 @@ public class RippleServiceImpl implements RippleService {
     /*return: true if tx validated; false if not validated but validation in process,
     throws Exception if declined*/
     @Override
-    public boolean checkSendedTransaction(String hash) {
-        return rippleTransactionService.checkSendedTransactionConsensus(hash);
+    public boolean checkSendedTransaction(String hash, String additionalParams) {
+        return rippleTransactionService.checkSendedTransactionConsensus(hash, additionalParams);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class RippleServiceImpl implements RippleService {
     }
 
     @Override
-    public String withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         log.error("withdraw_XRP");
         if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
