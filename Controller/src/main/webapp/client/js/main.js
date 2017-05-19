@@ -69,6 +69,7 @@ $(function(){
     const PAYEER = 'Payeer';
     const ETHEREUM = 'Ethereum';
     const LITECOIIN = 'Litecoin';
+    const DASH = 'Dash';
     const ETHEREUM_CLASSIC = 'Ethereum Classic';
 
     const NO_ACTION = 'javascript:void(0);';
@@ -200,6 +201,7 @@ $(function(){
             ethereum:'/merchants/ethereum/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit',
             litecoin: '/merchants/litecoin/payment/prepare/',
+            dash: '/merchants/dash/payment/prepare/',
             ethereum:'/merchants/ethereum/ethereum_classic/payment/prepare'
 
         };
@@ -244,6 +246,7 @@ $(function(){
                 case ETHEREUM :
                 case BLOCKCHAIN:
                 case LITECOIIN:
+                case DASH:
                 case EDC:
                 default:
                     form.attr('action', NO_ACTION);
@@ -363,6 +366,38 @@ $(function(){
                         .html($('#mrcht-waiting').val())
                         .prop('disabled', true);
                     $.ajax('/merchants/litecoin/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'json',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        $('#inputPaymentProcess')
+                            .prop('disabled', false)
+                            .html($('#mrcht-ready').val());
+
+                        $.each(response, function (key) {
+                            if(key=='notification'){
+                                $('.paymentInfo').html(response[key]);
+                            }
+                            if(key=='qr'){
+                                $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
+                            }
+                        });
+                        responseControls();
+                    }).fail(function (error, jqXHR, textStatus) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseJSON.error);
+                        console.log(textStatus);
+                    });
+                    break;
+                case DASH:
+                    $('#inputPaymentProcess')
+                        .html($('#mrcht-waiting').val())
+                        .prop('disabled', true);
+                    $.ajax('/merchants/dash/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
                         },
