@@ -5,9 +5,15 @@ DELETE FROM REFILL_REQUEST_ADDRESS;
 
 /*------------------------------*/
 
+ALTER TABLE REFILL_REQUEST_ADDRESS
+	ADD COLUMN merchant_id INT(11) NOT NULL AFTER currency_id;
+
+ALTER TABLE REFILL_REQUEST_ADDRESS
+	ADD UNIQUE INDEX address_currency_id_merchant_id_user_id (address, currency_id, merchant_id, user_id);
+
 INSERT INTO REFILL_REQUEST_ADDRESS
- (id, currency_id, address, user_id, priv_key, pub_key, brain_priv_key)
- SELECT id, currency_id, address, user_id,
+ (id, currency_id, merchant_id, address, user_id, priv_key, pub_key, brain_priv_key)
+ SELECT id, currency_id, merchant_id, address, user_id,
 
  (SELECT wif_priv_key
  FROM REFILL_REQUEST_TEMP RRTI
@@ -20,10 +26,10 @@ INSERT INTO REFILL_REQUEST_ADDRESS
  WHERE RRTI.id = RRT.id)
 
  FROM
- (SELECT MAX(id) AS id, currency_id, address, user_id
+ (SELECT MAX(id) AS id, currency_id, merchant_id, address, user_id
  FROM REFILL_REQUEST_TEMP
  WHERE address IS NOT NULL AND address <> ''
- GROUP BY currency_id, address
+ GROUP BY currency_id, merchant_id, address, user_id
  ) RRT;
 
 /*------------------------------*/

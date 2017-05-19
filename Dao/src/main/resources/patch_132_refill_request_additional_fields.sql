@@ -16,11 +16,9 @@ ALTER TABLE MERCHANT
 ALTER TABLE WITHDRAW_REQUEST
 /*	ADD COLUMN destination_tag VARCHAR(100) NULL DEFAULT NULL AFTER admin_holder_id,
 	ADD COLUMN transaction_hash VARCHAR(400) NULL DEFAULT NULL,*/
-	ADD COLUMN additional_params VARCHAR(1000) NULL DEFAULT NULL AFTER transaction_hash;
+	ADD COLUMN additional_params VARCHAR(1000) NULL DEFAULT NULL ;
 
 /*=========================================*/
-ALTER TABLE REFILL_REQUEST_ADDRESS
-	ADD COLUMN merchant_id INT(11) NOT NULL AFTER currency_id;
 
 SELECT RRA.*
 FROM REFILL_REQUEST_ADDRESS RRA
@@ -31,9 +29,6 @@ DELETE RRA
 FROM REFILL_REQUEST_ADDRESS RRA
 LEFT JOIN REFILL_REQUEST RR ON RR.refill_request_address_id = RRA.id
 WHERE RR.id IS NULL;
-
-UPDATE REFILL_REQUEST_ADDRESS
-SET merchant_id = (SELECT merchant_id FROM REFILL_REQUEST where refill_request_address_id = REFILL_REQUEST_ADDRESS.id LIMIT 1);
 
 ALTER TABLE REFILL_REQUEST
 	DROP FOREIGN KEY FK_refill_request_refill_request_address_2;
@@ -48,7 +43,7 @@ ALTER TABLE REFILL_REQUEST_ADDRESS
 	ADD INDEX currency_id_merchant_id_user_id_id (currency_id, merchant_id, user_id, id);
 
 ALTER TABLE REFILL_REQUEST
-	ADD CONSTRAINT FK_refill_request_refill_request_address_2 FOREIGN KEY (currency_id, merchant_id, user_id, refill_request_address_id) REFERENCES refill_request_address (currency_id, merchant_id, user_id, id);
+	ADD CONSTRAINT FK_refill_request_refill_request_address_2 FOREIGN KEY (currency_id, merchant_id, user_id, refill_request_address_id) REFERENCES REFILL_REQUEST_ADDRESS (currency_id, merchant_id, user_id, id);
 
 /*=========================================*/
 

@@ -7,19 +7,18 @@ JOIN TRANSACTION TX ON  TX.id=PP.transaction_id AND TX.operation_type_id=1
 GROUP BY PP.invoice_request_status_id, TX.provided, TX.source_type;
 
 /*
-"invoice_request_status_id"	"provided"	"source_type"	"COUNT(*)"
-"1"	"0"	"INVOICE"	"7"
-"3"	"0"	"MERCHANT"	"5"
-"3"	"0"	"INVOICE"	"192"
-"4"	"1"	"MERCHANT"	"20"
-"4"	"1"	"INVOICE"	"1122"
-"5"	"0"	"INVOICE"	"1"
-"6"	"0"	"MERCHANT"	"1742"
-"6"	"0"	"INVOICE"	"573"
-3662
+invoice_request_status_id | provided | source_type | COUNT(*)
+3 | 0 | MERCHANT | 5
+3 | 0 | INVOICE | 215
+4 | 1 | MERCHANT | 20
+4 | 1 | INVOICE | 1266
+6 | 0 | MERCHANT | 1742
+6 | 0 | INVOICE | 625
+
+3 873
  */
 
-SELECT MAX(id) FROM REFILL_REQUEST --> 147 250
+SELECT MAX(id) FROM REFILL_REQUEST --> 57 146
 
 INSERT INTO REFILL_REQUEST
 (amount, commission,
@@ -57,21 +56,21 @@ FROM TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id /*with INVOICE_REQUEST related with TX source_type MERCHANT and INVOICE*/
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.operation_type_id=1
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 
 UPDATE TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 SET TX.description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST'
 WHERE TX.operation_type_id=1;
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 
 INSERT INTO TRANSACTION_BACKUP_REFILL
 SELECT TX.* FROM TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id /*with INVOICE_REQUEST related with TX source_type MERCHANT and INVOICE*/
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.operation_type_id=1
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 /*--------------------------------------------------------*/
 
 
@@ -106,7 +105,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST' AND TX.operation_type_id=1
 AND TX.id=IR.transaction_id
 );
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 
 DELETE FROM
 INVOICE_REQUEST
@@ -115,11 +114,11 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST' AND TX.operation_type_id=1
 AND TX.id=INVOICE_REQUEST.transaction_id
 )
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 
 DELETE FROM TRANSACTION
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST'
-/* Затронуто строк: 3 662*/
+/* Затронуто строк: 3 873*/
 
 /*------------ В КОНЦЕ----------------------------------*/
 
