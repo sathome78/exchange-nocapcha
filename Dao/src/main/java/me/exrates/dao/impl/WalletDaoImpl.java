@@ -185,9 +185,9 @@ public class WalletDaoImpl implements WalletDao {
       dto.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
       return dto;
     });
-
   }
 
+  /*todo sum stop orders reserve*/
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =
@@ -211,6 +211,33 @@ public class WalletDaoImpl implements WalletDao {
             " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
             "  " +
             " UNION ALL " +
+                "  " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name , WALLET.active_balance, " +
+                " WALLET.reserved_balance,   " +
+                " IFNULL(SOSELL.amount_base,0), 0, 0, " +
+                " 0, 0,  " +
+                " 0, 0, 0, 0  " +
+                " FROM USER " +
+                " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+                " LEFT JOIN STOP_ORDERS SOSELL ON (SOSELL.operation_type_id=3) AND (SOSELL.user_id=USER.id) AND (SOSELL.currency_pair_id = CP1.id) AND (SOSELL.status_id = 2) " +
+                " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                "  " +
+                " UNION ALL " +
+                "  " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                " 0, IFNULL(SOBUY.amount_convert,0), IFNULL(SOBUY.commission_fixed_amount,0), " +
+                " 0, 0, " +
+                " 0, 0, 0, 0 " +
+                " FROM USER " +
+                " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+                " LEFT JOIN STOP_ORDERS SOBUY ON (SOBUY.operation_type_id=4) AND (SOBUY.user_id=USER.id) AND (SOBUY.currency_pair_id = CP2.id) AND (SOBUY.status_id = 2) " +
+                " WHERE USER.email =  :email  AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                "  " +
+                " UNION ALL " +
             "  " +
             " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
             " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0), " +

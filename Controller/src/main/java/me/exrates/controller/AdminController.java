@@ -398,8 +398,19 @@ public class AdminController {
         List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
         result = ordersSellCancelled;
         break;
+      case "stopOrdersCancelled":
+        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersCancelled ;
+        break;
+      case "stopOrdersClosed":
+        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersClosed ;
+        break;
+      case "stopOrdersOpened":
+        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersOpened;
+        break;
     }
-
     return result;
   }
 
