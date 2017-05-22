@@ -199,9 +199,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
-      Integer merchantId,
-      Integer currencyId,
-      List<InvoiceStatus> statusList) {
+          Integer merchantId,
+          Integer currencyId,
+          List<Integer> statusIdList) {
     String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
         "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
@@ -211,12 +211,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "   JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
         "       AND REFILL_REQUEST.currency_id = :currency_id " +
-        "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
-        "       AND RRC.id IS NULL ";
+        "       AND REFILL_REQUEST.status_id IN (:status_id_list) ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
-      put("status_id_list", statusList);
+      put("status_id_list", statusIdList);
     }};
     return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
   }
@@ -268,7 +267,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public Optional<Integer> create(RefillRequestCreateDto request) {
     Optional<Integer> result = Optional.empty();
-    if (!request.getMayBeCreatedByFactOnly()) {
+    if (!request.getNeedToCreateRefillRequestRecord()) {
       final String sql = "INSERT INTO REFILL_REQUEST " +
           " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
           "  date_creation, status_modification_date) " +
@@ -686,7 +685,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
     final String sql = "UPDATE REFILL_REQUEST RR" +
-        "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
+        "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.id <> RR.id) AND (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
         "  SET RR.merchant_transaction_id = :merchant_transaction_id " +
         "  WHERE RR.id = :id AND RRI.id IS NULL ";
     Map<String, Object> params = new HashMap<>();
