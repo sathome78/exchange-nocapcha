@@ -311,7 +311,7 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
         merchantId,
         currencyId,
-        statusList);
+        statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
   @Override
@@ -535,10 +535,12 @@ public class RefillServiceImpl implements RefillService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
-      try {
-        refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
-      } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-        throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(requestAcceptDto.toString());
+      if (!merchantTransactionId.equals(refillRequest.getMerchantTransactionId())) {
+        try {
+          refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+        } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(merchantTransactionId);
+        }
       }
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
