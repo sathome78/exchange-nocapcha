@@ -79,13 +79,12 @@ function makeReport() {
         return;
     }
     $dialog.one('hidden.bs.modal', function (e) {
-        var objArr = $form.serializeArray();
-        var data = "startDate=" + objArr[0].value + ' 00:00:00' +
-            '&' + "endDate=" + objArr[1].value + ' 23:59:59' +
-            '&' + "currencyList=" + objArr[2].value +
-            '&' + "currencyPairList=" + objArr[3].value +
-            '&' + "direction=" + objArr[4].value +
-            '&' + "includeEmpty=" + (objArr[5] ? objArr[5].value : false) +
+        var data = "startDate=" + $form.find("#start-date").val()+ ' 00:00:00' +
+            '&' + "endDate=" + $form.find("#end-date").val() + ' 23:59:59' +
+            '&' + "currencyList=" + $form.find("#currencies").val() +
+            '&' + "currencyPairList=" + $form.find("#currencyPairs").val() +
+            '&' + "direction=" + $form.find("#direction").val() +
+            '&' + "includeEmpty=" + $form.find("#includeEmpty").val()  +
             "&role=" + currentRole;
         if (currentId == 'downloadInputOutputSummaryReport') {
             $.ajax({
