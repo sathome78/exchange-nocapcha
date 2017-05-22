@@ -202,7 +202,7 @@ public class RefillServiceImpl implements RefillService {
     request.setAmount(amount);
     request.setCommissionId(commissionId);
     request.setAddress(address);
-    request.setNeedToCreateRefillRequestRecord(false);
+    request.setNeedToCreateRefillRequestRecord(true);
     Integer requestId = createRefillByFact(request).orElseThrow(()->new RefillRequestCreationByFactException(requestAcceptDto.toString()));
     request.setId(requestId);
     try {

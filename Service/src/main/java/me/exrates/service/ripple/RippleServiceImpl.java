@@ -144,6 +144,7 @@ public class RippleServiceImpl implements RippleService {
             id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
                     currency.getId(), merchant.getId());
         } while (id.isPresent());
+        log.debug("tag is {}", destinationTag);
         return destinationTag;
     }
 

@@ -261,7 +261,16 @@ $(function withdrawCreation() {
     }
 
     function checkWithdrawParamsEnter() {
-        return merchantIsSimpleInvoice || (destination.length > 3 && (!additionalFieldNeeded || destinationTag.length > 3));
+        return merchantIsSimpleInvoice || (destination.length > 3 && (!additionalFieldNeeded || checkDestinationTag()));
+    }
+
+    /*max value for destination tag is 4294967295*/
+    function checkDestinationTag() {
+        if(destinationTag) {
+            var tag = parseInt(destinationTag);
+            return !isNaN(tag) && tag > 0 && tag < 4294967295
+        }
+        return true;
     }
 
     function getCommission(callback) {
