@@ -267,7 +267,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public Optional<Integer> create(RefillRequestCreateDto request) {
     Optional<Integer> result = Optional.empty();
-    if (!request.getMayBeCreatedByFactOnly()) {
+    if (!request.getNeedToCreateRefillRequestRecord()) {
       final String sql = "INSERT INTO REFILL_REQUEST " +
           " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
           "  date_creation, status_modification_date) " +

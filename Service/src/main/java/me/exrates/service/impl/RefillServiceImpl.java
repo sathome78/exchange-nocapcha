@@ -202,6 +202,7 @@ public class RefillServiceImpl implements RefillService {
     request.setAmount(amount);
     request.setCommissionId(commissionId);
     request.setAddress(address);
+    request.setNeedToCreateRefillRequestRecord(false);
     Integer requestId = createRefillByFact(request).orElseThrow(()->new RefillRequestCreationByFactException(requestAcceptDto.toString()));
     request.setId(requestId);
     try {
@@ -815,7 +816,7 @@ public class RefillServiceImpl implements RefillService {
   }
 
   private Optional<Integer> createRefill(RefillRequestCreateDto request) {
-    if (!request.getMayBeCreatedByFactOnly()) {
+    if (!request.getNeedToCreateRefillRequestRecord()) {
       RefillStatusEnum currentStatus = request.getStatus();
       Merchant merchant = merchantDao.findById(request.getMerchantId());
       InvoiceActionTypeEnum action = currentStatus.getStartAction(merchant);
