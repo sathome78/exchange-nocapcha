@@ -289,9 +289,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer refillRequestAddressId = null;
       Integer refillRequestParamId = null;
       if (!StringUtils.isEmpty(request.getAddress())) {
-        if (!isThereSuchAddress(request)) {
-          refillRequestAddressId = storeRefillRequestAddress(request);
-        }
+        Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request);
+        refillRequestAddressId = addressIdResult.orElseGet(() -> storeRefillRequestAddress(request));
       }
       if (request.getRecipientBankId() != null) {
         refillRequestParamId = storeRefillRequestParam(request);
@@ -324,6 +323,24 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("address", request.getAddress())
         .addValue("user_id", request.getUserId());
     return namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Boolean.class);
+  }
+  
+  private Optional<Integer> findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(RefillRequestCreateDto request) {
+    MapSqlParameterSource params;
+    final String findAddressSql = "SELECT id " +
+            " FROM REFILL_REQUEST_ADDRESS " +
+            " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address " +
+            " LIMIT 1 ";
+    params = new MapSqlParameterSource()
+            .addValue("currency_id", request.getCurrencyId())
+            .addValue("merchant_id", request.getMerchantId())
+            .addValue("address", request.getAddress())
+            .addValue("user_id", request.getUserId());
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   private Integer storeRefillRequestParam(RefillRequestCreateDto request) {
