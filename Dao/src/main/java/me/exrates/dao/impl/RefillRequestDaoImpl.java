@@ -289,7 +289,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer refillRequestAddressId = null;
       Integer refillRequestParamId = null;
       if (!StringUtils.isEmpty(request.getAddress())) {
-        Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request);
+        Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request.getAddress(),
+                request.getUserId(),
+                request.getCurrencyId(),
+                request.getMerchantId());
         refillRequestAddressId = addressIdResult.orElseGet(() -> storeRefillRequestAddress(request));
       }
       if (request.getRecipientBankId() != null) {
@@ -325,17 +328,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Boolean.class);
   }
   
-  private Optional<Integer> findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(RefillRequestCreateDto request) {
+  private Optional<Integer> findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(String address, Integer userId, Integer currencyId, Integer merchantId) {
     MapSqlParameterSource params;
     final String findAddressSql = "SELECT id " +
             " FROM REFILL_REQUEST_ADDRESS " +
             " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address " +
             " LIMIT 1 ";
     params = new MapSqlParameterSource()
-            .addValue("currency_id", request.getCurrencyId())
-            .addValue("merchant_id", request.getMerchantId())
-            .addValue("address", request.getAddress())
-            .addValue("user_id", request.getUserId());
+            .addValue("currency_id", currencyId)
+            .addValue("merchant_id", merchantId)
+            .addValue("address", address)
+            .addValue("user_id", userId);
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class));
     } catch (EmptyResultDataAccessException e) {

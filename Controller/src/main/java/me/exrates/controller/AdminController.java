@@ -454,8 +454,7 @@ public class AdminController {
     User user = userService.getUserById(id);
     user.setId(id);
     model.addObject("user", user);
-    model.addObject("currencies", currencyService.findAllCurrencies().stream()
-        .filter(currency -> !"LTC".equals(currency.getName())).collect(Collectors.toList()));
+    model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
     model.setViewName("admin/editUser");
     model.addObject("userFiles", userService.findUserDoc(id));
