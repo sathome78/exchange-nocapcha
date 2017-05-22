@@ -1,8 +1,6 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.InvalidNumberParamException;
-import me.exrates.controller.exception.NoRequestedBeansFoundException;
+import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -21,8 +19,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
-import me.exrates.service.exception.NoPermissionForOperationException;
-import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.*;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -1299,6 +1296,17 @@ public class AdminController {
   public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+  
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
+          OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
+          NotCreatableOrderException.class})
+  @ResponseBody
+  public ErrorInfo orderExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+  
+ 
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
@@ -1308,6 +1316,8 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+  
+  
 
 
 
