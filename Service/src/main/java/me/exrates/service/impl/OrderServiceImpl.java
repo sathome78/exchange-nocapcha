@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.mobileApiDto.OrderAcceptedDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -42,6 +43,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.*;
 
 @Service
@@ -146,7 +150,7 @@ public class OrderServiceImpl implements OrderService {
     } else {
       result = result.stream()
           .map(ExOrderStatisticsShortByPairsDto::new)
-          .collect(Collectors.toList());
+          .collect(toList());
       result.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -427,7 +431,7 @@ public class OrderServiceImpl implements OrderService {
       OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
       if (ordersForAccept.size() > 0) {
-        acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+        acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
         orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
       }
       if (orderForPartialAccept != null) {
@@ -844,7 +848,7 @@ public class OrderServiceImpl implements OrderService {
         .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
             && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
         .map(CoinmarketApiDto::new)
-        .collect(Collectors.toList()));
+        .collect(toList()));
     return result;
   }
 
@@ -917,7 +921,7 @@ public class OrderServiceImpl implements OrderService {
     } else {
       result = result.stream()
           .map(OrderAcceptedHistoryDto::new)
-          .collect(Collectors.toList());
+          .collect(toList());
       result.forEach(e -> {
         e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -953,7 +957,7 @@ public class OrderServiceImpl implements OrderService {
     } else {
       result = result.stream()
           .map(OrderListDto::new)
-          .collect(Collectors.toList());
+          .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -977,7 +981,7 @@ public class OrderServiceImpl implements OrderService {
     } else {
       result = result.stream()
           .map(OrderListDto::new)
-          .collect(Collectors.toList());
+          .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1057,6 +1061,18 @@ public class OrderServiceImpl implements OrderService {
       e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
     });
     return result;
+  }
+
+  private List<OrderAcceptedHistoryDto> aggregateOrders(List<OrderAcceptedHistoryDto> historyDtos) {
+    List<OrderAcceptedHistoryDto> dtos = new ArrayList<>();
+    Map<String, List<OrderAcceptedHistoryDto>> map =
+            historyDtos.stream().collect(Collectors.groupingBy(OrderAcceptedHistoryDto::getRate));
+    map.forEach((k,v)-> {
+      String amountBase;
+      String ordersids;
+      dtos.add(new OrderAcceptedHistoryDto(k, amountBase, ordersids));
+    });
+    return Collections.emptyList();
   }
 
 

@@ -18,6 +18,13 @@ public class OrderAcceptedHistoryDto extends OnlineTableDto {
   private String rate;
   private String amountBase;
   private OperationType operationType;
+  private String ordersIds;
+
+  public OrderAcceptedHistoryDto(String rate, String amountBase, String ordersIds) {
+    this.rate = rate;
+    this.amountBase = amountBase;
+    this.ordersIds = ordersIds;
+  }
 
   public OrderAcceptedHistoryDto() {
     this.needRefresh = true;
