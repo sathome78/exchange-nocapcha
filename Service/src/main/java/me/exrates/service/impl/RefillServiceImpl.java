@@ -124,13 +124,21 @@ public class RefillServiceImpl implements RefillService {
             throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
           }
           if (!request.getGenerateAdditionalRefillAddressAvailable()) {
-            throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
+            Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(
+                request.getMerchantId(),
+                request.getCurrencyId(),
+                request.getUserId()
+            ).isPresent();
+            if (addressIsAlreadyGeneratedForUser) {
+              throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
+            }
           }
         }
         request.setAddress(result.get("address"));
         request.setPrivKey(result.get("privKey"));
         request.setPubKey(result.get("pubKey"));
         request.setBrainPrivKey(result.get("brainPrivKey"));
+        request.setNeedToCreateRefillRequestRecord(StringUtils.isEmpty(request.getAddress()));
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
       } catch (RefillRequestIdNeededException e) {
@@ -203,7 +211,7 @@ public class RefillServiceImpl implements RefillService {
     request.setCommissionId(commissionId);
     request.setAddress(address);
     request.setNeedToCreateRefillRequestRecord(true);
-    Integer requestId = createRefillByFact(request).orElseThrow(()->new RefillRequestCreationByFactException(requestAcceptDto.toString()));
+    Integer requestId = createRefillByFact(request).orElseThrow(() -> new RefillRequestCreationByFactException(requestAcceptDto.toString()));
     request.setId(requestId);
     try {
       sendRefillNotificationAfterCreationByFact(

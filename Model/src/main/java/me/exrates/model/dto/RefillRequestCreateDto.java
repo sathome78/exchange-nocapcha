@@ -58,7 +58,6 @@ public class RefillRequestCreateDto {
     this.userFullName = paramsDto.getUserFullName();
     this.remark = paramsDto.getRemark();
     this.address = paramsDto.getAddress();
-    this.needToCreateRefillRequestRecord = StringUtils.isEmpty(this.address);
     this.privKey = null;
     this.pubKey = null;
     this.brainPrivKey = null;
