@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.*;
@@ -48,6 +49,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.*;
 
+@Log4j2
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -948,7 +950,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderListDto> getAllBuyOrders(CacheData cacheData,
                                             CurrencyPair currencyPair, Locale locale) {
     Boolean evictEhCache = cacheData.getForceUpdate();
-    List<OrderListDto> result = serviceCacheableProxy.getAllBuyOrders(currencyPair, evictEhCache);
+    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllBuyOrders(currencyPair, evictEhCache), OperationType.BUY, evictEhCache);
     result = new ArrayList<>(result);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderListDto>() {{
@@ -956,7 +958,12 @@ public class OrderServiceImpl implements OrderService {
       }};
     } else {
       result = result.stream()
-          .map(OrderListDto::new)
+          .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+                @Override
+                public int compare(OrderListDto o1, OrderListDto o2) {
+                  return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+                }
+              })
           .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
@@ -972,7 +979,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderListDto> getAllSellOrders(CacheData cacheData,
                                              CurrencyPair currencyPair, Locale locale) {
     Boolean evictEhCache = cacheData.getForceUpdate();
-    List<OrderListDto> result = serviceCacheableProxy.getAllSellOrders(currencyPair, evictEhCache);
+    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllSellOrders(currencyPair, evictEhCache), OperationType.SELL, evictEhCache);
     result = new ArrayList<>(result);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderListDto>() {{
@@ -980,7 +987,12 @@ public class OrderServiceImpl implements OrderService {
       }};
     } else {
       result = result.stream()
-          .map(OrderListDto::new)
+          .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+                @Override
+                public int compare(OrderListDto o1, OrderListDto o2) {
+                  return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
+                }
+              })
           .collect(toList());
       result.forEach(e -> {
         e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
@@ -989,6 +1001,25 @@ public class OrderServiceImpl implements OrderService {
       });
     }
     return result;
+  }
+
+  private List<OrderListDto> aggregateOrders(List<OrderListDto> historyDtos, OperationType operationType, boolean forceUpdate) {
+    List<OrderListDto> resultList = new ArrayList<>();
+    Map<String, List<OrderListDto>> map =
+            historyDtos.stream().collect(Collectors.groupingBy(OrderListDto::getExrate));
+    map.forEach((k,v)-> {
+      BigDecimal amountBase = new BigDecimal(0);
+      BigDecimal amountConverted = new BigDecimal(0);
+      StringJoiner ordersIds = new StringJoiner(" ");
+      for (OrderListDto order : v) {
+        amountBase = amountBase.add(new BigDecimal(order.getAmountBase()));
+        amountConverted = amountConverted.add(new BigDecimal(order.getAmountConvert()));
+        ordersIds.add(String.valueOf(order.getId()));
+      }
+      resultList.add(new OrderListDto(ordersIds.toString(), k, amountBase.toString(),
+              amountConverted.toString(), operationType, forceUpdate));
+    });
+    return resultList;
   }
 
   @Transactional(readOnly = true)
@@ -1063,18 +1094,6 @@ public class OrderServiceImpl implements OrderService {
     return result;
   }
 
-  private List<OrderAcceptedHistoryDto> aggregateOrders(List<OrderAcceptedHistoryDto> historyDtos) {
-    List<OrderAcceptedHistoryDto> dtos = new ArrayList<>();
-    Map<String, List<OrderAcceptedHistoryDto>> map =
-            historyDtos.stream().collect(Collectors.groupingBy(OrderAcceptedHistoryDto::getRate));
-    map.forEach((k,v)-> {
-      String amountBase;
-      String ordersids;
-      dtos.add(new OrderAcceptedHistoryDto(k, amountBase, ordersids));
-    });
-    return Collections.emptyList();
-  }
-
 
   @Transactional(readOnly = true)
   @Override
@@ -1100,6 +1119,7 @@ public class OrderServiceImpl implements OrderService {
     });
     return result;
   }
+
 
   @Transactional
   private Object deleteOrder(int orderId, OrderStatus newOrderStatus, OrderActionEnum action) {
