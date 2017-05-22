@@ -246,11 +246,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       String address,
       Integer merchantId,
       Integer currencyId) {
-    String sql = "SELECT RR.user_id " +
-        " FROM REFILL_REQUEST RR " +
-        " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
-        " WHERE RR.merchant_id = :merchant_id " +
-        "       AND RR.currency_id = :currency_id " +
+    String sql = "SELECT RRA.user_id " +
+        " FROM REFILL_REQUEST_ADDRESS RRA " +
+        " WHERE RRA.merchant_id = :merchant_id " +
+        "       AND RRA.currency_id = :currency_id " +
+        "       AND RRA.address = :address " +
         " LIMIT 1 ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);

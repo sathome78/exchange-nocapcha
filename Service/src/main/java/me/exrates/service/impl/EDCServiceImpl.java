@@ -14,8 +14,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -128,17 +127,24 @@ public class EDCServiceImpl implements EDCService {
     }
 
     JsonParser parser = new JsonParser();
-    JsonArray jsonArray = parser.parse(returnResponse).getAsJsonArray();
-
-    for (JsonElement element : jsonArray) {
-      if (element.getAsJsonObject().get("id").getAsString().equals(params.get("id"))) {
-        if (element.getAsJsonObject().get("amount").getAsString().equals(params.get("amount"))) {
-          return;
+    try {
+      JsonArray jsonArray = parser.parse(returnResponse).getAsJsonArray();
+      for (JsonElement element : jsonArray) {
+        if (element.getAsJsonObject().get("id").getAsString().equals(params.get("id"))) {
+          if (element.getAsJsonObject().get("amount").getAsString().equals(params.get("amount"))) {
+            return;
+          }
         }
       }
+    } catch (IllegalStateException e) {
+      if ("Address not found".equals(parser.parse(returnResponse).getAsJsonObject().get("message").getAsString())){
+        throw new RefillRequestFakePaymentReceivedException(params.toString());
+      } else {
+        throw new RefillRequestMerchantException(params.toString());
+      }
     }
-    return;
-//    throw new RefillRequestFakePaymentReceivedException(params.toString());
+//    return;
+    throw new RefillRequestFakePaymentReceivedException(params.toString());
   }
 
   private String getAddress() {
