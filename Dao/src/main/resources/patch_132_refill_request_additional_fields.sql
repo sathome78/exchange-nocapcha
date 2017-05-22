@@ -16,17 +16,40 @@ ALTER TABLE MERCHANT
 ALTER TABLE WITHDRAW_REQUEST
 /*	ADD COLUMN destination_tag VARCHAR(100) NULL DEFAULT NULL AFTER admin_holder_id,
 	ADD COLUMN transaction_hash VARCHAR(400) NULL DEFAULT NULL,*/
-	ADD COLUMN additional_params VARCHAR(1000) NULL DEFAULT NULL AFTER transaction_hash;
+	ADD COLUMN additional_params VARCHAR(1000) NULL DEFAULT NULL ;
+
+/*=========================================*/
+
+SELECT RRA.*
+FROM REFILL_REQUEST_ADDRESS RRA
+LEFT JOIN REFILL_REQUEST RR ON RR.refill_request_address_id = RRA.id
+WHERE RR.id IS NULL
+
+DELETE RRA
+FROM REFILL_REQUEST_ADDRESS RRA
+LEFT JOIN REFILL_REQUEST RR ON RR.refill_request_address_id = RRA.id
+WHERE RR.id IS NULL;
+
+ALTER TABLE REFILL_REQUEST
+	DROP FOREIGN KEY FK_refill_request_refill_request_address_2;
+
+ALTER TABLE REFILL_REQUEST_ADDRESS
+	DROP INDEX id_currency_id_user_id;
+
+ALTER TABLE REFILL_REQUEST
+	DROP INDEX FK_refill_request_refill_request_address_2;
+
+ALTER TABLE REFILL_REQUEST_ADDRESS
+	ADD INDEX currency_id_merchant_id_user_id_id (currency_id, merchant_id, user_id, id);
+
+ALTER TABLE REFILL_REQUEST
+	ADD CONSTRAINT FK_refill_request_refill_request_address_2 FOREIGN KEY (currency_id, merchant_id, user_id, refill_request_address_id) REFERENCES REFILL_REQUEST_ADDRESS (currency_id, merchant_id, user_id, id);
+
+/*=========================================*/
 
 
-INSERT INTO REFILL_REQUEST_STATUS (id, name) VALUES (15, 'ON_INNER_TRANSFERRING');
-INSERT INTO REFILL_REQUEST_STATUS (id, name) VALUES (16, 'WAITING_REVIEWING');
-INSERT INTO REFILL_REQUEST_STATUS (id, name) VALUES (17, 'TAKEN_FOR_REFILL');
-
-INSERT INTO WITHDRAW_REQUEST_STATUS (id, name) VALUES (13, 'ON_BCH_EXAM');
-INSERT INTO WITHDRAW_REQUEST_STATUS (id, name) VALUES (14, 'WAITING_REVIEWING');
-INSERT INTO WITHDRAW_REQUEST_STATUS (id, name) VALUES (15, 'TAKEN_FOR_WITHDRAW');
+ALTER TABLE REFILL_REQUEST_ADDRESS
+	ADD COLUMN date_generation TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP AFTER brain_priv_key;
 
 ALTER TABLE WITHDRAW_REQUEST DROP COLUMN transaction_id;
 
-ALTER TABLE REFILL_REQUEST ADD INDEX merchant_id_merchant_transaction_id (merchant_id, merchant_transaction_id);

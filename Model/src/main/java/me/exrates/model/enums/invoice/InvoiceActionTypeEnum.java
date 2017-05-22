@@ -83,7 +83,10 @@ public enum InvoiceActionTypeEnum {
   REJECT_TO_REVIEW,
   REJECT_ERROR,
   REQUEST_INNER_TRANSFER,
-  DECLINE_MERCHANT;
+  DECLINE_MERCHANT,
+  FINALIZE_POST {{
+    getProperty().setLeadsToSuccessFinalState(true);
+  }};
 
   private InvoiceActionParams property = new InvoiceActionParams();
 

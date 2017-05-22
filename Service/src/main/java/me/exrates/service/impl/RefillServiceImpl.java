@@ -1,8 +1,8 @@
 package me.exrates.service.impl;
 
-import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
@@ -131,10 +131,10 @@ public class RefillServiceImpl implements RefillService {
         request.setPrivKey(result.get("privKey"));
         request.setPubKey(result.get("pubKey"));
         request.setBrainPrivKey(result.get("brainPrivKey"));
-        Integer requestId = createRefill(request);
+        Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
       } catch (RefillRequestIdNeededException e) {
-        Integer requestId = createRefill(request);
+        Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
         try {
           result = merchantService.refill(request);
@@ -160,7 +160,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
-    return refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
+    return refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
   @Override
@@ -168,7 +168,7 @@ public class RefillServiceImpl implements RefillService {
   public List<MerchantCurrency> retrieveAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
-      e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(getMainAddress(e.getMerchantId()));
       }
@@ -202,7 +202,7 @@ public class RefillServiceImpl implements RefillService {
     request.setAmount(amount);
     request.setCommissionId(commissionId);
     request.setAddress(address);
-    Integer requestId = createRefillByFact(request);
+    Integer requestId = createRefillByFact(request).orElseThrow(()->new RefillRequestCreationByFactException(requestAcceptDto.toString()));
     request.setId(requestId);
     try {
       sendRefillNotificationAfterCreationByFact(
@@ -812,16 +812,18 @@ public class RefillServiceImpl implements RefillService {
     return new RefillRequestsAdminTableDto(withdraw, refillRequestDao.getAdditionalDataForId(withdraw.getId()));
   }
 
-  private Integer createRefill(RefillRequestCreateDto request) {
-    RefillStatusEnum currentStatus = request.getStatus();
-    Merchant merchant = merchantDao.findById(request.getMerchantId());
-    InvoiceActionTypeEnum action = currentStatus.getStartAction(merchant);
-    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
-    request.setStatus(newStatus);
+  private Optional<Integer> createRefill(RefillRequestCreateDto request) {
+    if (!request.getMayBeCreatedByFactOnly()) {
+      RefillStatusEnum currentStatus = request.getStatus();
+      Merchant merchant = merchantDao.findById(request.getMerchantId());
+      InvoiceActionTypeEnum action = currentStatus.getStartAction(merchant);
+      RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+      request.setStatus(newStatus);
+    }
     return refillRequestDao.create(request);
   }
 
-  private Integer createRefillByFact(RefillRequestCreateDto request) {
+  private Optional<Integer> createRefillByFact(RefillRequestCreateDto request) {
     return refillRequestDao.create(request);
   }
 

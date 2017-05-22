@@ -447,7 +447,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     try {
       WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
-      WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(POST_AUTO);
+      WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(FINALIZE_POST);
       withdrawRequestDao.setStatusById(requestId, newStatus);
       /**/
       if (newStatus.isSuccessEndStatus()) {

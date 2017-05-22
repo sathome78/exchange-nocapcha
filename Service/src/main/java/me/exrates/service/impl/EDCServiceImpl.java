@@ -68,7 +68,7 @@ public class EDCServiceImpl implements EDCService {
     edcServiceNode.transferFromMainAccount(
         withdrawMerchantOperationDto.getAccountTo(),
         withdrawMerchantOperationDto.getAmount());
-    return "";
+    return new HashMap<>();
   }
 
   @Override

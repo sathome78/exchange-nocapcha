@@ -7,13 +7,14 @@ GROUP BY TX.source_type
 /*CHECK :
 MERCHANT, BTC_INVOICE, INVOICE must not be presented*/
 
-"source_type"	"COUNT(*)"
-"ORDER"	"1117930"
-"MERCHANT"	"3" <<<<<<<<<<<<<<<<<<<<<< !!!!
-"REFERRAL"	"630452"
-"MANUAL"	"737"
-"USER_TRANSFER"	"238"
-"WITHDRAW"	"34684"
+source_type | COUNT(*)
+ORDER | 1348705
+MERCHANT | 3   <<<<<<<<<<<<<<<<<<<< !!!
+REFERRAL | 770286
+MANUAL | 749
+USER_TRANSFER | 286
+WITHDRAW | 41506
+
 
  */
 
@@ -27,21 +28,21 @@ DELETE FROM TRANSACTION
 WHERE source_type='MERCHANT';
 /* Затронуто строк: 3*/
 
-SELECT MAX(id) FROM TRANSACTION -> 1914669   remember id after which new tranactins will be inserted
+SELECT MAX(id) FROM TRANSACTION -> 2 469 558   remember id after which new tranactins will be inserted
 
 SELECT status_id, count(*)
 FROM REFILL_REQUEST
 GROUP BY status_id
 /*
 "status_id"	"count(*)"
-"3"	"7"
-"4"	"18561"
-"8"	"1"
-"9"	"12973"  <<<<<<<<<<<<<<<<
-"10"	"1237" <<<<<<<<<<<<<<<<
-"11"	"313"
-"12"	"5664"
->>>>>>>>>>> 12 973+1 237 = 14 210
+4 | 20816
+6 | 1
+9 | 14770 <<<<<<<<<<
+10 | 1387 <<<<<<<<<<
+11 | 346
+12 | 5834
+
+>>>>>>>>>>> 14 770 +1 387 = 16 157
  */
 
 INSERT INTO TRANSACTION
@@ -60,7 +61,7 @@ JOIN COMPANY_WALLET CW ON (CW.currency_id=RR.currency_id)
 JOIN COMMISSION COM ON (COM.operation_type = 1 AND user_role = USER.roleid)
 WHERE RR.status_id IN (9 /*ACCEPTED_AUTO*/, 10 /*ACCEPTED_ADMIN*/)
 );
-/* Затронуто строк: 14 210*/
+/* Затронуто строк: 16 157*/
 
 
 INSERT INTO REFILL_REQUEST_CONFIRMATION
@@ -68,7 +69,7 @@ INSERT INTO REFILL_REQUEST_CONFIRMATION
 (SELECT id, status_modification_date, RR.confirmation, RR.amount
 FROM REFILL_REQUEST RR
 WHERE RR.confirmation>=0)
-/* Затронуто строк: 4 581*/
+/* Затронуто строк: 4 721*/
 
 
 ALTER TABLE REFILL_REQUEST
