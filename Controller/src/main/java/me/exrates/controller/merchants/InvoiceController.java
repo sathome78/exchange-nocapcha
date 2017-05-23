@@ -143,7 +143,9 @@ public class InvoiceController {
       }
       List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
       String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
-      invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
+      invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected, notSelected));
+      invoiceBanks.stream().filter(bank -> bank.getAdditional() != null)
+              .forEach(bank -> bank.setAdditional(bank.getAdditional().replaceAll("\n", "<br/>")));
       modelAndView.addObject("invoiceBanks", invoiceBanks);
     }
     return modelAndView;

@@ -262,7 +262,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
   @Override
   public List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId) {
-    final String sql = "SELECT id, currency_id, name, account_number, recipient " +
+    final String sql = "SELECT id, currency_id, name, account_number, recipient, additional " +
         " FROM INVOICE_BANK " +
         " WHERE currency_id = :currency_id";
     final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
@@ -273,6 +273,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       bank.setCurrencyId(rs.getInt("currency_id"));
       bank.setAccountNumber(rs.getString("account_number"));
       bank.setRecipient(rs.getString("recipient"));
+      bank.setAdditional(rs.getString("additional"));
       return bank;
     });
   }
