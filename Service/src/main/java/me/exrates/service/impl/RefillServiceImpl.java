@@ -142,6 +142,7 @@ public class RefillServiceImpl implements RefillService {
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
       } catch (RefillRequestIdNeededException e) {
+        request.setNeedToCreateRefillRequestRecord(true);
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
         try {
