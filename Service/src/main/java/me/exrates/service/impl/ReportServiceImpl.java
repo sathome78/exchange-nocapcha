@@ -2,7 +2,6 @@ package me.exrates.service.impl;
 
 import lombok.Getter;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -68,46 +66,6 @@ public class ReportServiceImpl implements ReportService {
     List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
     /**/
     List<InvoiceReportDto> result = new ArrayList<>();
-    /**/
-    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL)
-        && !currencyListForRefillOperation.isEmpty()) {
-      /*get list based on the table "invoice_request"
-      * Now source_type the INVOICE is source_type that is represented in "invoice_request" */
-      /*
-
-      //TODO REFILL REPORT
-      List<InvoiceRequestFlatForReportDto> invoiceRequestList = invoiceService.getByDateIntervalAndRoleAndCurrency(
-          startDate, endDate, realRoleIdList, currencyListForRefillOperation);
-      result.addAll(invoiceRequestList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));*/
-      /**/
-      /*get list based on the table "pending_payment" for particular source_type, which fully represented in pending_payment
-      * Now it is BTC_INVOICE */
-      List<String> sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.REFILL.name());
-      }};
-
-      /*
-      //TODO REFILL REPORT
-      List<PendingPaymentFlatForReportDto> pendingPaymentList = pendingPaymentService.getByDateIntervalAndRoleAndCurrencyAndSourceType(
-          startDate, endDate, realRoleIdList, currencyListForRefillOperation, sourceType);
-      result.addAll(pendingPaymentList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));*/
-
-      /**/
-      /*get list based on the table "transaction" for particular source_type, which is weakly represented in pending_payment or not represented there at all
-      * Now source_type the MERCHANT is that which is weakly represented (only not significant fields) in pending_payment or not represented there at all */
-      sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.REFILL.name());
-      }};
-      List<TransactionFlatForReportDto> inputTransactionList = transactionService.getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
-          startDate, endDate, INPUT.getType(), realRoleIdList, currencyListForRefillOperation, sourceType);
-      result.addAll(inputTransactionList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));
-    }
     /**/
     if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW)
         && !currencyListForWithdrawOperation.isEmpty()) {
