@@ -1,6 +1,6 @@
-ALTER TABLE INVOICE_BANK ADD additional VARCHAR(300) NULL;
+ALTER TABLE INVOICE_BANK ADD bank_details VARCHAR(300) NULL;
 
-INSERT INTO INVOICE_BANK (currency_id, name, account_number, recipient, additional)
+INSERT INTO INVOICE_BANK (currency_id, name, account_number, recipient, bank_details)
 VALUES ((SELECT id FROM CURRENCY WHERE name = 'VND'),
         'Vietcombank VND', '‎0251002734890', 'PHAM TRUONG HO', 'Bank name: VIETCOMBANK CHI NHÁNH BÌNH TÂY'),
   ((SELECT id FROM CURRENCY WHERE name = 'AED'),

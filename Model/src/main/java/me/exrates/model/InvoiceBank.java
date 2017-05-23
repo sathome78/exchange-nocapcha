@@ -22,7 +22,7 @@ public class InvoiceBank {
     @JsonInclude(NON_NULL)
     private String recipient;
     @JsonInclude(NON_NULL)
-    private String additional;
+    private String bankDetails;
 
 
 

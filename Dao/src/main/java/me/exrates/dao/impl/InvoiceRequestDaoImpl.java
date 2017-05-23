@@ -55,6 +55,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       invoiceBank.setName(resultSet.getString("bank_name"));
       invoiceBank.setAccountNumber(resultSet.getString("account_number"));
       invoiceBank.setRecipient(resultSet.getString("recipient"));
+      invoiceBank.setBankDetails(resultSet.getString("bank_details"));
       invoiceRequest.setInvoiceBank(invoiceBank);
     }
     invoiceRequest.setPayerBankName(resultSet.getString("payer_bank_name"));
@@ -77,7 +78,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
       "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
       "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-      "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+      "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient," +
+      "                    INVOICE_BANK.bank_details" +
       "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
       "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
       "                    FROM INVOICE_REQUEST AS inv " +
@@ -262,7 +264,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
   @Override
   public List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId) {
-    final String sql = "SELECT id, currency_id, name, account_number, recipient, additional " +
+    final String sql = "SELECT id, currency_id, name, account_number, recipient, bank_details " +
         " FROM INVOICE_BANK " +
         " WHERE currency_id = :currency_id";
     final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
@@ -273,7 +275,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       bank.setCurrencyId(rs.getInt("currency_id"));
       bank.setAccountNumber(rs.getString("account_number"));
       bank.setRecipient(rs.getString("recipient"));
-      bank.setAdditional(rs.getString("additional"));
+      bank.setBankDetails(rs.getString("bank_details"));
       return bank;
     });
   }

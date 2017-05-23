@@ -125,7 +125,7 @@
                         <span>${bank.name}</span>
                         <span>${bank.accountNumber}</span>
                         <span>${bank.recipient}</span>
-                        <span>${bank.additional}</span>
+                        <span>${bank.bankDetails}</span>
                     </p>
                 </c:forEach>
             </div>
