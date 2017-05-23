@@ -74,18 +74,22 @@ function showDialog(params) {
 
 function makeReport() {
     var $dialog = $('#report-dialog-currency-date-direction-dialog');
+    const $loadingDialog = $('#loading-process-modal');
     var $form = $dialog.find('form');
     if (!isDatesValid($form)) {
         return;
     }
     $dialog.one('hidden.bs.modal', function (e) {
-        var data = "startDate=" + $form.find("#start-date").val()+ ' 00:00:00' +
+        var data = "startDate=" + $form.find("#start-date").val() + ' 00:00:00' +
             '&' + "endDate=" + $form.find("#end-date").val() + ' 23:59:59' +
             '&' + "currencyList=" + $form.find("#currencies").val() +
             '&' + "currencyPairList=" + $form.find("#currencyPairs").val() +
             '&' + "direction=" + $form.find("#direction").val() +
-            '&' + "includeEmpty=" + $form.find("#includeEmpty").val()  +
+            '&' + "includeEmpty=" + $form.find("#includeEmpty").val() +
             "&role=" + currentRole;
+        $loadingDialog.modal({
+            backdrop: 'static'
+        });
         if (currentId == 'downloadInputOutputSummaryReport') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/InputOutputSummary',
@@ -93,7 +97,10 @@ function makeReport() {
                     data: data,
                     success: function (data) {
                         saveToDisk(data);
-                    }
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
                 }
             );
         } else if (currentId == 'upload-users-wallets-inout') {
@@ -104,7 +111,10 @@ function makeReport() {
                     success: function (data) {
                         saveToDisk(data.list);
                         saveToDisk(data.summary);
-                    }
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
                 }
             );
         } else if (currentId == 'upload-users-wallets') {
@@ -114,7 +124,10 @@ function makeReport() {
                     data: data,
                     success: function (data) {
                         saveToDisk(data);
-                    }
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
                 }
             );
         } else if (currentId == 'upload-users-wallets-orders') {
@@ -124,7 +137,10 @@ function makeReport() {
                     data: data,
                     success: function (data) {
                         saveToDisk(data);
-                    }
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
                 }
             );
         } else if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
@@ -134,7 +150,10 @@ function makeReport() {
                     data: data,
                     success: function (data) {
                         saveToDisk(data);
-                    }
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
                 }
             );
         }
