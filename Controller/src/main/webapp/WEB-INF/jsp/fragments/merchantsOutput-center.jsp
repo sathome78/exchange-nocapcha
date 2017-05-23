@@ -75,6 +75,7 @@
                           data-merchant-id="${merchantCurrency.merchantId}"
                           data-merchant-name="${merchantCurrency.name}"
                           data-merchant-min-sum="${merchantCurrency.minSum}"
+                          data-process_type="${merchantCurrency.processType}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
