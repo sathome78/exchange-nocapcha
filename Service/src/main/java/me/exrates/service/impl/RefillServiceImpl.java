@@ -154,14 +154,16 @@ public class RefillServiceImpl implements RefillService {
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
-    try {
-      String notification = sendRefillNotificationAfterCreation(
-          request,
-          result.get("message"),
-          request.getLocale());
-      result.put("message", notification);
-    } catch (MailException e) {
-      log.error(e);
+    if (request.getId() != null) {
+      try {
+        String notification = sendRefillNotificationAfterCreation(
+            request,
+            result.get("message"),
+            request.getLocale());
+        result.put("message", notification);
+      } catch (MailException e) {
+        log.error(e);
+      }
     }
     return result;
   }
@@ -825,7 +827,7 @@ public class RefillServiceImpl implements RefillService {
   }
 
   private Optional<Integer> createRefill(RefillRequestCreateDto request) {
-    if (!request.getNeedToCreateRefillRequestRecord()) {
+    if (request.getNeedToCreateRefillRequestRecord()) {
       RefillStatusEnum currentStatus = request.getStatus();
       Merchant merchant = merchantDao.findById(request.getMerchantId());
       InvoiceActionTypeEnum action = currentStatus.getStartAction(merchant);
