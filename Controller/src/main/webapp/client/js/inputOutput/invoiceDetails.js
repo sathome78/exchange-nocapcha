@@ -26,12 +26,14 @@ function updateBankDetails() {
     var $bankTableName = $('#bankName');
     var $bankTableAccount = $('#bankAccount');
     var $bankTableRecipient = $('#bankRecipient');
-    $('#bankName, #bankAccount, #bankRecipient').empty();
+    var $bankTableAdditional = $('#bankAdditional');
+    $('#bankName, #bankAccount, #bankRecipient, #bankAdditional').empty();
     var bankId = $('#bankId').val();
     var $bankInfo = $('#bankInfo').find('p[data-bankid="' + bankId + '"]');
     $($bankTableName).append($($bankInfo).find('span:first').clone());
     $($bankTableAccount).append($($bankInfo).find('span:nth-child(2)').clone());
     $($bankTableRecipient).append($($bankInfo).find('span:nth-child(3)').clone());
+    $($bankTableAdditional).append($($bankInfo).find('span:nth-child(4)').clone());
 }
 
 function ensureCompleteInput() {
