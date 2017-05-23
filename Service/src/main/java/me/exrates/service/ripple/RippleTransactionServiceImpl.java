@@ -7,6 +7,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +52,10 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         if (accountFromBalance.compareTo(XRP_MIN_BALANCE) < 0) {
             throw new InsufficientCostsInWalletException();
         }
+        Integer destinationTag = StringUtils.isEmpty(withdrawMerchantOperationDto.getDestinationTag()) ?
+                null : Integer.parseInt(withdrawMerchantOperationDto.getDestinationTag());
         RippleTransaction transaction = this.sendMoney(account, new BigDecimal(withdrawMerchantOperationDto.getAmount()),
-                withdrawMerchantOperationDto.getAccountTo(), Integer.parseInt(withdrawMerchantOperationDto.getDestinationTag()));
+                withdrawMerchantOperationDto.getAccountTo(), destinationTag);
         log.debug("xrp transaction sended {}", transaction);
         return  rippleTransactionToMap(transaction);
     }
@@ -117,9 +120,9 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     @Override
     public boolean checkSendedTransactionConsensus(String txHash, String additionalParams) {
         JSONObject params = new JSONObject(additionalParams);
-        JSONObject responseBody = new JSONObject(rippledNodeService.getTransaction(txHash));
+        JSONObject responseBody = rippledNodeService.getTransaction(txHash);
+        log.debug("tx_response {}", responseBody);
         String result = responseBody.getJSONObject("meta").getString("TransactionResult");
-        Integer ledger = Integer.parseInt(params.getString(LEDGER));
         if (responseBody.has("inLedger")) {
             if (result.equals("tesSUCCESS")) {
                 if (responseBody.getBoolean("validated")) {
@@ -128,7 +131,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
             } else {
                 throw new RippleCheckConsensusException();
             }
-        } else if (ledger > responseBody.getInt("ledger_index")) {
+        } else if (params.getInt(LEDGER) > responseBody.getInt("ledger_index")) {
             return false;
         } else {
             throw new RippleCheckConsensusException();

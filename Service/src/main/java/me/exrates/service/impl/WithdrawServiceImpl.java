@@ -459,6 +459,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
       }
     } catch (Exception e) {
+      log.error(e);
       throw new WithdrawRequestPostException(withdrawRequest.toString());
     }
   }

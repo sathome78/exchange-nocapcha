@@ -80,7 +80,7 @@ public class RippleWsServiceImpl {
                         .equals("Payment") && transaction.get("Account").equals(address)) {
                     /*its withdraw transaction, we can finalize it*/
                     String hash = transaction.getString("hash");
-                    Optional<Integer> requestId = withdrawService.getRequestIdByHashAndMerchantId(hash, merchant.getId()); /*todo: get request id*/
+                    Optional<Integer> requestId = withdrawService.getRequestIdByHashAndMerchantId(hash, merchant.getId());
                     requestId.ifPresent(integer -> withdrawService.finalizePostWithdrawalRequest(requestId.get()));
                 }
             }
