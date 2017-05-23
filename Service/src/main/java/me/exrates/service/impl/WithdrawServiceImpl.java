@@ -420,7 +420,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
-      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, withdrawRequest.isWithdrawTransferringConfirmNeeded());
+      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
       /**/

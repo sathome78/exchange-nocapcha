@@ -3,13 +3,14 @@ package me.exrates.service.ripple;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,130 +33,128 @@ import java.util.Random;
 @PropertySource("classpath:/merchants/ripple.properties")
 public class RippleServiceImpl implements RippleService {
 
-    private @Value("${ripple.account.address}") String systemAddress;
+  private @Value("${ripple.account.address}") String systemAddress;
 
-    @Autowired
-    private RippleTransactionService rippleTransactionService;
-    @Autowired
-    private RippledNodeService rippledNodeService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private RefillService refillService;
-    private static final String XRP_MERCHANT = "Ripple";
+  @Autowired
+  private RippleTransactionService rippleTransactionService;
+  @Autowired
+  private RippledNodeService rippledNodeService;
+  @Autowired
+  private MerchantService merchantService;
+  @Autowired
+  private CurrencyService currencyService;
+  @Autowired
+  private MessageSource messageSource;
+  @Autowired
+  private RefillService refillService;
+  private static final String XRP_MERCHANT = "Ripple";
 
-    private static final int MAX_TAG_DESTINATION_DIGITS = 9;
+  private static final int MAX_TAG_DESTINATION_DIGITS = 9;
 
 
-    /*method for admin manual check transaction by hash*/
-    @Override
-    public void manualCheckNotReceivedTransaction(String hash) {
-        JSONObject response = rippledNodeService.getTransaction(hash);
-        onTransactionReceive(response);
+  /*method for admin manual check transaction by hash*/
+  @Override
+  public void manualCheckNotReceivedTransaction(String hash) {
+    JSONObject response = rippledNodeService.getTransaction(hash);
+    onTransactionReceive(response);
+  }
+
+
+  /*return: true if tx validated; false if not validated but validation in process,
+  throws Exception if declined*/
+  @Override
+  public boolean checkSendedTransaction(String hash, String additionalParams) {
+    return rippleTransactionService.checkSendedTransactionConsensus(hash, additionalParams);
+  }
+
+  @Override
+  public void onTransactionReceive(JSONObject transaction) {
+    log.debug("income transaction {} ", transaction.toString());
+    Map<String, String> paramsMap = new HashMap<>();
+    paramsMap.put("hash", transaction.getString("hash"));
+    Integer destinationTag = transaction.getInt("DestinationTag");
+    paramsMap.put("address", String.valueOf(destinationTag));
+    paramsMap.put("amount", transaction.getString("Amount"));
+    try {
+      this.processPayment(paramsMap);
+    } catch (RefillRequestAppropriateNotFoundException e) {
+      log.error("xrp refill address not found {}", transaction.toString());
     }
+  }
 
-
-    /*return: true if tx validated; false if not validated but validation in process,
-    throws Exception if declined*/
-    @Override
-    public boolean checkSendedTransaction(String hash, String additionalParams) {
-        return rippleTransactionService.checkSendedTransactionConsensus(hash, additionalParams);
+  @Override
+  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    log.error("withdraw_XRP");
+    if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+      throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
+    return rippleTransactionService.withdraw(withdrawMerchantOperationDto);
+  }
 
-    @Override
-    public void onTransactionReceive(JSONObject transaction) {
-        log.debug("income transaction {} ", transaction.toString());
-        Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("hash", transaction.getString("hash"));
-        Integer destinationTag = transaction.getInt("DestinationTag");
-        paramsMap.put("address", String.valueOf(destinationTag));
-        paramsMap.put("amount", transaction.getString("Amount"));
-        try {
-            this.processPayment(paramsMap);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error("xrp refill address not found {}", transaction.toString());
-        }
-    }
+  /*generate max-10digits in fact - 9 digits(Unsigned Integer) for identifying payment */
+  @Override
+  public Map<String, String> refill(RefillRequestCreateDto request) {
+    Integer destinationTag = generateUniqDestinationTag(request.getUserId());
+    String message = messageSource.getMessage("merchants.refill.xrp",
+        new Object[]{systemAddress, destinationTag}, request.getLocale());
+    return new HashMap<String, String>() {{
+      put("address", destinationTag.toString());
+      put("message", message);
+    }};
+  }
 
-    @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        log.error("withdraw_XRP");
-        if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
-            throw new WithdrawRequestPostException("Currency not supported by merchant");
-        }
-        return rippleTransactionService.withdraw(withdrawMerchantOperationDto);
+  @Override
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    String address = params.get("address");
+    String hash = params.get("hash");
+    Currency currency = currencyService.findByName("XRP");
+    Merchant merchant = merchantService.findByName(XRP_MERCHANT);
+    BigDecimal amount = rippleTransactionService.normalizeAmountToDecimal(params.get("amount"));
+    RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+        .address(address)
+        .merchantId(merchant.getId())
+        .currencyId(currency.getId())
+        .amount(amount)
+        .merchantTransactionId(hash)
+        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+        .build();
+    try {
+      refillService.autoAcceptRefillRequest(requestAcceptDto);
+    } catch (RefillRequestAppropriateNotFoundException e) {
+      log.debug("RefillRequestNotFountException: " + params);
+      Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+      requestAcceptDto.setRequestId(requestId);
+      refillService.autoAcceptRefillRequest(requestAcceptDto);
     }
+  }
 
-    /*generate max-10digits in fact - 9 digits(Unsigned Integer) for identifying payment */
-    @Override
-    public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
-        Integer destinationTag = generateUniqDestinationTag(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.xrp",
-                new Object[]{systemAddress, destinationTag}, request.getLocale());
-        return new HashMap<String, String>() {{
-            put("address", destinationTag.toString());
-            put("message", message);
-        }};
-    }
+  @Override
+  public String getMainAddress() {
+    return systemAddress;
+  }
 
-    @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        String address = params.get("address");
-        String hash = params.get("hash");
-        Currency currency = currencyService.findByName("XRP");
-        Merchant merchant = merchantService.findByName(XRP_MERCHANT);
-        BigDecimal amount = rippleTransactionService.normalizeAmountToDecimal(params.get("amount"));
-        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .address(address)
-                .merchantId(merchant.getId())
-                .currencyId(currency.getId())
-                .amount(amount)
-                .merchantTransactionId(hash)
-                .build();
-        if(merchant.getToMainAccountTransferringConfirmNeeded()) {
-            requestAcceptDto.setToMainAccountTransferringConfirmNeeded(true);
-        }
-        try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        }
-    }
+  private Integer generateUniqDestinationTag(int userId) {
+    Currency currency = currencyService.findByName("XRP");
+    Merchant merchant = merchantService.findByName(XRP_MERCHANT);
+    Optional<Integer> id = null;
+    int destinationTag;
+    do {
+      destinationTag = generateDestinationTag(userId);
+      id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
+          currency.getId(), merchant.getId());
+    } while (id.isPresent());
+    log.debug("tag is {}", destinationTag);
+    return destinationTag;
+  }
 
-    @Override
-    public String getMainAddress() {
-        return systemAddress;
+  private Integer generateDestinationTag(int userId) {
+    String idInString = String.valueOf(userId);
+    int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
+    if (randomNumberLength < 0) {
+      throw new MerchantInternalException("error generating new destination tag for ripple" + userId);
     }
-
-    private Integer generateUniqDestinationTag(int userId) {
-        Currency currency = currencyService.findByName("XRP");
-        Merchant merchant = merchantService.findByName(XRP_MERCHANT);
-        Optional<Integer> id = null;
-        int destinationTag;
-        do {
-            destinationTag = generateDestinationTag(userId);
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
-                    currency.getId(), merchant.getId());
-        } while (id.isPresent());
-        log.debug("tag is {}", destinationTag);
-        return destinationTag;
-    }
-
-    private Integer generateDestinationTag(int userId) {
-        String idInString = String.valueOf(userId);
-        int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
-        if (randomNumberLength < 0 ) {
-            throw new MerchantInternalException("error generating new destination tag for ripple" + userId);
-        }
-        String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
-        return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
-    }
+    String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
+    return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
+  }
 
 }

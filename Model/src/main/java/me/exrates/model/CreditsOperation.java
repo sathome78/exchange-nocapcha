@@ -42,7 +42,6 @@ public class CreditsOperation {
     this.destinationTag = builder.destinationTag == null ?
         Optional.empty() : builder.destinationTag;
     this.transactionSourceType = builder.transactionSourceType;
-    this.generateAdditionalRefillAddressAvailable = builder.generateAdditionalRefillAddressAvailable;
   }
 
 
@@ -119,11 +118,6 @@ public class CreditsOperation {
 
     public Builder transactionSourceType(TransactionSourceType transactionSourceType) {
       this.transactionSourceType = transactionSourceType;
-      return this;
-    }
-
-    public Builder generateAdditionalRefillAddressAvailable(Boolean generateAdditionalRefillAddressAvailable) {
-      this.generateAdditionalRefillAddressAvailable = generateAdditionalRefillAddressAvailable;
       return this;
     }
 

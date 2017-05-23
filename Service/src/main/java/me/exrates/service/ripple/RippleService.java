@@ -17,4 +17,29 @@ public interface RippleService extends IMerchantService {
     boolean checkSendedTransaction(String hash, String additionalParams);
 
     void onTransactionReceive(JSONObject result);
+
+  @Override
+  default Boolean createdRefillRequestRecordNeeded() {
+    return null;
+  }
+
+  @Override
+  default Boolean needToCreateRefillRequestRecord() {
+    return null;
+  }
+
+  @Override
+  default Boolean toMainAccountTransferringConfirmNeeded() {
+    return null;
+  }
+
+  @Override
+  default Boolean generatingAdditionalRefillAddressAvailable() {
+    return null;
+  }
+
+  @Override
+  default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
 }

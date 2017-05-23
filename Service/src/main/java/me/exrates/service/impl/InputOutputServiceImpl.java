@@ -188,7 +188,6 @@ public class InputOutputServiceImpl implements InputOutputService {
         .destination(destination)
         .destinationTag(destinationTag)
         .transactionSourceType(transactionSourceType)
-        .generateAdditionalRefillAddressAvailable(merchant.getGenerateAdditionalRefillAddressAvailable())
         .build();
     return Optional.of(creditsOperation);
   }

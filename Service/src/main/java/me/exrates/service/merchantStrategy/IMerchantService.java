@@ -15,20 +15,21 @@ import java.util.stream.Collectors;
 public interface IMerchantService {
   Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
 
-  /**
-   * КОНТРАКТ: если методу необходим id заявки, то в случае его отсутствия необходимо выкинуть RefillRequestIdNeededException
-   *
-   *  Integer requestId = request.getId();
-   *  if (requestId == null) {
-   *    throw new RefillRequestIdNeededException(request.toString());
-   *  }
-   *
-   */
-  Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException;
+  Map<String, String> refill(RefillRequestCreateDto request);
 
   void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException;
 
-  default String generateFullUrl(String url, Properties properties){
+  Boolean createdRefillRequestRecordNeeded();
+
+  Boolean needToCreateRefillRequestRecord();
+
+  Boolean toMainAccountTransferringConfirmNeeded();
+
+  Boolean generatingAdditionalRefillAddressAvailable();
+
+  Boolean withdrawTransferringConfirmNeeded();
+
+  default String generateFullUrl(String url, Properties properties) {
     return url.concat("?").concat(
         properties.entrySet().stream()
             .map(e -> e.getKey() + "=" + e.getValue())
