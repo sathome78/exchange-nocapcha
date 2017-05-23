@@ -50,7 +50,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         BigDecimal accountFromBalance = getAccountBalance(address);
         log.debug("main acc balance {}", accountFromBalance);
         if (accountFromBalance.compareTo(XRP_MIN_BALANCE) < 0) {
-            throw new InsufficientCostsInWalletException();
+            throw new InsufficientCostsInWalletException("XRP BALANCE LOW");
         }
         Integer destinationTag = StringUtils.isEmpty(withdrawMerchantOperationDto.getDestinationTag()) ?
                 null : Integer.parseInt(withdrawMerchantOperationDto.getDestinationTag());

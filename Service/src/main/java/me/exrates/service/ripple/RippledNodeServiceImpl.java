@@ -3,6 +3,8 @@ package me.exrates.service.ripple;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.RestUtil;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,12 +108,21 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         String requestBody = String.format(SUBMIT_TRANSACTION_RPC, transaction.getBlob());
         log.debug("xrps_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
-        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+        if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("can't submit transaction");
         }
+        JSONObject result = new JSONObject(response.getBody()).getJSONObject("result");
         log.debug("response {}", response.getBody());
-        JSONObject respTransaction = new JSONObject(response.getBody()).getJSONObject("result").getJSONObject("tx_json");
-        transaction.setTxHash(respTransaction.getString("hash"));
+        String engineResult = result.getString("engine_result");
+        if (engineResult.equals("tesSUCCESS")) {
+            JSONObject respTransaction = result.getJSONObject("tx_json");
+            transaction.setTxHash(respTransaction.getString("hash"));
+        } else if (result.getString("engine_result").equals("tecUNFUNDED_PAYMENT")) {
+            throw new InsufficientCostsInWalletException("XRP BALANCE LOW");
+        } else {
+            throw new MerchantException(result.toString());
+        }
+
     }
 
     @Override
