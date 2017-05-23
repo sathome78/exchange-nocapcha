@@ -105,5 +105,6 @@
             </div>
         </div>
     </div>
+    <%@include file="loading_modal.jsp" %>
 </div>
 

@@ -173,6 +173,7 @@
 </main>
 <%@include file='fragments/footer.jsp' %>
 <%@include file='admin/datePicker.jsp' %>
+<%@include file="fragments/modal/loading_modal.jsp" %>
 <%@include file='fragments/modal/dialogWithCurrencyAndDateAndDirection_modal.jsp' %>
 </body>
 </html>
