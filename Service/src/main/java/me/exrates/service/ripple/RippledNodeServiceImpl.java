@@ -36,13 +36,15 @@ public class RippledNodeServiceImpl implements RippledNodeService {
             "                                 \"LastLedgerSequence\": \"%d\",\n" +
             "                                 \"Amount\":  \"%s\",\n" +
             "                                 \"Destination\": \"%s\",\n" +
-            "                                 \"TransactionType\": \"Payment\",\n" +
-            "                                 \"DestinationTag\": \"%d\"\n" +
+            "                                 \"TransactionType\": \"Payment\"" +
+                                             "%s" +
             "                             },\n" +
             "                             \"fee_mult_max\": 1000\n" +
             "                         }\n" +
             "                     ]\n" +
             "                 }";
+
+    private static final String DESTINATION_TAG_FIELD = ", \n\"DestinationTag\": \"%d\"";
 
     private static final String SUBMIT_TRANSACTION_RPC = "{\n" +
             "                     \"method\": \"submit\",\n" +
@@ -84,9 +86,10 @@ public class RippledNodeServiceImpl implements RippledNodeService {
 
     @Override
     public void signTransaction(RippleTransaction transaction) {
+        String destinationTagParam = transaction.getDestinationTag() == null ? "" : String.format(DESTINATION_TAG_FIELD, transaction.getDestinationTag());
         String requestBody = String.format(SIGN_RPC, transaction.getIssuerSecret(), transaction.getIssuerAddress(),
                 transaction.getSequence(), transaction.getLastValidatedLedger(),
-                transaction.getSendAmount(), transaction.getDestinationAddress(), transaction.getDestinationTag());
+                transaction.getSendAmount(), transaction.getDestinationAddress(),  destinationTagParam);
         log.debug("xrp_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
