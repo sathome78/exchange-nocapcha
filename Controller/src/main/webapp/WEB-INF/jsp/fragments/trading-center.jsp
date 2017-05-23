@@ -149,7 +149,7 @@
                                 amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
                             <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
                                 amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
-                            <td class="order_id" hidden><@=id@></td>
+                            <td class="order_id" hidden><@=ordersIds@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>
                     </script>
@@ -262,7 +262,7 @@
                                 amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
                             <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
                                 amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
-                            <td class="order_id" hidden><@=id@></td>
+                            <td class="order_id" hidden><@=ordersIds@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>
                     </script>

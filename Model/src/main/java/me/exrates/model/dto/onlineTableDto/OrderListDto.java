@@ -15,6 +15,16 @@ public class OrderListDto extends OnlineTableDto {
   private String exrate;
   private String amountBase;
   private String amountConvert;
+  private String ordersIds;
+
+  public OrderListDto(String ordersIds, String exrate, String amountBase, String amountConvert, OperationType orderType, boolean needRefresh) {
+    this.ordersIds = ordersIds;
+    this.exrate = exrate;
+    this.amountBase = amountBase;
+    this.amountConvert = amountConvert;
+    this.orderType = orderType;
+    this.needRefresh = needRefresh;
+  }
 
   public OrderListDto() {
     this.needRefresh = true;
@@ -33,6 +43,7 @@ public class OrderListDto extends OnlineTableDto {
     this.exrate = orderListDto.exrate;
     this.amountBase = orderListDto.amountBase;
     this.amountConvert = orderListDto.amountConvert;
+    this.ordersIds = orderListDto.getOrdersIds();
   }
 
   @Override
