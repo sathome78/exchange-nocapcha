@@ -53,7 +53,6 @@ $(function withdrawCreation() {
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
-        merchantIsSimpleInvoice = $(button).data("simple-invoice");
         merchantIsSimpleInvoice = $(button).data("process_type")=="INVOICE";
         additionalFieldNeeded = $(button).data("additional-field-needed");
         amount = parseFloat($amountHolder.val());
