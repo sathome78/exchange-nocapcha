@@ -3,14 +3,10 @@ package me.exrates.service.merchantPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.enums.MerchantApiResponseType;
-import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -28,9 +24,9 @@ public class EthereumPaymentService implements MerchantPaymentService {
   @Autowired
   private MerchantService merchantService;
 
-    @Autowired
-    @Qualifier("ethereumServiceImpl")
-    EthereumCommonService ethereumService;
+//    @Autowired
+//    @Qualifier("ethereumServiceImpl")
+//    EthereumCommonService ethereumService;
 
   private MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
     /*final CreditsOperation creditsOperation = merchantService

@@ -13,16 +13,13 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.EthereumCommonService;
-import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.handler.RestResponseErrorHandler;
-import me.exrates.service.impl.EthereumCommonServiceImpl;
+import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -368,15 +365,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     
     
 
-    @Bean(name = "ethereumServiceImpl")
-    public EthereumCommonService ethereumService() {
-        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
-    }
-
-    @Bean(name = "ethereumClassicServiceImpl")
-    public EthereumCommonService ethereumClassicService() {
-        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
-    }
+//    @Bean(name = "ethereumServiceImpl")
+//    public EthereumCommonService ethereumService() {
+//        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
+//    }
+//
+//    @Bean(name = "ethereumClassicServiceImpl")
+//    public EthereumCommonService ethereumClassicService() {
+//        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
+//    }
 
     @Bean
     public RestTemplate restTemplate() {
