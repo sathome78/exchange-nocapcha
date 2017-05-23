@@ -79,7 +79,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
       "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
       "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient," +
-      "                    INVOICE_BANK.bank_details" +
+      "                    INVOICE_BANK.bank_details, " +
       "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
       "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
       "                    FROM INVOICE_REQUEST AS inv " +
