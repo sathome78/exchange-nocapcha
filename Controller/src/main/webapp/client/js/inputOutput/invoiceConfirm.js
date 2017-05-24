@@ -68,7 +68,7 @@ function updateBankSelection($bankSelect, $otherBankInputDiv, $bankCode) {
         $($bankCode).val('');
         $($bankCode).prop('readonly', true);
     } else if (bankId === 0) {
-        $('#payerBankName').val('');
+        $('#payerBankName').val($('#otherBank').val());
         $($otherBankInputDiv).show();
         if ($('#invoiceConfirmed').text().trim() != 'true') {
             $($bankCode).prop('readonly', false);
