@@ -475,8 +475,8 @@ public class OrderServiceImpl implements OrderService {
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
-        new Object[]{orderForPartialAccept.getId(), amountForPartialAccept,
-            orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()});
+        new Object[]{String.valueOf(orderForPartialAccept.getId()), amountForPartialAccept.toString(),
+            orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});
     return amountForPartialAccept;
   }
 
@@ -745,7 +745,7 @@ public class OrderServiceImpl implements OrderService {
       }
       if (sendNotification) {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
-            "acceptorder.message", new Object[]{exOrder.getId()});
+            "acceptorder.message", new Object[]{String.valueOf(exOrder.getId())});
       }
 
       stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process
@@ -878,7 +878,7 @@ public class OrderServiceImpl implements OrderService {
       throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
     }
     notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-        "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
+        "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{String.valueOf(order.getOrderId())});
     return (Integer) result;
   }
 
