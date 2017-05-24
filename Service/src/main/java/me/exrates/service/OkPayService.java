@@ -1,30 +1,26 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
 
 public interface OkPayService extends IMerchantService {
 
-    RedirectView preparePayment(CreditsOperation creditsOperation, String email);
-
-    public boolean confirmPayment(Map<String,String> params);
+  public boolean confirmPayment(Map<String,String> params);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean needToCreateRefillRequestRecord() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean toMainAccountTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 
   @Override
@@ -34,6 +30,6 @@ public interface OkPayService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 }

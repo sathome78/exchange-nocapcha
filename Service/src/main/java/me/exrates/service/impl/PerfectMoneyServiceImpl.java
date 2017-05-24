@@ -194,6 +194,22 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
         String currency = request.getCurrencyName();
         Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         /**/
+
+        Map<String, String> map = new HashMap<String,String>(){
+            {
+                put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
+                put("PAYEE_NAME",payeeName);
+                put("PAYMENT_AMOUNT", String.valueOf(amountToPay));
+                put("PAYMENT_UNITS",currency);
+                put("PAYMENT_ID", String.valueOf(orderId));
+                put("PAYMENT_URL",paymentSuccess);
+                put("NOPAYMENT_URL",paymentFailure);
+                put("STATUS_URL",paymentStatus);
+                put("FORCED_PAYMENT_METHOD","account");
+            }
+        };
+
+
         Properties properties = new Properties() {{
                 put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
                 put("PAYEE_NAME", payeeName);

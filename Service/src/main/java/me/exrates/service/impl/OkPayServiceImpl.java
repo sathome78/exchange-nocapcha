@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -13,6 +12,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -47,29 +47,35 @@ public class OkPayServiceImpl implements OkPayService {
     @Autowired
     private AlgorithmService algorithmService;
 
+    @Override
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
 
     @Override
-    @Transactional
-    public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
+    public Map<String, String> refill(RefillRequestCreateDto request) {
 
-        logger.debug("Begin method: preparePayment.");
-        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-        final BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+        Integer requestId = request.getId();
+        if (requestId == null) {
+            throw new RefillRequestIdNeededException(request.toString());
+        }
+        BigDecimal sum = request.getAmount();
+        String currency = request.getCurrencyName();
+        BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
 
         Properties properties = new Properties();
 
         properties.put("ok_receiver", ok_receiver);
-        properties.put("ok_currency", creditsOperation.getCurrency().getName());
-        properties.put("ok_invoice", String.valueOf(transaction.getId()));
+        properties.put("ok_currency", currency);
+        properties.put("ok_invoice", String.valueOf(requestId));
         properties.put("ok_item_1_name", ok_item_1_name);
         properties.put("ok_item_1_price", amountToPay.toString());
         properties.put("ok_s_title", ok_s_title);
 
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-
-        return redirectView;
+        String fullUrl = generateFullUrl(url, properties);
+        return new HashMap<String, String>() {{
+            put("redirectionUrl", fullUrl);
+        }};
     }
 
     @Override
@@ -135,16 +141,6 @@ public class OkPayServiceImpl implements OkPayService {
         }
 
         return returnResponse.equals("VERIFIED");
-    }
-
-    @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
-    }
-
-    @Override
-    public Map<String, String> refill(RefillRequestCreateDto request){
-        throw new NotImplimentedMethod("for "+request);
     }
 
     @Override

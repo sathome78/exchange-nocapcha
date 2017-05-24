@@ -26,17 +26,17 @@ public interface PerfectMoneyService extends IMerchantService {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean needToCreateRefillRequestRecord() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean toMainAccountTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 
   @Override
@@ -46,6 +46,6 @@ public interface PerfectMoneyService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 }
