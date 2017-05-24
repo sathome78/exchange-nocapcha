@@ -39,7 +39,12 @@ public interface RippleService extends IMerchantService {
   }
 
   @Override
+  default Boolean additionalTagForWithdrawAddressIsUsed() {
+    return true;
+  }
+
+  @Override
   default Boolean withdrawTransferringConfirmNeeded() {
-    return false;
+    return true;
   }
 }

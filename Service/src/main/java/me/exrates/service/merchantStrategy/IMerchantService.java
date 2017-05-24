@@ -27,6 +27,8 @@ public interface IMerchantService {
 
   Boolean generatingAdditionalRefillAddressAvailable();
 
+  Boolean additionalTagForWithdrawAddressIsUsed();
+
   Boolean withdrawTransferringConfirmNeeded();
 
   default String generateFullUrl(String url, Properties properties) {

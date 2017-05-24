@@ -125,7 +125,6 @@ public class MerchantDaoImpl implements MerchantDao {
       blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
     }
     final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
-        " MERCHANT.additional_tag_for_withdraw_address_is_used, " +
         " MERCHANT_CURRENCY.min_sum, " +
         " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
         " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -146,7 +145,6 @@ public class MerchantDaoImpl implements MerchantDao {
         merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
         merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
         merchantCurrency.setProcessType(resultSet.getString("process_type"));
-        merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(resultSet.getBoolean("additional_tag_for_withdraw_address_is_used"));
         final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
             " AND currency_id = :currency_id;";
         Map<String, Integer> params = new HashMap<String, Integer>();
