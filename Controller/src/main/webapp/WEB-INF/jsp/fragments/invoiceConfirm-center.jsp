@@ -46,6 +46,10 @@
                 <td><loc:message code="merchants.invoiceDetails.bankRecipient"/></td>
                 <td>${invoiceRequest.invoiceBank.recipient}</td>
               </tr>
+              <tr>
+                  <td><loc:message code="merchants.invoiceDetails.additional"/></td>
+                  <td>${invoiceRequest.invoiceBank.bankDetails}</td>
+              </tr>
               </tbody>
             </table>
           </div>

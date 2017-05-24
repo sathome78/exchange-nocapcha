@@ -19,7 +19,10 @@ public class InvoiceBank {
     private Integer currencyId;
     private String name;
     private String accountNumber;
+    @JsonInclude(NON_NULL)
     private String recipient;
+    @JsonInclude(NON_NULL)
+    private String bankDetails;
 
 
 

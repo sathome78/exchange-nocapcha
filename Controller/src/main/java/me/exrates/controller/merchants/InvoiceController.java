@@ -143,7 +143,9 @@ public class InvoiceController {
       }
       List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
       String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
-      invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
+      invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected, notSelected));
+      invoiceBanks.stream().filter(bank -> bank.getBankDetails() != null)
+              .forEach(bank -> bank.setBankDetails(bank.getBankDetails().replaceAll("\n", "<br/>")));
       modelAndView.addObject("invoiceBanks", invoiceBanks);
     }
     return modelAndView;
@@ -170,12 +172,11 @@ public class InvoiceController {
       invoiceData.setCreditsOperation(creditsOperation);
       invoiceService.createPaymentInvoice(invoiceData);
       InvoiceBank invoiceBank = invoiceService.findBankById(invoiceData.getBankId());
-      String toWallet = String.format("%s: %s - %s", invoiceBank.getName(), invoiceBank.getAccountNumber(), invoiceBank.getRecipient());
+      String recipient = Optional.ofNullable(invoiceBank.getRecipient()).orElse("");
+      String toWallet = String.format("%s: %s - %s", invoiceBank.getName(), invoiceBank.getAccountNumber(), recipient);
       final String notification = merchantService
           .sendDepositNotification(toWallet,
-              email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency" +
-                  creditsOperation.getCurrency().getName() +
-                  ".body");
+              email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency.body");
       redirectAttributes.addFlashAttribute("successNoty", notification);
       return new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
     } catch (final InvalidAmountException | RejectedPaymentInvoice e) {

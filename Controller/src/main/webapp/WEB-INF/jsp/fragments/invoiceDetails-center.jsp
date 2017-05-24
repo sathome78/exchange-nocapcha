@@ -58,6 +58,10 @@
                                     <td><loc:message code="merchants.invoiceDetails.bankRecipient"/> </td>
                                     <td><div id="bankRecipient"></div></td>
                                 </tr>
+                                <tr>
+                                    <td><loc:message code="merchants.invoiceDetails.additional"/> </td>
+                                    <td><div id="bankAdditional"></div></td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -121,6 +125,7 @@
                         <span>${bank.name}</span>
                         <span>${bank.accountNumber}</span>
                         <span>${bank.recipient}</span>
+                        <span>${bank.bankDetails}</span>
                     </p>
                 </c:forEach>
             </div>
