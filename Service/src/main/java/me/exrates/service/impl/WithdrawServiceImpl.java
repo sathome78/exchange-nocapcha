@@ -195,6 +195,19 @@ public class WithdrawServiceImpl implements WithdrawService {
     return createdWithdrawRequestId;
   }
 
+  @Override
+  @Transactional
+  public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies) {
+    merchantCurrencies.forEach(e -> {
+      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
+      e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+        e.setMainAddress(merchantService.getMainAddress());
+      }
+    });
+    return merchantCurrencies;
+  }
+
   private String convertWithdrawAutoToString(Integer seconds, Locale locale) {
     if (seconds <= 0) {
       return "";
