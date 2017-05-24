@@ -378,16 +378,7 @@ public class MerchantServiceImpl implements MerchantService {
     final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());
     return sum.compareTo(minSum) >= 0;
   }
-
-  @Override
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(e -> e.getType())
-        .collect(Collectors.toList());
-    return withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-  }
-
+  
   @Override
   public boolean checkInputRequestsLimit(int currencyId, String email) {
 

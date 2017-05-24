@@ -570,6 +570,38 @@
               </thead>
             </table>
 
+              <div class="text-center"><h4><loc:message code="myorders.stoporders"/></h4></div>
+
+              <table id="stopOrdersTable"
+                     class="admin-table table table-hover table-bordered table-striped"
+                     style="width:100%">
+                <thead>
+                <tr>
+                  <th class="col-2 myo_orid center blue-white"><loc:message code="myorders.id"/></th>
+                  <th class="col-3 myo_dcrt center blue-white"><loc:message
+                          code="myorders.datecreation"/></th>
+                  <th class="col-2 myo_crpr center blue-white"><loc:message
+                          code="myorders.currencypair"/></th>
+                  <th class="col-2 myo_crpr center blue-white"><loc:message
+                          code="admin.commissions.operationType"/></th>
+                  <th class="col-2 myo_amnt right blue-white"><loc:message
+                          code="myorders.amount"/></th>
+                  <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.rate"/></th>
+                  <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.stopRate"/></th>
+                  <th class="col-2 myo_totl right blue-white"><loc:message
+                          code="myorders.total"/></th>
+                  <th class="col-2 myo_comm right blue-white"><loc:message
+                          code="myorders.commission"/></th>
+                  <th class="col-2 myo_amcm right blue-white"><loc:message
+                          code="myorders.amountwithcommission"/></th>
+                  <%--<th class="col-2 myo_delt center blue-white"></th>--%>
+                  <%--<th class="col-4 myo_cnsl right blue-white"><loc:message code="myorders.canceldate"/></th>--%>
+                  <th class="col-4 myo_deal right blue-white"><loc:message
+                          code="myorders.dealdate"/></th>
+                </tr>
+                </thead>
+              </table>
+
 
           </div>
         </div>

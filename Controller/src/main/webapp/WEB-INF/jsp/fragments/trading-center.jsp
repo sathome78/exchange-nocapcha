@@ -46,60 +46,7 @@
     </div>
 
     <div class="row">
-        <div class="cols-md-4">
-            <div id="orders-history-table-wrapper">
-                <div class="deals-scope-switcher__wrapper">
-                    <div id="all-deals" class="deals-scope-switcher__button ht ht-active"
-                         data-tableId="orders-history-table">
-                        <loc:message code="dashboard.dealshistory"/>
-                    </div>
-                    <sec:authorize access="isAuthenticated()">
-                        <div id="my-deals" class="deals-scope-switcher__button ht"
-                             data-tableId="orders-history-table__my-deals">
-                            <loc:message code="dashboard.transactions"/>
-                        </div>
-                    </sec:authorize>
-                </div>
-                <%--ALL TRADES TABLE --%>
 
-                <table id="orders-history-table" class="orders-history-table table_middle default-skin">
-                    <tbody>
-                    <tr class="ht__theader">
-                        <th class="center"><loc:message code="dashboard.time"/></th>
-                        <th class="center"><loc:message code="dashboard.price"/></th>
-                        <th class="center currencyBaseName"></th>
-                    </tr>
-                    <script type="text/template" id="orders-history-table_row">
-                        <tr>
-                            <td><@=dateAcceptionTime@></td>
-                            <td><@=rate@></td>
-                            <@var c = operationType == 'BUY' ? 'green' : 'red';@>
-                            <td class=<@=c@>><@=amountBase@></td>
-                        </tr>
-                    </script>
-                    </tbody>
-                </table>
-                <%--MY TRADES ONLY TABLE --%>
-                <table id="orders-history-table__my-deals" class="orders-history-table table_middle hidden">
-                    <tbody>
-                    <tr class="ht__theader">
-                        <th class="center"><loc:message code="dashboard.time"/></th>
-                        <th class="center"><loc:message code="dashboard.price"/></th>
-                        <th class="center currencyBaseName"></th>
-                    </tr>
-                    <script type="text/template" id="orders-history-table_row__my-deals">
-                        <tr>
-                            <td><@=dateAcceptionTime@></td>
-                            <td><@=rate@></td>
-                            <@var c = operationType == 'BUY' ? 'green' : 'red';@>
-                            <td class=<@=c@>><@=amountBase@></td>
-                        </tr>
-                    </script>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- end cols-md-2 -->
 
         <div class="cols-md-4">
             <div class="lightblue em-08">
@@ -202,7 +149,7 @@
                                 amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
                             <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
                                 amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
-                            <td class="order_id" hidden><@=id@></td>
+                            <td class="order_id" hidden><@=ordersIds@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>
                     </script>
@@ -315,7 +262,7 @@
                                 amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
                             <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
                                 amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
-                            <td class="order_id" hidden><@=id@></td>
+                            <td class="order_id" hidden><@=ordersIds@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>
                     </script>
@@ -326,12 +273,12 @@
             </div>
         </div>
 
-        <%--<div class="cols-md-4">
+        <div class="cols-md-4">
             <div class="lightblue em-08">
                 <span class="green margin-right">Stop-Limit</span>
             </div>
             <div class="buyBTC">
-                &lt;%&ndash;stop-limit ...&ndash;%&gt;
+                <%--stop-limit ...--%>
                 <sec:authorize access="isAuthenticated()">
                     <div class="buyBTC__item item">
                             <span class="item__span"><loc:message code="dashboard.yourBalance"/>
@@ -354,7 +301,7 @@
 
                     <div class="buyBTC__item stop item">
                     <span class="item__span">Stop
-                        &lt;%&ndash;<span class="currencyBaseName"></span>&ndash;%&gt;
+                        <%--<span class="currencyBaseName"></span>--%>
                     </span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="stop" path="stop" type="text"
@@ -363,7 +310,7 @@
 
                     <div class="buyBTC__item stop item">
                     <span class="item__span">Limit
-                        &lt;%&ndash;<span class="currencyBaseName"></span>&ndash;%&gt;
+                        <%--<span class="currencyBaseName"></span>--%>
                     </span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="limit-stop" path="exchangeRate" type="text"
@@ -375,9 +322,9 @@
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <input id="totalForStop" class="item__input numericInputField"/>
-                            &lt;%&ndash;<div id="totalForBuy" class="blue_area">
+                            <%--<div id="totalForBuy" class="blue_area">
                             <span></span>
-                        </div>&ndash;%&gt;
+                        </div>--%>
                     </div>
 
                     <div class="row">
@@ -391,7 +338,7 @@
                         </sec:authorize>
                     </div>
                 </form:form>
-                &lt;%&ndash;... stop limit FORM&ndash;%&gt;
+                <%--... stop limit FORM--%>
             </div>
             <!-- end stop limit -->
 
@@ -408,7 +355,7 @@
                    </div>
                </sec:authorize>
            </div>
-          &lt;%&ndash; ALL TRADES TABLE&ndash;%&gt;
+          <%-- ALL TRADES TABLE--%>
 
            <table id="orders-history-table" class="orders-history-table table_middle default-skin">
                <tbody>
@@ -427,7 +374,7 @@
                </script>
                </tbody>
            </table>
-           &lt;%&ndash;MY TRADES ONLY TABLE&ndash;%&gt;
+           <%--MY TRADES ONLY TABLE--%>
            <table id="orders-history-table__my-deals" class="orders-history-table table_middle hidden">
                <tbody>
                <tr class="ht__theader">
@@ -447,7 +394,7 @@
            </table>
            </div>
 
-        </div>--%>
+        </div>
     </div>
 </div>
 <%--MODAL--%>
