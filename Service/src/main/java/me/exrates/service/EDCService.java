@@ -25,7 +25,7 @@ public interface EDCService extends IMerchantService {
 
   @Override
   default Boolean generatingAdditionalRefillAddressAvailable() {
-    return false;
+    return true;
   }
 
   @Override
