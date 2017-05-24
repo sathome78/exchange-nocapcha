@@ -3,7 +3,7 @@ INSERT INTO CURRENCY(name, description, hidden) VALUES ('DASH', 'Dash', 0);
 INSERT INTO WALLET (user_id, currency_id)
   select id, (select id from CURRENCY where name='DASH') from USER;
 
-
+INSERT INTO COMPANY_WALLET (currency_id) SELECT id from CURRENCY WHERE name='DASH';
 INSERT INTO MERCHANT (`description`, `name`, transaction_source_type_id, service_bean_name) VALUES ('Dash', 'Dash',
                                                                                                     (SELECT id FROM TRANSACTION_SOURCE_TYPE WHERE name = 'BTC_INVOICE'),
                                                                                                     'dashServiceImpl');
