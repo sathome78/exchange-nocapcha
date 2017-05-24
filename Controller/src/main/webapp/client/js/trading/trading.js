@@ -254,6 +254,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 "windowid": windowId
             },
             success: function (data) {
+                console.log(data);
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
@@ -746,8 +747,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function orderAccept(event) {
         event.preventDefault();
         var ordersList = that.ordersListForAccept.map(function (e) {
-            return parseInt(e.orderId);
+            return e.orderId;
         });
+        console.log(ordersList);
         that.clearOrdersCreationForm();
         switchCreateOrAcceptButtons();
         orders.acceptOrder(ordersList, onAcceptOrderSuccess, onAcceptOrderError);

@@ -2,6 +2,8 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.exception.NotAcceptableOrderException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -18,8 +20,8 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
-import me.exrates.service.exception.NoPermissionForOperationException;
-import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.*;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +116,9 @@ public class AdminController {
   UserTransferService userTransferService;
   @Autowired
   WithdrawService withdrawService;
+  
+  @Autowired
+  StopOrderService stopOrderService;
   
   /*@Autowired
   private BitcoinWalletService bitcoinWalletService;*/
@@ -344,8 +349,19 @@ public class AdminController {
         List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
         result = ordersSellCancelled;
         break;
+      case "stopOrdersCancelled":
+        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersCancelled ;
+        break;
+      case "stopOrdersClosed":
+        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersClosed ;
+        break;
+      case "stopOrdersOpened":
+        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersOpened;
+        break;
     }
-
     return result;
   }
 
@@ -1097,6 +1113,17 @@ public class AdminController {
   public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+  
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
+          OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
+          NotCreatableOrderException.class})
+  @ResponseBody
+  public ErrorInfo orderExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+  
+ 
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
@@ -1106,6 +1133,8 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+  
+  
 
 
 }

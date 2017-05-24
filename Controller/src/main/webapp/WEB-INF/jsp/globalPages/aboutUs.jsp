@@ -34,6 +34,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
   <%@include file="../tools/alexa.jsp" %>
+  <%@include file="../tools/ga.jsp" %>
   <%--<%@include file="../tools/yandex.jsp" %>--%>
   <%--Angular and binded ... --%>
   <%--base--%>

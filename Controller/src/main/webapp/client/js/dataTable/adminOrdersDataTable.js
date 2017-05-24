@@ -8,6 +8,7 @@ $(function () {
     function update() {
         updateOrdersSellTableClosed();
         updateOrdersBuyTableClosed();
+        updateStopOrdersTableClosed();
     }
 
     $('#currency-pair-selector').change('click', function () {
@@ -151,6 +152,78 @@ $(function () {
                                 return data;
                             }else {
                                 return row.dateStatusModification;
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                "order": [
+                    [
+                        0,
+                        "asc"
+                    ]
+                ],
+                "destroy" : true
+            });
+        }
+    }
+
+    function updateStopOrdersTableClosed() {
+        if ($.fn.dataTable.isDataTable('#stopOrdersTable')) {
+            stopOrdersTable.ajax.reload();
+        } else {
+            var id = $("#user-id").val();
+            stopOrdersTable = $('#stopOrdersTable').DataTable({
+                "ajax": {
+                    "url": '/2a8fy7b07dxe44/orders',
+                    "type": "GET",
+                    "data": function(d){
+                        d.id = id;
+                        d.tableType = 'stopOrders' + myordersStatusForShow;
+                        d.currencyPairId = $('#currency-pair-selector').val();
+                    },
+                    "dataSrc": ""
+                },
+                "paging": true,
+                "info": true,
+                "columns": [
+                    {
+                        "data": "id"
+                    },
+                    {
+                        "data": "dateCreation"
+                    },
+                    {
+                        "data": "currencyPairName"
+                    },
+                    {
+                        "data": "operationType"
+                    },
+                    {
+                        "data": "amountBase"
+                    },
+                    {
+                        "data": "exExchangeRate"
+                    },
+                    {
+                        "data": "stopRate"
+                    },
+                    {
+                        "data": "amountConvert"
+                    },
+                    {
+                        "data": "commissionFixedAmount"
+                    },
+                    {
+                        "data": "amountWithCommission"
+                    },
+                    {
+                        "data": "dateStatusModification",
+                        "render": function (data, type, row){
+                            if (myordersStatusForShow == 'Closed' || myordersStatusForShow == 'Cancelled') {
+                                return data;
+                            }else {
+                                return "";
                             }
                             return data;
                         }
