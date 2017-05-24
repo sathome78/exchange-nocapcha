@@ -59,6 +59,7 @@
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/ga.jsp" %>
 
 </head>
 <body>

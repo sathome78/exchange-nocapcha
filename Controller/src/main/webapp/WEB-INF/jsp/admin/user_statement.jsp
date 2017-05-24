@@ -31,6 +31,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/dataTable/adminStatementsDataTable.js"/>"></script>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/ga.jsp" %>
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
