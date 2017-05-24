@@ -19,7 +19,6 @@ import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -188,7 +187,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   private void processInstantSend(Transaction transaction) {
-    Optional<Transaction> targetTxResult = handleConflicts(transaction);
+    /*Optional<Transaction> targetTxResult = handleConflicts(transaction);
     if (targetTxResult.isPresent()) {
       Transaction targetTx = targetTxResult.get();
       InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
@@ -207,7 +206,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               });
     } else {
       log.error("Invalid transaction");
-    }
+    }*/
   }
   
   private Optional<Transaction> handleConflicts(Transaction transaction) {
@@ -289,7 +288,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   //Required to check if there were any incoming payments while the application was not running
   private void checkUnpaidBtcPayments() {
     log.debug("Checking unpaid pending payments");
-    try {
+   /* try {
       List<PendingPayment> unpaidPayments = bitcoinTransactionService.findUnpaidBtcPayments();
       Map<String, Address> received = listReceivedByAddressMapped(0);
       
@@ -311,7 +310,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       });
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-    }
+    }*/
   }
   
   private Transaction getTransactionByTxId(String txId) {
