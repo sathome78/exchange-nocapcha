@@ -227,11 +227,12 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer currencyId,
       List<InvoiceStatus> statusList) {
     String sql = "SELECT COUNT(*)  " +
-        " FROM REFILL_REQUEST " +
-        " WHERE REFILL_REQUEST.address = :address " +
-        "       AND REFILL_REQUEST.merchant_id = :merchant_id " +
-        "       AND REFILL_REQUEST.currency_id = :currency_id " +
-        "       AND REFILL_REQUEST.status_id IN (:status_id_list) ";
+        " FROM REFILL_REQUEST RR" +
+        " JOIN REFILL_REQUEST_ADDRESS RRA ON RRA.id = RR.refill_request_address_id" +
+        " WHERE RRA.address = :address " +
+        "       AND RR.merchant_id = :merchant_id " +
+        "       AND RR.currency_id = :currency_id " +
+        "       AND RR.status_id IN (:status_id_list) ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
       put("merchant_id", merchantId);
