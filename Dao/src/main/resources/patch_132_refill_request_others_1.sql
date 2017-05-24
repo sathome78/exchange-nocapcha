@@ -9,3 +9,4 @@ ALTER TABLE MERCHANT
 
 ALTER TABLE MERCHANT
 	DROP COLUMN withdraw_transferring_confirm_needed;
+

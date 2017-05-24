@@ -23,7 +23,7 @@
   <%@include file='admin/links_scripts.jsp' %>
 
 
-  <script type="text/javascript" src="<c:url value='/client/js/download.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
   <%----------%>
 </head>
 

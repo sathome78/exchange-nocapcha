@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
@@ -138,7 +141,24 @@ public class ReportController {
         list.stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());
+    return value;
+  }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadTransactions")
+  @ResponseBody
+  public String getUserTransactions(
+      @RequestParam Integer id,
+      AdminTransactionsFilterData filterData,
+      Principal principal,
+      HttpServletResponse response) throws IOException {
+    filterData.initFilterItems();
+    List<OperationViewDto> list = reportService.getTransactionsHistory(
+        principal.getName(),
+        id,
+        filterData);
+    String value = list.stream()
+        .map(OperationViewDto::toString)
+        .collect(Collectors.joining());
     return value;
   }
 

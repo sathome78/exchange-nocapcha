@@ -40,6 +40,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
+  <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">

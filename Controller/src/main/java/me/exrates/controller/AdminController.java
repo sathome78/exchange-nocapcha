@@ -20,7 +20,6 @@ import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -243,55 +241,21 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(AdminTransactionsFilterData filterData,
+  public DataTable<List<OperationViewDto>> getUserTransactions(
+      AdminTransactionsFilterData filterData,
       @RequestParam Integer id,
       @RequestParam Map<String, String> params,
       Principal principal,
       HttpServletRequest request) {
     filterData.initFilterItems();
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(requesterAdminId, id, filterData, dataTableParams,
-            localeResolver.resolveLocale(request));
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
-  public String downloadTransactionsPage(@RequestParam("id") int id, Model model) {
-    model.addAttribute("user", userService.getUserById(id));
-    return "admin/transactionsDownload";
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
-  public void getUserTransactions(final @RequestParam int id,
-                                  AdminTransactionsFilterData filterData,
-                                  Principal principal,
-                                  HttpServletResponse response) throws IOException {
-    filterData.initFilterItems();
-      response.setContentType("text/csv");
-      String reportName =
-              "transactions"/*
-                      .concat(startDate)
-                      .concat("-")
-                      .concat(endDate)
-                      .replaceAll(" ", "_")*/
-                      .concat(".csv");
-      response.setHeader("Content-disposition", "attachment;filename="+reportName);
-      List<String> transactionsHistory = transactionService
-              .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-                      id, filterData);
-      OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-      try {
-        for(String transaction : transactionsHistory) {
-            writer.write(transaction);
-        }
-      } catch (IOException e) {
-        LOG.error("error download transactions " + e);
-      } finally {
-        writer.flush();
-        writer.close();
-      }
+    return transactionService.showUserOperationHistory(
+        requesterAdminId,
+        id,
+        filterData,
+        dataTableParams,
+        localeResolver.resolveLocale(request));
   }
 
   @ResponseBody
@@ -689,7 +653,7 @@ public class AdminController {
       throw e;
     }
   }
-  
+
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/order/accept", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Map<String, Object> acceptOrderByAdmin(@RequestParam int id, Principal principal, Locale locale) {
@@ -753,17 +717,17 @@ public class AdminController {
     return model;
   }
 
-  private List<UserWalletSummaryDto> getSublistForRole( List<UserWalletSummaryDto> fullResult, String role){
+  private List<UserWalletSummaryDto> getSublistForRole(List<UserWalletSummaryDto> fullResult, String role) {
     List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(role);
     List<UserWalletSummaryDto> roleFiltered = fullResult.stream()
-        .filter(e->realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
+        .filter(e -> realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
         .collect(Collectors.toList());
     List<UserWalletSummaryDto> result = new ArrayList<>();
-    for (UserWalletSummaryDto item: roleFiltered){
-      if (!result.contains(item)){
+    for (UserWalletSummaryDto item : roleFiltered) {
+      if (!result.contains(item)) {
         result.add(new UserWalletSummaryDto(item));
       } else {
-        UserWalletSummaryDto storedItem = result.stream().filter(e->e.equals(item)).findAny().get();
+        UserWalletSummaryDto storedItem = result.stream().filter(e -> e.equals(item)).findAny().get();
         storedItem.increment(item);
       }
     }
@@ -848,21 +812,21 @@ public class AdminController {
     currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
-                                                    @RequestParam OrderType orderType) {
+                                                               @RequestParam OrderType orderType) {
     return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
-                                                @RequestParam OrderType orderType,
-                                                @RequestParam String roleName,
-                                                @RequestParam BigDecimal minRate,
-                                                @RequestParam BigDecimal maxRate) {
+                                                    @RequestParam OrderType orderType,
+                                                    @RequestParam String roleName,
+                                                    @RequestParam BigDecimal minRate,
+                                                    @RequestParam BigDecimal maxRate) {
     if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
       throw new InvalidNumberParamException("Invalid request params!");
     }
@@ -1102,14 +1066,14 @@ public class AdminController {
                                             HttpServletResponse response) throws IOException {
     response.setContentType("text/csv");
     String reportName =
-            "referrals-"
-                    .concat(userService.getEmailById(profitUser))
-                    .concat(".csv");
-    response.setHeader("Content-disposition", "attachment;filename="+reportName);
+        "referrals-"
+            .concat(userService.getEmailById(profitUser))
+            .concat(".csv");
+    response.setHeader("Content-disposition", "attachment;filename=" + reportName);
     List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
     OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
     try {
-      for(String transaction : refsList) {
+      for (String transaction : refsList) {
         writer.write(transaction);
       }
     } catch (IOException e) {
@@ -1142,7 +1106,6 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
-
 
 
 }
