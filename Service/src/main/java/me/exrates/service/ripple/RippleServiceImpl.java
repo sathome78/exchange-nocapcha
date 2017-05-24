@@ -133,6 +133,31 @@ public class RippleServiceImpl implements RippleService {
     return systemAddress;
   }
 
+  @Override
+  public Boolean createdRefillRequestRecordNeeded() {
+    return false;
+  }
+
+  @Override
+  public Boolean needToCreateRefillRequestRecord() {
+    return false;
+  }
+
+  @Override
+  public Boolean toMainAccountTransferringConfirmNeeded() {
+    return false;
+  }
+
+  @Override
+  public Boolean generatingAdditionalRefillAddressAvailable() {
+    return false;
+  }
+
+  @Override
+  public Boolean withdrawTransferringConfirmNeeded() {
+    return true;
+  }
+
   private Integer generateUniqDestinationTag(int userId) {
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
