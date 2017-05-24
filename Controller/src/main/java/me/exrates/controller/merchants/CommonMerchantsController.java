@@ -75,7 +75,7 @@ public class CommonMerchantsController {
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
-      refillService.retrieveAddressAndAdditionalParamsForMerchantCurrencies(merchantCurrencyData, principal.getName());
+      refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, principal.getName());
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
@@ -106,7 +106,9 @@ public class CommonMerchantsController {
       Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
-      modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.OUTPUT));
+      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.OUTPUT);
+      withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
+      modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
       return modelAndView;
