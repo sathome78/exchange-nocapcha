@@ -2,6 +2,9 @@ package me.exrates.service.impl;
 
 import lombok.Getter;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -10,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
@@ -206,5 +206,23 @@ public class ReportServiceImpl implements ReportService {
           .map(UserCurrencyOperationPermissionDto::getCurrencyId)
           .collect(Collectors.toList());
     }
+  }
+
+  @Override
+  public List<OperationViewDto> getTransactionsHistory(
+      String requesterUserEmail,
+      Integer userId,
+      AdminTransactionsFilterData filterData) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    String sortColumn = "TRANSACTION.datetime";
+    String sortDirection = "DESC";
+    DataTableParams dataTableParams = DataTableParams.sortNoPaginationParams(sortColumn, sortDirection);
+    DataTable<List<OperationViewDto>> history = transactionService.showUserOperationHistory(
+        requesterUserId,
+        userId,
+        filterData,
+        dataTableParams,
+        Locale.ENGLISH);
+    return history.getData();
   }
 }

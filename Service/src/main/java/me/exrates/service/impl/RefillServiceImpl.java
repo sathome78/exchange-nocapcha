@@ -116,52 +116,51 @@ public class RefillServiceImpl implements RefillService {
     Map<String, String> result = null;
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
+      request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
+      if (merchantService.createdRefillRequestRecordNeeded()) {
+        Integer requestId = createRefill(request).orElse(null);
+        request.setId(requestId);
+      }
       profileData.setTime1();
-      try {
-        result = merchantService.refill(request);
-        if (result.keySet().contains("address")) {
-          if (StringUtils.isEmpty(result.get("address"))) {
-            throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
-          }
-          if (!request.getGenerateAdditionalRefillAddressAvailable()) {
-            Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(
-                request.getMerchantId(),
-                request.getCurrencyId(),
-                request.getUserId()
-            ).isPresent();
-            if (addressIsAlreadyGeneratedForUser) {
-              throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
-            }
-          }
+      result = merchantService.refill(request);
+      if (result.keySet().contains("address")) {
+        if (StringUtils.isEmpty(result.get("address"))) {
+          throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
-        request.setAddress(result.get("address"));
-        request.setPrivKey(result.get("privKey"));
-        request.setPubKey(result.get("pubKey"));
-        request.setBrainPrivKey(result.get("brainPrivKey"));
-        request.setNeedToCreateRefillRequestRecord(StringUtils.isEmpty(request.getAddress()));
-        Integer requestId = createRefill(request).orElse(null);
-        request.setId(requestId);
-      } catch (RefillRequestIdNeededException e) {
-        request.setNeedToCreateRefillRequestRecord(true);
-        Integer requestId = createRefill(request).orElse(null);
-        request.setId(requestId);
-        try {
-          result = merchantService.refill(request);
-        } catch (RefillRequestIdNeededException ignored) {
+        if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
+          Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(
+              request.getMerchantId(),
+              request.getCurrencyId(),
+              request.getUserId()
+          ).isPresent();
+          if (addressIsAlreadyGeneratedForUser) {
+            throw new RefillRequestGeneratingAdditionalAddressNotAvailableException(request.toString());
+          }
         }
       }
+      request.setAddress(result.get("address"));
+      request.setPrivKey(result.get("privKey"));
+      request.setPubKey(result.get("pubKey"));
+      request.setBrainPrivKey(result.get("brainPrivKey"));
       profileData.setTime2();
+      if (request.getId() == null) {
+        Integer requestId = createRefill(request).orElse(null);
+        request.setId(requestId);
+      }
+      profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
-    try {
-      String notification = sendRefillNotificationAfterCreation(
-          request,
-          result.get("message"),
-          request.getLocale());
-      result.put("message", notification);
-    } catch (MailException e) {
-      log.error(e);
+    if (request.getId() != null) {
+      try {
+        String notification = sendRefillNotificationAfterCreation(
+            request,
+            result.get("message"),
+            request.getLocale());
+        result.put("message", notification);
+      } catch (MailException e) {
+        log.error(e);
+      }
     }
     return result;
   }
@@ -825,7 +824,7 @@ public class RefillServiceImpl implements RefillService {
   }
 
   private Optional<Integer> createRefill(RefillRequestCreateDto request) {
-    if (!request.getNeedToCreateRefillRequestRecord()) {
+    if (request.getNeedToCreateRefillRequestRecord()) {
       RefillStatusEnum currentStatus = request.getStatus();
       Merchant merchant = merchantDao.findById(request.getMerchantId());
       InvoiceActionTypeEnum action = currentStatus.getStartAction(merchant);

@@ -110,7 +110,7 @@ ALTER TABLE REFILL_REQUEST_ADDRESS
 	ADD INDEX id_currency_id_user_id (id, currency_id, user_id);
 	
 ALTER TABLE REFILL_REQUEST
-	ADD CONSTRAINT FK_refill_request_refill_request_address_2 FOREIGN KEY (refill_request_address_id, currency_id, user_id) REFERENCES refill_request_address (id, currency_id, user_id);
+	ADD CONSTRAINT FK_refill_request_refill_request_address_2 FOREIGN KEY (refill_request_address_id, currency_id, user_id) REFERENCES REFILL_REQUEST_ADDRESS (id, currency_id, user_id);
 
 
 /*==========================================================================================*/

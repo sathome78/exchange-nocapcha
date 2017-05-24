@@ -38,6 +38,7 @@ public class EDCServiceImpl implements EDCService {
   private @Value("${edcmerchant.token}") String token;
   private @Value("${edcmerchant.main_account}") String main_account;
   private @Value("${edcmerchant.hook}") String hook;
+  private @Value("${edcmerchant.history}") String history;
 
   private final Logger LOG = LogManager.getLogger("merchant");
 
@@ -97,7 +98,7 @@ public class EDCServiceImpl implements EDCService {
         .currencyId(currency.getId())
         .amount(amount)
         .merchantTransactionId(StringUtils.isEmpty(merchantTransactionId) ? hash : merchantTransactionId)
-        .toMainAccountTransferringConfirmNeeded(merchant.getToMainAccountTransferringConfirmNeeded())
+        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
@@ -110,9 +111,12 @@ public class EDCServiceImpl implements EDCService {
   }
 
   private void checkTransactionByHistory(Map<String, String> params) {
+    if (StringUtils.isEmpty(history)){
+      return;
+    }
     final OkHttpClient client = new OkHttpClient();
     final Request request = new Request.Builder()
-        .url("https://receive.edinarcoin.com/history/" + token + "/" + params.get("address"))
+        .url(history + token + "/" + params.get("address"))
         .build();
     final String returnResponse;
 

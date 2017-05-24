@@ -22,4 +22,28 @@ public interface InterkassaService extends IMerchantService {
      */
     boolean confirmPayment(Map<String, String> params);
 
+  @Override
+  default Boolean createdRefillRequestRecordNeeded() {
+    return null;
+  }
+
+  @Override
+  default Boolean needToCreateRefillRequestRecord() {
+    return null;
+  }
+
+  @Override
+  default Boolean toMainAccountTransferringConfirmNeeded() {
+    return null;
+  }
+
+  @Override
+  default Boolean generatingAdditionalRefillAddressAvailable() {
+    return null;
+  }
+
+  @Override
+  default Boolean withdrawTransferringConfirmNeeded() {
+    return null;
+  }
 }

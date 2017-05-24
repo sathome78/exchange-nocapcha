@@ -15,8 +15,8 @@ CREATE TABLE REFILL_REQUEST_ADDRESS (
 	UNIQUE INDEX currency_id_address_user_id (currency_id, address, user_id),
 	UNIQUE INDEX `currency_id_address` (`address`, `currency_id`),
 	INDEX FK_refill_request_address_user (user_id),
-	CONSTRAINT FK_refill_request_address_currency FOREIGN KEY (currency_id) REFERENCES currency (id),
-	CONSTRAINT FK_refill_request_address_user FOREIGN KEY (user_id) REFERENCES user (id)
+	CONSTRAINT FK_refill_request_address_currency FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
+	CONSTRAINT FK_refill_request_address_user FOREIGN KEY (user_id) REFERENCES USER (id)
 )
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB;
@@ -32,7 +32,7 @@ CREATE TABLE REFILL_REQUEST_PARAM (
 	receipt_scan_name VARCHAR(50) NULL DEFAULT NULL,
 	PRIMARY KEY (id),
 	INDEX FK_refill_request_param_invoice_bank (recipient_bank_id),
-	CONSTRAINT FK_refill_request_param_invoice_bank FOREIGN KEY (recipient_bank_id) REFERENCES invoice_bank (id)
+	CONSTRAINT FK_refill_request_param_invoice_bank FOREIGN KEY (recipient_bank_id) REFERENCES INVOICE_BANK (id)
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB;
@@ -65,21 +65,21 @@ CREATE TABLE REFILL_REQUEST (
 	INDEX user_id_currency_id_merchant_id (user_id, currency_id, merchant_id),
 	INDEX FK_refill_request_refill_request_address (refill_request_address_id),
 	INDEX FK_refill_request_refill_request_param (refill_request_param_id),
-	CONSTRAINT FK_refill_request_admin_holder FOREIGN KEY (admin_holder_id) REFERENCES user (id),
-	CONSTRAINT FK_refill_request_commission FOREIGN KEY (commission_id) REFERENCES commission (id),
-	CONSTRAINT FK_refill_request_currency FOREIGN KEY (currency_id) REFERENCES currency (id),
-	CONSTRAINT FK_refill_request_merchant FOREIGN KEY (merchant_id) REFERENCES merchant (id),
-	CONSTRAINT FK_refill_request_refill_request_address FOREIGN KEY (refill_request_address_id) REFERENCES refill_request_address (id),
-	CONSTRAINT FK_refill_request_refill_request_param FOREIGN KEY (refill_request_param_id) REFERENCES refill_request_param (id),
-	CONSTRAINT FK_refill_request_refill_request_new_status FOREIGN KEY (status_id) REFERENCES refill_request_status (id),
-	CONSTRAINT FK_refill_request_user FOREIGN KEY (user_id) REFERENCES user (id)
+	CONSTRAINT FK_refill_request_admin_holder FOREIGN KEY (admin_holder_id) REFERENCES USER (id),
+	CONSTRAINT FK_refill_request_commission FOREIGN KEY (commission_id) REFERENCES COMMISSION (id),
+	CONSTRAINT FK_refill_request_currency FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
+	CONSTRAINT FK_refill_request_merchant FOREIGN KEY (merchant_id) REFERENCES MERCHANT (id),
+	CONSTRAINT FK_refill_request_refill_request_address FOREIGN KEY (refill_request_address_id) REFERENCES REFILL_REQUEST_ADDRESS (id),
+	CONSTRAINT FK_refill_request_refill_request_param FOREIGN KEY (refill_request_param_id) REFERENCES REFILL_REQUEST_PARAM (id),
+	CONSTRAINT FK_refill_request_refill_request_new_status FOREIGN KEY (status_id) REFERENCES REFILL_REQUEST_STATUS (id),
+	CONSTRAINT FK_refill_request_user FOREIGN KEY (user_id) REFERENCES USER (id)
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB;
 
 
 ALTER TABLE REFILL_REQUEST_PARAM
-	ADD CONSTRAINT FK_refill_request_param_refill_request FOREIGN KEY (id) REFERENCES refill_request (id);
+	ADD CONSTRAINT FK_refill_request_param_refill_request FOREIGN KEY (id) REFERENCES REFILL_REQUEST (id);
 	
 ALTER TABLE MERCHANT
 	ADD COLUMN process_type ENUM('INVOICE','MERCHANT','CRYPTO') NOT NULL DEFAULT 'MERCHANT' ;

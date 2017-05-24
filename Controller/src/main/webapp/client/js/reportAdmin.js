@@ -58,6 +58,11 @@ function uploadInputOutputSummaryReport(role) {
     });
 }
 
+function uploadUserTransactionsReport(paramsString) {
+    currentId = 'upload-users-transactions';
+    makeReportByParams(paramsString);
+}
+
 
 function showDialog(params) {
     params.currencyPicker = (params.currencyPicker || params.currencyPicker == undefined) ? "block" : "none";
@@ -72,7 +77,7 @@ function showDialog(params) {
     $dialog.modal();
 }
 
-function makeReport() {
+function makeReportWithPeriodDialog() {
     var $dialog = $('#report-dialog-currency-date-direction-dialog');
     const $loadingDialog = $('#loading-process-modal');
     var $form = $dialog.find('form');
@@ -156,11 +161,49 @@ function makeReport() {
                     },
                 }
             );
+        } else if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
+            $.ajax({
+                    url: '/2a8fy7b07dxe44/report/userSummaryOrdersByCurrencyPairs',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        saveToDisk(data);
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
+                }
+            );
+        } else if (currentId == 'upload-users-transactions') {
+            $.ajax({
+                    url: '/2a8fy7b07dxe44/report/downloadTransactions',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        saveToDisk(data);
+                    },
+                    complete: function () {
+                        $loadingDialog.modal("hide");
+                    },
+                }
+            );
         }
 
     });
-
     $dialog.modal('hide');
+}
+
+function makeReportByParams(params) {
+    if (currentId == 'upload-users-transactions') {
+        $.ajax({
+                url: '/2a8fy7b07dxe44/report/downloadTransactions'+"?"+params,
+                type: 'GET',
+                success: function (data) {
+                    saveToDisk(data);
+                },
+            }
+        );
+    }
 }
 
 function saveToDisk(data) {

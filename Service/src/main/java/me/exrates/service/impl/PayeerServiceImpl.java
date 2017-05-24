@@ -52,7 +52,7 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   @Override
-  public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
+  public Map<String, String> refill(RefillRequestCreateDto request) {
     Integer requestId = request.getId();
     if (requestId == null) {
       throw new RefillRequestIdNeededException(request.toString());
@@ -94,7 +94,7 @@ public class PayeerServiceImpl implements PayeerService {
         .currencyId(currency.getId())
         .amount(amount)
         .merchantTransactionId(merchantTransactionId)
-        .toMainAccountTransferringConfirmNeeded(merchant.getToMainAccountTransferringConfirmNeeded())
+        .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
     refillService.autoAcceptRefillRequest(requestAcceptDto);
   }

@@ -27,6 +27,6 @@ public class MerchantCurrency {
     private String processType;
     private String mainAddress;
     private String address;
-    private Boolean generateAdditionalRefillAddressAvailable;
     private Boolean additionalTagForWithdrawAddressIsUsed;
+    private Boolean generateAdditionalRefillAddressAvailable;
 }
