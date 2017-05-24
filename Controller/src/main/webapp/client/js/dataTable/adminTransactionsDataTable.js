@@ -228,8 +228,8 @@ $(function () {
 
     $('#download_trans_history').click(function () {
         var formParams = $('#transaction-search-form').serialize();
-        var url = '/2a8fy7b07dxe44/downloadTransactions?id=' + $("#user-id").val() + '&' + formParams;
-        window.open(url);
+        var params = "id="+$("#user-id").val() + '&' + formParams;
+        uploadUserTransactionsReport(params);
     });
 
     function reloadTable() {

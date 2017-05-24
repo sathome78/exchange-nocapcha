@@ -19,6 +19,8 @@ import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
+import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private NotificationService notificationService;
+
+  @Autowired
+  private MerchantServiceContext merchantServiceContext;
 
   @Autowired
   @Qualifier("bitcoinServiceImpl")
@@ -144,7 +149,13 @@ public class MerchantServiceImpl implements MerchantService {
     if (currenciesId.isEmpty()) {
       return null;
     }
-    return merchantDao.findAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+    List<MerchantCurrency> result = merchantDao.findAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+    result.forEach(e->
+    {
+      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
+      e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
+    });
+    return result;
   }
 
   @Override

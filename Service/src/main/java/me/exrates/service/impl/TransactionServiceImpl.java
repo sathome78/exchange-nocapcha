@@ -289,15 +289,6 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public List<String> getCSVTransactionsHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData) {
-    String sortColumn = "TRANSACTION.datetime";
-    String sortDirection = "DESC";
-    DataTableParams dataTableParams = DataTableParams.sortNoPaginationParams(sortColumn, sortDirection);
-    DataTable<List<OperationViewDto>> history = showUserOperationHistory(requesterUserId, userId, filterData, dataTableParams, Locale.ENGLISH);
-    return convertTrListToString(history.getData());
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       Integer requesterUserId,

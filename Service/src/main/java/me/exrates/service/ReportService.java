@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 
 import java.util.List;
 import java.util.Map;
@@ -17,4 +18,6 @@ public interface ReportService {
   List<UserSummaryOrdersDto> getUserSummaryOrdersList(String requesterUserEmail, String startDate, String endDate, String businessRole, List<String> currencyList);
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String requesterUserEmail, String startDate, String endDate, String businessRole);
+
+  List<OperationViewDto> getTransactionsHistory(String requesterUserEmail, Integer userId, AdminTransactionsFilterData filterData);
 }

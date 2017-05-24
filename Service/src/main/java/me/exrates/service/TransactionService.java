@@ -57,8 +57,6 @@ public interface TransactionService {
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
-  List<String> getCSVTransactionsHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData);
-
   List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 
   List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
