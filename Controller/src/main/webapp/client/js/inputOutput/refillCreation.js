@@ -182,8 +182,8 @@ $(function refillCreation() {
                 data: JSON.stringify(data),
             }).success(function (result) {
                 if (!result || !result['redirectionUrl']) {
-                    var qrTag = result['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
-                    showRefillDialogAfterCreation(result['message'], qrTag);
+                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
+                    showRefillDialogAfterCreation(result['params']['message'], qrTag);
                     notifications.getNotifications();
                 } else {
                     if (!result['method']) {
@@ -206,10 +206,10 @@ $(function refillCreation() {
     function redirectByPost(url, params) {
         var formFields = '';
         var method = params["method"];
-        $.each(params, function (key, value) {
+        $.each(params["params"], function (key, value) {
             formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
         });
-        var $form = $('<form id=temp-form-for-redirection target="_blank" action="' + url + '" method="++">' + formFields + '</form>');
+        var $form = $('<form id=temp-form-for-redirection target="_blank" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
         $("body").append($form);
         $form.submit();
         $("#temp-form-for-redirection").remove();

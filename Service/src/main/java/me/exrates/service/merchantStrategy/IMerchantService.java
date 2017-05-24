@@ -42,8 +42,8 @@ public interface IMerchantService {
 
   default Map<String, String> generateFullUrlMap(String url, String method, Properties properties) {
     Map<String, String> result = new HashMap<String, String>() {{
-      put("redirectionUrl", url);
-      put("method", method);
+      put("$__redirectionUrl", url);
+      put("$__method", method);
     }};
     properties.entrySet().forEach(e -> result.put(e.getKey().toString(), e.getValue().toString()));
     return result;

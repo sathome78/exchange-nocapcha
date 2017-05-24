@@ -111,9 +111,11 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public Map<String, String> createRefillRequest(RefillRequestCreateDto request) {
+  public Map<String, Object> createRefillRequest(RefillRequestCreateDto request) {
     ProfileData profileData = new ProfileData(1000);
-    Map<String, String> result = null;
+    Map<String, Object> result = new HashMap<String, Object>() {{
+      put("params", new HashMap<String, String>());
+    }};
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
@@ -122,9 +124,16 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      result = merchantService.refill(request);
-      if (result.keySet().contains("address")) {
-        if (StringUtils.isEmpty(result.get("address"))) {
+      merchantService.refill(request).entrySet().forEach(e->
+      {
+        if (e.getKey().startsWith("$__")){
+          result.put(e.getKey().replace("$__", ""), e.getValue());
+        } else {
+          ((Map<String, String>)result.get("params")).put(e.getKey(), e.getValue());
+        }
+      });
+      if (((Map<String, String>)result.get("params")).keySet().contains("address")) {
+        if (StringUtils.isEmpty(((Map<String, String>)result.get("params")).get("address"))) {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
@@ -138,10 +147,10 @@ public class RefillServiceImpl implements RefillService {
           }
         }
       }
-      request.setAddress(result.get("address"));
-      request.setPrivKey(result.get("privKey"));
-      request.setPubKey(result.get("pubKey"));
-      request.setBrainPrivKey(result.get("brainPrivKey"));
+      request.setAddress(((Map<String, String>)result.get("params")).get("address"));
+      request.setPrivKey(((Map<String, String>)result.get("params")).get("privKey"));
+      request.setPubKey(((Map<String, String>)result.get("params")).get("pubKey"));
+      request.setBrainPrivKey(((Map<String, String>)result.get("params")).get("brainPrivKey"));
       profileData.setTime2();
       if (request.getId() == null) {
         Integer requestId = createRefill(request).orElse(null);
@@ -155,7 +164,7 @@ public class RefillServiceImpl implements RefillService {
       try {
         String notification = sendRefillNotificationAfterCreation(
             request,
-            result.get("message"),
+            ((Map<String, String>)result.get("params")).get("message"),
             request.getLocale());
         result.put("message", notification);
       } catch (MailException e) {

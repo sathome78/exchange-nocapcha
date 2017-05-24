@@ -59,7 +59,7 @@ public class RefillRequestController {
 
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
-  public Map<String, String> createRefillRequest(
+  public Map<String, Object> createRefillRequest(
       @RequestBody RefillRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
@@ -78,7 +78,7 @@ public class RefillRequestController {
       );
       if (address.isPresent()) {
         String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-        return new HashMap<String, String>() {{
+        return new HashMap<String, Object>() {{
           put("address", address.get());
           put("message", message);
           put("qr", address.get());
