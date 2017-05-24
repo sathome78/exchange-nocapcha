@@ -291,6 +291,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       result.setCurrencyName(rs.getString("currency_name"));
       result.setMerchantName(rs.getString("merchant_name"));
       result.setMerchantServiceBeanName(rs.getString("service_bean_name"));
+      result.setUserId(rs.getInt("user_id"));
+      result.setMerchantId(rs.getInt("merchant_id"));
+      result.setCurrencyId(rs.getInt("currency_id"));
       return result;
     });
   }
