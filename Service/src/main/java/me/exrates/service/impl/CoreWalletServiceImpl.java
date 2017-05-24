@@ -12,12 +12,14 @@ import com.neemre.btcdcli4j.core.domain.enums.PaymentCategories;
 import com.neemre.btcdcli4j.daemon.BtcdDaemon;
 import com.neemre.btcdcli4j.daemon.BtcdDaemonImpl;
 import com.neemre.btcdcli4j.daemon.event.BlockListener;
+import com.neemre.btcdcli4j.daemon.event.InstantSendListener;
 import com.neemre.btcdcli4j.daemon.event.WalletListener;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -155,6 +157,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         processIncomingPayment(transaction);
       }
     });
+    daemon.addInstantSendListener(new InstantSendListener() {
+      @Override
+      public void transactionBlocked(Transaction transaction) {
+        log.debug(String.format("Transaction blocked: tx %s", transaction.toString()));
+        processInstantSend(transaction);
+      }
+    });
   }
   
   private void processIncomingPayment(Transaction transaction) {
@@ -168,6 +177,29 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                 if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
                   try {
                     bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId(), payment.getAmount());
+                  } catch (IllegalInvoiceAmountException e) {
+                    log.error(ExceptionUtils.getStackTrace(e));
+                  }
+                }
+              });
+    } else {
+      log.error("Invalid transaction");
+    }
+  }
+  
+  private void processInstantSend(Transaction transaction) {
+    Optional<Transaction> targetTxResult = handleConflicts(transaction);
+    if (targetTxResult.isPresent()) {
+      Transaction targetTx = targetTxResult.get();
+      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+      targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
+              .forEach(payment -> {
+                String address = payment.getAddress();
+                if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address)) {
+                  try {
+                    PendingPaymentStatusDto pendingPayment = bitcoinTransactionService.markStartConfirmationProcessing(address,
+                            targetTx.getTxId(), payment.getAmount());
+                    changeConfirmationsOrProvide(pendingPayment.getInvoiceId(), targetTx.getTxId(), payment.getAmount(), targetTx.getConfirmations());
                   } catch (IllegalInvoiceAmountException e) {
                     log.error(ExceptionUtils.getStackTrace(e));
                   }

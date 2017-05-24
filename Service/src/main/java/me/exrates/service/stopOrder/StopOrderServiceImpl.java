@@ -306,6 +306,14 @@ public class StopOrderServiceImpl implements StopOrderService {
         return result;
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                                  OperationType operationType,
+                                                                  Integer offset, Integer limit, Locale locale) {
+        return stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, null, offset, limit, locale);
+    }
+
     @Override
     @Transactional
     public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
