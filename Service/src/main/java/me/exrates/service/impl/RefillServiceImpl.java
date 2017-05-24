@@ -200,6 +200,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Integer createRefillRequestByFact(RefillRequestAcceptDto requestAcceptDto) {
+    log.debug("Creating request by fact: " + requestAcceptDto);
     String address = requestAcceptDto.getAddress();
     Integer currencyId = requestAcceptDto.getCurrencyId();
     Integer merchantId = requestAcceptDto.getMerchantId();
@@ -271,10 +272,11 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
-  private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
-      String address,
-      Integer merchantId,
-      Integer currencyId) {
+  @Override
+  public Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+          String address,
+          Integer merchantId,
+          Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
     return refillRequestDao.findIdWithoutConfirmationsByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
@@ -346,6 +348,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException {
+    log.debug("Put on bch exam: " + onBchExamDto);
     Integer requestId = onBchExamDto.getRequestId();
     if (requestId == null) {
       Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
