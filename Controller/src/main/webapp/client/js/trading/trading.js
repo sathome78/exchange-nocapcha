@@ -746,7 +746,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function orderAccept(event) {
         event.preventDefault();
         var ordersList = that.ordersListForAccept.map(function (e) {
-            return parseInt(e.orderId);
+            return e.orderId;
         });
         that.clearOrdersCreationForm();
         switchCreateOrAcceptButtons();

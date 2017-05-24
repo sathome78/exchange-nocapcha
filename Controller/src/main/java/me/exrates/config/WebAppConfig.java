@@ -353,17 +353,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties");
+        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
+                "Bitcoin", "BTC", 4);
     }
 
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
-        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties");
+        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
+                "Litecoin", "LTC", 4);
     }
     
     @Bean(name = "dashServiceImpl")
     public BitcoinService dashService() {
-        return new BitcoinServiceImpl("merchants/dash_wallet.properties");
+        return new BitcoinServiceImpl("merchants/dash_wallet.properties",
+                "Dash", "DASH", 4);
     }
     
     

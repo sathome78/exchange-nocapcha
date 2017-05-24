@@ -4,7 +4,7 @@ package me.exrates.model.dto.onlineTableDto;
  * Created by Valk on 23.06.2016.
  */
 public abstract class OnlineTableDto {
-    protected boolean needRefresh;
+    public boolean needRefresh;
     protected int page;
 
     public boolean isNeedRefresh() {
