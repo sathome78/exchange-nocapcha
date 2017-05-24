@@ -10,3 +10,5 @@ ALTER TABLE MERCHANT
 ALTER TABLE MERCHANT
 	DROP COLUMN withdraw_transferring_confirm_needed;
 
+ALTER TABLE MERCHANT
+	DROP COLUMN additional_tag_for_withdraw_address_is_used;

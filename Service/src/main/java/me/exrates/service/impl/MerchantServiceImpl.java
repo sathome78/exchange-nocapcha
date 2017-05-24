@@ -149,13 +149,7 @@ public class MerchantServiceImpl implements MerchantService {
     if (currenciesId.isEmpty()) {
       return null;
     }
-    List<MerchantCurrency> result = merchantDao.findAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-    result.forEach(e->
-    {
-      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
-      e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
-    });
-    return result;
+    return merchantDao.findAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
   }
 
   @Override
