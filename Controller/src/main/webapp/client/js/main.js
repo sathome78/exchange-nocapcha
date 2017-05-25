@@ -188,33 +188,33 @@ $(function () {
             }
         } else {
             switch (targetMerchant) {
-                case PERFECT :
-                    callback();
-                    return;
-                    $.ajax('/merchants/perfectmoney/payment/prepare', {
-                        headers: {
-                            'X-CSRF-Token': $("input[name='_csrf']").val()
-                        },
-                        type: 'POST',
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        data: JSON.stringify($(form).serializeObject())
-                    }).done(function (response) {
-                        var inputsHTML = '';
-                        $.each(response, function (key) {
-                            $(form).append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
-                        });
-                        var targetCurrentHTML = $(form).html();
-                        var targetNewHTML = targetCurrentHTML + inputsHTML;
-                        $(form).html(targetNewHTML);
-                        callback();
-                    }).fail(function (error) {
-                        responseControls();
-                        $('.paymentInfo').html(error.responseJSON.error);
-
-                        console.log(error);
-                    });
-                    break;
+                // case PERFECT :
+                //     callback();
+                //     return;
+                //     $.ajax('/merchants/perfectmoney/payment/prepare', {
+                //         headers: {
+                //             'X-CSRF-Token': $("input[name='_csrf']").val()
+                //         },
+                //         type: 'POST',
+                //         contentType: 'application/json',
+                //         dataType: 'json',
+                //         data: JSON.stringify($(form).serializeObject())
+                //     }).done(function (response) {
+                //         var inputsHTML = '';
+                //         $.each(response, function (key) {
+                //             $(form).append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+                //         });
+                //         var targetCurrentHTML = $(form).html();
+                //         var targetNewHTML = targetCurrentHTML + inputsHTML;
+                //         $(form).html(targetNewHTML);
+                //         callback();
+                //     }).fail(function (error) {
+                //         responseControls();
+                //         $('.paymentInfo').html(error.responseJSON.error);
+                //
+                //         console.log(error);
+                //     });
+                //     break;
                 case BLOCKCHAIN :
                     $('#inputPaymentProcess')
                         .html($('#mrcht-waiting').val())

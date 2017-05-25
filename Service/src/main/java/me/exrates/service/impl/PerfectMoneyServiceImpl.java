@@ -223,10 +223,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
             }
         };
         /**/
-        String fullUrl = generateFullUrl(url, properties);
-        return new HashMap<String, String>() {{
-            put("redirectionUrl", fullUrl);
-        }};
+        return generateFullUrlMap(url, "POST", properties);
     }
 
     @Override
