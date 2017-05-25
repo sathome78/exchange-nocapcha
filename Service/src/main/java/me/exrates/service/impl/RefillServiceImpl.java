@@ -283,11 +283,12 @@ public class RefillServiceImpl implements RefillService {
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
-  private Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-      String address,
-      Integer merchantId,
-      Integer currencyId,
-      String hash) {
+  @Override
+  public Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+          String address,
+          Integer merchantId,
+          Integer currencyId,
+          String hash) {
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndHash(
         address,
         merchantId,
@@ -545,6 +546,9 @@ public class RefillServiceImpl implements RefillService {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
+      if (currentStatus.isSuccessEndStatus()) {
+        throw new RefillRequestAlreadyAcceptedException(refillRequest.toString());
+      }
       InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringConfirmNeeded() ? REQUEST_INNER_TRANSFER :
           refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
       RefillStatusEnum newStatus = requesterAdminId == null ?
