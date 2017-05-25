@@ -283,11 +283,12 @@ public class RefillServiceImpl implements RefillService {
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
-  private Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-      String address,
-      Integer merchantId,
-      Integer currencyId,
-      String hash) {
+  @Override
+  public Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+          String address,
+          Integer merchantId,
+          Integer currencyId,
+          String hash) {
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndHash(
         address,
         merchantId,
