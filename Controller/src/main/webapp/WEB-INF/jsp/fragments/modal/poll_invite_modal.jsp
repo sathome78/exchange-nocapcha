@@ -1,63 +1,20 @@
-<div id="poll-invitr-modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="withdraw.infoModal.title"/></h4>
-            </div>
-            <div class="modal-body">
-                <div class="well">
-                    <table id="withdrawInfoTable" class="table">
-                        <tbody>
-                        <tr>
-                            <td><loc:message code="transaction.currency"/></td>
-                            <td id="info-currency"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="myorders.amountwithcommission"/></td>
-                            <td id="info-amount"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="transaction.commissionAmount"/></td>
-                            <td id="info-commissionAmount"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientBank"/></td>
-                            <td id="info-bankRecipient"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="withdrawal.status"/></td>
-                            <td id="info-status"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="withdrawal.statusModificationDate"/></td>
-                            <td id="info-status-date"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientAccount"/></td>
-                            <td id="info-wallet"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientFullName"/></td>
-                            <td id="info-userFullName"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="merchants.invoiceDetails.remark"/></td>
-                            <td id="info-remark"><textarea class="textarea non-resize" readonly></textarea></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-            <div class="modal-footer">
-                <div class="order-info__button-wrapper">
-                    <button class="order-info__button" data-dismiss="modal">
-                        <loc:message code="orderinfo.ok"/>
-                    </button>
-                </div>
-            </div>
+<div id="poll-modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title"><loc:message code="poll.invite.title"/></h4>
+      </div>
+      <div class="modal-body">
+        <div style="border: 1px solid rgba(0, 0, 0, 0.29); border-radius: 4px; margin: 0 5px; padding: 10px">
+          <h5 class="modal-title"><loc:message code="poll.invite.message"/></h5>
         </div>
+        <hr>
+        <div class="well">
+          <div id="surveyContainer"></div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 </div>

@@ -614,4 +614,16 @@ public class UserServiceImpl implements UserService {
     return userDao.getUserRoleByEmail(email);
   }
 
+  @Override
+  @Transactional
+  public void savePollAsDoneByUser(String email) {
+    userDao.savePollAsDoneByUser(email);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean checkPollIsDoneByUser(String email) {
+    return userDao.checkPollIsDoneByUser(email);
+  }
+
 }

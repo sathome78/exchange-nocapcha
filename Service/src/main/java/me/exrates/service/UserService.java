@@ -165,4 +165,8 @@ public interface UserService {
   String getEmailById(Integer id);
   
   UserRole getUserRoleFromDB(String email);
+
+  void savePollAsDoneByUser(String email);
+
+  boolean checkPollIsDoneByUser(String email);
 }

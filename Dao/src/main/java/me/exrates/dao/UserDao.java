@@ -145,4 +145,8 @@ public interface UserDao {
   String getEmailById(Integer id);
   
   UserRole getUserRoleByEmail(String email);
+
+  void savePollAsDoneByUser(String email);
+
+  boolean checkPollIsDoneByUser(String email);
 }

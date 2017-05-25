@@ -101,6 +101,7 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
+        model.addObject("startPoll", principal != null && !userService.checkPollIsDoneByUser(principal.getName()));
 
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -109,7 +110,6 @@ public class EntryController {
             int userStatus = userService.findByEmail(principal.getName()).getStatus().getStatus();
             model.addObject("userStatus", userStatus);
         }
-
         return model;
     }
 

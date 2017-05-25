@@ -165,6 +165,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
             /*... admin report */
         .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+        .antMatchers(POST, "/2a8fy7b07dxe44/savePollAsDone").authenticated()
         .antMatchers("/2a8fy7b07dxe44/**",
             "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
         /*... ADMIN */

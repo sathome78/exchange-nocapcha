@@ -21,27 +21,27 @@ $(function dashdoardInit() {
         $(".numericInputField").prop("autocomplete", "off");
         $(".numericInputField")
             .keypress(
-            function (e) {
-                var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= trading.ROUND_SCALE) {
-                    return false;
-                }
-                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
-                    var keyPressed = e.key == ',' ? '.' : e.key;
-
-                    if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
+                function (e) {
+                    var decimal = $(this).val().split('.')[1];
+                    if (decimal && decimal.length >= trading.ROUND_SCALE) {
                         return false;
                     }
-                    var str = $(this).val() + keyPressed;
-                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
-                        return false
+                    if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
+                        var keyPressed = e.key == ',' ? '.' : e.key;
+
+                        if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
+                            return false;
+                        }
+                        var str = $(this).val() + keyPressed;
+                        if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
+                            return false
+                        }
+                    } else {
+                        return false;
                     }
-                } else {
-                    return false;
+                    return true;
                 }
-                return true;
-            }
-        )
+            )
             .on('input', function (e) {
                 var val = $(this).val();
                 if (val[val.length - 1] == ',') {
@@ -141,10 +141,6 @@ $(function dashdoardInit() {
         });
 
 
-
-
-
-
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
 
@@ -170,6 +166,14 @@ $(function dashdoardInit() {
 
         rightSider = new RightSiderClass();
         /*...FOR RIGHT-SIDER*/
+
+        /*FOR POLL ...*/
+        var startPoll = $("#start-poll").val()=='true';
+        if (startPoll) {
+            $("#poll-modal").modal();
+        }
+        doPoll("ru");
+        /*...FOR POLL*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
     }
@@ -190,7 +194,6 @@ function showSubPage(subPageId) {
         $($currentSubMenuItem).click();
     }
 }
-
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, callback) {
@@ -237,3 +240,53 @@ function parseNumber(numberStr) {
     return parseFloat(numberStr);
 }
 
+
+function doPoll() {
+    Survey.Survey.cssType = "bootstrap";
+    var locale = $.cookie("myAppLocaleCookie");
+    var surveyJSON = {
+        locale: locale,
+        pages: [
+            {
+                elements: [
+                    {
+                        type: "rating",
+                        name: "question1"
+                    },
+                    {
+                        type: "rating",
+                        name: "question2"
+                    },
+                    {
+                        type: "comment",
+                        name: "question3",
+                        visible: false,
+                        visibleIf: "({question2} > 1"
+                    }
+                ],
+                name: "page1"
+            }
+        ]
+    };
+
+    function sendDataToServer(survey) {
+        survey.sendResult('77fe16c6-516b-49ec-b362-44b4ca159136');
+        savePollAsDone();
+    }
+
+    var survey = new Survey.Model(surveyJSON);
+    $("#surveyContainer").Survey({
+        model: survey,
+        onComplete: sendDataToServer
+    });
+
+    function savePollAsDone() {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/savePollAsDone',
+            type: 'POST',
+        });
+    }
+}
