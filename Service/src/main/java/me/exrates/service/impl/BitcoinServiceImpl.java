@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
@@ -77,7 +78,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     bitcoinWalletService.initCoreClient(nodePropertySource);
-    bitcoinWalletService.initBtcdDaemon(this::onIncomingBlock, this::onIncomingPayment, this::onInstantSend);
+    bitcoinWalletService.initBtcdDaemon(this::onIncomingBlock, this::onPayment, this::onPayment);
   }
 
 
@@ -102,9 +103,12 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    throw new NotImplimentedMethod("for " + params);
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    processBtcPayment(BtcPaymentFlatDto.resolveFromParams(params, merchant.getId(), currency.getId()));
   }
-
+  
+  
   private String address() {
     boolean isFreshAddress = false;
     String address = bitcoinWalletService.getNewAddress(walletPassword);
@@ -125,43 +129,74 @@ public class BitcoinServiceImpl implements BitcoinService {
     return address;
   }
   
-  private void onIncomingPayment(BtcTransactionDto btcTransactionDto) {
+  private void onPayment(BtcTransactionDto transactionDto) {
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
-    Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(btcTransactionDto.getTxId());
+    Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
     if (targetTxResult.isPresent()) {
       BtcTransactionDto targetTx = targetTxResult.get();
       targetTx.getDetails().stream().filter(payment -> "RECEIVE".equalsIgnoreCase( payment.getCategory()))
               .forEach(payment -> {
                 log.debug("Payment " + payment);
-                  if (targetTx.getConfirmations() == 0) {
-                    Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(payment.getAddress(),
-                            merchant.getId(), currency.getId());
-                    Integer requestId = refillRequestIdResult.orElseGet(() ->
-                            refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
-                                    .address(payment.getAddress())
-                                    .amount(payment.getAmount())
-                                    .merchantId(merchant.getId())
-                                    .currencyId(currency.getId())
-                                    .merchantTransactionId(targetTx.getTxId()).build()));
-                    try {
-                      refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
-                              .requestId(requestId)
-                              .merchantId(merchant.getId())
-                              .currencyId(currency.getId())
-                              .address( payment.getAddress())
-                              .amount(payment.getAmount())
-                              .hash(targetTx.getTxId()).build());
-                    } catch (RefillRequestAppropriateNotFoundException e) {
-                      log.error(e);
-                    }
-                  }
+                BtcPaymentFlatDto btcPaymentFlatDto = BtcPaymentFlatDto.builder()
+                        .txId(targetTx.getTxId())
+                        .address(payment.getAddress())
+                        .amount(payment.getAmount())
+                        .confirmations(targetTx.getConfirmations())
+                        .merchantId(merchant.getId())
+                        .currencyId(currency.getId()).build();
+                processBtcPayment(btcPaymentFlatDto);
               });
     } else {
       log.error("Invalid transaction");
     }
-  
   }
+  
+  private void processBtcPayment(BtcPaymentFlatDto btcPaymentFlatDto) {
+    if (!checkTransactionAlreadyOnBchExam(btcPaymentFlatDto.getAddress(), btcPaymentFlatDto.getMerchantId(),
+            btcPaymentFlatDto.getCurrencyId(), btcPaymentFlatDto.getTxId())) {
+      Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+              btcPaymentFlatDto.getAddress(), btcPaymentFlatDto.getMerchantId(), btcPaymentFlatDto.getCurrencyId());
+      Integer requestId = refillRequestIdResult.orElseGet(() ->
+              refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
+                      .address(btcPaymentFlatDto.getAddress())
+                      .amount(btcPaymentFlatDto.getAmount())
+                      .merchantId(btcPaymentFlatDto.getMerchantId())
+                      .currencyId(btcPaymentFlatDto.getCurrencyId())
+                      .merchantTransactionId(btcPaymentFlatDto.getTxId()).build()));
+      if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < CONFIRMATION_NEEDED_COUNT) {
+        try {
+          refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
+                  .requestId(requestId)
+                  .merchantId(btcPaymentFlatDto.getMerchantId())
+                  .currencyId(btcPaymentFlatDto.getCurrencyId())
+                  .address( btcPaymentFlatDto.getAddress())
+                  .amount(btcPaymentFlatDto.getAmount())
+                  .hash(btcPaymentFlatDto.getTxId()).build());
+        } catch (RefillRequestAppropriateNotFoundException e) {
+          log.error(e);
+        }
+      } else {
+        changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
+                .requestId(requestId)
+                .address(btcPaymentFlatDto.getAddress())
+                .amount(btcPaymentFlatDto.getAmount())
+                .confirmations(btcPaymentFlatDto.getConfirmations())
+                .currencyId(btcPaymentFlatDto.getCurrencyId())
+                .merchantId(btcPaymentFlatDto.getMerchantId())
+                .hash(btcPaymentFlatDto.getTxId()).build());
+      }
+      
+    }
+  }
+  
+  private boolean checkTransactionAlreadyOnBchExam( String address,
+                                                    Integer merchantId,
+                                                    Integer currencyId,
+                                                    String hash) {
+    return refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(address, merchantId, currencyId, hash).isPresent();
+  }
+  
   
   private void onIncomingBlock(String blockHash) {
     
@@ -178,9 +213,6 @@ public class BitcoinServiceImpl implements BitcoinService {
         if (txResult.isPresent()) {
           BtcTransactionDto tx = txResult.get();
           log.debug("Target tx: " + tx.getTxId());
-          /*if (!request.getMerchantTransactionId().equals(tx.getTxId())) {
-            bitcoinTransactionService.updatePendingPaymentHash(request.getInvoiceId(), tx.getTxId());
-          }*/
           tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
                   .peek(log::debug)
                   .findFirst().ifPresent(paymentOverview -> {
@@ -209,9 +241,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     });
   }
   
-  private void onInstantSend(BtcTransactionDto transactionDto) {
   
-  }
   
   
   
