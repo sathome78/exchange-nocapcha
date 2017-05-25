@@ -837,6 +837,37 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "	  			AND (IOP.user_id=:requester_user_id) " +
         "	  			AND (IOP.operation_direction=:operation_direction) ";
   }
+  
+  @Override
+  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                              String merchantTransactionId,
+                                                                                              Integer merchantId,
+                                                                                              Integer currencyId) {
+    String sql = "SELECT DISTINCT RR.id, , RRA.*, RRP.*, " +
+            "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+            " FROM REFILL_REQUEST RR" +
+            "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
+            "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+            " WHERE RR.merchant_id = :merchant_id " +
+            "       AND RR.currency_id = :currency_id " +
+            "       AND RR.merchant_transaction_id = :merchant_transaction_id " +
+            "       AND RRA.address = :address";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("merchant_transaction_id", merchantTransactionId);
+    }};
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
+        RefillRequestBtcInfoDto dto = new RefillRequestBtcInfoDto();
+        
+        return dto;
+      }));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
 
 }
 

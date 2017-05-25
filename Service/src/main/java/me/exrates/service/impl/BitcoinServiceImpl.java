@@ -7,7 +7,6 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -85,7 +84,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   @Transactional
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
+    BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
+    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
+    return Collections.singletonMap("hash", txId);
   }
 
   @Override
@@ -242,10 +243,6 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   
-  
-  
-  
-  
   private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
     try {
       refillService.setConfirmationCollectedNumber(dto);
@@ -307,5 +304,6 @@ public class BitcoinServiceImpl implements BitcoinService {
   public String sendToMany(Map<String, BigDecimal> payments) {
     return bitcoinWalletService.sendToMany(payments);
   }
+  
 
 }

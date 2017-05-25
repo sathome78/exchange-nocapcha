@@ -124,6 +124,9 @@ public class AdminController {
   StopOrderService stopOrderService;
   
   @Autowired
+  RefillService refillService;
+  
+  @Autowired
   private MerchantServiceContext serviceContext;
   
   @Autowired
@@ -1065,6 +1068,18 @@ public class AdminController {
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
     result.put("newBalance", walletService.getWalletInfo().getBalance());
     return result;
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/details", method = RequestMethod.GET,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public RefillRequestBtcInfoDto getTransactionDetails(@PathVariable String merchantName,
+                                        @RequestParam("currency") String currencyName,
+                                        @RequestParam String hash,
+                                        @RequestParam String address) {
+   Optional<RefillRequestBtcInfoDto> dtoResult = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, hash,
+           merchantName, currencyName);
+    return dtoResult.orElseGet(null);
   }
   
   

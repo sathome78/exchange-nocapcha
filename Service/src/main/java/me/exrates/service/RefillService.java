@@ -88,4 +88,9 @@ public interface RefillService {
   Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+  
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                       String merchantTransactionId,
+                                                                                       String merchantName,
+                                                                                       String currencyName);
 }

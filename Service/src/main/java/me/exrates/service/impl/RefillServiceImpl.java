@@ -897,6 +897,17 @@ public class RefillServiceImpl implements RefillService {
         .build();
     return (RefillStatusEnum) refillRequest.getStatus().nextState(action, paramsValue);
   }
+  
+  @Override
+  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                              String merchantTransactionId,
+                                                                                              String merchantName,
+                                                                                              String currencyName) {
+    Integer merchantId = merchantService.findByName(merchantName).getId();
+    Integer currencyId = currencyService.findByName(currencyName).getId();
+    return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
+  }
+  
 
 
 }

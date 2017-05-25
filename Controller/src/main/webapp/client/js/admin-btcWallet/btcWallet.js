@@ -140,6 +140,7 @@ function fillConfirmModal() {
 
 function updateTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');
+    var viewMessage = $('#viewMessage').text();
     var url = urlBase + 'transactions';
 
     if ($.fn.dataTable.isDataTable('#txHistory')) {
@@ -199,6 +200,12 @@ function updateTxHistoryTable() {
                     "data": "confirmations"
                 },
                 {
+                    "data": "",
+                    "render": function () {
+                        return '<button class="btn btn-sm btn-info" onclick="viewTransactionData(this)">' + viewMessage + '</button>'
+                    }
+                },
+                {
                     "data": "txId",
                     "visible": false
                 },
@@ -237,6 +244,18 @@ function updateTxFee() {
         }
     });
 
+}
+
+function viewTransactionData($elem) {
+    var $row = $($elem).parents('tr');
+    var rowData = txHistoryDataTable.row($row).data();
+    var url = urlBase + 'transaction/details?currency=' + $('#currencyName').text() +
+            '&address=' + rowData.address +
+            '&hash=' + rowData.txId;
+    console.log(url);
+    $.get(url, function (data) {
+        console.log(data);
+    })
 }
 
 

@@ -78,4 +78,9 @@ public interface RefillRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList);
+  
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                       String merchantTransactionId,
+                                                                                       Integer merchantId,
+                                                                                       Integer currencyId);
 }
