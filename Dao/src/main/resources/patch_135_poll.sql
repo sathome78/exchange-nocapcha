@@ -1,0 +1,2 @@
+ALTER TABLE USER
+	ADD COLUMN tmp_poll_passed TINYINT NOT NULL AFTER avatar_path;
