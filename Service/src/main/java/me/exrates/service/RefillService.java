@@ -35,13 +35,19 @@ public interface RefillService {
 
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
   
+  Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+          String address,
+          Integer merchantId,
+          Integer currencyId,
+          String hash);
+  
+  Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+  
   Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
           String address,
           Integer merchantId,
           Integer currencyId);
   
-  Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
-
   List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);

@@ -208,10 +208,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
         "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
         "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
-        "   JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
         "       AND REFILL_REQUEST.currency_id = :currency_id " +
-        "       AND REFILL_REQUEST.status_id IN (:status_id_list) ";
+        "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
+        "       AND EXISTS(SELECT * FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id)";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
