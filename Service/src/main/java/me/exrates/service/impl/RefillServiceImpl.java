@@ -124,16 +124,21 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      merchantService.refill(request).entrySet().forEach(e->
+      merchantService.refill(request).entrySet().forEach(e ->
       {
-        if (e.getKey().startsWith("$__")){
+        if (e.getKey().startsWith("$__")) {
           result.put(e.getKey().replace("$__", ""), e.getValue());
         } else {
-          ((Map<String, String>)result.get("params")).put(e.getKey(), e.getValue());
+          ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
         }
       });
-      if (((Map<String, String>)result.get("params")).keySet().contains("address")) {
-        if (StringUtils.isEmpty(((Map<String, String>)result.get("params")).get("address"))) {
+      String merchantRequestSign = (String) result.get("sign");
+      request.setMerchantRequestSign(merchantRequestSign);
+      if (merchantRequestSign != null) {
+        refillRequestDao.setMerchantRequestSignById(request.getId(), merchantRequestSign);
+      }
+      if (((Map<String, String>) result.get("params")).keySet().contains("address")) {
+        if (StringUtils.isEmpty(((Map<String, String>) result.get("params")).get("address"))) {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
@@ -147,10 +152,10 @@ public class RefillServiceImpl implements RefillService {
           }
         }
       }
-      request.setAddress(((Map<String, String>)result.get("params")).get("address"));
-      request.setPrivKey(((Map<String, String>)result.get("params")).get("privKey"));
-      request.setPubKey(((Map<String, String>)result.get("params")).get("pubKey"));
-      request.setBrainPrivKey(((Map<String, String>)result.get("params")).get("brainPrivKey"));
+      request.setAddress(((Map<String, String>) result.get("params")).get("address"));
+      request.setPrivKey(((Map<String, String>) result.get("params")).get("privKey"));
+      request.setPubKey(((Map<String, String>) result.get("params")).get("pubKey"));
+      request.setBrainPrivKey(((Map<String, String>) result.get("params")).get("brainPrivKey"));
       profileData.setTime2();
       if (request.getId() == null) {
         Integer requestId = createRefill(request).orElse(null);
@@ -164,7 +169,7 @@ public class RefillServiceImpl implements RefillService {
       try {
         String notification = sendRefillNotificationAfterCreation(
             request,
-            ((Map<String, String>)result.get("params")).get("message"),
+            ((Map<String, String>) result.get("params")).get("message"),
             request.getLocale());
         result.put("message", notification);
       } catch (MailException e) {
@@ -285,10 +290,10 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-          String address,
-          Integer merchantId,
-          Integer currencyId,
-          String hash) {
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      String hash) {
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndHash(
         address,
         merchantId,

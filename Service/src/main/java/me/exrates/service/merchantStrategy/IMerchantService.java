@@ -49,6 +49,12 @@ public interface IMerchantService {
     return result;
   }
 
+  default Map<String, String> generateFullUrlMap(String url, String method, Properties properties, String sign) {
+    Map<String, String> result = generateFullUrlMap(url, method, properties);
+    result.put("$__sign", sign);
+    return result;
+  }
+
   default String getMainAddress() {
     return "qwqwqqqw";
   }

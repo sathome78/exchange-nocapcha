@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -32,11 +31,6 @@ public class RefillRequestCreateDto {
   private String serviceBeanName;
   private Integer refillOperationCountLimitForUserPerDay;
   private RefillStatusEnum status;
-  private Integer recipientBankId;
-  private String recipientBankCode;
-  private String recipientBankName;
-  private String recipient;
-  private String userFullName;
   private String remark;
   private String address;
   private String privKey;
@@ -46,16 +40,18 @@ public class RefillRequestCreateDto {
   private Boolean generateAdditionalRefillAddressAvailable;
   private Boolean needToCreateRefillRequestRecord;
   private Locale locale;
+  private RefillRequestParam refillRequestParam = new RefillRequestParam();
 
-  public RefillRequestCreateDto(RefillRequestParamsDto paramsDto,  CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
+  public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
     this.currencyId = paramsDto.getCurrency();
     this.amount = paramsDto.getSum();
     this.merchantId = paramsDto.getMerchant();
-    this.recipientBankId = paramsDto.getRecipientBankId();
-    this.recipientBankCode = paramsDto.getRecipientBankCode();
-    this.recipientBankName = paramsDto.getRecipientBankName();
-    this.recipient = paramsDto.getRecipient();
-    this.userFullName = paramsDto.getUserFullName();
+    this.refillRequestParam.recipientBankId = paramsDto.getRecipientBankId();
+    this.refillRequestParam.recipientBankCode = paramsDto.getRecipientBankCode();
+    this.refillRequestParam.recipientBankName = paramsDto.getRecipientBankName();
+    this.refillRequestParam.recipient = paramsDto.getRecipient();
+    this.refillRequestParam.userFullName = paramsDto.getUserFullName();
+    this.refillRequestParam.merchantRequestSign = paramsDto.getMerchantRequestSign();
     this.remark = paramsDto.getRemark();
     this.address = paramsDto.getAddress();
     this.privKey = null;
@@ -78,4 +74,28 @@ public class RefillRequestCreateDto {
     /**/
     this.locale = locale;
   }
+
+  public void setMerchantRequestSign(String sign){
+    this.refillRequestParam.merchantRequestSign = sign;
+  }
+
+  @Getter
+  public class RefillRequestParam {
+    private Integer recipientBankId;
+    private String recipientBankCode;
+    private String recipientBankName;
+    private String recipient;
+    private String userFullName;
+    private String merchantRequestSign;
+
+    public boolean isEmpty() {
+      return this.recipientBankId == null &&
+          this.recipientBankCode == null &&
+          this.recipientBankName == null &&
+          this.recipient == null &&
+          this.userFullName == null &&
+          this.merchantRequestSign == null;
+    }
+  }
+
 }
