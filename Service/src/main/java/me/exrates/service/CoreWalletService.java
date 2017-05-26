@@ -27,6 +27,8 @@ public interface CoreWalletService {
   
   Optional<BtcTransactionDto> handleTransactionConflicts(String txId);
   
+  BtcTransactionDto getTransaction(String txId);
+  
   BtcWalletInfoDto getWalletInfo();
   
   List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);

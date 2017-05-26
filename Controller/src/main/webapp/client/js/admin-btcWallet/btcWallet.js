@@ -85,6 +85,22 @@ $(function () {
         updateTxFee();
     });
 
+    $('#create-refill').click(function () {
+        var formData = $('#createRefillForm').serialize();
+        $.ajax({
+            url: urlBase + 'transaction/create',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: formData,
+            success: function () {
+                $('#btc-tx-info-modal').modal('hide');
+            }
+        })
+
+    })
+
 });
 
 function checkSendBtcFormFields() {
@@ -252,12 +268,42 @@ function viewTransactionData($elem) {
     var url = urlBase + 'transaction/details?currency=' + $('#currencyName').text() +
             '&address=' + rowData.address +
             '&hash=' + rowData.txId;
-    console.log(url);
     $.get(url, function (data) {
-        console.log(data);
+        if (data['result']) {
+            var result = data['result'];
+            $('#btcTxInfoTable').show();
+            $('#no-address').hide();
+            hideRowIfAbsent('#info-id', result.id);
+            hideRowIfAbsent('#info-dateCreation', result.dateCreation);
+            hideRowIfAbsent('#info-status-date', result.dateModification);
+            hideRowIfAbsent('#info-status', result.status);
+            hideRowIfAbsent('#info-user', result.userEmail);
+            if (!result.id) {
+                $('#create-refill').show();
+                var $form = $('#createRefillForm');
+                $($form).find('input[name="txId"]').val(rowData.txId);
+                $($form).find('input[name="address"]').val(rowData.address);
+            } else {
+                $('#create-refill').hide();
+            }
+        } else {
+            $('#btcTxInfoTable').hide();
+            $('#create-refill').hide();
+            $('#no-address').show();
+        }
+        $('#btc-tx-info-modal').modal();
     })
 }
 
+function hideRowIfAbsent($elem, value) {
+    var $row = $($elem).parents('tr');
+    if (!value) {
+        $($row).hide();
+    } else {
+        $($elem).text(value);
+        $($row).show();
+    }
+}
 
 
 

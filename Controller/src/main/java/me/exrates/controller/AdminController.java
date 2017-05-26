@@ -1073,16 +1073,21 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/details", method = RequestMethod.GET,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public RefillRequestBtcInfoDto getTransactionDetails(@PathVariable String merchantName,
+  public Map<String, RefillRequestBtcInfoDto> getTransactionDetails(@PathVariable String merchantName,
                                         @RequestParam("currency") String currencyName,
                                         @RequestParam String hash,
                                         @RequestParam String address) {
    Optional<RefillRequestBtcInfoDto> dtoResult = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, hash,
            merchantName, currencyName);
-    return dtoResult.orElseGet(null);
+    return dtoResult.isPresent() ? Collections.singletonMap("result", dtoResult.get()) : Collections.EMPTY_MAP;
   }
   
-  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/create", method = RequestMethod.POST)
+  @ResponseBody
+  public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    LOG.debug(params);
+    getBitcoinServiceByMerchantName(merchantName).processPayment(params);
+  }
   
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")

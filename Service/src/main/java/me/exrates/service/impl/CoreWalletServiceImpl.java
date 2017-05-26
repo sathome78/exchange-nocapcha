@@ -186,6 +186,16 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             tx.getComment(), tx.getTo(), payments);
   }
   
+  @Override
+  public BtcTransactionDto getTransaction(String txId) {
+    try {
+      Transaction tx = btcdClient.getTransaction(txId);
+      return convert(tx);
+    } catch (BitcoindException | CommunicationException e) {
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
  
   
   //Required to check if there were any incoming payments while the application was not running

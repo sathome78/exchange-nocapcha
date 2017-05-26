@@ -27,6 +27,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -843,14 +844,14 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                                                                                               String merchantTransactionId,
                                                                                               Integer merchantId,
                                                                                               Integer currencyId) {
-    String sql = "SELECT DISTINCT RR.id, , RRA.*, RRP.*, " +
-            "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
-            " FROM REFILL_REQUEST RR" +
-            "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) " +
-            "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
-            " WHERE RR.merchant_id = :merchant_id " +
-            "       AND RR.currency_id = :currency_id " +
-            "       AND RR.merchant_transaction_id = :merchant_transaction_id " +
+    String sql = "SELECT RR.id, RR.merchant_transaction_id, RRA.address, RR.amount, RR.date_creation,  " +
+            "                 RR.status_modification_date, RRS.name AS status_name, USER.email " +
+            " FROM REFILL_REQUEST_ADDRESS RRA" +
+            "   LEFT JOIN REFILL_REQUEST RR ON (RRA.id = RR.refill_request_address_id AND RR.merchant_transaction_id = :merchant_transaction_id) " +
+            "   LEFT JOIN REFILL_REQUEST_STATUS RRS ON (RRS.id = RR.status_id) " +
+            "   JOIN USER ON USER.id = RRA.user_id" +
+            " WHERE RRA.merchant_id = :merchant_id " +
+            "       AND RRA.currency_id = :currency_id " +
             "       AND RRA.address = :address";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
@@ -861,7 +862,16 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
         RefillRequestBtcInfoDto dto = new RefillRequestBtcInfoDto();
-        
+        dto.setId(rs.getInt("id"));
+        dto.setAddress(rs.getString("address"));
+        dto.setTxId(rs.getString("merchant_transaction_id"));
+        dto.setAmount(rs.getBigDecimal("amount"));
+        Timestamp dateCreation = rs.getTimestamp("date_creation");
+        Timestamp dateModification = rs.getTimestamp("status_modification_date");
+        dto.setDateCreation(dateCreation == null ? null : dateCreation.toLocalDateTime());
+        dto.setDateModification(dateModification == null ? null : dateModification.toLocalDateTime());
+        dto.setStatus(rs.getString("status_name"));
+        dto.setUserEmail(rs.getString("email"));
         return dto;
       }));
     } catch (EmptyResultDataAccessException e) {

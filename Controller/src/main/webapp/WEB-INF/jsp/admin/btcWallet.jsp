@@ -200,7 +200,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><%--<loc:message code="withdraw.infoModal.title"/>--%></h4>
+                <h4 class="modal-title"><loc:message code="btcWallet.txDetails"/></h4>
             </div>
             <div class="modal-body">
                 <div class="well">
@@ -211,36 +211,42 @@
                             <td id="info-id"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="transaction.amount"/></td>
-                            <td id="info-amount"></td>
+                            <td><loc:message code="myorders.datecreation"/></td>
+                            <td id="info-dateCreation"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="transaction.commissionAmount"/></td>
-                            <td id="info-commissionAmount"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="withdrawal.status"/></td>
-                            <td id="info-status"></td>
-                        </tr>
-                        <tr>
-                            <td><loc:message code="withdrawal.statusModificationDate"/></td>
+                            <td><loc:message code="refill.statusModificationDate"/></td>
                             <td id="info-status-date"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientBank"/></td>
-                            <td id="info-bankRecipient"></td>
+                            <td><loc:message code="admin.status"/></td>
+                            <td id="info-status"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientAccount"/></td>
-                            <td id="info-wallet"></td>
+                            <td><loc:message code="refill.user"/></td>
+                            <td id="info-user"></td>
                         </tr>
-
                         </tbody>
                     </table>
+                    <div id="no-address">
+                        <p class="red"><loc:message code="btcWallet.noAddress"/></p>
+                    </div>
                 </div>
+
+
+                <div hidden>
+                    <form id="createRefillForm">
+                        <input name="txId">
+                        <input name="address">
+                    </form>
+                </div>
+
 
                 <div class="modal-footer">
                     <div class="order-info__button-wrapper">
+                        <button id="create-refill" class="order-info__button" data-dismiss="modal">
+                            <loc:message code="btcWallet.createRequest"/>
+                        </button>
                         <button class="order-info__button" data-dismiss="modal">
                             <loc:message code="orderinfo.ok"/>
                         </button>
