@@ -74,6 +74,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setRecipientBankName(rs.getString("name"));
     refillRequestFlatDto.setRecipientBankAccount(rs.getString("account_number"));
     refillRequestFlatDto.setRecipientBankRecipient(rs.getString("recipient"));
+    refillRequestFlatDto.setMerchantRequestSign(rs.getString("merchant_request_sign"));
     refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
     refillRequestFlatDto.setRefillRequestAddressId(rs.getInt("refill_request_address_id"));
     refillRequestFlatDto.setRefillRequestParamId(rs.getInt("refill_request_param_id"));
@@ -200,9 +201,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
-          Integer merchantId,
-          Integer currencyId,
-          List<Integer> statusIdList) {
+      Integer merchantId,
+      Integer currencyId,
+      List<Integer> statusIdList) {
     String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
         "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
@@ -292,14 +293,12 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer refillRequestParamId = null;
       if (!StringUtils.isEmpty(request.getAddress())) {
         Optional<Integer> addressIdResult = findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(request.getAddress(),
-                request.getUserId(),
-                request.getCurrencyId(),
-                request.getMerchantId());
+            request.getUserId(),
+            request.getCurrencyId(),
+            request.getMerchantId());
         refillRequestAddressId = addressIdResult.orElseGet(() -> storeRefillRequestAddress(request));
       }
-      if (request.getRecipientBankId() != null) {
-        refillRequestParamId = storeRefillRequestParam(request);
-      }
+      refillRequestParamId = storeRefillRequestParam(request);
       final String setKeysSql = "UPDATE REFILL_REQUEST " +
           " SET refill_request_param_id = :refill_request_param_id," +
           "     refill_request_address_id = :refill_request_address_id, " +
@@ -329,18 +328,18 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("user_id", request.getUserId());
     return namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Boolean.class);
   }
-  
+
   private Optional<Integer> findAnyAddressIdByAddressAndUserAndCurrencyAndMerchant(String address, Integer userId, Integer currencyId, Integer merchantId) {
     MapSqlParameterSource params;
     final String findAddressSql = "SELECT id " +
-            " FROM REFILL_REQUEST_ADDRESS " +
-            " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address " +
-            " LIMIT 1 ";
+        " FROM REFILL_REQUEST_ADDRESS " +
+        " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address " +
+        " LIMIT 1 ";
     params = new MapSqlParameterSource()
-            .addValue("currency_id", currencyId)
-            .addValue("merchant_id", merchantId)
-            .addValue("address", address)
-            .addValue("user_id", userId);
+        .addValue("currency_id", currencyId)
+        .addValue("merchant_id", merchantId)
+        .addValue("address", address)
+        .addValue("user_id", userId);
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class));
     } catch (EmptyResultDataAccessException e) {
@@ -349,16 +348,20 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   private Integer storeRefillRequestParam(RefillRequestCreateDto request) {
+    if (request.getRefillRequestParam().isEmpty()) {
+      return null;
+    }
     MapSqlParameterSource params;
     Integer refillRequestParamId;
     final String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
-        " (id, recipient_bank_id, user_full_name) " +
+        " (id, recipient_bank_id, user_full_name, merchant_request_sign) " +
         " VALUES " +
-        " (:id, :recipient_bank_id, :user_full_name) ";
+        " (:id, :recipient_bank_id, :user_full_name, :merchant_request_sign) ";
     params = new MapSqlParameterSource()
         .addValue("id", request.getId())
-        .addValue("recipient_bank_id", request.getRecipientBankId())
-        .addValue("user_full_name", request.getUserFullName());
+        .addValue("recipient_bank_id", request.getRefillRequestParam().getRecipientBankId())
+        .addValue("user_full_name", request.getRefillRequestParam().getUserFullName())
+        .addValue("merchant_request_sign", request.getRefillRequestParam().getMerchantRequestSign());
     namedParameterJdbcTemplate.update(addParamSql, params);
     refillRequestParamId = request.getId();
     return refillRequestParamId;
@@ -451,6 +454,41 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("receipt_scan_name", invoiceConfirmData.getReceiptScanName());
     params.put("receipt_scan", invoiceConfirmData.getReceiptScanPath());
     namedParameterJdbcTemplate.update(updateParamSql, params);
+  }
+
+  @Override
+  public void setMerchantRequestSignById(
+      Integer id,
+      String sign) {
+    MapSqlParameterSource params;
+    String selectRefillSql = "SELECT refill_request_param_id FROM REFILL_REQUEST WHERE id = :id";
+    params = new MapSqlParameterSource()
+        .addValue("id", id);
+    Integer refillRequestParamId = namedParameterJdbcTemplate.queryForObject(selectRefillSql, params, Integer.class);
+    if (refillRequestParamId == null) {
+      String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
+          " (id, merchant_request_sign) " +
+          " VALUES " +
+          " (:id, :merchant_request_sign) ";
+      params = new MapSqlParameterSource()
+          .addValue("id", id)
+          .addValue("merchant_request_sign", sign);
+      namedParameterJdbcTemplate.update(addParamSql, params);
+      refillRequestParamId = id;
+      String updateRefillSql = "UPDATE REFILL_REQUEST SET refill_request_param_id = :refill_request_param_id WHERE id = :id";
+      params = new MapSqlParameterSource()
+          .addValue("refill_request_param_id", refillRequestParamId)
+          .addValue("id", id);
+      namedParameterJdbcTemplate.update(updateRefillSql, params);
+    } else {
+      String updateParamSql = "UPDATE REFILL_REQUEST_PARAM " +
+          " SET merchant_request_sign = :merchant_request_sign " +
+          " WHERE id = :id";
+      params = new MapSqlParameterSource()
+          .addValue("id", refillRequestParamId)
+          .addValue("merchant_request_sign", sign);
+      namedParameterJdbcTemplate.update(updateParamSql, params);
+    }
   }
 
   @Override
@@ -809,23 +847,23 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return namedParameterJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
       @Override
       public RefillRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
-        RefillRequestFlatForReportDto withdrawRequestFlatForReportDto = new RefillRequestFlatForReportDto();
-        withdrawRequestFlatForReportDto.setId(rs.getInt("RR.id"));
-        withdrawRequestFlatForReportDto.setAddress(ofNullable(rs.getString("address")).orElse(rs.getString("account_number")));
-        withdrawRequestFlatForReportDto.setRecipientBankName(rs.getString("recipient_bank_name"));
-        withdrawRequestFlatForReportDto.setAdminEmail(rs.getString("admin_email"));
-        withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
-        withdrawRequestFlatForReportDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
-        withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
-        withdrawRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
-        withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
-        withdrawRequestFlatForReportDto.setAmount(ofNullable(rs.getBigDecimal("transaction_amount")).orElse(BigDecimal.ZERO));
-        withdrawRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission"));
-        withdrawRequestFlatForReportDto.setDatetime(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
-        withdrawRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
-        withdrawRequestFlatForReportDto.setSourceType(REFILL);
-        withdrawRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
-        return withdrawRequestFlatForReportDto;
+        RefillRequestFlatForReportDto refillRequestFlatForReportDto = new RefillRequestFlatForReportDto();
+        refillRequestFlatForReportDto.setId(rs.getInt("RR.id"));
+        refillRequestFlatForReportDto.setAddress(ofNullable(rs.getString("address")).orElse(rs.getString("account_number")));
+        refillRequestFlatForReportDto.setRecipientBankName(rs.getString("recipient_bank_name"));
+        refillRequestFlatForReportDto.setAdminEmail(rs.getString("admin_email"));
+        refillRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+        refillRequestFlatForReportDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
+        refillRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+        refillRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
+        refillRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
+        refillRequestFlatForReportDto.setAmount(ofNullable(rs.getBigDecimal("transaction_amount")).orElse(BigDecimal.ZERO));
+        refillRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission"));
+        refillRequestFlatForReportDto.setDatetime(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
+        refillRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
+        refillRequestFlatForReportDto.setSourceType(REFILL);
+        refillRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+        return refillRequestFlatForReportDto;
       }
     });
   }

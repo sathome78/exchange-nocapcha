@@ -17,10 +17,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.WithdrawRequestCreationException;
-import me.exrates.service.exception.WithdrawRequestPostException;
-import me.exrates.service.exception.WithdrawRequestRevokeException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.merchantStrategy.IMerchantService;
@@ -518,6 +515,9 @@ public class WithdrawServiceImpl implements WithdrawService {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
       WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
+      if (currentStatus.isSuccessEndStatus()){
+        throw new WithdrawRequestAlreadyPostedException(withdrawRequest.toString());
+      }
       InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
           withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
       WithdrawStatusEnum newStatus = requesterAdminId == null ?

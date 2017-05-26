@@ -41,6 +41,8 @@ public interface RefillRequestDao {
 
   void setStatusAndConfirmationDataById(Integer id, InvoiceStatus newStatus, InvoiceConfirmData invoiceConfirmData);
 
+  void setMerchantRequestSignById(Integer id, String sign);
+
   List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId);
 
   Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer merchantId, Integer currencyId, Integer intervalHours, List<Integer> statusIdList);

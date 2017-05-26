@@ -23,6 +23,7 @@ public class RefillRequestParamsDto {
     private String recipient;
     private String userFullName;
     private String remark;
+    private String merchantRequestSign;
     private String address;
     private Boolean generateNewAddress;
 }
