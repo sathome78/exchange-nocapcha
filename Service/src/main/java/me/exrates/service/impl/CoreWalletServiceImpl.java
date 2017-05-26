@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.model.dto.btcTransactionFacade.BtcTxPaymentDto;
 import me.exrates.model.enums.ActionType;
@@ -136,7 +137,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcdClient.backupWallet(filename);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException("Cannot generate new address!");
     }
   }
   
@@ -182,8 +182,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     List<BtcTxPaymentDto> payments = tx.getDetails().stream()
             .map((payment) -> new BtcTxPaymentDto(payment.getAddress(), payment.getCategory().getName(), payment.getAmount(), payment.getFee()))
             .collect(Collectors.toList());
-    return new BtcTransactionDto(tx.getAmount(), tx.getFee(), tx.getConfirmations(), tx.getTxId(), tx.getWalletConflicts(), tx.getTime(), tx.getTimeReceived(),
-            tx.getComment(), tx.getTo(), payments);
+    return new BtcTransactionDto(tx.getAmount(), tx.getFee(), tx.getConfirmations(), tx.getTxId(), tx.getBlockHash(), tx.getWalletConflicts(), tx.getTime(),
+            tx.getTimeReceived(), tx.getComment(), tx.getTo(), payments);
   }
   
   @Override
@@ -197,60 +197,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
  
-  
-  //Required to check if there were any incoming payments while the application was not running
-  private void checkUnpaidBtcPayments() {
-    /*log.debug("Checking unpaid pending payments");
-   /* try {
-      List<PendingPayment> unpaidPayments = bitcoinTransactionService.findUnpaidBtcPayments();
-      Map<String, Address> received = listReceivedByAddressMapped(0);
-      
-      unpaidPayments.stream().filter(payment -> payment.getAddress() != null).forEach(payment -> {
-        Optional.ofNullable(received.get(payment.getAddress())).ifPresent(address -> {
-          if (address.getTxIds().size() == 1) {
-            processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), address.getTxIds().get(0), address.getAmount(), address.getConfirmations());
-          } else {
-            address.getTxIds().stream().map(this::getTransactionByTxId).filter(Objects::nonNull).findAny().ifPresent(tx -> {
-              if (tx.getDetails().size() == 1) {
-                processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), tx.getTxId(), tx.getAmount(), tx.getConfirmations());
-              } else {
-                tx.getDetails().forEach(paymentOverview -> processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), tx.getTxId(),
-                        paymentOverview.getAmount(), tx.getConfirmations()));
-              }
-            });
-          }
-        });
-      });
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-    }*/
-  }
-  
-  private Transaction getTransactionByTxId(String txId) {
-    try {
-      return btcdClient.getTransaction(txId);
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-      return null;
-    }
-  }
-  
-  private Map<String, Address> listReceivedByAddressMapped(int minConfirmations) throws BitcoindException, CommunicationException {
-    return btcdClient.listReceivedByAddress(minConfirmations).stream().filter(address -> !address.getTxIds().isEmpty())
-            .collect(Collectors.toMap(Address::getAddress, address -> address));
-  }
-  
-  private void processUnpaidPayment(Integer paymentId, String address, String txId, BigDecimal amount, Integer confirmations) {
-   /* try {
-      bitcoinTransactionService.markStartConfirmationProcessing(address, txId, amount);
-      if (confirmations > 0) {
-       // changeConfirmationsOrProvide(paymentId, txId, amount, confirmations);
-      }
-    } catch (IllegalInvoiceAmountException e) {
-      log.error(ExceptionUtils.getStackTrace(e));
-    }*/
-  }
-  
   @Override
   public BtcWalletInfoDto getWalletInfo() {
     try {
@@ -310,6 +256,27 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
+  
+  @Override
+  public List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId) {
+    try {
+      return btcdClient.listSinceBlock(blockHash).getPayments().stream()
+              .map(payment -> BtcPaymentFlatDto.builder()
+                        .amount(payment.getAmount())
+                        .confirmations(payment.getConfirmations())
+                        .merchantId(merchantId)
+                        .currencyId(currencyId)
+                        .address(payment.getAddress())
+                        .txId(payment.getTxId())
+                        .blockhash(payment.getBlockHash())
+                        .build()).collect(Collectors.toList());
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  
   
   @Override
   public BigDecimal estimateFee(int blockCount) {

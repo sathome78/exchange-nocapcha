@@ -745,14 +745,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations) {
+  public void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations, String blockhash) {
     String sql = " INSERT INTO REFILL_REQUEST_CONFIRMATION " +
-        "  (refill_request_id, datetime, confirmation_number, amount) " +
-        "  VALUES (:request_id, NOW(), :confirmation_number, :amount) ";
+        "  (refill_request_id, datetime, confirmation_number, amount, blockhash) " +
+        "  VALUES (:request_id, NOW(), :confirmation_number, :amount, :blockhash) ";
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("request_id", requestId)
         .addValue("confirmation_number", confirmations)
-        .addValue("amount", amount);
+        .addValue("amount", amount)
+        .addValue("blockhash", blockhash);
     namedParameterJdbcTemplate.update(sql, params);
   }
 
@@ -874,6 +875,23 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         dto.setUserEmail(rs.getString("email"));
         return dto;
       }));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+  
+  
+  @Override
+  public Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId) {
+    String sql = "SELECT RRC.blockhash FROM REFILL_REQUEST_CONFIRMATION RRC" +
+            " JOIN REFILL_REQUEST RR ON (RR.id = RRC.refill_request_id) " +
+            " WHERE RR.merchant_id = :merchant_id AND RR.currency_id = :currency_id" +
+            " ORDER BY RRC.datetime DESC, RRC.id DESC LIMIT 1";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+    try {
+      return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }

@@ -93,4 +93,6 @@ public interface RefillService {
                                                                                        String merchantTransactionId,
                                                                                        String merchantName,
                                                                                        String currencyName);
+  
+  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 }

@@ -381,6 +381,7 @@ public class RefillServiceImpl implements RefillService {
     Integer requestId = onBchExamDto.getRequestId();
     String hash = onBchExamDto.getHash();
     BigDecimal amount = onBchExamDto.getAmount();
+    String blockhash = onBchExamDto.getBlockhash();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
@@ -394,7 +395,7 @@ public class RefillServiceImpl implements RefillService {
     }
     refillRequest.setStatus(newStatus);
     refillRequest.setMerchantTransactionId(hash);
-    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
+    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0, blockhash);
     return refillRequest;
   }
 
@@ -421,6 +422,7 @@ public class RefillServiceImpl implements RefillService {
       String hash = confirmationsNumberDto.getHash();
       BigDecimal amount = confirmationsNumberDto.getAmount();
       Integer confirmations = confirmationsNumberDto.getConfirmations();
+      String blockhash = confirmationsNumberDto.getBlockhash();
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(confirmationsNumberDto.toString()));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
@@ -434,7 +436,7 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
         }
       }
-      refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
+      refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations, blockhash);
     } else {
       throw new RefillRequestAppropriateNotFoundException(confirmationsNumberDto.toString());
     }
@@ -906,6 +908,11 @@ public class RefillServiceImpl implements RefillService {
     Integer merchantId = merchantService.findByName(merchantName).getId();
     Integer currencyId = currencyService.findByName(currencyName).getId();
     return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
+  }
+  
+  @Override
+  public Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.getLastBlockHashForMerchantAndCurrency(merchantId, currencyId);
   }
   
 

@@ -80,6 +80,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   void startBitcoin() {
     bitcoinWalletService.initCoreClient(nodePropertySource);
     bitcoinWalletService.initBtcdDaemon(this::onIncomingBlock, this::onPayment, this::onPayment);
+    examineMissingPaymentsOnStartup();
   }
 
 
@@ -164,9 +165,14 @@ public class BitcoinServiceImpl implements BitcoinService {
                         .address(payment.getAddress())
                         .amount(payment.getAmount())
                         .confirmations(targetTx.getConfirmations())
+                        .blockhash(targetTx.getBlockhash())
                         .merchantId(merchant.getId())
                         .currencyId(currency.getId()).build();
-                processBtcPayment(btcPaymentFlatDto);
+                try {
+                  processBtcPayment(btcPaymentFlatDto);
+                } catch (Exception e) {
+                  log.error(e);
+                }
               });
     } else {
       log.error("Invalid transaction");
@@ -193,7 +199,8 @@ public class BitcoinServiceImpl implements BitcoinService {
                   .currencyId(btcPaymentFlatDto.getCurrencyId())
                   .address( btcPaymentFlatDto.getAddress())
                   .amount(btcPaymentFlatDto.getAmount())
-                  .hash(btcPaymentFlatDto.getTxId()).build());
+                  .hash(btcPaymentFlatDto.getTxId())
+                  .blockhash(btcPaymentFlatDto.getBlockhash()).build());
         } catch (RefillRequestAppropriateNotFoundException e) {
           log.error(e);
         }
@@ -205,9 +212,9 @@ public class BitcoinServiceImpl implements BitcoinService {
                 .confirmations(btcPaymentFlatDto.getConfirmations())
                 .currencyId(btcPaymentFlatDto.getCurrencyId())
                 .merchantId(btcPaymentFlatDto.getMerchantId())
-                .hash(btcPaymentFlatDto.getTxId()).build());
+                .hash(btcPaymentFlatDto.getTxId())
+                .blockhash(btcPaymentFlatDto.getBlockhash()).build());
       }
-      
     }
   }
   
@@ -245,6 +252,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                             .merchantId(merchant.getId())
                             .requestId(request.getId())
                             .confirmations(tx.getConfirmations())
+                            .blockhash(blockHash)
                             .hash(tx.getTxId()).build());
                   }
                   );
@@ -323,6 +331,20 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String sendToMany(Map<String, BigDecimal> payments) {
     return bitcoinWalletService.sendToMany(payments);
+  }
+  
+  private void examineMissingPaymentsOnStartup() {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    refillService.getLastBlockHashForMerchantAndCurrency(merchant.getId(), currency.getId()).ifPresent(lastKnownBlockHash -> {
+      bitcoinWalletService.listSinceBlock(lastKnownBlockHash, merchant.getId(), currency.getId()).forEach(btcPaymentFlatDto -> {
+        try {
+          processBtcPayment(btcPaymentFlatDto);
+        } catch (Exception e) {
+          log.error(e);
+        }
+      });
+    });
   }
   
 

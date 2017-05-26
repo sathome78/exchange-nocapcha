@@ -20,6 +20,7 @@ public class BtcPaymentFlatDto {
   private Integer confirmations;
   private String txId;
   private String address;
+  private String blockhash;
   private Integer merchantId;
   private Integer currencyId;
 }

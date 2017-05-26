@@ -69,7 +69,7 @@ public interface RefillRequestDao {
 
   Integer findConfirmationsNumberByRequestId(Integer requestId);
 
-  void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations);
+  void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations, String blockhash);
 
   Optional<Integer> findUserIdById(Integer requestId);
 
@@ -83,4 +83,6 @@ public interface RefillRequestDao {
                                                                                        String merchantTransactionId,
                                                                                        Integer merchantId,
                                                                                        Integer currencyId);
+  
+  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 }

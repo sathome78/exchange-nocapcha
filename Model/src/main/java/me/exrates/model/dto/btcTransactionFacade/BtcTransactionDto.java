@@ -18,6 +18,7 @@ public class BtcTransactionDto {
   private BigDecimal fee;
   private Integer confirmations;
   private String txId;
+  private String blockhash;
   private List<String> walletConflicts;
   private Long time;
   private Long timeReceived;

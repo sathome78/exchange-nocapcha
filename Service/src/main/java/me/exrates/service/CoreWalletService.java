@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -34,6 +35,8 @@ public interface CoreWalletService {
   List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
   
   List<BtcTransactionHistoryDto> listAllTransactions();
+  
+  List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
   
   BigDecimal estimateFee(int blockCount);
   
