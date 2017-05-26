@@ -196,7 +196,7 @@
         </RollingFile>
 
         <RollingFile name="survey_result_log" fileName="${sys:catalina.home}/logs/survey/survey_result_log.log"
-                     filePattern="${sys:catalina.home}/logs/survey/survey_result_log" append="true">
+                     filePattern="${sys:catalina.home}/logs/survey/survey_result_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -205,7 +205,7 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
         <RollingFile name="survey_log" fileName="${sys:catalina.home}/logs/survey/survey_log.log"
-                     filePattern="${sys:catalina.home}/logs/survey/survey_log" append="true">
+                     filePattern="${sys:catalina.home}/logs/survey/survey_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
