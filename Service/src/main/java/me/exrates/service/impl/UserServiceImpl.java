@@ -4,7 +4,10 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.model.*;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -608,22 +611,10 @@ public class UserServiceImpl implements UserService {
   public String getEmailById(Integer id) {
     return userDao.getEmailById(id);
   }
-  
+
   @Override
   public UserRole getUserRoleFromDB(String email) {
     return userDao.getUserRoleByEmail(email);
-  }
-
-  @Override
-  @Transactional
-  public void savePollAsDoneByUser(String email) {
-    userDao.savePollAsDoneByUser(email);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean checkPollIsDoneByUser(String email) {
-    return userDao.checkPollIsDoneByUser(email);
   }
 
 }

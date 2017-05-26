@@ -7,10 +7,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.form.NotificationOptionsForm;
-import me.exrates.service.NewsService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.SessionParamsService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +60,8 @@ public class EntryController {
     @Autowired
     private UserService userService;
     @Autowired
+    private SurveyService surveyService;
+    @Autowired
     private SessionParamsService sessionService;
 
     @Autowired
@@ -101,7 +100,7 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        model.addObject("startPoll", principal != null && !userService.checkPollIsDoneByUser(principal.getName()));
+        model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
 
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();

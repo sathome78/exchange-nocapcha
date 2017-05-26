@@ -168,11 +168,12 @@ $(function dashdoardInit() {
         /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
-        var startPoll = $("#start-poll").val()=='true';
+        var startPoll = $("#start-poll").val() == 'true';
         if (startPoll) {
-            $("#poll-modal").modal();
+            var $pollDialog = $("#poll-modal");
+            $pollDialog.modal();
+            doPoll($pollDialog);
         }
-        doPoll("ru");
         /*...FOR POLL*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
@@ -241,46 +242,51 @@ function parseNumber(numberStr) {
 }
 
 
-function doPoll() {
+function doPoll($pollDialog) {
     Survey.Survey.cssType = "bootstrap";
-    var locale = $.cookie("myAppLocaleCookie");
-    var surveyJSON = {
-        locale: locale,
-        pages: [
-            {
-                elements: [
-                    {
-                        type: "rating",
-                        name: "question1"
-                    },
-                    {
-                        type: "rating",
-                        name: "question2"
-                    },
-                    {
-                        type: "comment",
-                        name: "question3",
-                        visible: false,
-                        visibleIf: "({question2} > 1"
+    var surveyToken;
+    var surveyData = getSurveyData(function (response) {
+        var surveyData = response;
+        surveyToken = surveyData.token;
+        var surveyJSON = JSON.parse(surveyData.json);
+        var surveyItems = surveyData.items;
+        /**/
+        surveyJSON.locale = $.cookie("myAppLocaleCookie");
+        surveyJSON.pages.forEach(function (page, pi) {
+            page.elements.forEach(function (element, ei) {
+                var name = element.name;
+                surveyItems.forEach(function (item) {
+                    if (item.name == name) {
+                        surveyJSON.pages[pi].elements[ei].title = item.title;
+                        return;
                     }
-                ],
-                name: "page1"
-            }
-        ]
-    };
+                })
+            });
+        });
+        $pollDialog.find("#description").html(surveyData.description);
+        /**/
+        var survey = new Survey.Model(surveyJSON);
+        $("#surveyContainer").Survey({
+            model: survey,
+            onComplete: sendDataToServer
+        });
+    });
 
     function sendDataToServer(survey) {
-        var surveyToken = '77fe16c6-516b-49ec-b362-44b4ca159136';
         survey.sendResult(surveyToken);
         var result = JSON.stringify(survey.data);
         savePollAsDone(surveyToken, result);
     }
 
-    var survey = new Survey.Model(surveyJSON);
-    $("#surveyContainer").Survey({
-        model: survey,
-        onComplete: sendDataToServer
-    });
+    function getSurveyData(callback) {
+        $.ajax({
+            type: 'GET',
+            url: '/survey/getSurvey',
+            success: function (data) {
+                callback(data);
+            }
+        });
+    }
 
     function savePollAsDone(surveyToken, result) {
         $.ajax({
@@ -289,7 +295,7 @@ function doPoll() {
             },
             contentType: "text/plain; charset=utf-8",
             type: 'POST',
-            url: '/survey/saveAsDone?surveyToken='+surveyToken,
+            url: '/survey/saveAsDone?surveyToken=' + surveyToken,
             data: result,
         });
     }
