@@ -270,8 +270,10 @@ function doPoll() {
     };
 
     function sendDataToServer(survey) {
-        survey.sendResult('77fe16c6-516b-49ec-b362-44b4ca159136');
-        savePollAsDone();
+        var surveyToken = '77fe16c6-516b-49ec-b362-44b4ca159136';
+        survey.sendResult(surveyToken);
+        var result = JSON.stringify(survey.data);
+        savePollAsDone(surveyToken, result);
     }
 
     var survey = new Survey.Model(surveyJSON);
@@ -280,13 +282,15 @@ function doPoll() {
         onComplete: sendDataToServer
     });
 
-    function savePollAsDone() {
+    function savePollAsDone(surveyToken, result) {
         $.ajax({
             headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
             },
-            url: '/2a8fy7b07dxe44/savePollAsDone',
+            contentType: "text/plain; charset=utf-8",
             type: 'POST',
+            url: '/survey/saveAsDone?surveyToken='+surveyToken,
+            data: result,
         });
     }
 }

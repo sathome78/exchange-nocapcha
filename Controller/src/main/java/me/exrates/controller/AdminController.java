@@ -1283,12 +1283,6 @@ public class AdminController {
     }
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/savePollAsDone", method = POST)
-  public void savePollAsDone(
-      Principal principal) {
-    userService.savePollAsDoneByUser(principal.getName());
-  }
-
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
   @ResponseBody

@@ -165,7 +165,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
             /*... admin report */
         .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
-        .antMatchers(POST, "/2a8fy7b07dxe44/savePollAsDone").authenticated()
         .antMatchers("/2a8fy7b07dxe44/**",
             "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
         /*... ADMIN */
@@ -234,6 +233,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
         .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name())
         /*user withdraw action ...*/
