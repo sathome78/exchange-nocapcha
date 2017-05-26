@@ -51,6 +51,7 @@
   <%----------%>
   <%----------%>
   <%@include file="../tools/alexa.jsp" %>
+  <%@include file="../tools/ga.jsp" %>
 
 </head>
 

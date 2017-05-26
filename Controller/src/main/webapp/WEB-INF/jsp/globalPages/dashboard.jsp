@@ -59,6 +59,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/historyRefStr.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
+    <script src="https://surveyjs.azureedge.net/0.12.14/survey.jquery.min.js"></script>
     <%----%>
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
@@ -69,6 +70,7 @@
     <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%--ZOPIM CHAT--%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/ga.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
@@ -78,6 +80,7 @@
 <%@include file="../fragments/header.jsp" %>
 
 <main class="container">
+    <input id="start-poll" hidden value='${startPoll}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
@@ -101,6 +104,7 @@
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
+<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

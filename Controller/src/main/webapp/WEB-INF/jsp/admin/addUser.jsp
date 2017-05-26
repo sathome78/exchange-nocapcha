@@ -26,6 +26,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
     <%----------%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/ga.jsp" %>
 
 </head>
 

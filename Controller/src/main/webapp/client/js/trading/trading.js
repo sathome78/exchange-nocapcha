@@ -254,7 +254,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 "windowid": windowId
             },
             success: function (data) {
-                console.log(data);
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
