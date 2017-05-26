@@ -20,4 +20,5 @@ public class RefillRequestPutOnBchExamDto {
   private BigDecimal amount;
   private String address;
   private String hash;
+  private String blockhash;
 }

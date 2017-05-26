@@ -42,7 +42,12 @@ public interface RefillService {
           String hash);
   
   Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
-
+  
+  Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+          String address,
+          Integer merchantId,
+          Integer currencyId);
+  
   List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
@@ -83,4 +88,11 @@ public interface RefillService {
   Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+  
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                       String merchantTransactionId,
+                                                                                       String merchantName,
+                                                                                       String currencyName);
+  
+  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 }
