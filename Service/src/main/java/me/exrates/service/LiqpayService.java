@@ -7,22 +7,22 @@ public interface LiqpayService extends IMerchantService {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
-    return null;
+    return false;
   }
 
   @Override
   default Boolean needToCreateRefillRequestRecord() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean toMainAccountTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 
   @Override
   default Boolean generatingAdditionalRefillAddressAvailable() {
-    return null;
+    return false;
   }
 
   @Override
@@ -32,6 +32,6 @@ public interface LiqpayService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 }
