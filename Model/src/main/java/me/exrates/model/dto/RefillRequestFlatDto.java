@@ -40,6 +40,7 @@ public class RefillRequestFlatDto extends RequestWithRemarkAbstractDto {
   private Integer recipientBankId;
   private String recipientBankAccount;
   private String recipientBankRecipient;
+  private String recipientBankDetails;
   private String merchantRequestSign;
   private Integer adminHolderId;
   private Integer refillRequestAddressId;
