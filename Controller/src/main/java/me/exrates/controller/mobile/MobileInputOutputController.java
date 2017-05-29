@@ -10,8 +10,6 @@ import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.dto.mobileApiDto.PaymentDto;
 import me.exrates.model.dto.mobileApiDto.UserTransferDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -23,7 +21,6 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
-import me.exrates.service.merchantPayment.MerchantPaymentService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,9 +70,6 @@ public class MobileInputOutputController {
 
     @Autowired
     private CurrencyService currencyService;
-
-    @Autowired
-    private Map<String, MerchantPaymentService> merchantPaymentServices;
 
     @Autowired
     private WalletService walletService;
@@ -431,7 +425,7 @@ public class MobileInputOutputController {
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-//        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale); //TODO REFILL
+        refillService.confirmRefillRequest(invoiceConfirmData, userLocale);
         return new ResponseEntity<>(OK);
     }
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -440,9 +434,7 @@ public class MobileInputOutputController {
         Integer invoiceId = Integer.parseInt(invoiceIdString);
         InvoiceConfirmData invoiceConfirmData = new InvoiceConfirmData();
         invoiceConfirmData.setInvoiceId(invoiceId);
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-//        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale); //TODO REFILL
+        refillService.revokeRefillRequest(invoiceId);
         return new ResponseEntity<>(OK);
     }
 
