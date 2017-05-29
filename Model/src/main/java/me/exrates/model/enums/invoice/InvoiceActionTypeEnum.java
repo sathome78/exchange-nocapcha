@@ -87,6 +87,11 @@ public enum InvoiceActionTypeEnum {
   DECLINE_MERCHANT,
   FINALIZE_POST {{
     getProperty().setLeadsToSuccessFinalState(true);
+  }},
+  POSTPONE,
+  POST,
+  PRESENT_VOUCHER {{
+    getProperty().setLeadsToSuccessFinalState(true);
   }};
 
   private InvoiceActionParams property = new InvoiceActionParams();
