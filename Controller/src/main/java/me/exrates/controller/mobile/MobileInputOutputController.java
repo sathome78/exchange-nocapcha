@@ -1,9 +1,6 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.InputRequestLimitExceededException;
-import me.exrates.controller.exception.InvalidNicknameException;
-import me.exrates.controller.exception.InvoiceNotFoundException;
-import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.controller.exception.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
@@ -293,7 +290,9 @@ public class MobileInputOutputController {
         if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
             responseDto.setType(MerchantApiResponseType.NOTIFY);
             if (requestParamsDto.getRecipientBankId() != null && requestParamsDto.getAddress() == null) {
-          //      requestParamsDto.setAddress();
+                InvoiceBank bank = refillService.findInvoiceBankById(requestParamsDto.getRecipientBankId()).orElseThrow(InvoiceBankNotFoundException::new);
+                requestParamsDto.setAddress(bank.getAccountNumber());
+                requestParamsDto.setRecipientBankName(bank.getName());
             }
             RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
             Payment payment = new Payment(INPUT);
