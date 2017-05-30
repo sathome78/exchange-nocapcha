@@ -145,7 +145,7 @@ public class MerchantDaoImpl implements MerchantDao {
         merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
         merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
         merchantCurrency.setProcessType(resultSet.getString("process_type"));
-        final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+        final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
             " AND currency_id = :currency_id;";
         Map<String, Integer> params = new HashMap<String, Integer>();
         params.put("merchant_id", resultSet.getInt("merchant_id"));

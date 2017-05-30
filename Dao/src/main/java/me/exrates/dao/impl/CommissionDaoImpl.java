@@ -83,7 +83,7 @@ public class CommissionDaoImpl implements CommissionDao {
 	@Override
 	public BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType) {
 		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
-		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
+		final String sql = "SELECT " + selectedField + " FROM MERCHANT_CURRENCY " +
 				"where merchant_id = :merchant_id " +
 				"and currency_id = :currency_id ";
 		final HashMap<String, Object> params = new HashMap<>();

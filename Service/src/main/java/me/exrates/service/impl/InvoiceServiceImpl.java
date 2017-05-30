@@ -43,6 +43,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         new Object[]{request.getAmount(), toWallet}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
+      put("walletNumber", request.getAddress());
     }};
   }
 

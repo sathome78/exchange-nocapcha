@@ -10,7 +10,9 @@ import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.dto.mobileApiDto.UserTransferDto;
+import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -280,14 +282,19 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Object> preparePayment(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, HttpServletRequest request) {
+    public MerchantInputResponseDto preparePayment(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, HttpServletRequest request) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Merchant merchant = merchantService.findById(requestParamsDto.getMerchant());
+        MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
         if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
+            responseDto.setType(MerchantApiResponseType.NOTIFY);
+            if (requestParamsDto.getRecipientBankId() != null && requestParamsDto.getAddress() == null) {
+          //      requestParamsDto.setAddress();
+            }
             RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
             Payment payment = new Payment(INPUT);
             payment.setCurrency(requestParamsDto.getCurrency());
@@ -296,8 +303,17 @@ public class MobileInputOutputController {
             CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
                     .orElseThrow(InvalidAmountException::new);
             RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
-            return refillService.createRefillRequest(refillRequest);
+            Map<String, Object> result = refillService.createRefillRequest(refillRequest);
+            Map<String, String> params = (Map<String, String>)result.get("params");
+            String message = (String) result.get("message");
+            if (message != null) {
+                message = message.replaceAll("<button.*>", "").replaceAll("<.*?>", "");
+            }
+            responseDto.setData(message);
+            responseDto.setQr(params.get("qr"));
+            responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
         } else {
+            responseDto.setType(MerchantApiResponseType.REDIRECT);
             String rootUrl = String.join("", request.getScheme(), "://", request.getServerName(), ":",
                     String.valueOf(request.getServerPort()), "/api/payments/merchantRedirect?" );
             String params = new HashMap<String, Object>() {{
@@ -305,11 +321,12 @@ public class MobileInputOutputController {
                 put("merchantId", requestParamsDto.getMerchant());
                 put("amount", requestParamsDto.getSum());
             }}.entrySet().stream().map((entry -> entry.getKey() + "=" + entry.getValue())).collect(Collectors.joining("&"));
-            return Collections.singletonMap("redirectUrl", rootUrl + params);
+            responseDto.setData(rootUrl + params);
         }
-
+        
+        return responseDto;
     }
-
+    
     /**
      * @api {post} /api/payments/invoice/prepare Prepare invoice
      * @apiName prepareInvoice
