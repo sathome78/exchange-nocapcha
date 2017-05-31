@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -72,10 +71,7 @@ public class OkPayServiceImpl implements OkPayService {
         properties.put("ok_item_1_price", amountToPay.toString());
         properties.put("ok_s_title", ok_s_title);
 
-        String fullUrl = generateFullUrl(url, properties);
-        return new HashMap<String, String>() {{
-            put("redirectionUrl", fullUrl);
-        }};
+        return generateFullUrlMap(url, "POST", properties);
     }
 
     @Override

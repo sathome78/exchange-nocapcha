@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -51,6 +52,7 @@ public class InterkassaPaymentService implements MerchantPaymentService {
     @Override
     @Transactional
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {
-        return interkassaService.preparePayment(creditsOperation, email);
+//        return interkassaService.preparePayment(creditsOperation, email);
+        return Collections.EMPTY_MAP;
     }
 }

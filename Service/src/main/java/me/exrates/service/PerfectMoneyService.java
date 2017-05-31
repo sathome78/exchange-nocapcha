@@ -12,11 +12,7 @@ import java.util.Map;
  */
 public interface PerfectMoneyService extends IMerchantService {
 
-    Map<String,String> getPerfectMoneyParams(Transaction transaction);
-
     void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
-
-    Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation);
 
     boolean provideTransaction(int transaction);
 

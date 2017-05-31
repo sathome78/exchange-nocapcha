@@ -2,13 +2,18 @@ package me.exrates.service.impl;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.AdvcashService;
-import me.exrates.service.AlgorithmService;
+import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +22,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -42,6 +46,18 @@ public class AdvcashServiceImpl implements AdvcashService{
 
     @Autowired
     private AlgorithmService algorithmService;
+
+    @Autowired
+    private RefillRequestDao refillRequestDao;
+
+    @Autowired
+    private MerchantService merchantService;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private RefillService refillService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -74,14 +90,34 @@ public class AdvcashServiceImpl implements AdvcashService{
             put("ac_success__method", "POST");
         }};
     /**/
-        String fullUrl = generateFullUrl(url, properties);
-        return new HashMap<String, String>() {{
-            put("redirectionUrl", fullUrl);
-        }};
+        return generateFullUrlMap(url, "POST", properties, properties.getProperty("transactionHash"));
     }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        throw new NotImplimentedMethod("for "+params);
+
+        Integer requestId = Integer.valueOf(params.get("ac_order_id"));
+        String merchantTransactionId = params.get("ac_transfer");
+        Currency currency = currencyService.findByName(params.get("ac_currency"));
+        Merchant merchant = merchantService.findByName("Advcash Money");
+        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ac_amount"))).setScale(9);
+
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+
+        if (params.get("ac_transaction_status").equals("COMPLETED")
+                && refillRequest.getMerchantRequestSign().equals(params.get("transaction_hash"))
+                && refillRequest.getAmount().equals(amount) ) {
+
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .requestId(requestId)
+                    .merchantId(merchant.getId())
+                    .currencyId(currency.getId())
+                    .amount(amount)
+                    .merchantTransactionId(merchantTransactionId)
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+        }
     }
 }

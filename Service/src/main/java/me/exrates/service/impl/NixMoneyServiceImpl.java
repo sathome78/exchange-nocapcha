@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -9,6 +8,7 @@ import me.exrates.service.NixMoneyService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -45,38 +44,37 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     @Autowired
     private AlgorithmService algorithmService;
 
+    @Override
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
 
     @Override
-    @Transactional
-    public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
-
-        Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-        BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-
-        Properties properties = new Properties();
-
-
-        if (creditsOperation.getCurrency().getName().equals("USD")){
-            properties.put("PAYEE_ACCOUNT", payeeAccountUSD);
+    public Map<String, String> refill(RefillRequestCreateDto request){
+        Integer requestId = request.getId();
+        if (requestId == null) {
+            throw new RefillRequestIdNeededException(request.toString());
         }
-        if (creditsOperation.getCurrency().getName().equals("EUR")){
-            properties.put("PAYEE_ACCOUNT", payeeAccountEUR);
-        }
-        properties.put("PAYMENT_ID", transaction.getId());
-        properties.put("PAYEE_NAME", payeeName);
-        properties.put("PAYMENT_AMOUNT", amountToPay);
-        properties.put("PAYMENT_URL", paymentUrl);
-        properties.put("NOPAYMENT_URL", noPaymentUrl);
-        properties.put("BAGGAGE_FIELDS", "PAYEE_ACCOUNT PAYMENT_AMOUNT PAYMENT_ID");
-        properties.put("STATUS_URL", statustUrl);
-
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-
-
-        return redirectView;
+        BigDecimal sum = request.getAmount();
+        String currency = request.getCurrencyName();
+        BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+    /**/
+        Properties properties = new Properties() {{
+            if (currency.equals("USD")){
+                put("PAYEE_ACCOUNT", payeeAccountUSD);
+            }
+            if (currency.equals("EUR")){
+                put("PAYEE_ACCOUNT", payeeAccountEUR);
+            }
+            put("PAYMENT_ID", requestId);
+            put("PAYEE_NAME", payeeName);
+            put("PAYMENT_AMOUNT", amountToPay);
+            put("PAYMENT_URL", paymentUrl);
+            put("NOPAYMENT_URL", noPaymentUrl);
+            put("BAGGAGE_FIELDS", "PAYEE_ACCOUNT PAYMENT_AMOUNT PAYMENT_ID");
+            put("STATUS_URL", statustUrl);        }};
+    /**/
+        return generateFullUrlMap(url, "POST", properties);
     }
 
     @Override
@@ -113,16 +111,6 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     @Transactional
     public void invalidateTransaction(Transaction transaction) {
         transactionService.invalidateTransaction(transaction);
-    }
-
-    @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
-    }
-
-    @Override
-    public Map<String, String> refill(RefillRequestCreateDto request){
-        throw new NotImplimentedMethod("for "+request);
     }
 
     @Override

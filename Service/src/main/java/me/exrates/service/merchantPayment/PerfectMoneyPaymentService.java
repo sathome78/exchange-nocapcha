@@ -1,7 +1,6 @@
 package me.exrates.service.merchantPayment;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.PerfectMoneyService;
 import org.apache.logging.log4j.LogManager;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 
@@ -55,9 +55,10 @@ public class PerfectMoneyPaymentService implements MerchantPaymentService {
     @Override
     @Transactional
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {
-        final Transaction transaction = perfectMoneyService.preparePaymentTransactionRequest(creditsOperation);
-        final Map<String, String> params = perfectMoneyService.getPerfectMoneyParams(transaction);
-        return params;
+//        final Transaction transaction = perfectMoneyService.preparePaymentTransactionRequest(creditsOperation);
+//        final Map<String, String> params = perfectMoneyService.getPerfectMoneyParams(transaction);
+//        return params;
+        return Collections.EMPTY_MAP;
     }
 
 

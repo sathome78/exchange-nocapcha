@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,49 +50,21 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     private AlgorithmService algorithmService;
 
     @Override
-    public Map<String, String> getPerfectMoneyParams(Transaction transaction) {
-        BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-        final String currency = transaction.getCurrency().getName();
-        final Number amountToPay;
-        switch (currency) {
-            case "GOLD":
-                amountToPay = sum.toBigInteger();
-                break;
-            default:
-                amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-        }
-
-        return new HashMap<String,String>(){
-            {
-                put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
-                put("PAYEE_NAME",payeeName);
-                put("PAYMENT_AMOUNT", String.valueOf(amountToPay));
-                put("PAYMENT_UNITS",currency);
-                put("PAYMENT_ID", String.valueOf(transaction.getId()));
-                put("PAYMENT_URL",paymentSuccess);
-                put("NOPAYMENT_URL",paymentFailure);
-                put("STATUS_URL",paymentStatus);
-                put("FORCED_PAYMENT_METHOD","account");
-            }
-        };
-    }
-
-    @Override
     @Transactional
     public void provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
-        final Transaction transaction = preparePaymentTransactionRequest(creditsOperation);
-        provideTransaction(transaction.getId());
-        final String response = provideOutputPayment(payment.getDestination(), transaction);
-        switch (response) {
-            case "OK":
-                return;
-            case "INVALID_USER_ACCOUNT" :
-                throw new InvalidPayeeWalletException();
-            case "INVALID_AMOUNT" :
-                throw new InvalidAmountException();
-            default:
-                throw new MerchantInternalException("Exception while Output");
-        }
+//        final Transaction transaction = preparePaymentTransactionRequest(creditsOperation);
+//        provideTransaction(transaction.getId());
+//        final String response = provideOutputPayment(payment.getDestination(), transaction);
+//        switch (response) {
+//            case "OK":
+//                return;
+//            case "INVALID_USER_ACCOUNT" :
+//                throw new InvalidPayeeWalletException();
+//            case "INVALID_AMOUNT" :
+//                throw new InvalidAmountException();
+//            default:
+//                throw new MerchantInternalException("Exception while Output");
+//        }
     }
 
     private String provideOutputPayment(String to,Transaction transaction) {
@@ -137,12 +108,6 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
             throw new RuntimeException();
         }
         return "OK";
-    }
-
-    @Override
-    @Transactional
-    public Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation) {
-        return transactionService.createTransactionRequest(creditsOperation);
     }
 
     @Override
@@ -194,22 +159,6 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
         String currency = request.getCurrencyName();
         Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         /**/
-
-        Map<String, String> map = new HashMap<String,String>(){
-            {
-                put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
-                put("PAYEE_NAME",payeeName);
-                put("PAYMENT_AMOUNT", String.valueOf(amountToPay));
-                put("PAYMENT_UNITS",currency);
-                put("PAYMENT_ID", String.valueOf(orderId));
-                put("PAYMENT_URL",paymentSuccess);
-                put("NOPAYMENT_URL",paymentFailure);
-                put("STATUS_URL",paymentStatus);
-                put("FORCED_PAYMENT_METHOD","account");
-            }
-        };
-
-
         Properties properties = new Properties() {{
                 put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
                 put("PAYEE_NAME", payeeName);
