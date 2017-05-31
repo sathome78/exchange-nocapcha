@@ -205,6 +205,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Integer createRefillRequestByFact(RefillRequestAcceptDto requestAcceptDto) {
+    log.debug("Creating request by fact: " + requestAcceptDto);
     String address = requestAcceptDto.getAddress();
     Integer currencyId = requestAcceptDto.getCurrencyId();
     Integer merchantId = requestAcceptDto.getMerchantId();
@@ -276,10 +277,11 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
-  private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
-      String address,
-      Integer merchantId,
-      Integer currencyId) {
+  @Override
+  public Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+          String address,
+          Integer merchantId,
+          Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
     return refillRequestDao.findIdWithoutConfirmationsByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
@@ -352,6 +354,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException {
+    log.debug("Put on bch exam: " + onBchExamDto);
     Integer requestId = onBchExamDto.getRequestId();
     if (requestId == null) {
       Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
@@ -383,6 +386,7 @@ public class RefillServiceImpl implements RefillService {
     Integer requestId = onBchExamDto.getRequestId();
     String hash = onBchExamDto.getHash();
     BigDecimal amount = onBchExamDto.getAmount();
+    String blockhash = onBchExamDto.getBlockhash();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
@@ -396,7 +400,7 @@ public class RefillServiceImpl implements RefillService {
     }
     refillRequest.setStatus(newStatus);
     refillRequest.setMerchantTransactionId(hash);
-    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
+    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0, blockhash);
     return refillRequest;
   }
 
@@ -423,6 +427,7 @@ public class RefillServiceImpl implements RefillService {
       String hash = confirmationsNumberDto.getHash();
       BigDecimal amount = confirmationsNumberDto.getAmount();
       Integer confirmations = confirmationsNumberDto.getConfirmations();
+      String blockhash = confirmationsNumberDto.getBlockhash();
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(confirmationsNumberDto.toString()));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
@@ -436,7 +441,7 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(hash);
         }
       }
-      refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
+      refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations, blockhash);
     } else {
       throw new RefillRequestAppropriateNotFoundException(confirmationsNumberDto.toString());
     }
@@ -902,6 +907,25 @@ public class RefillServiceImpl implements RefillService {
         .build();
     return (RefillStatusEnum) refillRequest.getStatus().nextState(action, paramsValue);
   }
-
+  
+  @Override
+  public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                              String merchantTransactionId,
+                                                                                              String merchantName,
+                                                                                              String currencyName) {
+    Integer merchantId = merchantService.findByName(merchantName).getId();
+    Integer currencyId = currencyService.findByName(currencyName).getId();
+    return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
+  }
+  
+  @Override
+  public Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.getLastBlockHashForMerchantAndCurrency(merchantId, currencyId);
+  }
+  
+  @Override
+  public Optional<InvoiceBank> findInvoiceBankById(Integer id) {
+    return refillRequestDao.findInvoiceBankById(id);
+  }
 
 }

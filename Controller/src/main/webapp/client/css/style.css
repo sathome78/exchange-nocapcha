@@ -2248,3 +2248,7 @@ textarea#remark {
 .stop {
     margin-bottom: 11.3px;
 }
+
+#no-address p {
+    font-size: 1.5rem;
+}

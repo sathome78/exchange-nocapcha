@@ -14,87 +14,44 @@
 
     <script type="text/javascript">
         $(function () {
-            const NO_ACTION = 'javascript:void(0);';
-            const PERFECT = 2;
-            const YANDEX_KASSA = 1;
-            const PRIVAT24 = 9;
-            const INTERKASSA = 10;
+            var data = $('#paymentForm').serialize();
+            sendRequest(data)
+        });
 
-            $.fn.serializeObject = function()
-            {
-                var o = {};
-                var a = this.serializeArray();
-                $.each(a, function() {
-                    if (o[this.name] !== undefined) {
-                        if (!o[this.name].push) {
-                            o[this.name] = [o[this.name]];
-                        }
-                        o[this.name].push(this.value || '');
-                    } else {
-                        o[this.name] = this.value || '';
-                    }
-                });
-                return o;
 
-            };
-
-            function resetFormAction(merchant,form) {
-                var formAction = {
-                    perfectDeposit:'https://perfectmoney.is/api/step1.asp',
-                    yandex_kassa:'http://din24.net/index.php?route=acc/success/order',
-                    privat24:'https://api.privatbank.ua/p24api/ishop',
-                    interkassa:'https://sci.interkassa.com/'
-                };
-                switch (Number(merchant)) {
-                    case PERFECT:
-                        form.attr('action', formAction.perfectDeposit);
-                        break;
-                    case YANDEX_KASSA:
-                        form.attr('action', formAction.yandex_kassa);
-                        break;
-                    case PRIVAT24:
-                        form.attr('action', formAction.privat24);
-                        break;
-                    case INTERKASSA:
-                        form.attr('action', formAction.interkassa);
-                        break;
-                    default:
-                        form.attr('action', NO_ACTION);
-                }
-            }
-            function resetPaymentFormData(form,callback) {
-
-                $.ajax('/api/payments/preparePostPayment', {
+        function sendRequest(data) {
+                $.ajax({
+                    url: '/api/payments/preparePostPayment',
                     headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
                         'Exrates-Rest-Token': $("#auth-token").text()
                     },
                     type: 'POST',
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify($(form).serializeObject())
-                }).done(function (response) {
-                    var inputsHTML = '';
-                    $new_form = $("<form></form>");
-                    $.each(response, function (key) {
-                        $new_form.append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
-                    });
-                    var targetCurrentHTML = $new_form.html();
-                    var targetNewHTML = targetCurrentHTML + inputsHTML;
-                    $(form).html(targetNewHTML);
-                    callback();
-                }).fail(function (error) {
-                    console.log(error);
-                });
-            }
+                    data: data
+                }).success(function (result) {
+                    if (result['redirectionUrl']) {
+                        if (!result['method']) {
+                            window.location = result['redirectionUrl'];
+                        } else {
+                            redirectByPost(
+                                result['redirectionUrl'],
+                                result);
+                        }
+                    }
+                })
+        }
 
-            var paymentForm = $('#paymentForm');
-            var targetMerchant = $('#merchant').val();
-            resetFormAction(targetMerchant, paymentForm);
-            resetPaymentFormData(paymentForm,function(){
-                paymentForm.submit();
+        function redirectByPost(url, params) {
+            var formFields = '';
+            var method = params["method"];
+            $.each(params["params"], function (key, value) {
+                formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
             });
-        });
-
+            var $form = $('<form id=temp-form-for-redirection target="_blank" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
+            $("body").append($form);
+            $form.submit();
+            $("#temp-form-for-redirection").remove();
+        }
 
 
     </script>
@@ -104,6 +61,7 @@
     <input type="hidden" id="currency" name="currency" value="${currency}" />
     <input type="hidden" id="sum" name="sum" value="${amount}" />
     <input type="hidden" id="merchant" name="merchant" value="${merchant}" />
+    <input type="hidden" id="operationType" name="operationType" value="${operationType}" />
 </form>
 <span hidden id="auth-token">${authToken}</span>
 </body>

@@ -1,18 +1,17 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.InputRequestLimitExceededException;
-import me.exrates.controller.exception.InvalidNicknameException;
-import me.exrates.controller.exception.InvoiceNotFoundException;
-import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.model.ClientBank;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.Payment;
+import me.exrates.controller.exception.*;
+import me.exrates.model.*;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.dto.mobileApiDto.UserTransferDto;
+import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WithdrawData;
@@ -21,7 +20,6 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
-import me.exrates.service.merchantPayment.MerchantPaymentService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,10 +39,11 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -70,9 +69,6 @@ public class MobileInputOutputController {
 
     @Autowired
     private CurrencyService currencyService;
-
-    @Autowired
-    private Map<String, MerchantPaymentService> merchantPaymentServices;
 
     @Autowired
     private WalletService walletService;
@@ -282,26 +278,54 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    /*@RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
+    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public MerchantInputResponseDto preparePayment(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, HttpServletRequest request) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
+        if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
-
-        Payment payment = new Payment();
-        payment.setCurrency(paymentDto.getCurrency());
-        payment.setMerchant(paymentDto.getMerchant());
-        payment.setSum(paymentDto.getSum());
-        payment.setOperationType(OperationType.INPUT);
-        String merchantName = merchantService.findById(payment.getMerchant()).getName();
-        String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
-        final MerchantInputResponseDto result = merchantPaymentServices.get(beanName).preparePayment(userEmail, payment,
-                userLocale);
-        return new ResponseEntity<>(result, OK);
-    }*/
-
+        Merchant merchant = merchantService.findById(requestParamsDto.getMerchant());
+        MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
+        if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
+            responseDto.setType(MerchantApiResponseType.NOTIFY);
+            if (requestParamsDto.getRecipientBankId() != null && requestParamsDto.getAddress() == null) {
+                InvoiceBank bank = refillService.findInvoiceBankById(requestParamsDto.getRecipientBankId()).orElseThrow(InvoiceBankNotFoundException::new);
+                requestParamsDto.setAddress(bank.getAccountNumber());
+                requestParamsDto.setRecipientBankName(bank.getName());
+            }
+            RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+            Payment payment = new Payment(INPUT);
+            payment.setCurrency(requestParamsDto.getCurrency());
+            payment.setMerchant(requestParamsDto.getMerchant());
+            payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                    .orElseThrow(InvalidAmountException::new);
+            RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+            Map<String, Object> result = refillService.createRefillRequest(refillRequest);
+            Map<String, String> params = (Map<String, String>)result.get("params");
+            String message = (String) result.get("message");
+            if (message != null) {
+                message = message.replaceAll("<button.*>", "").replaceAll("<.*?>", "");
+            }
+            responseDto.setData(message);
+            responseDto.setQr(params.get("qr"));
+            responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+        } else {
+            responseDto.setType(MerchantApiResponseType.REDIRECT);
+            String rootUrl = String.join("", request.getScheme(), "://", request.getServerName(), ":",
+                    String.valueOf(request.getServerPort()), "/api/payments/merchantRedirect?" );
+            String params = new HashMap<String, Object>() {{
+                put("currencyId", requestParamsDto.getCurrency());
+                put("merchantId", requestParamsDto.getMerchant());
+                put("amount", requestParamsDto.getSum());
+            }}.entrySet().stream().map((entry -> entry.getKey() + "=" + entry.getValue())).collect(Collectors.joining("&"));
+            responseDto.setData(rootUrl + params);
+        }
+        
+        return responseDto;
+    }
+    
     /**
      * @api {post} /api/payments/invoice/prepare Prepare invoice
      * @apiName prepareInvoice
@@ -417,7 +441,7 @@ public class MobileInputOutputController {
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-//        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale); //TODO REFILL
+        refillService.confirmRefillRequest(invoiceConfirmData, userLocale);
         return new ResponseEntity<>(OK);
     }
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -426,9 +450,7 @@ public class MobileInputOutputController {
         Integer invoiceId = Integer.parseInt(invoiceIdString);
         InvoiceConfirmData invoiceConfirmData = new InvoiceConfirmData();
         invoiceConfirmData.setInvoiceId(invoiceId);
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-//        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale); //TODO REFILL
+        refillService.revokeRefillRequest(invoiceId);
         return new ResponseEntity<>(OK);
     }
 
@@ -555,29 +577,27 @@ public class MobileInputOutputController {
         modelAndView.addObject("merchant", merchantId);
         modelAndView.addObject("amount", amount);
         modelAndView.addObject("authToken", token);
+        modelAndView.addObject("operationType", OperationType.INPUT);
         return modelAndView;
     }
 
-    /*@RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String,String>> preparePostPayment(@RequestBody @Valid PaymentDto paymentDto) {
-        LOGGER.debug(paymentDto);
-        Payment payment = new Payment();
-        payment.setCurrency(paymentDto.getCurrency());
-        payment.setMerchant(paymentDto.getMerchant());
-        payment.setSum(paymentDto.getSum());
-        payment.setOperationType(OperationType.INPUT);
+    @RequestMapping(value = "/preparePostPayment", method = POST)
+    public Map<String,Object> preparePostPayment(@Valid RefillRequestParamsDto requestParamsDto) {
+        LOGGER.debug(requestParamsDto);
+        Payment payment = new Payment(INPUT);
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 :requestParamsDto.getSum().doubleValue());
         String userEmail = getAuthenticatedUserEmail();
-        final CreditsOperation creditsOperation = merchantService
-                .prepareCreditsOperation(payment, userEmail)
-                .orElseThrow(InvalidAmountException::new);
-        String merchantName = merchantService.findById(payment.getMerchant()).getName();
-        String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        final Map<String,String> result = merchantPaymentServices.get(beanName).preparePostPayment(userEmail, creditsOperation,
-                userLocale);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+        RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+        final Map<String,Object> result = refillService.createRefillRequest(refillRequest);
         LOGGER.debug(result);
-        return new ResponseEntity<>(result, OK);
-    }*/
+        return result;
+    }
 
     private String getAuthenticatedUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();

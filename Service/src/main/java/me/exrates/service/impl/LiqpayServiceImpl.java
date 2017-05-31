@@ -148,7 +148,7 @@ public class LiqpayServiceImpl implements LiqpayService {
     /**/
     String fullUrl = generateFullUrl(url, properties);
     return new HashMap<String, String>() {{
-      put("redirectionUrl", fullUrl);
+      put("$__redirectionUrl", fullUrl);
     }};
   }
 
