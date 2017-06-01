@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,19 +54,21 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
+        String[] stringsArgs = Arrays.toString(messageArgs).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
         Locale locale = new Locale(userService.getPreferedLang(userId));
         return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, messageArgs, locale), cause);
+                messageSource.getMessage(messageCode, stringsArgs, locale), cause);
 
     }
 
     @Override
     public long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
+        String[] stringsArgs = Arrays.toString(messageArgs).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
         Integer userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, messageArgs, locale), cause);
+                messageSource.getMessage(messageCode, stringsArgs, locale), cause);
 
     }
 

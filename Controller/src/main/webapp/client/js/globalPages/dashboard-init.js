@@ -21,27 +21,27 @@ $(function dashdoardInit() {
         $(".numericInputField").prop("autocomplete", "off");
         $(".numericInputField")
             .keypress(
-            function (e) {
-                var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= trading.ROUND_SCALE) {
-                    return false;
-                }
-                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
-                    var keyPressed = e.key == ',' ? '.' : e.key;
-
-                    if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
+                function (e) {
+                    var decimal = $(this).val().split('.')[1];
+                    if (decimal && decimal.length >= trading.ROUND_SCALE) {
                         return false;
                     }
-                    var str = $(this).val() + keyPressed;
-                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
-                        return false
+                    if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
+                        var keyPressed = e.key == ',' ? '.' : e.key;
+
+                        if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
+                            return false;
+                        }
+                        var str = $(this).val() + keyPressed;
+                        if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
+                            return false
+                        }
+                    } else {
+                        return false;
                     }
-                } else {
-                    return false;
+                    return true;
                 }
-                return true;
-            }
-        )
+            )
             .on('input', function (e) {
                 var val = $(this).val();
                 if (val[val.length - 1] == ',') {
@@ -141,10 +141,6 @@ $(function dashdoardInit() {
         });
 
 
-
-
-
-
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
 
@@ -170,6 +166,15 @@ $(function dashdoardInit() {
 
         rightSider = new RightSiderClass();
         /*...FOR RIGHT-SIDER*/
+
+        /*FOR POLL ...*/
+        var startPoll = $("#start-poll").val() == 'true';
+        if (startPoll) {
+            var $pollDialog = $("#poll-modal");
+            $pollDialog.modal();
+            doPoll($pollDialog);
+        }
+        /*...FOR POLL*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
     }
@@ -190,7 +195,6 @@ function showSubPage(subPageId) {
         $($currentSubMenuItem).click();
     }
 }
-
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, callback) {
@@ -237,3 +241,62 @@ function parseNumber(numberStr) {
     return parseFloat(numberStr);
 }
 
+
+function doPoll($pollDialog) {
+    Survey.Survey.cssType = "bootstrap";
+    var surveyToken;
+    var surveyData = getSurveyData(function (response) {
+        var surveyData = response;
+        surveyToken = surveyData.token;
+        var surveyJSON = JSON.parse(surveyData.json);
+        var surveyItems = surveyData.items;
+        /**/
+        surveyJSON.locale = $.cookie("myAppLocaleCookie");
+        surveyJSON.pages.forEach(function (page, pi) {
+            page.elements.forEach(function (element, ei) {
+                var name = element.name;
+                surveyItems.forEach(function (item) {
+                    if (item.name == name) {
+                        surveyJSON.pages[pi].elements[ei].title = item.title;
+                        return;
+                    }
+                })
+            });
+        });
+        $pollDialog.find("#description").html(surveyData.description);
+        /**/
+        var survey = new Survey.Model(surveyJSON);
+        $("#surveyContainer").Survey({
+            model: survey,
+            onComplete: sendDataToServer
+        });
+    });
+
+    function sendDataToServer(survey) {
+        survey.sendResult(surveyToken);
+        var result = JSON.stringify(survey.data);
+        savePollAsDone(surveyToken, result);
+    }
+
+    function getSurveyData(callback) {
+        $.ajax({
+            type: 'GET',
+            url: '/survey/getSurvey',
+            success: function (data) {
+                callback(data);
+            }
+        });
+    }
+
+    function savePollAsDone(surveyToken, result) {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
+            },
+            contentType: "text/plain; charset=utf-8",
+            type: 'POST',
+            url: '/survey/saveAsDone?surveyToken=' + surveyToken,
+            data: result,
+        });
+    }
+}

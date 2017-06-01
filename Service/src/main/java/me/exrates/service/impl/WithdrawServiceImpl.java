@@ -455,7 +455,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
       String title = messageSource.getMessage("withdraw.rejectError.title", null, locale);
       String reason = messageSource.getMessage(reasonCode, null, locale);
-      String message = messageSource.getMessage("withdraw.rejectError.body", new Object[]{withdrawRequest.getId(), reason}, locale);
+      String message = messageSource.getMessage("withdraw.rejectError.body", new Object[]{String.valueOf(withdrawRequest.getId()), reason}, locale);
       notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
     }
   }
@@ -476,7 +476,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     withdrawRequestDao.setStatusById(requestId, newStatus);
     Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
     String title = messageSource.getMessage("withdraw.rejectReview.title", null, locale);
-    String message = messageSource.getMessage("withdraw.rejectReview.body", new Object[]{withdrawRequest.getId()}, locale);
+    String message = messageSource.getMessage("withdraw.rejectReview.body", new Object[]{String.valueOf(withdrawRequest.getId())}, locale);
     notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, message);
   }
 
@@ -496,7 +496,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       merchantService.withdraw(withdrawMerchantOperation);
       /**/
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
-      String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+      String title = messageSource.getMessage("withdrawal.posted.title", new String[]{String.valueOf(withdrawRequest.getId())}, locale);
       String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
       String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
       userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);

@@ -475,8 +475,8 @@ public class OrderServiceImpl implements OrderService {
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
-        new Object[]{orderForPartialAccept.getId(), amountForPartialAccept,
-            orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()});
+        new Object[]{orderForPartialAccept.getId(), amountForPartialAccept.toString(),
+            orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});
     return amountForPartialAccept;
   }
 
