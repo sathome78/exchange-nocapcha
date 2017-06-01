@@ -55,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(20000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
   @Autowired
