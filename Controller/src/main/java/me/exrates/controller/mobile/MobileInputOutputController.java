@@ -84,9 +84,9 @@ public class MobileInputOutputController {
 
     @Autowired
     RefillService refillService;
-
-
-
+    
+    
+    
     /**
      * @apiDefine InvalidAmountError
      * @apiError (406) {String} errorCode error code
@@ -103,7 +103,7 @@ public class MobileInputOutputController {
      *      }
      *
      * */
-
+    
     /**
      * @apiDefine NotEnoughMoneyForWithdrawError
      * @apiError (406) {String} errorCode error code
@@ -118,6 +118,93 @@ public class MobileInputOutputController {
      *           "cause": "NotEnoughUserWalletMoneyException",
      *           "detail": "Not enough money to withdraw on user wallet Wallet{id=4277, currencyId=1, userId=golvazin@gmail.com,
      *           activeBalance=-10.000000000, reservedBalance=0E-9, name='RUB'}"
+     *      }
+     *
+     * */
+    
+    /**
+     * @apiDefine IllegalInvoiceStatusException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Illegal Invoice Status:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *           "errorCode": "BAD_INVOICE_STATUS",
+     *           "url": "http://localhost:8080/api/payments/invoice/confirm",
+     *           "cause": "UnsupportedInvoiceStatusForActionException",
+     *           "detail": "current state: EXPIRED action: CONFIRM_USER"
+     *      }
+     *
+     * */
+    
+    /**
+     * @apiDefine InvoiceNotFoundException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Invoice Not Found:
+     * HTTP/1.1 404 Not Found
+     *      {
+     *           "errorCode": "INVOICE_NOT_FOUND",
+     *           "url": "http://localhost:8080/api/payments/invoice/confirm",
+     *           "cause": "InvoiceNotFoundException",
+     *           "detail": "invoice id: 23423"
+     *      }
+     *
+     * */
+    
+    
+    
+    /**
+     * @apiDefine MerchantCurrencyBlockedException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Merchant and Currency Blocked:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *           "errorCode": "BLOCKED_CURRENCY_FOR_MERCHANT",
+     *           "url": "http://127.0.0.1:8080/api/payments/preparePayment",
+     *           "cause": "MerchantCurrencyBlockedException",
+     *           "detail": "Operation INPUT is blocked for this currency! "
+     *      }
+     *
+     * */
+    
+    /**
+     * @apiDefine InputRequestLimitExceededException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Insufficient Costs:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *           "errorCode": "INPUT_REQUEST_LIMIT_EXCEEDED",
+     *           "url": "http://127.0.0.1:8080/api/payments/preparePayment",
+     *           "cause": "InputRequestLimitExceededException",
+     *           "detail": "Ваш дневной лимит ввода для этой валюты превышен. Пожалуйста, попробуйте завтра."
+     *      }
+     *
+     * */
+    
+    /**
+     * @apiDefine OutputRequestLimitExceededException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Insufficient Costs:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *           "errorCode": "OUTPUT_REQUEST_LIMIT_EXCEEDED",
+     *           "url": "http://127.0.0.1:8080/api/payments/withdraw",
+     *           "cause": "RequestLimitExceededException",
+     *           "detail": "Ваш дневной лимит вывода для этой валюты превышен. Пожалуйста, попробуйте завтра."
      *      }
      *
      * */
@@ -256,12 +343,19 @@ public class MobileInputOutputController {
      * @apiParam {Integer} merchant merchant id
      * @apiParam {Number} sum amount of payment
      * @apiParam {Integer} merchantImage merchant image id (OPTIONAL)
+     * @apiParam {Integer} recipientBankId ID of destination bank - for invoice
+     * @apiParam {String} userFullName full name of user - for invoice
+     * @apiParam {String} remark additional remark - for invoice (OPTIONAL)
+     *
      *
      * @apiParamExample {json} Request Example:
      *      {
      *          "currency": 2,
      *          "merchant": 10,
-     *          "sum": 10.0
+     *          "sum": 10.0,
+     *          "recipientBankId": 3,
+     *          "userFullName": John Smith,
+     *          "remark": qwerty qwerty
      *      }
      *
      * @apiSuccess {String} notification Notification with payment details (for cryptocurrencies and invoice)
@@ -326,85 +420,7 @@ public class MobileInputOutputController {
         return responseDto;
     }
     
-    /**
-     * @api {post} /api/payments/invoice/prepare Prepare invoice
-     * @apiName prepareInvoice
-     * @apiGroup Input-Output
-     * @apiUse TokenHeader
-     * @apiPermission user
-     * @apiDescription Submit request input through Invoice
-     * @apiParam {Integer} currency currency id
-     * @apiParam {Number} amount amount of payment
-     * @apiParam {Integer} bankId ID of destination bank
-     * @apiParam {String} userFullName full name of user
-     * @apiParam {String} remark additional remark (OPTIONAL)
-     *
-     * @apiParamExample {json} Request Example:
-     *      {
-     *          "currency": 2,
-     *          "amount": 10.0,
-     *          "bankId": 3,
-     *          "userFullName": John Smith,
-     *          "remark": qwerty qwerty
-     *      }
-     *
-     * @apiSuccess {Integer} invoiceId  id of created invoice request
-     * @apiSuccess {String} walletNumber Number of wallet
-     * @apiSuccess {String} notification Notification with payment details
-     *
-     * @apiSuccessExample {json} Success-Response:
-     *     HTTP/1.1 200 OK
-     *     {
-     *          "invoiceId": 130721,
-     *          "walletNumber": "0483087786",
-     *          "notification": "Заявка на ввод средств создана. Пожалуйста, оплатите 1 013 000 000 000 IDR на расчетный счет  и подтвердите заявку "
-     *     }
-     *
-     * @apiUse ExpiredAuthenticationTokenError
-     * @apiUse MissingAuthenticationTokenError
-     * @apiUse InvalidAuthenticationTokenError
-     * @apiUse AuthenticationError
-     * @apiUse InvalidParamError
-     * @apiUse MessageNotReadableError
-     * @apiUse InvalidAmountError
-     * @apiUse InternalServerError
-     */
-    /*
-    //TODO REFILL
-    @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
-            throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
-        }
-        Payment payment = new Payment();
-        payment.setCurrency(paymentDto.getCurrencyId());
-        payment.setMerchant(merchantService.findByName("Invoice").getId());
-        payment.setSum(paymentDto.getAmount().doubleValue());
-        payment.setOperationType(OperationType.INPUT);
-        final CreditsOperation creditsOperation = inputOutputService
-                .prepareCreditsOperation(payment, userEmail)
-                .orElseThrow(InvalidAmountException::new);
-        InvoiceData invoiceData = new InvoiceData();
-        invoiceData.setCreditsOperation(creditsOperation);
-        invoiceData.setBankId(paymentDto.getBankId());
-        invoiceData.setUserFullName(paymentDto.getUserFullName());
-        invoiceData.setRemark(paymentDto.getRemark());
-        final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
-        final String notification = merchantService
-                .sendDepositNotification("",
-                        userEmail , userLocale, creditsOperation, "merchants.depositNotificationWithCurrency" +
-                                creditsOperation.getCurrency().getName() +
-                                ".body");
-        InvoiceResponseDto dto = new InvoiceResponseDto();
-        dto.setNotification(notification);
-        dto.setWalletNumber(invoiceService.findBankById(paymentDto.getBankId()).getAccountNumber());
-        dto.setInvoiceId(transaction.getId());
-        return new ResponseEntity<>(dto, OK);
-    }*/
-
-
+    
     /**
      * @api {post} /api/payments/invoice/confirm Confirm invoice
      * @apiName confirmInvoice
@@ -444,6 +460,33 @@ public class MobileInputOutputController {
         refillService.confirmRefillRequest(invoiceConfirmData, userLocale);
         return new ResponseEntity<>(OK);
     }
+    
+    /**
+     * @api {post} /api/payments/invoice/revoke Revoke invoice
+     * @apiName revokeInvoice
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Revoke invoice by ID
+     * @apiParam {Integer} invoiceId invoice id
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "invoiceId": 130720
+     *      }
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse IllegalInvoiceStatusException
+     * @apiUse InvoiceNotFoundException
+     * @apiUse InternalServerError
+     */
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws Exception {
         String invoiceIdString = RestApiUtils.retrieveParamFormBody(params, "invoiceId", true);
@@ -509,13 +552,6 @@ public class MobileInputOutputController {
         return withdrawService.findClientBanksForCurrency(currencyId);
     }
 
-    /*
-    //TODO REFILL
-    @RequestMapping(value = "/invoice/requests", method = GET)
-    public List<InvoiceRequest> findInvoiceRequestsForUser() {
-        return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
-
-    }*/
 
     /*
     //TODO REFILL
@@ -560,6 +596,32 @@ public class MobileInputOutputController {
         return new ResponseEntity<>(response, OK);
     }
     
+    /**
+     * @api {post} /api/payments/withdraw/revoke Revoke withdraw request
+     * @apiName revokeWithdrawRequest
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Revoke withdraw request by ID
+     * @apiParam {Integer} invoiceId invoice id
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "invoiceId": 130720
+     *      }
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse IllegalInvoiceStatusException
+     * @apiUse InvoiceNotFoundException
+     * @apiUse InternalServerError
+     */
     @RequestMapping(value = "/withdraw/revoke", method = POST)
     @ResponseBody
     public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
