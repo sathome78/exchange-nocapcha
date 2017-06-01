@@ -77,31 +77,6 @@ public class WalletController {
             HttpServletRequest request) {
         return walletService.getWalletConfirmationDetail(walletId, localeResolver.resolveLocale(request));
     }
-    @RequestMapping("/transfer")
-    public ModelAndView transfer(@RequestParam String currencyName, Principal principal) {
-        ModelAndView modelAndView = new ModelAndView("globalPages/transfer");
-        Currency currency = currencyService.findByName(currencyName);
-        User user = userService.findByEmail(principal.getName());
-        Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-        BigDecimal maxForTransfer = resolveMaxTransferAmount(wallet, currencyName);
-        BigDecimal minAmount = currencyService.retrieveMinLimitForRoleAndCurrency(user.getRole(), OperationType.USER_TRANSFER, currency.getId());
-        modelAndView.addObject("currency", currency);
-        modelAndView.addObject("wallet", wallet);
-        modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
-        modelAndView.addObject("maxForTransfer", maxForTransfer);
-        modelAndView.addObject("minAmount", minAmount);
-        return modelAndView;
-    }
-
-    private BigDecimal resolveMaxTransferAmount(Wallet wallet, String currencyName) {
-        BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext()).getValue();
-        BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
-        BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
-        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE)
-                .setScale(currencyService.resolvePrecision(currencyName), BigDecimal.ROUND_DOWN);
-        return maxForTransfer;
-
-    }
 
     /**@param checkOnly - used to verify payment, without fin pass, but not perform transfer
      * */

@@ -25,14 +25,14 @@ public class LoggingAspect {
   private static final Logger withdrawExtLog = LogManager.getLogger("withdraw_asp_ext_log");
   private static final Logger refillLog = LogManager.getLogger("refill_asp_log");
   private static final Logger refillExtLog = LogManager.getLogger("refill_asp_ext_log");
-
+  private static final Logger transferLog = LogManager.getLogger("transfer_asp_log");
+  private static final Logger transferExtLog = LogManager.getLogger("transfer_asp_ext_log");
   
   
   @AfterThrowing(pointcut = "(execution(* me.exrates.controller..*(..)) " +
           "|| execution(* me.exrates.dao..*(..))" +
           "|| execution(* me.exrates.security.service..*(..))" +
           "|| execution(* me.exrates.service.impl..*(..)) " +
-          "|| execution(* me.exrates.service.merchantPayment..*(..)) " +
           "|| execution(* me.exrates.service.stockExratesRetrieval..*(..)) " +
           "|| execution(* me.exrates.service.newsExt..*(..))) " +
           "&& !execution(* me.exrates.controller.filter.RequestFilter.*(..))" +
@@ -64,7 +64,7 @@ public class LoggingAspect {
 
   @AfterThrowing(pointcut = "(execution(* me.exrates.controller.merchants.RefillRequestController..*(..)) " +
       "|| execution(* me.exrates.service.impl.RefillServiceImpl..*(..)) " +
-      "|| execution(* me.exrates.service.merchantStrategy.IMerchantService.withdraw(*))) ", throwing = "ex")
+      "|| execution(* me.exrates.service.merchantStrategy.IMerchantService.refill(*))) ", throwing = "ex")
   public void refillLogException(JoinPoint joinPoint, Exception ex) {
     int id = LocalDateTime.now().getNano();
     refillLog.error(String.format("id=(%s) error in method %s with args: \n%s",
@@ -74,6 +74,20 @@ public class LoggingAspect {
             .map(Object::toString).collect(Collectors.toList()))) );
     refillLog.error(String.format("id=(%s) exception: %s : %s ", id, ex.getClass().getSimpleName(), ex.getMessage()));
     refillExtLog.error(String.format("id=(%s) stackTrace: ", id)+ExceptionUtils.getStackTrace(ex));
+  }
+
+  @AfterThrowing(pointcut = "(execution(* me.exrates.controller.merchants.TransferRequestController..*(..)) " +
+      "|| execution(* me.exrates.service.impl.TransferServiceImpl..*(..)) " +
+      "|| execution(* me.exrates.service.merchantStrategy.IMerchantService.transfer(*))) ", throwing = "ex")
+  public void transferLogException(JoinPoint joinPoint, Exception ex) {
+    int id = LocalDateTime.now().getNano();
+    transferLog.error(String.format("id=(%s) error in method %s with args: \n%s",
+        id,
+        String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
+        String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
+            .map(Object::toString).collect(Collectors.toList()))) );
+    transferLog.error(String.format("id=(%s) exception: %s : %s ", id, ex.getClass().getSimpleName(), ex.getMessage()));
+    transferExtLog.error(String.format("id=(%s) stackTrace: ", id)+ExceptionUtils.getStackTrace(ex));
   }
 
 }

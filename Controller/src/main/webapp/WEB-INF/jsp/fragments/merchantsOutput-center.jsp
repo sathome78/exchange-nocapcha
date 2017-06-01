@@ -32,8 +32,8 @@
           </div>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
-              <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
-            </div>
+            <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
+          </div>
             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
               <input id="sum"
                      class="form-control input-block-wrapper__input numericInputField"
