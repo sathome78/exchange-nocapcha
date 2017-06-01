@@ -2,16 +2,7 @@ package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
 
-import java.util.Map;
-
 public interface InterkassaService extends IMerchantService {
-
-    /**
-     * Confirms payment in DB
-     * @param params
-     * @return true if checks accepted, false if none
-     */
-    boolean confirmPayment(Map<String, String> params);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

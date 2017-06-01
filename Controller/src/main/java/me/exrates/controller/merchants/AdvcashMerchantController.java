@@ -11,10 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -35,6 +33,7 @@ public class AdvcashMerchantController {
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
+        logger.info("Response: " + params);
         try {
             advcashService.processPayment(params);
             return responseOK;
@@ -46,7 +45,7 @@ public class AdvcashMerchantController {
     }
 
     @RequestMapping(value = "payment/success", method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    public RedirectView successPayment(@RequestParam Map<String, String> response) {
 
         logger.debug(response);
         return new RedirectView("/dashboard");
