@@ -192,7 +192,6 @@ public class CreditsOperation {
         ", merchant=" + merchant +
         ", destination=" + destination +
         ", recipient=" + recipient +
-        ", recipientId=" + recipientId +
         ", transactionSourceType=" + transactionSourceType +
         '}';
   }
