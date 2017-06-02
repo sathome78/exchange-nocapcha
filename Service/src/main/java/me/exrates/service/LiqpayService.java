@@ -2,8 +2,10 @@ package me.exrates.service;
 
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
-public interface LiqpayService extends IMerchantService {
+public interface LiqpayService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

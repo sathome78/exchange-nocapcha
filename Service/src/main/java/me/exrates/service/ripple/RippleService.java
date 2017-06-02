@@ -2,12 +2,14 @@ package me.exrates.service.ripple;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.json.JSONObject;
 
 /**
  * Created by maks on 11.05.2017.
  */
-public interface RippleService extends IMerchantService {
+public interface RippleService extends IRefillable, IWithdrawable {
 
     /*method for admin manual check transaction by hash*/
     void manualCheckNotReceivedTransaction(String hash);

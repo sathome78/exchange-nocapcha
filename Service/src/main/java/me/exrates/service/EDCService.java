@@ -1,11 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface EDCService extends IMerchantService {
+public interface EDCService extends IRefillable, IWithdrawable {
 
 
   @Override

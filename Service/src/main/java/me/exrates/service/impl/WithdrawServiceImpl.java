@@ -21,6 +21,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
@@ -196,10 +197,13 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies) {
     merchantCurrencies.forEach(e -> {
-      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
-      e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
-      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
-        e.setMainAddress(merchantService.getMainAddress());
+      IMerchantService merchant = merchantServiceContext.getMerchantService(e.getMerchantId());
+      if (merchant instanceof IWithdrawable) {
+        IWithdrawable merchantService = (IWithdrawable) merchant;
+        e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+        if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+          e.setMainAddress(((IMerchantService) merchantService).getMainAddress());
+        }
       }
     });
     return merchantCurrencies;
@@ -422,11 +426,11 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
-    IMerchantService iMerchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
+    IWithdrawable merchantService = (IWithdrawable) merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     BigDecimal amountForWithdraw = BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT);
     CommissionDataDto dto = commissionService
-            .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT, withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId());
-    BigDecimal finalAmount =  BigDecimalProcessing.doAction(amountForWithdraw, dto.getMerchantCommissionAmount(), ActionType.SUBTRACT);
+        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT, withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId());
+    BigDecimal finalAmount = BigDecimalProcessing.doAction(amountForWithdraw, dto.getMerchantCommissionAmount(), ActionType.SUBTRACT);
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
         .amount(finalAmount.toString())
@@ -434,8 +438,8 @@ public class WithdrawServiceImpl implements WithdrawService {
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
-      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, iMerchantService.withdrawTransferringConfirmNeeded());
-      Map<String, String> transactionParams = iMerchantService.withdraw(withdrawMerchantOperation);
+      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
+      Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
@@ -450,7 +454,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       log.error(e);
       throw e;
     } catch (Exception e) {
-      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), iMerchantService.toString()));
+      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }
 
@@ -515,7 +519,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
       WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
-      if (currentStatus.isSuccessEndStatus()){
+      if (currentStatus.isSuccessEndStatus()) {
         throw new WithdrawRequestAlreadyPostedException(withdrawRequest.toString());
       }
       InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :

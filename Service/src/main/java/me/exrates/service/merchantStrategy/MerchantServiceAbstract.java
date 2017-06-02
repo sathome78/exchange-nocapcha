@@ -1,21 +1,16 @@
 package me.exrates.service.merchantStrategy;
 
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * Created by ValkSam on 24.03.2017.
+ * Created by ValkSam
  */
-public interface IMerchantService {
+public class MerchantServiceAbstract {
 
-  default String generateFullUrl(String url, Properties properties) {
+  String generateFullUrl(String url, Properties properties) {
     return url.concat("?").concat(
         properties.entrySet().stream()
             .map(e -> e.getKey() + "=" + e.getValue())
@@ -23,7 +18,7 @@ public interface IMerchantService {
     );
   }
 
-  default Map<String, String> generateFullUrlMap(String url, String method, Properties properties) {
+  Map<String, String> generateFullUrlMap(String url, String method, Properties properties) {
     Map<String, String> result = new HashMap<String, String>() {{
       put("$__redirectionUrl", url);
       put("$__method", method);
@@ -32,13 +27,13 @@ public interface IMerchantService {
     return result;
   }
 
-  default Map<String, String> generateFullUrlMap(String url, String method, Properties properties, String sign) {
+  Map<String, String> generateFullUrlMap(String url, String method, Properties properties, String sign) {
     Map<String, String> result = generateFullUrlMap(url, method, properties);
     result.put("$__sign", sign);
     return result;
   }
 
-  default String getMainAddress() {
+  String getMainAddress() {
     return "qwqwqqqw";
   }
 }

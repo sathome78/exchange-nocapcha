@@ -123,6 +123,8 @@ public class MerchantDaoImpl implements MerchantDao {
       blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";
     } else if (operationType == OperationType.OUTPUT) {
       blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
+    } else if (operationType == OperationType.USER_TRANSFER) {
+      blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
     }
     final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
         " MERCHANT_CURRENCY.min_sum, " +
@@ -390,7 +392,8 @@ public class MerchantDaoImpl implements MerchantDao {
   public MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId) {
     String sql = "SELECT currency_id, merchant_id, " +
         "  IF(MERCHANT_CURRENCY.max_scale_for_refill IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_refill, CURRENCY.max_scale_for_refill) AS max_scale_for_refill, " +
-        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_withdraw, CURRENCY.max_scale_for_withdraw) AS max_scale_for_withdraw" +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_withdraw, CURRENCY.max_scale_for_withdraw) AS max_scale_for_withdraw, " +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_transfer, CURRENCY.max_scale_for_transfer) AS max_scale_for_transfer" +
         "  FROM MERCHANT_CURRENCY " +
         "  JOIN CURRENCY ON CURRENCY.id = MERCHANT_CURRENCY.currency_id " +
         "  WHERE merchant_id = :merchant_id " +
@@ -405,6 +408,8 @@ public class MerchantDaoImpl implements MerchantDao {
       result.setMerchantId(rs.getInt("merchant_id"));
       result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
       result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+      result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+      result.setScaleForTransfer((Integer) rs.getObject("max_scale_for_transfer"));
       return result;
     });
   }

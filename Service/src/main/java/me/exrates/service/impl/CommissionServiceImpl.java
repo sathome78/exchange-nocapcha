@@ -167,6 +167,16 @@ public class CommissionServiceImpl implements CommissionService {
           merchantCommissionAmount = merchantMinFixedCommission;
           merchantCommissionUnit = "";
         }
+      } else if (type == USER_TRANSFER) {
+        int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
+        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        companyCommissionAmount = BigDecimal.ZERO;
+        merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+        BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
+        if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+          merchantCommissionAmount = merchantMinFixedCommission;
+          merchantCommissionUnit = "";
+        }
       } else {
         throw new IllegalOperationTypeException(type.name());
       }

@@ -4,7 +4,6 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.TransferRequest;
-import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -17,10 +16,13 @@ import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.TransferRequestCreationException;
+import me.exrates.service.exception.TransferRequestNotFoundException;
+import me.exrates.service.exception.TransferRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
-import me.exrates.service.merchantStrategy.ITransfarable;
+import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
@@ -37,7 +39,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
@@ -96,7 +97,9 @@ public class TransferServiceImpl implements TransferService {
     ProfileData profileData = new ProfileData(1000);
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
-      request.setIsVoucher(((ITransfarable) merchantService).isVoucher());
+      request.setIsVoucher(((ITransferable) merchantService).isVoucher());
+      Map<String, String> data = ((ITransferable) merchantService).transfer(request);
+      request.setHash(data.get("hash"));
       Integer requestId = createTransfer(request);
       request.setId(requestId);
       /**/
@@ -130,18 +133,18 @@ public class TransferServiceImpl implements TransferService {
     InvoiceActionTypeEnum action = currentStatus.getStartAction(isVoucher);
     InvoiceStatus newStatus = currentStatus.nextState(action);
     transferRequestCreateDto.setStatusId(newStatus.getCode());
-    int createdWithdrawRequestId = 0;
+    int createdTransferRequestId = 0;
     if (walletService.ifEnoughMoney(
         transferRequestCreateDto.getUserWalletId(),
         transferRequestCreateDto.getAmount())) {
-      if ((createdWithdrawRequestId = transferRequestDao.create(transferRequestCreateDto)) > 0) {
+      if ((createdTransferRequestId = transferRequestDao.create(transferRequestCreateDto)) > 0) {
         String description = transactionDescription.get(currentStatus, action);
         if (isVoucher) {
           WalletTransferStatus result = walletService.walletInnerTransfer(
               transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getAmount().negate(),
               TransactionSourceType.USER_TRANSFER,
-              createdWithdrawRequestId,
+              createdTransferRequestId,
               description);
           if (result != SUCCESS) {
             throw new TransferRequestCreationException(result.toString());
@@ -158,7 +161,7 @@ public class TransferServiceImpl implements TransferService {
     } else {
       throw new NotEnoughUserWalletMoneyException(transferRequestCreateDto.toString());
     }
-    return createdWithdrawRequestId;
+    return createdTransferRequestId;
   }
 
   @Override
@@ -166,7 +169,9 @@ public class TransferServiceImpl implements TransferService {
   public List<MerchantCurrency> retrieveAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies) {
     merchantCurrencies.forEach(e -> {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
-      e.setRecipientUserIsNeeded(((ITransfarable) merchantService).recipientUserIsNeeded());
+      if (merchantService instanceof ITransferable) {
+        e.setRecipientUserIsNeeded(((ITransferable) merchantService).recipientUserIsNeeded());
+      }
     });
     return merchantCurrencies;
   }

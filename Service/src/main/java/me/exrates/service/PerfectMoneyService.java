@@ -4,13 +4,15 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.util.Map;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface PerfectMoneyService extends IMerchantService {
+public interface PerfectMoneyService extends IRefillable, IWithdrawable {
 
     Map<String,String> getPerfectMoneyParams(Transaction transaction);
 

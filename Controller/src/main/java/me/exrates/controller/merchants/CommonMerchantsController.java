@@ -118,7 +118,7 @@ public class CommonMerchantsController {
     }
   }
 
-  @RequestMapping(value = "/merchant/transfer", method = GET)
+  @RequestMapping(value = "/merchants/transfer", method = GET)
   public ModelAndView transfer(
       @RequestParam("currency") String currencyName,
       Principal principal) {

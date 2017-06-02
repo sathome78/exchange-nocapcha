@@ -1,8 +1,10 @@
 package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
-public interface PayeerService extends IMerchantService {
+public interface PayeerService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

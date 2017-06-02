@@ -32,22 +32,19 @@ $(function transferCreation() {
     var isVoucher;
 
     $container.find(".start-transfer").on('click', function () {
-        if (checkAmount()) {
-            fillModalWindow();
-            showTransferDialog();
-        }
+        startTransfer(this);
     });
 
     function startTransfer(button) {
-        currency = $amountHolder.data("currency-id");
-        currencyName = $amountHolder.data("currency-name");
+        currency = $(button).data("currency-id");
+        currencyName = $(button).data("currency-name");
         merchant = $(button).data("merchant-id");
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
+        isVoucher = $(button).data("process_type").startsWith("INVOICE");
         recipientUserIsNeeded = $(button).data("recipient-user-needed");
         amount = parseFloat($amountHolder.val());
-        isVoucher = $(button).data("process_type").startsWith("INVOICE");
         if (checkAmount()) {
             fillModalWindow();
             showTransferDialog();
@@ -181,7 +178,7 @@ $(function transferCreation() {
             async: false,
             type: "get",
             contentType: "application/json",
-            data: {"amount": amount, "currency": currency}
+            data: {"amount": amount, "currency": currency, "merchant": merchant}
         }).success(function (response) {
             amount = response['amount'];
             commissionAmount = response['companyCommissionAmount'];

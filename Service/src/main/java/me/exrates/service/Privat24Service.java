@@ -2,10 +2,12 @@ package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.util.Map;
 
-public interface Privat24Service extends IMerchantService {
+public interface Privat24Service extends IRefillable, IWithdrawable {
 
     Map<String, String> preparePayment(CreditsOperation creditsOperation, String email);
 

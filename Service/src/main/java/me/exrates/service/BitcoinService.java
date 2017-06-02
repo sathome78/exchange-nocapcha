@@ -3,13 +3,15 @@ package me.exrates.service;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-public interface BitcoinService extends IMerchantService {
+public interface BitcoinService extends IRefillable, IWithdrawable {
 
   int CONFIRMATION_NEEDED_COUNT = 4;
   

@@ -2,10 +2,12 @@ package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.util.Map;
 
-public interface YandexKassaService  extends IMerchantService {
+public interface YandexKassaService  extends IRefillable, IWithdrawable {
 
     /**
      * This method of prepearing parameters for the payment form
