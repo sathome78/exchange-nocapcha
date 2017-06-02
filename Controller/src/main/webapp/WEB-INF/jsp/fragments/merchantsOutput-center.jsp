@@ -38,7 +38,7 @@
               <input id="sum"
                      class="form-control input-block-wrapper__input numericInputField"
                      data-currency-name="${currency.name}"
-                     data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
+                     data-max-amount="${balance}"
                      data-min-amount="${minWithdrawSum}"
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"

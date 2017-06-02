@@ -284,6 +284,17 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper());
   }
 
+  @Override
+  public User findByNickname(String nickname) {
+    String sql = SELECT_USER + "WHERE USER.nickname = :nickname";
+    final Map<String, String> params = new HashMap<String, String>() {
+      {
+        put("nickname", nickname);
+      }
+    };
+    return namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper());
+  }
+
   public List<User> getAllUsers() {
     String sql = "select email, password, status, nickname, id from USER";
     return namedParameterJdbcTemplate.query(sql, (rs, row) -> {

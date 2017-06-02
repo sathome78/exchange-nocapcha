@@ -75,6 +75,8 @@ public interface UserDao {
 
   boolean update(UpdateUserDto user);
 
+  User findByNickname(String nickname);
+
   List<User> getAllUsers();
 
   User getUserById(int id);

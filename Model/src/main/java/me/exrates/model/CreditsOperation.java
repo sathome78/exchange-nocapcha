@@ -26,6 +26,8 @@ public class CreditsOperation {
   private final Optional<String> destinationTag;
   private final TransactionSourceType transactionSourceType;
   private Boolean generateAdditionalRefillAddressAvailable;
+  private final User recipient;
+  private final Wallet recipientWallet;
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
@@ -42,6 +44,8 @@ public class CreditsOperation {
     this.destinationTag = builder.destinationTag == null ?
         Optional.empty() : builder.destinationTag;
     this.transactionSourceType = builder.transactionSourceType;
+    this.recipient = builder.recipient;
+    this.recipientWallet = builder.recipientWallet;
   }
 
 
@@ -60,6 +64,8 @@ public class CreditsOperation {
     private Optional<String> destinationTag;
     private TransactionSourceType transactionSourceType;
     private Boolean generateAdditionalRefillAddressAvailable;
+    private User recipient;
+    private Wallet recipientWallet;
 
     public Builder user(User user) {
       this.user = user;
@@ -121,6 +127,16 @@ public class CreditsOperation {
       return this;
     }
 
+    public Builder recipient(User recipient) {
+      this.recipient = recipient;
+      return this;
+    }
+
+    public Builder recipientWallet(Wallet recipientWallet) {
+      this.recipientWallet = recipientWallet;
+      return this;
+    }
+
     public CreditsOperation build() {
       return new CreditsOperation(this);
     }
@@ -134,7 +150,8 @@ public class CreditsOperation {
     CreditsOperation that = (CreditsOperation) o;
 
     if (user != null ? !user.equals(that.user) : that.user != null) return false;
-    if (origAmountAtCreationRequest != null ? !origAmountAtCreationRequest.equals(that.origAmountAtCreationRequest) : that.origAmountAtCreationRequest != null) return false;
+    if (origAmountAtCreationRequest != null ? !origAmountAtCreationRequest.equals(that.origAmountAtCreationRequest) : that.origAmountAtCreationRequest != null)
+      return false;
     if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
     if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
       return false;
@@ -174,6 +191,8 @@ public class CreditsOperation {
         ", currency=" + currency +
         ", merchant=" + merchant +
         ", destination=" + destination +
+        ", recipient=" + recipient +
+        ", recipientId=" + recipientId +
         ", transactionSourceType=" + transactionSourceType +
         '}';
   }

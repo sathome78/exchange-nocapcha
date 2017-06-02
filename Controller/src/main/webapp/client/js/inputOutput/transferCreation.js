@@ -9,8 +9,7 @@ $(function transferCreation() {
     const $loadingDialog = $container.find('#loading-process-modal');
     const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
-    const $recipientHolder = $container.find("#recipient");
-    const $isVoucherHolder = $container.find("#is-voucher");
+    const $recipientHolder = $transferParamsDialog.find("#recipient");
     const notifications = new NotificationsClass();
     const urlForTransferCreate = "/transfer/request/create";
     const modalTemplate = $container.find('.transferInfo p');
@@ -18,30 +17,40 @@ $(function transferCreation() {
 
     var currency;
     var currencyName;
-    var minSum;
-    var maxSum;
+    var merchant;
+    var merchantName;
+    var merchantMinSum;
+    var merchantImageId;
     var recipient;
-    var isVoucher;
+    var recipientUserIsNeeded;
     var amount;
     var commissionPercent;
     var commissionAmount;
+    var commissionMerchantPercent;
+    var commissionMerchantAmount;
     var totalAmount;
+    var isVoucher;
 
     $container.find(".start-transfer").on('click', function () {
-        startTransfer(this);
+        if (checkAmount()) {
+            fillModalWindow();
+            showTransferDialog();
+        }
     });
 
     function startTransfer(button) {
         currency = $amountHolder.data("currency-id");
         currencyName = $amountHolder.data("currency-name");
-        minSum = $amountHolder.data("min-amount");
-        maxSum = $amountHolder.data("max-amount");
-        recipient = $recipientHolder.val();
-        isVoucher = $isVoucherHolder.val();
+        merchant = $(button).data("merchant-id");
+        merchantName = $(button).data("merchant-name");
+        merchantMinSum = $(button).data("merchant-min-sum");
+        merchantImageId = $(button).data("merchant-image-id");
+        recipientUserIsNeeded = $(button).data("recipient-user-needed");
         amount = parseFloat($amountHolder.val());
-        if (checkTransferParamsEnter()) {
+        isVoucher = $(button).data("process_type").startsWith("INVOICE");
+        if (checkAmount()) {
             fillModalWindow();
-            showWithdrawDialog();
+            showTransferDialog();
         }
     }
 
@@ -50,7 +59,6 @@ $(function transferCreation() {
             var templateVariables = {
                 amount: '__amount',
                 currency: '__currency',
-                recipient: '__recipient',
                 percent: '__percent',
                 transferType: '__transferType'
             };
@@ -62,11 +70,10 @@ $(function transferCreation() {
                 .replace(templateVariables.transferType, "<span class='modal-amount'>" + (isVoucher ? " will create the VOUCHER" : " will transfer ") + "</span>")
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.recipient, "<span class='modal-merchant'>" + (recipient ? " to " + recipient : "") + "</span>");
             newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
+                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
             newHTMLElements[3] = newHTMLElements[2]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
@@ -78,9 +85,33 @@ $(function transferCreation() {
         });
     }
 
-    function showWithdrawDialog(message) {
-        showFinPassModal();
-        $withdrawParamsDialog.modal();
+    function checkAmount() {
+        return !merchantMinSum || (amount >= merchantMinSum);
+    }
+
+    function showTransferDialog(message) {
+        if (recipientUserIsNeeded) {
+            $transferParamsDialog.find("#recipient-input-wrapper").show();
+        } else {
+            $transferParamsDialog.find("#recipient-input-wrapper").show();
+        }
+        $transferParamsDialog.find('#request-money-operation-btns-wrapper').show();
+        $transferParamsDialog.find('#response-money-operation-btns-wrapper').hide();
+        $transferParamsDialog.find('#message').hide();
+        $transferParamsDialog.find('#message').html(message ? message : '');
+        /**/
+        $transferParamsDialog.find("#continue-btn").off('click').on('click', function () {
+            recipient = $recipientHolder.val();
+            if (!checkTransferParamsEnter()) {
+                return;
+            }
+            $transferParamsDialog.one('hidden.bs.modal', function () {
+                showFinPassModal();
+            });
+            $transferParamsDialog.modal("hide");
+        });
+        /**/
+        $transferParamsDialog.modal();
     }
 
     function showFinPassModal() {
@@ -102,7 +133,6 @@ $(function transferCreation() {
             currency: currency,
             sum: amount,
             recipient: recipient,
-            isVoucher: isVoucher,
             operationType: operationType,
         };
         sendRequest(data, finPassword);
@@ -133,7 +163,7 @@ $(function transferCreation() {
 
     function showTransferDialogAfterCreation(message) {
         $transferParamsDialog.find('#request-money-operation-btns-wrapper').hide();
-        $transferParamsDialog.find('#destination-input-wrapper').hide();
+        $transferParamsDialog.find('#recipient-input-wrapper').hide();
         $transferParamsDialog.find('#response-money-operation-btns-wrapper').show();
         $transferParamsDialog.find('#message').show();
         $transferParamsDialog.find('#message').html(message ? message : '');
@@ -141,10 +171,7 @@ $(function transferCreation() {
     }
 
     function checkTransferParamsEnter() {
-        const NICKNAME_REGEX = /^\D+[\w\d\-_]+/;
-        return (!minSum || (amount >= minSum))
-            && (!maxSum || (amount >= maxSum))
-            && NICKNAME_REGEX.test(value);
+        return /^\D+[\w\d\-_]+/.test(value);
 
     }
 

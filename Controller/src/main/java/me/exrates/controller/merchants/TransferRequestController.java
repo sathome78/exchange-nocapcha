@@ -2,15 +2,18 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.TransferRequestCreateDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.service.*;
+import me.exrates.service.InputOutputService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.TransferService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -28,11 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
 
-import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -68,27 +70,27 @@ public class TransferRequestController {
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
-    Boolean isVoucher = requestParamsDto.getIsVoucher();
     TransferStatusEnum beginStatus = (TransferStatusEnum) RefillStatusEnum.getBeginState();
     Payment payment = new Payment(requestParamsDto.getOperationType());
     payment.setCurrency(requestParamsDto.getCurrency());
     payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+    payment.setRecipient(requestParamsDto.getRecipient());
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    return transferService.createRefillRequest(request);
+    return transferService.createTransferRequest(request);
   }
 
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
   @ResponseBody
   public void revokeWithdrawRequest(
       @RequestParam Integer id) {
-    transferService.revokeRefillRequest(id);
+    transferService.revokeTransferRequest(id);
   }
 
   @RequestMapping(value = "/transfer/request/info", method = GET)
   @ResponseBody
-  public RefillRequestFlatDto getInfoRefill(
+  public TransferRequestFlatDto getInfoRefill(
       @RequestParam Integer id) {
     return transferService.getFlatById(id);
   }
@@ -98,11 +100,11 @@ public class TransferRequestController {
   public Map<String, String> getCommissions(
       @RequestParam("amount") BigDecimal amount,
       @RequestParam("currency") Integer currencyId,
-      @RequestParam("isVoucher") Boolean isVoucher,
+      @RequestParam("merchant") Integer merchant,
       Principal principal,
       Locale locale) {
     Integer userId = userService.getIdByEmail(principal.getName());
-    return transferService.correctAmountAndCalculateCommission(userId, amount, currencyId, isVoucher, locale);
+    return transferService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchant, locale);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

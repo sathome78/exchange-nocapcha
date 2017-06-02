@@ -175,6 +175,8 @@ public class InputOutputServiceImpl implements InputOutputService {
         currency.getId(),
         merchant.getId());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
+    User recipient = userService.findByNickname(payment.getRecipient());
+    Wallet recipientWallet = walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .initialAmount(commissionData.getAmount())
         .amount(commissionData.getResultAmount())
@@ -188,6 +190,8 @@ public class InputOutputServiceImpl implements InputOutputService {
         .destination(destination)
         .destinationTag(destinationTag)
         .transactionSourceType(transactionSourceType)
+        .recipient(recipient)
+        .recipientWallet(recipientWallet)
         .build();
     return Optional.of(creditsOperation);
   }

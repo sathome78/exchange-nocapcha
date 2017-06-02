@@ -10,18 +10,17 @@
       <div class="modal-body">
         <div id="amount-info-wrapper">
           <div class="transferInfo">
-            <p><loc:message code="merchants.modalInputHeader"/></p>
-            <p><loc:message code="merchants.modalInputCommissionMerchant"/></p>
-            <p><loc:message code="merchants.modalInputCommission"/></p>
-            <p><loc:message code="merchants.modalInputFinalSum"/></p>
+            <p><loc:message code="merchants.modalTransferHeader"/></p>
+            <p><loc:message code="merchants.modalTransferCommission"/></p>
+            <p><loc:message code="merchants.modalTransferFinalSum"/></p>
           </div>
-          <div id="merchant-commission-warning">
-            <hr>
-            <div class="red">
-              <loc:message code="merchant.commission.warning"/>
-            </div>
-            <hr>
-          </div>
+        </div>
+        <div id="recipient-input-wrapper"
+             class="wallet_input">
+          <label class="control-label" for="recipient">
+            <loc:message code="merchants.modalTransferRecipient"/>
+          </label>
+          <input class="form-control" autofocus type="text" id="recipient">
         </div>
         <div class="timeoutWarning">
           <c:forEach var="warningCode" items="${warningCodeList}">

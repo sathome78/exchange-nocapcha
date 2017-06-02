@@ -4,7 +4,6 @@ package me.exrates.model.enums.invoice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.exceptions.*;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,9 +52,9 @@ public enum TransferStatusEnum implements InvoiceStatus {
   public InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionParamsValue paramsValue) {
     try {
       action.checkAvailabilityTheActionForParamsValue(paramsValue);
-    } catch (InvoiceActionIsProhibitedForNotHolderException e){
+    } catch (InvoiceActionIsProhibitedForNotHolderException e) {
       throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
-    } catch (InvoiceActionIsProhibitedForCurrencyPermissionOperationException e){
+    } catch (InvoiceActionIsProhibitedForCurrencyPermissionOperationException e) {
       throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), paramsValue.getPermittedOperation().name()));
     } catch (Exception e) {
       throw e;
@@ -96,7 +95,7 @@ public enum TransferStatusEnum implements InvoiceStatus {
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionParamsValue paramsValue) {
     return schemaMap.keySet().stream()
-        .filter(e->e.isMatchesTheParamsValue(paramsValue))
+        .filter(e -> e.isMatchesTheParamsValue(paramsValue))
         .collect(Collectors.toSet());
   }
 
@@ -196,15 +195,11 @@ public enum TransferStatusEnum implements InvoiceStatus {
     return code;
   }
 
-  public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
-    if (autoEnabled) {
-      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
-        return PUT_FOR_AUTO;
-      } else {
-        return PUT_FOR_CONFIRM;
-      }
+  public InvoiceActionTypeEnum getStartAction(Boolean isVoucher) {
+    if (isVoucher) {
+      return POSTPONE;
     } else {
-      return PUT_FOR_MANUAL;
+      return POST;
     }
   }
 

@@ -27,6 +27,8 @@ public interface UserService {
 
   User findByEmail(String email);
 
+  User findByNickname(String nickname);
+
   void createUserFile(int userId, List<Path> paths);
 
   void setUserAvatar(int userId, Path path);

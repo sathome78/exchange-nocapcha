@@ -15,9 +15,11 @@ INSERT INTO TRANSFER_REQUEST_STATUS VALUES (4, 'POSTPONED_AS_VOUCHER');
 CREATE TABLE TRANSFER_REQUEST (
 	id INT(11) NOT NULL AUTO_INCREMENT,
 	amount DECIMAL(40,9) NULL DEFAULT NULL,
+	commission DECIMAL(40,9) NULL DEFAULT NULL,
 	date_creation TIMESTAMP NULL DEFAULT NULL,
 	status_id INT(11) NULL DEFAULT NULL,
 	status_modification_date TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+	merchant_id INT(11) NULL,
 	currency_id INT(11) NULL DEFAULT NULL,
 	user_id INT(11) NOT NULL,
 	commission_id INT(11) NULL DEFAULT NULL,
@@ -28,8 +30,12 @@ CREATE TABLE TRANSFER_REQUEST (
 	INDEX FK_transfer_request_user (user_id),
 	INDEX FK_transfer_request_user_2 (recipient_user_id),
 	INDEX FK_transfer_request_commission (commission_id),
+	INDEX FK_transfer_request_currency (currency_id),
+	INDEX FK_transfer_request_merchant (merchant_id),
 	INDEX FK_transfer_request_transfer_request_status (status_id),
 	CONSTRAINT FK_transfer_request_commission FOREIGN KEY (commission_id) REFERENCES COMMISSION (id),
+	CONSTRAINT FK_transfer_request_currency FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
+	CONSTRAINT FK_transfer_request_merchant FOREIGN KEY (merchant_id) REFERENCES MERCHANT (id),
 	CONSTRAINT FK_transfer_request_transfer_request_status FOREIGN KEY (status_id) REFERENCES TRANSFER_REQUEST_STATUS (id),
 	CONSTRAINT FK_transfer_request_user FOREIGN KEY (user_id) REFERENCES USER (id),
 	CONSTRAINT FK_transfer_request_user_2 FOREIGN KEY (recipient_user_id) REFERENCES USER (id)
@@ -37,7 +43,9 @@ CREATE TABLE TRANSFER_REQUEST (
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB;
 
-INSERT INTO USER_COMMENT_TOPIC (topic) VALUES ('INITIAL_TRANSFER_CURRENCY_WARNING');
+ALTER TABLE MERCHANT
+	CHANGE COLUMN process_type process_type ENUM('INVOICE','MERCHANT','CRYPTO','TRANSFER') NOT NULL DEFAULT 'MERCHANT' AFTER simple_invoice;
+
 INSERT INTO USER_COMMENT_TOPIC (topic) VALUES ('TRANSFER_CURRENCY_WARNING');
 
 INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('transfer.warning', '8');
