@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.enums.TransferProcessTypeEnum;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 
@@ -18,4 +19,8 @@ public interface TransferSimpleService extends ITransferable {
     return true;
   }
 
+  @Override
+  default public TransferProcessTypeEnum processType(){
+    return TransferProcessTypeEnum.TRANSFER;
+  }
 }

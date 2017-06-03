@@ -12,6 +12,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,8 +176,8 @@ public class InputOutputServiceImpl implements InputOutputService {
         currency.getId(),
         merchant.getId());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
-    User recipient = userService.findByNickname(payment.getRecipient());
-    Wallet recipientWallet = walletService.findByUserAndCurrency(recipient, currency);
+    User recipient = StringUtils.isEmpty(payment.getRecipient()) ? null : userService.findByNickname(payment.getRecipient());
+    Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .initialAmount(commissionData.getAmount())
         .amount(commissionData.getResultAmount())

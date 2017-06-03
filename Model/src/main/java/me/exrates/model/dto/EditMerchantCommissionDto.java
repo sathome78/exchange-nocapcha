@@ -18,5 +18,6 @@ public class EditMerchantCommissionDto {
     private Integer currencyId;
     private BigDecimal inputValue;
     private BigDecimal outputValue;
+    private BigDecimal transferValue;
     private BigDecimal minFixedAmount;
 }

@@ -23,6 +23,7 @@ public class TransferVoucherFreeServiceImpl implements TransferVoucherFreeServic
   @Override
   public Map<String, String> transfer(TransferRequestCreateDto transferRequestCreateDto) {
     String hash = algorithmService.sha256(new StringJoiner(":")
+        .add(transferRequestCreateDto.getId().toString())
         .add(transferRequestCreateDto.getAmount().toString())
         .add(transferRequestCreateDto.getCurrencyName())
         .add(transferRequestCreateDto.getRecipient())

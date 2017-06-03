@@ -5,6 +5,7 @@ import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -20,4 +21,6 @@ public interface TransferRequestDao {
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
   List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
+
+  void setHashById(Integer id, Map<String, String> params);
 }

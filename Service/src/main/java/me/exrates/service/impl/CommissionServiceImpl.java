@@ -66,8 +66,8 @@ public class CommissionServiceImpl implements CommissionService {
   @Override
   @Transactional
   public BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType) {
-    if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT)) {
-      throw new IllegalArgumentException("Invalid operation type");
+    if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT || operationType == OperationType.USER_TRANSFER)) {
+      throw new IllegalArgumentException("Invalid operation type: "+operationType);
     }
     return commissionDao.getCommissionMerchant(merchantId, currencyId, operationType);
   }
@@ -148,7 +148,7 @@ public class CommissionServiceImpl implements CommissionService {
     Merchant merchant = merchantService.findById(merchantId);
     String merchantProcessType = merchant.getProcessType();
     if (!"CRYPTO".equals(merchantProcessType) || amount.compareTo(BigDecimal.ZERO) != 0) {
-      BigDecimal merchantCommissionRate = type == USER_TRANSFER ? ZERO : getCommissionMerchant(merchantId, currencyId, type);
+      BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;
       String merchantCommissionUnit = "%";

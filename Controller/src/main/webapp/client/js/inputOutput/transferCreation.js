@@ -42,7 +42,7 @@ $(function transferCreation() {
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
-        isVoucher = $(button).data("process_type").startsWith("INVOICE");
+        isVoucher = $(button).data("process_type").startsWith("VOUCHER");
         recipientUserIsNeeded = $(button).data("recipient-user-needed");
         amount = parseFloat($amountHolder.val());
         if (checkAmount()) {
@@ -71,7 +71,7 @@ $(function transferCreation() {
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                 .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
-            newHTMLElements[3] = newHTMLElements[2]
+            newHTMLElements[2] = newHTMLElements[2]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
             var newHTML = '';
@@ -90,7 +90,7 @@ $(function transferCreation() {
         if (recipientUserIsNeeded) {
             $transferParamsDialog.find("#recipient-input-wrapper").show();
         } else {
-            $transferParamsDialog.find("#recipient-input-wrapper").show();
+            $transferParamsDialog.find("#recipient-input-wrapper").hide();
         }
         $transferParamsDialog.find('#request-money-operation-btns-wrapper').show();
         $transferParamsDialog.find('#response-money-operation-btns-wrapper').hide();
@@ -99,7 +99,7 @@ $(function transferCreation() {
         /**/
         $transferParamsDialog.find("#continue-btn").off('click').on('click', function () {
             recipient = $recipientHolder.val();
-            if (!checkTransferParamsEnter()) {
+            if (!checkTransferParamsEnter(recipient)) {
                 return;
             }
             $transferParamsDialog.one('hidden.bs.modal', function () {
@@ -128,6 +128,7 @@ $(function transferCreation() {
     function performTransfer(finPassword) {
         var data = {
             currency: currency,
+            merchant: merchant,
             sum: amount,
             recipient: recipient,
             operationType: operationType,
@@ -167,8 +168,9 @@ $(function transferCreation() {
         $transferParamsDialog.modal();
     }
 
-    function checkTransferParamsEnter() {
-        return /^\D+[\w\d\-_]+/.test(value);
+    function checkTransferParamsEnter(value) {
+        return !recipientUserIsNeeded ||
+            /^\D+[\w\d\-_]+/.test(value);
 
     }
 
@@ -182,6 +184,8 @@ $(function transferCreation() {
         }).success(function (response) {
             amount = response['amount'];
             commissionAmount = response['companyCommissionAmount'];
+            commissionMerchantAmount = response['merchantCommissionAmount'];
+            commissionMerchantPercent = response['merchantCommissionRate'];
             totalAmount = response['resultAmount'];
             if (callback) {
                 callback();

@@ -98,10 +98,11 @@ public class TransferServiceImpl implements TransferService {
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setIsVoucher(((ITransferable) merchantService).isVoucher());
-      Map<String, String> data = ((ITransferable) merchantService).transfer(request);
-      request.setHash(data.get("hash"));
       Integer requestId = createTransfer(request);
       request.setId(requestId);
+      Map<String, String> data = ((ITransferable) merchantService).transfer(request);
+      request.setHash(data.get("hash"));
+      transferRequestDao.setHashById(requestId, data);
       /**/
       String notification = null;
       try {
@@ -151,7 +152,7 @@ public class TransferServiceImpl implements TransferService {
           }
         } else {
           walletService.transferCostsToUser(
-              transferRequestCreateDto.getRecipientWalletId(),
+              transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getRecipient(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getLocale(),
@@ -171,6 +172,7 @@ public class TransferServiceImpl implements TransferService {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
       if (merchantService instanceof ITransferable) {
         e.setRecipientUserIsNeeded(((ITransferable) merchantService).recipientUserIsNeeded());
+        e.setProcessType(((ITransferable) merchantService).processType().name());
       }
     });
     return merchantCurrencies;
@@ -222,7 +224,7 @@ public class TransferServiceImpl implements TransferService {
         merchantDescription
     };
     String notificationMessageCode;
-    notificationMessageCode = "merchants.withdrawNotification.".concat(transferRequest.getStatus().name());
+    notificationMessageCode = "merchants.transferNotification.".concat(transferRequest.getStatus().name());
     notification = messageSource
         .getMessage(notificationMessageCode, messageParams, locale);
     notificationService.notifyUser(transferRequest.getUserEmail(), NotificationEvent.IN_OUT,

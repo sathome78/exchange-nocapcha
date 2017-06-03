@@ -6,7 +6,6 @@ import me.exrates.model.Payment;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -63,16 +62,17 @@ public class TransferRequestController {
 
   @RequestMapping(value = "/transfer/request/create", method = POST)
   @ResponseBody
-  public Map<String, Object> createRefillRequest(
+  public Map<String, Object> createTransferRequest(
       @RequestBody TransferRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
-    TransferStatusEnum beginStatus = (TransferStatusEnum) RefillStatusEnum.getBeginState();
+    TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
     Payment payment = new Payment(requestParamsDto.getOperationType());
     payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
     payment.setRecipient(requestParamsDto.getRecipient());
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
@@ -90,7 +90,7 @@ public class TransferRequestController {
 
   @RequestMapping(value = "/transfer/request/info", method = GET)
   @ResponseBody
-  public TransferRequestFlatDto getInfoRefill(
+  public TransferRequestFlatDto getInfoTransfer(
       @RequestParam Integer id) {
     return transferService.getFlatById(id);
   }

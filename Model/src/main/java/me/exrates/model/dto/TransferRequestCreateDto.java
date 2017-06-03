@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 
 import java.math.BigDecimal;
@@ -49,9 +48,9 @@ public class TransferRequestCreateDto {
     this.currencyName = creditsOperation.getCurrency().getName();
     this.commission = creditsOperation.getCommissionAmount();
     this.commissionId = creditsOperation.getCommission().getId();
-    this.recipient = creditsOperation.getRecipient().getNickname();
-    this.recipientId = creditsOperation.getRecipient().getId();
-    this.recipientWalletId = creditsOperation.getRecipientWallet().getId();
+    this.recipient = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getNickname();
+    this.recipientId = creditsOperation.getRecipient() == null ? null : creditsOperation.getRecipient().getId();
+    this.recipientWalletId = creditsOperation.getRecipientWallet() == null ? null : creditsOperation.getRecipientWallet().getId();
     this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
     /**/

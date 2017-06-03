@@ -65,9 +65,9 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
   public int create(TransferRequestCreateDto transferRequest) {
     final String sql = "INSERT INTO TRANSFER_REQUEST " +
         "(amount, commission, status_id," +
-        " date_creation, status_modification_date, currency_id, merchant_id, user_id, recipient_id, commission_id, hash) " +
+        " date_creation, status_modification_date, currency_id, merchant_id, user_id, recipient_user_id, commission_id, hash) " +
         "VALUES (:amount, :commission, :status_id, " +
-        " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :recipient_id, :commission_id, :hash)";
+        " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :recipient_user_id, :commission_id, :hash)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("amount", transferRequest.getAmount())
@@ -76,7 +76,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
         .addValue("currency_id", transferRequest.getCurrencyId())
         .addValue("merchant_id", transferRequest.getMerchantId())
         .addValue("user_id", transferRequest.getUserId())
-        .addValue("recipient_id", transferRequest.getRecipientId())
+        .addValue("recipient_user_id", transferRequest.getRecipientId())
         .addValue("commission_id", transferRequest.getCommissionId())
         .addValue("hash", transferRequest.getHash());
     jdbcTemplate.update(sql, params, keyHolder);
@@ -122,6 +122,17 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     return jdbcTemplate.query(sql, params, (rs, i) -> {
       return transferRequestFlatDtoRowMapper.mapRow(rs, i);
     });
+  }
+
+  @Override
+  public void setHashById(Integer id, Map<String, String> params) {
+    final String sql = "UPDATE TRANSFER_REQUEST " +
+        "  SET hash = :hash " +
+        "  WHERE id = :id";
+    Map<String, Object> sqlParams = new HashMap<>();
+    sqlParams.put("id", id);
+    sqlParams.put("hash", params.get("hash"));
+    jdbcTemplate.update(sql, sqlParams);
   }
 
 }
