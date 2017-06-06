@@ -244,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
     }
     CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
             orderCreateDto.getOperationType());
-    if (orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
+    if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
       if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
         errors.put("stop_" + errors.size(), "order.fillfield");
       } else {
