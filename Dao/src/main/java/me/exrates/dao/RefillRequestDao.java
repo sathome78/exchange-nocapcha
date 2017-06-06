@@ -44,7 +44,9 @@ public interface RefillRequestDao {
   void setMerchantRequestSignById(Integer id, String sign);
 
   List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId);
-
+  
+  Optional<InvoiceBank> findInvoiceBankById(Integer id);
+  
   Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer merchantId, Integer currencyId, Integer intervalHours, List<Integer> statusIdList);
 
   Optional<RefillRequestFlatDto> getFlatByIdAndBlock(Integer id);

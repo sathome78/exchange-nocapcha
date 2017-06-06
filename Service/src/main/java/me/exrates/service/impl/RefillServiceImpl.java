@@ -923,6 +923,9 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.getLastBlockHashForMerchantAndCurrency(merchantId, currencyId);
   }
   
-
+  @Override
+  public Optional<InvoiceBank> findInvoiceBankById(Integer id) {
+    return refillRequestDao.findInvoiceBankById(id);
+  }
 
 }

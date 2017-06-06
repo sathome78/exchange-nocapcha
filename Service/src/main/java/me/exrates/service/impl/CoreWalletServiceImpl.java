@@ -270,9 +270,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
                         .txId(payment.getTxId())
                         .blockhash(payment.getBlockHash())
                         .build()).collect(Collectors.toList());
-    } catch (BitcoindException | CommunicationException e) {
+    } catch (Exception e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      return Collections.EMPTY_LIST;
     }
   }
   

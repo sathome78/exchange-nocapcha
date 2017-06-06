@@ -232,6 +232,7 @@ $(function refillCreation() {
             $bankItem.attr("data-bank-name", "");
             $bankItem.attr("data-bank-account", "");
             $bankItem.attr("data-bank-recipient", "");
+            $bankItem.attr("data-bank-details", "");
             $bankItem.html(phrases.bankNotSelected);
             $bankSelect.append($bankItem.clone());
             /**/
@@ -242,6 +243,7 @@ $(function refillCreation() {
                 $bankItem.attr("data-bank-name", bank.name);
                 $bankItem.attr("data-bank-account", bank.accountNumber);
                 $bankItem.attr("data-bank-recipient", bank.recipient);
+                $bankItem.attr("data-bank-details", bank.bankDetails);
                 $bankItem.html(bank.name);
                 $bankSelect.append($bankItem.clone());
             });

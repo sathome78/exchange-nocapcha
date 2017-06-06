@@ -122,7 +122,13 @@ public class RefillRequestController {
   @ResponseBody
   public List<InvoiceBank> getBankListForCurrency(
       @RequestParam Integer currencyId) {
-    return refillService.findBanksForCurrency(currencyId);
+    List<InvoiceBank> banks = refillService.findBanksForCurrency(currencyId);
+    banks.forEach(bank -> {
+      if (bank.getBankDetails() != null) {
+        bank.setBankDetails(bank.getBankDetails().replaceAll("\n", "<br/>"));
+      }
+    });
+    return banks;
   }
 
   @RequestMapping(value = "/refill/commission", method = GET)
