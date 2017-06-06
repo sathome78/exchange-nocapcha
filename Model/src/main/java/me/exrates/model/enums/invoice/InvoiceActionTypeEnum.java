@@ -88,7 +88,9 @@ public enum InvoiceActionTypeEnum {
   FINALIZE_POST {{
     getProperty().setLeadsToSuccessFinalState(true);
   }},
-  POSTPONE,
+  POSTPONE{{
+    getProperty().setActionTypeButton(REVOKE_BUTTON);
+  }},
   POST,
   PRESENT_VOUCHER {{
     getProperty().setLeadsToSuccessFinalState(true);
