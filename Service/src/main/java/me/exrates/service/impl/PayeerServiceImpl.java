@@ -74,10 +74,7 @@ public class PayeerServiceImpl implements PayeerService {
       put("m_sign", sign);
     }};
     /**/
-    String fullUrl = generateFullUrl(url, properties);
-    return new HashMap<String, String>() {{
-      put("redirectionUrl", fullUrl);
-    }};
+    return generateFullUrlMap(url, "POST", properties);
   }
 
   @Override

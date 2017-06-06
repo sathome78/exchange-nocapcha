@@ -21,4 +21,5 @@ public class RefillRequestSetConfirmationsNumberDto {
   private Integer confirmations;
   private String hash;
   private BigDecimal amount;
+  private String blockhash;
 }

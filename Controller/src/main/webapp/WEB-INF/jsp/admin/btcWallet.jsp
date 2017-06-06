@@ -63,6 +63,7 @@
                             <th><loc:message code="btcWallet.history.confirmations"/></th>
                             <th></th>
                             <th></th>
+                            <th></th>
                         </tr>
                         </thead>
                     </table>
@@ -193,12 +194,74 @@
 </sec:authorize>
 
 
+<div id="btc-tx-info-modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="btcWallet.txDetails"/></h4>
+            </div>
+            <div class="modal-body">
+                <div class="well">
+                    <table id="btcTxInfoTable" class="table">
+                        <tbody>
+                        <tr>
+                            <td><loc:message code="transaction.id"/></td>
+                            <td id="info-id"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="myorders.datecreation"/></td>
+                            <td id="info-dateCreation"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="refill.statusModificationDate"/></td>
+                            <td id="info-status-date"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="admin.status"/></td>
+                            <td id="info-status"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="refill.user"/></td>
+                            <td id="info-user"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div id="no-address">
+                        <p class="red"><loc:message code="btcWallet.noAddress"/></p>
+                    </div>
+                </div>
 
+
+                <div hidden>
+                    <form id="createRefillForm">
+                        <input name="txId">
+                        <input name="address">
+                    </form>
+                </div>
+
+
+                <div class="modal-footer">
+                    <div class="order-info__button-wrapper">
+                        <button id="create-refill" class="order-info__button" data-dismiss="modal">
+                            <loc:message code="btcWallet.createRequest"/>
+                        </button>
+                        <button class="order-info__button" data-dismiss="modal">
+                            <loc:message code="orderinfo.ok"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
 
 <span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt"/></span>
+<span hidden id="viewMessage"><loc:message code="merchants.invoice.viewConfirm"/></span>
 <span hidden id="currencyName">${currency}</span>
 <span hidden id="merchantName">${merchant}</span>
 <%@include file='../fragments/footer.jsp' %>

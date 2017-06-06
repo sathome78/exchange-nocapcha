@@ -60,6 +60,11 @@ public interface YandexMoneyService extends IMerchantService {
   }
 
   @Override
+  default Boolean additionalTagForWithdrawAddressIsUsed() {
+    return false;
+  }
+
+  @Override
   default Boolean withdrawTransferringConfirmNeeded() {
     return null;
   }

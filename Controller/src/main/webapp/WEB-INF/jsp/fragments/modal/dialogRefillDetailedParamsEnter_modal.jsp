@@ -32,6 +32,7 @@
     $infoWrapper.find("#bank-code").html($bankInfoOption.data("bank-code"));
     $infoWrapper.find("#bank-account").html($bankInfoOption.data("bank-account"));
     $infoWrapper.find("#bank-recipient").html($bankInfoOption.data("bank-recipient"));
+    $infoWrapper.find("#bank-details").html($bankInfoOption.data("bank-details"));
   }
 
   function checkAllFields() {
@@ -118,6 +119,10 @@
                 <div class="credits-operation-info__item clearfix">
                   <div class="col-md-6"><loc:message code="merchants.invoiceDetails.bankRecipient"/></div>
                   <div class="col-md-6" id="bank-recipient"></div>
+                </div>
+                <div class="credits-operation-info__item clearfix">
+                  <div class="col-md-6"><loc:message code="merchants.invoiceDetails.additional"/></div>
+                  <div class="col-md-6" id="bank-details"></div>
                 </div>
               </div>
             </div>

@@ -1,7 +1,9 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.NoRequestedBeansFoundException;
+import me.exrates.controller.exception.NotAcceptableOrderException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -18,8 +20,10 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
-import me.exrates.service.exception.NoPermissionForOperationException;
-import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.*;
+import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -37,7 +41,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -117,9 +120,15 @@ public class AdminController {
   @Autowired
   WithdrawService withdrawService;
   
-  /*@Autowired
-  private BitcoinWalletService bitcoinWalletService;*/
-
+  @Autowired
+  StopOrderService stopOrderService;
+  
+  @Autowired
+  RefillService refillService;
+  
+  @Autowired
+  private MerchantServiceContext serviceContext;
+  
   @Autowired
   @Qualifier("ExratesSessionRegistry")
   private SessionRegistry sessionRegistry;
@@ -243,55 +252,21 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(AdminTransactionsFilterData filterData,
+  public DataTable<List<OperationViewDto>> getUserTransactions(
+      AdminTransactionsFilterData filterData,
       @RequestParam Integer id,
       @RequestParam Map<String, String> params,
       Principal principal,
       HttpServletRequest request) {
     filterData.initFilterItems();
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(requesterAdminId, id, filterData, dataTableParams,
-            localeResolver.resolveLocale(request));
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
-  public String downloadTransactionsPage(@RequestParam("id") int id, Model model) {
-    model.addAttribute("user", userService.getUserById(id));
-    return "admin/transactionsDownload";
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
-  public void getUserTransactions(final @RequestParam int id,
-                                  AdminTransactionsFilterData filterData,
-                                  Principal principal,
-                                  HttpServletResponse response) throws IOException {
-    filterData.initFilterItems();
-      response.setContentType("text/csv");
-      String reportName =
-              "transactions"/*
-                      .concat(startDate)
-                      .concat("-")
-                      .concat(endDate)
-                      .replaceAll(" ", "_")*/
-                      .concat(".csv");
-      response.setHeader("Content-disposition", "attachment;filename="+reportName);
-      List<String> transactionsHistory = transactionService
-              .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-                      id, filterData);
-      OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-      try {
-        for(String transaction : transactionsHistory) {
-            writer.write(transaction);
-        }
-      } catch (IOException e) {
-        LOG.error("error download transactions " + e);
-      } finally {
-        writer.flush();
-        writer.close();
-      }
+    return transactionService.showUserOperationHistory(
+        requesterAdminId,
+        id,
+        filterData,
+        dataTableParams,
+        localeResolver.resolveLocale(request));
   }
 
   @ResponseBody
@@ -380,8 +355,19 @@ public class AdminController {
         List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
         result = ordersSellCancelled;
         break;
+      case "stopOrdersCancelled":
+        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersCancelled ;
+        break;
+      case "stopOrdersClosed":
+        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersClosed ;
+        break;
+      case "stopOrdersOpened":
+        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, localeResolver.resolveLocale(request));
+        result = stopOrdersOpened;
+        break;
     }
-
     return result;
   }
 
@@ -689,7 +675,7 @@ public class AdminController {
       throw e;
     }
   }
-  
+
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/order/accept", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Map<String, Object> acceptOrderByAdmin(@RequestParam int id, Principal principal, Locale locale) {
@@ -753,17 +739,17 @@ public class AdminController {
     return model;
   }
 
-  private List<UserWalletSummaryDto> getSublistForRole( List<UserWalletSummaryDto> fullResult, String role){
+  private List<UserWalletSummaryDto> getSublistForRole(List<UserWalletSummaryDto> fullResult, String role) {
     List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(role);
     List<UserWalletSummaryDto> roleFiltered = fullResult.stream()
-        .filter(e->realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
+        .filter(e -> realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
         .collect(Collectors.toList());
     List<UserWalletSummaryDto> result = new ArrayList<>();
-    for (UserWalletSummaryDto item: roleFiltered){
-      if (!result.contains(item)){
+    for (UserWalletSummaryDto item : roleFiltered) {
+      if (!result.contains(item)) {
         result.add(new UserWalletSummaryDto(item));
       } else {
-        UserWalletSummaryDto storedItem = result.stream().filter(e->e.equals(item)).findAny().get();
+        UserWalletSummaryDto storedItem = result.stream().filter(e -> e.equals(item)).findAny().get();
         storedItem.increment(item);
       }
     }
@@ -848,21 +834,21 @@ public class AdminController {
     currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
-                                                    @RequestParam OrderType orderType) {
+                                                               @RequestParam OrderType orderType) {
     return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
-                                                @RequestParam OrderType orderType,
-                                                @RequestParam String roleName,
-                                                @RequestParam BigDecimal minRate,
-                                                @RequestParam BigDecimal maxRate) {
+                                                    @RequestParam OrderType orderType,
+                                                    @RequestParam String roleName,
+                                                    @RequestParam BigDecimal minRate,
+                                                    @RequestParam BigDecimal maxRate) {
     if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
       throw new InvalidNumberParamException("Invalid request params!");
     }
@@ -1019,70 +1005,90 @@ public class AdminController {
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
   
-  /*
-  TODO BitcoinWalletService
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
-  public ModelAndView bitcoinWallet() {
-    return new ModelAndView("/admin/btcWallet", "walletInfo", bitcoinWalletService.getWalletInfo());
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/transactions", method = RequestMethod.GET)
-  @ResponseBody
-  public List<BtcTransactionHistoryDto> getBtcTransactions() {
-    return bitcoinWalletService.listAllTransactions();
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/estimatedFee", method = RequestMethod.GET)
-  @ResponseBody
-  public BigDecimal getEstimatedFee() {
-    return bitcoinWalletService.estimateFee(6);
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/actualFee", method = RequestMethod.GET)
-  @ResponseBody
-  public BigDecimal getActualFee() {
-    return bitcoinWalletService.getActualFee();
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/setFee", method = RequestMethod.POST)
-  @ResponseBody
-  public void setFee(@RequestParam BigDecimal fee) {
-    bitcoinWalletService.setTxFee(fee);
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
-  @ResponseBody
-  public void submitPassword(@RequestParam String password) {
-    bitcoinWalletService.submitWalletPassword(password);
-  }
-  
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  @ResponseBody
-  public Map<String, String> sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
-    LOG.debug(String.format("Params: address %s, amount %s", address, amount));
-    if (StringUtils.isEmpty(address) || amount == null) {
-      throw new IllegalArgumentException("Empty values not allowed!");
+  private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
+    String serviceBeanName = merchantName.toLowerCase() + "ServiceImpl";
+    IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
+    if (merchantService == null || !(merchantService instanceof BitcoinService)) {
+      throw new NoRequestedBeansFoundException(serviceBeanName);
     }
-
-    String txId = bitcoinWalletService.sendToAddress(address, amount);
-    Map<String, String> result = new HashMap<>();
-    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
-    return result;
+    return (BitcoinService) merchantService;
   }
   
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
+  public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
+    ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
+    modelAndView.addObject("merchant", merchantName);
+    String currency = merchantService.retrieveCoreWalletCurrencyNameByMerchant(merchantName);
+    modelAndView.addObject("currency", currency);
+    modelAndView.addObject("title", messageSource.getMessage(currency.toLowerCase() + "Wallet.title", null, locale));
+    modelAndView.addObject("walletInfo", getBitcoinServiceByMerchantName(merchantName).getWalletInfo());
+    return modelAndView;
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getEstimatedFee(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).estimateFee(6);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/actualFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getActualFee(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).getActualFee();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setFee", method = RequestMethod.POST)
+  @ResponseBody
+  public void setFee(@PathVariable String merchantName, @RequestParam BigDecimal fee) {
+    getBitcoinServiceByMerchantName(merchantName).setTxFee(fee);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/unlock", method = RequestMethod.POST)
+  @ResponseBody
+  public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
+    getBitcoinServiceByMerchantName(merchantName).submitWalletPassword(password);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public Map<String, String> sendToMany(@RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
+  public Map<String, String> sendToMany(@PathVariable String merchantName,
+                                        @RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
     LOG.debug(addresses);
-    String txId = bitcoinWalletService.sendToMany(addresses);
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    String txId = walletService.sendToMany(addresses);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    result.put("newBalance", walletService.getWalletInfo().getBalance());
     return result;
-  }*/
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/details", method = RequestMethod.GET,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public Map<String, RefillRequestBtcInfoDto> getTransactionDetails(@PathVariable String merchantName,
+                                        @RequestParam("currency") String currencyName,
+                                        @RequestParam String hash,
+                                        @RequestParam String address) {
+   Optional<RefillRequestBtcInfoDto> dtoResult = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, hash,
+           merchantName, currencyName);
+    return dtoResult.isPresent() ? Collections.singletonMap("result", dtoResult.get()) : Collections.EMPTY_MAP;
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/create", method = RequestMethod.POST)
+  @ResponseBody
+  public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    LOG.debug(params);
+    getBitcoinServiceByMerchantName(merchantName).processPayment(params);
+  }
+  
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody
@@ -1102,14 +1108,14 @@ public class AdminController {
                                             HttpServletResponse response) throws IOException {
     response.setContentType("text/csv");
     String reportName =
-            "referrals-"
-                    .concat(userService.getEmailById(profitUser))
-                    .concat(".csv");
-    response.setHeader("Content-disposition", "attachment;filename="+reportName);
+        "referrals-"
+            .concat(userService.getEmailById(profitUser))
+            .concat(".csv");
+    response.setHeader("Content-disposition", "attachment;filename=" + reportName);
     List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
     OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
     try {
-      for(String transaction : refsList) {
+      for (String transaction : refsList) {
         writer.write(transaction);
       }
     } catch (IOException e) {
@@ -1133,6 +1139,17 @@ public class AdminController {
   public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+  
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
+          OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
+          NotCreatableOrderException.class})
+  @ResponseBody
+  public ErrorInfo orderExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+  
+ 
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
@@ -1142,7 +1159,8 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
-
+  
+  
 
 
 }

@@ -35,11 +35,15 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
-    String toWallet = String.format("%s: %s - %s", request.getRecipientBankName(), request.getAddress(), request.getRecipient());
+    String toWallet = String.format("%s: %s - %s",
+        request.getRefillRequestParam().getRecipientBankName(),
+        request.getAddress(),
+        request.getRefillRequestParam().getRecipient());
     String message = messageSource.getMessage("merchants.refill.invoice",
         new Object[]{request.getAmount(), toWallet}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
+      put("walletNumber", request.getAddress());
     }};
   }
 

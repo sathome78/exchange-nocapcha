@@ -78,6 +78,7 @@ public enum InvoiceActionTypeEnum {
     getProperty().setActionTypeButton(ACCEPT_HOLDED_BUTTON);
     getProperty().setAvailableForHolderOnly(true);
     getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setLeadsToSuccessFinalState(true);
   }},
   START_BCH_EXAMINE,
   REJECT_TO_REVIEW,

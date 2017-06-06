@@ -222,8 +222,8 @@ public final class TransactionDaoImpl implements TransactionDao {
           " FROM TRANSACTION " +
           "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
           "   JOIN USER ON WALLET.user_id = USER.id" +
-          "   JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-          "   JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+          "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+          "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
           "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id";
   private final String SELECT_ALL =
       " SELECT " +
@@ -368,7 +368,6 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("ids", walletIds);
-    params.put("limit", dataTableParams.getLength());
     params.put("offset", dataTableParams.getStart());
     params.put("limit", dataTableParams.getLength());
     params.put("requester_user_id", requesterUserId);

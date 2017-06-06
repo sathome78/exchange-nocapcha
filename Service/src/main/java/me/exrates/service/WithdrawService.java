@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.ClientBank;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -41,6 +42,8 @@ public interface WithdrawService {
   void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto);
 
   MerchantCurrencyAutoParamDto getAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId);
+
+  List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies);
 
   DataTable<List<WithdrawRequestsAdminTableDto>> getWithdrawRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String authorizedUserEmail, Locale locale);
 

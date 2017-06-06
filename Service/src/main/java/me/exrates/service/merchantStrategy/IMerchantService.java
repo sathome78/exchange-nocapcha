@@ -5,6 +5,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -27,6 +28,8 @@ public interface IMerchantService {
 
   Boolean generatingAdditionalRefillAddressAvailable();
 
+  Boolean additionalTagForWithdrawAddressIsUsed();
+
   Boolean withdrawTransferringConfirmNeeded();
 
   default String generateFullUrl(String url, Properties properties) {
@@ -35,6 +38,21 @@ public interface IMerchantService {
             .map(e -> e.getKey() + "=" + e.getValue())
             .collect(Collectors.joining("&"))
     );
+  }
+
+  default Map<String, String> generateFullUrlMap(String url, String method, Properties properties) {
+    Map<String, String> result = new HashMap<String, String>() {{
+      put("$__redirectionUrl", url);
+      put("$__method", method);
+    }};
+    properties.entrySet().forEach(e -> result.put(e.getKey().toString(), e.getValue().toString()));
+    return result;
+  }
+
+  default Map<String, String> generateFullUrlMap(String url, String method, Properties properties, String sign) {
+    Map<String, String> result = generateFullUrlMap(url, method, properties);
+    result.put("$__sign", sign);
+    return result;
   }
 
   default String getMainAddress() {

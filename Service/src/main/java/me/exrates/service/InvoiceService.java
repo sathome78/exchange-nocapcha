@@ -26,6 +26,11 @@ public interface InvoiceService extends IMerchantService {
   }
 
   @Override
+  default Boolean additionalTagForWithdrawAddressIsUsed() {
+    return false;
+  }
+
+  @Override
   default Boolean withdrawTransferringConfirmNeeded() {
     return false;
   }

@@ -21,11 +21,11 @@ import java.util.Optional;
  */
 public interface RefillService {
 
-  Map<String, String> createRefillRequest(RefillRequestCreateDto requestCreateDto);
+  Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-  List<MerchantCurrency> retrieveAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail);
+  List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
@@ -34,8 +34,20 @@ public interface RefillService {
   List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
-    Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
-
+  
+  Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+          String address,
+          Integer merchantId,
+          Integer currencyId,
+          String hash);
+  
+  Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+  
+  Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+          String address,
+          Integer merchantId,
+          Integer currencyId);
+  
   List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
@@ -76,4 +88,13 @@ public interface RefillService {
   Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+  
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                       String merchantTransactionId,
+                                                                                       String merchantName,
+                                                                                       String currencyName);
+  
+  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
+  
+  Optional<InvoiceBank> findInvoiceBankById(Integer id);
 }

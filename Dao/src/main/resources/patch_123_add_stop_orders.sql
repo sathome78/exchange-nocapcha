@@ -13,7 +13,7 @@ CREATE TABLE STOP_ORDERS (
   `commission_id` int(40) DEFAULT NULL,
   `commission_fixed_amount` double(40,9) NOT NULL,
   `date_creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `date_modification` timestamp NULL DEFAULT NULL,
+  `date_modification` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `status_id` int(40) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `stop_orders_user_id` (`user_id`),

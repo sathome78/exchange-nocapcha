@@ -41,8 +41,12 @@ public interface RefillRequestDao {
 
   void setStatusAndConfirmationDataById(Integer id, InvoiceStatus newStatus, InvoiceConfirmData invoiceConfirmData);
 
-  List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId);
+  void setMerchantRequestSignById(Integer id, String sign);
 
+  List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId);
+  
+  Optional<InvoiceBank> findInvoiceBankById(Integer id);
+  
   Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer merchantId, Integer currencyId, Integer intervalHours, List<Integer> statusIdList);
 
   Optional<RefillRequestFlatDto> getFlatByIdAndBlock(Integer id);
@@ -69,7 +73,7 @@ public interface RefillRequestDao {
 
   Integer findConfirmationsNumberByRequestId(Integer requestId);
 
-  void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations);
+  void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations, String blockhash);
 
   Optional<Integer> findUserIdById(Integer requestId);
 
@@ -78,4 +82,11 @@ public interface RefillRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList);
+  
+  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                       String merchantTransactionId,
+                                                                                       Integer merchantId,
+                                                                                       Integer currencyId);
+  
+  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 }

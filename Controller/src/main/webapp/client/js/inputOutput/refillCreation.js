@@ -51,8 +51,8 @@ $(function refillCreation() {
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
-        merchantIsSimpleInvoice = $(button).data("process_type")=="INVOICE";
-        merchantIsCrypto = $(button).data("process_type")=="CRYPTO";
+        merchantIsSimpleInvoice = $(button).data("process_type") == "INVOICE";
+        merchantIsCrypto = $(button).data("process_type") == "CRYPTO";
         amount = parseFloat($amountHolder.val());
         if (merchantIsCrypto || checkAmount()) {
             fillModalWindow();
@@ -182,11 +182,17 @@ $(function refillCreation() {
                 data: JSON.stringify(data),
             }).success(function (result) {
                 if (!result || !result['redirectionUrl']) {
-                    var qrTag = result['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr']+"'/>" : '';
-                    showRefillDialogAfterCreation(result['message'], qrTag);
+                    var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] + "'/>" : '';
+                    showRefillDialogAfterCreation(result['params']['message'], qrTag);
                     notifications.getNotifications();
                 } else {
-                    window.location = result['redirectionUrl'];
+                    if (!result['method']) {
+                        window.location = result['redirectionUrl'];
+                    } else {
+                        redirectByPost(
+                            result['redirectionUrl'],
+                            result);
+                    }
                 }
             }).complete(function () {
                 $loadingDialog.modal("hide");
@@ -195,6 +201,18 @@ $(function refillCreation() {
         $loadingDialog.modal({
             backdrop: 'static'
         });
+    }
+
+    function redirectByPost(url, params) {
+        var formFields = '';
+        var method = params["method"];
+        $.each(params["params"], function (key, value) {
+            formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
+        });
+        var $form = $('<form id=temp-form-for-redirection target="_blank" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
+        $("body").append($form);
+        $form.submit();
+        $("#temp-form-for-redirection").remove();
     }
 
     function showRefillDetailDialog() {
@@ -214,6 +232,7 @@ $(function refillCreation() {
             $bankItem.attr("data-bank-name", "");
             $bankItem.attr("data-bank-account", "");
             $bankItem.attr("data-bank-recipient", "");
+            $bankItem.attr("data-bank-details", "");
             $bankItem.html(phrases.bankNotSelected);
             $bankSelect.append($bankItem.clone());
             /**/
@@ -224,6 +243,7 @@ $(function refillCreation() {
                 $bankItem.attr("data-bank-name", bank.name);
                 $bankItem.attr("data-bank-account", bank.accountNumber);
                 $bankItem.attr("data-bank-recipient", bank.recipient);
+                $bankItem.attr("data-bank-details", bank.bankDetails);
                 $bankItem.html(bank.name);
                 $bankSelect.append($bankItem.clone());
             });
