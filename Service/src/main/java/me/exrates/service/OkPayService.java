@@ -2,11 +2,7 @@ package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
 
-import java.util.Map;
-
 public interface OkPayService extends IMerchantService {
-
-  public boolean confirmPayment(Map<String,String> params);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

@@ -1,15 +1,8 @@
 package me.exrates.service;
 
-import me.exrates.model.Transaction;
 import me.exrates.service.merchantStrategy.IMerchantService;
 
-import java.util.Map;
-
 public interface NixMoneyService extends IMerchantService {
-
-    boolean confirmPayment(Map<String,String> params);
-
-    void invalidateTransaction(Transaction transaction);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

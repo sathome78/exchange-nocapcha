@@ -1,22 +1,23 @@
 package me.exrates.service.impl;
 
-import me.exrates.model.Transaction;
+import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.AlgorithmService;
-import me.exrates.service.NixMoneyService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -39,10 +40,19 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     private static final Logger logger = LogManager.getLogger(NixMoneyServiceImpl.class);
 
     @Autowired
-    private TransactionService transactionService;
+    private AlgorithmService algorithmService;
 
     @Autowired
-    private AlgorithmService algorithmService;
+    private RefillRequestDao refillRequestDao;
+
+    @Autowired
+    private MerchantService merchantService;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private RefillService refillService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -78,44 +88,31 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     }
 
     @Override
-    @Transactional
-    public boolean confirmPayment(Map<String,String> params) {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
+        String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
+        Currency currency = currencyService.findByName(params.get("PAYMENT_UNITS"));
+        Merchant merchant = merchantService.findByName("Nix Money");
+        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
 
-        Transaction transaction;
-
-        try{
-            transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
-        }catch (EmptyResultDataAccessException e){
-            logger.error(e);
-            return false;
-        }
-        if (transaction.isProvided()) {
-            return true;
-        }
-
-        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
 
         String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;
         String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
                 + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
                 + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
 
-        if (V2_HASH.equals(params.get("V2_HASH")) && Double.parseDouble(params.get("PAYMENT_AMOUNT"))==transactionSum){
-            transactionService.provideTransaction(transaction);
-        }
+        if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)){
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .requestId(requestId)
+                    .merchantId(merchant.getId())
+                    .currencyId(currency.getId())
+                    .amount(amount)
+                    .merchantTransactionId(merchantTransactionId)
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
+            refillService.autoAcceptRefillRequest(requestAcceptDto);        }
 
-        return true;
     }
-
-    @Override
-    @Transactional
-    public void invalidateTransaction(Transaction transaction) {
-        transactionService.invalidateTransaction(transaction);
-    }
-
-    @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        throw new NotImplimentedMethod("for "+params);
-    }
-
 }

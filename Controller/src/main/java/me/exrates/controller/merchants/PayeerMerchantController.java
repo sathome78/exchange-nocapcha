@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
@@ -31,7 +30,7 @@ public class PayeerMerchantController {
   private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
   @RequestMapping(value = "/merchants/payeer/payment/status", method = RequestMethod.POST)
-  public ResponseEntity<String> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestAppropriateNotFoundException {
+  public ResponseEntity<String> statusPayment(@RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
     ResponseEntity<String> responseOK = new ResponseEntity<>(params.get("m_orderid") + "|success", OK);
     logger.info("Response: " + params);

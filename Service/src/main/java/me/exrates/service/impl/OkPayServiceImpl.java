@@ -3,24 +3,21 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-import me.exrates.model.Transaction;
+import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.AlgorithmService;
-import me.exrates.service.OkPayService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.*;
+import me.exrates.service.exception.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -41,10 +38,19 @@ public class OkPayServiceImpl implements OkPayService {
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
-    private TransactionService transactionService;
+    private AlgorithmService algorithmService;
 
     @Autowired
-    private AlgorithmService algorithmService;
+    private RefillRequestDao refillRequestDao;
+
+    @Autowired
+    private MerchantService merchantService;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
+    private RefillService refillService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -75,37 +81,37 @@ public class OkPayServiceImpl implements OkPayService {
     }
 
     @Override
-    @Transactional
-    public boolean confirmPayment(Map<String,String> params) {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
         if (!sendReturnRequest(params)){
-            return false;
+            throw new RefillRequestAppropriateNotFoundException(params.toString());
         }
 
-        Transaction transaction;
+        Integer requestId = Integer.valueOf(params.get("ok_invoice"));
+        String merchantTransactionId = params.get("ok_txn_id");
+        Currency currency = currencyService.findByName(params.get("ok_txn_currency"));
+        Merchant merchant = merchantService.findByName("OkPay");
+        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ok_txn_gross"))).setScale(9);
 
-        try{
-            transaction = transactionService.findById(Integer.parseInt(params.get("ok_invoice")));
-        }catch (EmptyResultDataAccessException e){
-            logger.error(e);
-            return false;
-        }
-        if (transaction.isProvided()) {
-            return true;
-        }
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
 
-        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
-
-        if(Double.parseDouble(params.get("ok_txn_gross"))==transactionSum
-                && params.get("ok_txn_currency").equals(transaction.getCurrency().getName())
+        if(refillRequest.getAmount().equals(amount)
+                && currency.equals(currencyService.getById(refillRequest.getCurrencyId()))
                 && params.get("ok_txn_status").equals("completed")
                 && params.get("ok_receiver_email").equals(ok_receiver_email)){
 
-            transactionService.provideTransaction(transaction);
-            return true;
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .requestId(requestId)
+                    .merchantId(merchant.getId())
+                    .currencyId(currency.getId())
+                    .amount(amount)
+                    .merchantTransactionId(merchantTransactionId)
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
 
-        return false;
     }
 
     private boolean sendReturnRequest(Map<String,String> params) {
@@ -137,10 +143,5 @@ public class OkPayServiceImpl implements OkPayService {
         }
 
         return returnResponse.equals("VERIFIED");
-    }
-
-    @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        throw new NotImplimentedMethod("for "+params);
     }
 }
