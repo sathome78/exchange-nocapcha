@@ -2,10 +2,8 @@ package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.*;
 import me.exrates.model.*;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.RefillRequestDetailsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.dto.mobileApiDto.UserTransferDto;
@@ -68,7 +66,7 @@ public class MobileInputOutputController {
     private MerchantService merchantService;
 
     @Autowired
-    private CurrencyService currencyService;
+    private CommissionService commissionService;
 
     @Autowired
     private WalletService walletService;
@@ -553,19 +551,13 @@ public class MobileInputOutputController {
     }
 
 
-    /*
-    //TODO REFILL
     @RequestMapping(value = "/invoice/details", method = GET)
-    public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId, HttpServletRequest request) {
-        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
-        if (!invoiceRequestResult.isPresent()) {
-            throw new InvoiceNotFoundException(String.format("Invoice with id %s not found", invoiceId));
-        }
-        InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+    public RefillRequestDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId, HttpServletRequest request) {
+        RefillRequestFlatDto refillRequest = refillService.getFlatById(invoiceId);
+        BigDecimal commissionAmount = commissionService.calculateCommissionForRefillAmount(refillRequest.getAmount(), refillRequest.getCommissionId());
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/rest";
-        return new InvoiceDetailsDto(invoiceRequest, baseUrl);
+        return new RefillRequestDetailsDto(refillRequest, commissionAmount, baseUrl);
     }
-*/
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
         String userEmail = getAuthenticatedUserEmail();
