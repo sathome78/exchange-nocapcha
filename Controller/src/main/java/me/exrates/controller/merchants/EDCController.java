@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.service.EDCService;
+import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
 @Controller
@@ -27,17 +29,17 @@ public class EDCController {
 
   @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
   public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestAppropriateNotFoundException {
-    /*for (int i = 0; i < 10; i++) {
-      new Thread(() -> {
-        try {
-          edcService.processPayment(params);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-          e.printStackTrace();
-        }
-      }).start();
-    }*/
-    edcService.processPayment(params);
-    return new ResponseEntity<>(OK);
+
+    final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
+    LOG.info("Response: " + params);
+    try {
+      edcService.processPayment(params);
+      return responseOK;
+    }catch (RefillRequestAlreadyAcceptedException e){
+      return responseOK;
+    }catch (Exception e){
+      return new ResponseEntity<>(BAD_REQUEST);
+    }
   }
 
 
