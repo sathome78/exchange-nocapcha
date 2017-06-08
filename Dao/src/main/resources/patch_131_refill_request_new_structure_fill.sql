@@ -69,7 +69,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 SELECT RR.*
 FROM REFILL_REQUEST RR
-JOIN REFILL_REQUEST_ADDRESS RRa ON (RRA.id=RR.refill_request_address_id)
+JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id=RR.refill_request_address_id)
 WHERE RR.user_id <> RRA.user_id;
 
 По идее в этой выборке должны быть
@@ -80,7 +80,7 @@ currency_id = 9 AND status_id = 4 (IN_PENDING)
 
 SELECT DISTINCT RR.currency_id, RR.status_id
 FROM REFILL_REQUEST RR
-JOIN REFILL_REQUEST_ADDRESS RRa ON (RRA.id=RR.refill_request_address_id)
+JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id=RR.refill_request_address_id)
 WHERE RR.user_id <> RRA.user_id
 
 Если это так, то эти записи можем удалить.
