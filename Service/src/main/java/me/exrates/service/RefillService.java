@@ -8,7 +8,6 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,20 +33,20 @@ public interface RefillService {
   List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
-  
+
   Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-          String address,
-          Integer merchantId,
-          Integer currencyId,
-          String hash);
-  
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      String hash);
+
   Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
-  
+
   Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
-          String address,
-          Integer merchantId,
-          Integer currencyId);
-  
+      String address,
+      Integer merchantId,
+      Integer currencyId);
+
   List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
@@ -62,7 +61,6 @@ public interface RefillService {
 
   void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
-  @Transactional
   void finalizeAcceptRefillRequest(Integer requestId);
 
   RefillRequestFlatDto getFlatById(Integer id);
@@ -88,13 +86,13 @@ public interface RefillService {
   Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
-  
+
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
                                                                                        String merchantTransactionId,
                                                                                        String merchantName,
                                                                                        String currencyName);
-  
+
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
-  
+
   Optional<InvoiceBank> findInvoiceBankById(Integer id);
 }

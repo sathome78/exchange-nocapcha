@@ -12,9 +12,13 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
+import me.exrates.service.exception.RefillRequestMerchantException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +33,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 
 @Service
@@ -101,6 +106,14 @@ public class EDCServiceImpl implements EDCService {
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
     try {
+      /*
+      Образец
+      Predicate<RefillRequestFlatDto> predicate = (request) -> {
+        return
+            request.getMerchantId() == merchant.getId()
+                && request.getCurrencyId() == currency.getId();
+      };
+      requestAcceptDto.setPredicate(predicate);*/
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
       LOG.debug("RefillRequestNotFountException: " + params);
@@ -111,7 +124,7 @@ public class EDCServiceImpl implements EDCService {
   }
 
   private void checkTransactionByHistory(Map<String, String> params) {
-    if (StringUtils.isEmpty(history)){
+    if (StringUtils.isEmpty(history)) {
       return;
     }
     final OkHttpClient client = new OkHttpClient();
@@ -141,7 +154,7 @@ public class EDCServiceImpl implements EDCService {
         }
       }
     } catch (IllegalStateException e) {
-      if ("Address not found".equals(parser.parse(returnResponse).getAsJsonObject().get("message").getAsString())){
+      if ("Address not found".equals(parser.parse(returnResponse).getAsJsonObject().get("message").getAsString())) {
         throw new RefillRequestFakePaymentReceivedException(params.toString());
       } else {
         throw new RefillRequestMerchantException(params.toString());
