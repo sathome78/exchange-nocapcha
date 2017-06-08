@@ -559,7 +559,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public Optional<RefillRequestFlatDto> getFlatById(Integer id) {
     String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
-        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
         " FROM REFILL_REQUEST " +
         "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
         "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
