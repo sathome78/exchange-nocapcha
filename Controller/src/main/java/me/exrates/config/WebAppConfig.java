@@ -372,12 +372,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
-        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
+        return new EthereumCommonServiceImpl("merchants/ethereum.properties",
+                "Ethereum", "ETH", 12);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
-        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
+        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
+                "Ethereum Classic", "ETC", 12);
     }
 
     @Bean

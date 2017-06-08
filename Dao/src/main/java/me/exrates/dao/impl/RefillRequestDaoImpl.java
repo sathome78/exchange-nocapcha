@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -393,9 +392,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("merchant_id", request.getMerchantId())
         .addValue("address", request.getAddress())
         .addValue("user_id", request.getUserId())
-        .addValue("priv_key", request.getUserId())
-        .addValue("pub_key", request.getUserId())
-        .addValue("brain_priv_key", request.getUserId());
+        .addValue("priv_key", request.getPrivKey())
+        .addValue("pub_key", request.getPubKey())
+        .addValue("brain_priv_key", request.getBrainPrivKey());
     namedParameterJdbcTemplate.update(addAddressSql, params);
     refillRequestAddressId = request.getId();
     return refillRequestAddressId;
