@@ -27,6 +27,15 @@ public class EDCController {
 
   @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
   public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestAppropriateNotFoundException {
+    /*for (int i = 0; i < 10; i++) {
+      new Thread(() -> {
+        try {
+          edcService.processPayment(params);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+          e.printStackTrace();
+        }
+      }).start();
+    }*/
     edcService.processPayment(params);
     return new ResponseEntity<>(OK);
   }
