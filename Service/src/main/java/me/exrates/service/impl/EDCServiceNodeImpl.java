@@ -12,6 +12,9 @@ import me.exrates.model.Transaction;
 import me.exrates.service.EDCServiceNode;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -285,9 +288,16 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   public void transferFromMainAccount(final String accountName, final String amount) throws IOException, InterruptedException {
     final String responseImportKey = makeRpcCallFast(IMPORT_KEY, MAIN_ACCOUNT, MAIN_ACCOUNT_PRIVATE_KEY, 1);
     if (responseImportKey.contains("true")) {
-      final String responseTransfer = makeRpcCallFast(TRANSFER_EDC, MAIN_ACCOUNT, accountName, amount, "EDC", "Output transfer", 1);
+      final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,MAIN_ACCOUNT, accountName, amount, "EDC", "Output transfer", 1);
       if (responseTransfer.contains("error")) {
-        throw new InterruptedException("Could not transfer money from main account!\n" + responseTransfer);
+        LOG.error(responseTransfer);
+        if (responseTransfer.contains("rec && rec->name == account_name_or_id")){
+          throw new InvalidAccountException();
+        }
+        if (responseTransfer.contains("Insufficient Balance")){
+          throw new InsufficientCostsInWalletException();
+        }
+        throw new MerchantException(responseTransfer);
       }
     }
   }

@@ -1,14 +1,40 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
+import me.exrates.service.merchantStrategy.IMerchantService;
 
 /**
  * Created by ajet on
  */
-public interface EthereumCommonService {
+public interface EthereumCommonService extends IMerchantService {
 
-    String createAddress(CreditsOperation creditsOperation);
+    @Override
+    default Boolean createdRefillRequestRecordNeeded() {
+        return false;
+    }
 
-//    void start(String currentCurrency, String url, String destinationDir, String password, String mainAddress);
+    @Override
+    default Boolean needToCreateRefillRequestRecord() {
+        return false;
+    }
+
+    @Override
+    default Boolean toMainAccountTransferringConfirmNeeded() {
+        return false;
+    }
+
+    @Override
+    default Boolean generatingAdditionalRefillAddressAvailable() {
+        return true;
+    }
+
+    @Override
+    default Boolean additionalTagForWithdrawAddressIsUsed() {
+        return false;
+    }
+
+    @Override
+    default Boolean withdrawTransferringConfirmNeeded() {
+        return false;
+    }
 
 }
