@@ -116,7 +116,7 @@ public class EDCServiceImpl implements EDCService {
       requestAcceptDto.setPredicate(predicate);*/
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      LOG.debug("RefillRequestNotFountException: " + params);
+      LOG.debug("RefillRequestAppropriateNotFoundException: " + params);
       Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);
