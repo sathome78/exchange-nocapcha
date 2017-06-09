@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
+import org.stellar.sdk.responses.TransactionResponse;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
@@ -73,17 +74,17 @@ public class StellarServiceImpl implements StellarService {
     }
 
     @Override
-    public void onTransactionReceive(PaymentOperationResponse payment) {
+    public void onTransactionReceive(TransactionResponse payment, String amount) {
         log.debug("income transaction {} ", payment);
         Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("hash", payment.getLinks().getTransaction());
-        Integer destinationTag = transaction.getInt("DestinationTag");
+        paramsMap.put("hash", payment.getHash());
+        Integer destinationTag = Integer.parseInt(payment.getMemo().toString());
         paramsMap.put("address", String.valueOf(destinationTag));
-        paramsMap.put("amount", payment.getAmount());
+        paramsMap.put("amount", amount);
         try {
             this.processPayment(paramsMap);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error("xrp refill address not found {}", transaction.toString());
+            log.error("xlm refill address not found {}", payment);
         }
     }
 

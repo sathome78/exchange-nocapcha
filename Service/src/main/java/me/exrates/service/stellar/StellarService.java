@@ -2,6 +2,7 @@ package me.exrates.service.stellar;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
 import org.json.JSONObject;
+import org.stellar.sdk.responses.TransactionResponse;
 
 /**
  * Created by maks on 06.06.2017.
@@ -15,7 +16,6 @@ public interface StellarService extends IMerchantService {
         throws Exception if declined*/
     boolean checkSendedTransaction(String hash, String additionalParams);
 
-    void onTransactionReceive(JSONObject result);
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {
@@ -46,4 +46,6 @@ public interface StellarService extends IMerchantService {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    void onTransactionReceive(TransactionResponse payment, String amount);
 }
