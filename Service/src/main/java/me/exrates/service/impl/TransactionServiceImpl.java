@@ -343,4 +343,9 @@ public class TransactionServiceImpl implements TransactionService {
     return "Date;Operation Type;Status;Currency;Amount;Comission;Merchant;Source Id";
   }
 
+  @Override
+  public List<Transaction> getPayedRefTransactionsByOrderId(int orderId) {
+    return transactionDao.getPayedRefTransactionsByOrderId(orderId);
+  }
+
 }

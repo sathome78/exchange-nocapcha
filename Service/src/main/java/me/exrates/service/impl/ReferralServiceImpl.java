@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
@@ -160,6 +159,7 @@ public class ReferralServiceImpl implements ReferralService {
             }
         }
     }
+
 
     @Override
     public List<ReferralTransaction> findAll(final int userId) {
@@ -411,5 +411,11 @@ public class ReferralServiceImpl implements ReferralService {
         transactionsResult.add(getCSVTransactionsHeader());
         transactionsResult.add("\n");
         return transactionsResult;
+    }
+
+    @Override
+    @Transactional
+    public void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId) {
+        referralTransactionDao.setRefTransactionStatus(status, refTransactionId);
     }
 }

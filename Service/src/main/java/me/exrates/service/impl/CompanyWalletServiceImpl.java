@@ -100,6 +100,19 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
+    public void depositReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
+        BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, ADD);
+        if (newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
+        }
+        companyWallet.setCommissionBalance(newReservedBalance);
+        if (!companyWalletDao.update(companyWallet)) {
+            throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
         BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, SUBTRACT);
         if (newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {

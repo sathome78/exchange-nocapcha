@@ -5,6 +5,7 @@ import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,5 +134,18 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
                 return myReferralDetailedDto;
             }
         });
+    }
+
+    @Override
+    public void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId) {
+        String sql = "UPDATE REFERRAL_TRANSACTION " +
+                " SET status = :status" +
+                " WHERE id = :transaction_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("transaction_id", refTransactionId);
+            put("status", status.name());
+        }};
+        boolean res = jdbcTemplate.update(sql, params) > 0;
+        if (!res) throw new RuntimeException("error change status to ref transaction " + refTransactionId);
     }
 }

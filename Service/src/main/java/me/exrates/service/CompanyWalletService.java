@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -19,6 +20,8 @@ public interface CompanyWalletService {
     List<CompanyWallet> getCompanyWallets();
 
     void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
+
+    void depositReservedBalance(CompanyWallet companyWallet, BigDecimal amount);
 
     void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount);
 
