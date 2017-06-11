@@ -89,4 +89,6 @@ public interface RefillRequestDao {
                                                                                        Integer currencyId);
   
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
+
+  List<String> findAllAddresses(Integer merchantId, Integer currencyId);
 }

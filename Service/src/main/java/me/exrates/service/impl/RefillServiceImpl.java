@@ -936,4 +936,8 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findInvoiceBankById(id);
   }
 
+  @Override
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
+     return refillRequestDao.findAllAddresses(merchantId, currencyId);
+  }
 }

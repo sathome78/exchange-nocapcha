@@ -151,8 +151,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             Currency currency = currencyService.findByName(currencyName);
 
 
-            ethereumNodeDao.findAllAddresses(merchant.getName()).forEach(address -> accounts.add(address));
-//            ethereumNodeDao.findPendingTransactions(currentCurrency).forEach(transaction -> pendingTransactions.add(transaction));
+            refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
@@ -172,8 +171,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                         return;
                                     }
                                     BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
-                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > 12){
-                                        provideTransactionAndTransferFunds(ethBlock.getTo(), transaction.getMerchantTransactionId());
+                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
+                                        provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
                                         LOG.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
                                         LOG.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
                                         providedTransactions.add(transaction);
@@ -195,7 +194,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
                 String recipient = ethBlock.getTo();
                 if (accounts.contains(recipient)){
-//                    if (!ethereumNodeDao.isMerchantTransactionExists(ethBlock.getHash(), currentCurrency)){
                     if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(recipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
                         BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
                         LOG.debug(merchantName + " recipient: " + recipient + ", amount: " + amount);
@@ -206,6 +204,19 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                         .merchantId(merchant.getId())
                                         .currencyId(currency.getId())
                                         .merchantTransactionId(ethBlock.getHash()).build());
+
+                        try {
+                            refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
+                                    .requestId(requestId)
+                                    .merchantId(merchant.getId())
+                                    .currencyId(currency.getId())
+                                    .address(recipient)
+                                    .amount(amount)
+                                    .hash(ethBlock.getHash())
+                                    .blockhash(ethBlock.getBlockNumber().toString()).build());
+                        } catch (RefillRequestAppropriateNotFoundException e) {
+                            LOG.error(e);
+                        }
 
                         pendingTransactions.add(refillService.getFlatById(requestId));
 

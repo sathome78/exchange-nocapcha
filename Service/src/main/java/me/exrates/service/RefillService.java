@@ -95,4 +95,6 @@ public interface RefillService {
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 
   Optional<InvoiceBank> findInvoiceBankById(Integer id);
+
+  List<String> findAllAddresses(Integer merchantId, Integer currencyId);
 }
