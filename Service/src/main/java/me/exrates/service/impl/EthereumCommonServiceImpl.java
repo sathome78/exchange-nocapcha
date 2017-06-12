@@ -299,7 +299,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 LOG.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
                 transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
-        } catch (RefillRequestAppropriateNotFoundException e) {
+//        } catch (RefillRequestAppropriateNotFoundException e) {
+        } catch (Exception e) {
             LOG.error(e);
         }
 
