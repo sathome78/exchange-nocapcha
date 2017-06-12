@@ -62,4 +62,9 @@ public interface MerchantService {
   List<String> retrieveBtcCoreBasedMerchantNames();
 
   String retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+
+    Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount,
+                                                           OperationType type,
+                                                           String currency,
+                                                           String merchant);
 }

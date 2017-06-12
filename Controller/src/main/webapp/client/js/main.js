@@ -1,4 +1,6 @@
 /* --------- Serializes form data to json object -------------- */
+/*todo: refactor this! this js uses only for transfer funds between users. */
+
 
 $.fn.serializeObject = function () {
     var o = {};
@@ -148,10 +150,10 @@ $(function () {
         $('.response_money_operation_btn').show();
     }
 
-/*    function requestControls() {
+    function requestControls() {
         $('.request_money_operation_btn').show();
         $('.response_money_operation_btn').hide();
-    }*/
+    }
 
     function resetPaymentFormData(targetMerchant, form, callback) {
         if (operationType.val() === 'OUTPUT') {
@@ -449,24 +451,65 @@ $(function () {
         }
     }
 
-    /*function isCorrectSum() {
-        var result = false;
-        if (merchantName !== 'Blockchain') {
-            var targetSum = parseFloat(sum.val());
-            if (targetSum >= merchantMinSum) {
-                return result = true;
-            }
-        }
-        return true;
-    }*/
+    function isCorrectSum() {
+        var merchantMinSum = $('#minAmount').text();
+        var merchantMaxSum = $('#maxForTransfer').text();
+        console.log( "ms" + merchantMinSum);
+        var targetSum = parseFloat(sum.val());
+        return targetSum >= merchantMinSum && targetSum <= merchantMaxSum;
 
+    }
 
-        /*}).fail(function () {
+    function fillModalWindow(type,amount,currency) {
+        $.ajax({
+            url: '/merchants/commission',
+            type: "get",
+            contentType: "application/json",
+            data : {"type":type, "amount":amount, "currency":currency, "merchant":merchantName}
+        }).done(function (response) {
+            var templateVariables = {
+                amount: '__amount',
+                currency: '__currency',
+                merchant: '__merchant',
+                percent: '__percent'
+            };
+            var newHTMLElements = [];
+            modalTemplate.slice().each(function(index,val){
+                newHTMLElements[index] = '<p>'+$(val).html()+'</p>';
+            });
+            newHTMLElements[0] = newHTMLElements[0]
+                .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
+            newHTMLElements[1] = newHTMLElements[1]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
+                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "</span>");
+            newHTMLElements[2] = newHTMLElements[2]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['amount'] + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>");
+            var newHTML = '';
+            $.each(newHTMLElements, function (index) {
+                newHTML += newHTMLElements[index];
+            });
+            $('.paymentInfo').html(newHTML);
+            $('.merchantError').hide();
+
+        }).fail(function () {
             $('.paymentInfo').hide();
             $('.wallet_input').hide();
             $('.merchantError').show();
-        });*/
+        });
+    }
 
+
+    sum.on('input', function () {
+        if(isCorrectSum()) {
+            button.prop('disabled', false);
+        } else {
+            button.prop('disabled', true);
+        }
+    });
 
     currency.on('change', function () {
         resetMerchantsList(this.value);
@@ -545,9 +588,7 @@ $(function () {
         fillModalWindow('OUTPUT', sum.val(), getCurrentCurrency());
     });*/
 
-    $('#inputPaymentProcess').on('click', function () {
-        submitProcess();
-    });
+
 
     /*$("#outputPaymentProcess").on('click', function () { TODO
         if (merchantName === INVOICE) {
@@ -572,12 +613,7 @@ $(function () {
     }*/
 
 
-    /*function getFinPassModal() {
-        $('#submitTransferModalButton').prop('disabled', false);
-        $('#finPassModal').modal({
-            backdrop: 'static'
-        });
-    }*/
+
 
     /*$('#submitTransferModalButton').click(function (e) {
         console.log('merchant ' + merchant);
@@ -592,6 +628,10 @@ $(function () {
         }
 
     });*/
+
+    $('#inputPaymentProcess').on('click', function () {
+        submitProcess();
+    });
 
     $('#transferButton').click(function () {
         prepareTransfer()
@@ -619,6 +659,20 @@ $(function () {
         $('#nickname').val(nickname);
         $('#transferProcess').prop('disabled', true);
         checkTransfer();
+    });
+
+    function getFinPassModal() {
+        $('#check-fin-password-button').prop('disabled', false);
+        $('#finPassModal').modal({
+            backdrop: 'static'
+        });
+    }
+
+    $('#check-fin-password-button').click(function (e) {
+        console.log('merchant ' + merchant);
+        e.preventDefault();
+        $('#check-fin-password-button').prop('disabled', true);
+        submitTransfer();
     });
 
 
@@ -694,13 +748,6 @@ $(function () {
 
 });
 
-function processWithdraw() {
-    form = $('#myModal');
-    form.modal({
-        backdrop: 'static'
-    });
-
-}
 
 
 function parseNumber(numberStr) {
