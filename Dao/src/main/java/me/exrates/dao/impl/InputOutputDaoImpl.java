@@ -145,7 +145,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
       TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
       myInputOutputHistoryDto.setSourceType(sourceType);
       myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
-      myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
+      Timestamp dateModification = rs.getTimestamp("status_modification_date");
+      myInputOutputHistoryDto.setStatusUpdateDate(dateModification == null ? null : dateModification.toLocalDateTime());
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
