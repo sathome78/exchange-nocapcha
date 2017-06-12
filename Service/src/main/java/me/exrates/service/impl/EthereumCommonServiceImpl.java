@@ -308,10 +308,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private void transferFundsToMainAccount(RefillRequestsAdminTableDto refillRequest){
         try {
-            LOG.error("Start method transferFundsToMainAccount...");
+            LOG.info("Start method transferFundsToMainAccount...");
             Credentials credentials = Credentials.create(new ECKeyPair(new BigInteger(refillRequest.getPrivKey()),
                     new BigInteger(refillRequest.getPubKey())));
-            LOG.error("Credentials: " + credentials.toString());
+            LOG.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
             Transfer.sendFunds(
                     web3j, credentials, mainAddress, refillRequest.getAmount()
                             .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(Transfer.GAS_PRICE).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
