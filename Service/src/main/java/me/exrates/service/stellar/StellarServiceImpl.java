@@ -11,6 +11,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,12 +19,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.stellar.sdk.*;
-import org.stellar.sdk.responses.AccountResponse;
-import org.stellar.sdk.responses.SubmitTransactionResponse;
 import org.stellar.sdk.responses.TransactionResponse;
-import org.stellar.sdk.responses.operations.OperationResponse;
-import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -40,7 +37,7 @@ public class StellarServiceImpl implements StellarService {
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;
     private @Value("${stellar.account.name}")String ACCOUNT_NAME;
-    private @Value("${stellar.account.secret}")String ACCOUNT_SECRET;
+    private @Value("${stellar.account.seed}")String ACCOUNT_SECRET;
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -49,10 +46,8 @@ public class StellarServiceImpl implements StellarService {
     private MessageSource messageSource;
     @Autowired
     private RefillService refillService;
-
-    private static final Integer XRP_AMOUNT_MULTIPLIER = 1000000;
-    private static final Integer XRP_DECIMALS = 6;
-    private static final BigDecimal XRP_MIN_BALANCE = new BigDecimal(20);
+    @Autowired
+    private StellarTransactionService stellarTransactionService;
 
     private static final String XLM_MERCHANT = "Stellar";
 
@@ -70,7 +65,11 @@ public class StellarServiceImpl implements StellarService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+        log.error("withdraw_XLM");
+        if (!"XLM".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+            throw new WithdrawRequestPostException("Currency not supported by merchant");
+        }
+        return stellarTransactionService.withdraw(withdrawMerchantOperationDto, SEVER_URL, ACCOUNT_SECRET);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class StellarServiceImpl implements StellarService {
         String hash = params.get("hash");
         Currency currency = currencyService.findByName("XLM");
         Merchant merchant = merchantService.findByName(XLM_MERCHANT);
-        BigDecimal amount = this.normalizeAmountToDecimal(params.get("amount"));
+        BigDecimal amount = stellarTransactionService.normalizeAmountToDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -148,68 +147,8 @@ public class StellarServiceImpl implements StellarService {
         }
     }
 
-    private void constructTransaction(String destinationAccountId, long memo, BigDecimal amount)  {
-
-        Network.useTestNetwork();
-        Server server = new Server(SEVER_URL);
-
-        KeyPair source = KeyPair.fromSecretSeed(ACCOUNT_SECRET);
-        KeyPair destination = KeyPair.fromAccountId(destinationAccountId);
-
-// First, check to make sure that the destination account exists.
-// You could skip this, but if the account does not exist, you will be charged
-// the transaction fee when the transaction fails.
-// It will throw HttpResponseException if account does not exist or there was another error.
-        try {
-            server.accounts().account(destination);
-        } catch (IOException e) {
-            /*todo: here throw account not found exception*/
-            return;
-        }
-
-// If there was no error, load up-to-date information on your account.
-        AccountResponse sourceAccount = null;
-        try {
-            sourceAccount = server.accounts().account(source);
-            AccountResponse.Balance[] balances =  sourceAccount.getBalances();
-
-        } catch (IOException e) {
-            /*todo: our account not found exception*/
-            return;
-        }
-
-// Start building the transaction.
-        Transaction transaction = new Transaction.Builder(sourceAccount)
-                .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), normalizeAmountToString(amount)).build())
-                // A memo allows you to add your own metadata to a transaction. It's
-                // optional and does not affect how Stellar treats the transaction.
-                .addMemo(Memo.id(memo))
-                .build();
-// Sign the transaction to prove you are actually the person sending it.
-        transaction.sign(source);
-// And finally, send it off to Stellar!
-        try {
-            SubmitTransactionResponse response = server.submitTransaction(transaction);
-            if (response.isSuccess()) {
-                String hash = Arrays.toString(transaction.hash());
-            }
-        } catch (Exception e) {
-            log.error("error sending transaction {}", e.getMessage());
-        }
-    }
-
-
-    private String normalizeAmountToString(BigDecimal amount) {
-        return amount
-                .setScale(XRP_DECIMALS, RoundingMode.HALF_DOWN)
-                .multiply(new BigDecimal(XRP_AMOUNT_MULTIPLIER))
-                .toBigInteger()
-                .toString();
-    }
-
-    private BigDecimal normalizeAmountToDecimal(String amount) {
-        return new BigDecimal(amount)
-                .divide(new BigDecimal(XRP_AMOUNT_MULTIPLIER))
-                .setScale(XRP_DECIMALS, RoundingMode.HALF_DOWN);
+    @Override
+    public String getMainAddress() {
+        return ACCOUNT_NAME;
     }
 }

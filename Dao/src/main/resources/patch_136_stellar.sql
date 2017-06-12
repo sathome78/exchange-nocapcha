@@ -1,6 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`)
 VALUES ('Stellar', 'Stellar', 2, 'stellarServiceImpl');
-INSERT INTO `CURRENCY` (`name`, `description`, `hidden`) VALUES ('XLM', 'XLM', '0');
+INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`)
+VALUES ('XLM', 'XLM', '0', 6, 6);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='Stellar'),

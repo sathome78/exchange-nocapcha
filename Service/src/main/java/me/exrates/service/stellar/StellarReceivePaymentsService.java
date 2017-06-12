@@ -32,16 +32,18 @@ public class StellarReceivePaymentsService {
     @Autowired
     private StellarService stellarService;
     @Autowired
-    private MerchantService merchantService;
+    private StellarTransactionService stellarTransactionService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
 
+
     private @Value("${stellar.horizon.url}")String SEVER_URL;
     private @Value("${stellar.account.name}")String ACCOUNT_NAME;
-    private @Value("${stellar.account.secret}")String ACCOUNT_SECRET;
+    private @Value("${stellar.account.seed}")String ACCOUNT_SECRET;
     private Server server;
     private KeyPair account;
     private static final String LAST_PAGING_TOKEN_PARAM = "LastPagingToken";
+    private static final String MERCHANT_NAME = "Stellar";
 
     // Create an API call to query payments involving the account.
     private PaymentsRequestBuilder paymentsRequest;
@@ -56,32 +58,30 @@ public class StellarReceivePaymentsService {
         if (lastToken != null) {
             paymentsRequest.cursor(lastToken);
         }
-
         paymentsRequest.stream(new EventListener<OperationResponse>() {
             @Override
             public void onEvent(OperationResponse payment) {
                 log.debug("stellar income payment {}", payment);
-                // Record the paging token so we can start from here next time.
-                savePagingToken(payment.getPagingToken());
                 // The payments stream includes both sent and received payments. We only
                 // want to process received payments here.
                 if (payment instanceof PaymentOperationResponse) {
                     if (((PaymentOperationResponse) payment).getTo().equals(account)) {
-                        return;
-                    }
-                    PaymentOperationResponse response = ((PaymentOperationResponse) payment);
-                    if (response.getAsset().equals(new AssetTypeNative())) {
-                        TransactionResponse transactionResponse = null;
-                        try {
-                            TransactionsRequestBuilder transactionsRequestBuilder = new TransactionsRequestBuilder(new URI(SEVER_URL));
-                            transactionResponse = transactionsRequestBuilder.transaction(response.getLinks().getTransaction().getUri());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (URISyntaxException e) {
-                            e.printStackTrace();
+                        PaymentOperationResponse response = ((PaymentOperationResponse) payment);
+                        if (response.getAsset().equals(new AssetTypeNative())) {
+                            TransactionResponse transactionResponse = null;
+                            try {
+                                transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
+                            } catch (Exception e) {
+                                log.error("error getting transaction {}", e);
+                            }
+                            stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
+                            // Record the paging token so we can start from here next time.
+                            savePagingToken(payment.getPagingToken());
+                        } else {
+                            return;
                         }
-                        stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
                     } else {
+                        /*todo processing of sended payments if needed*/
                         return;
                     }
                 }
@@ -90,11 +90,10 @@ public class StellarReceivePaymentsService {
     }
 
     private void savePagingToken(String pagingToken) {
-
+        specParamsDao.updateParam(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM, pagingToken);
     }
 
     private String loadLastPagingToken() {
-
-        return specParamsDao.getByMerchantIdAndParamName();
+        return specParamsDao.getByMerchantIdAndParamName(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM).getParamValue();
     }
 }

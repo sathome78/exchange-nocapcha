@@ -25,10 +25,12 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public MerchantSpecParamDto getByMerchantIdAndParamName(int merchantId, String paramName) {
-        String sql = " SELECT * FROM MERCHANT_SPEC_PARAMETERS WHERE merchant_id = :merchant_id AND param_name = :param_name ";
+    public MerchantSpecParamDto getByMerchantIdAndParamName(String merchantName, String paramName) {
+        String sql = " SELECT MSP.* FROM MERCHANT_SPEC_PARAMETERS MSP " +
+                " INNER JOIN MERCHANT M ON M.id = MSP.merchant_id " +
+                " WHERE M.name = :merchant_name AND MSP.param_name = :param_name ";
         Map<String, Object> params = new HashMap<>();
-        params.put("merchant_id", merchantId);
+        params.put("merchant_name", merchantName);
         params.put("param_name", paramName);
         return jdbcTemplate.queryForObject(sql, params, new RowMapper<MerchantSpecParamDto>() {
             @Override
@@ -41,5 +43,18 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
                 return dto;
             }
         });
+    }
+
+    @Override
+    public boolean updateParam(String merchantName, String paramName, String newValue) {
+        String sql = " UPDATE MERCHANT_SPEC_PARAMETERS MSP " +
+                " INNER JOIN MERCHANT M ON M.id = MSP.merchant_id " +
+                " SET MSP.param_value = :new_value " +
+                " WHERE M.name = :merchant_name AND MSP.param_name = :param_name ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("merchant_name", merchantName);
+        params.put("param_name", paramName);
+        params.put("new_value", newValue);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 }

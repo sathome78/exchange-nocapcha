@@ -128,17 +128,15 @@
     </dependency>
     <dependency>
       <groupId>stellar</groupId>
-      <artifactId>java-stellar-sdk</artifactId>
+      <artifactId>stellar-sdk</artifactId>
       <version>0.1.9</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/stellar-sdk.jar</systemPath>
     </dependency>
   </dependencies>
   <repositories>
     <repository>
       <id>btcd-cli4j-inner</id>
       <name>btcd-cli4j Inner Repo</name>
-      <url>file://${project.basedir}/libs</url>
+      <url>file:///${project.basedir}/libs</url>
     </repository>
   </repositories>
 
