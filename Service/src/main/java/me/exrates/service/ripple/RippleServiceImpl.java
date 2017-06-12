@@ -121,7 +121,7 @@ public class RippleServiceImpl implements RippleService {
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      log.debug("RefillRequestNotFountException: " + params);
+      log.debug("RefillRequestAppropriateNotFoundException: " + params);
       Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);

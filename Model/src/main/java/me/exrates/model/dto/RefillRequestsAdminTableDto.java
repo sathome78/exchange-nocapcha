@@ -96,9 +96,9 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.receiptScan = refillRequestFlatDto.getReceiptScan();
     this.userFullName = refillRequestFlatDto.getUserFullName();
     this.remark = refillRequestFlatDto.getRemark();
-    this.privKey = null;
-    this.pubKey = null;
-    this.brainPrivKey = null;
+    this.privKey = refillRequestFlatDto.getPrivKey();
+    this.pubKey = refillRequestFlatDto.getPubKey();
+    this.brainPrivKey = refillRequestFlatDto.getBrainPrivKey();
     this.status = refillRequestFlatDto.getStatus();
     this.statusModificationDate = refillRequestFlatDto.getStatusModificationDate();
     this.invoiceOperationPermission = refillRequestFlatDto.getInvoiceOperationPermission();
