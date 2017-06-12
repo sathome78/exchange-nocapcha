@@ -88,6 +88,7 @@ $(function () {
     var merchantsData;
     var usernameToTransfer = $('#nickname');
     var $timeoutWarning = $('.timeoutWarning');
+    var $minSumNotification = $('#min-sum-notification');
 
 
 
@@ -451,15 +452,6 @@ $(function () {
         }
     }
 
-    function isCorrectSum() {
-        var merchantMinSum = $('#minAmount').text();
-        var merchantMaxSum = $('#maxForTransfer').text();
-        console.log( "ms" + merchantMinSum);
-        var targetSum = parseFloat(sum.val());
-        return targetSum >= merchantMinSum && targetSum <= merchantMaxSum;
-
-    }
-
     function fillModalWindow(type,amount,currency) {
         $.ajax({
             url: '/merchants/commission',
@@ -506,14 +498,25 @@ $(function () {
     sum.on('input', function () {
         if(isCorrectSum()) {
             button.prop('disabled', false);
+            $minSumNotification.hide();
         } else {
             button.prop('disabled', true);
+            $minSumNotification.show();
         }
     });
 
-    currency.on('change', function () {
+    function isCorrectSum() {
+        var merchantMinSum = $('#minAmount').text();
+        var merchantMaxSum = $('#maxForTransfer').text();
+        console.log( "ms" + merchantMinSum);
+        var targetSum = parseFloat(sum.val());
+        return targetSum >= merchantMinSum && targetSum <= merchantMaxSum;
+
+    }
+
+    /*currency.on('change', function () {
         resetMerchantsList(this.value);
-    });
+    });*/
 
     function submitProcess() {
         var targetMerchant = merchantName;
@@ -538,7 +541,7 @@ $(function () {
         return $("#currencyName").val();
     }
 
-    $('button[name=assertInputPay]').click(function (e) {
+    /*$('button[name=assertInputPay]').click(function (e) {
         e.preventDefault();
         var arr = this.value.split(':');
         merchant = arr[0];
@@ -568,7 +571,7 @@ $(function () {
                 $('#myModal').modal();
             }
         }
-    });
+    });*/
 
     /*$('button[name=assertOutputPay]').click(function () {
         var arr = this.value.split(':');
@@ -590,7 +593,7 @@ $(function () {
 
 
 
-    /*$("#outputPaymentProcess").on('click', function () { TODO
+    /*$("#outputPaymentProcess").on('click', function () {
         if (merchantName === INVOICE) {
             getFinPassModal();
             $('#myModal .close').click();

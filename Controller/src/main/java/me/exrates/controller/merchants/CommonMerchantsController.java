@@ -136,7 +136,7 @@ public class CommonMerchantsController {
         .getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
   }
 
-  @RequestMapping(value = "/merchants/commission", method = GET)
+  @RequestMapping(value = "merchants/commission", method = GET)
   @ResponseBody
   public Map<String,String> getCommissions(final @RequestParam("type") OperationType type,
                                            final @RequestParam("amount") BigDecimal amount,

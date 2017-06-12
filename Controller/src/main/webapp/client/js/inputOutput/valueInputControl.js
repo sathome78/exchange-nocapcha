@@ -1,4 +1,36 @@
 $(function () {
+
+    var withdrawButtons = $('#merchantList').find(".start-button");
+    var minAmount = 0;
+
+    determineMinAmount();
+
+    function determineMinAmount() {
+        withdrawButtons.each(function(index,item){
+            var $item = $(item);
+            $item.prop('disabled', true);
+            if(minAmount < $item.data("min-sum")) {
+                minAmount = $item.data("min-sum");
+            }
+        });
+        var systemMinAmount = $('.numericInputField').data("system-min-sum");
+        minAmount = Math.max(systemMinAmount, minAmount);
+        $('#minSum').text(minAmount);
+        $('.numericInputField').attr("data-min-amount", minAmount);
+    }
+
+    function checkButtons(amount) {
+        withdrawButtons.each(function(index,item){
+            var $item = $(item);
+            if(amount >= $item.data("min-sum")) {
+                $item.prop('disabled', false);
+            } else {
+                $item.prop('disabled', true);
+            }
+        });
+    }
+
+
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
     $(".numericInputField")
@@ -62,12 +94,13 @@ $(function () {
                 $(this).val($(this).val().slice(0, -1));
 
             }
-            if (val > 0 && val >= minLimit) {
+            checkButtons(val);
+           /* if (val > 0 && val >= minLimit) {
                 $(buttonId).prop('disabled', false);
             } else {
                 $(buttonId).prop('disabled', true);
             }
-
+*/
         });
 });
 

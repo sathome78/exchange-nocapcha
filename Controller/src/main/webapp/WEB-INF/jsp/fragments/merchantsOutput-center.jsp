@@ -39,15 +39,17 @@
                      class="form-control input-block-wrapper__input numericInputField"
                      data-currency-name="${currency.name}"
                      data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
-                     data-min-amount="${minWithdrawSum}"
+                     data-min-amount
+                     data-system-min-sum="${minWithdrawSum}"
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
                      data-submit-button-id=".start-withdraw"/>
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
-                <strong> ${currency.name} <span><fmt:formatNumber value="${minWithdrawSum}"
-                                                                  pattern="###,##0.00######"/></span>
+                <strong> <span id="minSum"><%--<fmt:formatNumber value="${minWithdrawSum}"
+                                                                  pattern="###,##0.00######"/>--%></span>
+                                                                  ${currency.name}
                 </strong>
               </div>
             </div>
@@ -64,17 +66,18 @@
                     <div style="float: left; height: 20px;  width: 408px; text-align: left; margin-right: 10px; padding-left: 210px">
                       <c:if test="${(merchantCurrency.minSum > 0) && (merchantCurrency.processType != \"INVOICE\")}">
                         <span><loc:message code="mercnahts.output.minSum"/></span>
-                        <span>${merchantCurrency.minSum.stripTrailingZeros().toPlainString()}</span>
+                        <span >${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}</span>
                       </c:if>
                     </div>
                   </div>
-                  <button class="start-withdraw btn btn-primary btn-lg"
+                  <button class="start-withdraw btn btn-primary btn-lg start-button"
                           type="button"
                           data-currency-id="${currency.getId()}"
                           data-currency-name="${currency.getName()}"
                           data-merchant-id="${merchantCurrency.merchantId}"
                           data-merchant-name="${merchantCurrency.name}"
                           data-merchant-min-sum="${merchantCurrency.minSum}"
+                          data-min-sum="${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}"
                           data-process_type="${merchantCurrency.processType}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
