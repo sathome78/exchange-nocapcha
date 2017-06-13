@@ -133,7 +133,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
+        return new HashMap<>();
     }
 
     @Override
