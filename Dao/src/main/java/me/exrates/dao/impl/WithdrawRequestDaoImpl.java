@@ -172,6 +172,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
   @Override
   public void setHashAndParamsById(Integer id, Map<String, String> params) {
+    if (params.isEmpty()) {
+      return;
+    }
     final String sql = "UPDATE WITHDRAW_REQUEST " +
             "  SET transaction_hash = :hash, " +
             "      status_modification_date = NOW(), additional_params = :additional_params " +
