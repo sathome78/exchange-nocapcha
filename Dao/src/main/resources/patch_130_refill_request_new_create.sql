@@ -13,7 +13,6 @@ CREATE TABLE REFILL_REQUEST_ADDRESS (
 	brain_priv_key VARCHAR(256) NULL DEFAULT NULL,
 	PRIMARY KEY (id),
 	UNIQUE INDEX currency_id_address_user_id (currency_id, address, user_id),
-	UNIQUE INDEX `currency_id_address` (`address`, `currency_id`),
 	INDEX FK_refill_request_address_user (user_id),
 	CONSTRAINT FK_refill_request_address_currency FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
 	CONSTRAINT FK_refill_request_address_user FOREIGN KEY (user_id) REFERENCES USER (id)

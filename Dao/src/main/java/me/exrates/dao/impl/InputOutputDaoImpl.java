@@ -11,6 +11,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -125,7 +126,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
     params.put("operation_type_id_list", operationTypeIdList);
     return jdbcTemplate.query(sql, params, (rs, i) -> {
       MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
-      myInputOutputHistoryDto.setDatetime(rs.getTimestamp("datetime").toLocalDateTime());
+      Timestamp datetime = rs.getTimestamp("datetime");
+      myInputOutputHistoryDto.setDatetime(datetime == null ? null: datetime.toLocalDateTime());
       myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
       myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
       myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
@@ -143,7 +145,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
       TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
       myInputOutputHistoryDto.setSourceType(sourceType);
       myInputOutputHistoryDto.setStatus(rs.getInt("status_id"));
-      myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
+      Timestamp dateModification = rs.getTimestamp("status_modification_date");
+      myInputOutputHistoryDto.setStatusUpdateDate(dateModification == null ? null : dateModification.toLocalDateTime());
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));

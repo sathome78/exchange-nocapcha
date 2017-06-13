@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+import java.util.function.Predicate;
 
 /**
  * @author ValkSam
@@ -23,4 +24,5 @@ public class RefillRequestAcceptDto {
   private Integer requesterAdminId;
   private String remark;
   private boolean toMainAccountTransferringConfirmNeeded;
+  private Predicate<RefillRequestFlatDto> predicate;
 }

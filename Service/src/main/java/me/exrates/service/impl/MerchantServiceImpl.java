@@ -21,6 +21,7 @@ import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static me.exrates.model.enums.OperationType.OUTPUT;
+import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -61,6 +66,12 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private MerchantServiceContext merchantServiceContext;
+  @Autowired
+  private CommissionService commissionService;
+  @Autowired
+  private CurrencyService currencyService;
+
+  private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
 
   @Autowired
   @Qualifier("bitcoinServiceImpl")
@@ -302,6 +313,37 @@ public class MerchantServiceImpl implements MerchantService {
   public String retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
     return merchantDao.retrieveCoreWalletCurrencyNameByMerchant(merchantName).orElseThrow(() -> new MerchantNotFoundException(merchantName));
   }
+
+  @Override
+  public Map<String, String> computeCommissionAndMapAllToString(final BigDecimal amount,
+                                                                final OperationType type,
+                                                                final String currency,
+                                                                final String merchant) {
+    final Map<String, String> result = new HashMap<>();
+    final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
+    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
+    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP);
+    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP);
+    String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
+    if (type == OUTPUT) {
+      BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(currencyService.findByName(currency).getId(), this.findByName(merchant).getId());
+      if (commissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+        commissionAmount = merchantMinFixedCommission;
+        commissionString = "";
+      }
+    }
+    LOG.debug("commission: " + commissionString);
+    final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP) :
+            amount.subtract(commissionAmount).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_DOWN);
+    if (resultAmount.signum() <= 0) {
+      throw new InvalidAmountException("merchants.invalidSum");
+    }
+    result.put("commission", commissionString);
+    result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
+    result.put("amount", currencyService.amountToString(resultAmount, currency));
+    return result;
+  }
+
 
 
 }
