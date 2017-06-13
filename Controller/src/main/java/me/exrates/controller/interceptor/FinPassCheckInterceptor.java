@@ -9,6 +9,7 @@ import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -31,6 +32,8 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
     private UserService userService;
     @Autowired
     private LocaleResolver localeResolver;
+    @Autowired
+    private MessageSource messageSource;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -55,7 +58,7 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
                 } catch (AbsentFinPasswordException | NotConfirmedFinPasswordException | WrongFinPasswordException e) {
                     boolean throwCheckPassExceptionAttribute = (boolean)annotationAttributes.get("throwCheckPassException");
                     if (throwCheckPassExceptionAttribute) {
-                        throw new CheckFinPassException();
+                        throw new CheckFinPassException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
                     }
                     throw e;
                 } catch (Exception e) {

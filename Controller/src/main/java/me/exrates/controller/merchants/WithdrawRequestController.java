@@ -15,6 +15,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderExceptio
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +24,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -61,8 +63,10 @@ public class WithdrawRequestController {
 
   @Autowired
   private CommissionService commissionService;
+  @Autowired
+  private LocaleResolver localeResolver;
 
-  @FinPassCheck(throwCheckPassException = true)
+  @FinPassCheck
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
@@ -189,14 +193,18 @@ public class WithdrawRequestController {
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
   @ResponseBody
-  public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
+  public ErrorInfo finPassExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
   @ResponseBody
   public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    if (exception instanceof MerchantException) {
+      return new ErrorInfo(req.getRequestURL(), exception,
+              messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+    }
     log.error(ExceptionUtils.getStackTrace(exception));
     return new ErrorInfo(req.getRequestURL(), exception);
   }
