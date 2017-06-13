@@ -1,8 +1,8 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.EthereumNodeDao;
-import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.*;
 import me.exrates.service.exception.EthereumException;
@@ -19,7 +19,6 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.exceptions.TransactionTimeoutException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -36,7 +35,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -225,7 +223,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
                 });
 
-        } catch (EthereumException e) {
+        } catch (Exception e) {
             subscribeCreated = false;
             LOG.error(merchantName + " " + e);
         }
@@ -316,7 +314,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     web3j, credentials, mainAddress, refillRequest.getAmount()
                             .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(Transfer.GAS_PRICE).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
             LOG.debug(merchantName + " Funds " + refillRequest.getAmount() + " sent to main account!!!");
-        } catch (EthereumException| InterruptedException | ExecutionException | TransactionTimeoutException e) {
+        } catch (Exception e) {
             subscribeCreated = false;
             LOG.error(merchantName + " " + e);
         }
