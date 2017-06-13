@@ -438,7 +438,9 @@ public class WithdrawServiceImpl implements WithdrawService {
     try {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, iMerchantService.withdrawTransferringConfirmNeeded());
       Map<String, String> transactionParams = iMerchantService.withdraw(withdrawMerchantOperation);
-      withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+      if(transactionParams != null) {
+        withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+      }
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
         Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
