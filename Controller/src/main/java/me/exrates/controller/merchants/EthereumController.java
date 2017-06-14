@@ -1,12 +1,10 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.model.Payment;
-import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,13 +23,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RequestMapping("/merchants/ethereum/{merchantName}")
 public class EthereumController {
 
-    @Autowired
-    @Qualifier("ethereumServiceImpl")
-    EthereumCommonService ethereumService;
-
-    @Autowired
-    @Qualifier("ethereumClassicServiceImpl")
-    EthereumCommonService ethereumClassicService;
+//    @Autowired
+//    @Qualifier("ethereumServiceImpl")
+//    EthereumCommonService ethereumService;
+//
+//    @Autowired
+//    @Qualifier("ethereumClassicServiceImpl")
+//    EthereumCommonService ethereumClassicService;
 
     @Autowired
     MessageSource messageSource;

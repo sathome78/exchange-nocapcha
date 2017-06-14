@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.ActionType.SUBTRACT;
@@ -281,9 +282,9 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
-          String address,
-          Integer merchantId,
-          Integer currencyId) {
+      String address,
+      Integer merchantId,
+      Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
     return refillRequestDao.findIdWithoutConfirmationsByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
@@ -560,6 +561,13 @@ public class RefillServiceImpl implements RefillService {
       RefillStatusEnum currentStatus = refillRequest.getStatus();
       if (currentStatus.isSuccessEndStatus()) {
         throw new RefillRequestAlreadyAcceptedException(refillRequest.toString());
+      }
+      Predicate<RefillRequestFlatDto> predicate = requestAcceptDto.getPredicate();
+      if (predicate != null) {
+        Boolean checkResult = predicate.test(refillRequest);
+        if (!checkResult) {
+          throw new RefillRequestConditionsForAcceptAreCorruptedException(requestAcceptDto.toString());
+        }
       }
       InvoiceActionTypeEnum action = requestAcceptDto.isToMainAccountTransferringConfirmNeeded() ? REQUEST_INNER_TRANSFER :
           refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
@@ -909,7 +917,7 @@ public class RefillServiceImpl implements RefillService {
         .build();
     return (RefillStatusEnum) refillRequest.getStatus().nextState(action, paramsValue);
   }
-  
+
   @Override
   public Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
                                                                                               String merchantTransactionId,
@@ -919,15 +927,19 @@ public class RefillServiceImpl implements RefillService {
     Integer currencyId = currencyService.findByName(currencyName).getId();
     return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
   }
-  
+
   @Override
   public Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId) {
     return refillRequestDao.getLastBlockHashForMerchantAndCurrency(merchantId, currencyId);
   }
-  
+
   @Override
   public Optional<InvoiceBank> findInvoiceBankById(Integer id) {
     return refillRequestDao.findInvoiceBankById(id);
   }
 
+  @Override
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
+     return refillRequestDao.findAllAddresses(merchantId, currencyId);
+  }
 }

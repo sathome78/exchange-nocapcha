@@ -1,6 +1,5 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -8,35 +7,21 @@ import me.exrates.service.merchantStrategy.IWithdrawable;
 import java.util.Map;
 
 public interface InterkassaService extends IRefillable, IWithdrawable {
-
-    /**
-     * This method of prepearing parameters for the payment form
-     * @param creditsOperation
-     * @param email
-     * @return Map with parameters
-     */
-    Map<String, String> preparePayment(CreditsOperation creditsOperation, String email);
-
-    /**
-     * Confirms payment in DB
-     * @param params
-     * @return true if checks accepted, false if none
-     */
-    boolean confirmPayment(Map<String, String> params);
+public interface InterkassaService extends IMerchantService {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean needToCreateRefillRequestRecord() {
-    return null;
+    return true;
   }
 
   @Override
   default Boolean toMainAccountTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 
   @Override
@@ -51,6 +36,6 @@ public interface InterkassaService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
-    return null;
+    return false;
   }
 }

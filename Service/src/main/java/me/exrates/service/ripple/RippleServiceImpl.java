@@ -96,7 +96,7 @@ public class RippleServiceImpl implements RippleService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     Integer destinationTag = generateUniqDestinationTag(request.getUserId());
     String message = messageSource.getMessage("merchants.refill.xrp",
-        new Object[]{systemAddress, destinationTag}, request.getLocale());
+        new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
     return new HashMap<String, String>() {{
       put("address", destinationTag.toString());
       put("message", message);
@@ -121,7 +121,7 @@ public class RippleServiceImpl implements RippleService {
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      log.debug("RefillRequestNotFountException: " + params);
+      log.debug("RefillRequestAppropriateNotFoundException: " + params);
       Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);

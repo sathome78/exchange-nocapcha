@@ -13,7 +13,9 @@ import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +24,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -56,6 +59,8 @@ public class RefillRequestController {
 
   @Autowired
   private InputOutputService inputOutputService;
+  @Autowired
+  private LocaleResolver localeResolver;
 
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
@@ -186,7 +191,7 @@ public class RefillRequestController {
     refillService.acceptRefillRequest(requestAcceptDto);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
@@ -216,10 +221,24 @@ public class RefillRequestController {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ExceptionHandler({
+          InvalidAccountException.class,
+  })
+  @ResponseBody
+  public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, InvalidAccountException exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getReason());
+  }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
   @ResponseBody
   public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
     log.error(ExceptionUtils.getStackTrace(exception));
+    if (exception instanceof MerchantException) {
+      return new ErrorInfo(req.getRequestURL(), exception,
+              messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+    }
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 

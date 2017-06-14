@@ -1,23 +1,23 @@
 package me.exrates.service.impl;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Transaction;
+import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.AlgorithmService;
-import me.exrates.service.NixMoneyService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.RefillRequestNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -40,80 +40,19 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     private static final Logger logger = LogManager.getLogger(NixMoneyServiceImpl.class);
 
     @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
     private AlgorithmService algorithmService;
 
+    @Autowired
+    private RefillRequestDao refillRequestDao;
 
-    @Override
-    @Transactional
-    public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
+    @Autowired
+    private MerchantService merchantService;
 
-        Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-        BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+    @Autowired
+    private CurrencyService currencyService;
 
-
-        Properties properties = new Properties();
-
-
-        if (creditsOperation.getCurrency().getName().equals("USD")){
-            properties.put("PAYEE_ACCOUNT", payeeAccountUSD);
-        }
-        if (creditsOperation.getCurrency().getName().equals("EUR")){
-            properties.put("PAYEE_ACCOUNT", payeeAccountEUR);
-        }
-        properties.put("PAYMENT_ID", transaction.getId());
-        properties.put("PAYEE_NAME", payeeName);
-        properties.put("PAYMENT_AMOUNT", amountToPay);
-        properties.put("PAYMENT_URL", paymentUrl);
-        properties.put("NOPAYMENT_URL", noPaymentUrl);
-        properties.put("BAGGAGE_FIELDS", "PAYEE_ACCOUNT PAYMENT_AMOUNT PAYMENT_ID");
-        properties.put("STATUS_URL", statustUrl);
-
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-
-
-        return redirectView;
-    }
-
-    @Override
-    @Transactional
-    public boolean confirmPayment(Map<String,String> params) {
-
-        Transaction transaction;
-
-        try{
-            transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
-        }catch (EmptyResultDataAccessException e){
-            logger.error(e);
-            return false;
-        }
-        if (transaction.isProvided()) {
-            return true;
-        }
-
-        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
-
-        String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;
-        String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
-                + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
-                + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
-
-        if (V2_HASH.equals(params.get("V2_HASH")) && Double.parseDouble(params.get("PAYMENT_AMOUNT"))==transactionSum){
-            transactionService.provideTransaction(transaction);
-        }
-
-        return true;
-    }
-
-    @Override
-    @Transactional
-    public void invalidateTransaction(Transaction transaction) {
-        transactionService.invalidateTransaction(transaction);
-    }
+    @Autowired
+    private RefillService refillService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -122,12 +61,58 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
-        throw new NotImplimentedMethod("for "+request);
+        Integer requestId = request.getId();
+        if (requestId == null) {
+            throw new RefillRequestIdNeededException(request.toString());
+        }
+        BigDecimal sum = request.getAmount();
+        String currency = request.getCurrencyName();
+        BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+    /**/
+        Properties properties = new Properties() {{
+            if (currency.equals("USD")){
+                put("PAYEE_ACCOUNT", payeeAccountUSD);
+            }
+            if (currency.equals("EUR")){
+                put("PAYEE_ACCOUNT", payeeAccountEUR);
+            }
+            put("PAYMENT_ID", requestId);
+            put("PAYEE_NAME", payeeName);
+            put("PAYMENT_AMOUNT", amountToPay);
+            put("PAYMENT_URL", paymentUrl);
+            put("NOPAYMENT_URL", noPaymentUrl);
+            put("BAGGAGE_FIELDS", "PAYEE_ACCOUNT PAYMENT_AMOUNT PAYMENT_ID");
+            put("STATUS_URL", statustUrl);        }};
+    /**/
+        return generateFullUrlMap(url, "POST", properties);
     }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        throw new NotImplimentedMethod("for "+params);
-    }
+        Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
+        String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
+        Currency currency = currencyService.findByName(params.get("PAYMENT_UNITS"));
+        Merchant merchant = merchantService.findByName("Nix Money");
+        BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
 
+        RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+
+        String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;
+        String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
+                + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
+                + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
+
+        if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)){
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .requestId(requestId)
+                    .merchantId(merchant.getId())
+                    .currencyId(currency.getId())
+                    .amount(amount)
+                    .merchantTransactionId(merchantTransactionId)
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
+            refillService.autoAcceptRefillRequest(requestAcceptDto);        }
+
+    }
 }

@@ -4,16 +4,26 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.util.CharUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Created by ValkSam on 24.03.2017.
  */
 public interface IMerchantService {
+
+  default void checkWithdrawAddressName(String withdrawName) {
+    if (CharUtils.isCyrillic(withdrawName)) {
+      throw new InvalidAccountException();
+    }
+  }
 
   default String generateFullUrl(String url, Properties properties) {
     return url.concat("?").concat(
@@ -39,6 +49,6 @@ public interface IMerchantService {
   }
 
   default String getMainAddress() {
-    return "qwqwqqqw";
+    return "no address!!!";
   }
 }
