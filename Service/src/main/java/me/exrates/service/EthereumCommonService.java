@@ -1,11 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 /**
  * Created by ajet on
  */
-public interface EthereumCommonService extends IMerchantService {
+public interface EthereumCommonService extends IMerchantService, IRefillable, IWithdrawable {
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {

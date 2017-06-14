@@ -1,13 +1,9 @@
 package me.exrates.service;
 
-import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-import java.util.Map;
-
 public interface InterkassaService extends IRefillable, IWithdrawable {
-public interface InterkassaService extends IMerchantService {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
