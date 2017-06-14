@@ -61,7 +61,7 @@ public class StellarReceivePaymentsService {
         paymentsRequest.stream(new EventListener<OperationResponse>() {
             @Override
             public void onEvent(OperationResponse payment) {
-                log.debug("stellar income payment {}", payment);
+                log.debug("stellar income payment {}", payment.getSourceAccount().getAccountId(), payment.getId(), payment.getLinks().getTransaction());
                 // The payments stream includes both sent and received payments. We only
                 // want to process received payments here.
                 if (payment instanceof PaymentOperationResponse) {

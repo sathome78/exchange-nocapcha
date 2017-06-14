@@ -6,6 +6,7 @@ import me.exrates.model.enums.StellarNetworkModeEnum;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -64,8 +65,9 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
             sourceAccount = server.accounts().account(source);
             String balance = Arrays.stream(sourceAccount.getBalances())
                     .filter(p -> p.getAsset().equals(new AssetTypeNative())).findFirst().get().getBalance();
-            sourceAccount.getBalances()[0].getBalance();
-            if (normalizeAmountToDecimal(balance).compareTo(XLM_MIN_BALANCE) <= 0 ) {
+            log.debug("source account {}", sourceAccount);
+            log.debug("balances {}", balance);
+            if (new BigDecimal(balance).compareTo(XLM_MIN_BALANCE) <= 0 ) {
                 throw new InsufficientCostsInWalletException("XLM BALANCE LOW");
             }
         } catch (IOException | NullPointerException e) {
@@ -77,19 +79,25 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
                         new AssetTypeNative(), normalizeAmountToString(withdrawMerchantOperationDto.getAmount())).build())
                 // A memo allows you to add your own metadata to a transaction. It's
                 // optional and does not affect how Stellar treats the transaction.
-                .addMemo(Memo.id(Long.valueOf(withdrawMerchantOperationDto.getDestinationTag())))
+                .addMemo(StringUtils
+                        .isEmpty(withdrawMerchantOperationDto.getDestinationTag()) ? Memo.text("")
+                        : Memo.id(Long.valueOf(withdrawMerchantOperationDto.getDestinationTag())))
                 .build();
+
     // Sign the transaction to prove you are actually the person sending it.
         transaction.sign(source);
     // And finally, send it off to Stellar!
         try {
             SubmitTransactionResponse response = server.submitTransaction(transaction);
+            log.debug("response is success {}", response.isSuccess());
             if (response.isSuccess()) {
                 return new HashMap<String, String>() {{
                     put("hash", Arrays.toString(transaction.hash()));
+                    log.debug("tx_hash {}", Arrays.toString(transaction.hash()));
                 }};
             } else {
                 String result = response.getExtras().getResultCodes().getTransactionResultCode();
+                log.debug("error result {}", result);
                 throw new MerchantException(result);
             }
         } catch (Exception e) {
