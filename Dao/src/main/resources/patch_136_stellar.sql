@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`)
-VALUES ('Stellar', 'Stellar', 2, 'stellarServiceImpl');
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
+VALUES ('Stellar', 'Stellar', 2, 'stellarServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`)
 VALUES ('XLM', 'XLM', '0', 6, 6);
 
