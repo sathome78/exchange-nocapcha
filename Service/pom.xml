@@ -126,12 +126,17 @@
       <artifactId>rxjava</artifactId>
       <version>1.2.9</version>
     </dependency>
+    <dependency>
+      <groupId>stellar</groupId>
+      <artifactId>stellar-sdk</artifactId>
+      <version>0.1.9</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>
       <id>btcd-cli4j-inner</id>
       <name>btcd-cli4j Inner Repo</name>
-      <url>file://${project.basedir}/libs</url>
+      <url>file:///${project.basedir}/libs</url>
     </repository>
   </repositories>
 
