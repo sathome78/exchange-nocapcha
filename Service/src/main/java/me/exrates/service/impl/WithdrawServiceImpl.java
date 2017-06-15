@@ -436,6 +436,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
+      log.debug("tru to post withdrawal");
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, iMerchantService.withdrawTransferringConfirmNeeded());
       Map<String, String> transactionParams = iMerchantService.withdraw(withdrawMerchantOperation);
       if (transactionParams != null) {
@@ -529,6 +530,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       }
       InvoiceActionTypeEnum action = withdrawTransferringConfirmNeeded ? START_BCH_EXAMINE :
           withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+
       WithdrawStatusEnum newStatus = requesterAdminId == null ?
           (WithdrawStatusEnum) currentStatus.nextState(action) :
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);

@@ -102,8 +102,8 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
                 throw new MerchantException(result);
             }
         } catch (Exception e) {
-            log.debug("error", e);
-            throw new MerchantException(e.toString());
+            log.debug("xlm_error", e);
+            throw new RuntimeException(e.toString());
         }
     }
 
