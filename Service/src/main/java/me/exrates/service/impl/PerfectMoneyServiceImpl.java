@@ -89,7 +89,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
         Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
         String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
-        Currency currency = params.get("Payer_Account").equals(usdCompanyAccount) ? currencyService.findByName("USD") : currencyService.findByName("EUR");
+        Currency currency = params.get("PAYEE_ACCOUNT").equals(usdCompanyAccount) ? currencyService.findByName("USD") : currencyService.findByName("EUR");
         Merchant merchant = merchantService.findByName("Perfect Money");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("PAYMENT_AMOUNT"))).setScale(9);
 
