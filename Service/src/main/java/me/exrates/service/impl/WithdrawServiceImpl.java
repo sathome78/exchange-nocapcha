@@ -448,8 +448,8 @@ public class WithdrawServiceImpl implements WithdrawService {
          String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
          String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
          String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
-         userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-         notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+    /*     userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+    */     notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
         } catch (Exception e) {
           log.error("cant send notification on withdraw {}", e);
         }
@@ -458,6 +458,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       log.error(e);
       throw e;
     } catch (Exception e) {
+      log.error(e);
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), iMerchantService.toString()));
     }
   }

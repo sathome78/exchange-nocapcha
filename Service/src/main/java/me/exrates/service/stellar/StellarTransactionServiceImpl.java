@@ -33,10 +33,11 @@ import java.util.Map;
 @PropertySource("classpath:/merchants/stellar.properties")
 public class StellarTransactionServiceImpl implements StellarTransactionService {
 
-    private static final Integer XLM_AMOUNT_MULTIPLIER = 1000000;
+    private static final Integer XLM_AMOUNT_MULTIPLIER = 1;
     private static final Integer XLM_DECIMALS = 6;
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);
     private @Value("${stellar.mode}") String MODE;
+    private @Value("${stellar.horizon.url}")String SEVER_URL;
 
     @Override
     public TransactionResponse getTxByURI(String serverURI, URI txUri) throws IOException, URISyntaxException {
@@ -92,8 +93,8 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
             log.debug("response is success {}", response.isSuccess());
             if (response.isSuccess()) {
                 return new HashMap<String, String>() {{
-                    put("hash", Arrays.toString(transaction.hash()));
-                    log.debug("tx_hash {}", Arrays.toString(transaction.hash()));
+                    log.debug(response.getHash());
+                    put("hash", response.getHash());
                 }};
             } else {
                 String result = response.getExtras().getResultCodes().getTransactionResultCode();
@@ -101,6 +102,7 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
                 throw new MerchantException(result);
             }
         } catch (Exception e) {
+            log.debug("error", e);
             throw new MerchantException(e.toString());
         }
     }

@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -32,17 +33,21 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
         Map<String, Object> params = new HashMap<>();
         params.put("merchant_name", merchantName);
         params.put("param_name", paramName);
-        return jdbcTemplate.queryForObject(sql, params, new RowMapper<MerchantSpecParamDto>() {
-            @Override
-            public MerchantSpecParamDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                MerchantSpecParamDto dto = new MerchantSpecParamDto();
-                dto.setId(rs.getInt("id"));
-                dto.setMerchantId(rs.getInt("merchant_id"));
-                dto.setParamName(rs.getString("param_name"));
-                dto.setParamValue(rs.getString("param_value"));
-                return dto;
-            }
-        });
+        try {
+            return jdbcTemplate.queryForObject(sql, params, new RowMapper<MerchantSpecParamDto>() {
+                @Override
+                public MerchantSpecParamDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    MerchantSpecParamDto dto = new MerchantSpecParamDto();
+                    dto.setId(rs.getInt("id"));
+                    dto.setMerchantId(rs.getInt("merchant_id"));
+                    dto.setParamName(rs.getString("param_name"));
+                    dto.setParamValue(rs.getString("param_value"));
+                    return dto;
+                }
+            });
+        } catch (DataAccessException e) {
+            return null;
+        }
     }
 
     @Override

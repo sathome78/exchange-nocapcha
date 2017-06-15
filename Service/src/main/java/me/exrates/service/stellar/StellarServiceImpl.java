@@ -19,6 +19,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.stellar.sdk.Memo;
+import org.stellar.sdk.MemoId;
 import org.stellar.sdk.responses.TransactionResponse;
 
 
@@ -74,10 +76,11 @@ public class StellarServiceImpl implements StellarService {
 
     @Override
     public void onTransactionReceive(TransactionResponse payment, String amount) {
-        log.debug("income transaction {} ", payment);
+        log.debug("income transaction {} ", payment.getMemo() + " " + amount);
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", payment.getHash());
-        Integer destinationTag = Integer.parseInt(payment.getMemo().toString());
+        MemoId memoid = (MemoId)payment.getMemo();
+        long destinationTag = memoid.getId();
         paramsMap.put("address", String.valueOf(destinationTag));
         paramsMap.put("amount", amount);
         try {
@@ -90,7 +93,7 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.xrp",
+        String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
             put("address", destinationTag.toString());
@@ -99,7 +102,7 @@ public class StellarServiceImpl implements StellarService {
     }
 
     private Integer generateUniqDestinationTag(int userId) {
-        Currency currency = currencyService.findByName("XRP");
+        Currency currency = currencyService.findByName("XLM");
         Merchant merchant = merchantService.findByName(XLM_MERCHANT);
         Optional<Integer> id = null;
         int destinationTag;
@@ -116,7 +119,7 @@ public class StellarServiceImpl implements StellarService {
         String idInString = String.valueOf(userId);
         int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
         if (randomNumberLength < 0) {
-            throw new MerchantInternalException("error generating new destination tag for ripple" + userId);
+            throw new MerchantInternalException("error generating new destination tag for stellar" + userId);
         }
         String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
