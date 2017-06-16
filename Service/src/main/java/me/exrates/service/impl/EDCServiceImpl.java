@@ -12,7 +12,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantInternalException;
@@ -33,7 +32,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 
 @Service
@@ -70,6 +68,7 @@ public class EDCServiceImpl implements EDCService {
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    LOG.info("Withdraw EDC: " + withdrawMerchantOperationDto.toString());
     edcServiceNode.transferFromMainAccount(
         withdrawMerchantOperationDto.getAccountTo(),
         withdrawMerchantOperationDto.getAmount());
