@@ -47,4 +47,9 @@ public interface RippleService extends IMerchantService {
   default Boolean withdrawTransferringConfirmNeeded() {
     return true;
   }
+
+  @Override
+  default String additionalFieldName() {
+    return "Destination Tag";
+  }
 }

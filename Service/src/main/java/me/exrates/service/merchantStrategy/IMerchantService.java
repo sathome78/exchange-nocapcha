@@ -34,6 +34,10 @@ public interface IMerchantService {
 
   Boolean additionalTagForWithdrawAddressIsUsed();
 
+  default String additionalFieldName() {
+    return "MEMO";
+  };
+
   Boolean withdrawTransferringConfirmNeeded();
 
   default void checkWithdrawAddressName(String withdrawName) {
