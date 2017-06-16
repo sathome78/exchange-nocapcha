@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
-@PropertySource({"classpath:edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
+@PropertySource({"classpath:/merchants/edcmerchant.properties"})
 public class EDCServiceImpl implements EDCService {
 
   private @Value("${edcmerchant.token}") String token;
