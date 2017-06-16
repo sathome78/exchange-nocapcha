@@ -48,4 +48,9 @@ public interface StellarService extends IMerchantService {
     }
 
     void onTransactionReceive(TransactionResponse payment, String amount);
+
+    @Override
+    default String additionalFieldName() {
+        return "MEMO-ID";
+    }
 }

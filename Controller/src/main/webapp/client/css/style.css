@@ -25,7 +25,7 @@ body {
 .cols-md-2 {
     width: 16.66667%;
     float: left;
-    padding: 0 10px; /*height the top menu  me*/
+   /* padding: 0 10px; *//*height the top menu  me*/
 }
 
 .cols-md-3 {
@@ -317,6 +317,14 @@ header li {
 .left-sider .table {
     font-weight: 300;
     font-size: 1.2rem;
+}
+
+.pay_addr {
+    font-size: 1.06em;
+}
+
+#right-sider {
+    padding-left: 10px;
 }
 
 @media (max-width: 1400px) {

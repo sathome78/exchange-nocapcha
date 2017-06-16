@@ -46,7 +46,7 @@ Number.prototype.noExponents = function () {
     mag -= str.length;
     while (mag--) z += '0';
     return str + z;
-}
+};
 
 var notifications;
 
@@ -510,6 +510,7 @@ $(function () {
         var merchantMaxSum = $('#maxForTransfer').text();
         console.log( "ms" + merchantMinSum);
         var targetSum = parseFloat(sum.val());
+        console.log()
         return targetSum >= merchantMinSum && targetSum <= merchantMaxSum;
 
     }
