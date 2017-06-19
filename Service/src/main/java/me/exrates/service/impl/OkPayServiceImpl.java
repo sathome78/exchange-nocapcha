@@ -83,9 +83,9 @@ public class OkPayServiceImpl implements OkPayService {
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
-        if (!sendReturnRequest(params)){
-            throw new RefillRequestAppropriateNotFoundException(params.toString());
-        }
+//        if (!sendReturnRequest(params)){
+//            throw new RefillRequestAppropriateNotFoundException(params.toString());
+//        }
 
         Integer requestId = Integer.valueOf(params.get("ok_invoice"));
         String merchantTransactionId = params.get("ok_txn_id");
@@ -93,14 +93,17 @@ public class OkPayServiceImpl implements OkPayService {
         Merchant merchant = merchantService.findByName("OkPay");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ok_txn_gross"))).setScale(9);
 
+        logger.info("Okpay processPayment: " + requestId + ", " + merchantTransactionId + ", " + currency + ", " +  merchant + ", " + amount);
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
                 .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+
+        logger.info("Okpay processPayment: " + refillRequest.toString());
 
         if(refillRequest.getAmount().equals(amount)
                 && currency.equals(currencyService.getById(refillRequest.getCurrencyId()))
                 && params.get("ok_txn_status").equals("completed")
                 && params.get("ok_receiver_email").equals(ok_receiver_email)){
-
+            logger.info("Okpay processPayment: before requestAcceptDto");
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(requestId)
                     .merchantId(merchant.getId())
@@ -109,7 +112,9 @@ public class OkPayServiceImpl implements OkPayService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+            logger.info("Okpay processPayment: after requestAcceptDto");
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+            logger.info("Okpay processPayment: after autoAcceptRefillRequest");
         }
 
     }
@@ -139,6 +144,7 @@ public class OkPayServiceImpl implements OkPayService {
                     .string();
             logger.info("returnResponse: " + returnResponse);
         } catch (IOException e) {
+            logger.error(e);
             throw new MerchantInternalException(e);
         }
 

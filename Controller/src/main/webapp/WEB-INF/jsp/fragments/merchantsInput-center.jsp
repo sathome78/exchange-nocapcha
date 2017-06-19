@@ -89,17 +89,18 @@
                           <c:choose>
                             <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
-                              <div id="address-to-pay" style="font-size:16px">
-                                  ${merchantCurrency.mainAddress}
+                              <div id="address-to-pay" <%--style="font-size:16px"--%>>
+                                <p class="pay_addr">${merchantCurrency.mainAddress}</p>
                               </div>
-                              <loc:message code="merchants.modalOutputAddressTag"/>
-                              <div id="address-to-pay" style="font-size:16px">
+                              <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
+                              ${merchantCurrency.additionalFieldName}:
+                              <div id="address-to-pay" style="font-size:14px">
                                   ${merchantCurrency.address}
                               </div>
                             </c:when>
                             <c:otherwise>
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
-                              <div id="address-to-pay" style="font-size:16px">
+                              <div id="address-to-pay" style="font-size:14px">
                                   ${merchantCurrency.address}
                               </div>
                             </c:otherwise>

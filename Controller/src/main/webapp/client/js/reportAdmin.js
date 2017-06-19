@@ -184,7 +184,7 @@ function makeReportWithPeriodDialog() {
                     },
                     complete: function () {
                         $loadingDialog.modal("hide");
-                    },
+                    }
                 }
             );
         }
@@ -200,7 +200,7 @@ function makeReportByParams(params) {
                 type: 'GET',
                 success: function (data) {
                     saveToDisk(data);
-                },
+                }
             }
         );
     }

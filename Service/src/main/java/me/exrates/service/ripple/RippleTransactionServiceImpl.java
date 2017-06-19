@@ -39,7 +39,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     private static final Integer XRP_AMOUNT_MULTIPLIER = 1000000;
     private static final Integer XRP_DECIMALS = 6;
-    private static final BigDecimal XRP_MIN_BALANCE = new BigDecimal(20);
+    private static final BigDecimal XRP_MIN_BALANCE = new BigDecimal(21);
     private static final String SEQUENCE_PARAM = "sequence";
     private static final String LEDGER = "ledger";
 
@@ -81,6 +81,7 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         Integer sequence = rippledNodeService.getAccountInfo(address)
                 .getJSONObject("account_data")
                 .getInt("Sequence");
+        /*todo check if destination account exist? because we spent comisiion if trying transfer to such address*/
         return RippleTransaction.builder()
                 .amount(amount)
                 .sendAmount(normalizeAmountToXRPString(amount))

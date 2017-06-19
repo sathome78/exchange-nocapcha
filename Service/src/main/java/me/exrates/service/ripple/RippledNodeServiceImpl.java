@@ -106,7 +106,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
     @Override
     public void submitTransaction(RippleTransaction transaction) {
         String requestBody = String.format(SUBMIT_TRANSACTION_RPC, transaction.getBlob());
-        log.debug("xrps_request {}", requestBody);
+        log.debug("xrp_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("can't submit transaction");

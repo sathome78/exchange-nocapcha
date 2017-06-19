@@ -443,14 +443,21 @@ public class WithdrawServiceImpl implements WithdrawService {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
       withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+        if (transactionParams != null) {
+            withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+        }
       /**/
       if (withdrawRequestResult.getStatus().isSuccessEndStatus()) {
-        Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
-        String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
-        String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
-        String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
-        userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-        notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+       try {
+         Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
+         String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+         String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
+         String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
+         userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+         notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+        } catch (Exception e) {
+          log.error("cant send notification on withdraw {}", e);
+        }
       }
     } catch (MerchantException e) {
       log.error(e);

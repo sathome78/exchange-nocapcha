@@ -42,7 +42,7 @@ import static org.springframework.transaction.annotation.Propagation.NESTED;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-@PropertySource({"classpath:edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
+@PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
 public class EDCServiceNodeImpl implements EDCServiceNode {
 
   private @Value("${edcmerchant.token}") String token;

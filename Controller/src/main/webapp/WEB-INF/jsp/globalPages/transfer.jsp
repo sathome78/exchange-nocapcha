@@ -38,6 +38,7 @@
     <script type="text/javascript" src="<c:url value="/client/js/submits/finPassCheck.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/transferCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/inputOutput/valueInputControl.js"/>"></script>
     <%----%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>

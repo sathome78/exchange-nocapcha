@@ -49,4 +49,9 @@ public interface RippleService extends IRefillable, IWithdrawable {
   default Boolean withdrawTransferringConfirmNeeded() {
     return true;
   }
+
+  @Override
+  default String additionalFieldName() {
+    return "Destination Tag";
+  }
 }
