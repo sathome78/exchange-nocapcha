@@ -480,7 +480,14 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
-    return userDao.getUserSessionInfo(emails);
+    try {
+      List<UserSessionInfoDto> list = userDao.getUserSessionInfo(emails);
+      log.debug(Arrays.toString(list.toArray()));
+      return list;
+    } catch (Exception e) {
+      log.error(e);
+      return Collections.EMPTY_LIST;
+    }
   }
 
   @Override
