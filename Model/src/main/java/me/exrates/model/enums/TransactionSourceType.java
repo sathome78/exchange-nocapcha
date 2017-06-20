@@ -18,6 +18,7 @@ public enum TransactionSourceType {
   ACCRUAL(4),
   MANUAL(5),
   USER_TRANSFER(6),
+  USER_VOUCHER(7),
   WITHDRAW(9),
   STOP_ORDER(10),
   REFILL(11);

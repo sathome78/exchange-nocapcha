@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ public class TransferRequestFlatDto {
   private int id;
   private BigDecimal amount;
   private LocalDateTime dateCreation;
-  private WithdrawStatusEnum status;
+  private TransferStatusEnum status;
   private LocalDateTime statusModificationDate;
   private Integer merchantId;
   private Integer currencyId;

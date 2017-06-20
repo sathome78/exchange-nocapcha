@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.TransferRequestDao;
+import me.exrates.model.Commission;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.TransferRequest;
 import me.exrates.model.dto.TransferRequestCreateDto;
@@ -13,18 +14,18 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.TransferRequestCreationException;
-import me.exrates.service.exception.TransferRequestNotFoundException;
-import me.exrates.service.exception.TransferRequestRevokeException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.TransferRequestAcceptExeption;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.security.Principal;
+import java.util.*;
 
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * created by ValkSam
@@ -120,6 +121,7 @@ public class TransferServiceImpl implements TransferService {
       Map<String, Object> result = new HashMap<>();
       result.put("message", notification);
       result.put("balance", balance);
+      result.put("hash", request.getHash());
       profileData.setTime3();
       return result;
     } finally {
@@ -144,7 +146,7 @@ public class TransferServiceImpl implements TransferService {
           WalletTransferStatus result = walletService.walletInnerTransfer(
               transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getAmount().negate(),
-              TransactionSourceType.USER_TRANSFER,
+              TransactionSourceType.USER_VOUCHER,
               createdTransferRequestId,
               description);
           if (result != SUCCESS) {
@@ -183,7 +185,7 @@ public class TransferServiceImpl implements TransferService {
   public void revokeTransferRequest(int requestId) {
     TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-    WithdrawStatusEnum currentStatus = transferRequest.getStatus();
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
     TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
     transferRequestDao.setStatusById(requestId, newStatus);
@@ -193,7 +195,7 @@ public class TransferServiceImpl implements TransferService {
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
         transferRequest.getAmount(),
-        TransactionSourceType.USER_TRANSFER,
+        TransactionSourceType.USER_VOUCHER,
         transferRequest.getId(),
         description);
     if (result != SUCCESS) {
@@ -249,4 +251,52 @@ public class TransferServiceImpl implements TransferService {
     return result;
   }
 
+  @Override
+  public Optional<TransferRequestFlatDto> getByHashAndStatus(String code, Integer requiredStatus, boolean block) {
+    return transferRequestDao.getFlatByHashAndStatus(code, requiredStatus, block);
+  }
+
+  @Override
+  public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal) {
+    return StringUtils.isEmpty(transferRequestFlatDto.getRecipientId().toString())
+            || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
+  }
+
+  @Override
+  public Map<String, String> performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
+    TransferStatusEnum currentStatus = dto.getStatus();
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
+    if (!newStatus.isEndStatus()) {
+      throw new TransferRequestAcceptExeption("invalid new status " + newStatus);
+    }
+    transferRequestDao.setStatusById(dto.getId(), newStatus);
+    int walletId = walletService.getWalletId(dto.getUserId(), dto.getCurrencyId());
+    WalletTransferStatus result = walletService.walletInnerTransfer(
+            walletId,
+            dto.getAmount(),
+            TransactionSourceType.USER_VOUCHER,
+            dto.getId(),
+            transactionDescription.get(currentStatus, action));
+    if (result != SUCCESS) {
+      throw new WithdrawRequestPostException(result.name());
+    }
+    WalletOperationData walletOperationData = new WalletOperationData();
+    walletOperationData.setOperationType(OUTPUT);
+    walletOperationData.setWalletId(walletId);
+    walletOperationData.setAmount(dto.getAmount());
+    walletOperationData.setBalanceType(ACTIVE);
+    walletOperationData.setCommission(new Commission(dto.getCommissionId()));
+    walletOperationData.setCommissionAmount(dto.getCommissionAmount());
+    walletOperationData.setSourceType(TransactionSourceType.USER_VOUCHER);
+    walletOperationData.setSourceId(dto.getId());
+    walletOperationData.setDescription(transactionDescription.get(currentStatus, action));
+    WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+    if (walletTransferStatus != SUCCESS) {
+      throw new TransferRequestAcceptExeption(walletTransferStatus.name());
+    }
+    return new HashMap<String, String>(){{
+      put("amount", BigDecimalProcessing.formatLocaleFixedDecimal(dto.getAmount(), locale, 4));
+      put("currency", currencyService.getCurrencyName(dto.getCurrencyId()));
+    }};
+  }
 }

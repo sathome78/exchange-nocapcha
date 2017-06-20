@@ -1,11 +1,13 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -17,6 +19,7 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.util.RateLimitService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +28,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
@@ -32,8 +36,11 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -47,18 +54,19 @@ public class TransferRequestController {
 
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
-  TransferService transferService;
-
+  private TransferService transferService;
   @Autowired
-  UserService userService;
-
+  private UserService userService;
   @Autowired
-  MerchantService merchantService;
-
+  private MerchantService merchantService;
   @Autowired
   private InputOutputService inputOutputService;
+  @Autowired
+  private LocaleResolver localeResolver;
+  @Autowired
+  private RateLimitService rateLimitService;
+
 
   @RequestMapping(value = "/transfer/request/create", method = POST)
   @ResponseBody
@@ -79,6 +87,21 @@ public class TransferRequestController {
         .orElseThrow(InvalidAmountException::new);
     TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return transferService.createTransferRequest(request);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/transfer/accept", method = POST)
+  public Map<String, String> acceptTransfer(String code, Principal principal, HttpServletRequest request) {
+    if (!rateLimitService.registerRequestAndCheck(principal.getName())) {
+        throw new RequestsLimitExceedException();
+    }
+    InvoiceActionTypeEnum action = PRESENT_VOUCHER;
+    TransferStatusEnum requiredStatus = (TransferStatusEnum) TransferStatusEnum.getAvailableForActionStatusesList(action);
+    Optional<TransferRequestFlatDto> dto =  transferService.getByHashAndStatus(code, requiredStatus.getCode(), true);
+    if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
+      throw new InvoiceNotFoundException("transfer not found");
+    }
+    return transferService.performTransfer(dto.get(), localeResolver.resolveLocale(request), action);
   }
 
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
@@ -107,7 +130,7 @@ public class TransferRequestController {
     return transferService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchant, locale);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {

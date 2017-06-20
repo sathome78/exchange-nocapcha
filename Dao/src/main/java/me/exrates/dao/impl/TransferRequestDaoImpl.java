@@ -4,7 +4,7 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     transferRequestFlatDto.setId(rs.getInt("id"));
     transferRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
     transferRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
-    transferRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+    transferRequestFlatDto.setStatus(TransferStatusEnum.convert(rs.getInt("status_id")));
     transferRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
     transferRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
     transferRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
@@ -93,10 +93,26 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
   @Override
   public Optional<TransferRequestFlatDto> getFlatById(int id) {
     String sql = "SELECT * " +
-        " FROM WITHDRAW_REQUEST " +
+        " FROM TRANSFER_REQUEST " +
         " WHERE id = :id";
     return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), transferRequestFlatDtoRowMapper));
   }
+
+  @Override
+  public Optional<TransferRequestFlatDto> getFlatByHashAndStatus(String hash, Integer requiredStatus, boolean block) {
+    String sql = "SELECT * " +
+            " FROM TRANSFER_REQUEST " +
+            " WHERE hash = :hash AND status_id = :status ";
+    if (block) {
+      sql = sql.concat(" FOR UPDATE");
+    }
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("hash", hash);
+      put("status", requiredStatus);
+    }};
+    return of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
+  }
+
 
   @Override
   public void setStatusById(Integer id, InvoiceStatus newStatus) {
