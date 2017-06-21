@@ -82,6 +82,8 @@ public class CommonMerchantsController {
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
+      modelAndView.addObject("isAmountInputNeeded", merchantCurrencyData.size() > 0
+              && !merchantCurrencyData.get(0).getProcessType().equals("CRYPTO"));
       return modelAndView;
     } catch (Exception e) {
       ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");

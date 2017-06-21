@@ -2,13 +2,17 @@ $(function () {
 
     var withdrawButtons = $('#merchantList').find(".start-button");
     var minAmount = 0;
-
+    var checkAmount = true;
     determineMinAmount();
 
     function determineMinAmount() {
         withdrawButtons.each(function(index,item){
             var $item = $(item);
-            $item.prop('disabled', true);
+            var isAmounInputNeed = $item.data("is-amount-input-needed") == undefined ? true : $item.data("is-amount-input-needed");
+            checkAmount = isAmounInputNeed;
+            if (isAmounInputNeed) {
+                $item.prop('disabled', true);
+            }
             if(minAmount < $item.data("min-sum")) {
                 minAmount = $item.data("min-sum");
             }
@@ -94,7 +98,9 @@ $(function () {
                 $(this).val($(this).val().slice(0, -1));
 
             }
-            checkButtons(val);
+            if (checkAmount) {
+                checkButtons(val);
+            }
            /* if (val > 0 && val >= minLimit) {
                 $(buttonId).prop('disabled', false);
             } else {
