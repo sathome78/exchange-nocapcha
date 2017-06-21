@@ -18,7 +18,7 @@
         <div hidden id="operationType">${payment.operationType}</div>
         <div class="form-horizontal withdraw__money">
           <div class="input-block-wrapper clearfix">
-            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
+            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
               <label style="font-size: 15px" for="currencyFull" class="input-block-wrapper__label"><loc:message
                       code="merchants.currencyforoutput"/></label>
             </div>
@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class="input-block-wrapper clearfix">
-            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
+            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
               <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
             </div>
             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
@@ -60,7 +60,7 @@
             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}">
               <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}">
                 <div style=" width: 100%; height: 88px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
-                  <div style="float: left; height: 20px;  width: 408px; text-align: right; margin-right: 10px">
+                  <div style="float: left; height: 20px;  width: 183px; text-align: right; margin-right: 47px">
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 10px"/>
                     <div style="float: left;height: 20px;width: 448px;text-align: left;margin-right: 10px;padding-left: 228px;">
