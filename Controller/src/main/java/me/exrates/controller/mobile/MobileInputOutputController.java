@@ -378,6 +378,10 @@ public class MobileInputOutputController {
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Merchant merchant = merchantService.findById(requestParamsDto.getMerchant());
+        MerchantCurrency merchantCurrency = merchantService.getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(
+              requestParamsDto.getCurrency()), OperationType.INPUT).stream().filter(item ->
+              item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
+              .orElseThrow(MerchantInternalException::new);
         MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
         if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
             responseDto.setType(MerchantApiResponseType.NOTIFY);
@@ -399,22 +403,16 @@ public class MobileInputOutputController {
             try {
                 result = refillService.createRefillRequest(refillRequest);
             } catch (RefillRequestGeneratingAdditionalAddressNotAvailableException e) {
-                MerchantCurrency merchantCurrency = merchantService.getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(
-                        requestParamsDto.getCurrency()), OperationType.INPUT).stream().filter(item ->
-                        item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
-                        .orElseThrow(MerchantInternalException::new);
-                refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
+                
                 Map<String, String> params = new HashMap<String, String>() {{
                     put("message", refillService.getPaymentMessageForTag(merchant.getServiceBeanName(), merchantCurrency.getAddress(), userLocale));
-                    put("address", merchantCurrency.getMainAddress());
-                    put("qr", merchantCurrency.getMainAddress());
-                    put("additionalTag", merchantCurrency.getAddress());
                 }};
                 result = new HashMap<String, Object>() {{
                     put("params", params);
                 }};
             }
-            Map<String, String> params = (Map<String, String>)result.get("params");
+          refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
+          Map<String, String> params = (Map<String, String>)result.get("params");
             String message = (String) result.get("message");
             if (message == null) {
                 message = params.get("message");
@@ -423,9 +421,15 @@ public class MobileInputOutputController {
                 message = message.replaceAll("<button.*>", "").replaceAll("<.*?>", "");
             }
             responseDto.setData(message);
-            responseDto.setQr(params.get("qr"));
-            responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
-            responseDto.setAdditionalTag(params.get("additionalTag"));
+            if (merchantCurrency.getAdditionalTagForWithdrawAddressIsUsed()) {
+              responseDto.setQr(merchantCurrency.getMainAddress());
+              responseDto.setWalletNumber(merchantCurrency.getMainAddress());
+              responseDto.setAdditionalTag(merchantCurrency.getAddress());
+            } else {
+              responseDto.setQr(params.get("qr"));
+              responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+            }
+            
         } else {
             responseDto.setType(MerchantApiResponseType.REDIRECT);
             String rootUrl = String.join("", request.getScheme(), "://", request.getServerName(), ":",
