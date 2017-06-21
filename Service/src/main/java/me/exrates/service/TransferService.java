@@ -32,5 +32,5 @@ public interface TransferService {
 
   boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal);
 
-  Map<String,String> performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
+  void performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 }

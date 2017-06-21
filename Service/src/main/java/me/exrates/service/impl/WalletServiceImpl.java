@@ -304,10 +304,8 @@ public final class WalletServiceImpl implements WalletService {
     if (!checkOnly) {/*Don't remove it !!!! This is need for only check transfer data without payment proceed*/
       UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
               currencyId, amount, commissionAmount);
-      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
-      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
+     performTransferCostsToUser(fromUserWallet, toUserWallet, amount, totalAmount, commissionAmount,
+             userTransfer.getId(), TransactionSourceType.USER_TRANSFER, locale);
       String currencyName = currencyService.getCurrencyName(currencyId);
       String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
       result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
@@ -318,6 +316,22 @@ public final class WalletServiceImpl implements WalletService {
               "transfer.received", new Object[]{notyAmount, currencyName});
     }
     return result;
+  }
+
+  @Transactional(rollbackFor = Exception.class)
+  public void performTransferCostsToUser(Wallet fromUserWallet, Wallet toUserWallet,
+                                                  BigDecimal initialAmount, BigDecimal totalAmount, BigDecimal commissionAmount,
+                                         Integer sourceId, TransactionSourceType sourceType, Locale locale) {
+    if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
+      throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
+    }
+    if (Integer.compare(fromUserWallet.getCurrencyId(), toUserWallet.getCurrencyId()) !=0) {
+      throw new BalanceChangeException("ncorrect wallets");
+    }
+    changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+            sourceType, commissionAmount, sourceId);
+    changeWalletActiveBalance(initialAmount, toUserWallet, OperationType.INPUT,
+            sourceType, BigDecimal.ZERO, sourceId);
   }
 
   @Override

@@ -11,10 +11,8 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.TransferService;
-import me.exrates.service.UserService;
+import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -66,6 +64,8 @@ public class TransferRequestController {
   private LocaleResolver localeResolver;
   @Autowired
   private RateLimitService rateLimitService;
+  @Autowired
+  private CurrencyService currencyService;
 
 
   @RequestMapping(value = "/transfer/request/create", method = POST)
@@ -91,7 +91,7 @@ public class TransferRequestController {
 
   @ResponseBody
   @RequestMapping(value = "/transfer/accept", method = POST)
-  public Map<String, String> acceptTransfer(String code, Principal principal, HttpServletRequest request) {
+  public String acceptTransfer(String code, Principal principal, HttpServletRequest request) {
     if (!rateLimitService.registerRequestAndCheck(principal.getName())) {
         throw new RequestsLimitExceedException();
     }
@@ -101,7 +101,12 @@ public class TransferRequestController {
     if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
       throw new InvoiceNotFoundException("transfer not found");
     }
-    return transferService.performTransfer(dto.get(), localeResolver.resolveLocale(request), action);
+    Locale locale = localeResolver.resolveLocale(request);
+    TransferRequestFlatDto flatDto = dto.get();
+    transferService.performTransfer(flatDto, locale, action);
+    return messageSource.getMessage("" ,
+            new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
+                    currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request));
   }
 
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
@@ -134,6 +139,14 @@ public class TransferRequestController {
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+  @ExceptionHandler(RequestsLimitExceedException.class)
+  @ResponseBody
+  public ErrorInfo RequestsLimitExceedExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
   }

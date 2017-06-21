@@ -14,7 +14,6 @@ import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
@@ -263,7 +262,7 @@ public class TransferServiceImpl implements TransferService {
   }
 
   @Override
-  public Map<String, String> performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
+  public void performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
     TransferStatusEnum currentStatus = dto.getStatus();
     TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
     if (!newStatus.isEndStatus()) {
@@ -280,23 +279,10 @@ public class TransferServiceImpl implements TransferService {
     if (result != SUCCESS) {
       throw new WithdrawRequestPostException(result.name());
     }
-    WalletOperationData walletOperationData = new WalletOperationData();
-    walletOperationData.setOperationType(OUTPUT);
-    walletOperationData.setWalletId(walletId);
-    walletOperationData.setAmount(dto.getAmount());
-    walletOperationData.setBalanceType(ACTIVE);
-    walletOperationData.setCommission(new Commission(dto.getCommissionId()));
-    walletOperationData.setCommissionAmount(dto.getCommissionAmount());
-    walletOperationData.setSourceType(TransactionSourceType.USER_VOUCHER);
-    walletOperationData.setSourceId(dto.getId());
-    walletOperationData.setDescription(transactionDescription.get(currentStatus, action));
-    WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
-    if (walletTransferStatus != SUCCESS) {
-      throw new TransferRequestAcceptExeption(walletTransferStatus.name());
-    }
-    return new HashMap<String, String>(){{
-      put("amount", BigDecimalProcessing.formatLocaleFixedDecimal(dto.getAmount(), locale, 4));
-      put("currency", currencyService.getCurrencyName(dto.getCurrencyId()));
-    }};
+
   }
+
+
+
+
 }
