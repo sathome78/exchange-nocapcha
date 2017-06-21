@@ -154,4 +154,10 @@ public class StellarServiceImpl implements StellarService {
     public String getMainAddress() {
         return ACCOUNT_NAME;
     }
+  //TODO remove after changes in mobile api
+    @Override
+    public String getPaymentMessage(String additionalTag, Locale locale) {
+        return messageSource.getMessage("merchants.refill.xlm",
+                new Object[]{ACCOUNT_NAME, additionalTag}, locale);
+    }
 }

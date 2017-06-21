@@ -20,10 +20,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by maks on 11.05.2017.
@@ -156,5 +153,10 @@ public class RippleServiceImpl implements RippleService {
     String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
     return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
   }
-
+  //TODO remove after changes in mobile api
+  @Override
+  public String getPaymentMessage(String additionalTag, Locale locale) {
+    return  messageSource.getMessage("merchants.refill.xrp",
+            new String[]{systemAddress, additionalTag}, locale);
+  }
 }
