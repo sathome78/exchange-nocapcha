@@ -30,29 +30,31 @@
             </div>
 
           </div>
-          <div class="input-block-wrapper clearfix">
-            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
-              <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
+          <c:if test="${isAmountInputNeeded}">
+            <div class="input-block-wrapper clearfix">
+              <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">
+                <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
+              </div>
+              <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
+                <input id="sum"
+                       class="form-control input-block-wrapper__input numericInputField"
+                       data-currency-name="${currency.name}"
+                       data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
+                       data-min-amount
+                       data-system-min-sum="${minRefillSum}"
+                       data-scale-of-amount="${scaleForCurrency}"
+                       data-min-sum-noty-id="#min-sum-notification"
+                       data-submit-button-id=".start-refill"/>
+              </div>
+              <div class="col-md-6 input-block-wrapper__label-wrapper">
+                <div id="min-sum-notification" class="red"><loc:message code="merchants.input.minSum"/>
+                  <strong> <span id="minSum"> <%--<fmt:formatNumber value="${minRefillSum}"
+                                                                    pattern="###,##0.00######"/>--%></span>
+                      ${currency.name}
+                  </strong></div>
+              </div>
             </div>
-            <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
-              <input id="sum"
-                     class="form-control input-block-wrapper__input numericInputField"
-                     data-currency-name="${currency.name}"
-                     data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
-                     data-min-amount
-                     data-system-min-sum="${minRefillSum}"
-                     data-scale-of-amount="${scaleForCurrency}"
-                     data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id=".start-refill"/>
-            </div>
-            <div class="col-md-6 input-block-wrapper__label-wrapper">
-              <div id="min-sum-notification" class="red"><loc:message code="merchants.input.minSum"/>
-                <strong> <span id="minSum"> <%--<fmt:formatNumber value="${minRefillSum}"
-                                                                  pattern="###,##0.00######"/>--%></span>
-                    ${currency.name}
-                </strong></div>
-            </div>
-          </div>
+          </c:if>
           <b hidden id="buttonMessage"><loc:message code="merchants.deposit"/></b>
           <div id="merchantList">
             <br>
@@ -67,6 +69,9 @@
                         <span><loc:message code="merchants.input.minSum"/></span>
                         <span>${minRefillSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}</span>
                       </c:if>
+                      <br>
+                      <span><loc:message code="merchants.commission"/>:</span>
+                      <span>${merchantCurrency.inputCommission.stripTrailingZeros().toPlainString()} ${currency.getName()}</span>
                     </div>
                   </div>
                   <c:choose>
@@ -80,6 +85,7 @@
                               data-merchant-min-sum="${merchantCurrency.minSum}"
                               data-min-sum="${minRefillSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}"
                               data-process_type="${merchantCurrency.processType}"
+                              data-is-amount-input-needed="${isAmountInputNeeded}"
                               data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.deposit"/>
                       </button>
                     </c:when>
