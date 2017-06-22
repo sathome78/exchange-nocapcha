@@ -171,7 +171,7 @@ public class RefillRequestController {
   public void decline(
       @RequestParam Integer id,
       @RequestParam String comment,
-      Principal principal) {
+      Principal principal, HttpServletRequest request) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     refillService.declineRefillRequest(id, requesterAdminId, comment);
   }
@@ -183,15 +183,16 @@ public class RefillRequestController {
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-        .requestId(acceptDto.getRequestId())
-        .amount(acceptDto.getAmount())
-        .requesterAdminId(requesterAdminId)
-        .remark(acceptDto.getRemark())
-        .build();
+            .requestId(acceptDto.getRequestId())
+            .amount(acceptDto.getAmount())
+            .requesterAdminId(requesterAdminId)
+            .remark(acceptDto.getRemark())
+            .merchantTransactionId(acceptDto.getMerchantTxId())
+            .build();
     refillService.acceptRefillRequest(requestAcceptDto);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {

@@ -161,7 +161,7 @@ public class WithdrawRequestController {
     withdrawService.postWithdrawalRequest(id, requesterAdminId);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
