@@ -104,7 +104,7 @@ public class TransferRequestController {
     Locale locale = localeResolver.resolveLocale(request);
     TransferRequestFlatDto flatDto = dto.get();
     transferService.performTransfer(flatDto, locale, action);
-    return messageSource.getMessage("" ,
+    return messageSource.getMessage("message.receive.voucher" ,
             new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
                     currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request));
   }

@@ -88,6 +88,9 @@ public interface WalletService {
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
 
+    TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount,
+                                    Locale locale, boolean checkOnly);
+
     String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale, boolean checkOnly);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);

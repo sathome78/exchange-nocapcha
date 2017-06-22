@@ -23,4 +23,5 @@ public class UserTransfer {
     private BigDecimal commissionAmount;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime creationDate;
+    private Commission commission;
 }

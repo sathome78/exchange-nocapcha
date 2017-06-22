@@ -279,7 +279,7 @@ public class TransferServiceImpl implements TransferService {
     if (result != SUCCESS) {
       throw new WithdrawRequestPostException(result.name());
     }
-
+    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, false);
   }
 
 
