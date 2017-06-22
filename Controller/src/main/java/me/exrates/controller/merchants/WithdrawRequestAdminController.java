@@ -118,6 +118,7 @@ public class WithdrawRequestAdminController {
       InvoiceActionIsProhibitedForCurrencyPermissionOperationException.class,
       InvoiceActionIsProhibitedForNotHolderException.class
   })
+
   @ResponseBody
   public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
