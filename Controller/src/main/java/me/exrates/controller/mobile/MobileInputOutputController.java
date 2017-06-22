@@ -402,8 +402,10 @@ public class MobileInputOutputController {
     // TODO add last address retrieval method for crypto
             try {
                 result = refillService.createRefillRequest(refillRequest);
+                refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
+    
             } catch (RefillRequestGeneratingAdditionalAddressNotAvailableException e) {
-                
+                refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
                 Map<String, String> params = new HashMap<String, String>() {{
                     put("message", refillService.getPaymentMessageForTag(merchant.getServiceBeanName(), merchantCurrency.getAddress(), userLocale));
                 }};
@@ -411,7 +413,6 @@ public class MobileInputOutputController {
                     put("params", params);
                 }};
             }
-          refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
           Map<String, String> params = (Map<String, String>)result.get("params");
             String message = (String) result.get("message");
             if (message == null) {
