@@ -186,7 +186,8 @@ public class WithdrawRequestController {
   @ResponseBody
   public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource
+            .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
   }
   
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
