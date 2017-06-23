@@ -8,6 +8,7 @@ import me.exrates.model.enums.invoice.TransferStatusEnum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -110,7 +111,13 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
       put("hash", hash);
       put("status", requiredStatus);
     }};
-    return of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
+    Optional<TransferRequestFlatDto> dto = Optional.empty();
+    try {
+      dto = of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
+    } catch (DataAccessException e) {
+      log.error(e);
+    }
+    return dto;
   }
 
 

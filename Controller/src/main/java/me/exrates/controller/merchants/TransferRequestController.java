@@ -8,6 +8,7 @@ import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -96,10 +98,14 @@ public class TransferRequestController {
         throw new RequestsLimitExceedException();
     }
     InvoiceActionTypeEnum action = PRESENT_VOUCHER;
-    TransferStatusEnum requiredStatus = (TransferStatusEnum) TransferStatusEnum.getAvailableForActionStatusesList(action);
-    Optional<TransferRequestFlatDto> dto =  transferService.getByHashAndStatus(code, requiredStatus.getCode(), true);
+    List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
+    if(requiredStatus.size() > 1) {
+      throw new RuntimeException("voucher processing error");
+    }
+    Optional<TransferRequestFlatDto> dto =  transferService.getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
     if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
-      throw new InvoiceNotFoundException("transfer not found");
+      throw new InvoiceNotFoundException(messageSource.getMessage(
+              "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
     }
     Locale locale = localeResolver.resolveLocale(request);
     TransferRequestFlatDto flatDto = dto.get();
@@ -148,7 +154,7 @@ public class TransferRequestController {
   @ResponseBody
   public ErrorInfo RequestsLimitExceedExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("voucher.request.limit.exceed", null, localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -169,7 +175,8 @@ public class TransferRequestController {
   @ResponseBody
   public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
-    return new ErrorInfo(req.getRequestURL(), exception);
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource
+            .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
