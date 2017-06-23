@@ -97,4 +97,6 @@ public interface RefillService {
   Optional<InvoiceBank> findInvoiceBankById(Integer id);
 
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
+  
+  String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
 }

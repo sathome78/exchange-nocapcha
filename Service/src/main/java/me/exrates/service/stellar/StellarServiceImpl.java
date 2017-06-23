@@ -131,7 +131,7 @@ public class StellarServiceImpl implements StellarService {
         String hash = params.get("hash");
         Currency currency = currencyService.findByName("XLM");
         Merchant merchant = merchantService.findByName(XLM_MERCHANT);
-        BigDecimal amount = stellarTransactionService.normalizeAmountToDecimal(params.get("amount"));
+        BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -153,5 +153,11 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public String getMainAddress() {
         return ACCOUNT_NAME;
+    }
+  //TODO remove after changes in mobile api
+    @Override
+    public String getPaymentMessage(String additionalTag, Locale locale) {
+        return messageSource.getMessage("merchants.refill.xlm",
+                new Object[]{ACCOUNT_NAME, additionalTag}, locale);
     }
 }

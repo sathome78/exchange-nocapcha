@@ -378,6 +378,10 @@ public class MobileInputOutputController {
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Merchant merchant = merchantService.findById(requestParamsDto.getMerchant());
+        MerchantCurrency merchantCurrency = merchantService.getAllUnblockedForOperationTypeByCurrencies(Collections.singletonList(
+              requestParamsDto.getCurrency()), OperationType.INPUT).stream().filter(item ->
+              item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
+              .orElseThrow(MerchantInternalException::new);
         MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
         if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
             responseDto.setType(MerchantApiResponseType.NOTIFY);
@@ -394,15 +398,39 @@ public class MobileInputOutputController {
             CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
                     .orElseThrow(InvalidAmountException::new);
             RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
-            Map<String, Object> result = refillService.createRefillRequest(refillRequest);
-            Map<String, String> params = (Map<String, String>)result.get("params");
+            Map<String, Object> result = null;
+    // TODO add last address retrieval method for crypto
+            try {
+                result = refillService.createRefillRequest(refillRequest);
+                refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
+    
+            } catch (RefillRequestGeneratingAdditionalAddressNotAvailableException e) {
+                refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(Collections.singletonList(merchantCurrency), userEmail);
+                Map<String, String> params = new HashMap<String, String>() {{
+                    put("message", refillService.getPaymentMessageForTag(merchant.getServiceBeanName(), merchantCurrency.getAddress(), userLocale));
+                }};
+                result = new HashMap<String, Object>() {{
+                    put("params", params);
+                }};
+            }
+          Map<String, String> params = (Map<String, String>)result.get("params");
             String message = (String) result.get("message");
+            if (message == null) {
+                message = params.get("message");
+            }
             if (message != null) {
                 message = message.replaceAll("<button.*>", "").replaceAll("<.*?>", "");
             }
             responseDto.setData(message);
-            responseDto.setQr(params.get("qr"));
-            responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+            if (merchantCurrency.getAdditionalTagForWithdrawAddressIsUsed()) {
+              responseDto.setQr(merchantCurrency.getMainAddress());
+              responseDto.setWalletNumber(merchantCurrency.getMainAddress());
+              responseDto.setAdditionalTag(merchantCurrency.getAddress());
+            } else {
+              responseDto.setQr(params.get("qr"));
+              responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+            }
+            
         } else {
             responseDto.setType(MerchantApiResponseType.REDIRECT);
             String rootUrl = String.join("", request.getScheme(), "://", request.getServerName(), ":",

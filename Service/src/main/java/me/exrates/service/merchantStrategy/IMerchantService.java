@@ -8,6 +8,7 @@ import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.util.CharUtils;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -50,5 +51,9 @@ public interface IMerchantService {
 
   default String getMainAddress() {
     return "no address!!!";
+  }
+  //TODO remove after changes in mobile api
+  default String getPaymentMessage(String additionalTag, Locale locale) {
+    return additionalTag;
   }
 }

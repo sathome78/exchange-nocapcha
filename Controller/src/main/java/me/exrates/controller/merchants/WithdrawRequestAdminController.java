@@ -105,7 +105,7 @@ public class WithdrawRequestAdminController {
     return withdrawService.getWithdrawRequestById(id, requesterAdmin);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
@@ -118,6 +118,7 @@ public class WithdrawRequestAdminController {
       InvoiceActionIsProhibitedForCurrencyPermissionOperationException.class,
       InvoiceActionIsProhibitedForNotHolderException.class
   })
+
   @ResponseBody
   public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);

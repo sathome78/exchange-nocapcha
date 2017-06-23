@@ -15,4 +15,5 @@ public class RefillRequestAcceptEntryParamsDto {
   private Integer requestId;
   private BigDecimal amount;
   private String remark;
+  private String merchantTxId;
 }

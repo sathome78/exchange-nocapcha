@@ -943,4 +943,11 @@ public class RefillServiceImpl implements RefillService {
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
      return refillRequestDao.findAllAddresses(merchantId, currencyId);
   }
+  
+  //TODO remove after changes in mobile api
+  @Override
+  public String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale) {
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);
+    return merchantService.getPaymentMessage(tag, locale);
+  }
 }
