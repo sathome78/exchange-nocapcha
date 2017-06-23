@@ -20,6 +20,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
     var stockChart;
 
     this.drawChart = function () {
+        console.log('draw chart');
         switch (that.chartType) {
             case 'STOCK':
             {

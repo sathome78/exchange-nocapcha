@@ -23,6 +23,7 @@ function StockChartAmchartsClass($loadingImg) {
     this.$loadingImg = $loadingImg;
 
     this.draw = function () {
+        console.log("load chart");
         that.$loadingImg.removeClass('hidden');
         /**/
         $.ajax({
