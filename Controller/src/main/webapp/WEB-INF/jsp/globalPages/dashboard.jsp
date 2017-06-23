@@ -60,6 +60,14 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script src="https://surveyjs.azureedge.net/0.12.14/survey.jquery.min.js"></script>
+    <!-- Amcharts Charts ... -->
+    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
+    <!-- ... Amcharts Charts -->
+    <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
