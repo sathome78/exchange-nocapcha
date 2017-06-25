@@ -1,5 +1,10 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <script>
   var $dialog;
+  var remarksValid = false;
+  var txIdValid = false;
+  var actualAmount = false;
+
   $(function () {
     $dialog = $("#dialog-refill-accept");
     $(".credits-operation-enter__item").on("change input", function (event) {
@@ -29,12 +34,15 @@
     const AMOUNT_REGEX = /^\d+\.?\d*$/;
     var elemId = $elem.attr("id");
     if (elemId == 'actual-amount') {
-      result = validateString($elem, AMOUNT_REGEX, '', false);
+      actualAmount = validateString($elem, AMOUNT_REGEX, '', false);
     }
     else if (elemId == 'remark') {
-      result = $elem.val().trim() ? true : false;
+      remarksValid = !!$elem.val().trim();
     }
-    return result;
+    else if (elemId == 'merchant_transaction_id') {
+        txIdValid = $elem.val().length > 1 && !!$elem.val().trim();
+    }
+    return remarksValid && txIdValid && actualAmount;
   }
 
 </script>
@@ -58,6 +66,15 @@
             <loc:message code="admin.invoice.actualAmount"/>
           </label>
           <input id="actual-amount"
+                 class="form-control credits-operation-enter__item"
+                 autofocus
+                 type="text">
+        </div>
+        <div>
+          <label class="control-label" for="merchant_transaction_id">
+            <loc:message code="refill.merchantTransactionId"/>
+          </label>
+          <input id="merchant_transaction_id"
                  class="form-control credits-operation-enter__item"
                  autofocus
                  type="text">

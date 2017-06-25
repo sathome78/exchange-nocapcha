@@ -17,9 +17,4 @@ public interface StellarTransactionService {
 
     Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String serverUrl, String accountSecret);
 
-    String normalizeAmountToString(BigDecimal amount);
-
-    String normalizeAmountToString(String amount);
-
-    BigDecimal normalizeAmountToDecimal(String amount);
 }

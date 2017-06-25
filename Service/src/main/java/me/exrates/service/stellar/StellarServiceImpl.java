@@ -131,7 +131,7 @@ public class StellarServiceImpl implements StellarService {
         String hash = params.get("hash");
         Currency currency = currencyService.findByName("XLM");
         Merchant merchant = merchantService.findByName(XLM_MERCHANT);
-        BigDecimal amount = stellarTransactionService.normalizeAmountToDecimal(params.get("amount"));
+        BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())

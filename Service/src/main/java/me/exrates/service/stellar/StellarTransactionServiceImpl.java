@@ -33,8 +33,6 @@ import java.util.Map;
 @PropertySource("classpath:/merchants/stellar.properties")
 public class StellarTransactionServiceImpl implements StellarTransactionService {
 
-    private static final Integer XLM_AMOUNT_MULTIPLIER = 1;
-    private static final Integer XLM_DECIMALS = 6;
     private static final BigDecimal XLM_MIN_BALANCE = new BigDecimal(21);
     private @Value("${stellar.mode}") String MODE;
     private @Value("${stellar.horizon.url}")String SEVER_URL;
@@ -77,7 +75,7 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     // Start building the transaction.
         Transaction transaction = new Transaction.Builder(sourceAccount)
                 .addOperation(new PaymentOperation.Builder(destination,
-                        new AssetTypeNative(), normalizeAmountToString(withdrawMerchantOperationDto.getAmount())).build())
+                        new AssetTypeNative(), withdrawMerchantOperationDto.getAmount()).build())
                 // A memo allows you to add your own metadata to a transaction. It's
                 // optional and does not affect how Stellar treats the transaction.
                 .addMemo(StringUtils
@@ -108,26 +106,17 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
     }
 
 
-    @Override
-    public String normalizeAmountToString(BigDecimal amount) {
-        return amount
-                .setScale(XLM_DECIMALS, RoundingMode.HALF_DOWN)
-                .multiply(new BigDecimal(XLM_AMOUNT_MULTIPLIER))
-                .toBigInteger()
-                .toString();
-    }
-
-    @Override
+    /*@Override
     public String normalizeAmountToString(String amount) {
         return normalizeAmountToString(new BigDecimal(amount));
     }
-
-    @Override
+*/
+    /*@Override
     public BigDecimal normalizeAmountToDecimal(String amount) {
         return new BigDecimal(amount)
                 .divide(new BigDecimal(XLM_AMOUNT_MULTIPLIER))
                 .setScale(XLM_DECIMALS, RoundingMode.HALF_DOWN);
-    }
+    }*/
 
     private void setNetworkMode(Network network) {
         switch (StellarNetworkModeEnum.valueOf(MODE)) {

@@ -161,7 +161,7 @@ public class WithdrawRequestController {
     withdrawService.postWithdrawalRequest(id, requesterAdminId);
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
@@ -182,12 +182,23 @@ public class WithdrawRequestController {
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({
-      NotEnoughUserWalletMoneyException.class, RequestLimitExceededException.class
+      RequestLimitExceededException.class
   })
   @ResponseBody
-  public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
+  public ErrorInfo RequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({
+          NotEnoughUserWalletMoneyException.class
+  })
+  @ResponseBody
+  public ErrorInfo NotEnoughUserWalletMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource
+            .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
   }
   
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

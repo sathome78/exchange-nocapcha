@@ -60,7 +60,7 @@
             <br>
             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}">
               <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}">
-                <div style=" width: 100%; min-height: 98px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
+                <div style=" width: 100%; min-height: 112px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
                   <div style="float: left; height: 20px;  width: 208px; text-align: right; margin-right: 19px">
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 35px"/>

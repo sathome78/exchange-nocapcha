@@ -144,6 +144,7 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("cant get account Info");
         }
+        log.debug("xrp_acc {}", response.getBody());
         return new JSONObject(response.getBody()).getJSONObject("result");
     }
 
