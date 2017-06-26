@@ -95,6 +95,7 @@ $(function transferCreation() {
         $transferParamsDialog.find('#request-money-operation-btns-wrapper').show();
         $transferParamsDialog.find('#response-money-operation-btns-wrapper').hide();
         $transferParamsDialog.find('#message').hide();
+        $transferParamsDialog.find('#hash').hide();
         $transferParamsDialog.find('#message').html(message ? message : '');
         /**/
         $transferParamsDialog.find("#continue-btn").off('click').on('click', function () {
@@ -146,9 +147,10 @@ $(function transferCreation() {
                 },
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: JSON.stringify(data)
             }).success(function (result) {
-                showTransferDialogAfterCreation(result['message']);
+                console.log(result);
+                showTransferDialogAfterCreation(result['message'], result['hash']);
                 notifications.getNotifications();
             }).complete(function () {
                 $loadingDialog.modal("hide");
@@ -159,12 +161,16 @@ $(function transferCreation() {
         });
     }
 
-    function showTransferDialogAfterCreation(message) {
+    function showTransferDialogAfterCreation(message, hash) {
         $transferParamsDialog.find('#request-money-operation-btns-wrapper').hide();
         $transferParamsDialog.find('#recipient-input-wrapper').hide();
         $transferParamsDialog.find('#response-money-operation-btns-wrapper').show();
         $transferParamsDialog.find('#message').show();
         $transferParamsDialog.find('#message').html(message ? message : '');
+        if(hash) {
+            $transferParamsDialog.find('#hash').show();
+            $transferParamsDialog.find('#hash_field').text(hash);
+        }
         $transferParamsDialog.modal();
     }
 

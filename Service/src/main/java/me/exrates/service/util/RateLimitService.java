@@ -36,16 +36,19 @@ public class RateLimitService  {
     }
 
 
-    public boolean registerRequestAndCheck(String userEmail) {
+    public void registerRequest(String userEmail) {
         map.putIfAbsent(userEmail, new CopyOnWriteArrayList<>());
         map.get(userEmail).add(LocalDateTime.now());
-        return checkLimitsExceed(userEmail);
     }
 
 
-    private boolean checkLimitsExceed(String email) {
+    public boolean checkLimitsExceed(String email) {
         LocalDateTime beginTime = LocalDateTime.now().minusSeconds(TIME_LIMIT_SECONDS);
-        long counter = map.get(email).stream().filter(p->p.isAfter(beginTime)).count();
+        List<LocalDateTime> list = map.get(email);
+        if (list == null) {
+            return true;
+        }
+        long counter = list.stream().filter(p->p.isAfter(beginTime)).count();
         return counter < ATTEMPS;
     }
 

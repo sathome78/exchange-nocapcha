@@ -94,7 +94,8 @@ public class TransferRequestController {
   @ResponseBody
   @RequestMapping(value = "/transfer/accept", method = POST)
   public String acceptTransfer(String code, Principal principal, HttpServletRequest request) {
-    if (!rateLimitService.registerRequestAndCheck(principal.getName())) {
+    log.debug("code {}", code);
+    if (!rateLimitService.checkLimitsExceed(principal.getName())) {
         throw new RequestsLimitExceedException();
     }
     InvoiceActionTypeEnum action = PRESENT_VOUCHER;
@@ -104,6 +105,7 @@ public class TransferRequestController {
     }
     Optional<TransferRequestFlatDto> dto =  transferService.getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
     if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
+      rateLimitService.registerRequest(principal.getName());
       throw new InvoiceNotFoundException(messageSource.getMessage(
               "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
     }

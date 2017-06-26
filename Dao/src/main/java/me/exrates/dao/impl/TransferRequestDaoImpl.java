@@ -44,7 +44,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     transferRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
     transferRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
     transferRequestFlatDto.setUserId(rs.getInt("user_id"));
-    transferRequestFlatDto.setRecipientId(rs.getInt("recipient_id"));
+    transferRequestFlatDto.setRecipientId(rs.getInt("recipient_user_id"));
     transferRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     transferRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
     transferRequestFlatDto.setHash(rs.getString("hash"));
@@ -112,12 +112,13 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
       put("status", requiredStatus);
     }};
     Optional<TransferRequestFlatDto> dto = Optional.empty();
-    try {
+   /* try {
       dto = of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
+      log.debug("dto {}", dto.isPresent() ? dto.get().getId() : "no dto(((");
     } catch (DataAccessException e) {
       log.error(e);
-    }
-    return dto;
+    }*/
+    return of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
   }
 
 

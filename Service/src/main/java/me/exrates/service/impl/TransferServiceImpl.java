@@ -145,7 +145,7 @@ public class TransferServiceImpl implements TransferService {
           WalletTransferStatus result = walletService.walletInnerTransfer(
               transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getAmount().negate(),
-              TransactionSourceType.USER_VOUCHER,
+              TransactionSourceType.USER_TRANSFER,
               createdTransferRequestId,
               description);
           if (result != SUCCESS) {
@@ -194,7 +194,7 @@ public class TransferServiceImpl implements TransferService {
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
         transferRequest.getAmount(),
-        TransactionSourceType.USER_VOUCHER,
+        TransactionSourceType.USER_TRANSFER,
         transferRequest.getId(),
         description);
     if (result != SUCCESS) {
@@ -257,7 +257,7 @@ public class TransferServiceImpl implements TransferService {
 
   @Override
   public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal) {
-    return StringUtils.isEmpty(transferRequestFlatDto.getRecipientId().toString())
+    return transferRequestFlatDto.getRecipientId() == null || transferRequestFlatDto.getRecipientId().equals(0)
             || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
   }
 
@@ -273,7 +273,7 @@ public class TransferServiceImpl implements TransferService {
     WalletTransferStatus result = walletService.walletInnerTransfer(
             walletId,
             dto.getAmount(),
-            TransactionSourceType.USER_VOUCHER,
+            TransactionSourceType.USER_TRANSFER,
             dto.getId(),
             transactionDescription.get(currentStatus, action));
     if (result != SUCCESS) {
