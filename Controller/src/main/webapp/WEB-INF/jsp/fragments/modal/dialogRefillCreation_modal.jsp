@@ -31,9 +31,12 @@
         </div>
 
         <div id="message"
-             style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white"></div>
+             style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white">
+        </div>
         <div id="payment-qr">
         </div>
+        <div></div>
+       <%-- <button id="address-copy" class="btn address-copy" hidden><loc:message code="refill.copy"/></button>--%>
       </div>
       <div class="modal-footer">
         <div id='request-money-operation-btns-wrapper'

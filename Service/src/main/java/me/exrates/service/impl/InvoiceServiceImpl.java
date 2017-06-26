@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.NotApplicableException;
@@ -22,9 +23,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
-  MerchantService merchantService;
+  private MerchantService merchantService;
+  @Autowired
+  private CurrencyService currencyService;
 
   @Override
   @Transactional
@@ -40,7 +42,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         request.getAddress(),
         request.getRefillRequestParam().getRecipient());
     String message = messageSource.getMessage("merchants.refill.invoice",
-        new Object[]{request.getAmount(), toWallet}, request.getLocale());
+        new String[]{request.getAmount().toPlainString().concat(currencyService.getCurrencyName(request.getCurrencyId()))
+                , toWallet}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
       put("walletNumber", request.getAddress());

@@ -202,6 +202,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
+        e.setAdditionalFieldName(merchantService.additionalFieldName());
       }
     });
     return merchantCurrencies;

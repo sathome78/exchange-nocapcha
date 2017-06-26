@@ -41,6 +41,7 @@ $(function withdrawCreation() {
     var commissionMerchantAmount;
     var totalAmount;
     var bankDataList;
+    var additionalFieldName;
 
     $container.find(".start-withdraw").on('click', function () {
         startWithdraw(this);
@@ -55,6 +56,7 @@ $(function withdrawCreation() {
         merchantImageId = $(button).data("merchant-image-id");
         merchantIsSimpleInvoice = $(button).data("process_type")=="INVOICE";
         additionalFieldNeeded = $(button).data("additional-field-needed");
+        additionalFieldName = $(button).data("additional-field-name");
         amount = parseFloat($amountHolder.val());
         if (checkAmount()) {
             fillModalWindow();
@@ -106,6 +108,7 @@ $(function withdrawCreation() {
         if (additionalFieldNeeded) {
             $withdrawParamsDialog.find("[for=address-tag]").show();
             $withdrawParamsDialog.find("#address-tag").show();
+            $('#additional_field_name').text(additionalFieldName);
         } else {
             $withdrawParamsDialog.find("[for=address-tag]").hide();
             $withdrawParamsDialog.find("#address-tag").hide();

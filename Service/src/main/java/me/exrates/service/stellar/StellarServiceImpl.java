@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.stellar.sdk.Memo;
@@ -27,6 +28,7 @@ import org.stellar.sdk.responses.TransactionResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -80,8 +82,9 @@ public class StellarServiceImpl implements StellarService {
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", payment.getHash());
         MemoId memoid = (MemoId)payment.getMemo();
-        long destinationTag = memoid.getId();
-        paramsMap.put("address", String.valueOf(destinationTag));
+        Long destinationTag = memoid.getId();
+        DecimalFormat myFormatter = new DecimalFormat("###.##");
+        paramsMap.put("address", myFormatter.format(destinationTag));
         paramsMap.put("amount", amount);
         try {
             this.processPayment(paramsMap);
