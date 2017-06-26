@@ -36,7 +36,6 @@
         <div id="payment-qr">
         </div>
         <div></div>
-       <%-- <button id="address-copy" class="btn address-copy" hidden><loc:message code="refill.copy"/></button>--%>
       </div>
       <div class="modal-footer">
         <div id='request-money-operation-btns-wrapper'

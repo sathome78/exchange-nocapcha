@@ -260,10 +260,7 @@ $(function refillCreation() {
         $refillParamsDialog.find('#response-money-operation-btns-wrapper').show();
         $refillParamsDialog.find('#message').show();
         $refillParamsDialog.find('#message').html(message ? message : '');
-       /* if (qrTag) {
-            $refillParamsDialog.find('#payment-qr').html(qrTag);
-            /!*$('#address-copy').show();*!/
-        }*/
+        $refillParamsDialog.find('#payment-qr').html(qrTag ? qrTag : '');
         $refillParamsDialog.one("hidden.bs.modal", function () {
             window.location.reload(true);
         });

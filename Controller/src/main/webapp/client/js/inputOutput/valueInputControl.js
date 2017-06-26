@@ -5,6 +5,7 @@ $(function () {
     var checkAmount = true;
     determineMinAmount();
 
+
     function determineMinAmount() {
         withdrawButtons.each(function(index,item){
             var $item = $(item);
