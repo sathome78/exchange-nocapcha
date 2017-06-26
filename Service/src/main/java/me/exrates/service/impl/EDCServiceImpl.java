@@ -180,12 +180,13 @@ public class EDCServiceImpl implements EDCService {
           .execute()
           .body()
           .string();
-    } catch (IOException e) {
-      throw new MerchantInternalException(e);
+      JsonParser parser = new JsonParser();
+      JsonObject object = parser.parse(returnResponse).getAsJsonObject();
+      return object.get("address").getAsString();
+
+    } catch (Exception e) {
+      throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
     }
-    JsonParser parser = new JsonParser();
-    JsonObject object = parser.parse(returnResponse).getAsJsonObject();
-    return object.get("address").getAsString();
   }
 
 
