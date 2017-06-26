@@ -97,7 +97,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     String address = address();
     String message = messageSource.getMessage("merchants.refill.btc",
-        new Object[]{request.getAmount(), address}, request.getLocale());
+        new Object[]{address}, request.getLocale());
     return new HashMap<String, String>() {{
       put("address", address);
       put("message", message);
