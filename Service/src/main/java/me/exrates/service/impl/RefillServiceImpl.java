@@ -193,6 +193,10 @@ public class RefillServiceImpl implements RefillService {
     merchantCurrencies.forEach(e -> {
       e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
       /**/
+      //TODO: Temporary fix
+      if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
+        e.setAddress("");
+      }
       IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
