@@ -3,8 +3,6 @@ package me.exrates.model.dto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
-import java.util.Date;
-
 /**
  * Created by Valk on 12.04.16.
  *

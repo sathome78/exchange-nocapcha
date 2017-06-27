@@ -1,7 +1,5 @@
 package me.exrates.model.form;
 
-import java.time.LocalDate;
-
 /**
  * Created by OLEG on 21.10.2016.
  */

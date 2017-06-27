@@ -3,15 +3,15 @@ package me.exrates.dao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -31,17 +31,11 @@ public interface MerchantDao {
 
   BigDecimal getMinSum(int merchant, int currency);
 
-  List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
+  List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
 
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
-
-  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeIdList, Locale locale);
-
-  boolean checkInputRequests(int currencyId, String email);
-
-  boolean checkOutputRequests(int currencyId, String email);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
@@ -54,8 +48,14 @@ public interface MerchantDao {
   void setAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId, Boolean withdrawAutoEnabled, Integer withdrawAutoDelaySeconds, BigDecimal withdrawAutoThresholdAmount);
 
   MerchantCurrencyAutoParamDto findAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId);
-  
+
   List<String> retrieveBtcCoreBasedMerchantNames();
-  
+
   Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+
+  List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
+
+  MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
+
+  MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 }

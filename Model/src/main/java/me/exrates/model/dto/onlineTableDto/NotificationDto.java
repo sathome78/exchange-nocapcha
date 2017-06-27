@@ -2,7 +2,6 @@ package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;

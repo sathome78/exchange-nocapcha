@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="/client/js/chart-amcharts/style.css"/>
 <div class="amcharts-graphics graphic-wrapper">
     <div>
-      <%--  <!-- Amcharts Charts ... moved to head section -->
+        <%--<!-- Amcharts Charts ... -->
         <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
         <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
         <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>

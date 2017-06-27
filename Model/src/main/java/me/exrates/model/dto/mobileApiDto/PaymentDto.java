@@ -12,7 +12,6 @@ public class PaymentDto {
     private Integer merchant;
     @NotNull
     private Double sum;
-    private int merchantImage;
 
     public Integer getCurrency() {
         return currency;
@@ -38,21 +37,12 @@ public class PaymentDto {
         this.sum = sum;
     }
 
-    public int getMerchantImage() {
-        return merchantImage;
-    }
-
-    public void setMerchantImage(int merchantImage) {
-        this.merchantImage = merchantImage;
-    }
-
     @Override
     public String toString() {
         return "PaymentDto{" +
                 "currency=" + currency +
                 ", merchant=" + merchant +
                 ", sum=" + sum +
-                ", merchantImage=" + merchantImage +
                 '}';
     }
 }

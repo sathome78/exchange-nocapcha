@@ -1,10 +1,8 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
-import me.exrates.model.dto.ChatDto;
 import me.exrates.model.dto.RemovedMessageDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.ChatService;
@@ -13,23 +11,27 @@ import me.exrates.service.exception.IllegalChatMessageException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-import static java.util.Collections.*;
-import static me.exrates.model.enums.ChatLang.EN;
-import static me.exrates.model.enums.ChatLang.RU;
-import static org.springframework.http.HttpStatus.*;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 

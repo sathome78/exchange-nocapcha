@@ -65,7 +65,7 @@ public class EDCAccountDaoImpl implements EDCAccountDao {
         final String sql = "UPDATE EDC_TEMP_ACCOUNT set account_id = :accountId WHERE transaction_id = :transactionId";
         final Map<String, Object> params = new HashMap<>();
         params.put("transactionId", transactionId);
-        params.put("accountId", accountId);
+        params.put("perfectmoney.accountId", accountId);
 
         try {
             jdbcTemplate.update(sql, params);

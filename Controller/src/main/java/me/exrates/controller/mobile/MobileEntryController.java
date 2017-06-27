@@ -12,8 +12,13 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.ApiService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.UserService;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +34,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -44,7 +48,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
-import static me.exrates.service.util.RestApiUtils.*;
+import static me.exrates.service.util.RestApiUtils.decodePassword;
+import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 
 /**
  * Created by OLEG on 19.08.2016.

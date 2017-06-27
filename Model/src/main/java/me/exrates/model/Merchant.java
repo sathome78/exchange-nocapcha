@@ -13,17 +13,19 @@ public class Merchant {
     private int id;
     private String name;
     private String description;
-    private Integer transactionSourceTypeId;
     private  String serviceBeanName;
+    private String processType;
+    private Integer refillOperationCountLimitForUserPerDay;
+    private Boolean additionalTagForWithdrawAddressIsUsed;
+
 
     public Merchant(int id) {
         this.id = id;
     }
 
-    public Merchant(int id, String name, String description, Integer transactionSourceTypeId) {
+    public Merchant(int id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.transactionSourceTypeId = transactionSourceTypeId;
     }
 }

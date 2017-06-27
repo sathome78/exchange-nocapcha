@@ -14,11 +14,14 @@ import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.EthereumCommonService;
+import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -27,6 +30,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -36,6 +41,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -136,8 +142,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
-    
-    
+
+
 
 
     @Bean
@@ -342,33 +348,53 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();
     }
-    
-    
+
+
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties");
+        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
+                "Bitcoin", "BTC", 4);
     }
-    
+
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
-        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties");
+        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
+                "Litecoin", "LTC", 4);
     }
     
     @Bean(name = "dashServiceImpl")
     public BitcoinService dashService() {
-        return new BitcoinServiceImpl("merchants/dash_wallet.properties");
+        return new BitcoinServiceImpl("merchants/dash_wallet.properties",
+                "Dash", "DASH", 4);
     }
     
     
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
-        return new EthereumCommonServiceImpl("merchants/ethereum.properties");
+        return new EthereumCommonServiceImpl("merchants/ethereum.properties",
+                "Ethereum", "ETH", 12);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
     public EthereumCommonService ethereumClassicService() {
-        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties");
+        return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
+                "Ethereum Classic", "ETC", 12);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        HttpClientBuilder b = HttpClientBuilder.create();
+        HttpClient client = b.build();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestResponseErrorHandler());
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(client);
+        requestFactory.setConnectionRequestTimeout(25000);
+        requestFactory.setReadTimeout(25000);
+        restTemplate.setRequestFactory(requestFactory);
+        return new RestTemplate();
     }
 
 }

@@ -1,6 +1,5 @@
 package me.exrates.model.dto.mobileApiDto.dashboard;
 
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.util.BigDecimalProcessing;
 

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.serializer.LocalDateSerializer;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Created by Valk on 27.05.2016.

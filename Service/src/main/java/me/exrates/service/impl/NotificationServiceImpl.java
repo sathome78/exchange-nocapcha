@@ -54,21 +54,19 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
-        String[] stringsArgs = Arrays.toString(messageArgs).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
-        Locale locale = new Locale(userService.getPreferedLang(userId));
+         Locale locale = new Locale(userService.getPreferedLang(userId));
         return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, stringsArgs, locale), cause);
+                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause);
 
     }
 
     @Override
     public long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
-        String[] stringsArgs = Arrays.toString(messageArgs).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
         Integer userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, stringsArgs, locale), cause);
+                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause);
 
     }
 
@@ -76,14 +74,14 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {
-        notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, messageArgs);
+        notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, normalizeArgs(messageArgs));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs, Locale locale) {
-        notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, messageArgs, locale);
+        notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, normalizeArgs(messageArgs), locale);
     }
 
     @Override
@@ -91,7 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {
         Locale locale = new Locale(userService.getPreferedLang(userId));
-        notifyUser(userId, cause, titleCode, messageCode, messageArgs, locale);
+        notifyUser(userId, cause, titleCode, messageCode, normalizeArgs(messageArgs), locale);
     }
 
     @Override
@@ -99,7 +97,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs, Locale locale) {
         String titleMessage = messageSource.getMessage(titleCode, null, locale);
-        String message = messageSource.getMessage(messageCode, messageArgs, locale);
+        String message = messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale);
         notifyUser(userId, cause, titleMessage, message);
     }
 
@@ -172,6 +170,10 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void updateUserNotifications(List<NotificationOption> options) {
         notificationDao.updateNotificationOptions(options);
+    }
+
+    private String[] normalizeArgs(Object... args) {
+       return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }
 
 }

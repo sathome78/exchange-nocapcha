@@ -3,7 +3,6 @@ package me.exrates.service;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.GroupUserRoleEnum;
 import me.exrates.model.enums.UserRole;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

@@ -2,7 +2,9 @@ package me.exrates.service.impl;
 
 import lombok.Getter;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -11,13 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -26,11 +24,6 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
  */
 @Service
 public class ReportServiceImpl implements ReportService {
-  @Autowired
-  InvoiceService invoiceService;
-
-  @Autowired
-  PendingPaymentService pendingPaymentService;
 
   @Autowired
   TransactionService transactionService;
@@ -49,6 +42,9 @@ public class ReportServiceImpl implements ReportService {
 
   @Autowired
   WithdrawService withdrawService;
+
+  @Autowired
+  RefillService refillService;
 
   @Autowired
   OrderService orderService;
@@ -71,44 +67,19 @@ public class ReportServiceImpl implements ReportService {
     /**/
     List<InvoiceReportDto> result = new ArrayList<>();
     /**/
-    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL)
-        && !currencyListForRefillOperation.isEmpty()) {
-      /*get list based on the table "invoice_request"
-      * Now source_type the INVOICE is source_type that is represented in "invoice_request" */
-      List<InvoiceRequestFlatForReportDto> invoiceRequestList = invoiceService.getByDateIntervalAndRoleAndCurrency(
-          startDate, endDate, realRoleIdList, currencyListForRefillOperation);
-      result.addAll(invoiceRequestList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));
-      /**/
-      /*get list based on the table "pending_payment" for particular source_type, which fully represented in pending_payment
-      * Now it is BTC_INVOICE */
-      List<String> sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.BTC_INVOICE.name());
-      }};
-      List<PendingPaymentFlatForReportDto> pendingPaymentList = pendingPaymentService.getByDateIntervalAndRoleAndCurrencyAndSourceType(
-          startDate, endDate, realRoleIdList, currencyListForRefillOperation, sourceType);
-      result.addAll(pendingPaymentList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));
-      /**/
-      /*get list based on the table "transaction" for particular source_type, which is weakly represented in pending_payment or not represented there at all
-      * Now source_type the MERCHANT is that which is weakly represented (only not significant fields) in pending_payment or not represented there at all */
-      sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.MERCHANT.name());
-      }};
-      List<TransactionFlatForReportDto> inputTransactionList = transactionService.getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
-          startDate, endDate, INPUT.getType(), realRoleIdList, currencyListForRefillOperation, sourceType);
-      result.addAll(inputTransactionList.stream()
-          .map(InvoiceReportDto::new)
-          .collect(Collectors.toList()));
-    }
-    /**/
     if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW)
         && !currencyListForWithdrawOperation.isEmpty()) {
       List<WithdrawRequestFlatForReportDto> withdrawRequestList = withdrawService.findAllByDateIntervalAndRoleAndCurrency(
           startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
       result.addAll(withdrawRequestList.stream()
+          .map(InvoiceReportDto::new)
+          .collect(Collectors.toList()));
+    }
+    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL)
+        && !currencyListForRefillOperation.isEmpty()) {
+      List<RefillRequestFlatForReportDto> refillRequestList = refillService.findAllByDateIntervalAndRoleAndCurrency(
+          startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
+      result.addAll(refillRequestList.stream()
           .map(InvoiceReportDto::new)
           .collect(Collectors.toList()));
     }
@@ -235,5 +206,23 @@ public class ReportServiceImpl implements ReportService {
           .map(UserCurrencyOperationPermissionDto::getCurrencyId)
           .collect(Collectors.toList());
     }
+  }
+
+  @Override
+  public List<OperationViewDto> getTransactionsHistory(
+      String requesterUserEmail,
+      Integer userId,
+      AdminTransactionsFilterData filterData) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    String sortColumn = "TRANSACTION.datetime";
+    String sortDirection = "DESC";
+    DataTableParams dataTableParams = DataTableParams.sortNoPaginationParams(sortColumn, sortDirection);
+    DataTable<List<OperationViewDto>> history = transactionService.showUserOperationHistory(
+        requesterUserId,
+        userId,
+        filterData,
+        dataTableParams,
+        Locale.ENGLISH);
+    return history.getData();
   }
 }

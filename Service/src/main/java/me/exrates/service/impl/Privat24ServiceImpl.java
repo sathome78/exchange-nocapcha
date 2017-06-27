@@ -3,11 +3,13 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.OkHttpClient;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +97,18 @@ public class Privat24ServiceImpl implements Privat24Service {
     }
 
     @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public Map<String, String> refill(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        throw new NotImplimentedMethod("for "+params);
     }
 
 }

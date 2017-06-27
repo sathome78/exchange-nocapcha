@@ -1,9 +1,5 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.LiqpayService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
@@ -12,8 +8,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,10 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/merchants/liqpay")
@@ -50,42 +41,10 @@ public class LiqpayMerchantController {
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result,
-                                       Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
-
-        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
-                "/input" : "/output");
-
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-
-            return new RedirectView(errorRedirectView);
-        }
-
-        final OperationType operationType = creditsOperation.get().getOperationType();
-
-        if (operationType == OperationType.INPUT) {
-            return liqpayService.preparePayment(creditsOperation.get(), principal.getName());
-        } else {
-            // TODO questions about output
-//            url = "/advcash/output";
-            return new RedirectView("/dashboard");
-        }
-
-
-    }
-
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        String signature = response.get("signature");
+    /*    String signature = response.get("signature");
         String data = response.get("data");;
 
 
@@ -115,14 +74,14 @@ public class LiqpayMerchantController {
 
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
-
+*/
         return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        String signature = response.get("signature");
+        /*String signature = response.get("signature");
         String data = response.get("data");;
 
 
@@ -150,7 +109,7 @@ public class LiqpayMerchantController {
         }
 
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
-
+*/
         return new RedirectView("/dashboard");
     }
 }

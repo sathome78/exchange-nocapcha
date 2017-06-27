@@ -7,6 +7,8 @@ INSERT INTO COMPANY_WALLET (currency_id) SELECT id from CURRENCY WHERE name='DAS
 INSERT INTO MERCHANT (`description`, `name`, transaction_source_type_id, service_bean_name) VALUES ('Dash', 'Dash',
                                                                                                     (SELECT id FROM TRANSACTION_SOURCE_TYPE WHERE name = 'BTC_INVOICE'),
                                                                                                     'dashServiceImpl');
+                                                                                                    2,
+                                                                                                    'dashServiceImpl');
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
 VALUES ((SELECT id from MERCHANT WHERE name='Dash'),

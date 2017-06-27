@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

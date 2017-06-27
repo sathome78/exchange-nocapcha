@@ -1,32 +1,20 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.OkPayService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -40,72 +28,29 @@ public class OkPayMerchantController {
     @Autowired
     private OkPayService okPayService;
 
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private LocaleResolver localeResolver;
-
     private static final Logger logger = LogManager.getLogger("merchant");
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       BindingResult result, Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
-
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        return okPayService.preparePayment(creditsOperation.get(), principal.getName());
-
-    }
-
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params) throws RefillRequestAppropriateNotFoundException {
 
-        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
         logger.info("Response: " + params);
-
-        if (okPayService.confirmPayment(params)) {
-            return response;
+        try {
+            okPayService.processPayment(params);
+            return responseOK;
+        }catch (RefillRequestAlreadyAcceptedException e){
+            return responseOK;
+        }catch (Exception e){
+            return new ResponseEntity<>(BAD_REQUEST);
         }
-
-        return new ResponseEntity<>(BAD_REQUEST);
     }
 
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    public RedirectView successPayment(@RequestParam Map<String, String> response) {
 
-        Transaction transaction;
-        logger.info("Response: " + response);
-        try{
-            transaction = transactionService.findById(Integer.parseInt(response.get("ok_invoice")));
-            if (!transaction.isProvided()){
-                redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
-                return new RedirectView("/dashboard");
-            }
-        }catch (EmptyResultDataAccessException e){
-            logger.error(e);
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-
-            return new RedirectView("/dashboard");
-        }
-
-        redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
-                merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
-
+        logger.debug(response);
         return new RedirectView("/dashboard");
     }
 

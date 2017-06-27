@@ -1,43 +1,33 @@
 package me.exrates.service.impl;
 
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.PendingPayment;
-import me.exrates.model.Transaction;
+import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
+import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.invoice.*;
+import me.exrates.service.exception.BtcPaymentNotFoundException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
-import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
-
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
+@Service
+@Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
@@ -45,68 +35,113 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
-  
-
 
   @Autowired
-  private PendingPaymentDao paymentDao;
+  private RefillService refillService;
   @Autowired
-  private TransactionService transactionService;
-  @Autowired
-  private AlgorithmService algorithmService;
-  @Autowired
-  private NotificationService notificationService;
-  
+  private CurrencyService currencyService;
   @Autowired
   private MerchantService merchantService;
-  
   @Autowired
   private MessageSource messageSource;
   @Autowired
   private CoreWalletService bitcoinWalletService;
-  @Autowired
-  private BitcoinTransactionService bitcoinTransactionService;
-  
+
   private String walletPassword;
-  
+
   private String backupFolder;
-  
+
   private String nodePropertySource;
   
+  private String merchantName;
   
-  public BitcoinServiceImpl(String propertySource) {
+  private String currencyName;
+  
+  private Integer minConfirmations;
+
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
       this.walletPassword = props.getProperty("wallet.password");
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
+      this.merchantName = merchantName;
+      this.currencyName = currencyName;
+      this.minConfirmations = minConfirmations;
     } catch (IOException e) {
       LOG.error(e);
     }
-    
+
   }
   
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initCore(nodePropertySource);
+    bitcoinWalletService.initCoreClient(nodePropertySource);
+    bitcoinWalletService.initBtcdDaemon(this::onIncomingBlock, this::onPayment, this::onPayment);
+    examineMissingPaymentsOnStartup();
   }
-   
 
+
+  @Override
+  @Transactional
+  public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
+    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
+    return Collections.singletonMap("hash", txId);
+  }
+
+  @Override
+  @Transactional
+  public Map<String, String> refill(RefillRequestCreateDto request) {
+    String address = address();
+    String message = messageSource.getMessage("merchants.refill.btc",
+        new Object[]{address}, request.getLocale());
+    return new HashMap<String, String>() {{
+      put("address", address);
+      put("message", message);
+      put("qr", address);
+    }};
+  }
+
+  @Override
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    String address = getIfNotNull(params, "address");
+    String txId = getIfNotNull(params, "txId");
+    BtcTransactionDto btcTransactionDto = bitcoinWalletService.getTransaction(txId);
+    Integer confirmations = btcTransactionDto.getConfirmations();
+    BigDecimal amount = btcTransactionDto.getDetails().stream().filter(payment -> address.equals(payment.getAddress()))
+            .findFirst().orElseThrow(BtcPaymentNotFoundException::new).getAmount();
+    processBtcPayment(BtcPaymentFlatDto.builder()
+            .amount(amount)
+            .confirmations(confirmations)
+            .txId(txId)
+            .address(address)
+            .merchantId(merchant.getId())
+            .currencyId(currency.getId()).build());
+  }
+  
+  
+  private String getIfNotNull(Map<String, String> params, String paramName) {
+    String value = params.get(paramName);
+    Assert.requireNonNull(value, String.format("Absent value for param %s", paramName));
+    return value;
+  }
+  
   private String address() {
     boolean isFreshAddress = false;
     String address = bitcoinWalletService.getNewAddress(walletPassword);
-
-    final List<Integer> unclosedPendingPaymentStatesList = PendingPaymentStatusEnum.getMiddleStatesSet().stream()
-        .map(InvoiceStatus::getCode)
-        .collect(toList());
-
-    if (paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList)) {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
         address = bitcoinWalletService.getNewAddress(walletPassword);
-        isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList);
+        isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
       }
       if (i >= LIMIT) {
         throw new IllegalStateException("Can`t generate fresh address");
@@ -115,166 +150,146 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     return address;
   }
-
-  @Override
-  @Transactional(propagation = Propagation.REQUIRED)
-  public PendingPayment createInvoice(CreditsOperation operation) {
-    Transaction transaction = transactionService.createTransactionRequest(operation);
-    String address = address();
-    PendingPayment payment = new PendingPayment();
-    payment.setInvoiceId(transaction.getId());
-    payment.setAddress(address);
-    payment.setTransactionHash(computeTransactionHash(transaction, address));
-    payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
-    /**/
-    paymentDao.create(payment);
-    /*id (invoice_id) in pendingPayment is the id of the corresponding transaction. So source_id equals invoice_id*/
-    transactionService.setSourceId(transaction.getId(), transaction.getId());
-    return payment;
-  }
-
-  private String computeTransactionHash(final me.exrates.model.Transaction tx, String address) {
-    if (isNull(tx) || isNull(tx.getCommission()) || isNull(tx.getCommissionAmount())) {
-      throw new IllegalArgumentException("Argument itself or contains null");
-    }
-    final String target = new StringJoiner(":")
-        .add(String.valueOf(tx.getId()))
-        .add(address)
-        .toString();
-    return algorithmService.sha256(target);
-  }
   
-  @Override
-  @Transactional
-  public void provideTransaction(Integer pendingPaymentId, String hash, BigDecimal factAmount, String acceptanceUserEmail) throws Exception {
-    bitcoinTransactionService.provideBtcTransaction(pendingPaymentId, hash, factAmount, acceptanceUserEmail);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<PendingPaymentFlatDto> getBitcoinTransactions() {
-    List<Integer> pendingPaymentStatusIdList = PendingPaymentStatusEnum.getAvailableForActionStatusesList(ACCEPT_MANUAL).stream()
-        .map(InvoiceStatus::getCode)
-        .collect(Collectors.toList());
-    return paymentDao.findFlattenDtoByStatus(
-        TransactionSourceType.BTC_INVOICE.name(),
-        pendingPaymentStatusIdList);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<PendingPaymentFlatDto> getBitcoinTransactionsForCurrencyPermitted(Integer requesterUserId) {
-    return getBitcoinTransactionsByStatusesForCurrencyPermitted(requesterUserId,
-            PendingPaymentStatusEnum.getAvailableForActionStatusesList(ACCEPT_MANUAL));
-  }
-  
-  @Override
-  @Transactional(readOnly = true)
-  public List<PendingPaymentFlatDto> getBitcoinTransactionsAcceptedForCurrencyPermitted(Integer requesterUserId) {
-    return getBitcoinTransactionsByStatusesForCurrencyPermitted(requesterUserId, PendingPaymentStatusEnum.getAcceptedStatesSet());
-  }
-  
-  private List<PendingPaymentFlatDto> getBitcoinTransactionsByStatusesForCurrencyPermitted(Integer requesterUserId,
-                                                                                 Collection<InvoiceStatus> states) {
-    List<Integer> pendingPaymentStatusIdList = states.stream().map(InvoiceStatus::getCode).collect(toList());
-    return paymentDao.findFlattenDtoByStatusAndCurrencyPermittedForUser(
-            TransactionSourceType.BTC_INVOICE.name(), pendingPaymentStatusIdList,
-            requesterUserId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Integer getPendingPaymentStatusByInvoiceId(Integer invoiceId) {
-    return paymentDao.getStatusById(invoiceId);
-  }
-
-  @Override
-  @Transactional
-  public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
-    List<Integer> pendingPaymentStatusIdList = PendingPaymentStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
-        .map(InvoiceStatus::getCode)
-        .collect(Collectors.toList());
-    Optional<LocalDateTime> nowDate = paymentDao.getAndBlockBySourceTypeAndIntervalAndStatus(
-        TransactionSourceType.BTC_INVOICE.name(),
-        intervalMinutes,
-        pendingPaymentStatusIdList);
-    if (nowDate.isPresent()) {
-      paymentDao.setNewStatusBySourceTypeAndDateIntervalAndStatus(
-          TransactionSourceType.BTC_INVOICE.name(),
-          nowDate.get(),
-          intervalMinutes,
-          EXPIRED.getCode(),
-          pendingPaymentStatusIdList);
-      List<InvoiceUserDto> userForNotificationList = paymentDao.findInvoicesListBySourceTypeAndStatusChangedAtDate(
-          TransactionSourceType.BTC_INVOICE.name(),
-          EXPIRED.getCode(),
-          nowDate.get());
-      if (!BLOCK_NOTIFYING) {
-        for (InvoiceUserDto invoice : userForNotificationList) {
-          notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
-              "merchants.btc_invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
-        }
-      }
-      return userForNotificationList.size();
+  private void onPayment(BtcTransactionDto transactionDto) {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
+    if (targetTxResult.isPresent()) {
+      BtcTransactionDto targetTx = targetTxResult.get();
+      targetTx.getDetails().stream().filter(payment -> "RECEIVE".equalsIgnoreCase( payment.getCategory()))
+              .forEach(payment -> {
+                log.debug("Payment " + payment);
+                BtcPaymentFlatDto btcPaymentFlatDto = BtcPaymentFlatDto.builder()
+                        .txId(targetTx.getTxId())
+                        .address(payment.getAddress())
+                        .amount(payment.getAmount())
+                        .confirmations(targetTx.getConfirmations())
+                        .blockhash(targetTx.getBlockhash())
+                        .merchantId(merchant.getId())
+                        .currencyId(currency.getId()).build();
+                try {
+                  processBtcPayment(btcPaymentFlatDto);
+                } catch (Exception e) {
+                  log.error(e);
+                }
+              });
     } else {
-      return 0;
+      log.error("Invalid transaction");
     }
   }
-
-
-  @Override
-  @Transactional
-  public void revoke(Integer pendingPaymentId) throws Exception {
-    PendingPayment pendingPayment = paymentDao.findByIdAndBlock(pendingPaymentId)
-        .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
-    InvoiceActionTypeEnum action = REVOKE;
-    InvoiceStatus newStatus = pendingPayment.getPendingPaymentStatus().nextState(action);
-    pendingPayment.setPendingPaymentStatus(newStatus);
-    Transaction transaction = pendingPayment.getTransaction();
-    if (transaction.getOperationType() != OperationType.INPUT) {
-      throw new IllegalOperationTypeException("for transaction id = " + pendingPaymentId);
+  
+  private void processBtcPayment(BtcPaymentFlatDto btcPaymentFlatDto) {
+    if (!checkTransactionAlreadyOnBchExam(btcPaymentFlatDto.getAddress(), btcPaymentFlatDto.getMerchantId(),
+            btcPaymentFlatDto.getCurrencyId(), btcPaymentFlatDto.getTxId())) {
+      Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+              btcPaymentFlatDto.getAddress(), btcPaymentFlatDto.getMerchantId(), btcPaymentFlatDto.getCurrencyId());
+      Integer requestId = refillRequestIdResult.orElseGet(() ->
+              refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
+                      .address(btcPaymentFlatDto.getAddress())
+                      .amount(btcPaymentFlatDto.getAmount())
+                      .merchantId(btcPaymentFlatDto.getMerchantId())
+                      .currencyId(btcPaymentFlatDto.getCurrencyId())
+                      .merchantTransactionId(btcPaymentFlatDto.getTxId()).build()));
+      if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < CONFIRMATION_NEEDED_COUNT) {
+        try {
+          refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
+                  .requestId(requestId)
+                  .merchantId(btcPaymentFlatDto.getMerchantId())
+                  .currencyId(btcPaymentFlatDto.getCurrencyId())
+                  .address( btcPaymentFlatDto.getAddress())
+                  .amount(btcPaymentFlatDto.getAmount())
+                  .hash(btcPaymentFlatDto.getTxId())
+                  .blockhash(btcPaymentFlatDto.getBlockhash()).build());
+        } catch (RefillRequestAppropriateNotFoundException e) {
+          log.error(e);
+        }
+      } else {
+        changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
+                .requestId(requestId)
+                .address(btcPaymentFlatDto.getAddress())
+                .amount(btcPaymentFlatDto.getAmount())
+                .confirmations(btcPaymentFlatDto.getConfirmations())
+                .currencyId(btcPaymentFlatDto.getCurrencyId())
+                .merchantId(btcPaymentFlatDto.getMerchantId())
+                .hash(btcPaymentFlatDto.getTxId())
+                .blockhash(btcPaymentFlatDto.getBlockhash()).build());
+      }
     }
-    if (transaction.isProvided()) {
-      throw new IllegalTransactionProvidedStatusException("for transaction id = " + transaction.getId());
-    }
-    pendingPayment.setPendingPaymentStatus(newStatus);
-    paymentDao.updateAcceptanceStatus(pendingPayment);
   }
-
-  @Override
-  @Transactional(readOnly = true)
-  public PendingPaymentSimpleDto getPendingPaymentSimple(Integer pendingPaymentId) throws Exception {
-    return paymentDao.findById(pendingPaymentId)
-        .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
+  
+  private boolean checkTransactionAlreadyOnBchExam( String address,
+                                                    Integer merchantId,
+                                                    Integer currencyId,
+                                                    String hash) {
+    return refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(address, merchantId, currencyId, hash).isPresent();
   }
   
   
-  @Override
-  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
-  }
-  
-  @Override
-  @Transactional
-  public Map<String, String> prepareBitcoinPayment(Payment payment, String email, String currencyNameForQr, Locale locale) {
-    CreditsOperation creditsOperation = merchantService
-            .prepareCreditsOperation(payment, email)
-            .orElseThrow(InvalidAmountException::new);
-      PendingPayment pendingPayment = createInvoice(creditsOperation);
-      String notification = merchantService
-              .sendDepositNotification(Optional.ofNullable(pendingPayment
-                              .getAddress()).orElseThrow(
-                      () -> new MerchantInternalException("Address not presented"))
-                      , email, locale, creditsOperation, "merchants.depositNotification.body");
-      Map<String, String> responseMap = new TreeMap<>();
-      responseMap.put("notification", notification);
-      responseMap.put("qr", currencyNameForQr + ":" + Optional.ofNullable(pendingPayment
-              .getAddress()).orElseThrow(
-              () -> new MerchantInternalException("Address not presented")) + "?amount="
-              + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
+  private void onIncomingBlock(String blockHash) {
     
-      return responseMap;
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    
+    List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+    btcRefillRequests.forEach(log::debug);
+    List<RefillRequestSetConfirmationsNumberDto> paymentsToUpdate = new ArrayList<>();
+    log.debug("Start retrieving TXs");
+    btcRefillRequests.stream().filter(request -> StringUtils.isNotEmpty(request.getMerchantTransactionId())).forEach(request -> {
+      log.debug("Retrieving tx from blockchain!");
+        Optional<BtcTransactionDto> txResult = bitcoinWalletService.handleTransactionConflicts(request.getMerchantTransactionId());
+        if (txResult.isPresent()) {
+          BtcTransactionDto tx = txResult.get();
+          log.debug("Target tx: " + tx.getTxId());
+          tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
+                  .peek(log::debug)
+                  .findFirst().ifPresent(paymentOverview -> {
+                    log.debug("Adding payment to list: " + paymentOverview);
+                    paymentsToUpdate.add(RefillRequestSetConfirmationsNumberDto.builder()
+                            .address(paymentOverview.getAddress())
+                            .amount(paymentOverview.getAmount())
+                            .currencyId(currency.getId())
+                            .merchantId(merchant.getId())
+                            .requestId(request.getId())
+                            .confirmations(tx.getConfirmations())
+                            .blockhash(blockHash)
+                            .hash(tx.getTxId()).build());
+                  }
+                  );
+          
+        } else {
+          log.error("No valid transactions available!");
+        }
+      
+    });
+  
+    log.debug("Start updating payments in DB");
+    paymentsToUpdate.forEach(payment -> {
+      log.debug(String.format("Payment to update: %s", payment));
+      changeConfirmationsOrProvide(payment);
+    });
+  }
+  
+  
+  private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
+    try {
+      refillService.setConfirmationCollectedNumber(dto);
+      if (dto.getConfirmations() >= CONFIRMATION_NEEDED_COUNT) {
+        log.debug("Providing transaction!");
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .requestId(dto.getRequestId())
+                .address(dto.getAddress())
+                .amount(dto.getAmount())
+                .currencyId(dto.getCurrencyId())
+                .merchantId(dto.getMerchantId())
+                .merchantTransactionId(dto.getHash())
+                .build();
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
+      }
+    } catch (RefillRequestAppropriateNotFoundException e) {
+      log.error(e);
+    }
+    
   }
   
   @Override
@@ -317,4 +332,20 @@ public class BitcoinServiceImpl implements BitcoinService {
   public String sendToMany(Map<String, BigDecimal> payments) {
     return bitcoinWalletService.sendToMany(payments);
   }
+  
+  private void examineMissingPaymentsOnStartup() {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    refillService.getLastBlockHashForMerchantAndCurrency(merchant.getId(), currency.getId()).ifPresent(lastKnownBlockHash -> {
+      bitcoinWalletService.listSinceBlock(lastKnownBlockHash, merchant.getId(), currency.getId()).forEach(btcPaymentFlatDto -> {
+        try {
+          processBtcPayment(btcPaymentFlatDto);
+        } catch (Exception e) {
+          log.error(e);
+        }
+      });
+    });
+  }
+  
+
 }

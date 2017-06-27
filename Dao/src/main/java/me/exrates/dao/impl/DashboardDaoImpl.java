@@ -1,7 +1,6 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.DashboardDao;
-import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 @Repository

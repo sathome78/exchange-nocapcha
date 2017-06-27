@@ -7,8 +7,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

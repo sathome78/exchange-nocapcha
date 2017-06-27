@@ -1,12 +1,6 @@
 package me.exrates.controller.listener;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.SessionParams;
-import me.exrates.service.SessionParamsService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;

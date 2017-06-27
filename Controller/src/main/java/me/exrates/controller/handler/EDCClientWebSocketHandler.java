@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
-import me.exrates.service.EDCService;
+import me.exrates.service.EDCServiceNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +45,13 @@ public class EDCClientWebSocketHandler {
     private final BlockingQueue<String> listTempDelayedRawTransactions = new LinkedBlockingQueue<>();;
     private final BlockingQueue<String> listDelayedRawTransactions = new LinkedBlockingQueue<>();;
 
-    private final EDCService edcService;
+    private final EDCServiceNode edcService;
     private final EDCAccountDao edcAccountDao;
 
     private volatile Session session;
 
     @Autowired
-    public EDCClientWebSocketHandler(EDCService edcService, EDCAccountDao edcAccountDao) {
+    public EDCClientWebSocketHandler(EDCServiceNode edcService, EDCAccountDao edcAccountDao) {
         this.edcService = edcService;
         this.edcAccountDao = edcAccountDao;
         subscribeForBlockchainUpdates();

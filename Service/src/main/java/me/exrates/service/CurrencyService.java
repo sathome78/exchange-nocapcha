@@ -4,18 +4,18 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -32,7 +32,7 @@ public interface CurrencyService {
     Currency findById(int id);
 
     List<Currency> findAllCurrencies();
-  
+
   void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
@@ -63,7 +63,7 @@ public interface CurrencyService {
 
   Set<String> getCurrencyPermittedNameList(Integer userId);
   
-  Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
+  List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
   Currency getById(int id);
   
@@ -76,4 +76,8 @@ public interface CurrencyService {
   List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
 
   List<Currency> findAllCurrenciesWithHidden();
+
+  BigDecimal computeRandomizedAddition(Integer currencyId, OperationType operationType);
+
+  MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId);
 }

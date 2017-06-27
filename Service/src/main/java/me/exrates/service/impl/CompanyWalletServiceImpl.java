@@ -3,8 +3,6 @@ package me.exrates.service.impl;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -21,10 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static me.exrates.model.enums.ActionType.*;
-import static me.exrates.model.util.BigDecimalProcessing.*;
+import static me.exrates.model.enums.ActionType.SUBTRACT;
+import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

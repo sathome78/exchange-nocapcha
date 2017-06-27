@@ -1163,12 +1163,12 @@ body#output {
     display: inline-block;
 }
 
-#myModal.merchant-input {
+#dialog-refill_creation {
     max-width: 520px;
     max-height: 340px;
 }
 
-#myModal.merchant-output {
+#dialog-withdraw-creation {
     max-width: 420px;
     max-height: 380px;
 }
@@ -1996,4 +1996,8 @@ th.allign-center {
     padding: 0 10px;
     bottom: inherit;
     background-color: #6a1c0b;
+}
+
+.credits-operation-info__item div {
+    line-height: 25px;
 }

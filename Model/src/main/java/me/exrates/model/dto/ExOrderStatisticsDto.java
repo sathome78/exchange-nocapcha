@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.CurrencyPair;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Valk on 12.04.16.
  */

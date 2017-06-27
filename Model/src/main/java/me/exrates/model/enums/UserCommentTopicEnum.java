@@ -13,10 +13,12 @@ import java.util.Arrays;
 @Log4j2
 public enum UserCommentTopicEnum {
   GENERAL(1),
-  INVOICE_DECLINE(2),
-  CURRENCY_WARNING(3),
+  REFILL_DECLINE(2),
+  REFILL_CURRENCY_WARNING(3),
   WITHDRAW_DECLINE(4),
-  WITHDRAW_POSTED(5);
+  WITHDRAW_POSTED(5),
+  WITHDRAW_CURRENCY_WARNING(6),
+  REFILL_ACCEPTED(7);
 
   private Integer code;
 

@@ -1020,7 +1020,9 @@ input[type="checkbox"]:checked + label:before {
 	}
 }
 
-.withdraw__money {
+.withdraw__money,
+.refill__money
+{
 	margin-bottom: 68px;
 	.btn {
 		width: 66%;

@@ -1,13 +1,9 @@
 package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
-import me.exrates.model.util.BigDecimalProcessing;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**

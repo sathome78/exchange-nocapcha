@@ -1,9 +1,8 @@
 package me.exrates.model.util;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-import static java.math.RoundingMode.*;
+import static java.math.RoundingMode.HALF_UP;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

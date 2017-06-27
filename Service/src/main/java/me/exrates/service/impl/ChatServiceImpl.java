@@ -18,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -27,7 +25,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
-import static me.exrates.model.enums.ChatLang.RU;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

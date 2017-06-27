@@ -1,4 +1,4 @@
-﻿﻿﻿html,
+﻿html,
 body {
     width: 100%;
     background: #e2ebf9;
@@ -25,7 +25,7 @@ body {
 .cols-md-2 {
     width: 16.66667%;
     float: left;
-    padding: 0 10px; /*height the top menu  me*/
+   /* padding: 0 10px; *//*height the top menu  me*/
 }
 
 .cols-md-3 {
@@ -317,6 +317,14 @@ header li {
 .left-sider .table {
     font-weight: 300;
     font-size: 1.2rem;
+}
+
+.pay_addr {
+    font-size: 1.06em;
+}
+
+#right-sider {
+    padding-left: 10px;
 }
 
 @media (max-width: 1400px) {
@@ -886,7 +894,7 @@ td.blue-white {
 ********************************/
 
 .right {
-    text-align: right;
+    text-align: right !important;
     padding-right: 5px;
 }
 
@@ -898,8 +906,16 @@ td.blue-white {
 }
 
 .left {
-    text-align: left;
+    text-align: left !important;
     padding-left: 5px;
+}
+
+.bold{
+    font-weight: bold !important;
+}
+
+.normal{
+    font-weight: normal !important;
 }
 
 .col-0 {
@@ -1961,7 +1977,7 @@ input[type=email], .dropdown-menu__form,
     background: #525f74;
 }
 
-#register_button:disabled, #submitAcceptInvoice:disabled, #submit-btc:disabled {
+#register_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 
@@ -2214,10 +2230,38 @@ textarea#remark {
     text-align: center;
 }
 
+.credits-operation-info__item {
+    font-size: 15px;
+    line-height: 25px;
+}
+
+.credits-operation-info__item>div:nth-child(2) {
+    font-weight: bold;
+}
+.credits-operation-info__item:nth-child(odd) {
+    /*background: rgba(128, 128, 128, 0.25);*/
+}
+
+.fail-enter {
+    border: 2px solid red !important;
+}
+
+.address-copy{
+    margin-left: 15px;
+    width: 60px;
+    height: 20px;
+    color: black;
+    padding: 0;
+}
+
 .stop {
     margin-bottom: 11.3px;
 }
 
 #surveyContainer .panel-footer input{
     margin-top: 20px;
+}
+
+#no-address p {
+    font-size: 1.5rem;
 }

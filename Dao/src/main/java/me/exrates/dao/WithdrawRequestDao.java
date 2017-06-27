@@ -1,14 +1,14 @@
 package me.exrates.dao;
 
+import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -26,16 +26,11 @@ public interface WithdrawRequestDao {
 
   int create(WithdrawRequestCreateDto withdrawRequest);
 
-  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
-      String email,
-      Integer offset,
-      Integer limit,
-      List<Integer> operationTypeIdList,
-      Locale locale);
-
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
-  Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
+    void setHashAndParamsById(Integer id, Map<String, String> hash);
+
+    Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
 
   Optional<WithdrawRequestFlatDto> getFlatById(int id);
 
@@ -50,4 +45,14 @@ public interface WithdrawRequestDao {
   void setHolderById(Integer id, Integer holderId);
 
   void setInPostingStatusByStatus(Integer inPostingStatusId, List<Integer> statusIdList);
+
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
+
+  boolean checkOutputRequests(int currencyId, String email);
+
+  Optional<Integer> findUserIdById(Integer requestId);
+
+    Optional<Integer> getIdByHashAndMerchantId(String hash, Integer merchantId);
+
+    List<WithdrawRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 }

@@ -15,14 +15,13 @@ import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.context.MessageSource;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static me.exrates.model.enums.invoice.WithdrawStatusEnum.*;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_AUTO;
+import static me.exrates.model.enums.invoice.WithdrawStatusEnum.POSTED_MANUAL;
 /**
  * Created by Ajet on 23.07.2016.
  */

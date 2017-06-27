@@ -4,11 +4,8 @@ package me.exrates.model.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import me.exrates.model.StockExchangeStats;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by OLEG on 15.12.2016.

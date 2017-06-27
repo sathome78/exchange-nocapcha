@@ -900,4 +900,5 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
   }
 
+
 }

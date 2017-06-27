@@ -26,13 +26,13 @@ public interface InvoiceStatus {
     return schemaMap.get(action) != null;
   }
 
-  InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation);
+  InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 
   Boolean availableForAction(InvoiceActionTypeEnum action);
 
   Set<InvoiceActionTypeEnum> getAvailableActionList();
 
-  Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation);
+  Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue);
 
   void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
