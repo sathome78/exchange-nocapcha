@@ -234,6 +234,7 @@ function retrieveRowDataForElement($elem) {
 }
 
 function fillModal($modal, rowData) {
+    var $scan = $('#scan').hidden();
     $modal.find('#info-currency').text(rowData.currencyName);
     $modal.find('#info-amount').text(rowData.amount);
     $modal.find('#info-receivedAmount').text(rowData.receivedAmount);
@@ -255,6 +256,11 @@ function fillModal($modal, rowData) {
     $modal.find('#info-address').text(rowData.address);
     $modal.find('#info-merchant-transaction-id').text(rowData.merchantTransactionId);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);
+    if (rowData.merchantName === 'Invoice') {
+        $scan.show();
+        var img = '';
+        $('info-receipt').append(img);
+    }
 }
 
 
