@@ -30,7 +30,6 @@ import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -45,7 +44,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -288,43 +286,6 @@ public class AdminController {
         localeResolver.resolveLocale(request));
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
-  public String downloadTransactionsPage(@RequestParam("id") int id, Model model) {
-    model.addAttribute("user", userService.getUserById(id));
-    return "admin/transactionsDownload";
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
-  public void getUserTransactions(final @RequestParam int id,
-                                  AdminTransactionsFilterData filterData,
-                                  Principal principal,
-                                  HttpServletResponse response) throws IOException {
-    filterData.initFilterItems();
-    response.setContentType("text/csv");
-    String reportName =
-        "transactions"/*
-                      .concat(startDate)
-                      .concat("-")
-                      .concat(endDate)
-                      .replaceAll(" ", "_")*/
-            .concat(".csv");
-    response.setHeader("Content-disposition", "attachment;filename=" + reportName);
-    List<String> transactionsHistory = transactionService
-        .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-            id, filterData);
-    OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-    try {
-      for (String transaction : transactionsHistory) {
-        writer.write(transaction);
-      }
-    } catch (IOException e) {
-      LOG.error("error download transactions " + e);
-    } finally {
-      writer.flush();
-      writer.close();
-    }
-  }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -710,37 +671,6 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
-  public ModelAndView withdrawalRequests(Principal principal) {
-    final Map<String, Object> params = new HashMap<>();
-    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
-    params.put("currencies", permittedCurrencies);
-    if (!permittedCurrencies.isEmpty()) {
-      List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
-          .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
-          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
-          .distinct().collect(Collectors.toList());
-      params.put("merchants", merchants);
-    }
-    return new ModelAndView("withdrawalRequests", params);
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
-  @ResponseBody
-  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
-      @RequestParam("viewType") String viewTypeName,
-      WithdrawFilterData withdrawFilterData,
-      @RequestParam Map<String, String> params,
-      Principal principal,
-      Locale locale) {
-    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
-    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    withdrawFilterData.initFilterItems();
-    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
-  }
-
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
@@ -769,7 +699,7 @@ public class AdminController {
       throw e;
     }
   }
-  
+
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/order/accept", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Map<String, Object> acceptOrderByAdmin(@RequestParam int id, Principal principal, Locale locale) {
@@ -812,8 +742,8 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/searchStopOrders", method = RequestMethod.GET)
   public DataTable<List<OrderBasicInfoDto>> searchStopOrderByAdmin(AdminStopOrderFilterData adminOrderFilterData,
-                                                               @RequestParam Map<String, String> params,
-                                                               HttpServletRequest request) {
+                                                                   @RequestParam Map<String, String> params,
+                                                                   HttpServletRequest request) {
 
     try {
       adminOrderFilterData.initFilterItems();
@@ -904,56 +834,12 @@ public class AdminController {
     return new ModelAndView("admin/transaction_invoice");
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
-  @ResponseBody
-  public List<InvoiceRequest> invoiceRequests(
-      Principal principal,
-      @RequestParam(required = false) List<String> availableActionSet) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    if (availableActionSet == null || availableActionSet.isEmpty()) {
-      return invoiceService.findAllInvoiceRequestsByCurrencyPermittedForUser(requesterUserId);
-    } else {
-      List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
-      List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
-      List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
-          .map(InvoiceStatus::getCode)
-          .collect(Collectors.toList());
-      return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
-    }
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests/{status}")
-  @ResponseBody
-  public List<InvoiceRequest> invoiceRequestsByStatus(
-      Principal principal,
-      @PathVariable String status) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(
-        Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()),
-        requesterUserId);
-
-  }
-
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
   public ModelAndView bitcoinTransactions() {
     return new ModelAndView("admin/transaction_bitcoin");
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/reviewed")
-  @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return findAnyBitcoinServiceBean().getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/accepted")
-  @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return findAnyBitcoinServiceBean().getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
-  }
 
   private BitcoinService findAnyBitcoinServiceBean() {
     return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
@@ -1029,21 +915,21 @@ public class AdminController {
     currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
-                                                    @RequestParam OrderType orderType) {
+                                                               @RequestParam OrderType orderType) {
     return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
-                                                @RequestParam OrderType orderType,
-                                                @RequestParam String roleName,
-                                                @RequestParam BigDecimal minRate,
-                                                @RequestParam BigDecimal maxRate) {
+                                                    @RequestParam OrderType orderType,
+                                                    @RequestParam String roleName,
+                                                    @RequestParam BigDecimal minRate,
+                                                    @RequestParam BigDecimal maxRate) {
     if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
       throw new InvalidNumberParamException("Invalid request params!");
     }
@@ -1200,11 +1086,6 @@ public class AdminController {
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/coreWallets", method = RequestMethod.GET)
-  @ResponseBody
-  public List<String> getCoreWallets() {
-    return merchantService.retrieveBtcCoreBasedMerchantNames();
-
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
     String serviceBeanName = merchantName.toLowerCase() + "ServiceImpl";
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
@@ -1214,6 +1095,7 @@ public class AdminController {
     return (BitcoinService) merchantService;
   }
   
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
   public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
     ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
@@ -1286,14 +1168,6 @@ public class AdminController {
   public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     LOG.debug(params);
     getBitcoinServiceByMerchantName(merchantName).processPayment(params);
-
-  private BitcoinService resolveBitcoinServiceBeanFromMerchant(String merchantName) {
-    Assert.requireNonNull(merchantName, "Merchant name required!");
-    BitcoinService bitcoinService = bitcoinLikeServices.get(merchantName.toLowerCase().concat("ServiceImpl"));
-    if (bitcoinService == null) {
-      throw new NoRequestedBeansFoundException(merchantName);
-    }
-    return bitcoinService;
   }
   
 
@@ -1368,7 +1242,6 @@ public class AdminController {
   }
   
   
-
 
 
 }
