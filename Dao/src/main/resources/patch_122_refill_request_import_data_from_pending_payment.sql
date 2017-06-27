@@ -72,7 +72,7 @@ WHERE TX.source_type='MERCHANT' /*EXCLUDES BTC*/ AND TX.operation_type_id=1
 AND NOT EXISTS(SELECT * FROM EDC_MERCHANT_TRANSACTION EMT WHERE EMT.transaction_id=TX.id)  /*EXCLUDES EDC Merchant variant*/
 AND NOT EXISTS(SELECT * FROM EDC_TEMP_ACCOUNT ETA WHERE ETA.transaction_id=TX.id) /*EXCLUDES  EDC Node variant*/
 AND NOT EXISTS(SELECT * FROM INVOICE_REQUEST IR WHERE IR.transaction_id=TX.id) /*EXCLUDES INVOICE that has type MERCHANT*/
-/* Затронуто строк: 10 151 */
+/* Затронуто строк: 10231 */
 
 SELECT TX.provided, COUNT(*)
 FROM TRANSACTION TX
@@ -86,9 +86,9 @@ AND NOT EXISTS(SELECT * FROM INVOICE_REQUEST IR WHERE IR.transaction_id=TX.id)
 GROUP BY TX.provided;
 /*
 "provided"	"COUNT(*)"
-"0"	"7016"
-"1"	"3135"
-    10 151
+"0"	"7078"
+"1"	"3153"
+    10 231
 */
 
 UPDATE TRANSACTION TX
@@ -98,7 +98,7 @@ WHERE TX.source_type='MERCHANT' AND TX.operation_type_id=1
 AND NOT EXISTS(SELECT * FROM EDC_MERCHANT_TRANSACTION EMT WHERE EMT.transaction_id=TX.id)
 AND NOT EXISTS(SELECT * FROM EDC_TEMP_ACCOUNT ETA WHERE ETA.transaction_id=TX.id)
 AND NOT EXISTS(SELECT * FROM INVOICE_REQUEST IR WHERE IR.transaction_id=TX.id);
-/* Затронуто строк: 10 151 */
+/* Затронуто строк: 10 231 */
 
 /*--------------------------------------------------------*/
 
@@ -119,20 +119,18 @@ currency_id | provided | isPP | pending_payment_status_id | COUNT(*)
 4 | 1 | 1 | 4 | 101
 4 852
 new:
-4	0	1	1	9
-4	0	1	2	129
-4	0	1	5	3502
-4	0	1	6	1
-4	1	1	3	1181
+4	0	1	1	8
+4	0	1	2	131
+4	0	1	5	3534
+4	1	1	3	1194
 4	1	1	4	102
-5	0	1	1	2
 5	0	1	2	2
-5	0	1	5	1
+5	0	1	5	3
 5	1	1	3	1
-21	0	1	1	1
-21	0	1	5	3
+21	0	1	5	4
 21	1	1	3	1
-4935
+
+4980
 
 
 
@@ -177,14 +175,14 @@ FROM TRANSACTION TX
 LEFT JOIN PENDING_PAYMENT PP ON PP.invoice_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.source_type='BTC_INVOICE' AND TX.operation_type_id=1;
-/* Затронуто строк: 4 935*/
+/* Затронуто строк: 4 980*/
 
 UPDATE TRANSACTION TX
 LEFT JOIN PENDING_PAYMENT PP ON  PP.invoice_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 SET TX.description = 'EXPORTED TO REFILL_REQUEST'
 WHERE TX.source_type='BTC_INVOICE' AND TX.operation_type_id=1;
-/* Затронуто строк: 4 935 */
+/* Затронуто строк: 4 980 */
 
 /*--------------------------------------------------------*/
 
@@ -221,21 +219,21 @@ FROM TRANSACTION TX
 JOIN EDC_MERCHANT_TRANSACTION EMT ON EMT.transaction_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.source_type='MERCHANT' AND TX.operation_type_id=1;
-/* Затронуто строк: 7694*/
+/* Затронуто строк: 7915*/
 
 SELECT COUNT(*)
 FROM TRANSACTION TX
 JOIN EDC_MERCHANT_TRANSACTION EMT ON EMT.transaction_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.source_type='MERCHANT' AND TX.operation_type_id=1;
-/*7 694*/
+/*7 915*/
 
 UPDATE TRANSACTION TX
 JOIN EDC_MERCHANT_TRANSACTION EMT ON EMT.transaction_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 SET TX.description = 'EXPORTED TO REFILL_REQUEST'
 WHERE TX.source_type='MERCHANT' AND TX.operation_type_id=1;
-/* Затронуто строк: 7694*/
+/* Затронуто строк: 7915*/
 
 /*--------------------------------------------------------*/
 
@@ -271,13 +269,13 @@ NULL
 FROM EDC_MERCHANT_ACCOUNT EMA
 JOIN USER ON USER.id=EMA.user_id
 JOIN CURRENCY CUR ON (CUR.name='EDR');
-/* Затронуто строк: 10030*/
+/* Затронуто строк: 10381*/
 
 SELECT COUNT(*)
 FROM EDC_MERCHANT_ACCOUNT EMA
 JOIN USER ON USER.id=EMA.user_id
 JOIN CURRENCY CUR ON (CUR.name='EDR');
-/*10030*/
+/*10381*/
 
 /*transactions are absent*/     /*this count not be in TRANSACTION_BACKUP_REFILL*/
 /*--------------------------------------------------------*/
@@ -330,8 +328,9 @@ AND NOT (TX.provided=0 AND PP.invoice_id IS NULL) /*it's failed records: not pro
 GROUP BY TX.provided, isPP;
 /*
 "provided"	"isPP"	"COUNT(*)"
-"0"	"1"	"4679"
-"1"	"0"	"3319"
+0	1	4679
+1	0	3319
+
 7 998
 */
 
@@ -360,7 +359,7 @@ WHERE TX.source_type='MERCHANT' AND TX.operation_type_id=1; /*WHERE NOT (...) - 
 INSERT INTO TRANSACTION_BACKUP_REFILL
 SELECT * FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST';
-/* Затронуто строк: 30 842 = summa of all counts*/
+/* Затронуто строк: 31188 = summa of all counts*/
 
 DROP TABLE PENDING_BLOCKCHAIN_PAYMENT;
 
@@ -387,7 +386,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST' AND TX.operation_type_id=1
 AND TX.source_type ='BTC_INVOICE' AND TX.id=PP.invoice_id
 );
-/* Затронуто строк: 4 935*/
+/* Затронуто строк: 4 980*/
 
 DELETE FROM
 PENDING_PAYMENT
@@ -396,7 +395,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST' AND TX.operation_type_id=1
 AND TX.source_type = 'BTC_INVOICE' AND TX.id=PENDING_PAYMENT.invoice_id
 );
-/* Затронуто строк: 4 935*/
+/* Затронуто строк: 4 980*/
 
 INSERT INTO PENDING_PAYMENT_BACKUP
 SELECT * FROM
@@ -406,7 +405,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST' AND TX.operation_type_id=1
 AND TX.source_type ='MERCHANT' AND TX.id=PP.invoice_id
 );
-/* Затронуто строк: 6 963*/
+/* Затронуто строк: 6 968*/
 
 DELETE FROM
 PENDING_PAYMENT
@@ -415,7 +414,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST' AND TX.operation_type_id=1
 AND TX.source_type = 'MERCHANT' AND TX.id=PENDING_PAYMENT.invoice_id
 )
-/* Затронуто строк: 6 963*/
+/* Затронуто строк: 6 968*/
 
 
 DROP TABLE IF EXISTS BTC_TRANSACTION_BACKUP;
@@ -473,7 +472,7 @@ DELETE FROM EDC_MERCHANT_TRANSACTION;
 
 DELETE FROM TRANSACTION
 WHERE description = 'EXPORTED TO REFILL_REQUEST'
-/* Затронуто строк: 30 842*/
+/* Затронуто строк: 31188*/
 
 
 /*------------ В КОНЦЕ----------------------------------*/

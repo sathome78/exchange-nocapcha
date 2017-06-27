@@ -838,7 +838,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       List<Integer> currencyList) {
     String sql = "SELECT RR.*, RRA.*, RRP.*, " +
         "         TX.amount AS transaction_amount, TX.commission_amount AS commission, " +
-        "         INVOICE_BANK.name AS recipient_bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
+        "         INVOICE_BANK.name AS recipient_bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details, " +
         "         USER.email AS user_email, USER.nickname AS nickname, " +
         "         ADM.email AS admin_email, " +
         "         MERCHANT.name AS merchant_name, " +

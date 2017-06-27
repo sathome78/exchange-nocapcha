@@ -32,7 +32,7 @@ INSERT INTO REFILL_REQUEST_ADDRESS
  GROUP BY currency_id, merchant_id, address, user_id
  ) RRT;
 
-/*------------------------------*/
+/*---------------------21891---------*/
 
 INSERT INTO REFILL_REQUEST_PARAM
 (id, recipient_bank_id, user_full_name, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name)
@@ -40,7 +40,7 @@ SELECT id, recipient_bank_id, user_full_name, payer_bank_name, payer_bank_code, 
 FROM REFILL_REQUEST_TEMP
 WHERE recipient_bank_id IS NOT NULL;
 
-/*------------------------------*/
+/*---------------------2126---------*/
 
 INSERT INTO REFILL_REQUEST
 (id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, admin_holder_id, import_note,
@@ -54,10 +54,11 @@ IF (hash IS NOT NULL AND hash <> '', hash, merchant_transaction_id),
 (SELECT id FROM REFILL_REQUEST_ADDRESS RRA WHERE RRA.id = RRT.id),
 remark
 FROM REFILL_REQUEST_TEMP RRT;
+/*45466*/
 
 SELECT COUNT(DISTINCT refill_request_address_id) FROM REFILL_REQUEST WHERE refill_request_address_id IS NOT NULL;
 
-/*------------------------------*/
+/*---------------------21891---------*/
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -77,6 +78,7 @@ currency_id = 4 AND status_id = 12 (EXPIRED)
 и
 currency_id = 9 AND status_id = 4 (IN_PENDING)
 Последнее связано с тараканами , которые были для currency_id = 9
+/*При обновлении прода небыло*/
 
 SELECT DISTINCT RR.currency_id, RR.status_id
 FROM REFILL_REQUEST RR
