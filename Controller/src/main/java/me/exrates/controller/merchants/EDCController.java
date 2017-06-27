@@ -17,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.HashMap;
@@ -93,18 +92,28 @@ public class EDCController {
     }
 
     @RequestMapping(value = "payment/received",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
+    public ResponseEntity<Void> statusPayment(@RequestBody Map<String,Object> params) {
 
         final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
         LOG.info("Response: " + params);
 
         try {
-            boolean isEmpty = edcMerchantService.checkMerchantTransactionIdIsEmpty(params.get("id"));
-            if (isEmpty){
-                edcMerchantService.createAndProvideTransaction(params);
-                return responseOK;
+            Map<String,String> assetMap =  (Map<String,String>)params.get("asset");
+            if (assetMap.get("symbol").equals("EDC")){
+                Map<String,String> paramsMap = new HashMap<>();
+                paramsMap.put("id", String.valueOf(params.get("id")));
+                paramsMap.put("address", String.valueOf(params.get("address")));
+                paramsMap.put("amount", String.valueOf(params.get("amount")));
+
+                boolean isEmpty = edcMerchantService.checkMerchantTransactionIdIsEmpty(paramsMap.get("id"));
+                if (isEmpty){
+                    edcMerchantService.createAndProvideTransaction(paramsMap);
+                    return responseOK;
+                }else {
+                    return responseOK;
+                }
             }else {
-                return responseOK;
+                return new ResponseEntity<>(BAD_REQUEST);
             }
         }catch (Exception e){
             LOG.error(e);
