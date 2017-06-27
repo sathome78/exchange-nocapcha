@@ -43,7 +43,7 @@
       <div class="modal-footer">
         <div id='request-money-operation-btns-wrapper'
              class="add__money__btns">
-          <button id="continue-btn"
+          <button id="continue-btn" disabled
                   class="btn btn-primary btn-md" type="button">
             <loc:message code="merchants.continue"/>
           </button>
