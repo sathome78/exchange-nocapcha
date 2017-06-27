@@ -1431,7 +1431,8 @@ td.blue-white {
 
 .modal-form-dialog
 .modal-footer button,
-.confirm-button {
+.confirm-button,
+#surveyContainer .panel-footer input {
     background: #969faf;
     color: #fff;
     padding: 5px 25px;
@@ -2255,6 +2256,10 @@ textarea#remark {
 
 .stop {
     margin-bottom: 11.3px;
+}
+
+#surveyContainer .panel-footer input{
+    margin-top: 20px;
 }
 
 #no-address p {
