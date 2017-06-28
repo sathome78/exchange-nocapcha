@@ -90,7 +90,7 @@ public class AdvcashServiceImpl implements AdvcashService{
             put("ac_success__method", "POST");
         }};
     /**/
-        return generateFullUrlMap(url, "POST", properties, properties.getProperty("transactionHash"));
+        return generateFullUrlMap(url, "POST", properties, properties.getProperty("ac_sign"));
     }
 
     @Override
