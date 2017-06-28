@@ -207,18 +207,19 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       Integer requesterUserId,
       DataTableParams dataTableParams,
       WithdrawFilterData withdrawFilterData) {
-    final String JOINS_FOR_FILTER =
+    final String JOINS_FOR_USER =
         " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id ";
     String filter = withdrawFilterData.getSQLFilterClause();
-    String searchClause = dataTableParams.getSearchClause();
+    String searchClause = dataTableParams.getSearchByEmailAndNickClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
             getPermissionClause(requesterUserId) +
-            (filter.isEmpty() ? "" : JOINS_FOR_FILTER) +
+            JOINS_FOR_USER +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
 
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
-    String whereClauseSearch = StringUtils.isEmpty(searchClause) ? "" : " AND ".concat(searchClause);
+    String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
+            ? "" : " AND ".concat(searchClause);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
     String sqlMain = String.join(" ", "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ",
@@ -233,7 +234,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }};
     params.putAll(withdrawFilterData.getNamedParams());
     params.putAll(dataTableParams.getSearchNamedParams());
-
+    log.debug("sql main {}", sqlMain);
     List<WithdrawRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
       WithdrawRequestFlatDto withdrawRequestFlatDto = withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
       withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));

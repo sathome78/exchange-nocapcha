@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.model.Email;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.SendMailService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +12,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 @Service
@@ -31,8 +36,9 @@ public class SendMailServiceImpl implements SendMailService{
 	
 	@Value("${mail_info.allowedEmails}")
 	private String allowedEmailsList;
-	
-	
+
+	private final static int THREADS_NUMBER = 3;
+	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
 
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
@@ -43,6 +49,7 @@ public class SendMailServiceImpl implements SendMailService{
 		sendMail(email, SUPPORT_EMAIL, supportMailSender);
 	}
 
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	@Override
 	public void sendInfoMail(Email email) {
 		if (allowedOnly) {
@@ -51,7 +58,10 @@ public class SendMailServiceImpl implements SendMailService{
 				return;
 			}
 		}
-		sendMail(email, INFO_EMAIL, infoMailSender);
+		executors.execute(() -> {
+			sendMail(email, INFO_EMAIL, infoMailSender);
+		});
+
 	}
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {

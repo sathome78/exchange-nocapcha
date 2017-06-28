@@ -1,8 +1,10 @@
 package me.exrates.service.stellar;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -25,6 +27,7 @@ import org.stellar.sdk.MemoId;
 import org.stellar.sdk.responses.TransactionResponse;
 
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -52,6 +55,16 @@ public class StellarServiceImpl implements StellarService {
     private RefillService refillService;
     @Autowired
     private StellarTransactionService stellarTransactionService;
+
+    private Merchant merchant;
+    private Currency currency;
+
+    @PostConstruct
+    public void init() {
+        currency = currencyService.findByName("XLM");
+        merchant = merchantService.findByName(XLM_MERCHANT);
+    }
+
 
     private static final String XLM_MERCHANT = "Stellar";
 
@@ -83,9 +96,15 @@ public class StellarServiceImpl implements StellarService {
         paramsMap.put("hash", payment.getHash());
         MemoId memoid = (MemoId)payment.getMemo();
         Long destinationTag = memoid.getId();
-        DecimalFormat myFormatter = new DecimalFormat("###.##");
-        paramsMap.put("address", myFormatter.format(destinationTag));
+        paramsMap.put("address", destinationTag.toString());
         paramsMap.put("amount", amount);
+        if (checkTransactionForDuplicate(payment, destinationTag.toString())) {
+            try {
+                throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(payment.getHash());
+            } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+                return;
+            }
+        }
         try {
             this.processPayment(paramsMap);
         } catch (RefillRequestAppropriateNotFoundException e) {
@@ -98,15 +117,19 @@ public class StellarServiceImpl implements StellarService {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
+        DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
-            put("address", destinationTag.toString());
+            put("address",  myFormatter.format(destinationTag));
             put("message", message);
         }};
     }
 
+    private boolean checkTransactionForDuplicate(TransactionResponse payment, String adress) {
+        return refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+                adress, merchant.getId(), currency.getId(), payment.getHash()).isPresent();
+    }
+
     private Integer generateUniqDestinationTag(int userId) {
-        Currency currency = currencyService.findByName("XLM");
-        Merchant merchant = merchantService.findByName(XLM_MERCHANT);
         Optional<Integer> id = null;
         int destinationTag;
         do {

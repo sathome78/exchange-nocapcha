@@ -71,8 +71,7 @@ public class RippleServiceImpl implements RippleService {
     Map<String, String> paramsMap = new HashMap<>();
     paramsMap.put("hash", transaction.getString("hash"));
     Integer destinationTag = transaction.getInt("DestinationTag");
-    DecimalFormat myFormatter = new DecimalFormat("###.##");
-    paramsMap.put("address", myFormatter.format(destinationTag));
+    paramsMap.put("address", String.valueOf(destinationTag));
     paramsMap.put("amount", transaction.getString("Amount"));
     try {
       this.processPayment(paramsMap);
@@ -96,8 +95,9 @@ public class RippleServiceImpl implements RippleService {
     Integer destinationTag = generateUniqDestinationTag(request.getUserId());
     String message = messageSource.getMessage("merchants.refill.xrp",
         new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
+    DecimalFormat myFormatter = new DecimalFormat("###.##");
     return new HashMap<String, String>() {{
-      put("address", destinationTag.toString());
+      put("address", myFormatter.format(destinationTag));
       put("message", message);
     }};
   }

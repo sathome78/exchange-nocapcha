@@ -812,7 +812,7 @@ public class WalletDaoImpl implements WalletDao {
             "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
             "      WHERE  TX.PROVIDED = 1 " +
             "      AND TX.status_id=1         " +
-            "      AND TX.source_type IN ('INVOICE', 'BTC_INVOICE', 'MERCHANT')        " +
+            "      AND TX.source_type IN ('REFILL')        " +
             "      AND TX.OPERATION_TYPE_ID = 1 " +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
@@ -825,7 +825,7 @@ public class WalletDaoImpl implements WalletDao {
             "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
             "      WHERE  TX.PROVIDED = 1 " +
             "      AND TX.status_id=1         " +
-            "      AND TX.source_type IN ('WITHDRAW', 'MERCHANT')        " +
+            "      AND TX.source_type IN ('WITHDRAW')        " +
             "      AND TX.OPERATION_TYPE_ID = 2 " +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +

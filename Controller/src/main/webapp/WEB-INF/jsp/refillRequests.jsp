@@ -122,7 +122,7 @@
                                 <input type="number" id="filter-amountTo" name="amountTo">
                             </div>
                         </div>
-                        <%--COMMISSION_AMOUNT--%>
+                        <%--&lt;%&ndash;COMMISSION_AMOUNT&ndash;%&gt;
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
@@ -133,7 +133,7 @@
                                 <input type="number" id="filter-commission-amount-from" name="commissionAmountFrom">
                                 <input type="number" id="filter-commission-amount-to" name="commissionAmountTo">
                             </div>
-                        </div>
+                        </div>--%>
                             <%--USER EMAIL--%>
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -143,6 +143,28 @@
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
                                     <input id="filter-email" class="input-block-wrapper__input admin-form-input" name="email">
+                                </div>
+                            </div>
+                            <%--TX hash--%>
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label">
+                                        <loc:message code="transaction.hash" />
+                                    </label>
+                                </div>
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input id="filter-hash" class="input-block-wrapper__input admin-form-input" name="hash">
+                                </div>
+                            </div>
+                            <%--address--%>
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label">
+                                        <loc:message code="merchants.btc_invoice.addressToPay" />
+                                    </label>
+                                </div>
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input id="filter-address" class="input-block-wrapper__input admin-form-input" name="address">
                                 </div>
                             </div>
                         <%--WALLET--%>
