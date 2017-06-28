@@ -25,7 +25,7 @@ public class NixMoneyMerchantController {
     @Autowired
     private NixMoneyService nixMoneyService;
 
-    private static final Logger logger = LogManager.getLogger(NixMoneyMerchantController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params) throws RefillRequestAppropriateNotFoundException {

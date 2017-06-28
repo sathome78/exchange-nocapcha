@@ -45,7 +45,7 @@ public class YandexMoneyMerchantController {
     @Autowired
     private LocaleResolver localeResolver;
 
-    private static final Logger logger = LogManager.getLogger(YandexMoneyMerchantController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
