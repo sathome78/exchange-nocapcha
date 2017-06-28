@@ -90,7 +90,7 @@
                                             </div>
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                                    <label class="input-block-wrapper__label"><loc:message code="btcWallet.amount"/></label>
+                                                    <label class="input-block-wrapper__label"><loc:message code="btcWallet.amount" arguments="${currency}"/></label>
                                                 </div>
                                                 <div class="col-md-5 input-block-wrapper__input-wrapper">
                                                     <input id="amount_0" name="amount" type="number" class="input-amount input-block-wrapper__input admin-form-input"/>
@@ -100,7 +100,7 @@
                                     </div>
                                     <div id="fee-div" class="input-block-wrapper">
                                         <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                            <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee"/></label>
+                                            <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee" arguments="${currency}"/></label>
                                         </div>
                                         <div class="col-md-4 input-block-wrapper__input-wrapper">
                                             <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
@@ -108,7 +108,7 @@
                                     </div>
                                     <div class="input-block-wrapper">
                                         <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                            <label for="input-fee-actual" class="input-block-wrapper__label"><loc:message code="btcWallet.actualFee"/></label>
+                                            <label for="input-fee-actual" class="input-block-wrapper__label"><loc:message code="btcWallet.actualFee" arguments="${currency}"/></label>
                                         </div>
                                         <div class="col-md-4 input-block-wrapper__input-wrapper">
                                                 <input id="input-fee-actual" type="number" step="any" class="input-block-wrapper__input admin-form-input"/>

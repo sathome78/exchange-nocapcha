@@ -93,6 +93,15 @@ public class DataTableParams {
                         String.format("CONVERT(%s USING utf8) LIKE :%s", columnName, SEARCH_VALUE_KEY))
                 .collect(Collectors.joining(" OR ", "(", ")"));
     }
+
+    public String getSearchByEmailAndNickClause() {
+        return StringUtils.isEmpty(searchValue) ? "" :
+                String.format("( CONVERT(%s USING utf8) LIKE :%s ", "USER.email", SEARCH_VALUE_KEY)
+                        .concat(" OR ")
+                        .concat(String.format(" CONVERT(%s USING utf8) LIKE :%s )", "USER.nickname", SEARCH_VALUE_KEY));
+    }
+
+
     
     public Map<String, String> getSearchNamedParams() {
         return Collections.singletonMap(SEARCH_VALUE_KEY, String.format("%%%s%%", searchValue));

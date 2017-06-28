@@ -21,8 +21,9 @@ $(function withdrawCreation() {
     const numberFormat = '0,0.00[0000000]';
     const phrases = {
         "bankNotSelected": $container.find("#bank-not-selected").html(),
-        "enterOtherBankPhrase": $container.find("#enter-other-bank-phrase").html(),
+        "enterOtherBankPhrase": $container.find("#enter-other-bank-phrase").html()
     };
+    var $continueButton = $('#continue-btn');
 
     var currency;
     var currencyName;
@@ -41,10 +42,27 @@ $(function withdrawCreation() {
     var commissionMerchantAmount;
     var totalAmount;
     var bankDataList;
+    var additionalFieldName;
 
     $container.find(".start-withdraw").on('click', function () {
         startWithdraw(this);
     });
+
+    $destinationTagHolder.on('input', function (e) {
+        checkAddrInput()
+    });
+
+    $destinationHolder.on('input', function (e) {
+        checkAddrInput()
+    });
+
+    function checkAddrInput() {
+        if(checkWithdrawParamsEnter($destinationHolder.val())) {
+            $continueButton.prop('disabled', false);
+        } else {
+            $continueButton.prop('disabled', true);
+        }
+    }
 
     function startWithdraw(button) {
         currency = $(button).data("currency-id");
@@ -55,11 +73,16 @@ $(function withdrawCreation() {
         merchantImageId = $(button).data("merchant-image-id");
         merchantIsSimpleInvoice = $(button).data("process_type")=="INVOICE";
         additionalFieldNeeded = $(button).data("additional-field-needed");
+        additionalFieldName = $(button).data("additional-field-name");
         amount = parseFloat($amountHolder.val());
+        $withdrawParamsDialog.find('#destination-input-wrapper').show();
+        $destinationHolder.val('');
+        $destinationTagHolder.val('');
         if (checkAmount()) {
             fillModalWindow();
             showWithdrawDialog();
         }
+        checkAddrInput()
     }
 
     function fillModalWindow() {
@@ -106,6 +129,7 @@ $(function withdrawCreation() {
         if (additionalFieldNeeded) {
             $withdrawParamsDialog.find("[for=address-tag]").show();
             $withdrawParamsDialog.find("#address-tag").show();
+            $('#additional_field_name').text(additionalFieldName);
         } else {
             $withdrawParamsDialog.find("[for=address-tag]").hide();
             $withdrawParamsDialog.find("#address-tag").hide();
@@ -123,7 +147,7 @@ $(function withdrawCreation() {
             $withdrawParamsDialog.find("#continue-btn").off('click').on('click', function () {
                 destination = $destinationHolder.val();
                 destinationTag = $destinationTagHolder.val();
-                if (!checkWithdrawParamsEnter()) {
+                if (!checkWithdrawParamsEnter(destination)) {
                     return;
                 }
                 $withdrawParamsDialog.one('hidden.bs.modal', function () {
@@ -260,14 +284,17 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.modal();
     }
 
-    function checkWithdrawParamsEnter() {
-        return merchantIsSimpleInvoice || (destination.length > 3 && (!additionalFieldNeeded || checkDestinationTag()));
+    function checkWithdrawParamsEnter(localDestination) {
+        return merchantIsSimpleInvoice || (localDestination.length > 3 && checkDestinationTag());
     }
 
     /*max value for destination tag is 4294967295*/
     function checkDestinationTag() {
-        if(destinationTag) {
-            var tag = parseInt(destinationTag);
+        console.log('additionalFieldNeeded ' + additionalFieldNeeded);
+        console.log('additionalFieldNeeded ' + additionalFieldNeeded);
+        var value = $destinationTagHolder.val();
+        if(additionalFieldNeeded && value) {
+            var tag = parseInt(value);
             return !isNaN(tag) && tag > 0 && tag < 4294967295
         }
         return true;

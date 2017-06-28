@@ -199,13 +199,14 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies) {
     merchantCurrencies.forEach(e -> {
-      IMerchantService merchant = merchantServiceContext.getMerchantService(e.getMerchantId());
+      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
       if (merchant instanceof IWithdrawable) {
-        IWithdrawable merchantService = (IWithdrawable) merchant;
-        e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
-        if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
-          e.setMainAddress(((IMerchantService) merchantService).getMainAddress());
-        }
+          IWithdrawable merchantService = (IWithdrawable) merchant;
+          e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+          if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+              e.setMainAddress(((IMerchantService) merchantService).getMainAddress());
+              e.setAdditionalFieldName(((IMerchantService) merchantService).additionalFieldName());
+          }
       }
     });
     return merchantCurrencies;
@@ -442,8 +443,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     try {
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
-      withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
-        if (transactionParams != null) {
+      if (transactionParams != null) {
             withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
         }
       /**/

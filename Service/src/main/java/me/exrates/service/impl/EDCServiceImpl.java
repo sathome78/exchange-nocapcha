@@ -1,9 +1,7 @@
 package me.exrates.service.impl;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.*;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -148,7 +146,9 @@ public class EDCServiceImpl implements EDCService {
       for (JsonElement element : jsonArray) {
         if (element.getAsJsonObject().get("id").getAsString().equals(params.get("id"))) {
           if (element.getAsJsonObject().get("amount").getAsString().equals(params.get("amount"))) {
-            return;
+            if (((JsonObject) element).getAsJsonObject("asset").get("symbol").getAsString().equals("EDC")){
+              return;
+            }
           }
         }
       }
@@ -180,12 +180,13 @@ public class EDCServiceImpl implements EDCService {
           .execute()
           .body()
           .string();
-    } catch (IOException e) {
-      throw new MerchantInternalException(e);
+      JsonParser parser = new JsonParser();
+      JsonObject object = parser.parse(returnResponse).getAsJsonObject();
+      return object.get("address").getAsString();
+
+    } catch (Exception e) {
+      throw new MerchantInternalException("Unfortunately, the operation is not available at the moment, please try again later!");
     }
-    JsonParser parser = new JsonParser();
-    JsonObject object = parser.parse(returnResponse).getAsJsonObject();
-    return object.get("address").getAsString();
   }
 
 

@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;
 import me.exrates.controller.exception.NotAcceptableOrderException;
@@ -81,6 +82,7 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+@Log4j2
 @Controller
 public class AdminController {
 
@@ -129,10 +131,10 @@ public class AdminController {
   StopOrderService stopOrderService;
   @Autowired
   RefillService refillService;
-  
+
   @Autowired
   private MerchantServiceContext serviceContext;
-  
+
   @Autowired
   @Qualifier("ExratesSessionRegistry")
   private SessionRegistry sessionRegistry;
@@ -852,19 +854,26 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
   @ResponseBody
   public List<UserSessionDto> retrieveUserSessionInfo() {
-    Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
-        .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-        .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
-          UserDetails user = (UserDetails) sessionInformation.getPrincipal();
-          return user.getUsername();
-        }));
-    Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
-        .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
-    List<UserSessionDto> result = usersSessions.entrySet().stream()
-        .map(entry -> {
-          UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
-          return dto;
-        }).collect(Collectors.toList());
+    List<UserSessionDto> result = null;
+    try {
+      Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
+          .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+          .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
+            UserDetails user = (UserDetails) sessionInformation.getPrincipal();
+            return user.getUsername();
+          }));
+      log.debug("USsize ", + usersSessions.size());
+      Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
+          .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
+      log.debug("USinfosize ", + userSessionInfo.size());
+      result = usersSessions.entrySet().stream()
+          .map(entry -> {
+            UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
+            return dto;
+          }).collect(Collectors.toList());
+    } catch (Exception e) {
+      log.error("session_error {}", e);
+    }
     return result;
   }
 
@@ -1076,7 +1085,7 @@ public class AdminController {
     LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
-  
+
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
     String serviceBeanName = merchantName.toLowerCase() + "ServiceImpl";
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
@@ -1153,7 +1162,7 @@ public class AdminController {
            merchantName, currencyName);
     return dtoResult.isPresent() ? Collections.singletonMap("result", dtoResult.get()) : Collections.EMPTY_MAP;
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/create", method = RequestMethod.POST)
   @ResponseBody
   public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {

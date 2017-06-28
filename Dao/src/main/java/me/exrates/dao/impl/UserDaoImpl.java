@@ -903,5 +903,22 @@ public class UserDaoImpl implements UserDao {
         UserRole.valueOf(rs.getString("role_name")));
   }
 
+  @Override
+  public void savePollAsDoneByUser(String email) {
+    String sql = "UPDATE USER SET USER.tmp_poll_passed = 1 " +
+        " WHERE USER.email = :email ";
+    Map<String, String> namedParameters = Collections.singletonMap("email", email);
+    namedParameterJdbcTemplate.update(sql, namedParameters);
+  }
+
+  @Override
+  public boolean checkPollIsDoneByUser(String email) {
+    String sql = "SELECT tmp_poll_passed = 1 " +
+        "  FROM USER " +
+        "  WHERE USER.email = :email ";
+    Map<String, String> namedParameters = Collections.singletonMap("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
+  }
+
 
 }

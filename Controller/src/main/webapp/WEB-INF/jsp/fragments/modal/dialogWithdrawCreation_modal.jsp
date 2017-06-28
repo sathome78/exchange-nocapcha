@@ -27,8 +27,8 @@
             <loc:message code="merchants.modalOutputWallet"/>
           </label>
           <input class="form-control" autofocus name="walletUid" type="text" id="walletUid">
-          <label class="control-label" for="address-tag">
-            <loc:message code="merchants.modalOutputAddressTag"/>
+          <label id="additional_field_name" class="control-label" for="address-tag">
+           <%-- <loc:message code="merchants.modalOutputAddressTag"/>--%>
           </label>
           <input class="form-control" name="address-tag" type="text" id="address-tag">
         </div>
@@ -43,7 +43,7 @@
       <div class="modal-footer">
         <div id='request-money-operation-btns-wrapper'
              class="add__money__btns">
-          <button id="continue-btn"
+          <button id="continue-btn" disabled
                   class="btn btn-primary btn-md" type="button">
             <loc:message code="merchants.continue"/>
           </button>

@@ -25,7 +25,7 @@ public class AdvcashMerchantController {
     @Autowired
     private AdvcashService advcashService;
 
-    private static final Logger logger = LogManager.getLogger(AdvcashMerchantController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 

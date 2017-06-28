@@ -240,7 +240,26 @@
         </RollingFile>
 
         <RollingFile name="exceptions_ext_log" fileName="${sys:catalina.home}/logs/exceptions_ext/exceptions_ext_log.log"
-                     filePattern="${sys:catalina.home}/logs/exceptions_ext_log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/exceptions_ext/exceptions_ext_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+
+        <RollingFile name="survey_result_log" fileName="${sys:catalina.home}/logs/survey/survey_result_log.log"
+                     filePattern="${sys:catalina.home}/logs/survey/survey_result_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+        <RollingFile name="survey_log" fileName="${sys:catalina.home}/logs/survey/survey_log.log"
+                     filePattern="${sys:catalina.home}/logs/survey/survey_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -391,6 +410,13 @@
 
         <logger name="transfer_asp_ext_log" level="ALL" additivity="false">
             <AppenderRef ref="transfer_ext_asp_log"/>
+        </logger>
+
+        <logger name="survey_result" level="ALL" additivity="false">
+            <AppenderRef ref="survey_result_log"/>
+        </logger>
+        <logger name="survey" level="ALL" additivity="false">
+            <AppenderRef ref="survey_log"/>
         </logger>
 
 

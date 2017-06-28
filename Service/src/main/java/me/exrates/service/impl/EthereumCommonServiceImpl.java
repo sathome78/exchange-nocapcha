@@ -272,7 +272,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
 
         String message = messageSource.getMessage("merchants.refill.btc",
-                new Object[]{request.getAmount(), mapAddress.get("address")}, request.getLocale());
+                new Object[]{mapAddress.get("address")}, request.getLocale());
 
         mapAddress.put("message", message);
         mapAddress.put("qr", mapAddress.get("address"));

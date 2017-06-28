@@ -3,6 +3,7 @@ package me.exrates.model.dto.onlineTableDto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.OperationType;
+import org.springframework.util.StringUtils;
 
 /**
  * Created by Valk on 14.04.16.
@@ -24,6 +25,7 @@ public class OrderListDto extends OnlineTableDto {
     this.amountConvert = amountConvert;
     this.orderType = orderType;
     this.needRefresh = needRefresh;
+    this.needRefresh = true;
   }
 
   public OrderListDto() {
@@ -48,7 +50,7 @@ public class OrderListDto extends OnlineTableDto {
 
   @Override
   public int hashCode() {
-    return id;
+    return StringUtils.isEmpty(ordersIds) ? id : ordersIds.hashCode();
   }
 
 }

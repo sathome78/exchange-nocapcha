@@ -59,7 +59,7 @@
             <br>
             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}">
               <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}">
-                <div style=" width: 100%; height: 88px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
+                <div style=" width: 100%; height: 98px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
                   <div style="float: left; height: 20px;  width: 183px; text-align: right; margin-right: 47px">
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 10px"/>
@@ -68,6 +68,9 @@
                         <span><loc:message code="mercnahts.output.minSum"/></span>
                         <span >${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}</span>
                       </c:if>
+                      <br>
+                      <span><loc:message code="merchants.commission"/>:</span>
+                      <span>${merchantCurrency.inputCommission.stripTrailingZeros().toPlainString()}%</span>
                     </div>
                   </div>
                   <button class="start-withdraw btn btn-primary btn-lg start-button"
@@ -80,6 +83,7 @@
                           data-min-sum="${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}"
                           data-process_type="${merchantCurrency.processType}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
+                          data-additional-field-name="${merchantCurrency.additionalFieldName}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
                 </div>

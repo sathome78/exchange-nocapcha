@@ -24,3 +24,10 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
   JOIN USER_ROLE UR
   JOIN ORDER_TYPE OT where CP.name='XRP/USD';
+
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden) VALUES((select id from CURRENCY where name = 'XRP'), (select id from CURRENCY where name = 'BTC'), 'XRP/BTC', 260, 0);
+
+INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+    JOIN USER_ROLE UR
+    JOIN ORDER_TYPE OT where CP.name='XRP/BTC';

@@ -18,15 +18,14 @@ invoice_request_status_id | provided | source_type | COUNT(*)
 3 873
 
 new
-1	0	INVOICE	2
-2	0	INVOICE	1
 3	0	MERCHANT	5
-3	0	INVOICE	218
+3	0	INVOICE	219
 4	1	MERCHANT	20
-4	1	INVOICE	1301
+4	1	INVOICE	1310
 6	0	MERCHANT	1742
-6	0	INVOICE	642
-3931
+6	0	INVOICE	645
+
+3941
  */
 
 SELECT MAX(id) FROM REFILL_REQUEST --> 57 146
@@ -67,21 +66,21 @@ FROM TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id /*with INVOICE_REQUEST related with TX source_type MERCHANT and INVOICE*/
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.operation_type_id=1
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 
 UPDATE TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 SET TX.description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST'
 WHERE TX.operation_type_id=1;
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 
 INSERT INTO TRANSACTION_BACKUP_REFILL
 SELECT TX.* FROM TRANSACTION TX
 JOIN INVOICE_REQUEST IR ON IR.transaction_id=TX.id /*with INVOICE_REQUEST related with TX source_type MERCHANT and INVOICE*/
 JOIN WALLET ON WALLET.id = TX.user_wallet_id
 WHERE TX.operation_type_id=1
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 /*--------------------------------------------------------*/
 
 
@@ -116,7 +115,7 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST' AND TX.operation_type_id=1
 AND TX.id=IR.transaction_id
 );
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 
 DELETE FROM
 INVOICE_REQUEST
@@ -125,11 +124,11 @@ FROM TRANSACTION TX
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST' AND TX.operation_type_id=1
 AND TX.id=INVOICE_REQUEST.transaction_id
 )
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 
 DELETE FROM TRANSACTION
 WHERE description = 'EXPORTED TO REFILL_REQUEST FROM INVOICE_REQUEST'
-/* Затронуто строк: 3 931*/
+/* Затронуто строк: 3 941*/
 
 /*------------ В КОНЦЕ----------------------------------*/
 

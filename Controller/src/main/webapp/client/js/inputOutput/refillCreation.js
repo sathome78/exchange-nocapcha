@@ -120,6 +120,7 @@ $(function refillCreation() {
             $refillParamsDialog.find('#message').html(message ? message : '');
             $refillParamsDialog.find('#payment-qr').html('');
             $refillParamsDialog.find("#continue-btn").off('click').on('click', function () {
+                window.open("about:blank","newwin");
                 if (!checkRefillParamsEnter()) {
                     return;
                 }
@@ -209,7 +210,7 @@ $(function refillCreation() {
         $.each(params["params"], function (key, value) {
             formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
         });
-        var $form = $('<form id=temp-form-for-redirection target="_blank" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
+        var $form = $('<form id=temp-form-for-redirection target="newwin" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
         $("body").append($form);
         $form.submit();
         $("#temp-form-for-redirection").remove();

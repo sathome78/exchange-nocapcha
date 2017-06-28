@@ -20,6 +20,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -94,8 +95,9 @@ public class RippleServiceImpl implements RippleService {
     Integer destinationTag = generateUniqDestinationTag(request.getUserId());
     String message = messageSource.getMessage("merchants.refill.xrp",
         new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
+    DecimalFormat myFormatter = new DecimalFormat("###.##");
     return new HashMap<String, String>() {{
-      put("address", destinationTag.toString());
+      put("address", myFormatter.format(destinationTag));
       put("message", message);
     }};
   }

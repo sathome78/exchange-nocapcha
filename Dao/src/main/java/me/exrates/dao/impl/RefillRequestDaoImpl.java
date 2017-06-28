@@ -640,23 +640,27 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer requesterUserId,
       DataTableParams dataTableParams,
       RefillFilterData refillFilterData) {
-    final String JOINS_FOR_FILTER =
+    final String JOINS_FOR_USER =
         " JOIN USER ON USER.id = REFILL_REQUEST.user_id ";
     String filter = refillFilterData.getSQLFilterClause();
+    log.debug("filter clause {}", filter);
+    String searchClause = dataTableParams.getSearchByEmailAndNickClause();
     String sqlBase =
         " FROM REFILL_REQUEST " +
             " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
             " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
             " LEFT JOIN INVOICE_BANK IB ON (IB.id = RRP.recipient_bank_id) " +
             getPermissionClause(requesterUserId) +
-            (filter.isEmpty() ? "" : JOINS_FOR_FILTER) +
+                JOINS_FOR_USER +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
 
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
+    String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
+            ? "" : " AND ".concat(searchClause);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
     String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, RRA.*, RRP.*, IB.*, IOP.invoice_operation_permission_id ",
-        sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
+        sqlBase, whereClauseFilter, whereClauseSearch, orderClause, offsetAndLimit);
     String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("status_id_list", statusIdList);
@@ -666,7 +670,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("limit", dataTableParams.getLength());
     }};
     params.putAll(refillFilterData.getNamedParams());
-
+    params.putAll(dataTableParams.getSearchNamedParams());
+    log.debug("sql {}", sqlMain);
     List<RefillRequestFlatDto> requests = namedParameterJdbcTemplate.query(sqlMain, params, (rs, i) -> {
       RefillRequestFlatDto refillRequestFlatDto = refillRequestFlatDtoRowMapper.mapRow(rs, i);
       refillRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
@@ -838,7 +843,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       List<Integer> currencyList) {
     String sql = "SELECT RR.*, RRA.*, RRP.*, " +
         "         TX.amount AS transaction_amount, TX.commission_amount AS commission, " +
-        "         INVOICE_BANK.name AS recipient_bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
+        "         INVOICE_BANK.name AS recipient_bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details, " +
         "         USER.email AS user_email, USER.nickname AS nickname, " +
         "         ADM.email AS admin_email, " +
         "         MERCHANT.name AS merchant_name, " +

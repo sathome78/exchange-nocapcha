@@ -26,5 +26,12 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN USER_ROLE UR
   JOIN ORDER_TYPE OT where CP.name='XLM/USD';
 
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden) VALUES((select id from CURRENCY where name = 'XLM'), (select id from CURRENCY where name = 'BTC'), 'XLM/BTC', 250, 0);
+
+INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+    JOIN USER_ROLE UR
+    JOIN ORDER_TYPE OT where CP.name='XLM/BTC';
+
 INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES 
   ((SELECT id FROM MERCHANT WHERE name = 'Stellar'), 'LastPagingToken', NULL);

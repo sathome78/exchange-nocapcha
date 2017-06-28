@@ -485,7 +485,14 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
-    return userDao.getUserSessionInfo(emails);
+    try {
+      List<UserSessionInfoDto> list = userDao.getUserSessionInfo(emails);
+      log.debug(Arrays.toString(list.toArray()));
+      return list;
+    } catch (Exception e) {
+      log.error(e);
+      return Collections.EMPTY_LIST;
+    }
   }
 
   @Override
@@ -616,7 +623,7 @@ public class UserServiceImpl implements UserService {
   public String getEmailById(Integer id) {
     return userDao.getEmailById(id);
   }
-  
+
   @Override
   public UserRole getUserRoleFromDB(String email) {
     return userDao.getUserRoleByEmail(email);

@@ -2,8 +2,10 @@ package me.exrates.service.stellar;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +39,8 @@ public class StellarReceivePaymentsService {
     private StellarTransactionService stellarTransactionService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+    @Autowired
+    private RefillService refillService;
 
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;

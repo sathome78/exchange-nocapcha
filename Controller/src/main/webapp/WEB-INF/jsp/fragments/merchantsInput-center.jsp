@@ -71,7 +71,7 @@
                       </c:if>
                       <br>
                       <span><loc:message code="merchants.commission"/>:</span>
-                      <span>${merchantCurrency.inputCommission.stripTrailingZeros().toPlainString()} ${currency.getName()}</span>
+                      <span>${merchantCurrency.inputCommission.stripTrailingZeros().toPlainString()}%</span>
                     </div>
                   </div>
                   <c:choose>
