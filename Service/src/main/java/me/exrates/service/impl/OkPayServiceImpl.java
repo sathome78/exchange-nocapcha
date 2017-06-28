@@ -83,9 +83,9 @@ public class OkPayServiceImpl implements OkPayService {
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
 
-//        if (!sendReturnRequest(params)){
-//            throw new RefillRequestAppropriateNotFoundException(params.toString());
-//        }
+        if (!sendReturnRequest(params)){
+            throw new RefillRequestAppropriateNotFoundException(params.toString());
+        }
 
         Integer requestId = Integer.valueOf(params.get("ok_invoice"));
         String merchantTransactionId = params.get("ok_txn_id");

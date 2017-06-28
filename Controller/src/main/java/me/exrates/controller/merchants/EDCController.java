@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -28,21 +29,23 @@ public class EDCController {
   private final Logger LOG = LogManager.getLogger("merchant");
 
   @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
-  public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestAppropriateNotFoundException {
-    /*for (int i = 0; i < 10; i++) {
-      new Thread(() -> {
-        try {
-          edcService.processPayment(params);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-          e.printStackTrace();
-        }
-      }).start();
-    }*/
+  public ResponseEntity<Void> statusPayment(@RequestBody Map<String, Object> paramsObject) throws RefillRequestAppropriateNotFoundException {
+
     final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
-    LOG.info("Response: " + params);
+    LOG.info("Response: " + paramsObject);
     try {
-      edcService.processPayment(params);
-      return responseOK;
+      Map<String,String> assetMap = (Map<String, String>) paramsObject.get("asset");
+      if (assetMap.get("symbol").equals("EDC")){
+        Map<String,String> params = new HashMap<>();
+        params.put("id", String.valueOf(paramsObject.get("id")));
+        params.put("address", String.valueOf(paramsObject.get("address")));
+        params.put("amount", String.valueOf(paramsObject.get("amount")));
+
+        edcService.processPayment(params);
+        return responseOK;
+      }else {
+        return new ResponseEntity<>(BAD_REQUEST);
+      }
     }catch (RefillRequestAlreadyAcceptedException e){
       return responseOK;
     }catch (Exception e){

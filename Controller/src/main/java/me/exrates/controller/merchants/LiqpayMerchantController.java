@@ -37,7 +37,7 @@ public class LiqpayMerchantController {
     @Autowired
     private LocaleResolver localeResolver;
 
-    private static final Logger logger = LogManager.getLogger(LiqpayMerchantController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
