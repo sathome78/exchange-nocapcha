@@ -98,7 +98,7 @@ public class AdvcashServiceImpl implements AdvcashService{
 
         Integer requestId = Integer.valueOf(params.get("ac_order_id"));
         String merchantTransactionId = params.get("ac_transfer");
-        Currency currency = currencyService.findByName(params.get("ac_currency"));
+        Currency currency = currencyService.findByName(params.get("ac_merchant_currency"));
         Merchant merchant = merchantService.findByName("Advcash Money");
         BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("ac_amount"))).setScale(9);
 
