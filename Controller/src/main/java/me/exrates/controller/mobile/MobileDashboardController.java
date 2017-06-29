@@ -165,6 +165,16 @@ public class MobileDashboardController {
 
 
 
+    @RequestMapping(value = "/generalInfo", method = GET)
+    public GeneralInfoDto getGeneralInfo(@RequestParam(required = false) Integer currencyId) {
+        GeneralInfoDto result = new GeneralInfoDto();
+        result.setCommissions(orderService.getAllCommissions());
+        result.setCurrencyPairs(currencyService.findCurrencyPairsWithLimitsForUser());
+        result.setTransferLimits(currencyService.retrieveMinTransferLimits(Collections.singletonList(currencyId)));
+        result.setMerchants(merchantService.findAllMerchantCurrencies(currencyId));
+        return result;
+    }
+
     /**
      * @api {get} /api/dashboard/currencyPairs Get available currency pairs
      * @apiName getCurrencyPairs

@@ -166,9 +166,7 @@ public class MerchantServiceImpl implements MerchantService {
     result.forEach(item -> {
       try {
         IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
-        boolean additionalTagForWithdrawAddressIsUsed = merchantService.additionalTagForWithdrawAddressIsUsed();
-        item.setAdditionalTagForWithdrawAddressIsUsed(additionalTagForWithdrawAddressIsUsed);
-        if (additionalTagForWithdrawAddressIsUsed) {
+        if (merchantService.additionalTagForWithdrawAddressIsUsed()) {
           item.setAdditionalFieldName(merchantService.additionalFieldName());
         }
         item.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
