@@ -15,10 +15,7 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantNotFoundException;
-import me.exrates.service.exception.ScaleForAmountNotSetException;
+import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -165,7 +162,21 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
-    return merchantDao.findAllMerchantCurrencies(currencyId, userService.getUserRoleFromSecurityContext());
+    List<MerchantCurrencyApiDto> result = merchantDao.findAllMerchantCurrencies(currencyId, userService.getUserRoleFromSecurityContext());
+    result.forEach(item -> {
+      try {
+        IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
+        boolean additionalTagForWithdrawAddressIsUsed = merchantService.additionalTagForWithdrawAddressIsUsed();
+        item.setAdditionalTagForWithdrawAddressIsUsed(additionalTagForWithdrawAddressIsUsed);
+        if (additionalTagForWithdrawAddressIsUsed) {
+          item.setAdditionalFieldName(merchantService.additionalFieldName());
+        }
+        item.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
+      } catch (MerchantServiceNotFoundException | MerchantServiceBeanNameNotDefinedException e) {
+        LOG.warn(e);
+      }
+    });
+    return result;
   }
 
   @Override

@@ -1,5 +1,7 @@
 package me.exrates.model.dto.mobileApiDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,7 +30,15 @@ public class MerchantCurrencyApiDto {
     private Boolean isWithdrawBlocked;
     @JsonProperty(value = "refillBlocked")
     private Boolean isRefillBlocked;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean additionalTagForWithdrawAddressIsUsed;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String additionalFieldName;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean generateAdditionalRefillAddressAvailable;
     private List<MerchantImageShortenedDto> listMerchantImage;
+    @JsonIgnore
+    private String serviceBeanName;
 
 
 }
