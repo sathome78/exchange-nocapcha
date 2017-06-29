@@ -3,10 +3,7 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.mobileApiDto.RefillRequestDetailsDto;
-import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.dto.mobileApiDto.UserTransferDto;
+import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -19,6 +16,7 @@ import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.util.RestApiUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -211,8 +209,8 @@ public class MobileInputOutputController {
 
 
     /**
-     * @api {get} /api/payments/merchantsAll Merchants info
-     * @apiName findAllMerchants
+     * @api {get} /api/payments/merchants Merchants info
+     * @apiName findAllMerchantCurrencies
      * @apiGroup Input-Output
      * @apiUse TokenHeader
      * @apiPermission user
@@ -226,7 +224,14 @@ public class MobileInputOutputController {
      * @apiSuccess {Integer} data.currencyId currency id
      * @apiSuccess {String} data.name merchant name
      * @apiSuccess {String} data.detail merchant detail
-     * @apiSuccess {Number} data.minSum minimal sum of payment
+     * @apiSuccess {Number} data.minInputSum minimal sum of input payment
+     * @apiSuccess {Number} data.minOutputSum minimal sum of output payment
+     * @apiSuccess {Number} data.inputCommission commission rate for refill operations
+     * @apiSuccess {Number} data.outputCommission commission rate for withdraw operations
+     * @apiSuccess {Number} data.minFixedCommission minimal commission amount
+     * @apiSuccess {Boolean} data.additionalTagForWithdrawAddressIsUsed if additional tag is needed for output
+     * @apiSuccess {String} data.additionalFieldName name of additional tag
+     * @apiSuccess {Boolean} data.generateAdditionalRefillAddressAvailable for cryptos - if it is possible to generate new address
      * @apiSuccess {Array} data.merchantImageList List of merchant images
      * @apiSuccess {Object} merchantImage Merchant image
      * @apiSuccess {String} data.merchantImage.merchantId merchant id
@@ -234,23 +239,27 @@ public class MobileInputOutputController {
      * @apiSuccess {String} data.merchantImage.image_name image name
      * @apiSuccess {String} data.merchantImage.image_path - path for image on server
      * @apiSuccess {String} data.merchantImage.id - merchant image id
+     * @apiSuccess {Boolean} data.withdrawBlocked if refill is blocked for merchant
+     * @apiSuccess {Boolean} data.refillBlocked if withdraw is blocked for merchant
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *   [
-     *          {
-     *              "merchantId": 12,
-     *              "currencyId": 10,
-     *              "name": "Invoice",
-     *              "minInputSum": 0.01,
-     *              "minOutputSum": 131340,
-     *              "commission": 0,
-     *              "listMerchantImage": [
-     *                  {
-     *                      "id": 63,
-     *                      "imagePath": "/client/img/merchants/invoice.png"
-     *                  }
-     *              ]
-     *          }
+     *       {
+     *          "merchantId": 20,
+     *          "currencyId": 19,
+     *          "name": "Ripple",
+     *          "minInputSum": 0.01,
+     *          "minOutputSum": 5,
+     *          "inputCommission": 0,
+     *          "outputCommission": 0,
+     *          "minFixedCommission": 0,
+     *          "additionalTagForWithdrawAddressIsUsed": true,
+     *          "additionalFieldName": "Destination Tag",
+     *          "generateAdditionalRefillAddressAvailable": false,
+     *          "listMerchantImage": [],
+     *          "withdrawBlocked": false,
+     *          "refillBlocked": false
+     *        }
      *    ]
      *
      *
@@ -317,6 +326,7 @@ public class MobileInputOutputController {
         payment.setMerchant(requestParamsDto.getMerchant());
         payment.setSum(requestParamsDto.getSum().doubleValue());
         payment.setDestination(requestParamsDto.getDestination());
+        payment.setDestinationTag(requestParamsDto.getDestinationTag());
         payment.setOperationType(OperationType.OUTPUT);
 
         String userEmail = getAuthenticatedUserEmail();
@@ -729,6 +739,50 @@ public class MobileInputOutputController {
                 userTransferDto.getAmount(), userLocale, false);
         return new ResponseEntity<>(OK);
 
+    }
+    
+    /**
+     * @api {get} /api/payments/lastAddress Get last address
+     * @apiName getLastUsedAddressForMerchantAndCurrency
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns last used address for currency
+     * @apiParam {Integer} currencyId
+     * @apiParamExample Request example
+     * /api/payments/lastAddress?currencyId=21
+     * @apiSuccess {Array} merchants List of addresses for each merchant (generally there's only one item)
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.merchantId merchant id
+     * @apiSuccess {String} data.mainAddress merchant name
+     * @apiSuccess {String} data.address merchant detail
+     * @apiSuccess {String} data.additionalFieldName name of additional tag
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *   [
+     *      {
+     *          "merchantId": 20,
+     *          "mainAddress": "rEDz1wnKCSakb8AU1ScCRdkLHFgr7XTNij",
+     *          "address": "495191240",
+     *          "additionalFieldName": "Destination Tag"
+     *      }
+     *   ]
+     *
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/lastAddress", method = GET)
+    public List<CryptoAddressDto> getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId) {
+        String userEmail = getAuthenticatedUserEmail();
+        List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(
+                Collections.singletonList(currencyId), OperationType.INPUT);
+        refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
+        return merchantCurrencyData.stream().map(CryptoAddressDto::new).collect(Collectors.toList());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
