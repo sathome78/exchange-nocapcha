@@ -162,7 +162,7 @@ public class MerchantDaoImpl implements MerchantDao {
   public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
     String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
 
-    final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, " +
+    final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.service_bean_name, " +
         "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
         "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
         "                 LIMIT_REFILL.min_sum AS min_refill_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -196,6 +196,7 @@ public class MerchantDaoImpl implements MerchantDao {
         params.put("merchant_id", resultSet.getInt("merchant_id"));
         params.put("currency_id", resultSet.getInt("currency_id"));
         merchantCurrencyApiDto.setListMerchantImage(namedParameterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
+        merchantCurrencyApiDto.setServiceBeanName(resultSet.getString("service_bean_name"));
         return merchantCurrencyApiDto;
       });
     } catch (EmptyResultDataAccessException e) {
