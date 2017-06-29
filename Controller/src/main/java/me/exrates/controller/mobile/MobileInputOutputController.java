@@ -286,6 +286,7 @@ public class MobileInputOutputController {
      * @apiParam {Integer} merchant merchant id
      * @apiParam {Number} sum amount of payment
      * @apiParam {String} destination wallet to send money
+     * @apiParam {String} destinationTag additional tag to send money (see additionalTagForWithdrawAddressIsUsed in /merchants response)
      * @apiParam {Integer} merchantImage merchant image id (OPTIONAL)
      *
      * @apiParamExample {json} Request Example:
