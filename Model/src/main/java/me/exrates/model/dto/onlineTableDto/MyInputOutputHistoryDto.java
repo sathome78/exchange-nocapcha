@@ -7,6 +7,7 @@ import lombok.ToString;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
@@ -63,6 +65,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
       this.status = RefillStatusEnum.convert(statusId);
     } else if (sourceType == WITHDRAW) {
       this.status = WithdrawStatusEnum.convert(statusId);
+    } else if (sourceType == USER_TRANSFER) {
+      this.status = TransferStatusEnum.convert(statusId);
     }
   }
 

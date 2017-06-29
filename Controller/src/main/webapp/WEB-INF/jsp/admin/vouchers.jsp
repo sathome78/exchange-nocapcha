@@ -13,7 +13,7 @@
   <meta name="keywords" content=""/>
   <meta name="description" content=""/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <%@include file='admin/links_scripts.jsp' %>
+  <%@include file='links_scripts.jsp' %>
   <link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
@@ -24,29 +24,11 @@
 </head>
 
 <body id="withdraw-requests-admin">
-<%@include file='fragments/header-simple.jsp' %>
+<%@include file='../fragments/header-simple.jsp' %>
 <main class="container">
     <div class="row">
-        <%@include file='admin/left_side_menu.jsp' %>
+        <%@include file='left_side_menu.jsp' %>
         <div class="col-md-8 col-sm-offset-1 content admin-container">
-            <div class="row text-right">
-                <div style="float: left; display: inline-block">
-                    <button id="withdraw-requests-manual" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.manual"/></button>
-                    <button id="withdraw-requests-confirm" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.confirm"/></button>
-                    <button id="withdraw-requests-auto" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.auto"/></button>
-                    <button id="withdraw-requests-All" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.All"/></button>
-                    <button id="withdraw-requests-accepted" class="myorders__button green-box margin-box">
-                        <loc:message code="admin.withdraw.accepted"/></button>
-                    <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
-                        <loc:message code="admin.withdraw.declined"/></button>
-                    <button id="withdraw-requests-vouchers" href="/2a8fy7b07dxe44/withdrawal/vouchers" class="myorders__button blue-box margin-box">
-                    <loc:message code="voucher.vouchers"/></button>
-                </div>
-            </div>
 
 
       <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>

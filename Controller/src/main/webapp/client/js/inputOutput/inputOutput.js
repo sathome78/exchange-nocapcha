@@ -151,6 +151,28 @@ function InputOutputClass(currentCurrencyPair) {
             $modal.modal();
         });
 
+        $('#inputoutput-table').on('click', 'button[data-source=USER_TRANSFER].revoke_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var $modal = $("#confirm-with-info-modal");
+            $modal.find("label[for=info-field]").html($(this).html());
+            $modal.find("#info-field").val(id);
+            $modal.find("#confirm-button").off("click").one("click", function () {
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/transfer/request/revoke?id=' + id,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                    type: 'POST',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            });
+            $modal.modal();
+        });
+
         $('#inputoutput-table').on('click', 'button[data-source=REFILL].confirm_user_button', function (e) {
             e.preventDefault();
             var id = $(this).data("id");

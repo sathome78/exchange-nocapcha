@@ -127,6 +127,7 @@ public class InputOutputServiceImpl implements InputOutputService {
 
 
   private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
+    log.debug("status1 {}", row);
     switch (row.getSourceType()) {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
@@ -141,6 +142,10 @@ public class InputOutputServiceImpl implements InputOutputService {
       case WITHDRAW: {
         WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
         return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
+      }
+      case USER_TRANSFER: {
+        TransferStatusEnum status = (TransferStatusEnum) row.getStatus();
+        return messageSource.getMessage("merchants.transfer.".concat(status.name()), null, locale);
       }
       default: {
         return row.getTransactionProvided();

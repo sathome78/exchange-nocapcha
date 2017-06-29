@@ -16,10 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
@@ -48,6 +45,15 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     transferRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     transferRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
     transferRequestFlatDto.setHash(rs.getString("hash"));
+    return transferRequestFlatDto;
+  };
+
+  protected static RowMapper<TransferRequestFlatDto> extendedTransferRequestFlatDtoRowMapper = (rs, idx) -> {
+    TransferRequestFlatDto transferRequestFlatDto = transferRequestFlatDtoRowMapper.mapRow(rs, idx);
+    transferRequestFlatDto.setCreatorEmail(rs.getString("email"));
+    transferRequestFlatDto.setRecipientEmail(rs.getString("recipient_email"));
+    transferRequestFlatDto.setCurrencyName(rs.getString("currency"));
+    transferRequestFlatDto.setMerchantName(rs.getString("merchant_name"));
     return transferRequestFlatDto;
   };
 
@@ -93,10 +99,16 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
 
   @Override
   public Optional<TransferRequestFlatDto> getFlatById(int id) {
-    String sql = "SELECT * " +
-        " FROM TRANSFER_REQUEST " +
-        " WHERE id = :id";
-    return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), transferRequestFlatDtoRowMapper));
+    String sql = "SELECT TR.*, U1.email AS email, U2.email AS recipient_email, " +
+            "CU.name AS currency, M.name AS merchant_name " +
+            " FROM TRANSFER_REQUEST TR " +
+            " JOIN CURRENCY CU ON CU.id = TR.currency_id " +
+            " JOIN MERCHANT M ON M.id = TR.merchant_id " +
+            " JOIN USER U1 ON U1.id = TR.user_id " +
+            " LEFT JOIN USER U2 ON U2.id <=> TR.recipient_user_id " +
+            " WHERE TR.id = :id";
+    log.debug("sql {}", sql);
+    return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), extendedTransferRequestFlatDtoRowMapper));
   }
 
   @Override
@@ -168,6 +180,16 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     sqlParams.put("id", id);
     sqlParams.put("hash", params.get("hash"));
     jdbcTemplate.update(sql, sqlParams);
+  }
+
+  @Override
+  public String getCreatorEmailById(int id) {
+    String sql = " SELECT U.email " +
+            " FROM TRANSFER_REQUEST TR " +
+            " JOIN USER U ON U.id = TR.user_id " +
+            " WHERE TR.id = :id ";
+    jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+    return null;
   }
 
 }

@@ -33,4 +33,6 @@ public interface TransferService {
   boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal);
 
   void performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
+
+    String getUserEmailByTrnasferId(int id);
 }

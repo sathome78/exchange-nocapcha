@@ -15,9 +15,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.IllegalOperationTypeException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.util.RateLimitService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -128,11 +126,21 @@ public class TransferRequestController {
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
   @ResponseBody
   public void revokeWithdrawRequest(
-      @RequestParam Integer id) {
+      @RequestParam Integer id, Principal principal) {
+    if (principal == null || !transferService.getUserEmailByTrnasferId(id).equals(principal.getName())) {
+      throw new TransferRequestRevokeException();
+    }
     transferService.revokeTransferRequest(id);
   }
 
-  @RequestMapping(value = "/transfer/request/info", method = GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/revoke", method = POST)
+  @ResponseBody
+  public void revokeWithdrawRequest(
+          @RequestParam Integer id) {
+    transferService.revokeTransferRequest(id);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/info", method = GET)
   @ResponseBody
   public TransferRequestFlatDto getInfoTransfer(
       @RequestParam Integer id) {

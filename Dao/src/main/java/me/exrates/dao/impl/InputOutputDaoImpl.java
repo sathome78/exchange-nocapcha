@@ -101,7 +101,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     CUR.name, WR.amount, WR.commission, " +
         "     M.name, " +
         "     'WITHDRAW', " +
-        "     'Output', NULL, " +
+        "     'withdraw', NULL, " +
         "     WR.id, " +
         "     NULL, " +
         "     WR.wallet, " +
@@ -118,6 +118,54 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "   WHERE USER.email=:email AND " +
         "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
         "  )  " +
+
+            "  UNION ALL " +
+            "  (SELECT " +
+            "     TR.date_creation, " +
+            "     CUR.name, TR.amount, TR.commission, " +
+            "     M.name, " +
+            "     'USER_TRANSFER', " +
+            "     'User transfer - Output', NULL, " +
+            "     TR.id, " +
+            "     NULL, " +
+            "     TR.recipient_user_id, " +
+            "     USER.id, " +
+            "     TR.status_id, " +
+            "     TR.status_modification_date, " +
+            "     NULL, " +
+            "     NULL, " +
+            "     NULL" +
+            "   FROM TRANSFER_REQUEST TR " +
+            "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
+            "     JOIN USER USER ON USER.id=TR.user_id " +
+            "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
+            "   WHERE USER.email=:email /*AND*/ " +
+           /* "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=TR.id AND TX.operation_type_id=2) " +
+           */ "  )  " +
+            "  UNION ALL " +
+            "  (SELECT " +
+            "     TR.date_creation, " +
+            "     CUR.name, TR.amount, TR.commission, " +
+            "     M.name, " +
+            "     'USER_TRANSFER', " +
+            "     'User transfer - Input', NULL, " +
+            "     TR.id, " +
+            "     NULL, " +
+            "     TR.recipient_user_id, " +
+            "     USER.id, " +
+            "     TR.status_id, " +
+            "     TR.status_modification_date, " +
+            "     NULL, " +
+            "     NULL, " +
+            "     NULL" +
+            "   FROM TRANSFER_REQUEST TR " +
+            "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
+            "     JOIN USER USER ON USER.id=TR.user_id " +
+            "     JOIN USER REC ON REC.id = TR.recipient_user_id  " +
+            "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
+            "   WHERE REC.email=:email AND TR.status_id = 2 " +
+           /* "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=TR.id AND TX.operation_type_id=2) " +
+           */ "  )  " +
 
         "  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);

@@ -293,6 +293,11 @@ public class TransferServiceImpl implements TransferService {
 
   }
 
+  @Override
+  public String getUserEmailByTrnasferId(int id) {
+    return transferRequestDao.getCreatorEmailById(id);
+  }
+
 
 
 
