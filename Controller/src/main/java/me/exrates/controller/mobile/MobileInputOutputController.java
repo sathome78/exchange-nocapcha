@@ -718,7 +718,9 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+
+    /*todo: refactor this controller for a new transfer sub-system*/
+    /*@RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
         String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
@@ -729,7 +731,7 @@ public class MobileInputOutputController {
                 userTransferDto.getAmount(), userLocale, false);
         return new ResponseEntity<>(OK);
 
-    }
+    }*/
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({HttpMessageNotReadableException.class})

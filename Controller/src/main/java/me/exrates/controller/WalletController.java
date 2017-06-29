@@ -80,7 +80,7 @@ public class WalletController {
     }
 
     /**@param checkOnly - used to verify payment, without fin pass, but not perform transfer
-     * */
+     * *//*
     @FinPassCheck(notCheckPassIfCheckOnlyParamTrue = true)
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
@@ -100,7 +100,7 @@ public class WalletController {
         }
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
-    }
+    }*/
     
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})

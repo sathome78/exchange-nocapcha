@@ -51,7 +51,12 @@ public interface RippleService extends IRefillable, IWithdrawable {
   }
 
   @Override
-  default String additionalFieldName() {
+  default String additionalWithdrawFieldName() {
+    return "Destination Tag";
+  }
+
+  @Override
+  default String additionalRefillFieldName() {
     return "Destination Tag";
   }
 }

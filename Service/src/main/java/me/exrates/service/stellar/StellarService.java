@@ -52,7 +52,12 @@ public interface StellarService extends IRefillable, IWithdrawable {
     void onTransactionReceive(TransactionResponse payment, String amount);
 
     @Override
-    default String additionalFieldName() {
+    default String additionalRefillFieldName() {
+        return "MEMO-ID";
+    }
+
+    @Override
+    default String additionalWithdrawFieldName() {
         return "MEMO-ID";
     }
 }

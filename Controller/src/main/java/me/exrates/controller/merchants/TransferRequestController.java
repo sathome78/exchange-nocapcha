@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -79,6 +80,7 @@ public class TransferRequestController {
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
+
     TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
     Payment payment = new Payment(requestParamsDto.getOperationType());
     payment.setCurrency(requestParamsDto.getCurrency());
@@ -103,14 +105,20 @@ public class TransferRequestController {
     if(requiredStatus.size() > 1) {
       throw new RuntimeException("voucher processing error");
     }
-    Optional<TransferRequestFlatDto> dto =  transferService.getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
+    Optional<TransferRequestFlatDto> dto =  transferService
+            .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
     if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
       rateLimitService.registerRequest(principal.getName());
       throw new InvoiceNotFoundException(messageSource.getMessage(
               "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
     }
+    if (dto.get().getUserId().equals(userService.getIdByEmail(principal.getName()))) {
+      throw new InvalidNicknameException(messageSource
+              .getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
+    }
     Locale locale = localeResolver.resolveLocale(request);
     TransferRequestFlatDto flatDto = dto.get();
+    flatDto.setInitiatorEmail(principal.getName());
     transferService.performTransfer(flatDto, locale, action);
     return messageSource.getMessage("message.receive.voucher" ,
             new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),

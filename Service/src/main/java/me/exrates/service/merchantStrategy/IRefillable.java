@@ -22,7 +22,7 @@ public interface IRefillable extends IMerchantService{
 
   Boolean generatingAdditionalRefillAddressAvailable();
 
-  default String additionalFieldName() {
+  default String additionalRefillFieldName() {
     return "MEMO";
   };
 }

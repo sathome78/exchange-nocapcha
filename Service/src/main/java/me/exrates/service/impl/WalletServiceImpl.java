@@ -277,7 +277,7 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount,
-                                         Locale locale, boolean checkOnly) {
+                                         Locale locale, boolean checkOnly, int sourceId) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
@@ -294,12 +294,12 @@ public final class WalletServiceImpl implements WalletService {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
     if (!checkOnly) {/*Don't remove it !!!! This is need for only check transfer data without payment proceed*/
-      UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
-              currencyId, amount, commissionAmount);
+      /*UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
+              currencyId, amount, commissionAmount);*/
       changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
+              TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
       changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
+              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, sourceId);
     }
     String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     return TransferDto.builder()
@@ -319,12 +319,12 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                                    Locale locale, boolean checkOnly) {
+                                    Locale locale, boolean checkOnly, int sourceId) {
     Integer userId = userService.getIdByNickname(toUserNickname);
     if (userId == 0) {
       throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
     }
-    TransferDto dto= transferCostsToUser(fromUserWalletId, userId, amount, locale, checkOnly);
+    TransferDto dto = transferCostsToUser(fromUserWalletId, userId, amount, locale, checkOnly, sourceId);
     String currencyName = currencyService.getCurrencyName(dto.getCurrencyId());
     String result = messageSource.getMessage("transfer.successful", new Object[]{dto.getNotyAmount(), currencyName, toUserNickname}, locale);
     sendNotificationsAboutTrnasfer(dto.getUserFromId(), dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);

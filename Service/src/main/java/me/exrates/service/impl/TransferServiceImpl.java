@@ -19,6 +19,7 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.invoice.TransferRequestAcceptExeption;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
@@ -157,7 +158,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getRecipient(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getLocale(),
-              false);
+              false, createdTransferRequestId);
         }
       }
     } else {
@@ -257,18 +258,26 @@ public class TransferServiceImpl implements TransferService {
 
   @Override
   public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal) {
-    return transferRequestFlatDto.getRecipientId() == null || transferRequestFlatDto.getRecipientId().equals(0)
-            || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
+    ITransferable merchantService = (ITransferable) merchantServiceContext.getMerchantService(transferRequestFlatDto.getMerchantId());
+    return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
   }
 
+  @Transactional
   @Override
   public void performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(dto.getMerchantId());
+    if (!(merchantService instanceof ITransferable)) {
+      throw new MerchantException("not supported merchant");
+    }
+    if (((ITransferable) merchantService).isVoucher() && !((ITransferable) merchantService).recipientUserIsNeeded()) {
+      dto.setRecipientId(userService.getIdByEmail(dto.getInitiatorEmail()));
+      transferRequestDao.setRecipientById(dto.getId(), dto.getRecipientId());
+    }
     TransferStatusEnum currentStatus = dto.getStatus();
     TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
     if (!newStatus.isEndStatus()) {
       throw new TransferRequestAcceptExeption("invalid new status " + newStatus);
     }
-    transferRequestDao.setStatusById(dto.getId(), newStatus);
     int walletId = walletService.getWalletId(dto.getUserId(), dto.getCurrencyId());
     WalletTransferStatus result = walletService.walletInnerTransfer(
             walletId,
@@ -279,7 +288,9 @@ public class TransferServiceImpl implements TransferService {
     if (result != SUCCESS) {
       throw new WithdrawRequestPostException(result.name());
     }
-    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, false);
+    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, false, dto.getId());
+    transferRequestDao.setStatusById(dto.getId(), newStatus);
+
   }
 
 

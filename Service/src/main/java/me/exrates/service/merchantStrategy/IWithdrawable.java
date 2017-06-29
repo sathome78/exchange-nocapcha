@@ -15,5 +15,8 @@ public interface IWithdrawable extends IMerchantService {
 
   Boolean withdrawTransferringConfirmNeeded();
 
+  default String additionalWithdrawFieldName() {
+    return "MEMO";
+  };
 
 }

@@ -199,13 +199,13 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies) {
     merchantCurrencies.forEach(e -> {
-      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
+      IMerchantService merchant = merchantServiceContext.getMerchantService(e.getMerchantId());
       if (merchant instanceof IWithdrawable) {
           IWithdrawable merchantService = (IWithdrawable) merchant;
           e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
-              e.setMainAddress(((IMerchantService) merchantService).getMainAddress());
-              e.setAdditionalFieldName(((IMerchantService) merchantService).additionalFieldName());
+              e.setMainAddress(merchantService.getMainAddress());
+              e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
           }
       }
     });

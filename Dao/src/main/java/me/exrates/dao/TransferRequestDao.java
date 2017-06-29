@@ -18,9 +18,11 @@ public interface TransferRequestDao {
 
   Optional<TransferRequestFlatDto> getFlatById(int id);
 
-    Optional<TransferRequestFlatDto> getFlatByHashAndStatus(String hash, Integer requiredStatus, boolean block);
+  Optional<TransferRequestFlatDto> getFlatByHashAndStatus(String hash, Integer requiredStatus, boolean block);
 
-    void setStatusById(Integer id, InvoiceStatus newStatus);
+  void setStatusById(Integer id, InvoiceStatus newStatus);
+
+  void setRecipientById(Integer id, Integer recipientId);
 
   List<TransferRequestFlatDto> findRequestsByStatusAndMerchant(Integer merchantId, List<Integer> statusId);
 

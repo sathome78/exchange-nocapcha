@@ -112,13 +112,12 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
       put("status", requiredStatus);
     }};
     Optional<TransferRequestFlatDto> dto = Optional.empty();
-   /* try {
+   try {
       dto = of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
-      log.debug("dto {}", dto.isPresent() ? dto.get().getId() : "no dto(((");
     } catch (DataAccessException e) {
       log.error(e);
-    }*/
-    return of(jdbcTemplate.queryForObject(sql, params, transferRequestFlatDtoRowMapper));
+    }
+    return dto;
   }
 
 
@@ -131,6 +130,18 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("new_status_id", newStatus.getCode());
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setRecipientById(Integer id, Integer recipientId) {
+    final String sql = "UPDATE TRANSFER_REQUEST " +
+            "  SET recipient_user_id = :recipient_id, " +
+            "      status_modification_date = NOW() " +
+            "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("recipient_id", recipientId);
+    params.put("id", id);
     jdbcTemplate.update(sql, params);
   }
 

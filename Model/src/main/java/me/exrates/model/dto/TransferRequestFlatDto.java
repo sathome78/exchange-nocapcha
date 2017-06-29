@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import me.exrates.model.Merchant;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -28,4 +29,5 @@ public class TransferRequestFlatDto {
   private BigDecimal commissionAmount;
   private Integer commissionId;
   private String hash;
+  private String initiatorEmail;
 }
