@@ -3,7 +3,12 @@ package me.exrates.service;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.VoucherAdminTableDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.VoucherFilterData;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -20,7 +25,9 @@ public interface TransferService {
 
   List<MerchantCurrency> retrieveAdditionalParamsForWithdrawForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies);
 
-  void revokeTransferRequest(int requestId);
+  void revokeByUser(int requestId, Principal principal);
+
+  void revokeByAdmin(int requestId, Principal principal);
 
   List<TransferRequestFlatDto> getRequestsByMerchantIdAndStatus(int merchantId, List<Integer> statuses);
 
@@ -34,5 +41,12 @@ public interface TransferService {
 
   void performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 
-    String getUserEmailByTrnasferId(int id);
+  String getUserEmailByTrnasferId(int id);
+
+  @Transactional
+  DataTable<List<VoucherAdminTableDto>> getAdminVouchersList(
+          DataTableParams dataTableParams,
+          VoucherFilterData withdrawFilterData,
+          String authorizedUserEmail,
+          Locale locale);
 }

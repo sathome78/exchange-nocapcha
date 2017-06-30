@@ -2,20 +2,22 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.TransferRequestDao;
-import me.exrates.model.Commission;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.PagingData;
 import me.exrates.model.TransferRequest;
-import me.exrates.model.dto.TransferRequestCreateDto;
-import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.VoucherFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.vo.TransactionDescription;
-import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -25,7 +27,6 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
-import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
 /**
  * created by ValkSam
@@ -180,15 +182,38 @@ public class TransferServiceImpl implements TransferService {
     return merchantCurrencies;
   }
 
-  @Override
   @Transactional
-  public void revokeTransferRequest(int requestId) {
+  @Override
+  public void revokeByUser(int requestId, Principal principal) {
     TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    if (principal == null || !getUserEmailByTrnasferId(requestId).equals(principal.getName())) {
+      throw new TransferRequestRevokeException();
+    }
+    revokeTransferRequest(transferRequest);
+  }
+
+  @Transactional
+  @Override
+  public void revokeByAdmin(int requestId, Principal principal) {
+    TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
+            userService.getIdByEmail(principal.getName()),
+            transferRequest.getCurrencyId(),
+            TRANSFER_VOUCHER
+    );
+    if (permission != null) {
+      revokeTransferRequest(transferRequest);
+    }
+  }
+
+  @Transactional
+  private void revokeTransferRequest(TransferRequestFlatDto transferRequest) {
     TransferStatusEnum currentStatus = transferRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
     TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
-    transferRequestDao.setStatusById(requestId, newStatus);
+    transferRequestDao.setStatusById(transferRequest.getId(), newStatus);
     /**/
     Integer userWalletId = walletService.getWalletId(transferRequest.getUserId(), transferRequest.getCurrencyId());
     String description = transactionDescription.get(currentStatus, action);
@@ -298,7 +323,34 @@ public class TransferServiceImpl implements TransferService {
     return transferRequestDao.getCreatorEmailById(id);
   }
 
-
+  @Override
+  @Transactional
+  public DataTable<List<VoucherAdminTableDto>> getAdminVouchersList(
+          DataTableParams dataTableParams,
+          VoucherFilterData withdrawFilterData,
+          String authorizedUserEmail,
+          Locale locale) {
+    Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    PagingData<List<TransferRequestFlatDto>> result = transferRequestDao.getPermittedFlat(
+            authorizedUserId,
+            dataTableParams,
+            withdrawFilterData);
+    DataTable<List<VoucherAdminTableDto>> output = new DataTable<>();
+    output.setData(result.getData().stream()
+            .map(VoucherAdminTableDto::new)
+            .peek(e -> e.setButtons(
+                    inputOutputService.generateAndGetButtonsSet(
+                            e.getStatus(),
+                            e.getInvoiceOperationPermission(),
+                            true,
+                            locale)
+            ))
+            .collect(Collectors.toList())
+    );
+    output.setRecordsTotal(result.getTotal());
+    output.setRecordsFiltered(result.getFiltered());
+    return output;
+  }
 
 
 }

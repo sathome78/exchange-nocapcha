@@ -38,4 +38,5 @@ public class TransferRequestFlatDto {
   private String creatorEmail;
   private String recipientEmail;
   private String currencyName;
+  private InvoiceOperationPermission invoiceOperationPermission;
 }

@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-  <script type="text/javascript" src="<c:url value='/client/js/inputOutput/withdrawal.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/inputOutput/adminVoucher.js'/>"></script>
 
 </head>
 
@@ -175,16 +175,17 @@
         </div>
       </div>
 
-      <table id="withdrawalTable">
+      <table id="voucherTable">
         <thead>
         <tr>
           <th><loc:message code="transaction.id"/></th>
-          <th><loc:message code="withdrawal.requestDatetime"/></th>
+          <th><loc:message code="orderinfo.createdate"/></th>
           <th><loc:message code="withdrawal.user"/></th>
           <th><loc:message code="withdrawal.amount"/></th>
           <th><loc:message code="withdrawal.currency"/></th>
           <th><loc:message code="withdrawal.commission"/></th>
           <th><loc:message code="withdrawal.merchant"/></th>
+          <th><loc:message code="withdrawal.status"/></th>
           <th><loc:message code="merchants.withdrawDetails.recipientAccount"/></th>
           <th></th>
         </tr>
@@ -218,10 +219,9 @@
   <loc:message code="admin.promptSendMessageRequestAccept"/>
 </div>
 
-<%@include file='fragments/modal/withdraw_info_modal.jsp' %>
-<%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
-<%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
-<%@include file='fragments/footer.jsp' %>
+<%--<%@include file='fragments/modal/withdraw_info_modal.jsp' %>--%>
+<%@include file="../fragments/modal/confirm_with_info_modal.jsp" %>
+<%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

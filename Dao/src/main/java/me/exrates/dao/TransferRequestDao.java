@@ -1,7 +1,10 @@
 package me.exrates.dao;
 
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.VoucherFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 
 import java.util.List;
@@ -29,4 +32,9 @@ public interface TransferRequestDao {
   void setHashById(Integer id, Map<String, String> params);
 
   String getCreatorEmailById(int id);
+
+    PagingData<List<TransferRequestFlatDto>> getPermittedFlat(
+            Integer requesterUserId,
+            DataTableParams dataTableParams,
+            VoucherFilterData voucherFilterData);
 }

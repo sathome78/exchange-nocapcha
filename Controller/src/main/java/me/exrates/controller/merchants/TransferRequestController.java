@@ -5,9 +5,10 @@ import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.TransferRequestCreateDto;
-import me.exrates.model.dto.TransferRequestFlatDto;
-import me.exrates.model.dto.TransferRequestParamsDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.VoucherFilterData;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
@@ -36,7 +37,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
@@ -125,19 +125,16 @@ public class TransferRequestController {
 
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
   @ResponseBody
-  public void revokeWithdrawRequest(
+  public void revokeVoucherByUser(
       @RequestParam Integer id, Principal principal) {
-    if (principal == null || !transferService.getUserEmailByTrnasferId(id).equals(principal.getName())) {
-      throw new TransferRequestRevokeException();
-    }
-    transferService.revokeTransferRequest(id);
+    transferService.revokeByUser(id, principal);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/revoke", method = POST)
   @ResponseBody
-  public void revokeWithdrawRequest(
-          @RequestParam Integer id) {
-    transferService.revokeTransferRequest(id);
+  public void revokeVoucherByAdmin(
+          @RequestParam Integer id, Principal principal) {
+    transferService.revokeByAdmin(id, principal);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/info", method = GET)
@@ -145,6 +142,17 @@ public class TransferRequestController {
   public TransferRequestFlatDto getInfoTransfer(
       @RequestParam Integer id) {
     return transferService.getFlatById(id);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/transfer/requests", method = GET)
+  @ResponseBody
+  public DataTable<List<VoucherAdminTableDto>> getAllTransfers(VoucherFilterData filterData,
+                                                               @RequestParam Map<String, String> params,
+                                                               Principal principal,
+                                                               Locale locale) {
+    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+    filterData.initFilterItems();
+    return transferService.getAdminVouchersList(dataTableParams, filterData, principal.getName(), locale);
   }
 
   @RequestMapping(value = "/transfer/commission", method = GET)

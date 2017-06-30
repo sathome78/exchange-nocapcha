@@ -1,10 +1,17 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransferRequestDao;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.VoucherFilterData;
+import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +51,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     transferRequestFlatDto.setRecipientId(rs.getInt("recipient_user_id"));
     transferRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     transferRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
-    transferRequestFlatDto.setHash(rs.getString("hash"));
+    transferRequestFlatDto.setHash(/*rs.getString("hash")*/"");
     return transferRequestFlatDto;
   };
 
@@ -190,6 +197,65 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
             " WHERE TR.id = :id ";
     jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
     return null;
+  }
+
+  @Override
+  public PagingData<List<TransferRequestFlatDto>> getPermittedFlat(
+          Integer requesterUserId,
+          DataTableParams dataTableParams,
+          VoucherFilterData voucherFilterData) {
+    final String BASE_JOINS =
+                    " JOIN USER UC ON UC.id = TRANSFER_REQUEST.user_id " +
+                            " JOIN CURRENCY CU ON CU.id = TRANSFER_REQUEST.currency_id " +
+                            " JOIN MERCHANT M ON M.id = TRANSFER_REQUEST.merchant_id " +
+                    " LEFT JOIN USER UR ON UR.id <=> TRANSFER_REQUEST.recipient_user_id ";
+    String filter = voucherFilterData.getSQLFilterClause();
+    String searchClause = dataTableParams.getSearchByEmailAndNickClause();
+    String sqlBase =
+            " FROM TRANSFER_REQUEST " +
+                    getPermissionClause(requesterUserId) +
+                    BASE_JOINS;
+
+    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
+    String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
+            ? "" : " AND ".concat(searchClause);
+    String orderClause = dataTableParams.getOrderByClause();
+    String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
+    String sqlMain = String.join(" ", "SELECT TRANSFER_REQUEST.*, IOP.invoice_operation_permission_id, " +
+                    "UC.email AS email, UR.email AS recipient_email, CU.name AS currency, M.name AS merchant_name  ",
+            sqlBase, whereClauseFilter, whereClauseSearch, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter, whereClauseSearch);
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "TRANSFER_VOUCHER");
+      put("offset", dataTableParams.getStart());
+      put("limit", dataTableParams.getLength());
+    }};
+    params.putAll(voucherFilterData.getNamedParams());
+    params.putAll(dataTableParams.getSearchNamedParams());
+    log.debug("sql main {}", sqlMain);
+    List<TransferRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
+      TransferRequestFlatDto withdrawRequestFlatDto = extendedTransferRequestFlatDtoRowMapper.mapRow(rs, i);
+      withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+      withdrawRequestFlatDto.setHash(rs.getString("hash"));
+      return withdrawRequestFlatDto;
+    });
+    Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
+    PagingData<List<TransferRequestFlatDto>> result = new PagingData<>();
+    result.setData(requests);
+    result.setFiltered(totalQuantity);
+    result.setTotal(totalQuantity);
+    return result;
+  }
+
+  private String getPermissionClause(Integer requesterUserId) {
+    if (requesterUserId == null) {
+      return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";
+    }
+    return " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "	  			(IOP.currency_id=TRANSFER_REQUEST.currency_id) " +
+            "	  			AND (IOP.user_id=:requester_user_id) " +
+            "	  			AND (IOP.operation_direction=:operation_direction) ";
   }
 
 }
