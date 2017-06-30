@@ -73,8 +73,8 @@
     <br>
     <br>
     <div style="text-align: center; height: 1000px; vertical-align: top">
-            <a href="/client/img/cert.jpg">
-                <img src="/client/img/cert.gif" style="width: 185px; height: 185px; "/>
-            </a>
+        <a href="/client/img/atbcoin.jpg">
+            <img src="/client/img/atbcoin.gif" style="width: 185px; height: 600px; "/>
+        </a>
     </div>
 </div>
