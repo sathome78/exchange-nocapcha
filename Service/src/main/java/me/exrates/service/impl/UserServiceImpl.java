@@ -65,6 +65,8 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private ReferralService referralService;
 
+  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
   private final int USER_FILES_THRESHOLD = 3;
 
   private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
@@ -628,6 +630,36 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserRole getUserRoleFromDB(Integer userId) {
     return userDao.getUserRoleById(userId);
+  }
+
+  @Override
+  public String createSendAndSaveNewPinForUser(String userEmail) {
+    log.info("begining to send pin code");
+    String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
+    userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin));
+    Locale locale = Locale.forLanguageTag(getPreferedLangByEmail(userEmail));
+    String messageText = messageSource.getMessage("message.pincode.forlogin", new String[]{pin}, locale);
+    Email email = new Email();
+    email.setMessage(messageText);
+    email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
+    email.setTo(userEmail);
+    sendMailService.sendMail(email);
+    return "";
+  }
+
+  @Override
+  public String getUserPin(String email) {
+    return userDao.getPinByEmail(email);
+  }
+
+  @Override
+  public boolean getUse2Fa(String email) {
+    return userDao.getUse2FaByEmail(email);
+  }
+
+  @Override
+  public boolean checkPin(String email, String pin) {
+    return passwordEncoder.matches(pin, getUserPin(email));
   }
 
 }

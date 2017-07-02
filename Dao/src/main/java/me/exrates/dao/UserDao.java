@@ -152,4 +152,12 @@ public interface UserDao {
   void savePollAsDoneByUser(String email);
 
   boolean checkPollIsDoneByUser(String email);
+
+    String getPinByEmail(String email);
+
+  boolean getUse2FaByEmail(String email);
+
+    boolean setUse2FaByEmail(String email, boolean use2fa);
+
+    boolean updatePinByUserEmail(String email, String pin);
 }

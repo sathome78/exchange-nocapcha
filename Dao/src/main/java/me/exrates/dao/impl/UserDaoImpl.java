@@ -900,5 +900,39 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
   }
 
+  @Override
+  public String getPinByEmail(String email) {
+    String sql = "SELECT USER.pin FROM USER WHERE email = :email";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+  }
+
+  @Override
+  public boolean getUse2FaByEmail(String email) {
+    String sql = "SELECT USER.use2fa FROM USER WHERE email = :email";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), Boolean.class);
+  }
+
+  @Override
+  public boolean setUse2FaByEmail(String email, boolean use2fa) {
+    String sql = "UPDATE USER SET USER.use2fa =:use2fa " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("use2fa", use2fa);
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
+  @Override
+  public boolean updatePinByUserEmail(String email, String pin) {
+    String sql = "UPDATE USER SET USER.pin =:pin " +
+            "WHERE USER.email = :email";
+    Map<String, String> namedParameters = new HashMap<String, String>() {{
+      put("email", email);
+      put("pin", pin);
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
 
 }

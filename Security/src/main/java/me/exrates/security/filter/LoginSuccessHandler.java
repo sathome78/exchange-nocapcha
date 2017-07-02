@@ -37,6 +37,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private UserService userService;
 
+    private final String pinUrl = "/dashboard?pin=true";
+
 
     public LoginSuccessHandler(String successUrl) {
         this.successUrl = successUrl;
@@ -44,11 +46,18 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        sessionParamsService.setSessionLifeParams(request);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
-
+            sessionParamsService.setSessionLifeParams(request);
+            if (userService.getUse2Fa(principal.getUsername()) && request.getSession().getAttribute("pinOk") == null) {
+                userService.createSendAndSaveNewPinForUser(principal.getUsername());
+                request.getSession().setAttribute("pinCheck", "");
+                request.getSession().setAttribute("name", principal.getUsername());
+                request.getSession().setAttribute("password", principal.getPassword());
+                authentication.setAuthenticated(false);
+                response.sendRedirect("");
+            }
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
         /**/

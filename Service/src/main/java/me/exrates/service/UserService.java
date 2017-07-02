@@ -170,4 +170,12 @@ public interface UserService {
   UserRole getUserRoleFromDB(String email);
 
   UserRole getUserRoleFromDB(Integer userId);
+
+    String createSendAndSaveNewPinForUser(String email);
+
+    String getUserPin(String email);
+
+  boolean getUse2Fa(String email);
+
+  boolean checkPin(String email, String pin);
 }
