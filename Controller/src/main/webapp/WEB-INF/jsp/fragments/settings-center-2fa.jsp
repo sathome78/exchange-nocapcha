@@ -3,7 +3,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<section id="session-options">
+<section id="2fa-options">
     <h4 class="h4_green">
         <loc:message code="message.2fa.title"/>
     </h4>
@@ -16,7 +16,7 @@
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <table id="notification-options-table" class="table">
                             <tbody>
-                            <tr>
+                            <tr id="2fa_cell">
                                 <td><loc:message code="message.2fa.via_email"/></td>
                                 <td><input type="checkbox" id="enable_2fa"
                                                 name="enable_2fa"
@@ -25,7 +25,8 @@
                             </tr>
                             </tbody>
                         </table>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box"><loc:message code="button.update"/></button>
+                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                            <loc:message code="button.update"/></button>
                     </form>
                 </c:if>
 

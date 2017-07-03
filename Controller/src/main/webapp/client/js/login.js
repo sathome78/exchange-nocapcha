@@ -2,18 +2,17 @@
 
 
 $(function () {
-    var $loginForm = $('#login_form');
-    var $pinForm = $('#pin_code');
+    var $loginForm = $('#login_block');
+    var $pinForm = $('#pin_block');
     var $pinInput = $('#pin');
     var $pinSendButton = $('#send_pin');
 
-    console.log(window.location.href);
     if (window.location.href.indexOf('?pin') > 0) {
-        $loginForm.css("display", "none");
-        $pinForm.css("display", "block");
+        $pinForm.show();
+        $loginForm.hide();
     } else  {
-        $loginForm.css("display", "block");
-        $pinForm.css("display", "none");
+        $loginForm.show();
+        $pinForm.hide();
     }
 
     $pinInput.on('input', function () {
