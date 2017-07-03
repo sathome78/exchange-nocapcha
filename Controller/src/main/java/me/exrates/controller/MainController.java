@@ -248,6 +248,8 @@ public class MainController {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+                } else if (exceptionClass.equals("IncorrectPinException")) {
+                    model.addObject("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else {
                     model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }

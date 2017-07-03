@@ -633,8 +633,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public String createSendAndSaveNewPinForUser(String userEmail) {
-    log.info("begining to send pin code");
+  public void createSendAndSaveNewPinForUser(String userEmail) {
     String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
     userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin));
     Locale locale = Locale.forLanguageTag(getPreferedLangByEmail(userEmail));
@@ -644,7 +643,6 @@ public class UserServiceImpl implements UserService {
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
     sendMailService.sendMail(email);
-    return "";
   }
 
   @Override
@@ -655,6 +653,11 @@ public class UserServiceImpl implements UserService {
   @Override
   public boolean getUse2Fa(String email) {
     return userDao.getUse2FaByEmail(email);
+  }
+
+  @Override
+  public boolean setUse2Fa(String email, boolean newValue) {
+    return userDao.setUse2FaByEmail(email, newValue);
   }
 
   @Override

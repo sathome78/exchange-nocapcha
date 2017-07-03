@@ -33,6 +33,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
     <%----------%>
     <%--capcha--%>
     <c:if test="${captchaType==\"RECAPTCHA\"}">
@@ -70,7 +71,8 @@
                 </p>
 
 
-                <form action="${loginUrl}" method="post" class="clearfix">
+                <form action="${loginUrl}" method="post" id="login_form" class="clearfix">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <div class="input-block-wrapper clearfix">
                         <loc:message code="login.email" var="login"/>
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -104,7 +106,6 @@
                         <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
                                 code="dashboard.forgotPassword"/></a>
                     </div>
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <c:if test="${captchaType==\"RECAPTCHA\"}">
                         <%--CAPTCHA GOOGLE--%>
                         <div class="col-md-10 login__captcha-wrapper">
@@ -134,6 +135,33 @@
                         <button class="login__button" type="submit"><loc:message
                                 code="login.submit"/></button>
                     </div>
+                </form>
+
+                <%--PIN--%>
+                <form action="${loginUrl}" method="post" id="pin_code" >
+                    <div class="input-block-wrapper clearfix">
+
+                        <div class="input-block-wrapper clearfix" >
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                            <loc:message code="message.pin_code" var="pin"/>
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    ${pin}
+                                </label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <input id="pin" name="l_pin"
+                                       type="text"
+                                       placeholder="${pin}"
+                                       class="form-control input-block-wrapper__input"/>
+                            </div>
+                            <div class="col-md-10 input-block-wrapper__input-wrapper"><p><loc:message code="message.pin_code.sent.toyou"/></p>
+                                </div>
+                            <button class="login__button" id="send_pin" disabled><loc:message
+                                    code="login.submit"/></button>
+
+                            </div>
+                        </div>
                 </form>
             </div>
         </div>

@@ -134,6 +134,7 @@ public class EntryController {
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
+        mav.addObject("enable_2fa", userService.getUse2Fa(principal.getName()));
         return mav;
     }
 
@@ -175,6 +176,24 @@ public class EntryController {
             }
         } else {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+                    localeResolver.resolveLocale(request)));
+        }
+        return redirectView;
+    }
+
+    @RequestMapping("/settings/2FaOptions/submit")
+    public RedirectView submitNotificationOptions(RedirectAttributes redirectAttributes,
+                                                  HttpServletRequest request, Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+
+        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+        try {
+            userService.setUse2Fa(principal.getName(), use2fa);
+            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    localeResolver.resolveLocale(request)));
+        } catch (Exception e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
                     localeResolver.resolveLocale(request)));
         }
         return redirectView;

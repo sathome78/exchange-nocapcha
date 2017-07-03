@@ -1,5 +1,7 @@
 package me.exrates.security.filter;
 
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.AuthenticationException;
@@ -27,10 +29,16 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         //it's nessary to "save" exception that was thrown. This exception will be used in MaimController @RequestMapping(value = "/login", method = RequestMethod.GET)
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
-
         HttpSession session = request.getSession(false);
-        session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
-        //
-        response.sendRedirect("/login?error");
+        if (exception instanceof IncorrectPinException) {
+            response.sendRedirect("/login?pin&error");
+            session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+        } else if (exception instanceof PinCodeCheckNeedException) {
+            response.sendRedirect("/login?pin");
+        } else {
+            session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+            //
+            response.sendRedirect("/login?error");
+        }
     }
 }
