@@ -12,6 +12,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -160,4 +161,8 @@ public interface UserDao {
     boolean setUse2FaByEmail(String email, boolean use2fa);
 
     boolean updatePinByUserEmail(String email, String pin);
+
+    boolean updateLast2faNotifyDate(String email);
+
+  LocalDate getLast2faNotifyDate(String email);
 }

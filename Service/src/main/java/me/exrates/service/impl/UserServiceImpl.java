@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,6 +69,8 @@ public class UserServiceImpl implements UserService {
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   private final int USER_FILES_THRESHOLD = 3;
+
+  private final int USER_2FA_NOTIFY_DAYS = 1;
 
   private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
   private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
@@ -663,6 +666,17 @@ public class UserServiceImpl implements UserService {
   @Override
   public boolean checkPin(String email, String pin) {
     return passwordEncoder.matches(pin, getUserPin(email));
+  }
+
+  @Override
+  public boolean checkIsNotifyUserAbout2fa(String email) {
+    LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
+    boolean res = !getUse2Fa(email) &&
+            (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
+    if (res) {
+      userDao.updateLast2faNotifyDate(email);
+    }
+    return res;
   }
 
 }

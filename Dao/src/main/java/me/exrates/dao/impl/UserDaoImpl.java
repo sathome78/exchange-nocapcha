@@ -13,6 +13,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -33,6 +34,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -934,5 +936,26 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
 
+  @Override
+  public boolean updateLast2faNotifyDate(String email) {
+    String sql = "UPDATE USER SET USER.2fa_last_notify_date =:date " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("date", LocalDate.now());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
 
+  @Override
+  public LocalDate getLast2faNotifyDate(String email) {
+    String sql = "SELECT USER.2fa_last_notify_date FROM USER WHERE email = :email";
+    LocalDate date = null;
+    try {
+      date = namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), LocalDate.class);
+    } catch (Exception e) {
+      return null;
+    }
+    return date;
+  }
 }
