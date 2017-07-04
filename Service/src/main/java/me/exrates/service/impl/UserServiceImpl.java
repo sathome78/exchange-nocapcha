@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
   private final int USER_FILES_THRESHOLD = 3;
 
-  private final int USER_2FA_NOTIFY_DAYS = 1;
+  private final int USER_2FA_NOTIFY_DAYS = 6;
 
   private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
   private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
@@ -635,6 +635,7 @@ public class UserServiceImpl implements UserService {
     return userDao.getUserRoleById(userId);
   }
 
+  @Transactional
   @Override
   public void createSendAndSaveNewPinForUser(String userEmail) {
     String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
@@ -645,7 +646,7 @@ public class UserServiceImpl implements UserService {
     email.setMessage(messageText);
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
-    sendMailService.sendMail(email);
+    sendMailService.sendInfoMail(email);
   }
 
   @Override

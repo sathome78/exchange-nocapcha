@@ -183,7 +183,10 @@ $(function dashdoardInit() {
         var notify2fa = $("#noty2fa").val() == 'true';
         console.log('2fa here ' + notify2fa );
         if (notify2fa) {
-          $2faModal.modal();
+          $2faModal.modal({
+              backdrop: 'static',
+              keyboard: false
+          });
         }
         /*end 2fa notify*/
     } catch (e) {
@@ -192,7 +195,10 @@ $(function dashdoardInit() {
 
     $('#decline_2fa').on('click', function () {
         $2faModal.modal('hide');
-        $2faConfirmModal.modal();
+        $2faConfirmModal.modal({
+            backdrop: 'static',
+            keyboard: false
+        });
     });
 
     $('#decline_2fa_finally').on('click', function () {

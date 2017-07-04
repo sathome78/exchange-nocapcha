@@ -105,6 +105,7 @@ public class EntryController {
         model.addObject("sessionId", request.getSession().getId());
       /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
       */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.getUse2Fa(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
