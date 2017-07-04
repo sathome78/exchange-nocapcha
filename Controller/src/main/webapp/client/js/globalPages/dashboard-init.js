@@ -14,7 +14,10 @@ var $currentSubMenuItem;
 var notifications;
 
 $(function dashdoardInit() {
-    console.log('started');
+    var $2faModal = $('#noty2fa_modal');
+    var $2faConfirmModal = $('#noty2fa_confirm_modal');
+
+        console.log('started');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -168,17 +171,47 @@ $(function dashdoardInit() {
         /*...FOR RIGHT-SIDER*/
 
         /*FOR POLL ...*/
-        var startPoll = $("#start-poll").val() == 'true';
+       /*var startPoll = $("#start-poll").val() == 'true';
         if (startPoll) {
             var $pollDialog = $("#poll-modal");
             $pollDialog.modal();
             doPoll($pollDialog);
-        }
+        }*/
         /*...FOR POLL*/
+        /*2fa notify*/
+
+        var notify2fa = $("#noty2fa").val() == 'true';
+        console.log('2fa here ' + notify2fa );
+        if (notify2fa) {
+          $2faModal.modal({
+              backdrop: 'static',
+              keyboard: false
+          });
+        }
+        /*end 2fa notify*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
     }
+
+    $('#decline_2fa').on('click', function () {
+        $2faModal.modal('hide');
+        $2faConfirmModal.modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+    });
+
+    $('#decline_2fa_finally').on('click', function () {
+        $2faConfirmModal.modal('hide');
+    });
+
+    $('.accept_2fa').on('click', function () {
+        window.location.href = '/settings?2fa';
+    });
+
 });
+
+
 
 function showPage(pageId) {
     if (!pageId) {

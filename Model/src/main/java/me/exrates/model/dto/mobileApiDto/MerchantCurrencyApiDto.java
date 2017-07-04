@@ -31,8 +31,6 @@ public class MerchantCurrencyApiDto {
     @JsonProperty(value = "refillBlocked")
     private Boolean isRefillBlocked;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Boolean additionalTagForWithdrawAddressIsUsed;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String additionalFieldName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean generateAdditionalRefillAddressAvailable;

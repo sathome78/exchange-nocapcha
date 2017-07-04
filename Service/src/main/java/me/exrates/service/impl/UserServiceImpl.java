@@ -20,6 +20,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.token.TokenScheduler;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,7 +68,12 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private ReferralService referralService;
 
+
+  BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
   private final int USER_FILES_THRESHOLD = 3;
+
+  private final int USER_2FA_NOTIFY_DAYS = 6;
 
   private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
   private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
@@ -628,6 +636,52 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserRole getUserRoleFromDB(Integer userId) {
     return userDao.getUserRoleById(userId);
+  }
+
+  @Transactional
+  @Override
+  public void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request) {
+    String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
+    userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin));
+    Locale locale = Locale.forLanguageTag(getPreferedLangByEmail(userEmail));
+    String messageText = messageSource.getMessage("message.pincode.forlogin",
+            new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
+    Email email = new Email();
+    email.setMessage(messageText);
+    email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
+    email.setTo(userEmail);
+    sendMailService.sendMail(email);
+  }
+
+  @Override
+  public String getUserPin(String email) {
+    return userDao.getPinByEmail(email);
+  }
+
+  @Override
+  public boolean getUse2Fa(String email) {
+    return userDao.getUse2FaByEmail(email);
+  }
+
+  @Override
+  public boolean setUse2Fa(String email, boolean newValue) {
+    return userDao.setUse2FaByEmail(email, newValue);
+  }
+
+  @Override
+  public boolean checkPin(String email, String pin) {
+    return passwordEncoder.matches(pin, getUserPin(email));
+  }
+
+  @Override
+  public boolean checkIsNotifyUserAbout2fa(String email) {
+    LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
+    boolean res = !getUse2Fa(email) &&
+            (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
+    if (res) {
+      userDao.updateLast2faNotifyDate(email);
+    }
+    return res;
   }
 
 }
