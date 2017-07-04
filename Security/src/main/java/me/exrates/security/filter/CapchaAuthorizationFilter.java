@@ -56,7 +56,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam))) {
-                userService.createSendAndSaveNewPinForUser(principal.getUsername());
+                userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
                 throw new IncorrectPinException("");
             }
             return attemptAuthentication(principal.getUsername(),
@@ -92,7 +92,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*-------------------*/
         User principal = (User) authentication.getPrincipal();
         if (userService.getUse2Fa(principal.getUsername())) {
-            userService.createSendAndSaveNewPinForUser(principal.getUsername());
+            userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);
             request.getSession().setAttribute(passwordParam, request.getParameter(super.getPasswordParameter()));

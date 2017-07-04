@@ -13,6 +13,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -171,7 +172,8 @@ public interface UserService {
 
   UserRole getUserRoleFromDB(Integer userId);
 
-    void createSendAndSaveNewPinForUser(String email);
+    @Transactional
+    void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request);
 
     String getUserPin(String email);
 

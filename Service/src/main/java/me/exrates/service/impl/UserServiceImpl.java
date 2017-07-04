@@ -20,6 +20,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.token.TokenScheduler;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +67,7 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private ReferralService referralService;
+
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -637,16 +640,17 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public void createSendAndSaveNewPinForUser(String userEmail) {
+  public void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request) {
     String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
     userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin));
     Locale locale = Locale.forLanguageTag(getPreferedLangByEmail(userEmail));
-    String messageText = messageSource.getMessage("message.pincode.forlogin", new String[]{pin}, locale);
+    String messageText = messageSource.getMessage("message.pincode.forlogin",
+            new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
     Email email = new Email();
     email.setMessage(messageText);
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
-    sendMailService.sendInfoMail(email);
+    sendMailService.sendMail(email);
   }
 
   @Override
