@@ -97,7 +97,6 @@
 <%@include file="../fragments/header.jsp" %>
 
 <main class="container">
-    <input id="start-poll" hidden value='${startPoll}'/>
     <input id="noty2fa" hidden value='${notify2fa}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>

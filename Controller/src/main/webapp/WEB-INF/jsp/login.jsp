@@ -172,6 +172,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <a id="send_pin_again" style="cursor: pointer; margin-left: 14px;"><loc:message
+                                    code="login.pin.sendagain"/></a>
+                            <div id="send_pin_res" style="margin-left: 14px;"></div>
                             <br>
                             <div class="col-md-10 login__button-wrapper">
                                 <button class="login__button" id="send_pin" disabled><loc:message
