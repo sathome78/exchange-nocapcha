@@ -23,6 +23,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -267,16 +268,16 @@ public class MainController {
 
     @ResponseBody
     @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
-    public String sendPinAgain(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> sendPinAgain(HttpServletRequest request, HttpServletResponse response) {
+        response.setCharacterEncoding("UTF-8");
         Object auth = request.getSession().getAttribute("authentication");
-        if (auth == null) {
-            response.setStatus(404);
-            return "error";
+        if (auth == null) {;
+            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
         }
         Authentication authentication = (Authentication)auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
-        return messageSource.getMessage("message.2fa.pinsended", null, localeResolver.resolveLocale(request));
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(messageSource.getMessage("message.2fa.pinsended", null, localeResolver.resolveLocale(request)));
     }
 
 

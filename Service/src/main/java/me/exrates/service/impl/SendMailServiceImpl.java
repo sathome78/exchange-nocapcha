@@ -46,6 +46,7 @@ public class SendMailServiceImpl implements SendMailService{
 	private final String SUPPORT_EMAIL = "mail@exrates.top";
 	private final String INFO_EMAIL = "no-replay@exrates.top";
 
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void sendMail(Email email){
 		supportMailExecutors.execute(() -> {
 			sendMail(email, SUPPORT_EMAIL, supportMailSender);
