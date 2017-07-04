@@ -195,8 +195,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
             " FROM TRANSFER_REQUEST TR " +
             " JOIN USER U ON U.id = TR.user_id " +
             " WHERE TR.id = :id ";
-    jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
-    return null;
+    return jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
   }
 
   @Override

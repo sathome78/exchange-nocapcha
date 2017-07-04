@@ -28,6 +28,9 @@ public enum InvoiceActionTypeEnum {
   REVOKE {{
     getProperty().setActionTypeButton(REVOKE_BUTTON);
   }},
+  REVOKE_ADMIN {{
+    getProperty().setActionTypeButton(REVOKE_ADMIN_BUTTON);
+  }},
   EXPIRE,
   BCH_EXAMINE,
   ACCEPT_MANUAL {{

@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE_ADMIN;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -187,10 +188,11 @@ public class TransferServiceImpl implements TransferService {
   public void revokeByUser(int requestId, Principal principal) {
     TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
             .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    
     if (principal == null || !getUserEmailByTrnasferId(requestId).equals(principal.getName())) {
       throw new TransferRequestRevokeException();
     }
-    revokeTransferRequest(transferRequest);
+    revokeTransferRequest(transferRequest, REVOKE);
   }
 
   @Transactional
@@ -204,14 +206,14 @@ public class TransferServiceImpl implements TransferService {
             TRANSFER_VOUCHER
     );
     if (permission != null) {
-      revokeTransferRequest(transferRequest);
+
+      revokeTransferRequest(transferRequest, REVOKE_ADMIN);
     }
   }
 
   @Transactional
-  private void revokeTransferRequest(TransferRequestFlatDto transferRequest) {
+  private void revokeTransferRequest(TransferRequestFlatDto transferRequest, InvoiceActionTypeEnum action) {
     TransferStatusEnum currentStatus = transferRequest.getStatus();
-    InvoiceActionTypeEnum action = REVOKE;
     TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
     transferRequestDao.setStatusById(transferRequest.getId(), newStatus);
     /**/

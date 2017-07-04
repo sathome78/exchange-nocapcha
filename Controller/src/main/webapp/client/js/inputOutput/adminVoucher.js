@@ -1,8 +1,8 @@
 var currentEmail;
 var $withdrawalPage;
-var $withdrawalTable;
+var $voucherTable;
 var withdrawalDataTable;
-var withdrawRequestsBaseUrl;
+var transferRequestsBaseUrl;
 var filterParams;
 
 $(function () {
@@ -37,28 +37,28 @@ $(function () {
 
 
     $withdrawalPage = $('#withdraw-requests-admin');
-    $withdrawalTable = $('#voucherTable');
+    $voucherTable = $('#voucherTable');
     filterParams = '';
-    withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/transfer/requests?';
+    transferRequestsBaseUrl = '/2a8fy7b07dxe44/transfer/requests?';
     $('#withdraw-requests-manual').addClass('active');
 
 
-    updateWithdrawalTable();
+    updateVoucherTable();
 
     $('#filter-apply').on('click', function (e) {
         e.preventDefault();
         filterParams = $('#withdrawal-request-search-form').serialize();
-        updateWithdrawalTable();
+        updateVoucherTable();
     });
 
     $('#filter-reset').on('click', function (e) {
         e.preventDefault();
         $('#withdrawal-request-search-form')[0].reset();
         filterParams = '';
-        updateWithdrawalTable();
+        updateVoucherTable();
     });
 
-    $('#voucherTable').on('click', 'button[data-source=VOUCHER].revoke_holded_button', function (e) {
+    $('#voucherTable').on('click', 'button[data-source=USER_TRANSFER].revoke_admin_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -74,7 +74,7 @@ $(function () {
                 },
                 type: 'POST',
                 complete: function () {
-                    updateWithdrawalTable();
+                    updateVoucherTable();
                 }
             });
         });
@@ -119,15 +119,14 @@ function fillModal($modal, rowData) {
 
 
 
-function updateWithdrawalTable() {
-    console.log("get table");
+function updateVoucherTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
-    var url = withdrawRequestsBaseUrl + filter;
+    var url = transferRequestsBaseUrl + filter;
     if ($.fn.dataTable.isDataTable('#voucherTable')) {
-        withdrawalDataTable = $withdrawalTable.DataTable();
+        withdrawalDataTable = $voucherTable.DataTable();
         withdrawalDataTable.ajax.url(url).load();
     } else {
-        withdrawalDataTable = $withdrawalTable.DataTable({
+        withdrawalDataTable = $voucherTable.DataTable({
             "ajax": {
                 "url": url,
                 "dataSrc": "data"
@@ -185,10 +184,6 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
-                    "data": "commissionAmount",
-                    "name": "TRANSFER_REQUEST.commission"
-                },
-                {
                     "data": "status",
                     "name": "TRANSFER_REQUEST.status_id"
                 },
@@ -197,13 +192,12 @@ function updateWithdrawalTable() {
                     "name": "recipient_email"
                 },
                 {
-                    "data": "recipientEmail",
-                    "name": "recipient_email",
+                    "data": "",
+                    "name": "",
                     "render": function (data, type, row) {
                         if (data && row.isEndStatus) {
                             return '';
                         } else {
-                            console.log(row);
                             return getButtonsSet(row.id, row.sourceType, row.merchantName,
                                     row.buttons, "voucherTable");
                         }

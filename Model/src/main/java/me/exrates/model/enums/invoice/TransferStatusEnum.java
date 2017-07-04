@@ -31,10 +31,16 @@ public enum TransferStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
+  REVOKED_ADMIN(5) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+    }
+  },
   POSTPONED_AS_VOUCHER(4) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(REVOKE, REVOKED_USER);
+      schemaMap.put(REVOKE_ADMIN, REVOKED_ADMIN);
       schemaMap.put(PRESENT_VOUCHER, POSTED);
     }
   };

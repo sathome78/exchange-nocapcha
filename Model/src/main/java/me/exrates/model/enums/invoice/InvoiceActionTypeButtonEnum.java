@@ -16,6 +16,9 @@ public enum InvoiceActionTypeButtonEnum {
   REVOKE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table", "transfer-table"});
   }},
+  REVOKE_ADMIN_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"voucherTable"});
+  }},
   ACCEPT_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
