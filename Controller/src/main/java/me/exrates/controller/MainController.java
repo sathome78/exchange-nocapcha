@@ -275,7 +275,7 @@ public class MainController {
         }
         Authentication authentication = (Authentication)auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        userService.createSendAndSaveNewPinForUser(principal.getUsername());
+        userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
         return messageSource.getMessage("message.2fa.pinsended", null, localeResolver.resolveLocale(request));
     }
 

@@ -17,7 +17,7 @@
                 <h4 class="h4_green" style="color: red"><loc:message code="message.attention"/></h4>
                 <hr class="under_h4">
                 <p><loc:message code="message.2fa.text1"/></p>
-                <button class="send_button"><loc:message code="message.2fa.aggree.toSettings"/></button>
+                <button class="send_button accept_2fa"><loc:message code="message.2fa.aggree.toSettings"/></button>
 
             </c:if>
         </div>

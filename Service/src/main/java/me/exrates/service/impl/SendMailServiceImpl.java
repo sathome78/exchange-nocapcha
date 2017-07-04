@@ -39,6 +39,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 	private final static int THREADS_NUMBER = 3;
 	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
+	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
 
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
@@ -46,7 +47,9 @@ public class SendMailServiceImpl implements SendMailService{
 	private final String INFO_EMAIL = "no-replay@exrates.top";
 
 	public void sendMail(Email email){
-		sendMail(email, SUPPORT_EMAIL, supportMailSender);
+		supportMailExecutors.execute(() -> {
+			sendMail(email, SUPPORT_EMAIL, supportMailSender);
+		});
 	}
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
