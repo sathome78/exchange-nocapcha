@@ -214,10 +214,12 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
             " FROM TRANSFER_REQUEST " +
                     getPermissionClause(requesterUserId) +
                     BASE_JOINS;
-
-    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
-    String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
-            ? "" : " AND ".concat(searchClause);
+    if (!(StringUtils.isEmpty(filter) && StringUtils.isEmpty(searchClause))) {
+      sqlBase = sqlBase.concat(" WHERE ");
+    }
+    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :
+            StringUtils.isEmpty(searchClause) ? filter : filter.concat(" AND ");
+    String whereClauseSearch = StringUtils.isEmpty(searchClause) ? "" : searchClause;
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
     String sqlMain = String.join(" ", "SELECT TRANSFER_REQUEST.*, IOP.invoice_operation_permission_id, " +
@@ -236,11 +238,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     List<TransferRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
       TransferRequestFlatDto withdrawRequestFlatDto = extendedTransferRequestFlatDtoRowMapper.mapRow(rs, i);
       withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
-
-      log.debug("hash up {}", withdrawRequestFlatDto.getHash());
       withdrawRequestFlatDto.setHash(rs.getString("hash"));
-      log.debug("hash1 {}", rs.getString("hash"));
-
       return withdrawRequestFlatDto;
     });
     Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);

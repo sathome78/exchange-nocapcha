@@ -216,7 +216,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             getPermissionClause(requesterUserId) +
             JOINS_FOR_USER +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
-
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String whereClauseSearch = StringUtils.isEmpty(searchClause) || !StringUtils.isEmpty(whereClauseFilter)
             ? "" : " AND ".concat(searchClause);

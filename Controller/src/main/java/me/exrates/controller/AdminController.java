@@ -178,11 +178,6 @@ public class AdminController {
     return "admin/administrators";
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal/vouchers", method = GET)
-  public String vouchers() {
-    return "admin/vouchers";
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
   public ModelAndView referral() {
     ModelAndView model = new ModelAndView();

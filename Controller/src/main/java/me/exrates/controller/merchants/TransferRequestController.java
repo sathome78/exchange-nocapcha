@@ -4,12 +4,15 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Merchant;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
@@ -28,15 +31,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
@@ -142,6 +144,27 @@ public class TransferRequestController {
   public TransferRequestFlatDto getInfoTransfer(
       @RequestParam Integer id) {
     return transferService.getFlatById(id);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal/vouchers", method = GET)
+  public ModelAndView vouchers(Principal principal) {
+    final Map<String, Object> params = new HashMap<>();
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
+            .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+    params.put("currencies", permittedCurrencies);
+    if (!permittedCurrencies.isEmpty()) {
+      List<Integer> currencyList = permittedCurrencies.stream()
+              .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+              .collect(Collectors.toList());
+      List<Merchant> merchants = merchantService.getAllUnblockedForOperationTypeByCurrencies(currencyList, OperationType.USER_TRANSFER)
+              .stream()
+              .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
+              .distinct().collect(Collectors.toList());
+      params.put("merchants", merchants);
+    }
+    List<TransferStatusEnum> statuses = new ArrayList<>(Arrays.asList(TransferStatusEnum.values()));
+    params.put("statuses", statuses);
+    return new ModelAndView("admin/vouchers", params);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/transfer/requests", method = GET)

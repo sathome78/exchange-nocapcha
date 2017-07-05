@@ -32,7 +32,7 @@
 
 
       <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>
-      <div class="col-md-8">
+      <div class="col-md-11">
         <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;"
                 data-target="#withdrawal-request-filter">
           <loc:message code="admin.user.transactions.extendedFilter"/></button>
@@ -46,7 +46,7 @@
                 </label>
               </div>
               <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input type="number" id="filter-id" name="requestId">
+                <input type="number" id="filter-id" name="voucherId">
               </div>
             </div>
             <%--CURRENCY--%>
@@ -75,7 +75,8 @@
               <div class="col-md-9 ">
                 <ul class="checkbox-grid">
                   <c:forEach items="${merchants}" var="merchant">
-                    <li><input type="checkbox" name="merchantIds" value="${merchant.id}"><span>${merchant.name}</span>
+                    <li><input type="checkbox" name="merchantIds" value="${merchant.id}">
+                      <span style="font-size: 10px">${merchant.name}</span>
                     </li>
                   </c:forEach>
                 </ul>
@@ -83,6 +84,25 @@
               </div>
 
             </div>
+              <%--STATUS--%>
+              <div class="input-block-wrapper">
+                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="admin.status"/>
+                  </label>
+                </div>
+                <div class="col-md-9 ">
+                  <ul class="checkbox-grid">
+                    <c:forEach items="${statuses}" var="status">
+                      <li><input type="checkbox" name="statuses" value="${status.code}">
+                        <span  style="font-size: 8px">${status}</span>
+                      </li>
+                    </c:forEach>
+                  </ul>
+
+                </div>
+
+              </div>
             <%--TIME--%>
             <div class="input-block-wrapper">
               <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -124,45 +144,34 @@
             <div class="input-block-wrapper">
               <div class="col-md-3 input-block-wrapper__label-wrapper">
                 <label class="input-block-wrapper__label">
-                  <loc:message code="transaction.initiatorEmail"/>
+                  <loc:message code="message.sender"/>
                 </label>
               </div>
               <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input id="filter-email" class="input-block-wrapper__input admin-form-input" name="email">
+                <input id="filter-email" class="input-block-wrapper__input admin-form-input" name="creatorEmail">
               </div>
             </div>
-            <%--WALLET--%>
+              <%--Recipient EMAIL--%>
+              <div class="input-block-wrapper">
+                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="message.recipient"/>
+                  </label>
+                </div>
+                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                  <input id="filter-recipient-email" class="input-block-wrapper__input admin-form-input" name="recipientEmail">
+                </div>
+              </div>
+            <%--HASH--%>
             <div class="input-block-wrapper">
               <div class="col-md-3 input-block-wrapper__label-wrapper">
                 <label class="input-block-wrapper__label">
-                  <loc:message code="merchants.withdrawDetails.recipientAccount"/>
-                </label>
-              </div>
-              <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input id="filter-wallet" class="input-block-wrapper__input admin-form-input" name="wallet">
-              </div>
-            </div>
-            <%--RECIPIENT_BANK--%>
-            <div class="input-block-wrapper">
-              <div class="col-md-3 input-block-wrapper__label-wrapper">
-                <label class="input-block-wrapper__label">
-                  <loc:message code="merchants.withdrawDetails.recipientBank"/>
+                  <loc:message code="transaction.hash"/>
                 </label>
               </div>
               <div class="col-md-9 input-block-wrapper__input-wrapper">
                 <input id="filter-bank-recipient" class="input-block-wrapper__input admin-form-input"
-                       name="recipientBank">
-              </div>
-            </div>
-            <%--full name--%>
-            <div class="input-block-wrapper">
-              <div class="col-md-3 input-block-wrapper__label-wrapper">
-                <label class="input-block-wrapper__label">
-                  <loc:message code="merchants.withdrawDetails.recipientFullName"/>
-                </label>
-              </div>
-              <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input id="filter-full-name" class="input-block-wrapper__input admin-form-input" name="fullName">
+                       name="hash">
               </div>
             </div>
 

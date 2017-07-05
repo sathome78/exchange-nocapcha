@@ -42,7 +42,7 @@ public class VoucherFilterData extends TableFilterData {
                 new FilterDataItem("commission_amount_from", "TRANSFER_REQUEST.commission >=", commissionAmountFrom),
                 new FilterDataItem("commission_amount_to", "TRANSFER_REQUEST.commission <=", commissionAmountTo),
                 new FilterDataItem("hash", "TRANSFER_REQUEST.hash LIKE", hash, LIKE_FORMAT_MIDDLE),
-                new FilterDataItem("statuses", "TRANSFER_REQUEST.status LIKE", statuses, IN_FORMAT),
+                new FilterDataItem("statuses", "TRANSFER_REQUEST.status_id LIKE", statuses, IN_FORMAT),
                 new FilterDataItem("recipientEmail", "UR.email LIKE", recipientEmail, LIKE_FORMAT_MIDDLE),
                 new FilterDataItem("creatorEmail", "UC.email LIKE", creatorEmail, LIKE_FORMAT_MIDDLE)
         };

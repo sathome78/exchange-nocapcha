@@ -65,7 +65,7 @@ public class VoucherAdminTableDto extends OnlineTableDto {
         this.merchantId = requestFlatDto.getMerchantId();
         this.currencyId = requestFlatDto.getCurrencyId();
         this.status = requestFlatDto.getStatus();
-        this.hash = hash;
+        this.hash = requestFlatDto.getHash();
         this.statusModificationDate = requestFlatDto.getStatusModificationDate();
         this.invoiceOperationPermission = requestFlatDto.getInvoiceOperationPermission();
         this.isEndStatus = this.status.isEndStatus();
