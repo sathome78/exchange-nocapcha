@@ -136,6 +136,7 @@ public class EntryController {
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("enable_2fa", userService.getUse2Fa(principal.getName()));
+        mav.addObject("global_use_2fa", userService.isGlobal2FaActive());
         return mav;
     }
 
@@ -188,6 +189,10 @@ public class EntryController {
         RedirectView redirectView = new RedirectView("/settings");
 
         boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+        if (!userService.isGlobal2FaActive()) {
+            redirectAttributes.addFlashAttribute("msg", "Not available now");
+            return redirectView;
+        }
         try {
             userService.setUse2Fa(principal.getName(), use2fa);
             redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,

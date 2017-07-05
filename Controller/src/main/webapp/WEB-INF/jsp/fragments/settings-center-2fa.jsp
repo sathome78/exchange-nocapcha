@@ -17,16 +17,18 @@
                         <table id="notification-options-table" class="table">
                             <tbody>
                             <tr id="2fa_cell">
-                                <td><loc:message code="message.2fa.via_email"/></td>
+                                <td><loc:message code="message.2fa.via_email"/>:<c:if test="${global_use_2fa == false}">  \disabled!\</disabled></c:if></td>
                                 <td><input type="checkbox" id="enable_2fa"
                                                 name="enable_2fa"
+                                        <c:if test="${global_use_2fa == false}">disabled</c:if>
                                         <c:if test="${enable_2fa}">checked</c:if> /><br>
                                 </td>
                             </tr>
                             </tbody>
                         </table>
                         <div id="result" hidden></div>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                        <button id="submitSessionOptionsButton" type="submit"
+                                <c:if test="${global_use_2fa == false}">disabled</c:if> class="blue-box">
                             <loc:message code="button.update"/></button>
                     </form>
                 </c:if>
