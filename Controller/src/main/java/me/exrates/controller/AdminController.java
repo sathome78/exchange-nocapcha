@@ -169,6 +169,8 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
     model.addObject("currencyPairList", currencyPairList);
+    model.addObject("enable_2fa", userService.isGlobal2FaActive());
+    model.addObject("post_url", "/2a8fy7b07dxe44/set2fa");
     model.setViewName("admin/admin");
     return model;
   }
@@ -495,6 +497,20 @@ public class AdminController {
     }
     return "ok";
   }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
+    public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
+        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+        try {
+            userService.setGlobal2FaActive(use2fa);
+        } catch (Exception e) {
+            log.error(e);
+            response.setStatus(400);
+            return "error";
+        }
+        return "ok";
+    }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
   public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,

@@ -36,6 +36,10 @@ public interface UserService {
 
   List<UserFile> findUserDoc(int userId);
 
+  boolean isGlobal2FaActive();
+
+  void setGlobal2FaActive(boolean global2FaActive);
+
   boolean create(User user, Locale locale);
 
   boolean ifNicknameIsUnique(String nickname);

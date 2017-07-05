@@ -12,9 +12,8 @@
     <title><loc:message code="admin.users"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
-
     <%@include file='links_scripts.jsp' %>
-
+    <script type="text/javascript" src="<c:url value='/client/js/userSettings.js'/>"></script>
 </head>
 
 <body id="main-admin">
@@ -50,12 +49,16 @@
                             </thead>
                         </table>
                     </div>
+                    <br>
+                    <div id="post_url" hidden>${post_url}</div>
+                    <%@include file="../fragments/settings-center-2fa.jsp" %>
                 </sec:authorize>
 
             </div>
         </div>
     </div>
     <hr>
+
 </main>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>

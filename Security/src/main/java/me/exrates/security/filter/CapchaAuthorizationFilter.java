@@ -91,7 +91,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         Authentication authentication = super.attemptAuthentication(request, response);
         /*-------------------*/
         User principal = (User) authentication.getPrincipal();
-        if (userService.getUse2Fa(principal.getUsername())) {
+        if (userService.isGlobal2FaActive() && userService.getUse2Fa(principal.getUsername())) {
             userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);

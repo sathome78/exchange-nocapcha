@@ -68,6 +68,18 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private ReferralService referralService;
 
+  /*this variable is set to use or not 2 factor authorization for all users*/
+  private boolean global2FaActive = true;
+
+  @Override
+  public boolean isGlobal2FaActive() {
+    return global2FaActive;
+  }
+
+  @Override
+  public void setGlobal2FaActive(boolean global2FaActive) {
+    this.global2FaActive = global2FaActive;
+  }
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
