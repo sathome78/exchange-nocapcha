@@ -209,7 +209,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
                             " JOIN MERCHANT M ON M.id = TRANSFER_REQUEST.merchant_id " +
                     " LEFT JOIN USER UR ON UR.id <=> TRANSFER_REQUEST.recipient_user_id ";
     String filter = voucherFilterData.getSQLFilterClause();
-    String searchClause = dataTableParams.getSearchByEmailAndNickClause();
+    String searchClause = dataTableParams.getSearchByEmailAndNickClauseForVouchers();
     String sqlBase =
             " FROM TRANSFER_REQUEST " +
                     getPermissionClause(requesterUserId) +
@@ -236,7 +236,11 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     List<TransferRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
       TransferRequestFlatDto withdrawRequestFlatDto = extendedTransferRequestFlatDtoRowMapper.mapRow(rs, i);
       withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+
+      log.debug("hash up {}", withdrawRequestFlatDto.getHash());
       withdrawRequestFlatDto.setHash(rs.getString("hash"));
+      log.debug("hash1 {}", rs.getString("hash"));
+
       return withdrawRequestFlatDto;
     });
     Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);

@@ -90,7 +90,7 @@ function getRowId($elem) {
 
 function viewRequestInfo($elem) {
     var rowData = retrieveRowDataForElement($elem);
-    var $modal = $withdrawalPage.find('#withdraw-info-modal');
+    var $modal = $withdrawalPage.find('#user_transfer_info_modal');
     fillModal($modal, rowData);
     $modal.modal();
 }
@@ -100,22 +100,18 @@ function retrieveRowDataForElement($elem) {
     return withdrawalDataTable.row($row).data();
 }
 
-function fillModal($modal, rowData) {
-    $modal.find('#info-currency').text(rowData.currencyName);
-    $modal.find('#info-amount').text(rowData.amount);
-    $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
-    $modal.find('#info-status').text(rowData.status);
-    $modal.find('#info-status-date').text(rowData.statusModificationDate);
-    var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
-    var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
-    $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
-    $modal.find('#info-wallet').text(rowData.wallet);
-    $modal.find('#info-destination-tag').text(rowData.destinationTag);
-    var userFullName = rowData.userFullName ? rowData.userFullName : '';
-    $modal.find('#info-userFullName').text(rowData.userFullName);
-    $modal.find('#info-remark').find('textarea').html(rowData.remark);
+function fillModal($modal, data) {
+    $("#info-merchantType").html(data.merchantName);
+    $("#info-status").html(data.status);
+    $("#info-date").html(data.dateCreation);
+    $("#info-date-modif").html(data.statusModificationDate);
+    $("#info-currency").html(data.currencyName);
+    $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
+    $("#info-userFrom").html("<a href='mailto:" + data.creatorEmail + "'>" + data.creatorEmail + "</a>");
+    $("#info-userTo").html("<a href='mailto:" + data.recipientEmail + "'>" + data.recipientEmail + "</a>");
+    $("#info-commissionAmount").html(numeral(data.commissionAmount).format('0.00[000000]'));
+    $("#info-hash").html(data.hash);
 }
-
 
 
 
