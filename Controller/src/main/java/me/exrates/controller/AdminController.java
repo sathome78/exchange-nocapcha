@@ -477,7 +477,23 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
+    model.addObject("enable_2fa", userService.getUse2Fa(user.getEmail()));
     return model;
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/editUser/submit2faOptions", method = POST)
+  public String submitNotificationOptions(@RequestParam String email,
+                                          HttpServletRequest request, HttpServletResponse response) {
+    boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+    try {
+      userService.setUse2Fa(email, use2fa);
+    } catch (Exception e) {
+      log.error(e);
+      response.setStatus(400);
+      return "error";
+    }
+    return "ok";
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)

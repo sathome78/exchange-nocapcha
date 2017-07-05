@@ -12,7 +12,7 @@
         <div class="row">
             <div class="col-sm-6 content">
                 <c:if test="${enable_2fa != null}">
-                    <form method="post" action="/settings/2FaOptions/submit">
+                    <form method="post" action="/settings/2FaOptions/submit" id="2faSettings_form">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <table id="notification-options-table" class="table">
                             <tbody>
@@ -25,6 +25,7 @@
                             </tr>
                             </tbody>
                         </table>
+                        <div id="result" hidden></div>
                         <button id="submitSessionOptionsButton" type="submit" class="blue-box">
                             <loc:message code="button.update"/></button>
                     </form>
@@ -32,6 +33,5 @@
 
             </div>
         </div>
-
     </div>
 </section>
