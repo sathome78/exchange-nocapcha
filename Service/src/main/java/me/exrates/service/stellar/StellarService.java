@@ -45,6 +45,11 @@ public interface StellarService extends IRefillable, IWithdrawable {
     }
 
     @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return true;
+    };
+
+    @Override
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }

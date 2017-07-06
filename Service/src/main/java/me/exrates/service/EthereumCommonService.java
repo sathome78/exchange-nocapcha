@@ -39,4 +39,9 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
         return false;
     }
 
+    @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return false;
+    }
+
 }

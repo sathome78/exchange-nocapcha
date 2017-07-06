@@ -46,6 +46,11 @@ public interface RippleService extends IRefillable, IWithdrawable {
   }
 
   @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return true;
+  };
+
+  @Override
   default Boolean withdrawTransferringConfirmNeeded() {
     return true;
   }

@@ -1,7 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.InvalidNicknameException;
+import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;

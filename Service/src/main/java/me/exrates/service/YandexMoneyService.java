@@ -66,6 +66,11 @@ public interface YandexMoneyService extends IRefillable, IWithdrawable {
     return false;
   }
 
+    @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return false;
+    }
+
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
     return null;

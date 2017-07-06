@@ -34,4 +34,9 @@ public interface InterkassaService extends IRefillable, IWithdrawable {
   default Boolean withdrawTransferringConfirmNeeded() {
     return false;
   }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return false;
+  }
 }

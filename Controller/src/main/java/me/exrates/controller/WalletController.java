@@ -1,18 +1,10 @@
 package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.CompanyWallet;
-import me.exrates.model.Currency;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
@@ -21,19 +13,14 @@ import me.exrates.service.exception.invoice.MerchantException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Controller

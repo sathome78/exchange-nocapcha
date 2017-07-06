@@ -102,6 +102,9 @@ public class TransferServiceImpl implements TransferService {
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setIsVoucher(((ITransferable) merchantService).isVoucher());
+      if (((ITransferable) merchantService).recipientUserIsNeeded()) {
+        checkTransferToSelf(request.getUserId(), request.getRecipientId(), request.getLocale());
+      }
       Integer requestId = createTransfer(request);
       request.setId(requestId);
       Map<String, String> data = ((ITransferable) merchantService).transfer(request);
@@ -129,6 +132,13 @@ public class TransferServiceImpl implements TransferService {
       return result;
     } finally {
       profileData.checkAndLog("slow create TransferRequest: " + request + " profile: " + profileData);
+    }
+  }
+
+  private void checkTransferToSelf(Integer userId, Integer recipientId, Locale locale) {
+    if (userId.equals(recipientId)) {
+      throw new InvalidNicknameException(messageSource
+              .getMessage("transfer.selfNickname", null, locale));
     }
   }
 

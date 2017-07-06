@@ -35,4 +35,9 @@ public interface PayeerService extends IRefillable, IWithdrawable {
   default Boolean withdrawTransferringConfirmNeeded() {
     return false;
   }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return false;
+  }
 }

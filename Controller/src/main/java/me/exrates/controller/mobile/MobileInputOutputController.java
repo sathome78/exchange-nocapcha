@@ -16,7 +16,6 @@ import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.util.RestApiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -736,8 +735,8 @@ public class MobileInputOutputController {
         if (userTransferDto.getNickname().equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
         }
-        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale, false);
+       /* walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
+                userTransferDto.getAmount(), userLocale, false);todo repair this*/
         return new ResponseEntity<>(OK);
 
     }

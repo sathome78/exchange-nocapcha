@@ -40,7 +40,7 @@ $(function transferCreation() {
         currencyName = $(button).data("currency-name");
         merchant = $(button).data("merchant-id");
         merchantName = $(button).data("merchant-name");
-        merchantMinSum = $(button).data("merchant-min-sum");
+        merchantMinSum = $(button).data("min-sum");
         merchantImageId = $(button).data("merchant-image-id");
         isVoucher = $(button).data("process_type").startsWith("VOUCHER");
         recipientUserIsNeeded = $(button).data("recipient-user-needed");

@@ -34,6 +34,11 @@ public interface AdvcashService extends IRefillable, IWithdrawable {
   }
 
   @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return false;
+  }
+
+  @Override
   default Boolean withdrawTransferringConfirmNeeded() {
     return false;
   }

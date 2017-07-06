@@ -42,4 +42,9 @@ public interface Privat24Service extends IRefillable, IWithdrawable {
   default Boolean withdrawTransferringConfirmNeeded() {
     return null;
   }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return false;
+  }
 }

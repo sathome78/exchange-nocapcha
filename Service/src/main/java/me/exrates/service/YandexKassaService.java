@@ -53,4 +53,9 @@ public interface YandexKassaService  extends IRefillable, IWithdrawable {
   default Boolean withdrawTransferringConfirmNeeded() {
     return null;
   }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
+    return false;
+  }
 }
