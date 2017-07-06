@@ -6,6 +6,7 @@ import me.exrates.model.enums.UserIpState;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
@@ -33,10 +34,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     MessageSource messageSource;
     @Autowired
     LocaleResolver localeResolver;
-    private String successUrl;
     @Autowired
     private UserService userService;
 
+    private String successUrl;
 
     public LoginSuccessHandler(String successUrl) {
         this.successUrl = successUrl;
@@ -44,11 +45,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        sessionParamsService.setSessionLifeParams(request);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
-
+            sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
         /**/

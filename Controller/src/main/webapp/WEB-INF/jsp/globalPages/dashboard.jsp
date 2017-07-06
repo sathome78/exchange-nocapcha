@@ -97,7 +97,7 @@
 <%@include file="../fragments/header.jsp" %>
 
 <main class="container">
-    <input id="start-poll" hidden value='${startPoll}'/>
+    <input id="noty2fa" hidden value='${notify2fa}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
@@ -122,7 +122,7 @@
 </main>
 <%@include file='../fragments/footer.jsp' %>
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<span hidden id="errorNoty">${errorNoty}</span>
+<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 
 </body>

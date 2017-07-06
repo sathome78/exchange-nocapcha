@@ -380,6 +380,8 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String selectLimitedAllSql = String.join(" ", SELECT_ALL, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
     final String selectAllCountSql = String.join(" ", SELECT_COUNT, permissionClause, whereClauseBasic, filterClause);
     final PagingData<List<Transaction>> result = new PagingData<>();
+    log.debug("count sql {}", selectAllCountSql);
+    log.debug("data sql {}", selectLimitedAllSql);
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
     result.setFiltered(total);

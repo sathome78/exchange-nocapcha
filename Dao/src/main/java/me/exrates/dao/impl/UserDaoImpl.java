@@ -14,6 +14,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -34,6 +35,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -920,5 +922,60 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Boolean.class);
   }
 
+  @Override
+  public String getPinByEmail(String email) {
+    String sql = "SELECT USER.pin FROM USER WHERE email = :email";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+  }
 
+  @Override
+  public boolean getUse2FaByEmail(String email) {
+    String sql = "SELECT USER.use2fa FROM USER WHERE email = :email";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), Boolean.class);
+  }
+
+  @Override
+  public boolean setUse2FaByEmail(String email, boolean use2fa) {
+    String sql = "UPDATE USER SET USER.use2fa =:use2fa " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("use2fa", use2fa);
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
+  @Override
+  public boolean updatePinByUserEmail(String email, String pin) {
+    String sql = "UPDATE USER SET USER.pin =:pin " +
+            "WHERE USER.email = :email";
+    Map<String, String> namedParameters = new HashMap<String, String>() {{
+      put("email", email);
+      put("pin", pin);
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
+  @Override
+  public boolean updateLast2faNotifyDate(String email) {
+    String sql = "UPDATE USER SET USER.2fa_last_notify_date =:date " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("date", LocalDate.now());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
+  @Override
+  public LocalDate getLast2faNotifyDate(String email) {
+    String sql = "SELECT USER.2fa_last_notify_date FROM USER WHERE email = :email";
+    LocalDate date = null;
+    try {
+      date = namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), LocalDate.class);
+    } catch (Exception e) {
+      return null;
+    }
+    return date;
+  }
 }

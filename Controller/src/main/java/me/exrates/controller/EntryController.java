@@ -103,8 +103,9 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-
+      /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+      */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.getUse2Fa(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -134,6 +135,8 @@ public class EntryController {
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
+        mav.addObject("enable_2fa", userService.getUse2Fa(principal.getName()));
+        mav.addObject("global_use_2fa", userService.isGlobal2FaActive());
         return mav;
     }
 
@@ -175,6 +178,28 @@ public class EntryController {
             }
         } else {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+                    localeResolver.resolveLocale(request)));
+        }
+        return redirectView;
+    }
+
+    @RequestMapping("/settings/2FaOptions/submit")
+    public RedirectView submitNotificationOptions(RedirectAttributes redirectAttributes,
+                                                  HttpServletRequest request, Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+
+        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+        if (!userService.isGlobal2FaActive()) {
+            redirectAttributes.addFlashAttribute("msg", "Not available now");
+            return redirectView;
+        }
+        try {
+            userService.setUse2Fa(principal.getName(), use2fa);
+            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    localeResolver.resolveLocale(request)));
+        } catch (Exception e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
                     localeResolver.resolveLocale(request)));
         }
         return redirectView;
