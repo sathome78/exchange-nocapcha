@@ -7,3 +7,6 @@ date_creation, status_id, status_modification_date, currency_id, commission_id)
  FROM USER_TRANSFER;
 
 COMMIT;
+
+
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, max_scale_for_refill, max_scale_for_withdraw)
