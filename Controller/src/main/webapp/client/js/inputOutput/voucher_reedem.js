@@ -9,6 +9,7 @@ $(function() {
 
 
     $('#voucher_reedem_dialog_button').on('click', function () {
+        clearForm();
         $modal.modal();
     });
 
@@ -31,6 +32,12 @@ $(function() {
             console.log(jqXHR);
         });
     });
+
+    function clearForm() {
+        $result.text('').hide();
+        $form.show();
+        $('#code').val('');
+    }
 
 
 });

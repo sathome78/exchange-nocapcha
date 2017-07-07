@@ -667,7 +667,7 @@ public class UserServiceImpl implements UserService {
     email.setMessage(messageText);
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
-    sendMailService.sendMail(email);
+    sendMailService.sendInfoMail(email);
   }
 
   @Override
