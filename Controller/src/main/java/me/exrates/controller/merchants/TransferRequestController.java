@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import com.google.gson.JsonObject;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
@@ -21,6 +22,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -78,11 +80,15 @@ public class TransferRequestController {
   public Map<String, Object> createTransferRequest(
       @RequestBody TransferRequestParamsDto requestParamsDto,
       Principal principal,
-      Locale locale) throws UnsupportedEncodingException {
+      HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+    Locale locale = localeResolver.resolveLocale(servletRequest);
     if (requestParamsDto.getOperationType() != USER_TRANSFER) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
-
+    if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
+      throw new IllegalArgumentException(messageSource.getMessage(
+              "message.only.latin.symblos", null, locale));
+    }
     TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
     Payment payment = new Payment(requestParamsDto.getOperationType());
     payment.setCurrency(requestParamsDto.getCurrency());
@@ -96,8 +102,8 @@ public class TransferRequestController {
   }
 
   @ResponseBody
-  @RequestMapping(value = "/transfer/accept", method = POST)
-  public ResponseEntity<String> acceptTransfer(String code, Principal principal, HttpServletRequest request) {
+  @RequestMapping(value = "/transfer/accept", method = POST, produces = "application/json; charset=utf-8")
+  public String acceptTransfer(String code, Principal principal, HttpServletRequest request) {
     log.debug("code {}", code);
     if (!rateLimitService.checkLimitsExceed(principal.getName())) {
         throw new RequestsLimitExceedException();
@@ -118,9 +124,11 @@ public class TransferRequestController {
     TransferRequestFlatDto flatDto = dto.get();
     flatDto.setInitiatorEmail(principal.getName());
     transferService.performTransfer(flatDto, locale, action);
-    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(messageSource.getMessage("message.receive.voucher" ,
+    JsonObject result =  new JsonObject();
+    result.addProperty("result", messageSource.getMessage("message.receive.voucher" ,
             new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
                     currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request)));
+    return result.toString();
   }
 
   @RequestMapping(value = "/transfer/request/hash", method = POST)

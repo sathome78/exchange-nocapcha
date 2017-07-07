@@ -14,7 +14,6 @@ $(function() {
     });
 
     $('#submit_code').on('click', function () {
-        console.log('click');
         var url = '/transfer/accept';
         var data = $form.serialize();
         $.ajax({
@@ -26,15 +25,15 @@ $(function() {
             data: data
         }).success(function (result) {
             console.log(result);
-            $result.show().text(result);
+            $result.show().text(result.result);
             $form.hide();
         }).error(function (event, jqXHR, options, jsExc) {
-            console.log(jqXHR);
+            console.log('res' + event);
         });
     });
 
     function clearForm() {
-        $result.text('').hide();
+        $result.text('');
         $form.show();
         $('#code').val('');
     }
