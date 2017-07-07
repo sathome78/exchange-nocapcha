@@ -67,6 +67,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "  WHERE " +
         "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
         "    USER.email=:email " +
+        "    AND TRANSACTION.source_type <>  'USER_TRANSFER'  " +
 
         "  UNION " +
         "  (SELECT " +
@@ -140,8 +141,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     JOIN USER USER ON USER.id=TR.user_id " +
             "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
             "   WHERE USER.email=:email /*AND*/ " +
-           /* "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=TR.id AND TX.operation_type_id=2) " +
-           */ "  )  " +
+            "  )  " +
             "  UNION ALL " +
             "  (SELECT " +
             "     TR.date_creation, " +
@@ -164,8 +164,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     JOIN USER REC ON REC.id = TR.recipient_user_id  " +
             "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
             "   WHERE REC.email=:email AND TR.status_id = 2 " +
-           /* "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=TR.id AND TX.operation_type_id=2) " +
-           */ "  )  " +
+            "  )  " +
 
         "  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);

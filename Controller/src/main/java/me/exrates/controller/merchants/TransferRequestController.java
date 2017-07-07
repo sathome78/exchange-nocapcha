@@ -28,6 +28,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -95,7 +97,7 @@ public class TransferRequestController {
 
   @ResponseBody
   @RequestMapping(value = "/transfer/accept", method = POST)
-  public String acceptTransfer(String code, Principal principal, HttpServletRequest request) {
+  public ResponseEntity<String> acceptTransfer(String code, Principal principal, HttpServletRequest request) {
     log.debug("code {}", code);
     if (!rateLimitService.checkLimitsExceed(principal.getName())) {
         throw new RequestsLimitExceedException();
@@ -112,17 +114,13 @@ public class TransferRequestController {
       throw new InvoiceNotFoundException(messageSource.getMessage(
               "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));
     }
-    if (dto.get().getUserId().equals(userService.getIdByEmail(principal.getName()))) {
-      throw new InvalidNicknameException(messageSource
-              .getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
-    }
     Locale locale = localeResolver.resolveLocale(request);
     TransferRequestFlatDto flatDto = dto.get();
     flatDto.setInitiatorEmail(principal.getName());
     transferService.performTransfer(flatDto, locale, action);
-    return messageSource.getMessage("message.receive.voucher" ,
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(messageSource.getMessage("message.receive.voucher" ,
             new String[]{BigDecimalProcessing.formatLocaleFixedDecimal(flatDto.getAmount(), locale, 4),
-                    currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request));
+                    currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request)));
   }
 
   @RequestMapping(value = "/transfer/request/hash", method = POST)

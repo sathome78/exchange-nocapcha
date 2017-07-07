@@ -96,11 +96,11 @@ public interface WalletService {
 
     @Transactional(rollbackFor = Exception.class)
     TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount,
-                                    Locale locale, boolean checkOnly, int sourceId);
+                                    Locale locale, int sourceId);
 
     @Transactional(rollbackFor = Exception.class)
     String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                               Locale locale, boolean checkOnly, int sourceId);
+                               Locale locale, int sourceId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 

@@ -172,7 +172,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getRecipient(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getLocale(),
-              false, createdTransferRequestId);
+              createdTransferRequestId);
         }
       }
     } else {
@@ -303,6 +303,7 @@ public class TransferServiceImpl implements TransferService {
   @Transactional
   @Override
   public void performTransfer(TransferRequestFlatDto dto, Locale locale, InvoiceActionTypeEnum action) {
+    checkTransferToSelf(dto.getUserId(), dto.getRecipientId(), locale);
     IMerchantService merchantService = merchantServiceContext.getMerchantService(dto.getMerchantId());
     if (!(merchantService instanceof ITransferable)) {
       throw new MerchantException("not supported merchant");
@@ -326,7 +327,7 @@ public class TransferServiceImpl implements TransferService {
     if (result != SUCCESS) {
       throw new WithdrawRequestPostException(result.name());
     }
-    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, false, dto.getId());
+    walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, dto.getId());
     transferRequestDao.setStatusById(dto.getId(), newStatus);
   }
 

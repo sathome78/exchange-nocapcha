@@ -6,7 +6,7 @@
 
 <div id="balance-page" data-menuitemid="menu-mywallets" class="balance center-frame-container hidden">
     <h4 class="h4_green"><loc:message code="mywallets.title"/></h4>
-    <a class="btn btn-default pull-right" id="voucher_reedem_dialog_button">Enter voucher code</a>
+    <a class="btn btn-default pull-right" id="voucher_reedem_dialog_button"><loc:message code="voucher.enter.code"/></a>
 
     <table id="balance-table" class="balance__table">
         <tbody>

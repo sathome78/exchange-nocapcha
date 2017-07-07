@@ -64,7 +64,7 @@ $(function transferCreation() {
                 newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
             });
             newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.transferType, "<span class='modal-amount'>" + (isVoucher ? " will create the VOUCHER" : " will transfer ") + "</span>")
+                .replace(templateVariables.transferType, "<span class='modal-amount'>" + merchantName + "</span>")
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
             newHTMLElements[1] = newHTMLElements[1]
