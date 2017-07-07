@@ -49,4 +49,6 @@ public interface TransferService {
           VoucherFilterData withdrawFilterData,
           String authorizedUserEmail,
           Locale locale);
+
+    String getHash(Integer id, Principal principal);
 }

@@ -860,12 +860,12 @@ public class AdminController {
   }
 
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
+ /* @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
   public ModelAndView invoiceTransactions(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     return new ModelAndView("admin/transaction_invoice");
   }
-
+*/
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
   public ModelAndView bitcoinTransactions() {

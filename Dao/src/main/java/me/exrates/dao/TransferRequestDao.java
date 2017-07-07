@@ -37,4 +37,7 @@ public interface TransferRequestDao {
             Integer requesterUserId,
             DataTableParams dataTableParams,
             VoucherFilterData voucherFilterData);
+
+    String getHashById(Integer id);
+
 }

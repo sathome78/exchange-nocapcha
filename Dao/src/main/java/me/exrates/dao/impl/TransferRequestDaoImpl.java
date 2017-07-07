@@ -4,10 +4,8 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
@@ -259,5 +257,12 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
             "	  			AND (IOP.operation_direction=:operation_direction) ";
   }
 
+  @Override
+  public String getHashById(Integer id) {
+    String sql = " SELECT TR.hash " +
+            " FROM TRANSFER_REQUEST TR " +
+            " WHERE TR.id = :id ";
+    return jdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+  }
 }
 

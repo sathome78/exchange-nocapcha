@@ -21,6 +21,7 @@
         </table>
 
         <%@include file="../fragments/modal/confirm_with_info_modal.jsp" %>
+        <%@include file="../fragments/modal/simple_info_modal.jsp" %>
         <%@include file="../fragments/modal/dialogRefillConfirmationParamsEnter_modal.jsp" %>
 </div>
 

@@ -27,6 +27,7 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,7 @@ import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE_ADMIN;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -167,6 +167,7 @@ public class TransferServiceImpl implements TransferService {
           }
         } else {
           walletService.transferCostsToUser(
+              transferRequestCreateDto.getUserId(),
               transferRequestCreateDto.getUserWalletId(),
               transferRequestCreateDto.getRecipient(),
               transferRequestCreateDto.getAmount(),
@@ -327,7 +328,6 @@ public class TransferServiceImpl implements TransferService {
     }
     walletService.transferCostsToUser(walletId, dto.getRecipientId(), dto.getAmount(), locale, false, dto.getId());
     transferRequestDao.setStatusById(dto.getId(), newStatus);
-
   }
 
   @Override
@@ -365,4 +365,13 @@ public class TransferServiceImpl implements TransferService {
   }
 
 
+  @Override
+  public String getHash(Integer id, Principal principal) {
+    TransferRequestFlatDto dto = getFlatById(id);
+    if (dto == null || !dto.getCreatorEmail().equals(principal.getName())
+            || !dto.getStatus().availableForAction(PRESENT_VOUCHER)) {
+      throw new InvoiceNotFoundException("");
+    }
+    return transferRequestDao.getHashById(id);
+  }
 }

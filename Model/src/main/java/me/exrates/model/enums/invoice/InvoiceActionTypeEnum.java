@@ -96,6 +96,7 @@ public enum InvoiceActionTypeEnum {
   }},
   POST,
   PRESENT_VOUCHER {{
+    getProperty().setActionTypeButton(SHOW_CODE_BUTTON);
     getProperty().setLeadsToSuccessFinalState(true);
   }};
 

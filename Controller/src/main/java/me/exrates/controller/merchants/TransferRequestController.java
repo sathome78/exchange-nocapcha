@@ -125,6 +125,13 @@ public class TransferRequestController {
                     currencyService.getCurrencyName(flatDto.getCurrencyId())}, localeResolver.resolveLocale(request));
   }
 
+  @RequestMapping(value = "/transfer/request/hash", method = POST)
+  @ResponseBody
+  public String getHashForUser(
+          @RequestParam Integer id, Principal principal) {
+    return transferService.getHash(id, principal);
+  }
+
   @RequestMapping(value = "/transfer/request/revoke", method = POST)
   @ResponseBody
   public void revokeVoucherByUser(
