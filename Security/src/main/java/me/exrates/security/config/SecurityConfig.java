@@ -133,8 +133,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/addComment",
             "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
         .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-        .antMatchers("/2a8fy7b07dxe44/orderdelete, /2a8fy7b07dxe44/order/accept").hasAuthority(AdminAuthority.DELETE_ORDER.name())
-        .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+        .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+         .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
+                 "/2a8fy7b07dxe44/removeOrder").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+            .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
         .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
             "/2a8fy7b07dxe44/editCmnRefRoot",
             "/2a8fy7b07dxe44/editLevel",

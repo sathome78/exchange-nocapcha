@@ -46,11 +46,15 @@
                 <div class="delete-order-info__item full-width" id="orderSource">
                     <loc:message code="orderinfo.orderSource"/><div></div><br/></div>
                 <div class="delete-order-info__item full-width" id="orderChildren">
-                    <loc:message code="orderinfo.orderChildren"/><div></div><br/></div>
-
-
-
-
+                    <loc:message code="orderinfo.orderChildren"/>
+                    <div>
+                    </div>
+                    <br/>
+                </div>
+                <br/>
+                <div class="delete-order-info__item" id="notification">
+                   <span style="color: red"></span></div>
+                <br/>
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">

@@ -156,7 +156,10 @@ public interface OrderService {
    */
   OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
-  Object deleteOrderByAdmin(int orderId);
+    @Transactional
+    AdminOrderInfoDto getAdminOrderInfo(int orderId, Locale locale);
+
+    Object deleteOrderByAdmin(int orderId);
 
   Object deleteOrderForPartialAccept(int orderId);
 

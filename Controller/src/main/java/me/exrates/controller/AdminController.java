@@ -13,7 +13,6 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -27,7 +26,6 @@ import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.stopOrder.StopOrderService;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +74,7 @@ import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
 import static me.exrates.model.enums.UserRole.FIN_OPERATOR;
+import static me.exrates.model.enums.UserRole.TRADER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
@@ -142,6 +141,7 @@ public class AdminController {
   public static String adminAnyAuthority;
   public static String pureAdminAnyAuthority;
   public static String nonAdminAnyAuthority;
+  public static String traderAuthority;
 
   @PostConstruct
   private void init() {
@@ -149,6 +149,11 @@ public class AdminController {
     String adminList = adminRoles.stream()
         .map(e -> "'" + e.name() + "'")
         .collect(Collectors.joining(","));
+    List<UserRole> traderRoles = userRoleService.getRealUserRoleByBusinessRoleList(BusinessUserRoleEnum.TRADER);
+    String traderList = traderRoles.stream()
+            .map(e -> "'" + e.name() + "'")
+            .collect(Collectors.joining(","));
+    traderAuthority = "hasAnyAuthority(" + traderList + ")";
     adminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
     nonAdminAnyAuthority = "!" + adminAnyAuthority;
     String pureAdminList = adminRoles.stream()
@@ -705,8 +710,8 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
-  public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
-    return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+  public AdminOrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
+    return orderService.getAdminOrderInfo(id, localeResolver.resolveLocale(request));
   }
 
   @ResponseBody

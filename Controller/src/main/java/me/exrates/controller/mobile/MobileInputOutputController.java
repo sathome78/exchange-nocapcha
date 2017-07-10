@@ -731,14 +731,14 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
-        String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
+        /*String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
         if (userTransferDto.getNickname().equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
         }
-       /* walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale, false);todo repair this*/
-        return new ResponseEntity<>(OK);
-
+        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
+                userTransferDto.getAmount(), userLocale, false);todo repair this
+        return new ResponseEntity<>(OK);*/
+        throw new RuntimeException(messageSource.getMessage("merchant.operationNotAvailable", null, userLocale));
     }
 
     /**

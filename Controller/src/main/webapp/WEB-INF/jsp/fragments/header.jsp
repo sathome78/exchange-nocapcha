@@ -48,6 +48,11 @@
                                     <loc:message code="admin.title"/>
                                 </a>
                             </sec:authorize>
+                        <sec:authorize access="<%=AdminController.traderAuthority%>">
+                            <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>">
+                                <loc:message code="manageOrder.title"/>
+                            </a>
+                        </sec:authorize>
                     </li>
                 </sec:authorize>
 
