@@ -26,6 +26,7 @@ public class AdminOrderFilterData extends TableFilterData {
     private BigDecimal volumeTo;
     private Integer statusId;
     private String creator;
+    private Integer creatorRole;
     private String acceptor;
 
 
@@ -44,6 +45,7 @@ public class AdminOrderFilterData extends TableFilterData {
                 new FilterDataItem("amount_base_to", "EXORDERS.amount_base <=", volumeTo),
                 new FilterDataItem("status_id", "EXORDERS.status_id =", statusId),
                 new FilterDataItem("creator_email", "EXORDERS.user_id =", creator, "(SELECT id FROM USER WHERE email = :%s)"),
+                new FilterDataItem("creator_role", "CREATOR.roleid =", creatorRole),
                 new FilterDataItem("acceptor_email", "EXORDERS.user_acceptor_id =", acceptor, "(SELECT id FROM USER WHERE email = :%s)"),
         };
         populateFilterItemsNonEmpty(items);

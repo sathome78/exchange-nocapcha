@@ -26,11 +26,11 @@ function getOrderDetailedInfo(orderId, enableActions) {
             $("#transactionCount").find('span').html(data.transactionCount);
             $("#companyCommission").find('span').html(data.companyCommission?data.companyCommission + ' ' + data.currencyConvertName:'-');
             /**/
-            $("#notification").find('span').html(resp_data.notification);
             if (data.orderStatusName.toUpperCase() === 'OPENED') {
-                var statusUpperCase = data.orderStatusName.toUpperCase();
+                $("#notification").find('span').html(resp_data.notification);
             }
 
+            var statusUpperCase = data.orderStatusName.toUpperCase();
             if (statusUpperCase === 'DELETED' || statusUpperCase === 'SPLIT_CLOSED' || !enableActions) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
@@ -225,6 +225,10 @@ function updateOrderTable() {
                 {
                     "data": "orderCreatorEmail",
                     "name": "CREATOR.email"
+                },
+                {
+                    "data": "role",
+                    "name": "CREATOR.roleid"
                 },
                 {
                     "data": "status",

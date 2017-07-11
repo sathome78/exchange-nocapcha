@@ -749,7 +749,8 @@ public class OrderDaoImpl implements OrderDao {
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
                 "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
                 "     EXORDERS.exrate, EXORDERS.amount_base, " +
-                "     CREATOR.email AS order_creator_email ";
+                "     CREATOR.email AS order_creator_email, " +
+                "     CREATOR.roleid AS role  ";
         String sqlFrom = "FROM EXORDERS " +
                 "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
                 "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
@@ -781,6 +782,7 @@ public class OrderDaoImpl implements OrderDao {
             infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
             infoDto.setStatusId(rs.getInt("status"));
             infoDto.setStatus(OrderStatus.convert(rs.getInt("status")).toString());
+            infoDto.setRole(UserRole.convert(rs.getInt("role")).name());
             return infoDto;
 
         });

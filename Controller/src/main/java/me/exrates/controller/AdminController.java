@@ -202,6 +202,7 @@ public class AdminController {
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.values()));
+    model.addObject("roleList", Arrays.asList(UserRole.values()));
     model.setViewName("admin/order_delete");
     return model;
   }

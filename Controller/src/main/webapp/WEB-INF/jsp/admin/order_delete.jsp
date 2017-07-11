@@ -168,6 +168,21 @@
                                     code="ordersearch.erroremail"/></label>
                         </div>
                     </div>
+
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="orderinfo.creator.role"/></label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <select id="creatorRole" class="input-block-wrapper__input admin-form-input" name="creatorRole">
+                                <option value="">ANY</option>
+                                <c:forEach items="${roleList}" var="role">
+                                    <option value="${role.role}">${role.name()}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message
@@ -204,6 +219,7 @@
                         <th><loc:message code="orderinfo.rate"/></th>
                         <th><loc:message code="orderinfo.baseamount"/></th>
                         <th><loc:message code="orderinfo.creator"/></th>
+                        <th><loc:message code="orderinfo.creator.role"/></th>
                         <th><loc:message code="orderinfo.status"/></th>
                     </tr>
                     </thead>
