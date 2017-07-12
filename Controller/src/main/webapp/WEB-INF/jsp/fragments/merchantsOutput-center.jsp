@@ -29,8 +29,10 @@
                      readonly
                      value="<c:out value='${wallet.name} ${balance}'/>"/>
             </div>
-            <span id="allSum" style="cursor: pointer; text-decoration: underline; size: 6px; margin-left: 240px;">
-              <loc:message code="merchants.addAll"/></span>
+            <div style="float: left; height: 12px;  width: 408px; text-align: left; margin-right: 10px; padding-left: 240px">
+              <span id="allSum" style="cursor: pointer; text-decoration: underline; size: 6px;">
+                <loc:message code="merchants.addAll"/></span>
+            </div>
           </div>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px; padding-left: 0">

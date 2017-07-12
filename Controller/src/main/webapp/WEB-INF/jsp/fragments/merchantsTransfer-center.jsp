@@ -24,10 +24,11 @@
                      class="form-control input-block-wrapper__input"
                      readonly
                      value="<c:out value='${wallet.name} ${balance}'/>"/>
-              <br>
             </div>
-            <span id="allSum" style="cursor: pointer; text-decoration: underline; size: 6px; margin-left: 240px;">
-              <loc:message code="merchants.addAll"/></span>
+            <div style="float: left; height: 12px;  width: 408px; text-align: left; margin-right: 10px; padding-left: 240px">
+              <span id="allSum" style="cursor: pointer; text-decoration: underline; size: 6px;">
+                <loc:message code="merchants.addAll"/></span>
+            </div>
           </div>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
@@ -57,7 +58,7 @@
             <br>
             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}">
               <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}">
-                <div style=" width: 700px; height: 88px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
+                <div style=" width: 700px; height: 96px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
                   <div style="float: left; height: 20px;  width: 408px; text-align: right; margin-right: 10px">
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 35px"/>
