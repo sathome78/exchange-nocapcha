@@ -1,5 +1,5 @@
 SELECT count(id) FROM USER_TRANSFER;
-/*102*/
+/*116*/
 
 
 START TRANSACTION;
@@ -13,7 +13,7 @@ START TRANSACTION;
 COMMIT;
 
 SELECT COUNT(id) FROM TRANSFER_REQUEST;
-/*102*/
+/*116*/
 
 
 CREATE PROCEDURE fillMerchantCurrency(MerchantName varchar(30))
