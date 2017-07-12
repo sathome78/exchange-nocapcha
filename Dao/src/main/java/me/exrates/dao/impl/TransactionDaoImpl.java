@@ -382,8 +382,12 @@ public final class TransactionDaoImpl implements TransactionDao {
     final PagingData<List<Transaction>> result = new PagingData<>();
     log.debug("count sql {}", selectAllCountSql);
     log.debug("data sql {}", selectLimitedAllSql);
+    long start = System.currentTimeMillis();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+    log.debug("count in {}", System.currentTimeMillis() - start);
+    start = System.currentTimeMillis();
     result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
+    log.debug("data in {}", System.currentTimeMillis() - start);
     result.setFiltered(total);
     result.setTotal(total);
     return result;

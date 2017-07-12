@@ -133,9 +133,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/addComment",
             "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
         .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-        .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAuthority(AdminAuthority.DELETE_ORDER.name())
-         .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
-                 "/2a8fy7b07dxe44/removeOrder").hasAuthority(UserRole.TRADER.name())
             .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
         .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
             "/2a8fy7b07dxe44/editCmnRefRoot",
@@ -202,6 +199,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/okpay/payment/failure").permitAll()
         .antMatchers(POST, "/merchants/payeer/payment/status",
             "/merchants/payeer/payment/success").permitAll()
+            .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAuthority(UserRole.TRADER.name())
+            .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
+                    "/2a8fy7b07dxe44/removeOrder").hasAuthority(UserRole.TRADER.name())
         .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
         .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
         .antMatchers(GET, "/generateReferral").permitAll()
