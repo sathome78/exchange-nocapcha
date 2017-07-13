@@ -145,7 +145,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
         .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
-        .antMatchers("/2a8fy7b07dxe44/userswallets",
+            .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAnyAuthority(UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
+            .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
+                    "/2a8fy7b07dxe44/removeOrder").hasAnyAuthority(UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name(), UserRole.FIN_OPERATOR.name())
+
+            .antMatchers("/2a8fy7b07dxe44/userswallets",
             "/2a8fy7b07dxe44/editCurrencyLimits",
             "/2a8fy7b07dxe44/commissions",
             "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
@@ -199,10 +203,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/okpay/payment/failure").permitAll()
         .antMatchers(POST, "/merchants/payeer/payment/status",
             "/merchants/payeer/payment/success").permitAll()
-            .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAuthority(UserRole.TRADER.name())
-            .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
-                    "/2a8fy7b07dxe44/removeOrder").hasAuthority(UserRole.TRADER.name())
-        .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
+         .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
         .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
         .antMatchers(GET, "/generateReferral").permitAll()
         .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
