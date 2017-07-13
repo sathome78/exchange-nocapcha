@@ -69,7 +69,7 @@ $(function () {
                 },
                 {
                     "data": "operationType",
-                    "name": "TRANSACTIOIN.operation_type_id"
+                    "name": "TRANSACTION.operation_type_id"
                 },
                 {
                     "data": "status",
@@ -106,6 +106,7 @@ $(function () {
                 },
                 {
                     "data": "sourceId",
+                    "name": "TRANSACTION.source_id",
                     "render": function (data, type, row) {
                         if (data) {
                             return '<button class="transactionlist-order-detail-button"' +

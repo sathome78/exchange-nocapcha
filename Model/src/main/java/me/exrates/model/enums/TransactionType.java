@@ -18,7 +18,7 @@ import static me.exrates.model.enums.TransactionSourceType.*;
 
 public enum TransactionType {
   REFILL_IN(REFILL, null),
-  WITHDRAW_OUT(WITHDRAW, null),
+  WITHDRAW_OUT(WITHDRAW, OperationType.OUTPUT),
   ORDER_IN(ORDER, OperationType.INPUT),
   ORDER_OUT(ORDER, OperationType.OUTPUT),
   RESERVE_TO(null, OperationType.WALLET_INNER_TRANSFER, (v) -> v.compareTo(BigDecimal.ZERO) < 0),
