@@ -213,7 +213,7 @@ public class MerchantDaoImpl implements MerchantDao {
   public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
         " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
-        " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission " +
+        " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission, " +
         " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, " +
         " MERCHANT_CURRENCY.merchant_fixed_commission, " +
         " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount " +

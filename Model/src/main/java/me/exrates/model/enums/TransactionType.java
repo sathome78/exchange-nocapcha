@@ -55,6 +55,10 @@ public enum TransactionType {
     return operationType;
   }
 
+  public Predicate<BigDecimal> getAmountPredicate() {
+    return amountPredicate;
+  }
+
   public void setOperationType(OperationType operationType) {
     this.operationType = operationType;
   }
