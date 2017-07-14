@@ -17,7 +17,7 @@ public interface YandexMoneyMerchantDao {
     boolean deleteTokenByUserEmail(String userEmail);
     boolean updateTokenByUserEmail(String userEmail, String newToken);
 
-    int savePayment(Integer currencyId, BigDecimal amount, Integer merchantImageId);
+    int savePayment(Integer currencyId, BigDecimal amount);
 
     Optional<Payment> getPaymentById(Integer id);
 

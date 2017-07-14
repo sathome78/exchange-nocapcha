@@ -17,6 +17,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -130,7 +131,7 @@ public class WalletController {
     @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
     @ResponseBody
     public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
     }
     
     

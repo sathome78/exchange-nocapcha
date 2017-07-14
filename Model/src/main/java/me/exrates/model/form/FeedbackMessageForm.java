@@ -1,7 +1,5 @@
 package me.exrates.model.form;
 
-import javax.validation.constraints.Size;
-
 /**
  * Created by ogolv on 09.08.2016.
  */

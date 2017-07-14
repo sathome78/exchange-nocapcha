@@ -211,6 +211,7 @@ public class BigDecimalProcessing {
     DecimalFormat df = new DecimalFormat(trailingZeros ? PATTERN : PATTERN_SHORT);
     DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
     df.setDecimalFormatSymbols(dfs);
+    df.setGroupingUsed(false);
     return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
   }
 
@@ -240,6 +241,7 @@ public class BigDecimalProcessing {
         new String(new char[SCALE - minDecimalPlace]).replace("\0", "#"));
     DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
     df.setDecimalFormatSymbols(dfs);
+    df.setGroupingUsed(false);
     return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
   }
 
@@ -252,6 +254,7 @@ public class BigDecimalProcessing {
         new String(new char[decimalDigits]).replace("\0", "0"));
     DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
     df.setDecimalFormatSymbols(dfs);
+    df.setGroupingUsed(false);
     return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
   }
 

@@ -53,6 +53,6 @@ INSERT INTO SURVEY_ITEM VALUES (16, 1, 'en', 'question5', 'Limited set of crypto
 INSERT INTO SURVEY_ITEM VALUES (17, 1, 'en', 'question6', 'Specify other problems or any comment');
 
 
-INSERT INTO SURVEY_LANG_PARAM VALUES (1, 1, 'ru', '<b>Ваше мнение очень важно для нас !</b></br>С целью улучшения качества работы Биржи просим Вас ответить на несколько вопросов.\r\n<br>Это займет у Вас всего пару минут.\r\n</br>Пожалуйста, оцените их, поставив оценки для нескольких утверждений по принципу:\r\n</br>"1" - для меня это не проблема\r\n</br>"5" - то, что меня заставит сменить Биржу');
+INSERT INTO SURVEY_LANG_PARAM VALUES (1, 1, 'ru', '<b>Ваше мнение очень важно для нас !</b>\r\n</br>С целью улучшения качества работы Биржи просим Вас ответить на несколько вопросов.\r\n<br>Это займет у Вас всего пару минут.\r\n</br>Пожалуйста, оцените их, поставив оценки для нескольких утверждений по принципу:\r\n</br>"1" - для меня это не проблема\r\n</br>"5" - то, что меня заставит сменить Биржу');
 INSERT INTO SURVEY_LANG_PARAM VALUES (2, 1, 'en', '<b>Your feedback is very important to us!</b></br>In order to improve the quality of the work of the Exchange, we ask you to answer a few questions.\r\n</br>It only takes you a couple of minutes.\r\n</br>Please rate them by putting estimates for several statements on the principle:\r\n</br>"1" - it is not a problem for me\r\n</br>"5" - that can force me to change the Exchange');
 

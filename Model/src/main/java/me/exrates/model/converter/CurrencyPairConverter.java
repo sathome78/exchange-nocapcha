@@ -3,10 +3,6 @@ package me.exrates.model.converter;
 import com.google.gson.Gson;
 import me.exrates.model.CurrencyPair;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.Formatter;
-
-import java.text.ParseException;
-import java.util.Locale;
 
 /**
  * Created by Valk on 13.04.16.

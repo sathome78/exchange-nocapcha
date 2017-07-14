@@ -2,12 +2,9 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralUserGraphDao;
-import me.exrates.model.SessionParams;
 import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
-import me.exrates.model.dto.onlineTableDto.NewsDto;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;

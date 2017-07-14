@@ -1,23 +1,15 @@
 package me.exrates.security.filter;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.SessionLifeTimeType;
-import me.exrates.model.SessionParams;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.servlet.LocaleResolver;
@@ -25,10 +17,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -45,10 +34,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     MessageSource messageSource;
     @Autowired
     LocaleResolver localeResolver;
-    private String successUrl;
     @Autowired
     private UserService userService;
 
+    private String successUrl;
 
     public LoginSuccessHandler(String successUrl) {
         this.successUrl = successUrl;
@@ -56,11 +45,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        sessionParamsService.setSessionLifeParams(request);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
-
+            sessionParamsService.setSessionLifeParams(request);
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
         /**/

@@ -1,7 +1,10 @@
 package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.FileLoadingException;
+import me.exrates.controller.exception.NewsCreationException;
+import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
@@ -100,8 +103,9 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-
+      /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+      */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.getUse2Fa(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -131,6 +135,7 @@ public class EntryController {
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
+        mav.addObject("enable_2fa", userService.getUse2Fa(principal.getName()));
         return mav;
     }
 
@@ -172,6 +177,24 @@ public class EntryController {
             }
         } else {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+                    localeResolver.resolveLocale(request)));
+        }
+        return redirectView;
+    }
+
+    @RequestMapping("/settings/2FaOptions/submit")
+    public RedirectView submitNotificationOptions(RedirectAttributes redirectAttributes,
+                                                  HttpServletRequest request, Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+
+        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+        try {
+            userService.setUse2Fa(principal.getName(), use2fa);
+            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+                    localeResolver.resolveLocale(request)));
+        } catch (Exception e) {
+            log.error(e);
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
                     localeResolver.resolveLocale(request)));
         }
         return redirectView;

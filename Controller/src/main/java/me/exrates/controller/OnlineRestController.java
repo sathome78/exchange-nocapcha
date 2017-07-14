@@ -1,12 +1,12 @@
 package me.exrates.controller;
 
-import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -111,6 +111,9 @@ public class OnlineRestController {
 
   @Autowired
   WithdrawService withdrawService;
+
+  @Autowired
+  InputOutputService inputOutputService;
 
   @Autowired
   StopOrderService stopOrderService;
@@ -806,7 +809,7 @@ public class OnlineRestController {
     String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyInputOutputHistoryDto> result = withdrawService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+    List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
     }

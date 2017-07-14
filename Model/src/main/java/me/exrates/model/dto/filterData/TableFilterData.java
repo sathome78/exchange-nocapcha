@@ -34,9 +34,5 @@ public abstract class TableFilterData {
         return filterItems.stream().map(item -> item.getSqlClause().concat(" ").concat(item.formatParamForSql()))
                 .collect(Collectors.joining(" AND "));
     }
-    
-    public static void main(String[] args) {
-    
-    }
 
 }

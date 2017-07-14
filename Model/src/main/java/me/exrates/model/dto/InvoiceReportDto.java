@@ -2,9 +2,6 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
@@ -39,60 +36,6 @@ public class InvoiceReportDto {
   private String merchant;
   private InvoiceStatus statusEnum;
 
-  public InvoiceReportDto(InvoiceRequest invoiceRequest) {
-    this.docId = invoiceRequest.getTransaction().getId();
-    this.currency = invoiceRequest.getTransaction().getCurrency().getName();
-    this.creationDate = invoiceRequest.getTransaction().getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.userEmail = invoiceRequest.getUserEmail();
-    this.recipientBank = invoiceRequest.getInvoiceBank().getName();
-    this.amount = invoiceRequest.getTransaction().getAmount();
-    this.payerName = invoiceRequest.getUserFullName();
-    this.payerBankCode = invoiceRequest.getPayerBankCode();
-    this.status = ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).name();
-    this.statusEnum = invoiceRequest.getInvoiceRequestStatus();
-    this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequest.getAcceptanceTime() == null ? "" : invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.operation = INPUT.name();
-    this.system = TransactionSourceType.INVOICE.name();
-  }
-
-  public InvoiceReportDto(InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto) {
-    this.docId = invoiceRequestFlatForReportDto.getInvoiceId();
-    this.currency = invoiceRequestFlatForReportDto.getCurrency();
-    this.creationDate = invoiceRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.userNickname = invoiceRequestFlatForReportDto.getUserNickname();
-    this.userEmail = invoiceRequestFlatForReportDto.getUserEmail();
-    this.recipientBank = invoiceRequestFlatForReportDto.getRecipientBank();
-    this.amount = invoiceRequestFlatForReportDto.getAmount();
-    this.payerName = invoiceRequestFlatForReportDto.getUserFullName();
-    this.payerBankCode = invoiceRequestFlatForReportDto.getPayerBankCode();
-    this.status = invoiceRequestFlatForReportDto.getStatus().name();
-    this.statusEnum = invoiceRequestFlatForReportDto.getStatus();
-    this.acceptorUserEmail = invoiceRequestFlatForReportDto.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime() == null ? "" : invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.operation = INPUT.name();
-    this.system = TransactionSourceType.INVOICE.name();
-    this.merchant = invoiceRequestFlatForReportDto.getMerchant();
-  }
-
-  public InvoiceReportDto(PendingPaymentFlatForReportDto pendingPaymentFlatForReportDto) {
-    this.docId = pendingPaymentFlatForReportDto.getInvoiceId();
-    this.currency = pendingPaymentFlatForReportDto.getCurrency();
-    this.creationDate = pendingPaymentFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.userNickname = pendingPaymentFlatForReportDto.getUserNickname();
-    this.userEmail = pendingPaymentFlatForReportDto.getUserEmail();
-    this.recipientBank = pendingPaymentFlatForReportDto.getAddress();
-    this.amount = pendingPaymentFlatForReportDto.getAmount();
-    this.payerName = "";
-    this.payerBankCode = "";
-    this.status = pendingPaymentFlatForReportDto.getPendingPaymentStatus().name();
-    this.statusEnum = pendingPaymentFlatForReportDto.getPendingPaymentStatus();
-    this.acceptorUserEmail = pendingPaymentFlatForReportDto.getAcceptanceUserEmail();
-    this.acceptanceDate = pendingPaymentFlatForReportDto.getAcceptanceTime() == null ? "" : pendingPaymentFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.operation = INPUT.name();
-    this.system = pendingPaymentFlatForReportDto.getSourceType().name();
-    this.merchant = pendingPaymentFlatForReportDto.getMerchant();
-  }
 
   public InvoiceReportDto(TransactionFlatForReportDto transactionFlatForReportDto) {
     this.docId = transactionFlatForReportDto.getTransactionId();
@@ -134,6 +77,29 @@ public class InvoiceReportDto {
     this.operation = OUTPUT.name();
     this.system = withdrawRequestFlatForReportDto.getSourceType().name();
     this.merchant = withdrawRequestFlatForReportDto.getMerchant();
+  }
+
+  public InvoiceReportDto(RefillRequestFlatForReportDto refillRequestFlatForReportDto) {
+    this.docId = refillRequestFlatForReportDto.getId();
+    this.currency = refillRequestFlatForReportDto.getCurrency();
+    this.creationDate = refillRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = refillRequestFlatForReportDto.getUserNickname();
+    this.userEmail = refillRequestFlatForReportDto.getUserEmail();
+    this.recipientBank = !StringUtils.isEmpty(refillRequestFlatForReportDto.getRecipientBankName()) ?
+        refillRequestFlatForReportDto.getRecipientBankName() :
+        StringUtils.isEmpty(refillRequestFlatForReportDto.getAddress()) ?
+            "" :
+            refillRequestFlatForReportDto.getAddress();
+    this.amount = refillRequestFlatForReportDto.getAmount();
+    this.payerName = refillRequestFlatForReportDto.getMerchant();
+    this.payerBankCode = refillRequestFlatForReportDto.getMerchant();
+    this.status = refillRequestFlatForReportDto.getStatus().name();
+    this.statusEnum = refillRequestFlatForReportDto.getStatus();
+    this.acceptorUserEmail = refillRequestFlatForReportDto.getAdminEmail();
+    this.acceptanceDate = refillRequestFlatForReportDto.getAcceptanceTime() == null ? "" : refillRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = INPUT.name();
+    this.system = refillRequestFlatForReportDto.getSourceType().name();
+    this.merchant = refillRequestFlatForReportDto.getMerchant();
   }
 
   public static String getTitle() {

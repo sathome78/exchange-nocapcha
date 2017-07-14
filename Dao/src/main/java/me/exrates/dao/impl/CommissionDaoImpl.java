@@ -71,15 +71,24 @@ public class CommissionDaoImpl implements CommissionDao {
 	@Override
 	public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
 		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
-
-
-		final String sql = "SELECT " + selectedField + " FROM MERCHANT_CURRENCY " +
+		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
 				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
 				"and currency_id = (select id from CURRENCY where name = :currency)";
 		final HashMap<String, String> params = new HashMap<>();
 		params.put("currency", currency);
 		params.put("merchant", merchant);
+		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
+	}
 
+	@Override
+	public BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType) {
+		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
+		final String sql = "SELECT " + selectedField + " FROM MERCHANT_CURRENCY " +
+				"where merchant_id = :merchant_id " +
+				"and currency_id = :currency_id ";
+		final HashMap<String, Object> params = new HashMap<>();
+		params.put("currency_id", currencyId);
+		params.put("merchant_id", merchantId);
 		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
 	}
 
@@ -157,15 +166,24 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
-	public BigDecimal getMinFixedCommission(String merchant, String currency) {
+	public BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId) {
 		final String sql = "SELECT merchant_fixed_commission FROM MERCHANT_CURRENCY " +
-				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
-				"and currency_id = (select id from CURRENCY where name = :currency)";
-		final HashMap<String, String> params = new HashMap<>();
-		params.put("currency", currency);
-		params.put("merchant", merchant);
+				"where merchant_id = :merchant " +
+				"and currency_id = :currency ";
+		final HashMap<String, Object> params = new HashMap<>();
+		params.put("currency", currencyId);
+		params.put("merchant", merchantId);
 		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
 	}
 
+	@Override
+	public Commission getCommissionById(Integer commissionId) {
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+				" FROM COMMISSION " +
+				" WHERE id = :id";
+		final HashMap<String,Integer> params = new HashMap<>();
+		params.put("id",commissionId);
+		return jdbcTemplate.queryForObject(sql,params, commissionRowMapper);
+	}
 
 }

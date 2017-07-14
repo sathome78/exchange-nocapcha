@@ -60,7 +60,24 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script src="https://surveyjs.azureedge.net/0.12.14/survey.jquery.min.js"></script>
+    <!-- Amcharts Charts ... -->
+    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
+    <!-- ... Amcharts Charts -->
+    <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
+    <!-- Amcharts Charts ... -->
+    <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
+    <!-- ... Amcharts Charts -->
+    <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
+
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
     <%--TOOLS ... --%>
@@ -80,7 +97,7 @@
 <%@include file="../fragments/header.jsp" %>
 
 <main class="container">
-    <input id="start-poll" hidden value='${startPoll}'/>
+    <input id="noty2fa" hidden value='${notify2fa}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
@@ -105,7 +122,7 @@
 </main>
 <%@include file='../fragments/footer.jsp' %>
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<span hidden id="errorNoty">${errorNoty}</span>
+<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 
 </body>

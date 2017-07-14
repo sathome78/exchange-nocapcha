@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(20000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
   @Autowired
@@ -243,7 +243,7 @@ public class OrderServiceImpl implements OrderService {
     }
     CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
             orderCreateDto.getOperationType());
-    if (orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
+    if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
       if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
         errors.put("stop_" + errors.size(), "order.fillfield");
       } else {

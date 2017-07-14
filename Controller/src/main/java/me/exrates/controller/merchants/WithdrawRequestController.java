@@ -3,18 +3,19 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.RequestLimitExceededException;
+import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,19 +24,17 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.WebUtils;
+import org.springframework.web.servlet.LocaleResolver;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -59,46 +58,35 @@ public class WithdrawRequestController {
   @Autowired
   MerchantService merchantService;
 
+  @Autowired
+  private InputOutputService inputOutputService;
+
+  @Autowired
+  private CommissionService commissionService;
+  @Autowired
+  private LocaleResolver localeResolver;
+
   @FinPassCheck
-  @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
+  @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
-  public void createWithdrawalRequest(
-          @RequestBody final Payment payment,
-          Principal principal,
-          Locale locale,
-          HttpServletResponse response) throws UnsupportedEncodingException {
-
-    if (!merchantService.checkOutputRequestsLimit(payment.getCurrency(), principal.getName())) {
+  public Map<String, String> createWithdrawalRequest(
+      @RequestBody WithdrawRequestParamsDto requestParamsDto,
+      Principal principal,
+      Locale locale) throws UnsupportedEncodingException {
+    if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
-
     }
-
-    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
+    WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+    Payment payment = new Payment(OUTPUT);
+    payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
+    payment.setSum(requestParamsDto.getSum().doubleValue());
+    payment.setDestination(requestParamsDto.getDestination());
+    payment.setDestinationTag(requestParamsDto.getDestinationTag());
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
-    Cookie cookie = new Cookie("successNoty", URLEncoder.encode(result.get("success"), "UTF-8"));
-    cookie.setPath("/");
-    response.addCookie(cookie);
-  }
-
-  @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)
-  public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request, Locale locale) {
-    RedirectView redirectView = new RedirectView("/dashboard");
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null, locale));
-      }
-      return new RedirectView("/merchants/invoice/withdrawDetails");
-    }
-    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, principal.getName(), locale);
-    synchronized (mutex) {
-      session.removeAttribute("creditsOperation");
-      session.setAttribute("successNoty", result.get("success"));
-    }
-    return redirectView;
+    WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
   }
 
   @RequestMapping(value = "/withdraw/request/revoke", method = POST)
@@ -106,6 +94,25 @@ public class WithdrawRequestController {
   public void revokeWithdrawRequest(
       @RequestParam Integer id) {
     withdrawService.revokeWithdrawalRequest(id);
+  }
+
+  @RequestMapping(value = "/withdraw/banks", method = GET)
+  @ResponseBody
+  public List<ClientBank> getBankListForCurrency(
+      @RequestParam Integer currencyId) {
+    return withdrawService.findClientBanksForCurrency(currencyId);
+  }
+
+  @RequestMapping(value = "/withdraw/commission", method = GET)
+  @ResponseBody
+  public Map<String, String> getCommissions(
+      @RequestParam("amount") BigDecimal amount,
+      @RequestParam("currency") Integer currencyId,
+      @RequestParam("merchant") Integer merchantId,
+      Principal principal,
+      Locale locale) {
+    Integer userId = userService.getIdByEmail(principal.getName());
+    return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchantId, locale);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)
@@ -154,16 +161,7 @@ public class WithdrawRequestController {
     withdrawService.postWithdrawalRequest(id, requesterAdminId);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
-  @ResponseBody
-  public WithdrawRequestsAdminTableDto getInfo(
-      @RequestParam Integer id,
-      Principal principal) {
-    String requesterAdmin = principal.getName();
-    return withdrawService.getWithdrawRequestById(id, requesterAdmin);
-  }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
@@ -184,25 +182,40 @@ public class WithdrawRequestController {
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({
-      NotEnoughUserWalletMoneyException.class, RequestLimitExceededException.class
+      RequestLimitExceededException.class
   })
   @ResponseBody
-  public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
+  public ErrorInfo RequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({
+          NotEnoughUserWalletMoneyException.class
+  })
+  @ResponseBody
+  public ErrorInfo NotEnoughUserWalletMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource
+            .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
   }
   
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
   @ResponseBody
-  public ErrorInfo finPassWxceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
+  public ErrorInfo finPassExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
   @ResponseBody
   public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+    if (exception instanceof MerchantException) {
+      return new ErrorInfo(req.getRequestURL(), exception,
+              messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+    }
     log.error(ExceptionUtils.getStackTrace(exception));
     return new ErrorInfo(req.getRequestURL(), exception);
   }

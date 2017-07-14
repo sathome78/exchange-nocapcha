@@ -54,4 +54,11 @@ function SettingsClass() {
             sendButton.prop('disabled', false);
         }
     });
+
+    if (window.location.href.indexOf('?2fa') > 0) {
+        $('html, body').animate({
+            scrollTop: $("#2fa-options").offset().top-200
+        }, 2000);
+        $('#2fa_cell').css('color', 'red').css('text-decoration', 'underline');
+    }
 }

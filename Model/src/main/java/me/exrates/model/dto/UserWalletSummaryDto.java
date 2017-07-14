@@ -1,6 +1,5 @@
 package me.exrates.model.dto;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

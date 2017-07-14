@@ -2,14 +2,12 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

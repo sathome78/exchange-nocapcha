@@ -38,11 +38,8 @@ public interface TransactionService {
   void provideTransaction(Transaction transaction);
 
   void invalidateTransaction(Transaction transaction);
-  
-  DataTable<List<OperationViewDto>> showUserOperationHistory(
-          Integer requesterUserId,
-          Integer userId,
-          AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
+
+  DataTable<List<OperationViewDto>> showUserOperationHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
   List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 
@@ -59,8 +56,6 @@ public interface TransactionService {
   List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
-
-  List<String> getCSVTransactionsHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData);
 
   List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 

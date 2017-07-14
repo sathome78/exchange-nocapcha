@@ -1,20 +1,40 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.service.merchantStrategy.IMerchantService;
-
-import java.io.IOException;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface EDCService extends IMerchantService {
 
-    String createInvoice(CreditsOperation operation) throws Exception;
 
-    void submitTransactionsForProcessing(String list);
+  @Override
+  default Boolean createdRefillRequestRecordNeeded() {
+    return false;
+  }
 
-    String extractAccountId(final String account, final int invoiceId) throws IOException;
+  @Override
+  default Boolean needToCreateRefillRequestRecord() {
+    return false;
+  }
 
-    void rescanUnusedAccounts();
+  @Override
+  default Boolean toMainAccountTransferringConfirmNeeded() {
+    return false;
+  }
+
+  @Override
+  default Boolean generatingAdditionalRefillAddressAvailable() {
+    return true;
+  }
+
+  @Override
+  default Boolean additionalTagForWithdrawAddressIsUsed() {
+    return false;
+  }
+
+  @Override
+  default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
 }

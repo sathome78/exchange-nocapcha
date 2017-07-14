@@ -3,11 +3,9 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * Created by ValkSam
@@ -17,6 +15,7 @@ import java.time.LocalDateTime;
 public class WithdrawRequestPostDto {
   private int id;
   private String wallet;
+  private String destinationTag;
   private String recipientBankName;
   private String recipientBankCode;
   private String userFullName;
@@ -27,4 +26,8 @@ public class WithdrawRequestPostDto {
   private String currencyName;
   private String merchantName;
   private String merchantServiceBeanName;
+  private boolean withdrawTransferringConfirmNeeded;
+  private Integer merchantId;
+  private Integer currencyId;
+  private Integer userId;
 }

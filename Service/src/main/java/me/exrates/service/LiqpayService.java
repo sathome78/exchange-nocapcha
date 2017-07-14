@@ -1,21 +1,37 @@
 package me.exrates.service;
 
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Transaction;
 import me.exrates.service.merchantStrategy.IMerchantService;
-import org.springframework.web.servlet.view.RedirectView;
-
-import java.util.Map;
 
 public interface LiqpayService extends IMerchantService {
 
-    RedirectView preparePayment(CreditsOperation creditsOperation, String email);
+  @Override
+  default Boolean createdRefillRequestRecordNeeded() {
+    return false;
+  }
 
-    Map<String,Object> getResponse(String data);
+  @Override
+  default Boolean needToCreateRefillRequestRecord() {
+    return true;
+  }
 
-    boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash);
+  @Override
+  default Boolean toMainAccountTransferringConfirmNeeded() {
+    return false;
+  }
 
-    void provideTransaction(Transaction transaction);
+  @Override
+  default Boolean generatingAdditionalRefillAddressAvailable() {
+    return false;
+  }
 
+  @Override
+  default Boolean additionalTagForWithdrawAddressIsUsed() {
+    return false;
+  }
+
+  @Override
+  default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
 }

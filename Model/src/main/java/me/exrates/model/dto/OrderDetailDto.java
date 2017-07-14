@@ -1,12 +1,9 @@
 package me.exrates.model.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * Created by Valk on 16.05.2016.

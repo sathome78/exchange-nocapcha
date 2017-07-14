@@ -85,8 +85,9 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   IN_POSTING(11) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_MANUAL_POSTING);
+      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
       schemaMap.put(InvoiceActionTypeEnum.REJECT_ERROR, DECLINED_ERROR);
     }
   },
@@ -94,29 +95,48 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
+  },
+  ON_BCH_EXAM(13){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.FINALIZE_POST, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.REJECT_TO_REVIEW, WAITING_REVIEWING);
+    }
+  },
+  WAITING_REVIEWING(14){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FOR_WITHDRAW);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
+    }
+  },
+  TAKEN_FOR_WITHDRAW(15){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
+    }
   };
 
   final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
 
   @Override
   public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-    if (action.isAvailableForHolderOnly()) {
-      throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
-    }
-    if (action.getOperationPermissionOnlyList() != null) {
-      throw new PermittedOperationParamNeededForThisStatusException(action.name());
-    }
+    action.checkRestrictParamNeeded();
     return nextState(schemaMap, action)
         .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
   }
 
   @Override
-  public InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
-    if (action.isAvailableForHolderOnly() && !authorisedUserIsHolder) {
+  public InvoiceStatus nextState(InvoiceActionTypeEnum action, InvoiceActionParamsValue paramsValue) {
+    try {
+      action.checkAvailabilityTheActionForParamsValue(paramsValue);
+    } catch (InvoiceActionIsProhibitedForNotHolderException e){
       throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
-    }
-    if (action.getOperationPermissionOnlyList() != null && !action.getOperationPermissionOnlyList().contains(permittedOperation)) {
-      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), permittedOperation.name()));
+    } catch (InvoiceActionIsProhibitedForCurrencyPermissionOperationException e){
+      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), paramsValue.getPermittedOperation().name()));
+    } catch (Exception e) {
+      throw e;
     }
     return nextState(schemaMap, action)
         .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
@@ -148,25 +168,13 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   }
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList() {
-    schemaMap.keySet().stream()
-        .filter(InvoiceActionTypeEnum::isAvailableForHolderOnly)
-        .findAny()
-        .ifPresent(action -> {
-          throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
-        });
-    schemaMap.keySet().stream()
-        .filter(e -> e.getOperationPermissionOnlyList() != null)
-        .findAny()
-        .ifPresent(action -> {
-          throw new PermittedOperationParamNeededForThisStatusException(action.name());
-        });
+    schemaMap.keySet().forEach(InvoiceActionTypeEnum::checkRestrictParamNeeded);
     return schemaMap.keySet();
   }
 
-  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue) {
     return schemaMap.keySet().stream()
-        .filter(e -> (!e.isAvailableForHolderOnly() || authorisedUserIsHolder) &&
-            (e.getOperationPermissionOnlyList() == null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
+        .filter(e->e.isMatchesTheParamsValue(paramsValue))
         .collect(Collectors.toSet());
   }
 

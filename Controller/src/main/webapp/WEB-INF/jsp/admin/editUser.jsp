@@ -38,8 +38,10 @@
   <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/userSettings.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
+  <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
@@ -124,6 +126,7 @@
         <h5><b>
           ${user.nickname}, ${user.email}
       </div>
+      <div id="u_email" hidden>${user.email}</div>
       <%--контейнер для данных пользователей--%>
       <div class="tab-content">
         <%--форма редактирование пользователя--%>
@@ -292,6 +295,7 @@
                   </div>
                 </c:when>
               </c:choose>
+              <%@include file="../fragments/settings-center-2fa.jsp" %>
             </div>
           </div>
         </div>
@@ -860,6 +864,7 @@
 </div>
 <%@include file='order-modals.jsp' %>
 <%@include file='../fragments/modal/withdraw_info_modal.jsp' %>
+<%@include file='../fragments/modal/dialogRefill_info_modal.jsp' %>
 <%@include file='stop-order-modals.jsp' %>
 
 <%@include file='../fragments/footer.jsp' %>

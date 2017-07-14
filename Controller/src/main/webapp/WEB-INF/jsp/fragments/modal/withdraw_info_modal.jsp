@@ -30,10 +30,6 @@
                             <td id="info-commissionAmount"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.withdrawDetails.recipientBank"/></td>
-                            <td id="info-bankRecipient"></td>
-                        </tr>
-                        <tr>
                             <td><loc:message code="withdrawal.status"/></td>
                             <td id="info-status"></td>
                         </tr>
@@ -42,8 +38,16 @@
                             <td id="info-status-date"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="merchants.withdrawDetails.recipientBank"/></td>
+                            <td id="info-bankRecipient"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="merchants.withdrawDetails.recipientAccount"/></td>
                             <td id="info-wallet"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="merchants.withdrawDetails.destinationTag"/></td>
+                            <td id="info-destination-tag"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="merchants.withdrawDetails.recipientFullName"/></td>

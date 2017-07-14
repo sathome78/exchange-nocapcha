@@ -1,8 +1,8 @@
 package me.exrates.service;
 
 import me.exrates.model.PendingPayment;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
@@ -19,7 +19,7 @@ public interface BitcoinTransactionService {
   boolean existsPendingPaymentWithStatusAndAddress(InvoiceStatus beginStatus, String address);
   
   @Transactional
-  PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException;
+  RefillStatusEnum markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException;
   
   @Transactional
   void changeTransactionConfidenceForPendingPayment(

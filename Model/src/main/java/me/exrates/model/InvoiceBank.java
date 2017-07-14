@@ -13,7 +13,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @AllArgsConstructor
 @ToString
 public class InvoiceBank {
-
     private Integer id;
     @JsonInclude(NON_NULL)
     private Integer currencyId;
@@ -23,7 +22,4 @@ public class InvoiceBank {
     private String recipient;
     @JsonInclude(NON_NULL)
     private String bankDetails;
-
-
-
 }

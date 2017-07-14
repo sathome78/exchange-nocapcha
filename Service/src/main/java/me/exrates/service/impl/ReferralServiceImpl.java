@@ -6,7 +6,10 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefFilterData;
+import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.ReferralProfitDto;
+import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -42,14 +46,24 @@ public class ReferralServiceImpl implements ReferralService {
 
 
     private static final int decimalPlaces = 9;
-    private final ReferralLevelDao referralLevelDao;
-    private final ReferralUserGraphDao referralUserGraphDao;
-    private final ReferralTransactionDao referralTransactionDao;
-    private final WalletService walletService;
-    private final UserService userService;
-    private final Commission commission;
-    private final CompanyWalletService companyWalletService;
-    private final NotificationService notificationService;
+    @Autowired
+    private ReferralLevelDao referralLevelDao;
+    @Autowired
+    private ReferralUserGraphDao referralUserGraphDao;
+    @Autowired
+    private ReferralTransactionDao referralTransactionDao;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    CommissionService commissionService;
+
+    private Commission commission;
     /**
      * Maximum amount of percents
      */
@@ -62,23 +76,9 @@ public class ReferralServiceImpl implements ReferralService {
     @Value("${referral.url}")
     String referralUrl;
 
-    @Autowired
-    public ReferralServiceImpl(final ReferralLevelDao referralLevelDao,
-                               final ReferralUserGraphDao referralUserGraphDao,
-                               final ReferralTransactionDao referralTransactionDao,
-                               final WalletService walletService,
-                               final UserService userService,
-                               final CommissionService commissionService,
-                               final CompanyWalletService companyWalletService,
-                               final NotificationService notificationService) {
-        this.referralLevelDao = referralLevelDao;
-        this.referralUserGraphDao = referralUserGraphDao;
-        this.referralTransactionDao = referralTransactionDao;
-        this.walletService = walletService;
-        this.userService = userService;
+    @PostConstruct
+    public void init(){
         this.commission = commissionService.getDefaultCommission(REFERRAL);
-        this.companyWalletService = companyWalletService;
-        this.notificationService = notificationService;
     }
 
     /**

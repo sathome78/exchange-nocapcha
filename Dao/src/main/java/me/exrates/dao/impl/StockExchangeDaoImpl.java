@@ -4,7 +4,6 @@ import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.model.dto.StockExchangeRateDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

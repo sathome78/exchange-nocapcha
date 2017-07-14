@@ -4,15 +4,17 @@ import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static java.util.Collections.*;
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

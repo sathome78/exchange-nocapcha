@@ -33,6 +33,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
     <%----------%>
     <%--capcha--%>
     <c:if test="${captchaType==\"RECAPTCHA\"}">
@@ -58,84 +59,130 @@
     <div class="row">
         <div class="col-sm-4 login__container">
             <hr>
-            <h4 class=""><loc:message code="login.title"/></h4>
-            <hr>
-            <c:url value="/login" var="loginUrl"/>
-            <div class="clearfix">
-                <p class="login__error">${error}
-                    <br/>
-                    <c:if test="${not empty contactsUrl}">
-                        <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
-                    </c:if>
-                </p>
+                <div id="login_block" style="display: none">
+                <h4 class=""><loc:message code="login.title"/></h4>
+                <hr>
+                <c:url value="/login" var="loginUrl"/>
+                <div class="clearfix">
+                    <p class="login__error">${error}
+                        <br/>
+                        <c:if test="${not empty contactsUrl}">
+                            <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
+                        </c:if>
+                    </p>
 
 
-                <form action="${loginUrl}" method="post" class="clearfix">
-                    <div class="input-block-wrapper clearfix">
-                        <loc:message code="login.email" var="login"/>
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                ${login}
-                            </label>
+                    <form action="${loginUrl}" method="post" id="login_form" class="clearfix">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                        <div class="input-block-wrapper clearfix">
+                            <loc:message code="login.email" var="login"/>
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    ${login}
+                                </label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <input id="login__name" name="username" type="email"
+                                       autofocus
+                                       placeholder="${login}"
+                                       class="form-control input-block-wrapper__input"/>
+                            </div>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="login__name" name="username" type="email"
-                                   autofocus
-                                   placeholder="${login}"
-                                   class="form-control input-block-wrapper__input"/>
+                        <%--Пароль--%>
+                        <div class="input-block-wrapper clearfix">
+                            <loc:message code="login.password" var="password"/>
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    ${password}
+                                </label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <input id="login__password" name="password"
+                                       type="password"
+                                       placeholder="${password}"
+                                       class="form-control input-block-wrapper__input"/>
+                            </div>
                         </div>
-                    </div>
-                    <%--Пароль--%>
-                    <div class="input-block-wrapper clearfix">
-                        <loc:message code="login.password" var="password"/>
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                ${password}
-                            </label>
+                        <div>
+                            <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
+                                    code="dashboard.forgotPassword"/></a>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="login__password" name="password"
-                                   type="password"
-                                   placeholder="${password}"
-                                   class="form-control input-block-wrapper__input"/>
+                        <c:if test="${captchaType==\"RECAPTCHA\"}">
+                            <%--CAPTCHA GOOGLE--%>
+                            <div class="col-md-10 login__captcha-wrapper">
+                                <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                                     data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                    <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                                <br/>
+                            </div>
+                            <div class="col-md-10 input-block-wrapper__error-wrapper">
+                                <p class='cpch-error-message' style="color:red">${cpch}</p>
+                            </div>
+                        </c:if>
+                        <c:if test="${captchaType==\"BOTDETECT\"}">
+                            <%--CAPTCHA BotDetect--%>
+                            <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
+                                <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
+                                <input name="captchaCode" type="text" id="captchaCode"/>
+                                <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                            </div>
+                            <div class="col-md-10 input-block-wrapper__error-wrapper">
+                                <p class='cpch-error-message' style="color:red">${cpch}</p>
+                            </div>
+                        </c:if>
+                        <input type="hidden" name="captchaType" value="${captchaType}"/>
+                        <%----%>
+                        <div class="col-md-10 login__button-wrapper">
+                            <button class="login__button" type="submit"><loc:message
+                                    code="login.submit"/></button>
                         </div>
-                    </div>
-                    <div>
-                        <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
-                                code="dashboard.forgotPassword"/></a>
-                    </div>
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                    <c:if test="${captchaType==\"RECAPTCHA\"}">
-                        <%--CAPTCHA GOOGLE--%>
-                        <div class="col-md-10 login__captcha-wrapper">
-                            <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
-                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                    </form>
+                </div>
+                </div>
+
+
+                <%--PIN--%>
+                <div id="pin_block" style="display: none">
+                    <h4 class=""><loc:message code="message.pin_code.sent.toyou"/></h4>
+                    <hr>
+                    <c:url value="/login" var="loginUrl"/>
+                    <div class="clearfix">
+                        <p class="login__error">${error}
                             <br/>
-                        </div>
-                        <div class="col-md-10 input-block-wrapper__error-wrapper">
-                            <p class='cpch-error-message' style="color:red">${cpch}</p>
-                        </div>
-                    </c:if>
-                    <c:if test="${captchaType==\"BOTDETECT\"}">
-                        <%--CAPTCHA BotDetect--%>
-                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
-                            <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
-                            <input name="captchaCode" type="text" id="captchaCode"/>
-                            <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
-                        </div>
-                        <div class="col-md-10 input-block-wrapper__error-wrapper">
-                            <p class='cpch-error-message' style="color:red">${cpch}</p>
-                        </div>
-                    </c:if>
-                    <input type="hidden" name="captchaType" value="${captchaType}"/>
-                    <%----%>
-                    <div class="col-md-10 login__button-wrapper">
-                        <button class="login__button" type="submit"><loc:message
-                                code="login.submit"/></button>
+                            <c:if test="${not empty contactsUrl}">
+                                <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
+                            </c:if>
+                        </p>
+                        <form action="${loginUrl}" method="post" id="pin_code" >
+                            <div class="input-block-wrapper clearfix">
+
+                                <div class="input-block-wrapper clearfix" >
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                    <loc:message code="message.pin_code" var="pin"/>
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                        <label class="input-block-wrapper__label">
+                                            ${pin}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                        <input id="pin" name="l_pin"
+                                               type="text"
+                                               placeholder="${pin}"
+                                               class="form-control input-block-wrapper__input"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <a id="send_pin_again" style="cursor: pointer; margin-left: 14px;"><loc:message
+                                    code="login.pin.sendagain"/></a>
+                            <div id="send_pin_res" style="margin-left: 14px;"></div>
+                            <br>
+                            <div class="col-md-10 login__button-wrapper">
+                                <button class="login__button" id="send_pin" disabled><loc:message
+                                        code="login.submit"/></button>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </div>
+                </div>
         </div>
     </div>
 </main>

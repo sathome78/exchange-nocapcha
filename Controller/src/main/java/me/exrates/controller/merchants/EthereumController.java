@@ -1,16 +1,11 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,25 +14,22 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
 @RequestMapping("/merchants/ethereum/{merchantName}")
 public class EthereumController {
 
-    @Autowired
-    @Qualifier("ethereumServiceImpl")
-    EthereumCommonService ethereumService;
-
-    @Autowired
-    @Qualifier("ethereumClassicServiceImpl")
-    EthereumCommonService ethereumClassicService;
+//    @Autowired
+//    @Qualifier("ethereumServiceImpl")
+//    EthereumCommonService ethereumService;
+//
+//    @Autowired
+//    @Qualifier("ethereumClassicServiceImpl")
+//    EthereumCommonService ethereumClassicService;
 
     @Autowired
     MessageSource messageSource;
@@ -54,8 +46,7 @@ public class EthereumController {
                                                  final Principal principal,
                                                  final Locale locale)
     {
-        System.out.println(merchantName);
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
+        /*if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
 
@@ -90,6 +81,7 @@ public class EthereumController {
             error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.error(e);
             return new ResponseEntity<>(error, NOT_FOUND);
-        }
+        }*/
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

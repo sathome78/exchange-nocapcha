@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 

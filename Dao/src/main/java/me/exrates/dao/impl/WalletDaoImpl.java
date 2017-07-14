@@ -8,7 +8,10 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -809,7 +812,7 @@ public class WalletDaoImpl implements WalletDao {
             "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
             "      WHERE  TX.PROVIDED = 1 " +
             "      AND TX.status_id=1         " +
-            "      AND TX.source_type IN ('INVOICE', 'BTC_INVOICE', 'MERCHANT')        " +
+            "      AND TX.source_type IN ('REFILL')        " +
             "      AND TX.OPERATION_TYPE_ID = 1 " +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +
@@ -822,7 +825,7 @@ public class WalletDaoImpl implements WalletDao {
             "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
             "      WHERE  TX.PROVIDED = 1 " +
             "      AND TX.status_id=1         " +
-            "      AND TX.source_type IN ('WITHDRAW', 'MERCHANT')        " +
+            "      AND TX.source_type IN ('WITHDRAW')        " +
             "      AND TX.OPERATION_TYPE_ID = 2 " +
             "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
             "      ) " +

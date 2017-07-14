@@ -96,7 +96,7 @@
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
                     <button id="delete-order-info__search" class="delete-order-info__button"
-                            onclick="makeReport()"><loc:message
+                            onclick="makeReportWithPeriodDialog()"><loc:message
                             code="wallets.download"/></button>
                     <button class="delete-order-info__button" data-dismiss="modal"
                             ><loc:message
@@ -105,5 +105,6 @@
             </div>
         </div>
     </div>
+    <%@include file="loading_modal.jsp" %>
 </div>
 

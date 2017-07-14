@@ -1,11 +1,11 @@
 package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
-import me.exrates.controller.exception.*;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
-import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
@@ -23,6 +23,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -32,13 +35,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -250,6 +252,8 @@ public class MainController {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+                } else if (exceptionClass.equals("IncorrectPinException")) {
+                    model.addObject("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else {
                     model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
@@ -260,6 +264,20 @@ public class MainController {
 
         return model;
 
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
+    public ResponseEntity<String> sendPinAgain(HttpServletRequest request, HttpServletResponse response) {
+        response.setCharacterEncoding("UTF-8");
+        Object auth = request.getSession().getAttribute("authentication");
+        if (auth == null) {;
+            return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
+        }
+        Authentication authentication = (Authentication)auth;
+        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(messageSource.getMessage("message.2fa.pinsended", null, localeResolver.resolveLocale(request)));
     }
 
 

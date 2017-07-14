@@ -135,7 +135,7 @@ function LeftSiderClass() {
         that.getStatisticsForMyWallets();
         $('#refferal-generate').on('click', generateReferral);
         $('#refferal-copy').on('click', function () {
-            selectAndCopyText($('#refferal-reference')[0]);
+            selectAndCopyText($('#refferal-reference'));
         });
         $('#pair-filter').on('keyup', function (e) {
             setPairFilter();
@@ -153,17 +153,6 @@ function LeftSiderClass() {
                 $(this).parent().addClass('hidden');
             }
         })
-    }
-
-    function selectAndCopyText(e) {
-        var range = document.createRange();
-        range.selectNodeContents(e);
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        document.execCommand("copy");
-        selection.removeAllRanges();
-        blink_green($('#refferal-reference'));
     }
 
     function generateReferral() {

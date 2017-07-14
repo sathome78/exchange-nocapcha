@@ -49,7 +49,7 @@ $(function () {
             "columns": [
                 {
                     "data": "datetime",
-                    "name":"TRANSACTION.datetime",
+                    "name": "TRANSACTION.datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return data.split(' ')[0];
@@ -69,20 +69,20 @@ $(function () {
                 },
                 {
                     "data": "operationType",
-                    "name":"TRANSACTIOIN.operation_type_id"
+                    "name": "TRANSACTIOIN.operation_type_id"
                 },
                 {
                     "data": "status",
-                    "name":"TRANSACTION.provided"
+                    "name": "TRANSACTION.provided"
                 },
                 {
                     "data": "currency",
-                    "name":"TRANSACTION.currency_id"
+                    "name": "TRANSACTION.currency_id"
 
                 },
                 {
                     "data": "amount",
-                    "name":"TRANSACTION.amount",
+                    "name": "TRANSACTION.amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return numeral(data).format('0.00[000000]');
@@ -92,7 +92,7 @@ $(function () {
                 },
                 {
                     "data": "commissionAmount",
-                    "name":"TRANSACTION.commission_amount",
+                    "name": "TRANSACTION.commission_amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return numeral(data).format('0.00[000000]');
@@ -102,7 +102,7 @@ $(function () {
                 },
                 {
                     "data": "merchant.description",
-                    "name":"MERCHANT.description"
+                    "name": "MERCHANT.description"
                 },
                 {
                     "data": "sourceId",
@@ -133,6 +133,8 @@ $(function () {
                 getOrderDetailedInfo(sourceId, false);
             } else if (sourceType === "WITHDRAW") {
                 getWithdrawDetailedInfo(sourceId);
+            } else if (sourceType === "REFILL") {
+                getRefillDetailedInfo(sourceId);
             } else if (sourceType === "STOP_ORDER") {
                 getStopOrderDetailedInfo(null, sourceId, false)
             }
@@ -146,7 +148,7 @@ $(function () {
                     $("#info-date").html(data.creationDate);
                     $("#info-currency").html(data.currencyName);
                     $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
-                    $("#info-userFrom").html("<a href='mailto:" +  data.userFromEmail + "'>" + data.userFromEmail + "</a>");
+                    $("#info-userFrom").html("<a href='mailto:" + data.userFromEmail + "'>" + data.userFromEmail + "</a>");
                     $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
                     $("#info-commissionAmount").html(numeral(data.comission).format('0.00[000000]'));
                     $('#user_transfer_info_modal').modal();
@@ -170,8 +172,41 @@ $(function () {
                     $modal.find('#info-status').text(data.status);
                     $modal.find('#info-status-date').text(data.statusModificationDate);
                     $modal.find('#info-wallet').text(data.wallet);
+                    $modal.find('#info-destination-tag').text(data.destinationTag);
                     $modal.find('#info-userFullName').text(data.userFullName);
                     $modal.find('#info-remark').find('textarea').html(data.remark);
+                    $modal.modal();
+                }
+            });
+        }
+
+        function getRefillDetailedInfo(id) {
+            $.ajax({
+                url: '/2a8fy7b07dxe44/refill/info?id=' + id,
+                type: 'GET',
+                success: function (rowData) {
+                    var $modal = $('#refill-info-modal');
+                    $modal.find('#info-currency').text(rowData.currencyName);
+                    $modal.find('#info-amount').text(rowData.amount);
+                    $modal.find('#info-receivedAmount').text(rowData.receivedAmount);
+                    $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
+                    $modal.find('#info-enrolledAmount').text(rowData.enrolledAmount);
+                    $modal.find('#info-status').text(rowData.status);
+                    $modal.find('#info-status-date').text(rowData.statusModificationDate);
+                    $modal.find('#info-confirmations').text(rowData.confirmations);
+                    var recipientBankName = rowData.recipientBankName ? rowData.recipientBankName : '';
+                    var recipientBankAccount = rowData.recipientBankAccount ? '</br>'+rowData.recipientBankAccount : '';
+                    var recipientBankRecipient = rowData.recipientBankRecipient ? '</br>'+rowData.recipientBankRecipient : '';
+                    $modal.find('#info-bankRecipient').html(recipientBankName + recipientBankAccount + recipientBankRecipient);
+                    var payerBankCode = rowData.payerBankCode ? rowData.payerBankCode : '';
+                    var payerBankName = rowData.payerBankName ? '</br>'+rowData.payerBankName : '';
+                    var payerBankAccount = rowData.payerBankAccount ? '</br>'+rowData.payerBankAccount : '';
+                    var userFullName = rowData.userFullName ? '</br>'+rowData.userFullName : '';
+                    var payerDataString = payerBankCode+payerBankName+payerBankAccount+userFullName;
+                    $modal.find('#info-payer-data').html(payerDataString);
+                    $modal.find('#info-address').text(rowData.address);
+                    $modal.find('#info-merchant-transaction-id').text(rowData.merchantTransactionId);
+                    $modal.find('#info-remark').find('textarea').html(rowData.remark);
                     $modal.modal();
                 }
             });
@@ -191,10 +226,10 @@ $(function () {
 
     });
 
-    $('#download_trans_history').click(function() {
+    $('#download_trans_history').click(function () {
         var formParams = $('#transaction-search-form').serialize();
-        var url = '/2a8fy7b07dxe44/downloadTransactions?id=' + $("#user-id").val() + '&' + formParams;
-        window.open(url);
+        var params = "id="+$("#user-id").val() + '&' + formParams;
+        uploadUserTransactionsReport(params);
     });
 
     function reloadTable() {

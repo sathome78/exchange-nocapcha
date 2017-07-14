@@ -1,5 +1,6 @@
 package me.exrates.model.enums;
 
+import lombok.Getter;
 import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeIdException;
 import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException;
 import org.springframework.context.MessageSource;
@@ -10,17 +11,16 @@ import java.util.Locale;
 /**
  * Created by Valk on 23.05.2016.
  */
+@Getter
 public enum TransactionSourceType {
   ORDER(1),
-  MERCHANT(2),
   REFERRAL(3),
   ACCRUAL(4),
   MANUAL(5),
   USER_TRANSFER(6),
-  INVOICE(7),
-  BTC_INVOICE(8),
   WITHDRAW(9),
-  STOP_ORDER(10);
+  STOP_ORDER(10),
+  REFILL(11);
 
   private final int code;
 

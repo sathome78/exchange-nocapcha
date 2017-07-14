@@ -2,7 +2,6 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 

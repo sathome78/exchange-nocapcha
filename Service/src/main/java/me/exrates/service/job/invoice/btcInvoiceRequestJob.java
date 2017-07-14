@@ -29,7 +29,8 @@ public class btcInvoiceRequestJob {
   private void invoiceExpiredClean() throws Exception {
     try {
       if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {
-        Integer expireCount = bitcoinService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
+// TODO REFILL
+// Integer expireCount = bitcoinService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
       }
     } catch (Exception e){
       log.error(ExceptionUtils.getStackTrace(e));

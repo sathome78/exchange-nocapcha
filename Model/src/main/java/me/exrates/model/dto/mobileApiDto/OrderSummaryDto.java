@@ -2,10 +2,8 @@ package me.exrates.model.dto.mobileApiDto;
 
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
-import java.util.Locale;
 
 /**
  * Created by Valk

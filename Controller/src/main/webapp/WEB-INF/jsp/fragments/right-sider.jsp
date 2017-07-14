@@ -3,7 +3,7 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%----%>
-<script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
+<%--<script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>--%>
 
 <%----%>
 <div id="right-sider" class="cols-md-2">
@@ -11,6 +11,16 @@
             <div class="current-time">
                 <span id="current-datetime"></span>
             </div>
+
+        <div id="notifyBlock">
+            <c:if test="${alwaysNotify2fa}">
+                <h4 class="h4_green" style="color: red"><loc:message code="message.attention"/></h4>
+                <hr class="under_h4">
+                <p><loc:message code="message.2fa.text1"/></p>
+                <button class="send_button accept_2fa"><loc:message code="message.2fa.aggree.toSettings"/></button>
+
+            </c:if>
+        </div>
     <div>
         <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
 
@@ -64,5 +74,12 @@
                     z-index: 99999;'/>
         <%@include file="right-sider-news-list.jsp" %>
     </div>
+    <div style="text-align: center; height: 1000px; vertical-align: top">
+        <p></p>
+        <a href="/client/img/cert.jpg">
+            <img src="/client/img/cert.gif" style="width: 185px; height: 185px; "/>
+        </a>
+    </div>
+
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>

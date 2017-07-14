@@ -24,14 +24,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static me.exrates.model.enums.AdminAuthority.MANAGE_ACCESS;
-import static me.exrates.model.enums.AdminAuthority.PROCESS_INVOICE;
-import static me.exrates.model.enums.AdminAuthority.PROCESS_WITHDRAW;
+import static me.exrates.model.enums.AdminAuthority.*;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 
@@ -232,13 +228,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
         .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
-        .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers(POST, "/login/new_pin_send").anonymous()
+            .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name())
         /*user withdraw action ...*/
         .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/
+        /*user refill action ...*/
+        .antMatchers(POST, "/refill/request/**").authenticated()
+        /*... user refill action*/
         .and()
         .exceptionHandling()
         .accessDeniedHandler(accessDeniedHandler());
