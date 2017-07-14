@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
