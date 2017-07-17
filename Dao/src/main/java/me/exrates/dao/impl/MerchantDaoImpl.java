@@ -167,13 +167,15 @@ public class MerchantDaoImpl implements MerchantDao {
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.service_bean_name, " +
         "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission,  " +
         "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
-        "                 LIMIT_REFILL.min_sum AS min_refill_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
+        "                 LIMIT_REFILL.min_sum AS min_refill_sum, LIMIT_TRANSFER.min_sum AS min_transfer_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
         "                FROM MERCHANT " +
         "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
         "                JOIN CURRENCY_LIMIT AS LIMIT_WITHDRAW ON MERCHANT_CURRENCY.currency_id = LIMIT_WITHDRAW.currency_id " +
         "                                  AND LIMIT_WITHDRAW.operation_type_id = 2 AND LIMIT_WITHDRAW.user_role_id = :user_role_id " +
         "                JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
-        "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " + whereClause;
+        "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " +
+            "             JOIN CURRENCY_LIMIT AS LIMIT_TRANSFER ON MERCHANT_CURRENCY.currency_id = LIMIT_TRANSFER.currency_id " +
+            "                                  AND LIMIT_TRANSFER.operation_type_id = 9 AND LIMIT_TRANSFER.user_role_id = :user_role_id " + whereClause;
     Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
       put("currency_id", currencyId);
       put("user_role_id", userRole.getRole());
