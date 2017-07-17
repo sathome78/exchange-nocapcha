@@ -46,11 +46,15 @@
                 <div class="delete-order-info__item full-width" id="orderSource">
                     <loc:message code="orderinfo.orderSource"/><div></div><br/></div>
                 <div class="delete-order-info__item full-width" id="orderChildren">
-                    <loc:message code="orderinfo.orderChildren"/><div></div><br/></div>
-
-
-
-
+                    <loc:message code="orderinfo.orderChildren"/>
+                    <div>
+                    </div>
+                    <br/>
+                </div>
+                <br/>
+                <div class="delete-order-info__item" id="notification">
+                   <span style="color: red"></span></div>
+                <br/>
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
@@ -106,6 +110,10 @@
                     <table id="withdrawInfoTable" class="table">
                         <tbody>
                         <tr>
+                            <td><loc:message code="myorders.type"/></td>
+                            <td id="info-merchantType"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="transaction.currency"/></td>
                             <td id="info-currency"></td>
                         </tr>
@@ -122,12 +130,24 @@
                             <td id="info-date"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="admin.status"/></td>
+                            <td id="info-status"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="orderinfo.changed"/></td>
+                            <td id="info-date-modif"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="message.sender"/></td>
                             <td id="info-userFrom"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="message.recipient"/></td>
                             <td id="info-userTo"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="transaction.hash"/></td>
+                            <td id="info-hash"></td>
                         </tr>
                         </tbody>
                     </table>

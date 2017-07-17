@@ -274,12 +274,10 @@ public final class WalletServiceImpl implements WalletService {
     }
   }
 
-  /**@param checkOnly = true - used to check transfer params but not perform transfer
-   * */
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                                    Locale locale, boolean checkOnly) {
+  public TransferDto transferCostsToUser(Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
+                                         Locale locale, int sourceId) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
@@ -291,33 +289,66 @@ public final class WalletServiceImpl implements WalletService {
     if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
     }
-    Integer userId = userService.getIdByNickname(toUserNickname);
-    if (userId == 0) {
-      throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
-    }
-
-    Wallet toUserWallet = walletDao.findByUserAndCurrency(userId, currencyId);
+    Wallet toUserWallet = walletDao.findByUserAndCurrency(toUserId, currencyId);
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-    String result = "";
-    if (!checkOnly) {/*Don't remove it !!!! This is need for only check transfer data without payment proceed*/
-      UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
-              currencyId, amount, commissionAmount);
       changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
+              TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
       changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
-      String currencyName = currencyService.getCurrencyName(currencyId);
-      String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
-      result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
-              locale);
-      notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-              "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
-      notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-              "transfer.received", new Object[]{notyAmount, currencyName});
+              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, sourceId);
+    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+    return TransferDto.builder()
+            .commission(commission)
+            .comissionAmount(commissionAmount)
+            .notyAmount(notyAmount)
+            .walletUserFrom(fromUserWallet)
+            .walletUserTo(toUserWallet)
+            .initialAmount(amount)
+            .currencyId(currencyId)
+            .userFromId(fromUserWallet.getUser().getId())
+            .userToId(toUserId)
+            .build();
+  }
+
+
+
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
+                                    Locale locale, int sourceId) {
+    Integer toUserId = userService.getIdByNickname(toUserNickname);
+    if (toUserId == 0) {
+      throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
     }
+    TransferDto dto = transferCostsToUser(fromUserWalletId, toUserId, amount, locale, sourceId);
+    String currencyName = currencyService.getCurrencyName(dto.getCurrencyId());
+    String result = messageSource.getMessage("transfer.successful", new Object[]{dto.getNotyAmount(), currencyName, toUserNickname}, locale);
+    sendNotificationsAboutTrnasfer(userId, dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);
     return result;
+  }
+
+
+  private void sendNotificationsAboutTrnasfer(int fromUserId, String notyAmount, String currencyName, int toUserId, String toNickName) {
+    log.debug("from {} to {}", fromUserId, toUserId);
+    notificationService.notifyUser(fromUserId, NotificationEvent.IN_OUT, "wallets.transferTitle",
+            "transfer.successful", new Object[]{notyAmount, currencyName, toNickName});
+    notificationService.notifyUser(toUserId, NotificationEvent.IN_OUT, "wallets.transferTitle",
+            "transfer.received", new Object[]{notyAmount, currencyName});
+  }
+
+
+  @Transactional(rollbackFor = Exception.class)
+  public void performTransferCostsToUser(Wallet fromUserWallet, Wallet toUserWallet,
+                                                  BigDecimal initialAmount, BigDecimal totalAmount, BigDecimal commissionAmount,
+                                         Integer sourceId, TransactionSourceType sourceType, Locale locale) {
+    if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
+      throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
+    }
+    if (Integer.compare(fromUserWallet.getCurrencyId(), toUserWallet.getCurrencyId()) !=0) {
+      throw new BalanceChangeException("ncorrect wallets");
+    }
+
   }
 
   @Override

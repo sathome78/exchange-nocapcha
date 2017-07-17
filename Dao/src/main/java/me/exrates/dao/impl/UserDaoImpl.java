@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
+import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.*;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
@@ -283,7 +284,26 @@ public class UserDaoImpl implements UserDao {
         put("email", email);
       }
     };
-    return namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper());
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper());
+    } catch (EmptyResultDataAccessException e) {
+      throw new UserNotFoundException(String.format("email: %s", email));
+    }
+  }
+
+  @Override
+  public User findByNickname(String nickname) {
+    String sql = SELECT_USER + "WHERE USER.nickname = :nickname";
+    final Map<String, String> params = new HashMap<String, String>() {
+      {
+        put("nickname", nickname);
+      }
+    };
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, params, getUserRowMapper());
+    } catch (EmptyResultDataAccessException e) {
+      throw new UserNotFoundException(String.format("nickname: %s", nickname));
+    }
   }
 
   public List<User> getAllUsers() {

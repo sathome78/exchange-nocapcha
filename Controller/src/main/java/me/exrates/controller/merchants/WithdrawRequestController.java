@@ -8,7 +8,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
-import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;

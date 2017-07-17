@@ -23,13 +23,17 @@ public class MerchantCurrencyApiDto {
     private String name;
     private BigDecimal minInputSum;
     private BigDecimal minOutputSum;
+    private BigDecimal minTransferSum;
     private BigDecimal inputCommission;
     private BigDecimal outputCommission;
+    private BigDecimal transferCommission;
     private BigDecimal minFixedCommission;
     @JsonProperty(value = "withdrawBlocked")
     private Boolean isWithdrawBlocked;
     @JsonProperty(value = "refillBlocked")
     private Boolean isRefillBlocked;
+    @JsonProperty(value = "transferBlocked")
+    private Boolean isTransferBlocked;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String additionalFieldName;
     @JsonInclude(JsonInclude.Include.NON_NULL)

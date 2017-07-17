@@ -1,9 +1,6 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.Currency;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
@@ -26,10 +23,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
-import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
-import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
+import static me.exrates.model.enums.OperationType.*;
+import static me.exrates.model.enums.UserCommentTopicEnum.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -51,13 +46,18 @@ public class CommonMerchantsController {
   private UserService userService;
 
   @Autowired
-  private MessageSource messageSource;
+  private CommissionService commissionService;
 
   @Autowired
   WithdrawService withdrawService;
 
   @Autowired
   RefillService refillService;
+
+  @Autowired
+  TransferService transferService;
+  @Autowired
+  private MessageSource messageSource;
 
   private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -66,18 +66,19 @@ public class CommonMerchantsController {
       @RequestParam("currency") String currencyName,
       Principal principal) {
     try {
+      OperationType operationType = INPUT;
       ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
       Currency currency = currencyService.findByName(currencyName);
       modelAndView.addObject("currency", currency);
       Payment payment = new Payment();
-      payment.setOperationType(INPUT);
+      payment.setOperationType(operationType);
       modelAndView.addObject("payment", payment);
-      BigDecimal minRefillSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), INPUT, currency.getId());
+      BigDecimal minRefillSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
       modelAndView.addObject("minRefillSum", minRefillSum);
       Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForRefill();
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
-      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
+      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, principal.getName());
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
@@ -87,7 +88,7 @@ public class CommonMerchantsController {
       return modelAndView;
     } catch (Exception e) {
       ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
-      modelAndView.addObject("errorNoty", e.getClass().getSimpleName()+": "+e.getMessage());
+      modelAndView.addObject("errorNoty", e.getClass().getSimpleName() + ": " + e.getMessage());
       return modelAndView;
     }
   }
@@ -97,6 +98,7 @@ public class CommonMerchantsController {
       @RequestParam("currency") String currencyName,
       Principal principal) {
     try {
+      OperationType operationType = OUTPUT;
       ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
       Currency currency = currencyService.findByName(currencyName);
       modelAndView.addObject("currency", currency);
@@ -104,14 +106,14 @@ public class CommonMerchantsController {
       modelAndView.addObject("wallet", wallet);
       modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
       Payment payment = new Payment();
-      payment.setOperationType(OUTPUT);
+      payment.setOperationType(operationType);
       modelAndView.addObject("payment", payment);
-      BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), OUTPUT, currency.getId());
+      BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
       modelAndView.addObject("minWithdrawSum", minWithdrawSum);
       Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
-      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.OUTPUT);
+      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       withdrawService.retrieveAddressAndAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
@@ -119,7 +121,42 @@ public class CommonMerchantsController {
       return modelAndView;
     } catch (Exception e) {
       ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
-      modelAndView.addObject("errorNoty", e.getClass().getSimpleName()+": "+e.getMessage());
+      modelAndView.addObject("errorNoty", e.getClass().getSimpleName() + ": " + e.getMessage());
+      return modelAndView;
+    }
+  }
+
+  @RequestMapping(value = "/merchants/transfer", method = GET)
+  public ModelAndView transfer(
+      @RequestParam("currency") String currencyName,
+      Principal principal) {
+    try {
+      OperationType operationType = USER_TRANSFER;
+      ModelAndView modelAndView = new ModelAndView("globalPages/transfer");
+      Currency currency = currencyService.findByName(currencyName);
+      modelAndView.addObject("currency", currency);
+      Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
+      modelAndView.addObject("wallet", wallet);
+      modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
+      Payment payment = new Payment();
+      payment.setOperationType(operationType);
+      modelAndView.addObject("payment", payment);
+      BigDecimal minTransferSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
+      modelAndView.addObject("minTransferSum", minTransferSum);
+      Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
+      modelAndView.addObject("scaleForCurrency", scaleForCurrency);
+      List<Integer> currenciesId = Collections.singletonList(currency.getId());
+      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+      transferService.retrieveAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
+      modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
+      List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
+      modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);
+      List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), TRANSFER_CURRENCY_WARNING);
+      modelAndView.addObject("warningCodeList", warningCodeList);
+      return modelAndView;
+    } catch (Exception e) {
+      ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
+      modelAndView.addObject("errorNoty", e.getClass().getSimpleName() + ": " + e.getMessage());
       return modelAndView;
     }
   }

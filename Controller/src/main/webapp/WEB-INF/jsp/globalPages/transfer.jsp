@@ -36,7 +36,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 
     <script type="text/javascript" src="<c:url value="/client/js/submits/finPassCheck.js"/>"></script>
-    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/inputOutput/transferCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/valueInputControl.js"/>"></script>
     <%----%>
@@ -73,7 +73,7 @@
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
-            <%@include file="../fragments/transfer-center.jsp" %>
+            <%@include file="../fragments/merchantsTransfer-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>

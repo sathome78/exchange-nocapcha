@@ -4,6 +4,8 @@ import com.yandex.money.api.methods.RequestPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.Optional;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-public interface YandexMoneyService extends IMerchantService {
+public interface YandexMoneyService extends IRefillable, IWithdrawable {
 
     List<String> getAllTokens();
 
@@ -63,6 +65,11 @@ public interface YandexMoneyService extends IMerchantService {
   default Boolean additionalTagForWithdrawAddressIsUsed() {
     return false;
   }
+
+    @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return false;
+    }
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {

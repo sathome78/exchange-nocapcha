@@ -18,6 +18,7 @@ public class Payment {
     private double sum;
     private String destination;
     private String destinationTag;
+    private String recipient;
     private OperationType operationType;
 
     public Payment(OperationType operationType) {

@@ -26,6 +26,5 @@ public class OrderBasicInfoDto {
     private String orderCreatorEmail;
     private String status;
     private Integer statusId;
-
-
+    private String role;
 }

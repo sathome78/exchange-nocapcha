@@ -28,6 +28,9 @@ public enum InvoiceActionTypeEnum {
   REVOKE {{
     getProperty().setActionTypeButton(REVOKE_BUTTON);
   }},
+  REVOKE_ADMIN {{
+    getProperty().setActionTypeButton(REVOKE_ADMIN_BUTTON);
+  }},
   EXPIRE,
   BCH_EXAMINE,
   ACCEPT_MANUAL {{
@@ -86,6 +89,14 @@ public enum InvoiceActionTypeEnum {
   REQUEST_INNER_TRANSFER,
   DECLINE_MERCHANT,
   FINALIZE_POST {{
+    getProperty().setLeadsToSuccessFinalState(true);
+  }},
+  POSTPONE{{
+    getProperty().setActionTypeButton(REVOKE_BUTTON);
+  }},
+  POST,
+  PRESENT_VOUCHER {{
+    getProperty().setActionTypeButton(SHOW_CODE_BUTTON);
     getProperty().setLeadsToSuccessFinalState(true);
   }};
 

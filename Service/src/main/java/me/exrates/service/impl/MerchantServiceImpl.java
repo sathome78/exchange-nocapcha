@@ -17,6 +17,8 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
@@ -166,10 +168,15 @@ public class MerchantServiceImpl implements MerchantService {
     result.forEach(item -> {
       try {
         IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
-        if (merchantService.additionalTagForWithdrawAddressIsUsed()) {
-          item.setAdditionalFieldName(merchantService.additionalFieldName());
+        if (merchantService instanceof IWithdrawable) {
+          if (((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed()) {
+            item.setAdditionalFieldName(((IWithdrawable) merchantService).additionalWithdrawFieldName());
+          }
+        } else if (merchantService instanceof IRefillable) {
+          if (((IRefillable) merchantService).additionalFieldForRefillIsUsed()) {
+            item.setAdditionalFieldName(((IRefillable) merchantService).additionalRefillFieldName());
+          }
         }
-        item.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       } catch (MerchantServiceNotFoundException | MerchantServiceBeanNameNotDefinedException e) {
         LOG.warn(e);
       }
@@ -301,6 +308,7 @@ public class MerchantServiceImpl implements MerchantService {
     MerchantCurrencyScaleDto result = merchantDao.findMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId);
     Optional.ofNullable(result.getScaleForRefill()).orElseThrow(() -> new ScaleForAmountNotSetException("currency: " + currencyId));
     Optional.ofNullable(result.getScaleForWithdraw()).orElseThrow(() -> new ScaleForAmountNotSetException("currency: " + currencyId));
+    Optional.ofNullable(result.getScaleForTransfer()).orElseThrow(() -> new ScaleForAmountNotSetException("currency: " + currencyId));
     return result;
   }
 

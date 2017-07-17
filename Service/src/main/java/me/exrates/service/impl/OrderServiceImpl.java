@@ -96,9 +96,10 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   StopOrderService stopOrderService;
-
   @Autowired
   RatesHolder ratesHolder;
+  @Autowired
+  private UserRoleService userRoleService;
 
   @Transactional
   @Override
@@ -863,6 +864,29 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
     return orderDao.getOrderInfo(orderId, locale);
+  }
+
+  @Transactional
+  @Override
+  public AdminOrderInfoDto getAdminOrderInfo(int orderId, Locale locale) {
+    AdminOrderInfoDto dto = new AdminOrderInfoDto(this.getOrderInfo(orderId, locale));
+    setIsOrderAcceptableAndNotifications(dto, locale);
+    return dto;
+  }
+
+  private void setIsOrderAcceptableAndNotifications(AdminOrderInfoDto dto, Locale locale) {
+    UserRole orderCreatorRole = userService.getUserRoleFromDB(dto.getOrderInfo().getOrderCreatorEmail());
+    UserRole userRole = userService.getUserRoleFromSecurityContext();
+    if (orderCreatorRole.getRole() == UserRole.TRADER.getRole() &&
+            userRoleService.getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum.ADMIN).contains(userRole.getRole())) {
+        dto.setNotification(messageSource.getMessage("admin.orders.accept.warning", null, locale));
+        dto.setAcceptable(true);
+    } else if (userRole.getRole() == UserRole.TRADER.getRole() && orderCreatorRole.getRole() != UserRole.TRADER.getRole()) {
+      dto.setAcceptable(false);
+      dto.setNotification(messageSource.getMessage("admin.orders.cantaccept", null, locale));
+    } else {
+      dto.setAcceptable(true);
+    }
   }
 
   @Transactional(rollbackFor = {Exception.class})

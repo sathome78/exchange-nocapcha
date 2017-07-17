@@ -1,8 +1,13 @@
 <%--
   User: Valk
 --%>
+
+<script type="text/javascript" src="<c:url value="/client/js/inputOutput/voucher_reedem.js"/>"></script>
+
 <div id="balance-page" data-menuitemid="menu-mywallets" class="balance center-frame-container hidden">
     <h4 class="h4_green"><loc:message code="mywallets.title"/></h4>
+    <a class="btn btn-default pull-right" id="voucher_reedem_dialog_button"><loc:message code="voucher.enter.code"/></a>
+
     <table id="balance-table" class="balance__table">
         <tbody>
         <tr>
@@ -48,9 +53,9 @@
                         '<button data-walletid='+id+' class="wallet-mystatement-button table-button-block__button btn btn-primary" type="submit">${historyButton}</button>'
                         @>
                     </form>
-                    <form class="table-button-block__form" action="<c:url value="/transfer"/>" target="_blank">
+                    <form class="table-button-block__form" action="<c:url value="/merchants/transfer"/>" target="_blank">
                         <loc:message code="mywallets.transfer" var="transferButton"/>
-                        <input type="text" hidden value=<@=currencyName@> name="currencyName" >
+                        <input type="text" hidden value=<@=currencyName@> name="currency" >
                         <button class="table-button-block__button btn btn-info" type="submit">${transferButton}</button>
                     </form>
                 </td>
@@ -59,6 +64,7 @@
         </tbody>
     </table>
 </div>
+<%@include file="../fragments/modal/voucher_code_modal.jsp" %>
 
 
 

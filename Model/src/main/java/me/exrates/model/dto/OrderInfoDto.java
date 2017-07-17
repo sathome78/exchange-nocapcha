@@ -35,7 +35,5 @@ public class OrderInfoDto {
     private String companyCommission;
     private Integer source;
     private List<Integer> children;
-
-
 };
 

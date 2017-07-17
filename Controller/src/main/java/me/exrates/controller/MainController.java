@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -237,8 +238,11 @@ public class MainController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ModelAndView login(HttpSession httpSession,
+    public ModelAndView login(HttpSession httpSession, Principal principal,
                               @RequestParam(value = "error", required = false) String error, HttpServletRequest request) {
+        if (principal != null) {
+            return new ModelAndView(new RedirectView("/dashboard"));
+        }
         ModelAndView model = new ModelAndView();
         model.addObject("captchaType", CAPTCHA_TYPE);
         if (error != null) {
@@ -252,7 +256,10 @@ public class MainController {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+                }   else if (exceptionClass.equals("PinCodeCheckNeedException")) {
+                    model.addObject("pinNeed", "");
                 } else if (exceptionClass.equals("IncorrectPinException")) {
+                    model.addObject("pinNeed", "");
                     model.addObject("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else {
                     model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));

@@ -29,9 +29,9 @@ const ERROR_NOTY_TYPE = {
 
 $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
-            if (jqXHR.status != 419) {
+            if (jqXHR.status > 299) {
                 failNoty(jqXHR);
-            } else {
+            } else if (jqXHR.status == 419) {
                 /*session end*/
                 console.log(jqXHR);
                 var resp = JSON.parse(jqXHR.responseText);

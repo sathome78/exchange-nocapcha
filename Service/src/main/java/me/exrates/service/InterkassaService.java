@@ -1,8 +1,9 @@
 package me.exrates.service;
 
-import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
-public interface InterkassaService extends IMerchantService {
+public interface InterkassaService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
@@ -31,6 +32,11 @@ public interface InterkassaService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
     return false;
   }
 }

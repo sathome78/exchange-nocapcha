@@ -123,6 +123,8 @@ public class MerchantDaoImpl implements MerchantDao {
       blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";
     } else if (operationType == OperationType.OUTPUT) {
       blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
+    } else if (operationType == OperationType.USER_TRANSFER) {
+      blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
     }
     final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
         " MERCHANT_CURRENCY.min_sum, " +
@@ -163,14 +165,14 @@ public class MerchantDaoImpl implements MerchantDao {
     String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
 
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.service_bean_name, " +
-        "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
-        "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
+        "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission,  " +
+        "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
         "                 LIMIT_REFILL.min_sum AS min_refill_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
         "                FROM MERCHANT " +
         "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
         "                JOIN CURRENCY_LIMIT AS LIMIT_WITHDRAW ON MERCHANT_CURRENCY.currency_id = LIMIT_WITHDRAW.currency_id " +
         "                                  AND LIMIT_WITHDRAW.operation_type_id = 2 AND LIMIT_WITHDRAW.user_role_id = :user_role_id " +
-        "                  JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
+        "                JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
         "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " + whereClause;
     Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
       put("currency_id", currencyId);
@@ -185,10 +187,13 @@ public class MerchantDaoImpl implements MerchantDao {
         merchantCurrencyApiDto.setName(resultSet.getString("name"));
         merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_refill_sum"));
         merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
+        merchantCurrencyApiDto.setMinTransferSum(resultSet.getBigDecimal("min_transfer_sum"));
         merchantCurrencyApiDto.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
         merchantCurrencyApiDto.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+        merchantCurrencyApiDto.setTransferCommission(resultSet.getBigDecimal("merchant_transfer_commission"));
         merchantCurrencyApiDto.setIsWithdrawBlocked(resultSet.getBoolean("withdraw_block"));
         merchantCurrencyApiDto.setIsRefillBlocked(resultSet.getBoolean("refill_block"));
+        merchantCurrencyApiDto.setIsTransferBlocked(resultSet.getBoolean("transfer_block"));
         merchantCurrencyApiDto.setMinFixedCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
         final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
             " AND currency_id = :currency_id;";
@@ -207,8 +212,9 @@ public class MerchantDaoImpl implements MerchantDao {
   @Override
   public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
-        " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_input_commission," +
-        " MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, " +
+        " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+        " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission, " +
+        " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, " +
         " MERCHANT_CURRENCY.merchant_fixed_commission, " +
         " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount " +
         " FROM MERCHANT " +
@@ -223,8 +229,10 @@ public class MerchantDaoImpl implements MerchantDao {
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setInputCommission(rs.getBigDecimal("merchant_input_commission"));
       dto.setOutputCommission(rs.getBigDecimal("merchant_output_commission"));
+      dto.setTransferCommission(rs.getBigDecimal("merchant_transfer_commission"));
       dto.setIsRefillBlocked(rs.getBoolean("refill_block"));
       dto.setIsWithdrawBlocked(rs.getBoolean("withdraw_block"));
+      dto.setIsTransferBlocked(rs.getBoolean("transfer_block"));
       dto.setMinFixedCommission(rs.getBigDecimal("merchant_fixed_commission"));
       dto.setWithdrawAutoEnabled(rs.getBoolean("withdraw_auto_enabled"));
       dto.setWithdrawAutoDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
@@ -284,8 +292,11 @@ public class MerchantDaoImpl implements MerchantDao {
       case OUTPUT:
         blockField = "withdraw_block";
         break;
+      case USER_TRANSFER:
+        blockField = "transfer_block";
+        break;
       default:
-        throw new IllegalArgumentException("Incorrect operation type!");
+        throw new IllegalArgumentException("Incorrect operation type: "+operationType);
     }
     return blockField;
   }
@@ -391,7 +402,8 @@ public class MerchantDaoImpl implements MerchantDao {
   public MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId) {
     String sql = "SELECT currency_id, merchant_id, " +
         "  IF(MERCHANT_CURRENCY.max_scale_for_refill IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_refill, CURRENCY.max_scale_for_refill) AS max_scale_for_refill, " +
-        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_withdraw, CURRENCY.max_scale_for_withdraw) AS max_scale_for_withdraw" +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_withdraw, CURRENCY.max_scale_for_withdraw) AS max_scale_for_withdraw, " +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_transfer IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_transfer, CURRENCY.max_scale_for_transfer) AS max_scale_for_transfer" +
         "  FROM MERCHANT_CURRENCY " +
         "  JOIN CURRENCY ON CURRENCY.id = MERCHANT_CURRENCY.currency_id " +
         "  WHERE merchant_id = :merchant_id " +
@@ -406,6 +418,7 @@ public class MerchantDaoImpl implements MerchantDao {
       result.setMerchantId(rs.getInt("merchant_id"));
       result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
       result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+      result.setScaleForTransfer((Integer) rs.getObject("max_scale_for_transfer"));
       return result;
     });
   }

@@ -362,9 +362,10 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-      Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
+    String trClause = filterData.getTransationTypeClauses();
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("ids", walletIds);
@@ -374,16 +375,22 @@ public final class TransactionDaoImpl implements TransactionDao {
     params.putAll(filterData.getNamedParams());
     String criteria = filterData.getSQLFilterClause();
     String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
-
+    if (!StringUtils.isEmpty(trClause)) {
+      filterClause = filterClause.concat(" AND ").concat(trClause);
+      log.debug("filter {}", filterClause);
+    }
     String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
-
     final String selectLimitedAllSql = String.join(" ", SELECT_ALL, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
     final String selectAllCountSql = String.join(" ", SELECT_COUNT, permissionClause, whereClauseBasic, filterClause);
     final PagingData<List<Transaction>> result = new PagingData<>();
     log.debug("count sql {}", selectAllCountSql);
     log.debug("data sql {}", selectLimitedAllSql);
+    long start = System.currentTimeMillis();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+    log.debug("count in {}", System.currentTimeMillis() - start);
+    start = System.currentTimeMillis();
     result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
+    log.debug("data in {}", System.currentTimeMillis() - start);
     result.setFiltered(total);
     result.setTotal(total);
     return result;

@@ -16,4 +16,5 @@ public class MerchantCurrencyScaleDto {
   private Integer currencyId;
   private Integer scaleForRefill;
   private Integer scaleForWithdraw;
+  private Integer scaleForTransfer;
 }

@@ -2,20 +2,10 @@
 
 
 $(function () {
-    var $loginForm = $('#login_block');
-    var $pinForm = $('#pin_block');
     var $pinInput = $('#pin');
     var $pinSendButton = $('#send_pin');
     var $sendAgainButton = $('#send_pin_again');
     var $resultBlock = $('#send_pin_res');
-
-    if (window.location.href.indexOf('?pin') > 0) {
-        $pinForm.show();
-        $loginForm.hide();
-    } else  {
-        $loginForm.show();
-        $pinForm.hide();
-    }
 
     $pinInput.on('input', function () {
         checkPinInput()

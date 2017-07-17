@@ -1,18 +1,10 @@
 package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.CompanyWallet;
-import me.exrates.model.Currency;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
@@ -21,19 +13,14 @@ import me.exrates.service.exception.invoice.MerchantException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Log4j2
 @Controller
@@ -78,34 +65,9 @@ public class WalletController {
             HttpServletRequest request) {
         return walletService.getWalletConfirmationDetail(walletId, localeResolver.resolveLocale(request));
     }
-    @RequestMapping("/transfer")
-    public ModelAndView transfer(@RequestParam String currencyName, Principal principal) {
-        ModelAndView modelAndView = new ModelAndView("globalPages/transfer");
-        Currency currency = currencyService.findByName(currencyName);
-        User user = userService.findByEmail(principal.getName());
-        Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-        BigDecimal maxForTransfer = resolveMaxTransferAmount(wallet, currencyName);
-        BigDecimal minAmount = currencyService.retrieveMinLimitForRoleAndCurrency(user.getRole(), OperationType.USER_TRANSFER, currency.getId());
-        modelAndView.addObject("currency", currency);
-        modelAndView.addObject("wallet", wallet);
-        modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
-        modelAndView.addObject("maxForTransfer", maxForTransfer);
-        modelAndView.addObject("minAmount", minAmount);
-        return modelAndView;
-    }
-
-    private BigDecimal resolveMaxTransferAmount(Wallet wallet, String currencyName) {
-        BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext()).getValue();
-        BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
-        BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
-        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE)
-                .setScale(currencyService.resolvePrecision(currencyName), BigDecimal.ROUND_DOWN);
-        return maxForTransfer;
-
-    }
 
     /**@param checkOnly - used to verify payment, without fin pass, but not perform transfer
-     * */
+     * *//*
     @FinPassCheck(notCheckPassIfCheckOnlyParamTrue = true)
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
@@ -125,7 +87,7 @@ public class WalletController {
         }
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
-    }
+    }*/
     
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})

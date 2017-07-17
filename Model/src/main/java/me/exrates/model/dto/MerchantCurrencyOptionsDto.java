@@ -20,9 +20,11 @@ public class MerchantCurrencyOptionsDto {
     private String currencyName;
     private BigDecimal inputCommission;
     private BigDecimal outputCommission;
+    private BigDecimal transferCommission;
     private BigDecimal minFixedCommission;
     private Boolean isRefillBlocked;
     private Boolean isWithdrawBlocked;
+    private Boolean isTransferBlocked;
     private Boolean withdrawAutoEnabled;
     private Integer withdrawAutoDelaySeconds;
     private BigDecimal withdrawAutoThresholdAmount;

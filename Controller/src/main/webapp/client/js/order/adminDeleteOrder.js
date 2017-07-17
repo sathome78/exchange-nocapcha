@@ -5,11 +5,13 @@
 var currentOrderId;
 
 function getOrderDetailedInfo(orderId, enableActions) {
+
     currentOrderId = orderId;
     $.ajax({
         url: '/2a8fy7b07dxe44/orderinfo?id=' + orderId,
         type: 'GET',
-        success: function (data) {
+        success: function (resp_data) {
+            var data = resp_data.orderInfo;
             $("#id").find('span').html(data.id);
             $("#dateCreation").find('span').html(data.dateCreation);
             $("#dateAcception").find('span').html(data.dateAcception ? data.dateAcception : '-');
@@ -24,15 +26,19 @@ function getOrderDetailedInfo(orderId, enableActions) {
             $("#transactionCount").find('span').html(data.transactionCount);
             $("#companyCommission").find('span').html(data.companyCommission?data.companyCommission + ' ' + data.currencyConvertName:'-');
             /**/
-            var statusUpperCase = data.orderStatusName.toUpperCase();
+            if (data.orderStatusName.toUpperCase() === 'OPENED') {
+                $("#notification").find('span').html(resp_data.notification);
+            }
 
+            var statusUpperCase = data.orderStatusName.toUpperCase();
             if (statusUpperCase === 'DELETED' || statusUpperCase === 'SPLIT_CLOSED' || !enableActions) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
 
             }
-            if (data.orderStatusName.toUpperCase() === 'OPENED' && enableActions) {
+
+            if (data.orderStatusName.toUpperCase() === 'OPENED' && enableActions && resp_data.acceptable) {
                 $("#delete-order-info__accept").toggle(true);
 
             } else {
@@ -219,6 +225,10 @@ function updateOrderTable() {
                 {
                     "data": "orderCreatorEmail",
                     "name": "CREATOR.email"
+                },
+                {
+                    "data": "role",
+                    "name": "CREATOR.roleid"
                 },
                 {
                     "data": "status",

@@ -17,6 +17,7 @@ import me.exrates.service.ReferralService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;

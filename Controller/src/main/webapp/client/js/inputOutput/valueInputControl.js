@@ -4,9 +4,17 @@ $(function () {
     var minAmount = 0;
     var checkAmount = true;
     determineMinAmount();
+    var $input = $('#sum');
+
+    $('#allSum').on('click', function () {
+        const maxAmount = parseFloat($input.data("max-amount"));
+        $input.val(maxAmount);
+        checkButtons(maxAmount)
+    });
 
 
     function determineMinAmount() {
+        console.log("check");
         withdrawButtons.each(function(index,item){
             var $item = $(item);
             var isAmounInputNeed = $item.data("is-amount-input-needed") == undefined ? true : $item.data("is-amount-input-needed");

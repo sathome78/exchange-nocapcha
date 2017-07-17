@@ -19,27 +19,6 @@ import java.util.stream.Collectors;
  * Created by ValkSam on 24.03.2017.
  */
 public interface IMerchantService {
-  Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
-
-  Map<String, String> refill(RefillRequestCreateDto request);
-
-  void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException;
-
-  Boolean createdRefillRequestRecordNeeded();
-
-  Boolean needToCreateRefillRequestRecord();
-
-  Boolean toMainAccountTransferringConfirmNeeded();
-
-  Boolean generatingAdditionalRefillAddressAvailable();
-
-  Boolean additionalTagForWithdrawAddressIsUsed();
-
-  default String additionalFieldName() {
-    return "MEMO";
-  };
-
-  Boolean withdrawTransferringConfirmNeeded();
 
   default void checkWithdrawAddressName(String withdrawName) {
     if (CharUtils.isCyrillic(withdrawName)) {

@@ -212,6 +212,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public User findByNickname(String nickname) {
+    return userDao.findByNickname(nickname);
+  }
+
+  @Override
   public void createUserFile(final int userId, final List<Path> paths) {
     if (findUserDoc(userId).size() == USER_FILES_THRESHOLD) {
       throw new IllegalStateException("User (id:" + userId + ") can not have more than 3 docs on the server ");
@@ -662,7 +667,7 @@ public class UserServiceImpl implements UserService {
     email.setMessage(messageText);
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
-    sendMailService.sendMail(email);
+    sendMailService.sendInfoMail(email);
   }
 
   @Override

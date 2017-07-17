@@ -213,7 +213,7 @@ $(function () {
                 url: '/2a8fy7b07dxe44/withdraw/confirm?id=' + id,
                 async: false,
                 headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
                 },
                 type: 'POST',
                 complete: function () {

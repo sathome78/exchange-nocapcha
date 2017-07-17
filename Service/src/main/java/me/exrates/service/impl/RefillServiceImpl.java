@@ -24,6 +24,8 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
@@ -118,7 +120,7 @@ public class RefillServiceImpl implements RefillService {
       put("params", new HashMap<String, String>());
     }};
     try {
-      IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
+      IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
       if (merchantService.createdRefillRequestRecordNeeded()) {
         Integer requestId = createRefill(request).orElse(null);
@@ -197,12 +199,12 @@ public class RefillServiceImpl implements RefillService {
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
         e.setAddress("");
       }
-      IMerchantService merchantService = merchantServiceContext.getMerchantService(e.getMerchantId());
+      IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
-      e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
-      e.setAdditionalFieldName(merchantService.additionalFieldName());
+      e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable)merchantService).additionalTagForWithdrawAddressIsUsed());
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
+        e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
       }
     });
     return merchantCurrencies;

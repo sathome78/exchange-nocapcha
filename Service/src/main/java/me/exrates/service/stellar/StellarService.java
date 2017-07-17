@@ -1,13 +1,15 @@
 package me.exrates.service.stellar;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.json.JSONObject;
 import org.stellar.sdk.responses.TransactionResponse;
 
 /**
  * Created by maks on 06.06.2017.
  */
-public interface StellarService extends IMerchantService {
+public interface StellarService extends IRefillable, IWithdrawable {
 
     /*method for admin manual check transaction by hash*/
     void manualCheckNotReceivedTransaction(String hash);
@@ -43,6 +45,11 @@ public interface StellarService extends IMerchantService {
     }
 
     @Override
+    default Boolean additionalFieldForRefillIsUsed() {
+        return true;
+    };
+
+    @Override
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
@@ -50,7 +57,12 @@ public interface StellarService extends IMerchantService {
     void onTransactionReceive(TransactionResponse payment, String amount);
 
     @Override
-    default String additionalFieldName() {
+    default String additionalRefillFieldName() {
+        return "MEMO-ID";
+    }
+
+    @Override
+    default String additionalWithdrawFieldName() {
         return "MEMO-ID";
     }
 }

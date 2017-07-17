@@ -16,7 +16,6 @@ import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.util.RestApiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -732,16 +731,16 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
-        String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
+        /*String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
         if (userTransferDto.getNickname().equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
         }
         walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale, false);
-        return new ResponseEntity<>(OK);
-
+                userTransferDto.getAmount(), userLocale, false);todo repair this
+        return new ResponseEntity<>(OK);*/
+        throw new RuntimeException(messageSource.getMessage("merchant.operationNotAvailable", null, userLocale));
     }
-    
+
     /**
      * @api {get} /api/payments/lastAddress Get last address
      * @apiName getLastUsedAddressForMerchantAndCurrency

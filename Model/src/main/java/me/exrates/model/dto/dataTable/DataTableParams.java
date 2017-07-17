@@ -101,6 +101,13 @@ public class DataTableParams {
                         .concat(String.format(" CONVERT(%s USING utf8) LIKE :%s )", "USER.nickname", SEARCH_VALUE_KEY));
     }
 
+    public String getSearchByEmailAndNickClauseForVouchers() {
+        return StringUtils.isEmpty(searchValue) ? "" :
+                String.format("( CONVERT(%s USING utf8) LIKE :%s ", "UC.email", SEARCH_VALUE_KEY)
+                        .concat(" OR ")
+                        .concat(String.format(" CONVERT(%s USING utf8) LIKE :%s )", "UC.nickname", SEARCH_VALUE_KEY));
+    }
+
 
     
     public Map<String, String> getSearchNamedParams() {

@@ -1,8 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.springframework.web.servlet.view.RedirectView;
 
-public interface OkPayService extends IMerchantService {
+import java.util.Map;
+
+public interface OkPayService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
@@ -31,6 +36,11 @@ public interface OkPayService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
     return false;
   }
 }

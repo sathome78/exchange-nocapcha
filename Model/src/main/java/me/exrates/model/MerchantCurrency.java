@@ -30,4 +30,5 @@ public class MerchantCurrency {
     private Boolean additionalTagForWithdrawAddressIsUsed;
     private String additionalFieldName;
     private Boolean generateAdditionalRefillAddressAvailable;
+    private Boolean recipientUserIsNeeded;
 }

@@ -1,11 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface PerfectMoneyService extends IMerchantService {
+public interface PerfectMoneyService extends IRefillable, IWithdrawable {
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {
@@ -34,6 +36,11 @@ public interface PerfectMoneyService extends IMerchantService {
 
   @Override
   default Boolean withdrawTransferringConfirmNeeded() {
+    return false;
+  }
+
+  @Override
+  default Boolean additionalFieldForRefillIsUsed() {
     return false;
   }
 }

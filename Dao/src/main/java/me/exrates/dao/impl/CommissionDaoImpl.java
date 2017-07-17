@@ -70,7 +70,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
-		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
+		String selectedField = resolveCommissionDataField(operationType);
 		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
 				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
 				"and currency_id = (select id from CURRENCY where name = :currency)";
@@ -82,7 +82,7 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType) {
-		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
+		String selectedField = resolveCommissionDataField(operationType);
 		final String sql = "SELECT " + selectedField + " FROM MERCHANT_CURRENCY " +
 				"where merchant_id = :merchant_id " +
 				"and currency_id = :currency_id ";
@@ -90,6 +90,28 @@ public class CommissionDaoImpl implements CommissionDao {
 		params.put("currency_id", currencyId);
 		params.put("merchant_id", merchantId);
 		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
+	}
+
+	private String resolveCommissionDataField(OperationType operationType) {
+		String selectedField;
+		switch (operationType){
+			case INPUT: {
+				selectedField = "merchant_input_commission";
+				break;
+			}
+			case OUTPUT: {
+				selectedField = "merchant_output_commission";
+				break;
+			}
+			case USER_TRANSFER: {
+				selectedField = "merchant_transfer_commission";
+				break;
+			}
+			default: {
+				throw new IllegalArgumentException("Invalid operation type: "+operationType);
+			}
+		}
+		return selectedField;
 	}
 
 	@Override
@@ -152,14 +174,18 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public void updateMerchantCurrencyCommission(EditMerchantCommissionDto editMerchantCommissionDto){
-		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_input_commission = :input_value, " +
-				"merchant_output_commission = :output_value, merchant_fixed_commission = :fixed_commision " +
-				"where merchant_id = :merchant_id AND currency_id = :currency_id";
+		final String sql = "UPDATE MERCHANT_CURRENCY " +
+				"  SET merchant_input_commission = :input_value, " +
+				"  merchant_output_commission = :output_value, " +
+				"  merchant_transfer_commission = :transfer_value, " +
+				"  merchant_fixed_commission = :fixed_commision " +
+				"  WHERE merchant_id = :merchant_id AND currency_id = :currency_id";
 		Map<String, Number> params = new HashMap<String, Number>() {{
 			put("merchant_id", editMerchantCommissionDto.getMerchantId());
 			put("currency_id", editMerchantCommissionDto.getCurrencyId());
 			put("input_value", editMerchantCommissionDto.getInputValue());
 			put("output_value", editMerchantCommissionDto.getOutputValue());
+			put("transfer_value", editMerchantCommissionDto.getTransferValue());
 			put("fixed_commision", editMerchantCommissionDto.getMinFixedAmount());
 		}};
 		jdbcTemplate.update(sql, params);

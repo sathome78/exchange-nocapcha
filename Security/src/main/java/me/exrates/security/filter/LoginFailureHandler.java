@@ -30,15 +30,9 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         //it's nessary to "save" exception that was thrown. This exception will be used in MaimController @RequestMapping(value = "/login", method = RequestMethod.GET)
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
         HttpSession session = request.getSession(false);
-        if (exception instanceof IncorrectPinException) {
-            response.sendRedirect("/login?pin&error");
-            session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
-        } else if (exception instanceof PinCodeCheckNeedException) {
-            response.sendRedirect("/login?pin");
-        } else {
-            session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
-            //
-            response.sendRedirect("/login?error");
-        }
+        session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+        //
+        response.sendRedirect("/login?error");
+
     }
 }

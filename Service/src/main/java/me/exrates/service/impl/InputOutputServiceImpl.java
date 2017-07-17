@@ -12,6 +12,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +127,7 @@ public class InputOutputServiceImpl implements InputOutputService {
 
 
   private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
+    log.debug("status1 {}", row);
     switch (row.getSourceType()) {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
@@ -140,6 +142,10 @@ public class InputOutputServiceImpl implements InputOutputService {
       case WITHDRAW: {
         WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
         return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
+      }
+      case USER_TRANSFER: {
+        TransferStatusEnum status = (TransferStatusEnum) row.getStatus();
+        return messageSource.getMessage("merchants.transfer.".concat(status.name()), null, locale);
       }
       default: {
         return row.getTransactionProvided();
@@ -175,6 +181,8 @@ public class InputOutputServiceImpl implements InputOutputService {
         currency.getId(),
         merchant.getId());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
+    User recipient = StringUtils.isEmpty(payment.getRecipient()) ? null : userService.findByNickname(payment.getRecipient());
+    Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .initialAmount(commissionData.getAmount())
         .amount(commissionData.getResultAmount())
@@ -188,6 +196,8 @@ public class InputOutputServiceImpl implements InputOutputService {
         .destination(destination)
         .destinationTag(destinationTag)
         .transactionSourceType(transactionSourceType)
+        .recipient(recipient)
+        .recipientWallet(recipientWallet)
         .build();
     return Optional.of(creditsOperation);
   }

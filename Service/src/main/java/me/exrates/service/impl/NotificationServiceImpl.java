@@ -12,6 +12,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -88,7 +89,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {
-        Locale locale = new Locale(userService.getPreferedLang(userId));
+        String lang = userService.getPreferedLang(userId);
+        Locale locale = new Locale(StringUtils.isEmpty(lang) ? "EN" : lang);
         notifyUser(userId, cause, titleCode, messageCode, normalizeArgs(messageArgs), locale);
     }
 

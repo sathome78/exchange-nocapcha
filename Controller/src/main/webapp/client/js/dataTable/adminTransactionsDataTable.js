@@ -69,7 +69,7 @@ $(function () {
                 },
                 {
                     "data": "operationType",
-                    "name": "TRANSACTIOIN.operation_type_id"
+                    "name": "TRANSACTION.operation_type_id"
                 },
                 {
                     "data": "status",
@@ -106,6 +106,7 @@ $(function () {
                 },
                 {
                     "data": "sourceId",
+                    "name": "TRANSACTION.source_id",
                     "render": function (data, type, row) {
                         if (data) {
                             return '<button class="transactionlist-order-detail-button"' +
@@ -142,15 +143,19 @@ $(function () {
 
         function getTransferDetailedInfo(orderId) {
             $.ajax({
-                url: '/2a8fy7b07dxe44/transferInfo?id=' + orderId,
+                url: '/2a8fy7b07dxe44/transfer/request/info?id=' + orderId,
                 type: 'GET',
                 success: function (data) {
-                    $("#info-date").html(data.creationDate);
+                    $("#info-merchantType").html(data.merchantName);
+                    $("#info-status").html(data.status);
+                    $("#info-date").html(data.dateCreation);
+                    $("#info-date-modif").html(data.statusModificationDate);
                     $("#info-currency").html(data.currencyName);
                     $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
-                    $("#info-userFrom").html("<a href='mailto:" + data.userFromEmail + "'>" + data.userFromEmail + "</a>");
-                    $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
-                    $("#info-commissionAmount").html(numeral(data.comission).format('0.00[000000]'));
+                    $("#info-userFrom").html("<a href='mailto:" + data.creatorEmail + "'>" + data.creatorEmail + "</a>");
+                    $("#info-userTo").html("<a href='mailto:" + data.recipientEmail + "'>" + data.recipientEmail + "</a>");
+                    $("#info-commissionAmount").html(numeral(data.commissionAmount).format('0.00[000000]'));
+                    $("#info-hash").html(data.hash);
                     $('#user_transfer_info_modal').modal();
                 }
             });

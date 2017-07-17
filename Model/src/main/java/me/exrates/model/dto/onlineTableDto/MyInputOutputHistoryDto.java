@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -14,12 +16,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
 import static me.exrates.model.enums.TransactionSourceType.REFILL;
 import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
 /**
  * Created by Ajet on 23.07.2016.
  */
+@Log4j2
 @Getter @Setter
 @ToString
 public class MyInputOutputHistoryDto extends OnlineTableDto {
@@ -59,10 +63,13 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   }
 
   public void setStatus(Integer statusId) {
+    log.debug("status is {}, sourceType {}, id {}", statusId, sourceType, id);
     if (sourceType == REFILL) {
       this.status = RefillStatusEnum.convert(statusId);
     } else if (sourceType == WITHDRAW) {
       this.status = WithdrawStatusEnum.convert(statusId);
+    } else if (sourceType == USER_TRANSFER) {
+      this.status = TransferStatusEnum.convert(statusId);
     }
   }
 

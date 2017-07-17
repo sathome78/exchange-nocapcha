@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -39,17 +40,22 @@ public class SendMailServiceImpl implements SendMailService{
 
 	private final static int THREADS_NUMBER = 3;
 	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
-	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
+	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(2);
 
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	private final String SUPPORT_EMAIL = "mail@exrates.top";
-	private final String INFO_EMAIL = "no-replay@exrates.top";
+	private final String INFO_EMAIL = "no-reply@exrates.top";
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void sendMail(Email email){
 		supportMailExecutors.execute(() -> {
-			sendMail(email, SUPPORT_EMAIL, supportMailSender);
+			try {
+				sendMail(email, SUPPORT_EMAIL, supportMailSender);
+			} catch (Exception e) {
+				logger.error(e);
+				sendMail(email, INFO_EMAIL, infoMailSender);
+			}
 		});
 	}
 
@@ -63,7 +69,12 @@ public class SendMailServiceImpl implements SendMailService{
 			}
 		}
 		executors.execute(() -> {
-			sendMail(email, INFO_EMAIL, infoMailSender);
+			try {
+				sendMail(email, INFO_EMAIL, infoMailSender);
+			} catch (MailException e) {
+				logger.error(e);
+				sendMail(email, SUPPORT_EMAIL, supportMailSender);
+			}
 		});
 
 	}
