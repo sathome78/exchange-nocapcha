@@ -7,6 +7,7 @@ import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
+import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WithdrawData;
@@ -38,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
@@ -79,6 +81,9 @@ public class MobileInputOutputController {
 
     @Autowired
     RefillService refillService;
+    
+    @Autowired
+    private TransferService transferService;
     
     
     
@@ -729,16 +734,25 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
+    public TransferResponseDto submitTransfer(@RequestBody TransferRequestParamsDto requestParamsDto) {
+        requestParamsDto.setOperationType(USER_TRANSFER);
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
-        /*String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
-        if (userTransferDto.getNickname().equals(principalNickname)) {
-            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
-        }
-        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale, false);todo repair this
-        return new ResponseEntity<>(OK);*/
-        throw new RuntimeException(messageSource.getMessage("merchant.operationNotAvailable", null, userLocale));
+        String userEmail = getAuthenticatedUserEmail();
+        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
+        Payment payment = new Payment(requestParamsDto.getOperationType());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        payment.setRecipient(requestParamsDto.getRecipient());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+        Map<String, Object> result = transferService.createTransferRequest(request);
+        TransferResponseDto responseDto = new TransferResponseDto();
+        responseDto.setBalance((String)result.get("balance"));
+        responseDto.setMessage((String)result.get("message"));
+        responseDto.setHash((String)result.get("hash"));
+        return responseDto;
     }
 
     /**
