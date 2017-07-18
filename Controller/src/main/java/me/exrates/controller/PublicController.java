@@ -2,7 +2,9 @@ package me.exrates.controller;
 
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.service.MerchantService;
 import me.exrates.service.OrderService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
