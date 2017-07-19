@@ -115,7 +115,8 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
                 "   JOIN TRANSACTION ON (TRANSACTION.source_type=:source_type) AND (TRANSACTION.source_id = REFERRAL_TRANSACTION.id)" +
                 "   JOIN USER INITIATOR ON (INITIATOR.id = REFERRAL_TRANSACTION.initiator_id) " +
                 "   JOIN REFERRAL_LEVEL ON (REFERRAL_TRANSACTION.referral_level_id = REFERRAL_LEVEL.id)" +
-                "   JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)" +
+                "   JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id) " +
+                " ORDER BY TRANSACTION.status_modification_date DESC " +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
         params.put("email", email);
