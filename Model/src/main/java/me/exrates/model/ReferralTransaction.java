@@ -1,5 +1,7 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -12,6 +14,7 @@ public class ReferralTransaction {
     private ReferralLevel referralLevel;
     private Transaction transaction;
     private String initiatorEmail;
+    private ReferralTransactionStatusEnum statusEnum;
 
     public ExOrder getExOrder() {
         return exOrder;
@@ -67,6 +70,14 @@ public class ReferralTransaction {
 
     public void setInitiatorEmail(final String initiatorEmail) {
         this.initiatorEmail = initiatorEmail;
+    }
+
+    public ReferralTransactionStatusEnum getStatusEnum() {
+        return statusEnum;
+    }
+
+    public void setStatusEnum(ReferralTransactionStatusEnum statusEnum) {
+        this.statusEnum = statusEnum;
     }
 
     @Override

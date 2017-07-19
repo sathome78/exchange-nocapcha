@@ -42,10 +42,11 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         result.setUserId(resultSet.getInt("REFERRAL_TRANSACTION.user_id"));
         result.setInitiatorId(resultSet.getInt("REFERRAL_TRANSACTION.initiator_id"));
         result.setInitiatorEmail(resultSet.getString("user_email"));
+        result.setStatusEnum(ReferralTransactionStatusEnum.valueOf(resultSet.getString("ref_status")));
         return result;
     };
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
+    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, REFERRAL_TRANSACTION.status AS ref_status, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
             " TRANSACTION.source_id, TRANSACTION.source_type, " +
@@ -106,7 +107,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     public List<MyReferralDetailedDto> findAllMyRefferal(String email, Integer offset, Integer limit, Locale locale) {
         String sql = " SELECT " +
                 "  TRANSACTION.id AS transaction_id, TRANSACTION.datetime, TRANSACTION.amount," +
-                "  INITIATOR.email AS initiator_email, " +
+                "  INITIATOR.email AS initiator_email, REFERRAL_TRANSACTION.status AS ref_status, " +
                 "  REFERRAL_LEVEL.id AS referral_id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent, " +
                 "  CURRENCY.name AS currency_name " +
                 " FROM REFERRAL_TRANSACTION " +
@@ -131,6 +132,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
                 myReferralDetailedDto.setReferralLevel(rs.getInt("level"));
                 myReferralDetailedDto.setReferralPercent(BigDecimalProcessing.formatLocale(rs.getBigDecimal("percent"), locale, 2));
                 myReferralDetailedDto.setCurrencyName(rs.getString("currency_name"));
+                myReferralDetailedDto.setStatus(ReferralTransactionStatusEnum.valueOf(rs.getString("ref_status")).name());
                 return myReferralDetailedDto;
             }
         });

@@ -1238,7 +1238,7 @@ public class OrderServiceImpl implements OrderService {
         walletOperationData.setCommission(transaction.getCommission());
         walletOperationData.setCommissionAmount(transaction.getCommissionAmount());
         walletOperationData.setSourceType(TransactionSourceType.REFERRAL);
-        walletOperationData.setSourceId(orderId);
+        walletOperationData.setSourceId(transaction.getSourceId());
         walletOperationData.setDescription(description);
         walletOperationData.setOperationType(OperationType.OUTPUT);
         walletTransferStatus = walletService.walletBalanceChange(walletOperationData);

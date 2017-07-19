@@ -733,6 +733,8 @@ public class OnlineRestController {
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
     }
+    Locale locale = localeResolver.resolveLocale(request);
+
     tableParams.updateEofState(result);
     return result;
   }
