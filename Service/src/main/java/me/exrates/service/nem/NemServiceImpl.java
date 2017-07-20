@@ -7,6 +7,8 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.nem.core.crypto.KeyPair;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.model.Account;
+import org.nem.core.model.Transaction;
+import org.nem.core.model.TransferTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.stellar.sdk.responses.TransactionResponse;
 
 import javax.annotation.PostConstruct;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -35,6 +38,7 @@ public class NemServiceImpl implements NemService {
 
     protected Account account;
 
+    @Override
     public Account getAccount() {
         return account;
     }
@@ -42,7 +46,6 @@ public class NemServiceImpl implements NemService {
     @PostConstruct
     public void init() {
         account = new Account(new KeyPair(PrivateKey.fromHexString(privateKey)));
-        nemTransactionsService.signer = account.createSigner();
     }
 
     @Override

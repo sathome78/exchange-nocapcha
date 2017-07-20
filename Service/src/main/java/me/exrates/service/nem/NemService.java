@@ -2,6 +2,7 @@ package me.exrates.service.nem;
 
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.nem.core.model.Account;
 import org.stellar.sdk.responses.TransactionResponse;
 
 /**
@@ -51,6 +52,8 @@ public interface NemService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    Account getAccount();
 
     void onTransactionReceive(TransactionResponse payment, String amount);
 
