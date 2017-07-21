@@ -9,6 +9,7 @@ import org.nem.core.model.NetworkInfos;
  */
 public class Utils {
 
+        /*use it to generate new account keypair*/
         public static void main(String[] args) {
             final KeyPair someKey = new KeyPair();
             System.out.println(String.format("Private key: %s", someKey.getPrivateKey()));

@@ -50,12 +50,10 @@ public interface NemService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean withdrawTransferringConfirmNeeded() {
-        return false;
+        return true;
     }
 
     Account getAccount();
-
-    void onTransactionReceive(TransactionResponse payment, String amount);
 
     @Override
     default String additionalRefillFieldName() {
@@ -66,4 +64,6 @@ public interface NemService extends IRefillable, IWithdrawable {
     default String additionalWithdrawFieldName() {
         return "Message";
     }
+
+    boolean checkSendedTransaction(String hash, String additionalParams);
 }

@@ -22,6 +22,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.responses.TransactionResponse;
@@ -80,6 +81,7 @@ public class StellarServiceImpl implements StellarService {
         return false;
     }
 
+    @Transactional
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         log.debug("withdraw_XLM");
@@ -112,6 +114,7 @@ public class StellarServiceImpl implements StellarService {
         }
     }
 
+    @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());

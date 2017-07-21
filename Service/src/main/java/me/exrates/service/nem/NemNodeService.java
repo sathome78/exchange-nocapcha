@@ -1,0 +1,119 @@
+package me.exrates.service.nem;
+
+import lombok.extern.log4j.Log4j2;
+import me.exrates.service.exception.NemTransactionException;
+import me.exrates.service.exception.NisNotReadyException;
+import me.exrates.service.exception.NisTransactionException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.util.RestUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.nem.core.model.Transaction;
+import org.nem.core.model.ncc.TransactionMetaDataPair;
+import org.nem.core.time.TimeInstant;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
+
+/**
+ * Created by maks on 20.07.2017.
+ */
+@Log4j2
+@Service
+@PropertySource("classpath:/merchants/nem.properties")
+public class NemNodeService {
+
+    private @Value("${ncc.server.url}")String nccServer;
+    private @Value("${nis.server.url}")String nisServer;
+
+    private final static String pathExtendedInfo = "/node/extended-info";
+    private final static String pathPrepareAnounce = "/transaction/prepare-announce";
+    private final static String pathGetTransaction = "/transaction/get?hash=";
+    private final static String pathGetCurrentBlockHeight = "/chain/last-block";
+    private final static String pathGetIncomeTransactions = "/account/transfers/incoming?address=%s";
+
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private JSONObject getNodeExtendedInfo() {
+        String response = restTemplate.getForObject(nisServer.concat(pathExtendedInfo), String.class);
+        return new org.json.JSONObject(response);
+    }
+
+    protected TimeInstant getCurrentTimeStamp() {
+        try {
+            int time = getNodeExtendedInfo().getJSONObject("nisInfo").getInt("currentTime");
+            return new TimeInstant(time);
+        } catch (Exception e) {
+            log.error(e);
+            throw new NisNotReadyException();
+        }
+    }
+
+    protected JSONObject anounceTransaction(String serializedTransaction) {
+        ResponseEntity<String> response = restTemplate
+                .postForEntity(nisServer.concat(pathPrepareAnounce), serializedTransaction, String.class);
+        JSONObject result = new JSONObject(response.getBody());
+        if (RestUtil.isError(response.getStatusCode())) {
+            String error = result.getString("message");
+            try {
+                defineAndThrowException(error);
+            } catch (RuntimeException e) {
+                log.error("response {}, {}",response, e);
+                throw e;
+            }
+        }
+
+        return result;
+    }
+
+    protected JSONObject getSingleTransactionByHash(String hash) {
+        ResponseEntity<String> response = restTemplate
+                .getForEntity(nisServer.concat(pathGetTransaction).concat(hash), String.class);
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+            throw new NemTransactionException(response.toString());
+        }
+        return new JSONObject(response.getBody());
+    }
+
+    protected JSONArray getIncomeTransactions(String address, String hash) {
+        String url = nisServer.concat(String.format(pathGetIncomeTransactions, address));
+        if (!StringUtils.isEmpty(hash)) {
+            url = url.concat("&hash=").concat(hash);
+        }
+        ResponseEntity<String> response = restTemplate
+                .getForEntity(url, String.class);
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+            throw new NemTransactionException(response.toString());
+        }
+        return new JSONObject(response.getBody()).getJSONArray("data");
+    }
+
+    protected long getLastBlockHeight() {
+        String response = restTemplate.getForObject(nisServer.concat(pathGetCurrentBlockHeight), String.class);
+        return new org.json.JSONObject(response).getLong("height");
+    }
+
+
+    private void defineAndThrowException(String errorMessage) {
+        switch (errorMessage) {
+            case "address must be valid" : {
+                throw new InvalidAccountException(errorMessage);
+            }
+            case "FAILURE_INSUFFICIENT_BALANCE" : {
+                throw new InsufficientCostsInWalletException("NEM BALANCE LOW");
+            }
+            default: throw new NisTransactionException(errorMessage);
+        }
+    }
+
+
+}
