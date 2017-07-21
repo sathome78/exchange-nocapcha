@@ -179,7 +179,7 @@ public class InputOutputServiceImpl implements InputOutputService {
         amount,
         operationType,
         currency.getId(),
-        merchant.getId());
+        merchant.getId(), payment.getDestinationTag());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
     User recipient = StringUtils.isEmpty(payment.getRecipient()) ? null : userService.findByNickname(payment.getRecipient());
     Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);

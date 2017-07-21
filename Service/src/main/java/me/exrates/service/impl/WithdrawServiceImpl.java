@@ -432,7 +432,8 @@ public class WithdrawServiceImpl implements WithdrawService {
     IWithdrawable merchantService = (IWithdrawable) merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     BigDecimal amountForWithdraw = BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT);
     CommissionDataDto dto = commissionService
-        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT, withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId());
+        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT,
+                withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId(), withdrawRequest.getDestinationTag());
     BigDecimal finalAmount = BigDecimalProcessing.doAction(amountForWithdraw, dto.getMerchantCommissionAmount(), ActionType.SUBTRACT);
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
@@ -512,12 +513,13 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale) {
+  public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount,
+                                                                              Integer currencyId, Integer merchantId, Locale locale, String destinationTag) {
     OperationType operationType = OUTPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
     merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
     result.put("addition", addition.toString());
     return result;
   }

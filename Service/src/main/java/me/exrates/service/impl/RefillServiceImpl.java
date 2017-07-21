@@ -693,7 +693,8 @@ public class RefillServiceImpl implements RefillService {
         operationType,
         currencyId,
         merchantId,
-        locale);
+        locale,
+        null);
     result.put("addition", addition.toString());
     return result;
   }

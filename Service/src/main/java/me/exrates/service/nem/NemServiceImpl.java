@@ -50,7 +50,7 @@ public class NemServiceImpl implements NemService {
     @Autowired
     private AlgorithmService algorithmService;
 
-    private static final String NEM_MERCHANT = "XEM";
+    private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
 
     private Merchant merchant;
