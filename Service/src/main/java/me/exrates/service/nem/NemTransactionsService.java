@@ -1,14 +1,17 @@
 package me.exrates.service.nem;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.*;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.NemTransactionException;
 import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
+import org.nem.core.model.Transaction;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
+import org.nem.core.model.primitive.BlockHeight;
 import org.nem.core.serialization.DeserializationContext;
 import org.nem.core.serialization.JsonSerializer;
 import org.nem.core.serialization.SimpleAccountLookup;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -47,6 +51,8 @@ public class NemTransactionsService {
 
     private DeserializationContext deserializationContext = new DeserializationContext(lookup);
 
+    TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
+
     public HashMap<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String privateKey) {
         TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
         JsonSerializer serializer = new JsonSerializer();
@@ -62,10 +68,16 @@ public class NemTransactionsService {
     private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
         TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
-        TransferTransactionAttachment attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes()));
+        TransferTransactionAttachment attachment = null;
+        try {
+            attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            log.error("unsupported encoding {}", e);
+        }
         TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
                 nemService.getAccount(), reipient, transformToNemAmount(withdrawMerchantOperationDto.getAmount()),  attachment);
         transaction.setDeadline(currentTimeStamp.addHours(2));
+        transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
         return transaction;
     }
 
@@ -74,7 +86,7 @@ public class NemTransactionsService {
         return new Amount(a.longValue());
     }
 
-    protected String transformToString(long nemAmount) {
+    String transformToString(long nemAmount) {
         BigDecimal a = new BigDecimal(nemAmount).setScale(decimals, RoundingMode.HALF_DOWN).divide(new BigDecimal(1000000));
         return a.toPlainString();
     }
@@ -96,5 +108,15 @@ public class NemTransactionsService {
         if (current.compareTo(deadline) <= 0) {
             throw new NemTransactionException("NEM transaction was not icluded into block");
         }
+    }
+
+    BigDecimal countTxFee(BigDecimal amount, String destinationTag) {
+        Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
+                        .accountTo("")
+                .amount(amount.toPlainString())
+                .destinationTag(destinationTag)
+                .build());
+
+        return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }
 }

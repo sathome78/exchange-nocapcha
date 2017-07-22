@@ -31,4 +31,6 @@ public class MerchantCurrency {
     private String additionalFieldName;
     private Boolean generateAdditionalRefillAddressAvailable;
     private Boolean recipientUserIsNeeded;
+    private Boolean comissionDependsOnDestinationTag;
+    private Boolean specMerchantComission;
 }

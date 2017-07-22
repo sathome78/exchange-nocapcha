@@ -15,6 +15,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,6 +76,9 @@ public class WithdrawRequestController {
     if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
     }
+    if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
+      merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
+    }
     WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
     Payment payment = new Payment(OUTPUT);
     payment.setCurrency(requestParamsDto.getCurrency());
@@ -112,6 +116,9 @@ public class WithdrawRequestController {
       Principal principal,
       Locale locale) {
     Integer userId = userService.getIdByEmail(principal.getName());
+    if (!StringUtils.isEmpty(memo)) {
+      merchantService.checkDestinationTag(merchantId, memo);
+    }
     return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchantId, locale, memo);
   }
 
@@ -188,6 +195,18 @@ public class WithdrawRequestController {
   public ErrorInfo RequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({
+          CheckDestinationTagException.class
+  })
+  @ResponseBody
+  public ErrorInfo CheckDestinationTagExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(),
+            exception, messageSource.getMessage(exception.getMessage(),
+            new String[]{((CheckDestinationTagException) exception).getFieldName()}, localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

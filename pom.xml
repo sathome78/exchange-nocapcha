@@ -326,12 +326,6 @@
 			<version>20160212</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.nem.core</groupId>
-			<artifactId>nem-core</artifactId>
-			<version>0.6.91-BETA</version>
-		</dependency>
-
 	</dependencies>
 
 

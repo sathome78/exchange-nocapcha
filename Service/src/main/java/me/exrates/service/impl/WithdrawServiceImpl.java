@@ -206,6 +206,8 @@ public class WithdrawServiceImpl implements WithdrawService {
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
+              e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
+              e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           }
       }
     });

@@ -3,7 +3,6 @@ package me.exrates.service.nem;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.nem.core.model.Account;
-import org.stellar.sdk.responses.TransactionResponse;
 
 /**
  * Created by maks on 18.07.2017.
@@ -66,4 +65,14 @@ public interface NemService extends IRefillable, IWithdrawable {
     }
 
     boolean checkSendedTransaction(String hash, String additionalParams);
+
+    @Override
+    default boolean comissionDependsOnDestinationTag() {
+        return true;
+    }
+
+    @Override
+    default boolean specificWithdrawMerchantCommissionCountNeeded() {
+        return true;
+    }
 }

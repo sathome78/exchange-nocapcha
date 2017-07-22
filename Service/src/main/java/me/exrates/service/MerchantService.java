@@ -67,4 +67,6 @@ public interface MerchantService {
                                                            OperationType type,
                                                            String currency,
                                                            String merchant);
+
+    void checkDestinationTag(Integer merchantId, String memo);
 }

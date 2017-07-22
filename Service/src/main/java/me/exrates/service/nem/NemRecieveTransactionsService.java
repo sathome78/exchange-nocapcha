@@ -9,8 +9,10 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +40,7 @@ public class NemRecieveTransactionsService {
     private @Value("${nem.address}")String address;
 
 
+    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
     public void checkTransactions() {
         log.debug("starting check nem income payments");
         String lastHash = loadLastHash();
@@ -62,7 +65,12 @@ public class NemRecieveTransactionsService {
     private Map<String, String> extractParams(JSONObject transactionMetaPair) {
         JSONObject meta = transactionMetaPair.getJSONObject("meta");
         JSONObject transaction = transactionMetaPair.getJSONObject("transaction");
-        String message = transaction.getJSONObject("message").getString("payload");
+        String message = null;
+        try {
+            message = new String((byte[]) transaction.getJSONObject("message").get("payload"), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("unsupported encoding {}", e);
+        }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", meta.getJSONObject("transactionHash").getString("data"));
         paramsMap.put("address", message);

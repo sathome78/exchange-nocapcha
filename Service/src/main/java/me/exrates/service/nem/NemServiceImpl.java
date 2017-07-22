@@ -10,12 +10,14 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.nem.core.crypto.KeyPair;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.model.Account;
+import org.nem.core.model.NemGlobals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -68,6 +71,8 @@ public class NemServiceImpl implements NemService {
     private @Value("${nem.address}")String address;
     private @Value("${nem.private.key}")String privateKey;
     private @Value("${nem.public.key}")String publicKey;
+
+    private static final String DESTINATION_TAG_ERR_MSG = "message.nem.tagError";
 
     protected Account account;
 
@@ -150,5 +155,28 @@ public class NemServiceImpl implements NemService {
         }
         nemTransactionsService.checkForOutdate(transaction);
         return false;
+    }
+
+    @Override
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag) {
+        return nemTransactionsService.countTxFee(amount, destinationTag);
+    }
+
+
+    /*message must be not more than 512 bytes*/
+    @Override
+    public void checkDestinationTag(String destinationTag) {
+        try {
+            if (destinationTag.getBytes("UTF-8").length > 512) {
+                throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
+            }
+        } catch (UnsupportedEncodingException e) {
+            log.error("unsupported encoding {}", e);
+        }
+    }
+
+    @Override
+    public String getMainAddress() {
+        return address;
     }
 }

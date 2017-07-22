@@ -125,15 +125,19 @@ public class CommissionServiceImpl implements CommissionService {
     Map<String, String> result = new HashMap<>();
     CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId, destinationTag);
     result.put("amount", commissionData.getAmount().toPlainString());
-    result.put("merchantCommissionRate", "("
-        .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
-        .concat(commissionData.getMerchantCommissionUnit())
-        .concat(")"));
+    if (!commissionData.getSpecificMerchantComissionCount()) {
+      result.put("merchantCommissionRate", "("
+              .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
+              .concat(commissionData.getMerchantCommissionUnit())
+              .concat(")"));
+    } else {
+      result.put("merchantCommissionRate", "");
+    }
     result.put("merchantCommissionAmount", commissionData.getMerchantCommissionAmount().toPlainString());
     result.put("companyCommissionRate", "("
-        .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
-        .concat(commissionData.getCompanyCommissionUnit())
-        .concat(")"));
+              .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
+              .concat(commissionData.getCompanyCommissionUnit())
+              .concat(")"));
     result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
     result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
     result.put("resultAmount", commissionData.getResultAmount().toPlainString());
@@ -149,6 +153,7 @@ public class CommissionServiceImpl implements CommissionService {
       Integer currencyId,
       Integer merchantId, String destinationTag) {
     Map<String, String> result = new HashMap<>();
+    Boolean specMerchantComissionCount = false;
     Commission companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
@@ -171,6 +176,7 @@ public class CommissionServiceImpl implements CommissionService {
         companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
           merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag);
+          specMerchantComissionCount = true;
         } else {
           merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         }
@@ -207,7 +213,9 @@ public class CommissionServiceImpl implements CommissionService {
           companyCommissionUnit,
           companyCommissionAmount,
           totalCommissionAmount,
-          totalAmount
+          totalAmount,
+          specMerchantComissionCount
+
       );
     } else {
       return new CommissionDataDto(
@@ -220,7 +228,8 @@ public class CommissionServiceImpl implements CommissionService {
           companyCommissionUnit,
           ZERO,
           ZERO,
-          ZERO
+          ZERO,
+          specMerchantComissionCount
       );
     }
   }
