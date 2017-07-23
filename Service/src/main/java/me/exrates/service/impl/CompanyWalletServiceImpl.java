@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
@@ -27,6 +28,7 @@ import static me.exrates.model.util.BigDecimalProcessing.doAction;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2
 @Service
 public class CompanyWalletServiceImpl implements CompanyWalletService {
 
@@ -98,10 +100,12 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
-    public void depositReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
+    public void depositReservedBalanceOnOrderDelete(CompanyWallet companyWallet, BigDecimal amount) {
         BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, ADD);
         if (newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
+      /*      throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
+      */
+            log.warn("warning!! negative balance while deleting order {}", companyWallet.toString());
         }
         companyWallet.setCommissionBalance(newReservedBalance);
         if (!companyWalletDao.update(companyWallet)) {

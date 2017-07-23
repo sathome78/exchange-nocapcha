@@ -1230,7 +1230,7 @@ public class OrderServiceImpl implements OrderService {
     for (Transaction transaction : transactions) {
       WalletTransferStatus walletTransferStatus = null;
       try {
-        companyWalletService.depositReservedBalance(transaction.getCompanyWallet(), transaction.getAmount());
+        companyWalletService.depositReservedBalanceOnOrderDelete(transaction.getCompanyWallet(), transaction.getAmount());
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setWalletId(transaction.getUserWallet().getId());
         walletOperationData.setAmount(transaction.getAmount());
