@@ -13,12 +13,15 @@ import org.nem.core.crypto.PrivateKey;
 import org.nem.core.crypto.PublicKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
+import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
+import org.nem.core.serialization.*;
 import org.nem.core.time.TimeInstant;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -41,28 +44,28 @@ public class test {
     private static final int decimals = 6;
 
     public static void main(String[] args) {
-          /*  BigDecimal decimal = new BigDecimal("5554.3423");
+        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("8bb4bb0b8a6077d7ac9f1b3eef6c66a15d347c6d7edb39df83127f4fc110a415"));
+        Account account1 = new Account(keyPair);
+            BigDecimal decimal = new BigDecimal("5554.3423");
             String destinationTag = "234234234234";
             Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
                     .accountTo("")
                     .amount(decimal.toPlainString())
                     .destinationTag(destinationTag)
-                    .build());
+                    .build(), account1);
 
-            System.out.println("fee1 " + transaction.getFee().getNumMicroNem());
-            TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
-            System.out.println("fee2 " + countTxFee(decimal, destinationTag));
-            Amount afterFee = calculatorAfterFork.calculateMinimumFee(transaction);
-            System.out.println("fee after fork " + afterFee.getNumMicroNem() );
-            transaction.setFee(afterFee);
-            System.out.println("is after fee valid? " + NemGlobals.getTransactionFeeCalculator().isFeeValid(transaction, new BlockHeight(getLastBlockHeight())));
-     */
-          Address addr = Address.fromEncoded(address);
-          PrivateKey privateKey = PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee");
-        System.out.println(privateKey.toString());
-        System.out.println(account2.getAddress().getEncoded());
-   /*     System.out.println(getIncomeTransactions(address, "9b5a009ee9b45e44ac6bd0fda5ac3188878422148d716d69e57680a5b191b3ae"));
- */   }
+        System.out.println(transaction);
+        JsonSerializer serializer = new JsonSerializer();
+        RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction,
+                PrivateKey.fromHexString("00bbb23c4fb84f6ae68a78dd2b8b041d99e8b6b0e68bd0f117758b29abc4991848"));
+        announce.serialize(serializer);
+        System.out.println(serializer.getObject());
+
+
+
+
+
+     }
 
     protected static JSONArray getIncomeTransactions(String address, String hash) {
         String url = nisServer.concat(String.format(pathGetIncomeTransactions, address));
@@ -78,13 +81,19 @@ public class test {
         return new JSONObject(response.getBody()).getJSONArray("data");
     }
 
-    private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto, Account account) {
+        TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
         TimeInstant currentTimeStamp = getCurrentTimeStamp();
-        TransferTransactionAttachment attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes()));
+        TransferTransactionAttachment attachment = null;
+        try {
+            attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+        }
         TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
                 account, reipient, transformToNemAmount(withdrawMerchantOperationDto.getAmount()),  attachment);
         transaction.setDeadline(currentTimeStamp.addHours(2));
+        transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
         return transaction;
     }
 
@@ -93,12 +102,12 @@ public class test {
         return new Amount(a.longValue());
     }
 
-    static BigDecimal countTxFee(BigDecimal amount, String destinationTag) {
+    static BigDecimal countTxFee(BigDecimal amount, String destinationTag, Account account) {
         Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
                 .accountTo("")
                 .amount(amount.toPlainString())
                 .destinationTag(destinationTag)
-                .build());
+                .build(), account);
 
         Amount feeAmount = NemGlobals.getTransactionFeeCalculator().calculateMinimumFee(transaction);
         System.out.println("is fee valid? " + NemGlobals.getTransactionFeeCalculator().isFeeValid(transaction, new BlockHeight(getLastBlockHeight())));
