@@ -1163,7 +1163,7 @@ public class OrderServiceImpl implements OrderService {
       if (currentOrderStatus == OrderStatus.CLOSED) {
         if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
           Integer companyWalletId = orderDetailDto.getCompanyWalletId();
-          if (companyWalletId != 0 && !companyWalletService.increaseCommissionBalanceById(companyWalletId, orderDetailDto.getCompanyCommission())) {
+          if (companyWalletId != 0 && !companyWalletService.substractCommissionBalanceById(companyWalletId, orderDetailDto.getCompanyCommission())) {
             return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
           }
         }
@@ -1230,7 +1230,6 @@ public class OrderServiceImpl implements OrderService {
     for (Transaction transaction : transactions) {
       WalletTransferStatus walletTransferStatus = null;
       try {
-        companyWalletService.depositReservedBalanceOnOrderDelete(transaction.getCompanyWallet(), transaction.getAmount());
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setWalletId(transaction.getUserWallet().getId());
         walletOperationData.setAmount(transaction.getAmount());
@@ -1243,6 +1242,7 @@ public class OrderServiceImpl implements OrderService {
         walletOperationData.setOperationType(OperationType.OUTPUT);
         walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         referralService.setRefTransactionStatus(ReferralTransactionStatusEnum.DELETED, transaction.getSourceId());
+        companyWalletService.substractCommissionBalanceById(transaction.getCompanyWallet().getId(), transaction.getAmount().negate());
       } catch (Exception e) {
         log.error("error unprocess ref transactions" + e);
       }

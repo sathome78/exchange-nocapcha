@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.ActionType.ADD;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
@@ -98,20 +97,6 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         }
     }
 
-    @Override
-    @Transactional(propagation = Propagation.NESTED)
-    public void depositReservedBalanceOnOrderDelete(CompanyWallet companyWallet, BigDecimal amount) {
-        BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, ADD);
-        if (newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
-      /*      throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
-      */
-            log.warn("warning!! negative balance while deleting order {}", companyWallet.toString());
-        }
-        companyWallet.setCommissionBalance(newReservedBalance);
-        if (!companyWalletDao.update(companyWallet)) {
-            throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
-        }
-    }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
@@ -137,7 +122,7 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
 
     @Override
     @Transactional
-    public boolean increaseCommissionBalanceById(Integer id, BigDecimal amount){
-        return companyWalletDao.increaseCommissionBalanceById(id, amount);
+    public boolean substractCommissionBalanceById(Integer id, BigDecimal amount){
+        return companyWalletDao.substarctCommissionBalanceById(id, amount);
     }
 }

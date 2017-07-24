@@ -21,8 +21,6 @@ public interface CompanyWalletService {
 
     void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
 
-    void depositReservedBalanceOnOrderDelete(CompanyWallet companyWallet, BigDecimal amount);
-
     void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount);
 
     void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
@@ -31,5 +29,5 @@ public interface CompanyWalletService {
 
     List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 
-    boolean increaseCommissionBalanceById(Integer id, BigDecimal amount);
+    boolean substractCommissionBalanceById(Integer id, BigDecimal amount);
 }

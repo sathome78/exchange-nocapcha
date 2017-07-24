@@ -18,5 +18,5 @@ public interface CompanyWalletDao {
 
     CompanyWallet findByWalletId(int walletId);
 
-    boolean increaseCommissionBalanceById(Integer id, BigDecimal amount);
+    boolean substarctCommissionBalanceById(Integer id, BigDecimal amount);
 }
