@@ -1,9 +1,17 @@
 package me.exrates.service.nem;
 
+import com.google.common.primitives.Bytes;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.NisNotReadyException;
+import me.exrates.service.exception.NisTransactionException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.util.RestUtil;
+import org.apache.axis.utils.ByteArray;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -18,6 +26,9 @@ import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
 import org.nem.core.serialization.*;
 import org.nem.core.time.TimeInstant;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,41 +42,74 @@ import java.math.RoundingMode;
 public class test {
 
     static RestTemplate restTemplate = new RestTemplate();
-    static String nisServer = "http://127.0.0.1:7890";
-    static String address = "TBXU7F3WQJQQRPWJ53UJUYI6IJL2A34YESG7FVA5";
-    static Account account =  new Account(new KeyPair(PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee")));;
-    static KeyPair a = new KeyPair(PublicKey.fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
-    static  Account account2 = new Account(a);
+    static { restTemplate.setErrorHandler(new RestResponseErrorHandler());}
+    static String nisServer = "http://104.128.226.60:7890";
     private final static String pathExtendedInfo = "/node/extended-info";
     private final static String pathPrepareAnounce = "/transaction/prepare-announce";
     private final static String pathGetTransaction = "/transaction/get?hash=";
     private final static String pathGetCurrentBlockHeight = "/chain/last-block";
     private final static String pathGetIncomeTransactions = "/account/transfers/incoming?address=%s";
     private static final int decimals = 6;
+    int version_main = 1744830465;
+    int version_test = -1744830463;
+
 
     public static void main(String[] args) {
-        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("8bb4bb0b8a6077d7ac9f1b3eef6c66a15d347c6d7edb39df83127f4fc110a415"));
+        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
         Account account1 = new Account(keyPair);
-            BigDecimal decimal = new BigDecimal("5554.3423");
-            String destinationTag = "234234234234";
+          /*  BigDecimal decimal = new BigDecimal("5.343");
             Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
-                    .accountTo("")
+                    .accountTo("TAELUUWZPQDRDC4ECN42OSJMHEMSTRFG3EJCQYF2")
                     .amount(decimal.toPlainString())
-                    .destinationTag(destinationTag)
+                    .destinationTag("8f08fb89")
                     .build(), account1);
 
-        System.out.println(transaction);
+
         JsonSerializer serializer = new JsonSerializer();
         RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction,
-                PrivateKey.fromHexString("00bbb23c4fb84f6ae68a78dd2b8b041d99e8b6b0e68bd0f117758b29abc4991848"));
+                PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee"));
         announce.serialize(serializer);
-        System.out.println(serializer.getObject());
+        System.out.println(serializer.getObject());*/
+
+        /*JSONObject result = anounceTransaction(serializer.getObject().toJSONString());
+        System.out.println(result.toString());*/
+        DeserializationContext deserializationContext = new DeserializationContext(new SimpleAccountLookup() {
+            @Override
+            public Account findByAddress(Address address) {
+                return account1;
+            }
+        });
+
+        net.minidev.json.JSONObject object = new net.minidev.json.JSONObject();
+        net.minidev.json.JSONObject objectNested = new net.minidev.json.JSONObject();
+        objectNested.put("payload", "3866303866623839");
+        object.put("message", objectNested);
+        PlainMessage plainMessage = new PlainMessage(new JsonDeserializer(objectNested, deserializationContext));
+        String message = new String(plainMessage.getEncodedPayload());
+        System.out.println(message);
 
 
+    }
 
+    static JSONObject anounceTransaction(String serializedTransaction) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        HttpEntity<String> entity = new HttpEntity<String>(serializedTransaction ,headers);
+        ResponseEntity<String> response = restTemplate
+                .postForEntity(nisServer.concat(pathPrepareAnounce), entity, String.class);
+        JSONObject result = new JSONObject(response.getBody());
+        if (RestUtil.isError(response.getStatusCode())) {
+            System.out.println(response);
+            String error = result.getString("message");
+            try {
+                defineAndThrowException(error);
+            } catch (RuntimeException e) {
+                throw e;
+            }
+        }
 
-
-     }
+        return result;
+    }
 
     protected static JSONArray getIncomeTransactions(String address, String hash) {
         String url = nisServer.concat(String.format(pathGetIncomeTransactions, address));
@@ -137,5 +181,26 @@ public class test {
     private static JSONObject getNodeExtendedInfo() {
         String response = restTemplate.getForObject(nisServer.concat(pathExtendedInfo), String.class);
         return new org.json.JSONObject(response);
+    }
+
+    static private void defineAndThrowException(String errorMessage) {
+        switch (errorMessage) {
+            case "address must be valid" : {
+                throw new InvalidAccountException(errorMessage);
+            }
+            case "FAILURE_INSUFFICIENT_BALANCE" : {
+                throw new InsufficientCostsInWalletException("NEM BALANCE LOW");
+            }
+            default: throw new NisTransactionException(errorMessage);
+        }
+    }
+
+    static protected JSONObject getSingleTransactionByHash(String hash) {
+        ResponseEntity<String> response = restTemplate
+                .getForEntity(nisServer.concat(pathGetTransaction).concat(hash), String.class);
+        if (RestUtil.isError(response.getStatusCode()) || response.getBody().contains("error")) {
+            throw new NemTransactionException(response.toString());
+        }
+        return new JSONObject(response.getBody());
     }
 }

@@ -4,8 +4,16 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.nem.core.messages.PlainMessage;
+import org.nem.core.model.Account;
+import org.nem.core.model.Address;
+import org.nem.core.model.TransferTransactionAttachment;
+import org.nem.core.serialization.DeserializationContext;
+import org.nem.core.serialization.JsonDeserializer;
+import org.nem.core.serialization.SimpleAccountLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -35,31 +43,51 @@ public class NemRecieveTransactionsService {
 
     private static final String LAST_HASH_PARAM = "LastRecievedTrHash";
     private static final String MERCHANT_NAME = "NEM";
-    private static final int CONFIRMATIONS_COUNT_REFILL = 20;
+
+    DeserializationContext deserializationContext = new DeserializationContext(new SimpleAccountLookup() {
+        @Override
+        public Account findByAddress(Address address) {
+            return nemService.getAccount();
+        }
+    });
 
     private @Value("${nem.address}")String address;
 
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
+    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 )
     public void checkTransactions() {
         log.debug("starting check nem income payments");
         String lastHash = loadLastHash();
-        JSONArray transactions = nodeService.getIncomeTransactions(address, lastHash);
+        String pagingHash = null;
+        do {
+            JSONArray transactions = nodeService.getIncomeTransactions(address, pagingHash);
+            pagingHash = processTransactions(transactions, lastHash, pagingHash);
+        } while (!StringUtils.isEmpty(pagingHash));
+    }
+
+    private String processTransactions(JSONArray transactions, String lastHash, String pagingHash) {
         for (int i = 0; transactions.opt(i) != null; i++) {
             JSONObject transactionData = transactions.getJSONObject(i);
-            if (transactionsService.checkIsConfirmed(transactionData, CONFIRMATIONS_COUNT_REFILL)) {
-                try {
-                    Map<String, String> params = extractParams(transactionData);
-                    nemService.processPayment(params);
-                    saveLastHash(params.get("hash"));
-                } catch (RefillRequestAppropriateNotFoundException e) {
-                    log.error("nem refill address not found {}", transactionData.toString());
-                } catch (Exception e) {
-                    log.error("nem refill error {}", e);
-                }
+            Map<String, String> params = extractParams(transactionData);
+            String trHash = params.get("hash");
+            if (trHash.equals(lastHash)) {
+                return null;
             }
-
+            if (i == 0 && pagingHash == null) {
+                saveLastHash(trHash);
+            }
+            try {
+                nemService.processPayment(params);
+            } catch (RefillRequestAppropriateNotFoundException e) {
+                log.error("nem refill address not found {}", transactionData.toString());
+            } catch (Exception e) {
+                log.error("nem refill process error {} {}", e,transactionData.toString());
+            }
+            if (i == 24) {
+                return trHash;
+            }
         }
+        return null;
     }
 
     private Map<String, String> extractParams(JSONObject transactionMetaPair) {
@@ -67,20 +95,21 @@ public class NemRecieveTransactionsService {
         JSONObject transaction = transactionMetaPair.getJSONObject("transaction");
         String message = null;
         try {
-            message = new String((byte[]) transaction.getJSONObject("message").get("payload"), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
+            net.minidev.json.JSONObject object = new net.minidev.json.JSONObject();
+            object.put("payload", transaction.getJSONObject("message").getString("payload"));
+            PlainMessage plainMessage = new PlainMessage(new JsonDeserializer(object, deserializationContext));
+            message = new String(plainMessage.getEncodedPayload());
+            log.debug(message);
+        } catch (Exception e) {
             log.error("unsupported encoding {}", e);
         }
         Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("hash", meta.getJSONObject("transactionHash").getString("data"));
+        paramsMap.put("hash", meta.getJSONObject("hash").getString("data"));
         paramsMap.put("address", message);
         paramsMap.put("amount", transactionsService.transformToString(transaction.getLong("amount")));
+        paramsMap.put("transaction", transactionMetaPair.toString());
         return paramsMap;
     }
-
-
-
-
 
     private void saveLastHash(String hash) {
         specParamsDao.updateParam(MERCHANT_NAME, LAST_HASH_PARAM, hash);

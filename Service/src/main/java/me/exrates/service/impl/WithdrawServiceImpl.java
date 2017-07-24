@@ -444,8 +444,11 @@ public class WithdrawServiceImpl implements WithdrawService {
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
+      log.debug("before post");
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
+      log.debug("before withdraw");
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
+      log.debug("withdrawed");
       if (transactionParams != null) {
             withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
         }
@@ -466,6 +469,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       log.error(e);
       throw e;
     } catch (Exception e) {
+      log.error(e);
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }
@@ -555,6 +559,7 @@ public class WithdrawServiceImpl implements WithdrawService {
           withdrawRequest.getId(),
           description);
       if (result != SUCCESS) {
+        log.debug("inner transfer {}", result);
         throw new WithdrawRequestPostException(result.name());
       }
       profileData.setTime2();
@@ -570,6 +575,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       walletOperationData.setDescription(description);
       WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != SUCCESS) {
+        log.debug("operation data {}", result);
         throw new WithdrawRequestPostException(walletTransferStatus.name());
       }
       profileData.setTime3();

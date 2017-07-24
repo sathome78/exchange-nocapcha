@@ -1,5 +1,7 @@
 package me.exrates.service.nem;
 
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import org.nem.core.model.Account;
@@ -49,7 +51,7 @@ public interface NemService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean withdrawTransferringConfirmNeeded() {
-        return true;
+        return false;
     }
 
     Account getAccount();
@@ -64,7 +66,9 @@ public interface NemService extends IRefillable, IWithdrawable {
         return "Message";
     }
 
-    boolean checkSendedTransaction(String hash, String additionalParams);
+    void checkRecievedTransaction(RefillRequestFlatDto dto) throws RefillRequestAppropriateNotFoundException;
+
+    boolean checkSendedTransaction(String hash, String additionalParams) throws RefillRequestAppropriateNotFoundException;
 
     @Override
     default boolean comissionDependsOnDestinationTag() {

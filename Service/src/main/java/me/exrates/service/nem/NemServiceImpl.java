@@ -3,9 +3,7 @@ package me.exrates.service.nem;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.*;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -15,9 +13,8 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.nem.core.crypto.KeyPair;
-import org.nem.core.crypto.PrivateKey;
+import org.nem.core.crypto.PublicKey;
 import org.nem.core.model.Account;
-import org.nem.core.model.NemGlobals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -55,6 +52,7 @@ public class NemServiceImpl implements NemService {
 
     private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
+    private static final int CONFIRMATIONS_COUNT_REFILL = 20;
 
     private Merchant merchant;
     private Currency currency;
@@ -62,7 +60,7 @@ public class NemServiceImpl implements NemService {
 
     @PostConstruct
     public void init() {
-        account = new Account(new KeyPair(PrivateKey.fromHexString(privateKey)));
+        account = new Account(new KeyPair(PublicKey.fromHexString(publicKey)));
         currency = currencyService.findByName("XEM");
         merchant = merchantService.findByName(NEM_MERCHANT);
     }
@@ -120,8 +118,9 @@ public class NemServiceImpl implements NemService {
     }
 
     private String generateDestinationTag(String id) {
-       return algorithmService.sha256(String.valueOf(id));
+       return algorithmService.sha256(String.valueOf(id)).substring(0, 8);
     }
+
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
@@ -136,13 +135,42 @@ public class NemServiceImpl implements NemService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        try {
+        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+        if (!nemTransactionsService.checkIsConfirmed(new JSONObject(params.get("transaction")), CONFIRMATIONS_COUNT_REFILL)) {
+            try {
+                refillService.putOnBchExamRefillRequest(
+                        RefillRequestPutOnBchExamDto.builder()
+                        .requestId(requestId)
+                        .merchantId(requestAcceptDto.getMerchantId())
+                        .currencyId(requestAcceptDto.getCurrencyId())
+                        .address(requestAcceptDto.getAddress())
+                        .amount(requestAcceptDto.getAmount())
+                        .hash(requestAcceptDto.getMerchantTransactionId())
+                        .build());
+            } catch (RefillRequestAppropriateNotFoundException e) {
+                log.error(e);
+            }
+        } else {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
+        }
+    }
+
+    @Override
+    public void checkRecievedTransaction(RefillRequestFlatDto dto) throws RefillRequestAppropriateNotFoundException {
+        JSONObject transaction = nodeService.getSingleTransactionByHash(dto.getMerchantTransactionId());
+        if (nemTransactionsService.checkIsConfirmed(transaction, CONFIRMATIONS_COUNT_REFILL)) {
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .address(dto.getAddress())
+                    .merchantId(merchant.getId())
+                    .currencyId(currency.getId())
+                    .amount(dto.getAmount())
+                    .merchantTransactionId(dto.getMerchantTransactionId())
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+        } else {
+            log.debug("transaction {} not confirmed yet", dto.getId());
         }
     }
 

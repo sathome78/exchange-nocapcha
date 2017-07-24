@@ -34,11 +34,8 @@ import java.util.HashMap;
 @PropertySource("classpath:/merchants/nem.properties")
 public class NemTransactionsService {
 
-    private @Value("${ncc.server.url}")String nccServer;
-    private @Value("${nis.server.url}")String nisServer;
+    private @Value("${nem.transaction.version}")Integer version;
 
-    int version_main = 1744830465;
-    int version_test = -1744830463;
 
     private static final int decimals = 6;
 
@@ -47,11 +44,7 @@ public class NemTransactionsService {
     @Autowired
     private NemNodeService nodeService;
 
-    private SimpleAccountLookup lookup = address -> nemService.getAccount();
-
-    private DeserializationContext deserializationContext = new DeserializationContext(lookup);
-
-    TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
+    private TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
 
     public HashMap<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String privateKey) {
         TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
@@ -74,7 +67,7 @@ public class NemTransactionsService {
         } catch (UnsupportedEncodingException e) {
             log.error("unsupported encoding {}", e);
         }
-        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
+        TransferTransaction transaction = new  TransferTransaction(version, currentTimeStamp,
                 nemService.getAccount(), reipient, transformToNemAmount(withdrawMerchantOperationDto.getAmount()),  attachment);
         transaction.setDeadline(currentTimeStamp.addHours(2));
         transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
@@ -106,7 +99,7 @@ public class NemTransactionsService {
         TimeInstant current = nodeService.getCurrentTimeStamp();
         TimeInstant deadline = new TimeInstant(transaction.getJSONObject("transaction").getInt("deadline"));
         if (current.compareTo(deadline) <= 0) {
-            throw new NemTransactionException("NEM transaction was not icluded into block");
+            throw new NemTransactionException("NEM transaction was not included into block");
         }
     }
 
