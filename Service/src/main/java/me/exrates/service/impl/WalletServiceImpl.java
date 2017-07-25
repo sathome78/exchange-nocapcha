@@ -283,9 +283,14 @@ public final class WalletServiceImpl implements WalletService {
     }
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
-    Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext());
+    Commission commission = commissionService
+            .findCommissionByTypeAndRole(OperationType.USER_TRANSFER,
+                    userService.getUserRoleFromDB(fromUserWallet.getUser().getId()));
     BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
     BigDecimal totalAmount = amount.add(commissionAmount);
+    log.debug(commission.getValue());
+    log.debug(commissionAmount.toString());
+    log.debug(totalAmount.toString());
     if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
     }

@@ -30,6 +30,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.UnsupportedEncodingException;
@@ -42,8 +43,14 @@ import java.math.RoundingMode;
 public class test {
 
     static RestTemplate restTemplate = new RestTemplate();
-    static { restTemplate.setErrorHandler(new RestResponseErrorHandler());}
-    static String nisServer = "http://104.128.226.60:7890";
+    static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+    static {
+        requestFactory.setOutputStreaming(false);
+        restTemplate.setErrorHandler(new RestResponseErrorHandler());
+        restTemplate.setRequestFactory(requestFactory);
+    }
+    static String nisServer = "http://23.228.67.85:7890";
     private final static String pathExtendedInfo = "/node/extended-info";
     private final static String pathPrepareAnounce = "/transaction/prepare-announce";
     private final static String pathGetTransaction = "/transaction/get?hash=";
@@ -55,26 +62,25 @@ public class test {
 
 
     public static void main(String[] args) {
-        NetworkInfos.setDefault(NetworkInfos.getMainNetworkInfo());
-        byte version = 0;
-        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("" +
-                "d7137c31e76a65d35690970ec31c5834b103ebea7494b77f2c138913be8b74de"));
+        KeyPair keyPair = new KeyPair(PublicKey
+                .fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
         Account account1 = new Account(keyPair);
             BigDecimal decimal = new BigDecimal("5.343");
             TransferTransaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
-                    .accountTo("NBY32BIHDVBU6C4W2KPZUCTQS7BHAX333NY7R3VV")
+                    .accountTo("TBXU7F3WQJQQRPWJ53UJUYI6IJL2A34YESG7FVA5")
                     .amount(decimal.toPlainString())
-                    .destinationTag("8f08fb89")
-                    .build(), account1, version);
+                    .destinationTag("hello11")
+                    .build(), account1);
 
 
         System.out.println(transaction.getVersion());
 
         JsonSerializer serializer = new JsonSerializer();
         RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction,
-                PrivateKey.fromHexString("55b3bee7e55636849fa696c535190dcd0074cb58c720dabc4304aa6beb47f1f0"));
+                PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee"));
         announce.serialize(serializer);
         System.out.println(serializer.getObject());
+        System.out.println(anounceTransaction(serializer.getObject().toJSONString()));
 
 
 
@@ -115,7 +121,7 @@ public class test {
     }
 
     private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
-                                                          Account account, int version) {
+                                                          Account account) {
         TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
         TimeInstant currentTimeStamp = getCurrentTimeStamp();

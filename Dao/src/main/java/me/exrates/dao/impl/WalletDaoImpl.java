@@ -190,7 +190,7 @@ public class WalletDaoImpl implements WalletDao {
     });
   }
 
-  /*todo sum stop orders reserve*/
+
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =
