@@ -27,7 +27,6 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,6 @@ import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
-import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
 /**
  * created by ValkSam
@@ -295,9 +293,9 @@ public class TransferServiceImpl implements TransferService {
   }
 
   @Override
-  public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal) {
+  public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail) {
     ITransferable merchantService = (ITransferable) merchantServiceContext.getMerchantService(transferRequestFlatDto.getMerchantId());
-    return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
+    return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(userEmail));
   }
 
   @Transactional

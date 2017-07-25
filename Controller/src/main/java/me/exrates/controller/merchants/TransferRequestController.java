@@ -115,7 +115,7 @@ public class TransferRequestController {
     }
     Optional<TransferRequestFlatDto> dto =  transferService
             .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
-    if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal)) {
+    if (!dto.isPresent() || !transferService.checkRequest(dto.get(), principal.getName())) {
       rateLimitService.registerRequest(principal.getName());
       throw new InvoiceNotFoundException(messageSource.getMessage(
               "voucher.invoice.not.found", null, localeResolver.resolveLocale(request)));

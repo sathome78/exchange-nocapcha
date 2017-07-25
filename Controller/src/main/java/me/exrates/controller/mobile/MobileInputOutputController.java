@@ -5,10 +5,9 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.MerchantApiResponseType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
-import me.exrates.model.enums.invoice.TransferStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
@@ -16,6 +15,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
+import me.exrates.service.util.RateLimitService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -84,6 +85,9 @@ public class MobileInputOutputController {
     
     @Autowired
     private TransferService transferService;
+    
+    @Autowired
+    private RateLimitService rateLimitService;
     
     
     
@@ -214,11 +218,11 @@ public class MobileInputOutputController {
 
     /**
      * @api {get} /api/payments/merchants Merchants info
-     * @apiName findAllMerchantCurrencies
+     * @apiName findNonTransferMerchantCurrencies
      * @apiGroup Input-Output
      * @apiUse TokenHeader
      * @apiPermission user
-     * @apiDescription returns list of all merchants (sf no currencyId) or by currency
+     * @apiDescription returns list of all non-transfer merchants (if no currencyId) or by currency
      * @apiParam {Integer} currencyId - currency id (OPTIONAL)
      * @apiParamExample Request example
      * /api/payments/merchants?currencyId=7
@@ -274,9 +278,109 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/merchants")
+    @RequestMapping(value = "/merchants", method = GET)
     public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(@RequestParam(required = false) Integer currencyId) {
-        return merchantService.findAllMerchantCurrencies(currencyId);
+        return merchantService.findNonTransferMerchantCurrencies(currencyId);
+    }
+    
+    
+    /**
+     * @api {get} /api/payments/transferMerchants Transfer merchants info
+     * @apiName findNonTransferMerchantCurrencies
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns list of transfer merchants
+     * @apiParam {Integer} currencyId - currency id (OPTIONAL)
+     * @apiParamExample Request example
+     * /api/payments/transferMerchants
+     * @apiSuccess {Array} merchants List of available merchants
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.merchantId merchant id
+     * @apiSuccess {String} data.name merchant name
+     * @apiSuccess {Boolean} data.isVoucher defines if transfer is by voucher
+     * @apiSuccess {Boolean} data.recipientUserIsNeeded defines if transfer is for a certain user
+     * @apiSuccess {Array} data.blockedForCurrencies IDs of currencies where the transfer is blocked
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *   [
+     *       {
+     *          "merchantId": 31,
+     *          "name": "VoucherTransfer",
+     *          "isVoucher": true,
+     *          "recipientUserIsNeeded": true,
+     *          "blockedForCurrencies": [
+     *              9,
+     *              10
+     *          ],
+     *       },
+     *    ]
+     *
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transferMerchants", method = GET)
+    public List<TransferMerchantApiDto> findAllTransferMerchantCurrencies() {
+        return merchantService.findTransferMerchants();
+    }
+    
+    
+    /**
+     * @api {post} /api/payments/transfer/accept Accept transfer
+     * @apiName acceptVoucher
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Accept transfer by entering voucher code
+     * @apiParam {String} code voucher code
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "code": "ad4b3e017838a373c8cc4c59d1ed8269ce0e0b4bc9588cdfa879c5adbef8273e"
+     *      }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvoiceNotFoundException
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void acceptVoucher(@RequestBody Map<String, String> params) {
+        String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
+        LOGGER.debug("code {}", code);
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        if (!rateLimitService.checkLimitsExceed(userEmail)) {
+            throw new RequestsLimitExceedException();
+        }
+        InvoiceActionTypeEnum action = PRESENT_VOUCHER;
+        List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
+        if(requiredStatus.size() > 1) {
+            throw new RuntimeException("voucher processing error");
+        }
+        Optional<TransferRequestFlatDto> dto =  transferService
+                .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
+        if (!dto.isPresent() || !transferService.checkRequest(dto.get(), userEmail)) {
+            rateLimitService.registerRequest(userEmail);
+            throw new me.exrates.service.exception.invoice.InvoiceNotFoundException(messageSource.getMessage(
+                    "voucher.invoice.not.found", null, userLocale));
+        }
+        TransferRequestFlatDto flatDto = dto.get();
+        flatDto.setInitiatorEmail(userEmail);
+        transferService.performTransfer(flatDto, userLocale, action);
     }
 
     /**
@@ -398,7 +502,7 @@ public class MobileInputOutputController {
               item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
               .orElseThrow(MerchantInternalException::new);
         MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
-        if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
+        if (merchant.getProcessType() == MerchantProcessType.CRYPTO || merchant.getProcessType() == MerchantProcessType.INVOICE) {
             responseDto.setType(MerchantApiResponseType.NOTIFY);
             if (requestParamsDto.getRecipientBankId() != null && requestParamsDto.getAddress() == null) {
                 InvoiceBank bank = refillService.findInvoiceBankById(requestParamsDto.getRecipientBankId()).orElseThrow(InvoiceBankNotFoundException::new);
@@ -443,7 +547,7 @@ public class MobileInputOutputController {
               responseDto.setAdditionalTag(merchantCurrency.getAddress());
             } else {
               responseDto.setQr(params.get("qr"));
-              responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+              responseDto.setWalletNumber(merchant.getProcessType() == MerchantProcessType.CRYPTO ? params.get("address") : params.get("walletNumber"));
             }
             
         } else {
@@ -710,19 +814,29 @@ public class MobileInputOutputController {
      * @apiUse TokenHeader
      * @apiPermission user
      * @apiDescription Send transfer to other user
-     * @apiParam {Integer} walletId wallet id
-     * @apiParam {Integer} nickname nickname of receiver
+     * @apiParam {Integer} merchant merchant id
+     * @apiParam {Integer} currency currency id
+     * @apiParam {String} recipient nickname of receiver
      * @apiParam {Number} amount amount of transfer
      *
      * @apiParamExample {json} Request Example:
      *      {
-     *          "walletId": 6280,
-     *          "nickname": "qwerty123",
-     *          "sum": 10.0
+     *           "merchant": 31,
+     *           "currency": 2,
+     *           "recipient": "nickname",
+     *           "sum": 10.0
      *      }
      *
+     * @apiSuccess {String} message Localized success message
+     * @apiSuccess {String} balance Current active balance
+     * @apiSuccess {String} hash For voucher - a code to be sent to recipient
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
+     *     {
+     *          "message": "Ваш перевод #130 через систему VoucherTransfer был создан",
+     *          "balance": "USD 99899.80",
+     *          "hash": "7ab09209e505eb5d44085e8568d3274b5651b1b71424b210d61760845d835501"
+     *     }
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -852,7 +966,7 @@ public class MobileInputOutputController {
     }
 
     @ResponseStatus(NOT_FOUND)
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler({UserNotFoundException.class, me.exrates.dao.exception.UserNotFoundException.class})
     @ResponseBody
     public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);

@@ -11,11 +11,11 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -161,8 +161,9 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
-    String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
+  public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole, List<String> merchantProcessTypes) {
+    
+    String whereClause = currencyId == null ? "" : " AND MERCHANT_CURRENCY.currency_id = :currency_id";
 
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT.service_bean_name, " +
         "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission,  " +
@@ -175,10 +176,12 @@ public class MerchantDaoImpl implements MerchantDao {
         "                JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
         "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " +
             "             JOIN CURRENCY_LIMIT AS LIMIT_TRANSFER ON MERCHANT_CURRENCY.currency_id = LIMIT_TRANSFER.currency_id " +
-            "                                  AND LIMIT_TRANSFER.operation_type_id = 9 AND LIMIT_TRANSFER.user_role_id = :user_role_id " + whereClause;
-    Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
+            "                                  AND LIMIT_TRANSFER.operation_type_id = 9 AND LIMIT_TRANSFER.user_role_id = :user_role_id " +
+            "             WHERE process_type IN (:process_types)" + whereClause;
+    Map<String, Object> paramMap = new HashMap<String, Object>() {{
       put("currency_id", currencyId);
       put("user_role_id", userRole.getRole());
+      put("process_types", merchantProcessTypes);
     }};
 
     try {
@@ -209,6 +212,23 @@ public class MerchantDaoImpl implements MerchantDao {
     } catch (EmptyResultDataAccessException e) {
       return Collections.EMPTY_LIST;
     }
+  }
+  
+  
+  @Override
+  public List<TransferMerchantApiDto> findTransferMerchants() {
+    String sql = "SELECT id, name, service_bean_name FROM MERCHANT WHERE process_type = 'TRANSFER'";
+    return jdbcTemplate.query(sql, (rs, rowNum) -> {
+      TransferMerchantApiDto dto = new TransferMerchantApiDto();
+      dto.setMerchantId(rs.getInt("id"));
+      dto.setName(rs.getString("name"));
+      dto.setServiceBeanName(rs.getString("service_bean_name"));
+      String sqlInner = "SELECT DISTINCT currency_id FROM MERCHANT_CURRENCY where merchant_id = :merchant_id" +
+              " AND transfer_block = 1;";
+      List<Integer> blockedForCurrencies = namedParameterJdbcTemplate.queryForList(sqlInner, Collections.singletonMap("merchant_id", rs.getInt("id")), Integer.class);
+      dto.setBlockedForCurrencies(blockedForCurrencies);
+      return dto;
+    });
   }
 
   @Override

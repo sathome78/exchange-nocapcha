@@ -171,7 +171,8 @@ public class MobileDashboardController {
         result.setCommissions(orderService.getAllCommissions());
         result.setCurrencyPairs(currencyService.findCurrencyPairsWithLimitsForUser());
         result.setTransferLimits(currencyService.retrieveMinTransferLimits(Collections.singletonList(currencyId)));
-        result.setMerchants(merchantService.findAllMerchantCurrencies(currencyId));
+        result.setMerchants(merchantService.findNonTransferMerchantCurrencies(currencyId));
+        result.setTransferMerchants(merchantService.findTransferMerchants());
         return result;
     }
 

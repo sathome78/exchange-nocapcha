@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -146,8 +147,7 @@ public class CommissionServiceImpl implements CommissionService {
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
     Merchant merchant = merchantService.findById(merchantId);
-    String merchantProcessType = merchant.getProcessType();
-    if (!"CRYPTO".equals(merchantProcessType) || amount.compareTo(BigDecimal.ZERO) != 0) {
+    if (merchant.getProcessType() == MerchantProcessType.CRYPTO || amount.compareTo(BigDecimal.ZERO) != 0) {
       BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;

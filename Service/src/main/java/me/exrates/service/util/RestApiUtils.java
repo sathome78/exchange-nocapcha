@@ -17,8 +17,9 @@ public class RestApiUtils {
         final byte[] txt = Base64.getDecoder().decode(password);
         final byte[] key = PASSWORD_ENCODE_KEY.getBytes();
         final byte[] result = new byte[txt.length];
-        for (int i = 0; i < txt.length; i++)
+        for (int i = 0; i < txt.length; i++) {
             result[i] = (byte) (txt[i] ^ key[i % key.length]);
+        }
         return new String(result);
     }
 

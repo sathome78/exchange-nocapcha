@@ -5,8 +5,8 @@ import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,8 +33,10 @@ public interface MerchantService {
 
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-  List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
-
+  List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
+  
+  List<TransferMerchantApiDto> findTransferMerchants();
+  
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
   Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
