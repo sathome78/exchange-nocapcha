@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.NemTransactionException;
+import me.exrates.service.exception.WithdrawRequestPostException;
 import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,20 +48,37 @@ public class NemTransactionsService {
 
     private TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
 
+    @PostConstruct
+    public void init() {
+        switch (version) {
+            case 1 :{
+                NetworkInfos.setDefault(NetworkInfos.getMainNetworkInfo());
+            }
+            default: {
+                NetworkInfos.setDefault(NetworkInfos.getTestNetworkInfo());
+            }
+        }
+
+    }
+
     public HashMap<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String privateKey) {
-        TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
-        JsonSerializer serializer = new JsonSerializer();
-        RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction, PrivateKey.fromHexString(privateKey));
-        announce.serialize(serializer);
-        JSONObject result = nodeService.anounceTransaction(serializer.getObject().toJSONString());
-        return new HashMap<String, String>() {{
-            log.debug(result.getJSONObject("transactionHash").getString("data"));
-            put("hash", result.getJSONObject("transactionHash").getString("data"));
-        }};
+        try {
+            TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
+            JsonSerializer serializer = new JsonSerializer();
+            RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction, PrivateKey.fromHexString(privateKey));
+            announce.serialize(serializer);
+            JSONObject result = nodeService.anounceTransaction(serializer.getObject().toJSONString());
+            return new HashMap<String, String>() {{
+                put("hash", result.getJSONObject("transactionHash").getString("data"));
+            }};
+        } catch (Exception e) {
+            log.error(e);
+            throw new WithdrawRequestPostException("error post NEM withdraw");
+        }
     }
 
     private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
+        Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo().replaceAll("-", "").trim()));
         TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
         TransferTransactionAttachment attachment = null;
         try {
@@ -67,7 +86,7 @@ public class NemTransactionsService {
         } catch (UnsupportedEncodingException e) {
             log.error("unsupported encoding {}", e);
         }
-        TransferTransaction transaction = new  TransferTransaction(version, currentTimeStamp,
+        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
                 nemService.getAccount(), reipient, transformToNemAmount(withdrawMerchantOperationDto.getAmount()),  attachment);
         transaction.setDeadline(currentTimeStamp.addHours(2));
         transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));

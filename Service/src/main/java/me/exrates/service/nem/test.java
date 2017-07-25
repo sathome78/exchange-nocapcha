@@ -55,38 +55,27 @@ public class test {
 
 
     public static void main(String[] args) {
-        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
+        NetworkInfos.setDefault(NetworkInfos.getMainNetworkInfo());
+        byte version = 0;
+        KeyPair keyPair = new KeyPair(PublicKey.fromHexString("" +
+                "d7137c31e76a65d35690970ec31c5834b103ebea7494b77f2c138913be8b74de"));
         Account account1 = new Account(keyPair);
-          /*  BigDecimal decimal = new BigDecimal("5.343");
-            Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
-                    .accountTo("TAELUUWZPQDRDC4ECN42OSJMHEMSTRFG3EJCQYF2")
+            BigDecimal decimal = new BigDecimal("5.343");
+            TransferTransaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
+                    .accountTo("NBY32BIHDVBU6C4W2KPZUCTQS7BHAX333NY7R3VV")
                     .amount(decimal.toPlainString())
                     .destinationTag("8f08fb89")
-                    .build(), account1);
+                    .build(), account1, version);
 
+
+        System.out.println(transaction.getVersion());
 
         JsonSerializer serializer = new JsonSerializer();
         RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction,
-                PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee"));
+                PrivateKey.fromHexString("55b3bee7e55636849fa696c535190dcd0074cb58c720dabc4304aa6beb47f1f0"));
         announce.serialize(serializer);
-        System.out.println(serializer.getObject());*/
+        System.out.println(serializer.getObject());
 
-        /*JSONObject result = anounceTransaction(serializer.getObject().toJSONString());
-        System.out.println(result.toString());*/
-        DeserializationContext deserializationContext = new DeserializationContext(new SimpleAccountLookup() {
-            @Override
-            public Account findByAddress(Address address) {
-                return account1;
-            }
-        });
-
-        net.minidev.json.JSONObject object = new net.minidev.json.JSONObject();
-        net.minidev.json.JSONObject objectNested = new net.minidev.json.JSONObject();
-        objectNested.put("payload", "3866303866623839");
-        object.put("message", objectNested);
-        PlainMessage plainMessage = new PlainMessage(new JsonDeserializer(objectNested, deserializationContext));
-        String message = new String(plainMessage.getEncodedPayload());
-        System.out.println(message);
 
 
     }
@@ -125,7 +114,8 @@ public class test {
         return new JSONObject(response.getBody()).getJSONArray("data");
     }
 
-    private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto, Account account) {
+    private static TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto,
+                                                          Account account, int version) {
         TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo()));
         TimeInstant currentTimeStamp = getCurrentTimeStamp();
@@ -146,7 +136,7 @@ public class test {
         return new Amount(a.longValue());
     }
 
-    static BigDecimal countTxFee(BigDecimal amount, String destinationTag, Account account) {
+    /*static BigDecimal countTxFee(BigDecimal amount, String destinationTag, Account account) {
         Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
                 .accountTo("")
                 .amount(amount.toPlainString())
@@ -156,7 +146,7 @@ public class test {
         Amount feeAmount = NemGlobals.getTransactionFeeCalculator().calculateMinimumFee(transaction);
         System.out.println("is fee valid? " + NemGlobals.getTransactionFeeCalculator().isFeeValid(transaction, new BlockHeight(getLastBlockHeight())));
         return new BigDecimal(transformToString(feeAmount.getNumMicroNem()));
-    }
+    }*/
 
     protected static String transformToString(long nemAmount) {
         BigDecimal a = new BigDecimal(nemAmount).setScale(decimals, RoundingMode.HALF_DOWN).divide(new BigDecimal(1000000));
