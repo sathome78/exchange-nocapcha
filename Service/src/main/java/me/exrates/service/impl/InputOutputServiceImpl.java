@@ -132,8 +132,13 @@ public class InputOutputServiceImpl implements InputOutputService {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
         if (status == ON_BCH_EXAM) {
-          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          String message;
+          if (row.getCurrencyName().equals("XEM")) {
+            message = messageSource.getMessage("merchants.refill.TAKEN_FROM_EXAM", null, locale);
+          } else {
+            String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
+            message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          }
           return message;
         } else {
           return messageSource.getMessage("merchants.refill.".concat(status.name()), null, locale);
