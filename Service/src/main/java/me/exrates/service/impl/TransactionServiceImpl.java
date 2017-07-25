@@ -346,4 +346,9 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
 
+  @Override
+  public List<Transaction> getPayedRefTransactionsByOrderId(int orderId) {
+    return transactionDao.getPayedRefTransactionsByOrderId(orderId);
+  }
+
 }

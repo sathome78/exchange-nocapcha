@@ -61,4 +61,5 @@ public interface TransactionService {
 
   List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
+    List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
 }

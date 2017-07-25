@@ -52,4 +52,6 @@ public interface TransactionDao {
   List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 
   List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
+
+    List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
 }

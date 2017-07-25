@@ -9,7 +9,6 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
-import me.exrates.model.dto.mobileApiDto.OrderAcceptedDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -1164,7 +1163,7 @@ public class OrderServiceImpl implements OrderService {
       if (currentOrderStatus == OrderStatus.CLOSED) {
         if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
           Integer companyWalletId = orderDetailDto.getCompanyWalletId();
-          if (companyWalletId != 0 && !companyWalletService.increaseCommissionBalanceById(companyWalletId, orderDetailDto.getCompanyCommission())) {
+          if (companyWalletId != 0 && !companyWalletService.substractCommissionBalanceById(companyWalletId, orderDetailDto.getCompanyCommission())) {
             return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
           }
         }
@@ -1192,6 +1191,10 @@ public class OrderServiceImpl implements OrderService {
             return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
           }
         }
+        log.debug("rows before refs {}", processedRows);
+        int processedRefRows = this.unprocessReferralTransactionByOrder(orderDetailDto.getOrderId(), description);
+        processedRows = processedRefRows + processedRows;
+        log.debug("rows after refs {}", processedRows);
         /**/
         if (!transactionService.setStatusById(
             orderDetailDto.getTransactionId(),
@@ -1219,6 +1222,37 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     return processedRows;
+  }
+
+
+  private int unprocessReferralTransactionByOrder(int orderId, String description) {
+    List<Transaction> transactions = transactionService.getPayedRefTransactionsByOrderId(orderId);
+    for (Transaction transaction : transactions) {
+      WalletTransferStatus walletTransferStatus = null;
+      try {
+        WalletOperationData walletOperationData = new WalletOperationData();
+        walletOperationData.setWalletId(transaction.getUserWallet().getId());
+        walletOperationData.setAmount(transaction.getAmount());
+        walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
+        walletOperationData.setCommission(transaction.getCommission());
+        walletOperationData.setCommissionAmount(transaction.getCommissionAmount());
+        walletOperationData.setSourceType(TransactionSourceType.REFERRAL);
+        walletOperationData.setSourceId(transaction.getSourceId());
+        walletOperationData.setDescription(description);
+        walletOperationData.setOperationType(OperationType.OUTPUT);
+        walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+        referralService.setRefTransactionStatus(ReferralTransactionStatusEnum.DELETED, transaction.getSourceId());
+        companyWalletService.substractCommissionBalanceById(transaction.getCompanyWallet().getId(), transaction.getAmount().negate());
+      } catch (Exception e) {
+        log.error("error unprocess ref transactions" + e);
+      }
+      log.debug("status " + walletTransferStatus);
+      if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+        throw new RuntimeException("can't unprocess referral transaction for order " + orderId);
+      }
+    }
+    log.debug("end unprocess refs ");
+    return transactions.size();
   }
 
   @Override

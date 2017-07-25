@@ -2,6 +2,8 @@ package me.exrates.service;
 
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,5 +29,5 @@ public interface CompanyWalletService {
 
     List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 
-    boolean increaseCommissionBalanceById(Integer id, BigDecimal amount);
+    boolean substractCommissionBalanceById(Integer id, BigDecimal amount);
 }

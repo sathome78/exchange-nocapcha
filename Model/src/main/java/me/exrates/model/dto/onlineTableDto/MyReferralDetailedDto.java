@@ -1,6 +1,7 @@
 package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ public class MyReferralDetailedDto extends OnlineTableDto {
     private Integer referralLevel;
     private String referralPercent;
     private String initiatorEmail;
+    private String status;
 
     public MyReferralDetailedDto() {
         this.needRefresh = true;
@@ -100,5 +102,13 @@ public class MyReferralDetailedDto extends OnlineTableDto {
 
     public void setReferralPercent(String referralPercent) {
         this.referralPercent = referralPercent;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

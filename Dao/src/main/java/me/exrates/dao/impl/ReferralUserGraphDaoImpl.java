@@ -89,7 +89,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                 "sum(TR.amount) AS ref_profit " +
                 "FROM REFERRAL_USER_GRAPH RUG " +
                 "INNER JOIN USER US ON US.id = RUG.child " +
-                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent and RT.status = 'PAYED' " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
                 "WHERE RUG.parent = :parent GROUP BY email";
         Map<String, Object> namedParameters = new HashMap<>();
@@ -116,7 +116,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                 "(SELECT COUNT(child) FROM REFERRAL_USER_GRAPH WHERE parent = :parent) AS childs_count, " +
                 "sum(TR.amount) AS ref_profit " +
                 "FROM USER US " +
-                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user AND RT.status = 'PAYED' " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
                 "WHERE US.id = :parent ";
         Map<String, Object> namedParameters = new HashMap<>();
@@ -134,7 +134,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     @Override
     public List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser, RefFilterData refFilterData) {
         String sql = "SELECT sum(TR.amount) AS ref_profit, CU.name AS currency_name FROM USER US " +
-                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user AND RT.status = 'PAYED' " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
                 "INNER JOIN CURRENCY CU ON CU.id = TR.currency_id ";
         if (userId != null) {

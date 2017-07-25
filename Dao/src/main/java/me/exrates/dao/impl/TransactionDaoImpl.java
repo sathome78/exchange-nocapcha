@@ -772,4 +772,20 @@ public final class TransactionDaoImpl implements TransactionDao {
     });
   }
 
+
+  @Override
+  public List<Transaction> getPayedRefTransactionsByOrderId(int orderId) {
+    String sql = " SELECT TRANSACTION.*, CURRENCY.*, COMMISSION.*, COMPANY_WALLET.*, WALLET.* FROM TRANSACTION " +
+            "   JOIN REFERRAL_TRANSACTION RTX ON RTX.ID = TRANSACTION.source_id AND TRANSACTION.source_type = 'REFERRAL' " +
+            "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
+            "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+            "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+            "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+            " WHERE RTX.order_id = :orderId AND RTX.status = 'PAYED' ";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("orderId", orderId);
+    }};
+    return jdbcTemplate.query(sql, namedParameters,  transactionRowMapper);
+  }
+
 }
