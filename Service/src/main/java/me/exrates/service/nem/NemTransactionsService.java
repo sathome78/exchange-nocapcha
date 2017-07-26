@@ -53,9 +53,11 @@ public class NemTransactionsService {
         switch (version) {
             case 1 :{
                 NetworkInfos.setDefault(NetworkInfos.getMainNetworkInfo());
+                break;
             }
             default: {
                 NetworkInfos.setDefault(NetworkInfos.getTestNetworkInfo());
+                break;
             }
         }
 
