@@ -170,7 +170,8 @@ public class MobileDashboardController {
         GeneralInfoDto result = new GeneralInfoDto();
         result.setCommissions(orderService.getAllCommissions());
         result.setCurrencyPairs(currencyService.findCurrencyPairsWithLimitsForUser());
-        result.setTransferLimits(currencyService.retrieveMinTransferLimits(Collections.singletonList(currencyId)));
+        List<Integer> currencyIds = currencyId == 0 ? Collections.EMPTY_LIST : Collections.singletonList(currencyId);
+        result.setTransferLimits(currencyService.retrieveMinTransferLimits(currencyIds));
         result.setMerchants(merchantService.findNonTransferMerchantCurrencies(currencyId));
         result.setTransferMerchants(merchantService.findTransferMerchants());
         return result;
