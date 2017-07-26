@@ -8,6 +8,8 @@ import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -16,11 +18,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
-import me.exrates.service.merchantStrategy.IMerchantService;
-import me.exrates.service.merchantStrategy.IRefillable;
-import me.exrates.service.merchantStrategy.IWithdrawable;
-import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import org.apache.commons.lang3.math.NumberUtils;
+import me.exrates.service.merchantStrategy.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,8 +161,28 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
-    List<MerchantCurrencyApiDto> result = merchantDao.findAllMerchantCurrencies(currencyId, userService.getUserRoleFromSecurityContext());
+  public List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId) {
+    return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
+            .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
+  }
+  
+  @Override
+  public List<TransferMerchantApiDto> findTransferMerchants() {
+    List<TransferMerchantApiDto> result = merchantDao.findTransferMerchants();
+    result.forEach(item -> {
+      IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
+      if (merchantService instanceof ITransferable) {
+        ITransferable transferService = (ITransferable) merchantService;
+        item.setIsVoucher(transferService.isVoucher());
+        item.setRecipientUserIsNeeded(transferService.recipientUserIsNeeded());
+      }
+    });
+    return result;
+  }
+  
+  
+  private List<MerchantCurrencyApiDto> findMerchantCurrenciesByCurrencyAndProcessTypes(Integer currencyId, List<String> processTypes) {
+    List<MerchantCurrencyApiDto> result = merchantDao.findAllMerchantCurrencies(currencyId, userService.getUserRoleFromSecurityContext(), processTypes);
     result.forEach(item -> {
       try {
         IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
