@@ -15,9 +15,9 @@ import java.util.List;
 @Getter @Setter
 @ToString
 public class GeneralInfoDto {
-  List<CurrencyPairWithLimitsDto> currencyPairs;
-  List<MerchantCurrencyApiDto> merchants;
-  CommissionsDto commissions;
-  List<TransferMerchantApiDto> transferMerchants;
-  List<TransferLimitDto> transferLimits;
+  private List<CurrencyPairWithLimitsDto> currencyPairs;
+  private List<MerchantCurrencyApiDto> merchants;
+  private CommissionsDto commissions;
+  private List<TransferMerchantApiDto> transferMerchants;
+  private List<TransferLimitDto> transferLimits;
 }
