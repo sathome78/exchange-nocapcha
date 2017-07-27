@@ -192,6 +192,7 @@ public class MobileDashboardController {
      * @apiSuccess {Boolean} merchant.additionalTagForWithdrawAddressIsUsed if additional tag is needed for output
      * @apiSuccess {String} merchant.additionalFieldName name of additional tag
      * @apiSuccess {Boolean} merchant.generateAdditionalRefillAddressAvailable for cryptos - if it is possible to generate new address
+     * @apiSuccess {Boolean} data.withdrawCommissionDependsOnDestinationTag - if withdraw commission is computed dynamically against dst tag value
      * @apiSuccess {Array} merchant.merchantImageList List of merchant images
      * @apiSuccess {Object} merchantImage Merchant image
      * @apiSuccess {String} merchant.merchantImage.merchantId merchant id

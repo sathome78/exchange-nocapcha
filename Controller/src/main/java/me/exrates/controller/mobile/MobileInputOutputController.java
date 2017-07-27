@@ -241,6 +241,7 @@ public class MobileInputOutputController {
      * @apiSuccess {Boolean} data.additionalTagForWithdrawAddressIsUsed if additional tag is needed for output
      * @apiSuccess {String} data.additionalFieldName name of additional tag
      * @apiSuccess {Boolean} data.generateAdditionalRefillAddressAvailable for cryptos - if it is possible to generate new address
+     * @apiSuccess {Boolean} data.withdrawCommissionDependsOnDestinationTag - if withdraw commission is computed dynamically against dst tag value
      * @apiSuccess {Array} data.merchantImageList List of merchant images
      * @apiSuccess {Object} merchantImage Merchant image
      * @apiSuccess {String} data.merchantImage.merchantId merchant id
@@ -265,6 +266,7 @@ public class MobileInputOutputController {
      *          "additionalTagForWithdrawAddressIsUsed": true,
      *          "additionalFieldName": "Destination Tag",
      *          "generateAdditionalRefillAddressAvailable": false,
+     *          "withdrawCommissionDependsOnDestinationTag": false,
      *          "listMerchantImage": [],
      *          "withdrawBlocked": false,
      *          "refillBlocked": false
