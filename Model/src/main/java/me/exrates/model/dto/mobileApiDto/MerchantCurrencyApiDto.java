@@ -38,6 +38,8 @@ public class MerchantCurrencyApiDto {
     private String additionalFieldName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean generateAdditionalRefillAddressAvailable;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean withdrawCommissionDependsOnDestinationTag;
     private List<MerchantImageShortenedDto> listMerchantImage;
     @JsonIgnore
     private String serviceBeanName;

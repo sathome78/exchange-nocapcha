@@ -187,8 +187,10 @@ public class MerchantServiceImpl implements MerchantService {
       try {
         IMerchantService merchantService = merchantServiceContext.getMerchantService(item.getServiceBeanName());
         if (merchantService instanceof IWithdrawable) {
-          if (((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed()) {
-            item.setAdditionalFieldName(((IWithdrawable) merchantService).additionalWithdrawFieldName());
+          IWithdrawable withdrawService = (IWithdrawable) merchantService;
+          if (withdrawService.additionalTagForWithdrawAddressIsUsed()) {
+            item.setAdditionalFieldName(withdrawService.additionalWithdrawFieldName());
+            item.setWithdrawCommissionDependsOnDestinationTag(withdrawService.comissionDependsOnDestinationTag());
           }
         } else if (merchantService instanceof IRefillable) {
           if (((IRefillable) merchantService).additionalFieldForRefillIsUsed()) {

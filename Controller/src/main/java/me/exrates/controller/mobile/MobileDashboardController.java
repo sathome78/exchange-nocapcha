@@ -164,7 +164,138 @@ public class MobileDashboardController {
 
 
 
-
+    /**
+     * @api {get} /api/dashboard/generalInfo Get general information
+     * @apiName getGeneralInfo
+     * @apiGroup Dashboard
+     * @apiUse TokenHeader
+     * @apiPermission User
+     * @apiDescription Retrieves list of basic information: commissions, currency pairs, merchants, limits
+     * @apiSuccess (200) {Array} data Array of currency pairs
+     * @apiUse CurrencyPair
+     * @apiSuccess (200) (Number) currencyPair.minRateSell Min rate for sell orders
+     * @apiSuccess (200) (Number) currencyPair.maxRateSell Max rate for sell orders
+     * @apiSuccess (200) (Number) currencyPair.minRateBuy Min rate for buy orders
+     * @apiSuccess (200) (Number) currencyPair.maxRateBuy Max rate for buy orders
+     *
+     * @apiSuccess {Array} merchants List of available merchants
+     * @apiSuccess {Object} merchant Container object
+     * @apiSuccess {Integer} merchant.merchantId merchant id
+     * @apiSuccess {Integer} merchant.currencyId currency id
+     * @apiSuccess {String} merchant.name merchant name
+     * @apiSuccess {String} merchant.detail merchant detail
+     * @apiSuccess {Number} merchant.minInputSum minimal sum of input payment
+     * @apiSuccess {Number} merchant.minOutputSum minimal sum of output payment
+     * @apiSuccess {Number} merchant.inputCommission commission rate for refill operations
+     * @apiSuccess {Number} merchant.outputCommission commission rate for withdraw operations
+     * @apiSuccess {Number} merchant.minFixedCommission minimal commission amount
+     * @apiSuccess {Boolean} merchant.additionalTagForWithdrawAddressIsUsed if additional tag is needed for output
+     * @apiSuccess {String} merchant.additionalFieldName name of additional tag
+     * @apiSuccess {Boolean} merchant.generateAdditionalRefillAddressAvailable for cryptos - if it is possible to generate new address
+     * @apiSuccess {Array} merchant.merchantImageList List of merchant images
+     * @apiSuccess {Object} merchantImage Merchant image
+     * @apiSuccess {String} merchant.merchantImage.merchantId merchant id
+     * @apiSuccess {String} merchant.merchantImage.currencyId currency id
+     * @apiSuccess {String} merchant.merchantImage.image_name image name
+     * @apiSuccess {String} merchant.merchantImage.image_path - path for image on server
+     * @apiSuccess {String} merchant.merchantImage.id - merchant image id
+     * @apiSuccess {Boolean} merchant.withdrawBlocked if refill is blocked for merchant
+     * @apiSuccess {Boolean} merchant.refillBlocked if withdraw is blocked for merchant
+     *
+     * @apiSuccess {Object} commissions Container object for commission rates
+     * @apiSuccess {Number} commissions.inputCommission commission for input operations
+     * @apiSuccess {Number} commissions.outputCommission commission for output operations
+     * @apiSuccess {Number} commissions.sellCommission sell commission
+     * @apiSuccess {Number} commissions.buyCommission buy commission
+     *
+     * @apiSuccess {Array} transferMerchants List of available merchants
+     * @apiSuccess {Object} transferMerchant Container object
+     * @apiSuccess {Integer} transferMerchant.merchantId merchant id
+     * @apiSuccess {String} transferMerchant.name merchant name
+     * @apiSuccess {Boolean} transferMerchant.isVoucher defines if transfer is by voucher
+     * @apiSuccess {Boolean} transferMerchant.recipientUserIsNeeded defines if transfer is for a certain user
+     * @apiSuccess {Array} transferMerchant.blockedForCurrencies IDs of currencies where the transfer is blocked
+     *
+     * @apiSuccess {Array} transferLimits Result
+     * @apiSuccess {Object} transferLimit Container object
+     * @apiSuccess {Integer} transferLimit.currencyId currency id
+     * @apiSuccess {Number} transferLimit.transferMinLimit min limit for transfer
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *      {
+     *          "currencyPairs": [
+     *              {
+     *                  "id": 1,
+     *                  "name": "BTC/USD",
+     *                  "currency1": {
+     *                      "id": 4,
+     *                      "name": "BTC"
+     *                  },
+     *                  "currency2": {
+     *                      "id": 2,
+     *                      "name": "USD"
+     *                  },
+     *                  "minRateSell": 0,
+     *                  "maxRateSell": 99999999999,
+     *                  "minRateBuy": 0,
+     *                  "maxRateBuy": 99999999999
+     *               }
+     *            ],
+     *          "merchants": [
+     *              {
+     *                  "merchantId": 1,
+     *                  "currencyId": 1,
+     *                  "name": "Yandex kassa",
+     *                  "minInputSum": 200,
+     *                  "minOutputSum": 200,
+     *                  "minTransferSum": 200,
+     *                  "inputCommission": 0,
+     *                  "outputCommission": 0,
+     *                  "transferCommission": 0,
+     *                  "minFixedCommission": 0,
+     *                  "listMerchantImage": [
+     *                      {
+     *                          "id": 1,
+     *                          "imagePath": "/client/img/merchants/visa.png"
+     *                      }
+     *                  ],
+     *                  "withdrawBlocked": true,
+     *                  "refillBlocked": true,
+     *                  "transferBlocked": true
+     *              }
+     *          ],
+     *          "commissions": {
+     *              "inputCommission": 0,
+     *              "outputCommission": 1,
+     *              "sellCommission": 0,
+     *              "buyCommission": 0,
+     *              "transferCommission": 0
+     *          },
+     *          "transferMerchants": [
+     *              {
+     *                  "merchantId": 30,
+     *                  "name": "SimpleTransfer",
+     *                  "isVoucher": false,
+     *                  "recipientUserIsNeeded": true,
+     *                  "blockedForCurrencies": []
+     *              }
+     *          ],
+     *          "transferLimits": [
+     *              {
+     *                  "currencyId": 1,
+     *                  "transferMinLimit": 200
+     *              }
+     *          ]
+     *      }
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     *
+     *
+     */
     @RequestMapping(value = "/generalInfo", method = GET)
     public GeneralInfoDto getGeneralInfo(@RequestParam(required = false) Integer currencyId) {
         GeneralInfoDto result = new GeneralInfoDto();

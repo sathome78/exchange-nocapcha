@@ -17,6 +17,7 @@ import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.util.RateLimitService;
 import me.exrates.service.util.RestApiUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -328,7 +329,52 @@ public class MobileInputOutputController {
     public List<TransferMerchantApiDto> findAllTransferMerchantCurrencies() {
         return merchantService.findTransferMerchants();
     }
-    
+
+
+    /**
+     * @api {get} /api/payments/dynamicCommission Dynamic withdraw commission
+     * @apiName retrieveDynamicCommissionValue
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns merchant commission value for withdraw
+     * @apiParam {Number} amount - amount for withdrawal
+     * @apiParam {Number} merchant - merchant id
+     * @apiParam {Number} currency - currency id
+     * @apiParam {String} memo - additional tag for withdraw (OPTIONAL)
+     * @apiParamExample Request example
+     * /api/payments/dynamicCommission?amount=20&merchant=33&currency=24&memo=jsdfkaksjdfhfgagksjdfga
+     * @apiSuccess {Number} commission merchant commission value for withdraw
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     *   2
+     *
+
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/dynamicCommission", method = GET)
+    public Double retrieveDynamicCommissionValue(@RequestParam("amount") BigDecimal amount,
+                                                                  @RequestParam("currency") Integer currencyId,
+                                                                  @RequestParam("merchant") Integer merchantId,
+                                                                  @RequestParam(value = "memo", required = false) String memo) {
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+
+        Integer userId = userService.getIdByEmail(userEmail);
+        if (!StringUtils.isEmpty(memo)) {
+            merchantService.checkDestinationTag(merchantId, memo);
+        }
+        Map<String, String> result = withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId,
+                amount, currencyId, merchantId, userLocale, memo);
+        String merchantCommissionAmountString = result.get("merchantCommissionAmount");
+        BigDecimal merchantCommissionAmount = merchantCommissionAmountString == null ? BigDecimal.ZERO : new BigDecimal(merchantCommissionAmountString);
+        return merchantCommissionAmount.doubleValue();
+    }
     
     /**
      * @api {post} /api/payments/transfer/accept Accept transfer
