@@ -74,7 +74,13 @@
                       </c:if>
                       <br>
                       <span><loc:message code="merchants.commission"/>:</span>
-                      <span>${merchantCurrency.inputCommission.stripTrailingZeros().toPlainString()}%</span>
+                      <c:if test="${merchantCurrency.comissionDependsOnDestinationTag}">
+                        <loc:message code="message.comission.dynamic"/>
+                      </c:if>
+                      <c:if test="${!merchantCurrency.comissionDependsOnDestinationTag}">
+                        <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
+                      </c:if>
+
                     </div>
                   </div>
                   <button class="start-withdraw btn btn-primary btn-lg start-button"
@@ -86,6 +92,8 @@
                           data-merchant-min-sum="${merchantCurrency.minSum}"
                           data-min-sum="${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}"
                           data-process_type="${merchantCurrency.processType}"
+                          data-spec-merchan-comission="${merchantCurrency.specMerchantComission}"
+                          data-comission-depends-on-destination-tag="${merchantCurrency.comissionDependsOnDestinationTag}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
                           data-additional-field-name="${merchantCurrency.additionalFieldName}"
                           data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>

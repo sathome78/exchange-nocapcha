@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.ReferralTransaction;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
 
 import java.util.List;
 import java.util.Locale;
@@ -18,4 +19,6 @@ public interface ReferralTransactionDao {
     ReferralTransaction create(ReferralTransaction referralTransaction);
 
     List<MyReferralDetailedDto> findAllMyRefferal(String email, Integer offset, Integer limit, Locale locale);
+
+    void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId);
 }

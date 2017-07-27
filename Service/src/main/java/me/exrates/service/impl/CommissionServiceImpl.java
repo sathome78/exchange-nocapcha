@@ -16,6 +16,9 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.IWithdrawable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +47,9 @@ public class CommissionServiceImpl implements CommissionService {
 
   @Autowired
   MerchantService merchantService;
+
+  @Autowired
+  MerchantServiceContext merchantServiceContext;
 
   @Override
   public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
@@ -115,19 +121,24 @@ public class CommissionServiceImpl implements CommissionService {
       OperationType type,
       Integer currencyId,
       Integer merchantId,
-      Locale locale) {
+      Locale locale,
+      String destinationTag) {
     Map<String, String> result = new HashMap<>();
-    CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId);
+    CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId, destinationTag);
     result.put("amount", commissionData.getAmount().toPlainString());
-    result.put("merchantCommissionRate", "("
-        .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
-        .concat(commissionData.getMerchantCommissionUnit())
-        .concat(")"));
+    if (!commissionData.getSpecificMerchantComissionCount()) {
+      result.put("merchantCommissionRate", "("
+              .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
+              .concat(commissionData.getMerchantCommissionUnit())
+              .concat(")"));
+    } else {
+      result.put("merchantCommissionRate", "");
+    }
     result.put("merchantCommissionAmount", commissionData.getMerchantCommissionAmount().toPlainString());
     result.put("companyCommissionRate", "("
-        .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
-        .concat(commissionData.getCompanyCommissionUnit())
-        .concat(")"));
+              .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
+              .concat(commissionData.getCompanyCommissionUnit())
+              .concat(")"));
     result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
     result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
     result.put("resultAmount", commissionData.getResultAmount().toPlainString());
@@ -141,8 +152,9 @@ public class CommissionServiceImpl implements CommissionService {
       BigDecimal amount,
       OperationType type,
       Integer currencyId,
-      Integer merchantId) {
+      Integer merchantId, String destinationTag) {
     Map<String, String> result = new HashMap<>();
+    Boolean specMerchantComissionCount = false;
     Commission companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
@@ -158,10 +170,16 @@ public class CommissionServiceImpl implements CommissionService {
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
       } else if (type == OUTPUT) {
+        IWithdrawable wMerchant = (IWithdrawable)merchantServiceContext.getMerchantService(merchantId);
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
         amount = amount.setScale(currencyScale, ROUND_HALF_UP);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
-        merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+        if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
+          merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag);
+          specMerchantComissionCount = true;
+        } else {
+          merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+        }
         BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
@@ -195,7 +213,9 @@ public class CommissionServiceImpl implements CommissionService {
           companyCommissionUnit,
           companyCommissionAmount,
           totalCommissionAmount,
-          totalAmount
+          totalAmount,
+          specMerchantComissionCount
+
       );
     } else {
       return new CommissionDataDto(
@@ -208,7 +228,8 @@ public class CommissionServiceImpl implements CommissionService {
           companyCommissionUnit,
           ZERO,
           ZERO,
-          ZERO
+          ZERO,
+          specMerchantComissionCount
       );
     }
   }

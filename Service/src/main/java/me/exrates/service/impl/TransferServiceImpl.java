@@ -282,7 +282,7 @@ public class TransferServiceImpl implements TransferService {
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
     merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, null);
     result.put("addition", addition.toString());
     return result;
   }

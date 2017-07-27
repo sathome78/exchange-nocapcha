@@ -4,7 +4,10 @@ import me.exrates.model.*;
 import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,4 +59,7 @@ public interface ReferralService {
                                              int onPage, int page, RefFilterData refFilterData);
 
     List<String> getRefsListForDownload(int profitUser, RefFilterData filterData);
+
+    @Transactional
+    void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId);
 }

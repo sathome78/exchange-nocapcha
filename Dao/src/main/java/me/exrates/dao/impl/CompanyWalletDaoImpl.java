@@ -102,7 +102,7 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
     }
 
     @Override
-    public boolean increaseCommissionBalanceById(Integer id, BigDecimal amount){
+    public boolean substarctCommissionBalanceById(Integer id, BigDecimal amount){
         String sql = "UPDATE COMPANY_WALLET " +
             " SET commission_balance = commission_balance - :amount" +
             " WHERE id = :company_wallet_id ";

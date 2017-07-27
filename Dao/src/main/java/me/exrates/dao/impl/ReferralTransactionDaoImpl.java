@@ -5,6 +5,7 @@ import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,11 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         result.setUserId(resultSet.getInt("REFERRAL_TRANSACTION.user_id"));
         result.setInitiatorId(resultSet.getInt("REFERRAL_TRANSACTION.initiator_id"));
         result.setInitiatorEmail(resultSet.getString("user_email"));
+        result.setStatusEnum(ReferralTransactionStatusEnum.valueOf(resultSet.getString("ref_status")));
         return result;
     };
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
+    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, REFERRAL_TRANSACTION.status AS ref_status, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
             " TRANSACTION.source_id, TRANSACTION.source_type, " +
@@ -105,7 +107,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     public List<MyReferralDetailedDto> findAllMyRefferal(String email, Integer offset, Integer limit, Locale locale) {
         String sql = " SELECT " +
                 "  TRANSACTION.id AS transaction_id, TRANSACTION.datetime, TRANSACTION.amount," +
-                "  INITIATOR.email AS initiator_email, " +
+                "  INITIATOR.email AS initiator_email, REFERRAL_TRANSACTION.status AS ref_status, " +
                 "  REFERRAL_LEVEL.id AS referral_id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent, " +
                 "  CURRENCY.name AS currency_name " +
                 " FROM REFERRAL_TRANSACTION " +
@@ -113,7 +115,8 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
                 "   JOIN TRANSACTION ON (TRANSACTION.source_type=:source_type) AND (TRANSACTION.source_id = REFERRAL_TRANSACTION.id)" +
                 "   JOIN USER INITIATOR ON (INITIATOR.id = REFERRAL_TRANSACTION.initiator_id) " +
                 "   JOIN REFERRAL_LEVEL ON (REFERRAL_TRANSACTION.referral_level_id = REFERRAL_LEVEL.id)" +
-                "   JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)" +
+                "   JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id) " +
+                " ORDER BY TRANSACTION.status_modification_date DESC " +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
         params.put("email", email);
@@ -130,8 +133,22 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
                 myReferralDetailedDto.setReferralLevel(rs.getInt("level"));
                 myReferralDetailedDto.setReferralPercent(BigDecimalProcessing.formatLocale(rs.getBigDecimal("percent"), locale, 2));
                 myReferralDetailedDto.setCurrencyName(rs.getString("currency_name"));
+                myReferralDetailedDto.setStatus(ReferralTransactionStatusEnum.valueOf(rs.getString("ref_status")).name());
                 return myReferralDetailedDto;
             }
         });
+    }
+
+    @Override
+    public void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId) {
+        String sql = "UPDATE REFERRAL_TRANSACTION " +
+                " SET status = :status" +
+                " WHERE id = :transaction_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("transaction_id", refTransactionId);
+            put("status", status.name());
+        }};
+        boolean res = jdbcTemplate.update(sql, params) > 0;
+        if (!res) throw new RuntimeException("error change status to ref transaction " + refTransactionId);
     }
 }

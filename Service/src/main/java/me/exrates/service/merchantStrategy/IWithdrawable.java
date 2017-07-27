@@ -2,6 +2,7 @@ package me.exrates.service.merchantStrategy;
 
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -19,4 +20,17 @@ public interface IWithdrawable extends IMerchantService {
     return "MEMO";
   };
 
+  default boolean specificWithdrawMerchantCommissionCountNeeded() {
+    return false;
+  }
+
+  default BigDecimal countSpecCommission(BigDecimal amount, String destinationTag) {
+    return BigDecimal.ZERO;
+   };
+
+  default void checkDestinationTag(String destinationTag) {};
+
+  default boolean comissionDependsOnDestinationTag() {
+    return false;
+  }
 }

@@ -11,6 +11,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
@@ -22,6 +23,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.NumberUtils;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.responses.TransactionResponse;
@@ -58,6 +61,7 @@ public class StellarServiceImpl implements StellarService {
 
     private Merchant merchant;
     private Currency currency;
+    private static final String DESTINATION_TAG_ERR_MSG = "message.stellar.tagError";
 
     @PostConstruct
     public void init() {
@@ -80,6 +84,7 @@ public class StellarServiceImpl implements StellarService {
         return false;
     }
 
+    @Transactional
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         log.debug("withdraw_XLM");
@@ -112,6 +117,7 @@ public class StellarServiceImpl implements StellarService {
         }
     }
 
+    @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
@@ -185,5 +191,15 @@ public class StellarServiceImpl implements StellarService {
     public String getPaymentMessage(String additionalTag, Locale locale) {
         return messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{ACCOUNT_NAME, additionalTag}, locale);
+    }
+
+
+    /*must bee only unsigned int = Memo.id - unsigned 64-bit number, MAX_SAFE_INTEGER  memo 0 - 9007199254740991*/
+    @Override
+    public void checkDestinationTag(String destinationTag) {
+        if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
+                && Long.valueOf(destinationTag) <= 9007199254740991L)) {
+            throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
+        }
     }
 }

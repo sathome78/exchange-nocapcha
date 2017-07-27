@@ -28,4 +28,6 @@ public class CommissionDataDto {
   BigDecimal totalCommissionAmount;
   BigDecimal resultAmount;
 
+  Boolean specificMerchantComissionCount;
+
 }

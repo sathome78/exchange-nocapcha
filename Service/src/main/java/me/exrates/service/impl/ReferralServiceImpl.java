@@ -20,6 +20,7 @@ import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -61,7 +62,9 @@ public class ReferralServiceImpl implements ReferralService {
     @Autowired
     private NotificationService notificationService;
     @Autowired
-    CommissionService commissionService;
+    private CommissionService commissionService;
+    @Autowired
+    private MessageSource messageSource;
 
     private Commission commission;
     /**
@@ -160,6 +163,7 @@ public class ReferralServiceImpl implements ReferralService {
         }
     }
 
+
     @Override
     public List<ReferralTransaction> findAll(final int userId) {
         return referralTransactionDao.findAll(userId);
@@ -225,6 +229,9 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public List<MyReferralDetailedDto> findAllMyReferral(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
         List<MyReferralDetailedDto> result = referralTransactionDao.findAllMyRefferal(email, offset, limit, locale);
+        result.forEach(p -> {
+            p.setStatus(messageSource.getMessage("message.ref." + p.getStatus(), null, locale));
+        });
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<MyReferralDetailedDto>() {{
                 add(new MyReferralDetailedDto(false));
@@ -410,5 +417,11 @@ public class ReferralServiceImpl implements ReferralService {
         transactionsResult.add(getCSVTransactionsHeader());
         transactionsResult.add("\n");
         return transactionsResult;
+    }
+
+    @Override
+    @Transactional
+    public void setRefTransactionStatus(ReferralTransactionStatusEnum status, int refTransactionId) {
+        referralTransactionDao.setRefTransactionStatus(status, refTransactionId);
     }
 }

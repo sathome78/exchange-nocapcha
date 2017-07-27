@@ -43,14 +43,13 @@ $(function withdrawCreation() {
     var totalAmount;
     var bankDataList;
     var additionalFieldName;
+    var specComissionCount;
+    var comissionDependsOnDestinationTag;
 
-    $container.find(".start-withdraw").on('click', function () {
+        $container.find(".start-withdraw").on('click', function () {
         startWithdraw(this);
     });
 
-    $destinationTagHolder.on('input', function (e) {
-        checkAddrInput()
-    });
 
     $destinationHolder.on('input', function (e) {
         checkAddrInput()
@@ -78,6 +77,14 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.find('#destination-input-wrapper').show();
         $destinationHolder.val('');
         $destinationTagHolder.val('');
+        specComissionCount = $(button).data("spec-merchan-comission");
+        comissionDependsOnDestinationTag = $(button).data("comission-depends-on-destination-tag");
+        console.log(comissionDependsOnDestinationTag);
+        if (comissionDependsOnDestinationTag) {
+            $destinationTagHolder.on('input', function (e) {
+                fillModalWindow()
+            });
+        }
         if (checkAmount()) {
             fillModalWindow();
             showWithdrawDialog();
@@ -86,6 +93,7 @@ $(function withdrawCreation() {
     }
 
     function fillModalWindow() {
+
         getCommission(function (response) {
             var templateVariables = {
                 amount: '__amount',
@@ -285,19 +293,7 @@ $(function withdrawCreation() {
     }
 
     function checkWithdrawParamsEnter(localDestination) {
-        return merchantIsSimpleInvoice || (localDestination.length > 3 && checkDestinationTag());
-    }
-
-    /*max value for destination tag is 4294967295*/
-    function checkDestinationTag() {
-        console.log('additionalFieldNeeded ' + additionalFieldNeeded);
-        console.log('additionalFieldNeeded ' + additionalFieldNeeded);
-        var value = $destinationTagHolder.val();
-        if(additionalFieldNeeded && value) {
-            var tag = parseInt(value);
-            return !isNaN(tag) && tag > 0 && tag < 4294967295
-        }
-        return true;
+        return merchantIsSimpleInvoice || (localDestination.length > 3);
     }
 
     function getCommission(callback) {
@@ -306,7 +302,7 @@ $(function withdrawCreation() {
             async: false,
             type: "get",
             contentType: "application/json",
-            data: {"amount": amount, "currency": currency, "merchant": merchant}
+            data: {"amount": amount, "currency": currency, "merchant": merchant, "memo" : $destinationTagHolder.val()}
         }).success(function (response) {
             amount = response['amount'];
             commissionPercent = response['companyCommissionRate'];

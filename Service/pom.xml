@@ -131,6 +131,16 @@
       <artifactId>stellar-sdk</artifactId>
       <version>0.1.9</version>
     </dependency>
+    <dependency>
+      <groupId>nem</groupId>
+      <artifactId>nem-core</artifactId>
+      <version>0.6.91-BETA</version>
+    </dependency>
+    <dependency>
+      <groupId>net.minidev</groupId>
+      <artifactId>json-smart</artifactId>
+      <version>2.3</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>

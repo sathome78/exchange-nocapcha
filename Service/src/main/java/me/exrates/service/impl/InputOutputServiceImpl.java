@@ -133,8 +133,13 @@ public class InputOutputServiceImpl implements InputOutputService {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
         if (status == ON_BCH_EXAM) {
-          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          String message;
+          if (row.getCurrencyName().equals("XEM")) {
+            message = messageSource.getMessage("merchants.refill.TAKEN_FROM_EXAM", null, locale);
+          } else {
+            String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
+            message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          }
           return message;
         } else {
           return messageSource.getMessage("merchants.refill.".concat(status.name()), null, locale);
@@ -180,7 +185,7 @@ public class InputOutputServiceImpl implements InputOutputService {
         amount,
         operationType,
         currency.getId(),
-        merchant.getId());
+        merchant.getId(), payment.getDestinationTag());
     TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
     User recipient = StringUtils.isEmpty(payment.getRecipient()) ? null : userService.findByNickname(payment.getRecipient());
     Wallet recipientWallet = recipient == null ? null : walletService.findByUserAndCurrency(recipient, currency);

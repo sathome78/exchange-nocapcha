@@ -206,6 +206,8 @@ public class WithdrawServiceImpl implements WithdrawService {
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
+              e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
+              e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           }
       }
     });
@@ -432,7 +434,8 @@ public class WithdrawServiceImpl implements WithdrawService {
     IWithdrawable merchantService = (IWithdrawable) merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     BigDecimal amountForWithdraw = BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT);
     CommissionDataDto dto = commissionService
-        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT, withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId());
+        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT,
+                withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId(), withdrawRequest.getDestinationTag());
     BigDecimal finalAmount = BigDecimalProcessing.doAction(amountForWithdraw, dto.getMerchantCommissionAmount(), ActionType.SUBTRACT);
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
@@ -441,8 +444,11 @@ public class WithdrawServiceImpl implements WithdrawService {
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
     try {
+      log.debug("before post");
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
+      log.debug("before withdraw");
       Map<String, String> transactionParams = merchantService.withdraw(withdrawMerchantOperation);
+      log.debug("withdrawed");
       if (transactionParams != null) {
             withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
         }
@@ -463,6 +469,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       log.error(e);
       throw e;
     } catch (Exception e) {
+      log.error(e);
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }
@@ -512,12 +519,13 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale) {
+  public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount,
+                                                                              Integer currencyId, Integer merchantId, Locale locale, String destinationTag) {
     OperationType operationType = OUTPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
     merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale, destinationTag);
     result.put("addition", addition.toString());
     return result;
   }
@@ -551,6 +559,7 @@ public class WithdrawServiceImpl implements WithdrawService {
           withdrawRequest.getId(),
           description);
       if (result != SUCCESS) {
+        log.debug("inner transfer {}", result);
         throw new WithdrawRequestPostException(result.name());
       }
       profileData.setTime2();
@@ -566,6 +575,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       walletOperationData.setDescription(description);
       WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != SUCCESS) {
+        log.debug("operation data {}", result);
         throw new WithdrawRequestPostException(walletTransferStatus.name());
       }
       profileData.setTime3();

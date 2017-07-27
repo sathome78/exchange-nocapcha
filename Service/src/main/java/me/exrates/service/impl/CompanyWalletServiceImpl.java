@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
@@ -26,6 +27,7 @@ import static me.exrates.model.util.BigDecimalProcessing.doAction;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2
 @Service
 public class CompanyWalletServiceImpl implements CompanyWalletService {
 
@@ -95,6 +97,7 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         }
     }
 
+
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
@@ -119,7 +122,7 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
 
     @Override
     @Transactional
-    public boolean increaseCommissionBalanceById(Integer id, BigDecimal amount){
-        return companyWalletDao.increaseCommissionBalanceById(id, amount);
+    public boolean substractCommissionBalanceById(Integer id, BigDecimal amount){
+        return companyWalletDao.substarctCommissionBalanceById(id, amount);
     }
 }

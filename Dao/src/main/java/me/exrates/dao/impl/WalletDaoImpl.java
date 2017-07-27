@@ -190,7 +190,7 @@ public class WalletDaoImpl implements WalletDao {
     });
   }
 
-  /*todo sum stop orders reserve*/
+
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =
@@ -265,6 +265,18 @@ public class WalletDaoImpl implements WalletDao {
             " JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.user_id = USER.id AND WITHDRAW_REQUEST.currency_id = WALLET.currency_id AND WITHDRAW_REQUEST.status_id NOT IN (:status_id_list) " +
             " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
             "  " +
+                " UNION ALL " +
+                "  " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                " 0, 0, 0, " +
+                " IFNULL(TRANSFER_REQUEST.amount, 0), IFNULL(TRANSFER_REQUEST.commission, 0), " +
+                " 0, 0, 0, 0 " +
+                " FROM USER " +
+                " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " JOIN TRANSFER_REQUEST ON TRANSFER_REQUEST.user_id = USER.id AND TRANSFER_REQUEST.currency_id = WALLET.currency_id AND TRANSFER_REQUEST.status_id = 4 " +
+                " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                "  " +
             " UNION ALL " +
             "  " +
             " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +

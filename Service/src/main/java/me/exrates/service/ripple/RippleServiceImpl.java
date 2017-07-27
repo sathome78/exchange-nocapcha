@@ -9,6 +9,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
@@ -48,6 +49,8 @@ public class RippleServiceImpl implements RippleService {
   private static final String XRP_MERCHANT = "Ripple";
 
   private static final int MAX_TAG_DESTINATION_DIGITS = 9;
+
+  private static final String DESTINATION_TAG_ERR_MSG = "message.ripple.tagError";
 
 
   /*method for admin manual check transaction by hash*/
@@ -160,5 +163,14 @@ public class RippleServiceImpl implements RippleService {
   public String getPaymentMessage(String additionalTag, Locale locale) {
     return  messageSource.getMessage("merchants.refill.xrp",
             new String[]{systemAddress, additionalTag}, locale);
+  }
+
+  /*must bee only 32 bit number = 0 - 4294967295*/
+  @Override
+  public void checkDestinationTag(String destinationTag) {
+    if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
+            && Long.valueOf(destinationTag) <= 4294967295L)) {
+      throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, additionalWithdrawFieldName());
+    }
   }
 }
