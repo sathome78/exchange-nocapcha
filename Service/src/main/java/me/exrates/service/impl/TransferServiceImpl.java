@@ -128,9 +128,6 @@ public class TransferServiceImpl implements TransferService {
       result.put("message", notification);
       result.put("balance", balance);
       result.put("hash", request.getHash());
-      if (transferMerchantService.recipientUserIsNeeded()) {
-        result.put("recipient", request.getRecipient());
-      }
       profileData.setTime3();
       return result;
     } finally {

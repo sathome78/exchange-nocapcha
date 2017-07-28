@@ -8,6 +8,7 @@ import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
@@ -15,6 +16,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
+import me.exrates.service.exception.invoice.VoucherNotFoundException;
 import me.exrates.service.util.RateLimitService;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -89,6 +91,9 @@ public class MobileInputOutputController {
     
     @Autowired
     private RateLimitService rateLimitService;
+
+    @Autowired
+    private CurrencyService currencyService;
     
     
     
@@ -146,10 +151,10 @@ public class MobileInputOutputController {
     
     /**
      * @apiDefine InvoiceNotFoundException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
+     * @apiError (404) {String} errorCode error code
+     * @apiError (404) {String} url request URL
+     * @apiError (404) {String} cause name of root exception
+     * @apiError (404) {String} details detail of root exception
      * @apiErrorExample {json} Invoice Not Found:
      * HTTP/1.1 404 Not Found
      *      {
@@ -157,6 +162,23 @@ public class MobileInputOutputController {
      *           "url": "http://localhost:8080/api/payments/invoice/confirm",
      *           "cause": "InvoiceNotFoundException",
      *           "detail": "invoice id: 23423"
+     *      }
+     *
+     * */
+
+    /**
+     * @apiDefine VoucherNotFoundException
+     * @apiError (404) {String} errorCode error code
+     * @apiError (404) {String} url request URL
+     * @apiError (404) {String} cause name of root exception
+     * @apiError (404) {String} details detail of root exception
+     * @apiErrorExample {json} Voucher Not Found:
+     * HTTP/1.1 404 Not Found
+     *      {
+     *            "errorCode": "VOUCHER_NOT_FOUND",
+     *            "url": "http://localhost:8080/api/payments/transfer/accept",
+     *            "cause": "VoucherNotFoundException",
+     *            "detail": "Ваучер не найден!"
      *      }
      *
      * */
@@ -391,22 +413,23 @@ public class MobileInputOutputController {
      *      {
      *          "code": "ad4b3e017838a373c8cc4c59d1ed8269ce0e0b4bc9588cdfa879c5adbef8273e"
      *      }
-     *
+     * @apiSuccess {String} success message
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
+     *     100,20 USD успешно переведено на ваш счёт
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
      * @apiUse AuthenticationError
-     * @apiUse InvoiceNotFoundException
      * @apiUse InvalidParamError
      * @apiUse MessageNotReadableError
+     * @apiUse VoucherNotFoundException
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void acceptVoucher(@RequestBody Map<String, String> params) {
+    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = "text/plain;charset=UTF-8")
+    public String acceptVoucher(@RequestBody Map<String, String> params) {
         String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
         LOGGER.debug("code {}", code);
         String userEmail = getAuthenticatedUserEmail();
@@ -423,12 +446,14 @@ public class MobileInputOutputController {
                 .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
         if (!dto.isPresent() || !transferService.checkRequest(dto.get(), userEmail)) {
             rateLimitService.registerRequest(userEmail);
-            throw new me.exrates.service.exception.invoice.InvoiceNotFoundException(messageSource.getMessage(
+            throw new VoucherNotFoundException(messageSource.getMessage(
                     "voucher.invoice.not.found", null, userLocale));
         }
         TransferRequestFlatDto flatDto = dto.get();
         flatDto.setInitiatorEmail(userEmail);
         transferService.performTransfer(flatDto, userLocale, action);
+        return messageSource.getMessage("transfer.accept.success", new Object[]{BigDecimalProcessing.formatLocaleFixedSignificant(flatDto.getAmount(),
+                userLocale, 2) + " " + currencyService.getCurrencyName(flatDto.getCurrencyId())}, userLocale);
     }
 
     /**
@@ -865,7 +890,7 @@ public class MobileInputOutputController {
      * @apiParam {Integer} merchant merchant id
      * @apiParam {Integer} currency currency id
      * @apiParam {String} recipient nickname of receiver
-     * @apiParam {Number} amount amount of transfer
+     * @apiParam {Number} sum amount of transfer
      *
      * @apiParamExample {json} Request Example:
      *      {
@@ -878,12 +903,15 @@ public class MobileInputOutputController {
      * @apiSuccess {String} message Localized success message
      * @apiSuccess {String} balance Current active balance
      * @apiSuccess {String} hash For voucher - a code to be sent to recipient
+     * @apiSuccess {String} recipient Recipient nickname (may be absent for free vouchers)
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
      *          "message": "Ваш перевод #130 через систему VoucherTransfer был создан",
      *          "balance": "USD 99899.80",
-     *          "hash": "7ab09209e505eb5d44085e8568d3274b5651b1b71424b210d61760845d835501"
+     *          "hash": "7ab09209e505eb5d44085e8568d3274b5651b1b71424b210d61760845d835501",
+     *          "recipient": "talalai123"
+     *
      *     }
      *
      * @apiUse ExpiredAuthenticationTokenError
@@ -914,7 +942,6 @@ public class MobileInputOutputController {
         responseDto.setBalance((String)result.get("balance"));
         responseDto.setMessage((String)result.get("message"));
         responseDto.setHash((String)result.get("hash"));
-        responseDto.setRecipient((String)result.get("recipient"));
         return responseDto;
     }
 
@@ -1019,6 +1046,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(VoucherNotFoundException.class)
+    @ResponseBody
+    public ApiError VoucherNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.VOUCHER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(NOT_ACCEPTABLE)
