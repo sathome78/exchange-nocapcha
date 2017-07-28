@@ -413,7 +413,7 @@ public class MobileInputOutputController {
      *      {
      *          "code": "ad4b3e017838a373c8cc4c59d1ed8269ce0e0b4bc9588cdfa879c5adbef8273e"
      *      }
-     * @apiSuccess {String} success message
+     * @apiSuccess {String} message success message
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     100,20 USD успешно переведено на ваш счёт
@@ -428,8 +428,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = "text/plain;charset=UTF-8")
-    public String acceptVoucher(@RequestBody Map<String, String> params) {
+    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, String> acceptVoucher(@RequestBody Map<String, String> params) {
         String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
         LOGGER.debug("code {}", code);
         String userEmail = getAuthenticatedUserEmail();
@@ -452,8 +452,8 @@ public class MobileInputOutputController {
         TransferRequestFlatDto flatDto = dto.get();
         flatDto.setInitiatorEmail(userEmail);
         transferService.performTransfer(flatDto, userLocale, action);
-        return messageSource.getMessage("transfer.accept.success", new Object[]{BigDecimalProcessing.formatLocaleFixedSignificant(flatDto.getAmount(),
-                userLocale, 2) + " " + currencyService.getCurrencyName(flatDto.getCurrencyId())}, userLocale);
+        return Collections.singletonMap("message", messageSource.getMessage("transfer.accept.success", new Object[]{BigDecimalProcessing.formatLocaleFixedSignificant(flatDto.getAmount(),
+                userLocale, 2) + " " + currencyService.getCurrencyName(flatDto.getCurrencyId())}, userLocale));
     }
 
     /**
