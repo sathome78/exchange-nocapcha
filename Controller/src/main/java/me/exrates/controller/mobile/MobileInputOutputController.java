@@ -914,6 +914,7 @@ public class MobileInputOutputController {
         responseDto.setBalance((String)result.get("balance"));
         responseDto.setMessage((String)result.get("message"));
         responseDto.setHash((String)result.get("hash"));
+        responseDto.setRecipient((String)result.get("recipient"));
         return responseDto;
     }
 

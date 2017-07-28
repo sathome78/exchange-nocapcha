@@ -14,4 +14,6 @@ public class TransferResponseDto {
   private String balance;
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private String hash;
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private String recipient;
 }

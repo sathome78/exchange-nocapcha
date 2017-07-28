@@ -99,13 +99,15 @@ public class TransferServiceImpl implements TransferService {
     ProfileData profileData = new ProfileData(1000);
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
-      request.setIsVoucher(((ITransferable) merchantService).isVoucher());
-      if (((ITransferable) merchantService).recipientUserIsNeeded()) {
+      ITransferable transferMerchantService = (ITransferable) merchantService;
+
+      request.setIsVoucher(transferMerchantService.isVoucher());
+      if (transferMerchantService.recipientUserIsNeeded()) {
         checkTransferToSelf(request.getUserId(), request.getRecipientId(), request.getLocale());
       }
       Integer requestId = createTransfer(request);
       request.setId(requestId);
-      Map<String, String> data = ((ITransferable) merchantService).transfer(request);
+      Map<String, String> data = transferMerchantService.transfer(request);
       request.setHash(data.get("hash"));
       transferRequestDao.setHashById(requestId, data);
       /**/
@@ -126,6 +128,9 @@ public class TransferServiceImpl implements TransferService {
       result.put("message", notification);
       result.put("balance", balance);
       result.put("hash", request.getHash());
+      if (transferMerchantService.recipientUserIsNeeded()) {
+        result.put("recipient", request.getRecipient());
+      }
       profileData.setTime3();
       return result;
     } finally {
