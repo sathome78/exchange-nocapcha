@@ -550,6 +550,9 @@ public class OrderServiceImpl implements OrderService {
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
     try {
       ExOrder exOrder = this.getOrderById(orderId);
+
+      checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
+
       WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletService.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
       String descriptionForCreator = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPTED);
       String descriptionForAcceptor = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPT);
@@ -754,6 +757,19 @@ public class OrderServiceImpl implements OrderService {
       logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
       throw e;
     }
+  }
+
+  private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
+    if (userRoleService.isOrderAcceptionAllowedForUser(acceptorId)) {
+      UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
+      UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
+      if (acceptorRole != creatorRole) {
+        throw new OrderAcceptionException(messageSource.getMessage("order.accept.wrongRole", new Object[]{creatorRole.name()}, locale));
+      }
+
+    }
+
+
   }
 
   private String getWalletTransferExceptionMessage(WalletTransferStatus status, String negativeBalanceMessageCode, Locale locale) {
@@ -971,9 +987,10 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public List<OrderListDto> getAllBuyOrders(CacheData cacheData,
-                                            CurrencyPair currencyPair, Locale locale) {
+                                            CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
     Boolean evictEhCache = cacheData.getForceUpdate();
-    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllBuyOrders(currencyPair, evictEhCache), OperationType.BUY, evictEhCache);
+    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
+    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllBuyOrders(currencyPair, filterRole, evictEhCache), OperationType.BUY, evictEhCache);
     result = new ArrayList<>(result);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderListDto>() {{
@@ -1000,9 +1017,10 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public List<OrderListDto> getAllSellOrders(CacheData cacheData,
-                                             CurrencyPair currencyPair, Locale locale) {
+                                             CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
     Boolean evictEhCache = cacheData.getForceUpdate();
-    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllSellOrders(currencyPair, evictEhCache), OperationType.SELL, evictEhCache);
+    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
+    List<OrderListDto> result = aggregateOrders(serviceCacheableProxy.getAllSellOrders(currencyPair, filterRole, evictEhCache), OperationType.SELL, evictEhCache);
     result = new ArrayList<>(result);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderListDto>() {{
@@ -1121,7 +1139,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale) {
-    List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair);
+    List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, null);
     result.forEach(e -> {
       e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
       e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1134,7 +1152,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale) {
-    List<OrderListDto> result = orderDao.getOrdersSellForCurrencyPair(currencyPair);
+    List<OrderListDto> result = orderDao.getOrdersSellForCurrencyPair(currencyPair, null);
     result.forEach(e -> {
       e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
       e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));

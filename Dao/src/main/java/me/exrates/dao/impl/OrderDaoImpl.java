@@ -83,15 +83,17 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair) {
-        String email = null;
+    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 3 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate ASC";
-        Map<String, Object> namedParameters = new HashMap<>();
+        Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPair.getId());
+        if (filterRole != null) {
+            namedParameters.put("user_role_id", filterRole.getRole());
+        }
         return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
@@ -105,15 +107,17 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair) {
-        String email = null;
+    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 4 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate DESC";
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", currencyPair.getId());
+        if (filterRole != null) {
+            namedParameters.put("user_role_id", filterRole.getRole());
+        }
         return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));

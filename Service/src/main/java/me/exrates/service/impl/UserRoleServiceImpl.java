@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.UserRoleDao;
+import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.GroupUserRoleEnum;
 import me.exrates.model.enums.UserRole;
@@ -73,6 +74,22 @@ public class UserRoleServiceImpl implements UserRoleService {
   public List<Integer> getRealUserRoleIdByGroupRoleList(String groupUserRoleName) {
     GroupUserRoleEnum businessUserRoleEnum = GroupUserRoleEnum.convert(groupUserRoleName);
     return getRealUserRoleIdByGroupRoleList(businessUserRoleEnum);
+  }
+
+
+  @Override
+  public boolean isOrderAcceptionAllowedForUser(Integer userId) {
+    return userRoleDao.isOrderAcceptionAllowedForUser(userId);
+  }
+
+  @Override
+  public boolean isOrderFilteringEnabled(Integer roleId) {
+    return userRoleDao.isOrderFilteringEnabled(roleId);
+  }
+
+  @Override
+  public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
+    return userRoleDao.retrieveSettingsForRole(roleId);
   }
 
 }

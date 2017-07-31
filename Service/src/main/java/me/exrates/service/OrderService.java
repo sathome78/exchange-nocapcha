@@ -241,17 +241,19 @@ public interface OrderService {
    * Returns list of Buy orders of status open
    *
    * @param currencyPair
+   * @param orderRoleFilterEnabled
    * @return list of Buy orders
    */
-  List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale);
+  List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
   /**
    * Returns list of Sell orders of status open, exclude the orders of current user
    *
    * @param currencyPair
+   * @param orderRoleFilterEnabled
    * @return list of Sell orders
    */
-  List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale);
+  List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
   /**
    * Returns data of

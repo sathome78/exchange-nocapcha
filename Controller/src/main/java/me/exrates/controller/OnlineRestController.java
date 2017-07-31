@@ -376,6 +376,7 @@ public class OnlineRestController {
       @RequestParam(required = false) String period,
       @RequestParam(required = false) String chart,
       @RequestParam(required = false) Boolean showAllPairs,
+      @RequestParam(required = false) Boolean orderRoleFilterEnabled,
       HttpServletRequest request) {
     CurrencyPair currencyPair;
     if (currencyPairName == null) {
@@ -425,11 +426,21 @@ public class OnlineRestController {
     }
     request.getSession().setAttribute("chartType", chartType);
         /**/
+    if (orderRoleFilterEnabled == null) {
+      if (request.getSession().getAttribute("orderRoleFilterEnabled") == null) {
+        orderRoleFilterEnabled = false;
+      } else {
+        orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+      }
+    }
+    request.getSession().setAttribute("orderRoleFilterEnabled", orderRoleFilterEnabled);
+
     CurrentParams currentParams = new CurrentParams();
     currentParams.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
     currentParams.setPeriod(((BackDealInterval) request.getSession().getAttribute("currentBackDealInterval")).getInterval());
     currentParams.setChartType(((ChartType) request.getSession().getAttribute("chartType")).getTypeName());
     currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
+    currentParams.setOrderRoleFilterEnabled(((Boolean) request.getSession().getAttribute("orderRoleFilterEnabled")));
     return currentParams;
   }
 
@@ -568,10 +579,14 @@ public class OnlineRestController {
     if (currencyPair == null) {
       return Collections.EMPTY_LIST;
     }
+    Boolean orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+    if (orderRoleFilterEnabled == null) {
+      orderRoleFilterEnabled = false;
+    }
     String cacheKey = "sellOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, localeResolver.resolveLocale(request), orderRoleFilterEnabled);
     return result;
   }
 
@@ -594,10 +609,15 @@ public class OnlineRestController {
     if (currencyPair == null) {
       return Collections.EMPTY_LIST;
     }
+    Boolean orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+
+    if (orderRoleFilterEnabled == null) {
+      orderRoleFilterEnabled = false;
+    }
     String cacheKey = "BuyOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, localeResolver.resolveLocale(request), orderRoleFilterEnabled);
     return result;
   }
 
