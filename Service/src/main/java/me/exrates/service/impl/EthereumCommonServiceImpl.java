@@ -94,6 +94,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Integer minConfirmations;
 
+    @Override
+    public Integer minConfirmationsRefill() {
+        return minConfirmations;
+    }
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private final Logger LOG = LogManager.getLogger("node_ethereum");

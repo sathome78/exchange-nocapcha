@@ -371,7 +371,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "atbServiceImpl")
     public BitcoinService atbService() {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
-                "ATB", "ATB", 4);
+                "ATB", "ATB", 10);
     }
 
     @Bean(name = "ethereumServiceImpl")

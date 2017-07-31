@@ -11,6 +11,8 @@ import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.merchantStrategy.IRefillable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -59,6 +61,8 @@ public class InputOutputServiceImpl implements InputOutputService {
 
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  MerchantServiceContext merchantServiceContext;
 
   @Override
   @Transactional(readOnly = true)
@@ -131,13 +135,15 @@ public class InputOutputServiceImpl implements InputOutputService {
     switch (row.getSourceType()) {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
+        IRefillable merchant = (IRefillable) merchantServiceContext.getMerchantService(row.getMerchantName());
         if (status == ON_BCH_EXAM) {
           String message;
-          if (row.getCurrencyName().equals("XEM")) {
+          Integer confirmationsCount = merchant.minConfirmationsRefill();
+          if (confirmationsCount == null) {
             message = messageSource.getMessage("merchants.refill.TAKEN_FROM_EXAM", null, locale);
           } else {
             String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-            message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+            message = confirmations.concat("/").concat(confirmationsCount.toString());
           }
           return message;
         } else {

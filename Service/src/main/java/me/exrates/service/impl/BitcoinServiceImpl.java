@@ -59,6 +59,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private Integer minConfirmations;
 
+  @Override
+  public Integer minConfirmationsRefill() {
+    return minConfirmations;
+  }
 
   public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
     Properties props = new Properties();
