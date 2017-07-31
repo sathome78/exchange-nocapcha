@@ -33,9 +33,9 @@ public interface OrderDao {
 
     boolean updateOrder(ExOrder exOrder);
 
-    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair);
+    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
-    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
+    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 

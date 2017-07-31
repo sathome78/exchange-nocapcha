@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.GroupUserRoleEnum;
 import me.exrates.model.enums.UserRole;
@@ -21,4 +22,10 @@ public interface UserRoleService {
   List<Integer> getRealUserRoleIdByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);
 
   List<Integer> getRealUserRoleIdByGroupRoleList(String groupUserRoleName);
+
+  boolean isOrderAcceptionAllowedForUser(Integer userId);
+
+  boolean isOrderFilteringEnabled(Integer roleId);
+
+  UserRoleSettings retrieveSettingsForRole(Integer roleId);
 }
