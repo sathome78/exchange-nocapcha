@@ -58,7 +58,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
     return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("user_role_id", roleId), (rs, rowNum) -> {
       UserRoleSettings settings = new UserRoleSettings();
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
-      settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_allowed"));
+      settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
       settings.setOrderFilteringEnabled(rs.getBoolean("order_filtering_enabled"));
       return settings;
     });

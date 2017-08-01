@@ -2265,3 +2265,26 @@ textarea#remark {
 #no-address p {
     font-size: 1.5rem;
 }
+
+#order-filter-selector {
+    height: 50px
+}
+
+#order-filter-selector {
+    position: relative;
+}
+
+#order-filter-selector > div {
+    margin: 5px 10px;
+    height: 100%;
+}
+
+#order-filter-selector > div:first-child span {
+    vertical-align: middle;
+    font-size: 1.5rem;
+    color: #525f74;
+}
+
+#order-filter-selector .onoffswitch-inner:before {
+    background-color: #525f74;
+}
