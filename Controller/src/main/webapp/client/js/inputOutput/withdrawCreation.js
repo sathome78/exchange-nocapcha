@@ -45,8 +45,9 @@ $(function withdrawCreation() {
     var additionalFieldName;
     var specComissionCount;
     var comissionDependsOnDestinationTag;
+    const cyrillicPattern = /[\u0400-\u04FF]/;
 
-        $container.find(".start-withdraw").on('click', function () {
+    $container.find(".start-withdraw").on('click', function () {
         startWithdraw(this);
     });
 
@@ -293,7 +294,8 @@ $(function withdrawCreation() {
     }
 
     function checkWithdrawParamsEnter(localDestination) {
-        return merchantIsSimpleInvoice || (localDestination.length > 3);
+        return merchantIsSimpleInvoice || (localDestination.length > 3 && localDestination.length < 1000
+            && !cyrillicPattern.test(localDestination) && !/\s/g.test(localDestination));
     }
 
     function getCommission(callback) {
