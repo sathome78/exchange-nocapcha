@@ -235,7 +235,6 @@ public class BitcoinServiceImpl implements BitcoinService {
     log.debug("incoming block {}", blockHash);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
-    
     List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
     btcRefillRequests.forEach(log::debug);
     List<RefillRequestSetConfirmationsNumberDto> paymentsToUpdate = new ArrayList<>();
