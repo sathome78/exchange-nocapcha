@@ -132,6 +132,9 @@ public class AdminController {
   RefillService refillService;
 
   @Autowired
+  BotService botService;
+
+  @Autowired
   private MerchantServiceContext serviceContext;
 
   @Autowired
@@ -460,7 +463,7 @@ public class AdminController {
       currentRole = (String) httpSession.getAttribute("currentRole");
     }
     if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      roleList = userService.getAllRoles();
+      roleList = userRoleService.getRolesAvailableForChangeByAdmin();
     }
     model.addObject("roleList", roleList);
     User user = userService.getUserById(id);
@@ -539,7 +542,7 @@ public class AdminController {
       model.setViewName("admin/editUser");
       model.addObject("statusList", UserStatus.values());
       if (currentRole.equals(ADMINISTRATOR.name())) {
-        model.addObject("roleList", userService.getAllRoles());
+        model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
       }
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
@@ -1244,6 +1247,38 @@ public class AdminController {
       writer.close();
     }
   }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading", method = GET)
+  public ModelAndView autoTrading() {
+    ModelAndView modelAndView = new ModelAndView("/2a8fy7b07dxe44/autoTrading");
+    botService.retrieveBotFromDB().ifPresent(bot -> {
+      modelAndView.addObject("bot", bot);
+      modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
+    });
+    return modelAndView;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public List<UserRoleSettings> getRoleSettings() {
+    return userRoleService.retrieveSettingsForAllRoles();
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
+    userRoleService.updateSettingsForRole(userRoleSettings);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST)
+  public void createBot(@RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
+    botService.createBot(nickname, email, password);
+  }
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public void updateBot(@RequestBody BotTrader botTrader) {
+    botService.updateBot(botTrader);
+
+  }
+
+
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

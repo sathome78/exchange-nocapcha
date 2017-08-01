@@ -101,6 +101,9 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   private UserRoleService userRoleService;
 
+  @Autowired
+  private BotService botService;
+
   @Transactional
   @Override
   public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
@@ -367,6 +370,7 @@ public class OrderServiceImpl implements OrderService {
           setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
           profileData.setTime4();
         }
+        botService.acceptAfterDelay(exOrder);
       } else {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
@@ -601,7 +605,7 @@ public class OrderServiceImpl implements OrderService {
       comissionForCreator.setId(exOrder.getComissionId());
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
       OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
-      Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromSecurityContext());
+      Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
       BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
       BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
       BigDecimal amountWithComissionForAcceptor;

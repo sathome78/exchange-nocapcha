@@ -12,7 +12,13 @@ public interface UserRoleDao {
 
     boolean isOrderAcceptionAllowedForUser(Integer userId);
 
-    boolean isOrderFilteringEnabled(Integer roleId);
-
     UserRoleSettings retrieveSettingsForRole(Integer roleId);
+
+    List<UserRoleSettings> retrieveSettingsForAllRoles();
+
+    void updateSettingsForRole(UserRoleSettings settings);
+
+    List<UserRole> getRolesAvailableForChangeByAdmin();
+
+
 }

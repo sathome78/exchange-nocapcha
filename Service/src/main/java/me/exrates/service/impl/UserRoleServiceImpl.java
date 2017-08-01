@@ -78,18 +78,33 @@ public class UserRoleServiceImpl implements UserRoleService {
 
 
   @Override
+  @Transactional(readOnly = true)
   public boolean isOrderAcceptionAllowedForUser(Integer userId) {
     return userRoleDao.isOrderAcceptionAllowedForUser(userId);
   }
 
   @Override
-  public boolean isOrderFilteringEnabled(Integer roleId) {
-    return userRoleDao.isOrderFilteringEnabled(roleId);
+  @Transactional(readOnly = true)
+  public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
+    return userRoleDao.retrieveSettingsForRole(roleId);
   }
 
   @Override
-  public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
-    return userRoleDao.retrieveSettingsForRole(roleId);
+  @Transactional(readOnly = true)
+  public List<UserRole> getRolesAvailableForChangeByAdmin() {
+    return userRoleDao.getRolesAvailableForChangeByAdmin();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserRoleSettings> retrieveSettingsForAllRoles() {
+    return userRoleDao.retrieveSettingsForAllRoles();
+  }
+
+  @Override
+  @Transactional
+  public void updateSettingsForRole(UserRoleSettings settings) {
+    userRoleDao.updateSettingsForRole(settings);
   }
 
 }
