@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair) {
+function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -12,6 +12,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     /**/
     var that = this;
     var chart = null;
+    var orderRoleFilter = null;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -439,7 +440,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair) {
+    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
@@ -457,6 +458,14 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             } catch (e) {
             }
         }
+        try {
+            orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
+        } catch (e) {
+        }
+
+
+
+
         that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
 
@@ -496,7 +505,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair);
+    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
