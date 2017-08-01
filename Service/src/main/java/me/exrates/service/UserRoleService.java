@@ -25,7 +25,11 @@ public interface UserRoleService {
 
   boolean isOrderAcceptionAllowedForUser(Integer userId);
 
-  boolean isOrderFilteringEnabled(Integer roleId);
+    UserRoleSettings retrieveSettingsForRole(Integer roleId);
 
-  UserRoleSettings retrieveSettingsForRole(Integer roleId);
+    List<UserRole> getRolesAvailableForChangeByAdmin();
+
+    List<UserRoleSettings> retrieveSettingsForAllRoles();
+
+    void updateSettingsForRole(UserRoleSettings settings);
 }

@@ -4,11 +4,15 @@ import me.exrates.dao.UserRoleDao;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 
@@ -20,14 +24,16 @@ public class UserRoleDaoImpl implements UserRoleDao {
   @Autowired
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
   @Override
   public List<UserRole> findRealUserRoleIdByBusinessRoleList(String businessRoleName) {
     String sql = "SELECT UR.id " +
         "  FROM USER_ROLE UR " +
         "  JOIN USER_ROLE_BUSINESS_FEATURE URBF ON (URBF.id = UR.user_role_business_feature_id) AND (URBF.name = :business_role_name) ";
-    return namedParameterJdbcTemplate.query(sql, singletonMap("business_role_name", businessRoleName), (resultSet, i) -> {
-      return UserRole.convert(resultSet.getInt("id"));
-    });
+    return namedParameterJdbcTemplate.query(sql, singletonMap("business_role_name", businessRoleName), (resultSet, i) ->
+            UserRole.convert(resultSet.getInt("id")));
   }
 
   @Override
@@ -35,9 +41,8 @@ public class UserRoleDaoImpl implements UserRoleDao {
     String sql = "SELECT UR.id " +
         "  FROM USER_ROLE UR " +
         "  JOIN USER_ROLE_GROUP_FEATURE URGF ON (URGF.id = UR.user_role_group_feature_id) AND (URGF.name = :group_role_name) ";
-    return namedParameterJdbcTemplate.query(sql, singletonMap("group_role_name", groupRoleName), (resultSet, i) -> {
-      return UserRole.convert(resultSet.getInt("id"));
-    });
+    return namedParameterJdbcTemplate.query(sql, singletonMap("group_role_name", groupRoleName), (resultSet, i) ->
+            UserRole.convert(resultSet.getInt("id")));
   }
 
   @Override
@@ -47,21 +52,45 @@ public class UserRoleDaoImpl implements UserRoleDao {
   }
 
   @Override
-  public boolean isOrderFilteringEnabled(Integer roleId) {
-    String sql = "SELECT order_filtering_enabled FROM USER_ROLE_SETTINGS where user_role_id = :user_role_id";
-    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("user_role_id", roleId), Boolean.class);
-  }
-
-  @Override
   public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
-    String sql = "SELECT user_role_id, order_acception_same_role_only, order_filtering_enabled FROM USER_ROLE_SETTINGS where user_role_id = :user_role_id";
+    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed " +
+            " FROM USER_ROLE_SETTINGS where user_role_id = :user_role_id";
     return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("user_role_id", roleId), (rs, rowNum) -> {
       UserRoleSettings settings = new UserRoleSettings();
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
       settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
-      settings.setOrderFilteringEnabled(rs.getBoolean("order_filtering_enabled"));
+      settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
       return settings;
     });
+  }
+
+  @Override
+  public List<UserRoleSettings> retrieveSettingsForAllRoles() {
+    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed FROM USER_ROLE_SETTINGS";
+    return jdbcTemplate.query(sql, (rs, rowNum) -> {
+      UserRoleSettings settings = new UserRoleSettings();
+      settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
+      settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
+      settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
+      return settings;
+    });
+  }
+
+  @Override
+  public void updateSettingsForRole(UserRoleSettings settings) {
+    String sql = "UPDATE USER_ROLE_SETTINGS SET order_acception_same_role_only = :same_role_only, bot_acception_allowed = :bot_acception_allowed " +
+            "WHERE user_role_id = :role_id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("role_id", settings.getUserRole().getRole());
+    params.put("same_role_only", settings.isOrderAcceptionSameRoleOnly());
+    params.put("bot_acception_allowed", settings.isBotAcceptionAllowed());
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<UserRole> getRolesAvailableForChangeByAdmin() {
+    String sql = "SELECT user_role_id FROM USER_ROLE_SETTINGS WHERE manual_change_allowed = 1";
+    return jdbcTemplate.queryForList(sql, Integer.class).stream().map(UserRole::convert).collect(Collectors.toList());
   }
 
 }
