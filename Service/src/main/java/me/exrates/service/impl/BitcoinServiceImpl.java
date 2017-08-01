@@ -151,11 +151,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         throw new IllegalStateException("Can`t generate fresh address");
       }
     }
-
     return address;
   }
   
   private void onPayment(BtcTransactionDto transactionDto) {
+    log.debug("on payment {}", transactionDto);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
@@ -195,8 +195,9 @@ public class BitcoinServiceImpl implements BitcoinService {
                       .merchantId(btcPaymentFlatDto.getMerchantId())
                       .currencyId(btcPaymentFlatDto.getCurrencyId())
                       .merchantTransactionId(btcPaymentFlatDto.getTxId()).build()));
-      if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < CONFIRMATION_NEEDED_COUNT) {
+      if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < minConfirmations) {
         try {
+          log.debug("put on bch exam {}", btcPaymentFlatDto );
           refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
                   .requestId(requestId)
                   .merchantId(btcPaymentFlatDto.getMerchantId())
@@ -231,7 +232,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   
   private void onIncomingBlock(String blockHash) {
-    
+    log.debug("incoming block {}", blockHash);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     
