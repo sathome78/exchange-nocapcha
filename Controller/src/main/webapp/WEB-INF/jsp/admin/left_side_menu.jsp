@@ -113,6 +113,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Bitcoin'/>"><loc:message code="btcWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Litecoin'/>"><loc:message code="ltcWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Dash'/>"><loc:message code="dashWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/atb'/>"><loc:message code="atbWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>

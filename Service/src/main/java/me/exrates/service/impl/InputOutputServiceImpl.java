@@ -135,8 +135,9 @@ public class InputOutputServiceImpl implements InputOutputService {
     switch (row.getSourceType()) {
       case REFILL: {
         RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
-        IRefillable merchant = (IRefillable) merchantServiceContext.getMerchantService(merchantService.findByName(row.getMerchantName()).getServiceBeanName());
         if (status == ON_BCH_EXAM) {
+          IRefillable merchant = (IRefillable) merchantServiceContext
+                  .getMerchantService(merchantService.findByName(row.getMerchantName()).getServiceBeanName());
           String message;
           Integer confirmationsCount = merchant.minConfirmationsRefill();
           if (confirmationsCount == null) {
