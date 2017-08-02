@@ -1,88 +1,46 @@
 /**
  * Created by OLEG on 23.09.2016.
  */
-var currentLocale;
-var commissionsDataTable;
-var merchantsCommissionsDataTable;
+var rolesDataTable;
 
 $(document).ready(function () {
-    var $commissionTable = $('#commissions-table');
-    var $merchantCommissionTable = $('#merchant-commissions-table');
-    var $commissionForm = $('#edit-commission-form');
-    var $merchantCommissionForm = $('#edit-merchantCommission-form');
-    var $roleNameSelect = $('#roleName');
-    currentLocale = $('#language').text().trim().toLowerCase();
+    var $rolesTable = $('#roles-table');
 
 
 
 
-    updateCommissionsDataTable(addCommissionRowListener);
-    updateMerchantCommissionsDataTable(addMerchantCommissionRowListener);
-    $($roleNameSelect).on("change", updateCommissionsDataTable);
 
+    updateRolesDataTable(rolesRowListener);
 
-
-
-    function addCommissionRowListener() {
-        $($commissionTable).find('tbody').on('click', 'tr', function () {
-            var currentRoleName = $($roleNameSelect).val();
-            var rowData = commissionsDataTable.row(this).data();
-            var operationType = rowData.operationType;
-            var commissionValue = parseFloat(rowData.value);
-            $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
-            $('#operationType').val(operationType);
-            $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
-            $('#editCommissionModal').modal();
-        });
-    }
-
-    function addMerchantCommissionRowListener() {
-        $($merchantCommissionTable).find('tbody').on('click', 'tr', function () {
-            var rowData = merchantsCommissionsDataTable.row(this).data();
-            var merchantId = rowData.merchantId;
-             var currencyId = rowData.currencyId;
-             var merchantName = rowData.merchantName;
-             var currencyName = rowData.currencyName;
-             var inputCommissionValue = parseFloat(rowData.inputCommission);
-             var outputCommissionValue = parseFloat(rowData.outputCommission);
-             var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
-             $($merchantCommissionForm).find('input[name="merchantId"]').val(merchantId);
-             $($merchantCommissionForm).find('input[name="currencyId"]').val(currencyId);
-             $('#merchantName').val(merchantName);
-             $('#currencyName').val(currencyName);
-             $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
-             $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
-             $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
-             $('#editMerchantCommissionModal').modal();
+    function rolesRowListener() {
+        $($rolesTable).find('tbody').on('click', 'i', function () {
+            var row = $(this).parents('tr');
+            var rowData = rolesDataTable.row(row).data();
+            console.log(rowData)
         });
     }
 
 
 
-    $('#submitCommission').click(function(e) {
+    /*$('#submitCommission').click(function(e) {
         e.preventDefault();
         submitCommission()
     });
-
-    $('#submitMerchantCommission').click(function(e) {
-        e.preventDefault();
-        submitMerchantCommission()
-    });
-
+*/
 
 });
 
 
-function updateMerchantCommissionsDataTable(initCallback) {
-    var $merchantCommissionTable = $('#merchant-commissions-table');
-    var merchantCommissionUrl = '/2a8fy7b07dxe44/getMerchantCommissions';
-    if ($.fn.dataTable.isDataTable('#merchant-commissions-table')) {
-        merchantsCommissionsDataTable = $($merchantCommissionTable).DataTable();
-        merchantsCommissionsDataTable.ajax.url(merchantCommissionUrl).load();
+function updateRolesDataTable(initCallback) {
+    var $rolesTable = $('#roles-table');
+    var roleUrl = '/2a8fy7b07dxe44/autoTrading/roleSettings';
+    if ($.fn.dataTable.isDataTable('#roles-table')) {
+        rolesDataTable = $($rolesTable).DataTable();
+        rolesDataTable.ajax.url(roleUrl).load();
     } else {
-        merchantsCommissionsDataTable = $($merchantCommissionTable).DataTable({
+        rolesDataTable = $($rolesTable).DataTable({
             "ajax": {
-                "url": merchantCommissionUrl,
+                "url": roleUrl,
                 "dataSrc": ""
             },
             "bFilter": false,
@@ -94,62 +52,28 @@ function updateMerchantCommissionsDataTable(initCallback) {
             "bInfo": false,
             "columns": [
                 {
-                    "data": "merchantName"
+                    "data": "userRole"
                 },
                 {
-                    "data": "currencyName"
-                },
-                {
-                    "data": "inputCommission"
-                },
-                {
-                    "data": "outputCommission"
-                },
-                {
-                    "data": "minFixedCommission"
-                }
-            ]
-        });
-    }
-}
-
-function updateCommissionsDataTable(initCallback) {
-    var $commissionTable = $('#commissions-table');
-
-    var currentRoleName = $('#roleName').val();
-    var commissionUrlBase = '/2a8fy7b07dxe44/getCommissionsForRole?role=';
-    var commissionUrl = commissionUrlBase + currentRoleName;
-    if ($.fn.dataTable.isDataTable('#commissions-table')) {
-        commissionsDataTable = $($commissionTable).DataTable();
-        commissionsDataTable.ajax.url(commissionUrl).load();
-    } else {
-        commissionsDataTable = $($commissionTable).DataTable({
-            "ajax": {
-                "url": commissionUrl,
-                "dataSrc": ""
-            },
-            "bFilter": false,
-            "paging": false,
-            "order": [],
-            "initComplete": initCallback,
-            "bLengthChange": false,
-            "bPaginate": false,
-            "bInfo": false,
-            "columns": [
-                {
-                    "data": "operationType",
-                    "render": function (data, type, row) {
-                        return row.operationTypeLocalized;
+                    "data": "orderAcceptionSameRoleOnly",
+                    "render": function (data) {
+                        return '<span>'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                            .concat('</span>');
                     }
                 },
                 {
-                    "data": "value"
+                    "data": "botAcceptionAllowed",
+                    "render": function (data) {
+                        return '<span>'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                            .concat('</span>');
+                    }
                 }
             ]
         });
     }
 }
 
+/*
 function submitCommission() {
     var formData =  $('#edit-commission-form').serialize();
     $.ajax({
@@ -160,7 +84,7 @@ function submitCommission() {
         type: 'POST',
         data: formData,
         success: function () {
-            updateCommissionsDataTable();
+            updateRolesDataTable();
 
             $('#editCommissionModal').modal('hide');
         },
@@ -170,23 +94,4 @@ function submitCommission() {
         }
     });
 }
-
-function submitMerchantCommission() {
-    var formData =  $('#edit-merchantCommission-form').serialize();
-    $.ajax({
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        url: '/2a8fy7b07dxe44/commissions/editMerchantCommission',
-        type: 'POST',
-        data: formData,
-        success: function () {
-            updateMerchantCommissionsDataTable();
-            $('#editMerchantCommissionModal').modal('hide');
-        },
-         error: function (error) {
-         $('#editCommissionModal').modal('hide');
-         console.log(error);
-         }
-    });
-}
+*/

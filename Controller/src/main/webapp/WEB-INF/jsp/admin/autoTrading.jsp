@@ -12,65 +12,105 @@
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<!DOCTYPE html>
 <html>
 <head>
     <title><loc:message code="admin.autoTrading.title"/></title>
     <%@include file='links_scripts.jsp' %>
-    <%--<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCommissionsDataTable.js'/>"></script>--%>
+    <script type="text/javascript" src="<c:url value='/client/js/admin-autotrading/autotrading.js'/>"></script>
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2 admin-container">
+        <div class="col-md-6 col-md-offset-2 content admin-container">
             <div class="text-center"><h4><loc:message code="admin.autoTrading.title"/></h4></div>
 
-            <div id="<%--commissionsMenu--%>" class="buttons">
+
+            <div id="autotradingMenu" class="buttons">
                 <button class="active adminForm-toggler blue-box">
-                    <%--<loc:message code="admin.stockExchangeCommissions"/>--%>
+                    <loc:message code="admin.autoTrading.settings.roles"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
-                    <%--<loc:message code="admin.merchantsCommissions"/>--%>
+                    <loc:message code="admin.autoTrading.settings.bot"/>
                 </button>
             </div>
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
                     <div class="col-sm-6">
-                        <div class="text-center"><h4><%--<loc:message code="admin.stockExchangeCommissions"/>--%></h4></div>
+                        <div class="text-center"><h4><loc:message code="admin.autoTrading.settings.roles"/></h4></div>
 
-                        <select id="roleName" class="input-block-wrapper__input admin-form-input">
-                            <c:forEach items="${roleNames}" var="roleName">
-                                <option value="${roleName}">${roleName}</option>
-                            </c:forEach>
-                        </select>
+
                         <hr/>
 
-                        <table id="<%--commissions-table--%>">
+                        <table id="roles-table">
                             <thead>
                             <tr>
-                                <th><loc:message code="admin.commissions.operationType"/> </th>
-                                <th><loc:message code="admin.commissions.value"/></th>
+                                <th><loc:message code="admin.autoTrading.role"/> </th>
+                                <th><loc:message code="admin.autoTrading.sameRoleOnly"/></th>
+                                <th><loc:message code="admin.autoTrading.botAccept"/></th>
                             </tr>
                             </thead>
                         </table>
                     </div>
                 </div>
                 <div id="panel2" class="tab-pane">
-                    <div class="col-sm-8">
-                        <div class="text-center"><h4><loc:message code="admin.merchantsCommissions"/></h4></div>
+                    <div class="col-md-8">
+                        <div class="text-center"><h4><loc:message code="admin.autoTrading.settings.bot"/></h4></div>
+                        <div>
+                            <c:choose>
+                                <c:when test="${not empty bot}">
+                                    <form id="bot-settings-form" class="form_full_height_width">
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="nickname" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.nickname"/></label>
+                                            </div>
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <input id="nickname" class="input-block-wrapper__input admin-form-input" value="<c:out value="${botUser.nickname}"/>" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="email" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.email"/></label>
+                                            </div>
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <input id="email" class="input-block-wrapper__input admin-form-input" value="<c:out value="${botUser.email}"/>" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="enabled" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.status"/></label>
+                                            </div>
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <input id="enabled" type="checkbox" name="isEnabled" <c:out value="${bot.isEnabled ? 'checked' : ''}"/> class="input-block-wrapper__input">
+                                            </div>
+                                        </div>
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="timeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.timeout"/></label>
+                                            </div>
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <input id="timeout" type="number" name="acceptDelayInSeconds" value="<c:out value="${bot.acceptDelayInSeconds}"/>"
+                                                       class="input-block-wrapper__input admin-form-input">
+                                            </div>
+                                        </div>
 
-                        <table id="merchant-commissions-table">
-                            <thead>
-                            <tr>
-                                <th><loc:message code="withdrawal.merchant"/> </th>
-                                <th><loc:message code="withdrawal.currency"/> </th>
-                                <th><loc:message code="admin.merchantsCommissions.input"/></th>
-                                <th><loc:message code="admin.merchantsCommissions.output"/></th>
-                                <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
-                            </tr>
-                            </thead>
-                        </table>
+                                        <button id="submitBotSettings" class="blue-box"><loc:message code="admin.submit"/></button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <p><loc:message code="admin.autoTrading.bot.notCreated"/> </p>
+
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+
+
+
+
+
                     </div>
                 </div>
 
@@ -89,7 +129,7 @@
                 <h4 class="modal-title"><loc:message code="admin.editCommission"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-commission-form" class="form_full_width form_auto_height">
+                <%--<form id="edit-commission-form" class="form_full_width form_auto_height">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label for="userRole" class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
@@ -115,7 +155,7 @@
                         </div>
                     </div>
                     <button id="submitCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                </form>
+                </form>--%>
             </div>
         </div>
     </div>

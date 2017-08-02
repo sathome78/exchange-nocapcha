@@ -1250,7 +1250,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading", method = GET)
   public ModelAndView autoTrading() {
-    ModelAndView modelAndView = new ModelAndView("/2a8fy7b07dxe44/autoTrading");
+    ModelAndView modelAndView = new ModelAndView("/admin/autoTrading");
     botService.retrieveBotFromDB().ifPresent(bot -> {
       modelAndView.addObject("bot", bot);
       modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
@@ -1259,20 +1259,24 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
   public List<UserRoleSettings> getRoleSettings() {
     return userRoleService.retrieveSettingsForAllRoles();
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
   public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
     userRoleService.updateSettingsForRole(userRoleSettings);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST)
+  @ResponseBody
   public void createBot(@RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
     botService.createBot(nickname, email, password);
   }
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
   public void updateBot(@RequestBody BotTrader botTrader) {
     botService.updateBot(botTrader);
 

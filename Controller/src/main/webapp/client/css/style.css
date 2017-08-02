@@ -2288,3 +2288,15 @@ textarea#remark {
 #order-filter-selector .onoffswitch-inner:before {
     background-color: #525f74;
 }
+
+#roles-table i {
+    font-size: 1.5rem;
+}
+
+#roles-table i:hover {
+    cursor:pointer;
+}
+
+#roles-table td:nth-child(2), #roles-table td:nth-child(3) {
+    text-align: center;
+}
