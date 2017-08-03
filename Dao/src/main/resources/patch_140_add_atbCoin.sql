@@ -35,3 +35,21 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
 VALUES ((SELECT id from MERCHANT WHERE name='ATB'), (select id from CURRENCY where name='ATB'), 'atbWallet.title');
+
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'ATB'), 0.000001, 1, 1, 0);
+
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'ATB'), 0.000001, 1, 1, 0);
+
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'ATB'), 0.000001, 1, 1, 0);
+
+INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), '/client/img/merchants/transfer.png', 'Transfer', (select id from CURRENCY where name = 'ATB'));
+
+INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), '/client/img/merchants/voucher.png', 'Voucher', (select id from CURRENCY where name = 'ATB'));
+
+INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'ATB'));

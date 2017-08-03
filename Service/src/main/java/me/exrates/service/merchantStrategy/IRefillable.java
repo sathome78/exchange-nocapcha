@@ -27,4 +27,8 @@ public interface IRefillable extends IMerchantService{
   default String additionalRefillFieldName() {
     return "MEMO";
   };
+
+  default Integer minConfirmationsRefill() {
+    return null;
+  };
 }
