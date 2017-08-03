@@ -236,6 +236,23 @@ public class MobileInputOutputController {
      *
      * */
 
+    /**
+     * @apiDefine CommissionExceedingAmountException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Insufficient Costs:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *          "errorCode": "COMMISSION_EXCEEDS_AMOUNT",
+     *          "url": "http://localhost:8080/api/payments/dynamicCommission",
+     *          "cause": "CommissionExceedingAmountException",
+     *          "detail": "Commission 6.001 exceeds amount 5"
+     *      }
+     *
+     * */
+
 
 
 
@@ -254,7 +271,7 @@ public class MobileInputOutputController {
      * @apiSuccess {Integer} data.merchantId merchant id
      * @apiSuccess {Integer} data.currencyId currency id
      * @apiSuccess {String} data.name merchant name
-     * @apiSuccess {String} data.detail merchant detail
+     * @apiSuccess {String} merchant.processType merchant process type (CRYPTO, MERCHANT, INVOICE)
      * @apiSuccess {Number} data.minInputSum minimal sum of input payment
      * @apiSuccess {Number} data.minOutputSum minimal sum of output payment
      * @apiSuccess {Number} data.inputCommission commission rate for refill operations
@@ -280,6 +297,7 @@ public class MobileInputOutputController {
      *          "merchantId": 20,
      *          "currencyId": 19,
      *          "name": "Ripple",
+     *          "processType": "CRYPTO",
      *          "minInputSum": 0.01,
      *          "minOutputSum": 5,
      *          "inputCommission": 0,
@@ -378,6 +396,7 @@ public class MobileInputOutputController {
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
+     * @apiUse CommissionceedsAmountException
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
@@ -393,11 +412,15 @@ public class MobileInputOutputController {
         if (!StringUtils.isEmpty(memo)) {
             merchantService.checkDestinationTag(merchantId, memo);
         }
-        Map<String, String> result = withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId,
-                amount, currencyId, merchantId, userLocale, memo);
-        String merchantCommissionAmountString = result.get("merchantCommissionAmount");
-        BigDecimal merchantCommissionAmount = merchantCommissionAmountString == null ? BigDecimal.ZERO : new BigDecimal(merchantCommissionAmountString);
-        return merchantCommissionAmount.doubleValue();
+        try {
+            Map<String, String> result = withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId,
+                    amount, currencyId, merchantId, userLocale, memo);
+            String merchantCommissionAmountString = result.get("merchantCommissionAmount");
+            BigDecimal merchantCommissionAmount = merchantCommissionAmountString == null ? BigDecimal.ZERO : new BigDecimal(merchantCommissionAmountString);
+            return merchantCommissionAmount.doubleValue();
+        } catch (InvalidAmountException e) {
+            throw new CommissionExceedingAmountException(e.getMessage());
+        }
     }
     
     /**
@@ -1081,6 +1104,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError outputRequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.OUTPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(CommissionExceedingAmountException.class)
+    @ResponseBody
+    public ApiError commissionExceedingAmountExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.COMMISSION_EXCEEDS_AMOUNT, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)

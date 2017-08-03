@@ -183,7 +183,7 @@ public class MobileDashboardController {
      * @apiSuccess {Integer} merchant.merchantId merchant id
      * @apiSuccess {Integer} merchant.currencyId currency id
      * @apiSuccess {String} merchant.name merchant name
-     * @apiSuccess {String} merchant.detail merchant detail
+     * @apiSuccess {String} merchant.processType merchant process type (CRYPTO, MERCHANT, INVOICE)
      * @apiSuccess {Number} merchant.minInputSum minimal sum of input payment
      * @apiSuccess {Number} merchant.minOutputSum minimal sum of output payment
      * @apiSuccess {Number} merchant.inputCommission commission rate for refill operations
@@ -248,6 +248,7 @@ public class MobileDashboardController {
      *                  "merchantId": 1,
      *                  "currencyId": 1,
      *                  "name": "Yandex kassa",
+     *                  "processType": "MERCHANT",
      *                  "minInputSum": 200,
      *                  "minOutputSum": 200,
      *                  "minTransferSum": 200,
