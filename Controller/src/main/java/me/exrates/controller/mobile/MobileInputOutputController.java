@@ -605,14 +605,7 @@ public class MobileInputOutputController {
                 requestParamsDto.setAddress(bank.getAccountNumber());
                 requestParamsDto.setRecipientBankName(bank.getName());
             }
-            RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-            Payment payment = new Payment(INPUT);
-            payment.setCurrency(requestParamsDto.getCurrency());
-            payment.setMerchant(requestParamsDto.getMerchant());
-            payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
-                    .orElseThrow(InvalidAmountException::new);
-            RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+            RefillRequestCreateDto refillRequest = prepareRefillRequest(requestParamsDto, userEmail, userLocale);
             Map<String, Object> result = null;
     // TODO add last address retrieval method for crypto
             try {
@@ -660,8 +653,19 @@ public class MobileInputOutputController {
         
         return responseDto;
     }
-    
-    
+
+    private RefillRequestCreateDto prepareRefillRequest(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, String userEmail, Locale userLocale) {
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+        Payment payment = new Payment(INPUT);
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        return new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+    }
+
+
     /**
      * @api {post} /api/payments/invoice/confirm Confirm invoice
      * @apiName confirmInvoice
@@ -1005,11 +1009,26 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/lastAddress", method = GET)
     public CryptoAddressDto getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId, @RequestParam Integer merchantId) {
         String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(
-                Collections.singletonList(currencyId), OperationType.INPUT);
+                Collections.singletonList(currencyId), OperationType.INPUT).stream()
+                .filter(item -> item.getMerchantId() == merchantId).collect(Collectors.toList());
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
-        return merchantCurrencyData.stream().filter(item -> item.getMerchantId() == merchantId)
-                .map(CryptoAddressDto::new).findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        CryptoAddressDto result = merchantCurrencyData.stream().map(CryptoAddressDto::new).
+                findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        if (StringUtils.isEmpty(result.getAddress())) {
+            //TODO temp
+            RefillRequestParamsDto requestParamsDto = new RefillRequestParamsDto();
+            requestParamsDto.setCurrency(currencyId);
+            requestParamsDto.setMerchant(merchantId);
+            requestParamsDto.setSum(BigDecimal.ZERO);
+            RefillRequestCreateDto refillRequest = prepareRefillRequest(requestParamsDto, userEmail, userLocale);
+            refillService.createRefillRequest(refillRequest);
+            refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
+            result = merchantCurrencyData.stream().map(CryptoAddressDto::new).
+                    findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        }
+        return result;
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
