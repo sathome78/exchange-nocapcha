@@ -396,7 +396,7 @@ public class MobileInputOutputController {
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
      * @apiUse InvalidAuthenticationTokenError
-     * @apiUse CommissionceedsAmountException
+     * @apiUse CommissionExceedingAmountException
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
@@ -976,8 +976,9 @@ public class MobileInputOutputController {
      * @apiPermission user
      * @apiDescription returns last used address for currency
      * @apiParam {Integer} currencyId
+     * @apiParam {Integer} merchantId
      * @apiParamExample Request example
-     * /api/payments/lastAddress?currencyId=21
+     * /api/payments/lastAddress?currencyId=21&merchantId=22
      * @apiSuccess {Array} merchants List of addresses for each merchant (generally there's only one item)
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.merchantId merchant id
@@ -986,14 +987,12 @@ public class MobileInputOutputController {
      * @apiSuccess {String} data.additionalFieldName name of additional tag
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
-     *   [
      *      {
      *          "merchantId": 20,
      *          "mainAddress": "rEDz1wnKCSakb8AU1ScCRdkLHFgr7XTNij",
      *          "address": "495191240",
      *          "additionalFieldName": "Destination Tag"
      *      }
-     *   ]
      *
      *
      *
@@ -1004,12 +1003,13 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/lastAddress", method = GET)
-    public List<CryptoAddressDto> getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId) {
+    public CryptoAddressDto getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId, @RequestParam Integer merchantId) {
         String userEmail = getAuthenticatedUserEmail();
         List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(
                 Collections.singletonList(currencyId), OperationType.INPUT);
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
-        return merchantCurrencyData.stream().map(CryptoAddressDto::new).collect(Collectors.toList());
+        return merchantCurrencyData.stream().filter(item -> item.getMerchantId() == merchantId)
+                .map(CryptoAddressDto::new).findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
