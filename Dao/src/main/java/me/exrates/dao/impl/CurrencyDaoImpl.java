@@ -182,7 +182,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPair> getAllCurrencyPairs() {
-    String sql = "SELECT id, currency1_id, currency2_id, name, \n" +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, \n" +
         "(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
         "(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
         " FROM CURRENCY_PAIR " +

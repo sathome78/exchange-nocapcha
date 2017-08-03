@@ -494,14 +494,16 @@ public class OnlineRestController {
   }
 
   /**
-   * returns list the data to create currency pairs menu
-   *
+   * returns map the data to create currency pairs menu
+   *  <market name, list<currencyPair name>>
    * @return: list the data to create currency pairs menu
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<CurrencyPair> getCurrencyPairNameList() {
-    return currencyService.getAllCurrencyPairs();
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList() {
+    List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
+    Map<String, List<CurrencyPair>> result = list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
+    return result;
   }
 
 

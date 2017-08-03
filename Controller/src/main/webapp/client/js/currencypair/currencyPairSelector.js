@@ -52,23 +52,30 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     this.getAndShowCurrencySelector = function () {
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
+        var $template = $('.selectors_template');
         var url = '/dashboard/createPairSelectorMenu';
         $.ajax({
             url: url,
             type: 'GET',
             success: function (data) {
                 if (!data) return;
-                var $tmpl = that.$currencyPairSelector.find('.currency-pair-selector_row').html().replace(/@/g, '%');
-                $currencyList.append(tmpl($tmpl, {data: data, currentCurrencyPair: that.currentCurrencyPair}));
                 /**/
+                 var $tmpl1 = $template.html().replace(/@/g, '%');
+                $currencyList.append(tmpl($tmpl1, {keys : Object.keys(data), data: Object.values(data), currentCurrencyPair: that.currentCurrencyPair}));
                 setButtonTitle();
             }
         });
     };
 
     function setButtonTitle() {
-        var prevTitle = that.$currencyPairSelector.find('button:first-child').text();
+        var $li = $(document.getElementById(that.currentCurrencyPair));
+        console.log("refresh");
+        var market = $li.data("market");
+        var newText = $li.text();
+        $('#' + market).text(newText).append('<span class="caret"></span>');
+
+      /*  var prevTitle = that.$currencyPairSelector.find('button:first-child').text();
         that.$currencyPairSelector.find('button:first-child').text(that.currentCurrencyPair).append('<span class="caret"></span>');
-        return prevTitle != that.$currencyPairSelector.find('button:first-child').text();
+      */  return /*newText != that.$currencyPairSelector.find('button:first-child').text()*/ false;
     }
 }
