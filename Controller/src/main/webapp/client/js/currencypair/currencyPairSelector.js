@@ -28,6 +28,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
                 onChangeHandler(data.currencyPair);
             });
         });
+        console.log(currencyPairSelectorId + ' ' + currentCurrencyPair);
         that.getAndShowCurrencySelector();
     };
 

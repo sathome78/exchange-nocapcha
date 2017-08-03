@@ -21,6 +21,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.endpoints.OrdersEndpoint;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -32,12 +33,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.websocket.EncodeException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1261,6 +1265,23 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
+  @Scheduled(fixedDelay = 6000)
+  public void refreshPairs() {
+    List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
+    if (!currencyPairs.isEmpty()) {
+      currencyPairs.forEach(p -> {
+                OrdersEndpoint endpoint = OrdersEndpoint.endpoints.get(p.getId());
+                try {
+                  endpoint.broadcast(new OrdersListWrapper(getAllBuyOrders
+                          (p, Locale.ENGLISH), "refresh", OrderType.BUY.getType()));
+                  endpoint.broadcast(new OrdersListWrapper(getAllSellOrders
+                          (p, Locale.ENGLISH), "refresh", OrderType.SELL.getType()));
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+      });
+    }
+  }
 
 }
 

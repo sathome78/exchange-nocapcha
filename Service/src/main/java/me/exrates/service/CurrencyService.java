@@ -80,4 +80,6 @@ public interface CurrencyService {
   BigDecimal computeRandomizedAddition(Integer currencyId, OperationType operationType);
 
   MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId);
+
+    CurrencyPair getCurrencyPairByName(String pairName);
 }
