@@ -47,6 +47,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
     currency2.setName(rs.getString("currency2_name"));
     currencyPair.setCurrency2(currency2);
       /**/
+    currencyPair.setMarket(rs.getString("market"));
+
     return currencyPair;
 
   };
@@ -194,7 +196,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, \n" +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, \n" +
         "(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
         "(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
         " FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
@@ -206,12 +208,23 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair findCurrencyPairById(int currencyPairId) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, " +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, " +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR WHERE id = :currencyPairId";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
+    return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+  }
+
+  @Override
+  public CurrencyPair findCurrencyPairByName(String currencyPairName) {
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, " +
+            "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+            " FROM CURRENCY_PAIR WHERE name = :currencyPairName";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("currencyPairId", String.valueOf(currencyPairName));
     return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
   }
 
@@ -280,6 +293,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
   @Override
   public CurrencyPair findCurrencyPairByOrderId(int orderId) {
     String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, " +
+            "CURRENCY_PAIR.market, " +
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM EXORDERS " +
@@ -346,7 +360,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
-    String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, " +
+    String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, " +
         "     (select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "			(select name from CURRENCY where id = currency2_id) as currency2_name, " +
         "			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +

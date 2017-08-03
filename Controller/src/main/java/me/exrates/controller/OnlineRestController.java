@@ -500,10 +500,8 @@ public class OnlineRestController {
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<String> getCurrencyPairNameList() {
-    List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-    List<String> result = currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
-    return result;
+  public List<CurrencyPair> getCurrencyPairNameList() {
+    return currencyService.getAllCurrencyPairs();
   }
 
 
