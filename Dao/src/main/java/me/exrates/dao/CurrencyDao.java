@@ -63,4 +63,6 @@ public interface CurrencyDao {
   List<Currency> findAllCurrenciesWithHidden();
 
   MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
+
+  CurrencyPair findCurrencyPairByName(String pairName);
 }

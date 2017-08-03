@@ -216,6 +216,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
+  public CurrencyPair findCurrencyPairByName(String pairName) {
+    String sql = "SELECT id, currency1_id, currency2_id, name, " +
+            "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+            " FROM CURRENCY_PAIR WHERE name = :currencyPairName";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("currencyPairName", pairName);
+    return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+  }
+
+  @Override
   public List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
     String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
         " FROM CURRENCY CUR " +

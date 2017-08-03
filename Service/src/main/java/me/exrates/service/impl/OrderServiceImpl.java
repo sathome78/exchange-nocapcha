@@ -1268,16 +1268,18 @@ public class OrderServiceImpl implements OrderService {
   @Scheduled(fixedDelay = 6000)
   public void refreshPairs() {
     List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-    if (!currencyPairs.isEmpty()) {
+    if (currencyPairs != null && !currencyPairs.isEmpty()) {
       currencyPairs.forEach(p -> {
-                OrdersEndpoint endpoint = OrdersEndpoint.endpoints.get(p.getId());
-                try {
-                  endpoint.broadcast(new OrdersListWrapper(getAllBuyOrders
-                          (p, Locale.ENGLISH), "refresh", OrderType.BUY.getType()));
-                  endpoint.broadcast(new OrdersListWrapper(getAllSellOrders
-                          (p, Locale.ENGLISH), "refresh", OrderType.SELL.getType()));
-                } catch (Exception e) {
-                  e.printStackTrace();
+                OrdersEndpoint endpoint = OrdersEndpoint.endpoints.get(p.getName());
+                if (endpoint != null) {
+                  try {
+                    endpoint.broadcast(new OrdersListWrapper(getAllBuyOrders
+                            (p, Locale.ENGLISH), "refresh", OrderType.BUY.getType()));
+                    endpoint.broadcast(new OrdersListWrapper(getAllSellOrders
+                            (p, Locale.ENGLISH), "refresh", OrderType.SELL.getType()));
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
                 }
       });
     }
