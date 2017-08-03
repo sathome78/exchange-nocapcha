@@ -159,7 +159,7 @@ public class CommissionServiceImpl implements CommissionService {
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
     Merchant merchant = merchantService.findById(merchantId);
-    if (merchant.getProcessType() == MerchantProcessType.CRYPTO || amount.compareTo(BigDecimal.ZERO) != 0) {
+    if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
       BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;
