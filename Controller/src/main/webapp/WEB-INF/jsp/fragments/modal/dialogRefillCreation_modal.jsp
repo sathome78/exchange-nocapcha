@@ -1,7 +1,7 @@
 <div class="modal fade merchant-input" id="dialog-refill-creation">
-  <div style="font-size: 14px"
-       class="modal-dialog modal-md">
-    <div class="modal-content">
+  <div style="font-size: 14px; overflow:auto"
+       class="modal-dialog modal-lg">
+    <div class="modal-content" style="overflow:auto">
       <div class="modal-header">
         <button type="button" class="close" id="assertInputPayment" data-dismiss="modal"
                 aria-hidden="true">&times;</button>
@@ -31,7 +31,7 @@
         </div>
 
         <div id="message"
-             style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white">
+             style="overflow:auto; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white">
         </div>
         <div id="payment-qr">
         </div>
