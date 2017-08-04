@@ -6,6 +6,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
+    var previousValue;
 
     this.init = function (onChangeHandler) {
         that.$currencyPairSelector.on('click', '.currency-pair-selector__menu-item', function (e) {
@@ -21,9 +22,11 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             trading.resetOrdersListForAccept();
             var newCurrentCurrencyPairName = showAllPairs ? null : $(this).text().trim();
             syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, function (data) {
-                $item.siblings().removeClass('active');
+                $('.currency-pair-selector__menu-item.active').each(function() {
+                    $(this).removeClass('active');
+                });
                 $item.addClass('active');
-                that.currentCurrencyPair = $item.text();
+                that.currentCurrencyPair = $item.text().trim();
                 setButtonTitle();
                 onChangeHandler(data.currencyPair);
             });
@@ -32,6 +35,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     };
 
     this.syncState = function (callback) {
+        console.log("refresh");
         syncCurrentParams(null, null, null, null, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
@@ -39,7 +43,9 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             } else {
                 $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item:contains(' + data.currencyPair.name + ')');
             }
-            $item.siblings().removeClass('active');
+            $('.currency-pair-selector__menu-item.active').each(function() {
+                $(this).removeClass('active');
+            });
             $item.addClass('active');
             that.currentCurrencyPair = $item.text();
             var pairHasChanged = setButtonTitle();
@@ -68,14 +74,28 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     };
 
     function setButtonTitle() {
-        var $li = $(document.getElementById(that.currentCurrencyPair));
-        console.log("refresh");
+        console.log('current pair ' + currentCurrencyPair);
+        console.log('that ' + that.currentCurrencyPair);
+        if(that.currentCurrencyPair == undefined) {
+            return previousValue == undefined;
+        }
+        $('.currency-pair-selector__button').each(function() {
+            $(this).text($(this).data('text'));
+            $(this).append('<span class="caret"></span>');
+        });
+        var $li = $(document.getElementById(that.currentCurrencyPair.trim()));
+        console.log($li);
         var market = $li.data("market");
-        var newText = $li.text();
-        $('#' + market).text(newText).append('<span class="caret"></span>');
-
-      /*  var prevTitle = that.$currencyPairSelector.find('button:first-child').text();
-        that.$currencyPairSelector.find('button:first-child').text(that.currentCurrencyPair).append('<span class="caret"></span>');
-      */  return /*newText != that.$currencyPairSelector.find('button:first-child').text()*/ false;
+        var newText = $li.text().trim();
+        console.log(market +' ' + newText);
+        $('.' + market).each(function() {
+            $(this).text(this.id);
+            $(this).append('<span class="caret"></span>');
+        });
+        $('.' + market).text(newText).append('<span class="caret"></span>');
+        /*console.log('prev' + previousValue + ' new ' + newText);*/
+        var res = previousValue == newText;
+        previousValue = $('.currency-pair-selector__menu-item.active').attr('id');
+        return res;
     }
 }

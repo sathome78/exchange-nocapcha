@@ -500,10 +500,11 @@ public class OnlineRestController {
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Map<String, List<CurrencyPair>> getCurrencyPairNameList() {
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(HttpServletRequest request) {
+    Locale locale = localeResolver.resolveLocale(request);
     List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
-    Map<String, List<CurrencyPair>> result = list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
-    return result;
+    list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
+    return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }
 
 

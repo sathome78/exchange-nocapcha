@@ -231,6 +231,7 @@ function showSubPage(subPageId) {
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, callback) {
+    console.log("show cur params");
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');

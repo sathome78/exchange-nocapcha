@@ -9,6 +9,7 @@ public class CurrencyPair {
     private Currency currency1;
     private Currency currency2;
     private String market;
+    private String marketName;
 
     /*constructors*/
     public CurrencyPair() {
@@ -93,5 +94,13 @@ public class CurrencyPair {
 
     public void setMarket(String market) {
         this.market = market;
+    }
+
+    public String getMarketName() {
+        return marketName;
+    }
+
+    public void setMarketName(String marketName) {
+        this.marketName = marketName;
     }
 }

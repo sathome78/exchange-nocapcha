@@ -243,6 +243,7 @@ function OrdersClass(currentCurrencyPair) {
 
     /*=====================================================*/
     (function init(currentCurrencyPair) {
+        console.log(currentCurrencyPair);
         ordersCurrencyPairSelector = new CurrencyPairSelectorClass('orders-currency-pair-selector', currentCurrencyPair);
         ordersCurrencyPairSelector.init(onCurrencyPairChange);
         /**/

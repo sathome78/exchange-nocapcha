@@ -137,6 +137,8 @@ header li {
     margin: 0;
     position: absolute;
     left: -153px;
+    min-width: 150px;
+    margin-top: 9px;
 }
 
 /*me*/
@@ -1042,7 +1044,7 @@ td.blue-white {
 .currency-pair-selector__button {
     border: none;
     margin: 5px 0 5px;
-    width: 175px;
+    width: 150px;
 }
 
 .currency-pair-selector__menu {
