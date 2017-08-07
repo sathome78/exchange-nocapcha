@@ -183,20 +183,6 @@ public class IotaServiceImpl implements IotaService {
 
         } catch (Exception e) {
             log.error(e);
-//        } catch (ArgumentException e) {
-//            log.error(e);
-//        } catch (RefillRequestAppropriateNotFoundException e) {
-//            log.error(e);
-//        } catch (NoNodeInfoException e) {
-//            log.error(e);
-//        } catch (InvalidSignatureException e) {
-//            log.error(e);
-//        } catch (InvalidBundleException e) {
-//            log.error(e);
-//        } catch (NoInclusionStatesException e) {
-//            log.error(e);
-//        } catch (InvalidAddressException e) {
-//            log.error(e);
         }
     }
 }
