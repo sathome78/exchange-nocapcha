@@ -1,10 +1,12 @@
 package me.exrates.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.handler.OrdersWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
@@ -399,6 +401,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
         return new RestTemplate();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
 }

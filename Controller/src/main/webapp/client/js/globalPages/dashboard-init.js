@@ -12,8 +12,25 @@ var orders;
 var $currentPageMenuItem;
 var $currentSubMenuItem;
 var notifications;
+var ws; //web-socket connection
+
+function connectOrdersSocket() {
+    if (wss!=null) {
+        wss.close();
+    }
+    wss = new SockJS('/public_sockets');
+    console.log("connect to client");
+    wss.onopen = function() {
+        console.log('public sockets connected');
+    };
+    wss.onmessage = function (message) {
+        console.log(message);
+    };
+}
+
 
 $(function dashdoardInit() {
+    connectOrdersSocket();
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
 
@@ -147,7 +164,8 @@ $(function dashdoardInit() {
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
 
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, ws);
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, ws);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });

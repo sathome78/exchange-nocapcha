@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair) {
+function TradingClass(period, chartType, currentCurrencyPair, webSocket) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -42,8 +42,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     this.ROUND_SCALE = 9;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
-    function onCurrencyPairChange() {
-        that.updateAndShowAll();
+    function onCurrencyPairChange(webSocket) {
+        webSocket.send('test');
+        that.updateAndShowAll(webSocket);
         that.fillOrderCreationFormFields();
     }
 
@@ -70,10 +71,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.getAndShowBuyOrders(refreshIfNeeded);
     };
 
-    this.updateAndShowAll = function (refreshIfNeeded) {
+    this.updateAndShowAll = function (refreshIfNeeded, websocket) {
         if (showLog) {
             console.log("all");
         }
+        websocket.send('trading:newCurrencyPair');
         that.updateAndShowStatistics(refreshIfNeeded);
         that.updateAndShowOrders(refreshIfNeeded);
     };
@@ -439,10 +441,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair) {
+    (function init(period, chartType, currentCurrencyPair, webSocket) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange(webSocket));
         try {
             chart = new ChartGoogleClass();
         } catch (e) {

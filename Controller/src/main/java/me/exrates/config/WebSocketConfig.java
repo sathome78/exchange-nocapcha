@@ -1,15 +1,19 @@
 package me.exrates.config;
 
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.handler.OrdersWebSocketHandler;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.sockjs.support.SockJsHttpRequestHandler;
 
 import java.util.EnumMap;
 
@@ -24,6 +28,7 @@ import static me.exrates.model.enums.ChatLang.*;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
+
     
     @Value("${ws.lib.url}")
     private String clientLibraryUrl;
@@ -35,6 +40,10 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public WebSocketConfig(final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.handlers = handlers;
     }
+
+    @Autowired
+    public OrdersWebSocketHandler ordersWebSocketHandler;
+
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
@@ -48,6 +57,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(handlers.get(AR), "/chat-ar").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
         registry.addHandler(handlers.get(IN), "/chat-in").setAllowedOrigins(origins).withSockJS()
+                .setClientLibraryUrl(clientLibraryUrl);
+        registry.addHandler(ordersWebSocketHandler, "/public_sockets").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
     }
 
@@ -75,4 +86,5 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public ChatWebSocketHandler chatINWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
+
 }

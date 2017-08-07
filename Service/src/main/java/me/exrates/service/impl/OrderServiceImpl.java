@@ -21,7 +21,6 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.endpoints.OrdersEndpoint;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -104,6 +103,7 @@ public class OrderServiceImpl implements OrderService {
   RatesHolder ratesHolder;
   @Autowired
   private UserRoleService userRoleService;
+
 
   @Transactional
   @Override
@@ -1265,25 +1265,7 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
-  @Scheduled(fixedDelay = 6000)
-  public void refreshPairs() {
-    List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-    if (currencyPairs != null && !currencyPairs.isEmpty()) {
-      currencyPairs.forEach(p -> {
-                OrdersEndpoint endpoint = OrdersEndpoint.endpoints.get(p.getName());
-                if (endpoint != null) {
-                  try {
-                    endpoint.broadcast(new OrdersListWrapper(getAllBuyOrders
-                            (p, Locale.ENGLISH), "refresh", OrderType.BUY.getType()));
-                    endpoint.broadcast(new OrdersListWrapper(getAllSellOrders
-                            (p, Locale.ENGLISH), "refresh", OrderType.SELL.getType()));
-                  } catch (Exception e) {
-                    e.printStackTrace();
-                  }
-                }
-      });
-    }
-  }
+
 
 }
 

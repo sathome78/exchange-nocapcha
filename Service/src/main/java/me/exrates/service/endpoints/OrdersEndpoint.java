@@ -14,8 +14,7 @@ import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.OrderType;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.encoders.MessageDecoder;
-import me.exrates.service.encoders.MessageEncoder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.websocket.*;
@@ -32,8 +31,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Created by maks on 02.08.2017.
  */
+/*
 @Log4j2
-@ServerEndpoint(value="/chat/{currencyPairName}",
+@ServerEndpoint(value="/public_sockets/{currencyPairName}",
         decoders = MessageDecoder.class,
         encoders = MessageEncoder.class )
 public class OrdersEndpoint {
@@ -54,10 +54,15 @@ public class OrdersEndpoint {
     @OnOpen
     public void onOpen(
             Session session,
-            @PathParam("currencyPair") String pairName) throws IOException {
+            @PathParam("currencyPair") String pairName) throws IOException, EncodeException {
+        log.debug("open new session for {}", pairName);
         if (!endpoints.containsKey(pairName)) {
             currencyPair = currencyService.getCurrencyPairByName(pairName);
-            if (currencyPair == null) return;
+            if (currencyPair == null) {
+                session.getBasicRemote().sendObject(pairName + " not exist");
+                session.close();
+                return;
+            }
             endpoints.put(pairName, this);
         }
         sessions.add(session);
@@ -75,7 +80,9 @@ public class OrdersEndpoint {
     @OnMessage
     public void onMessage(Session session, String message)
             throws IOException {
-        /*on message recieve*/
+        */
+/*on message recieve*//*
+
     }
 
     @OnClose
@@ -104,9 +111,12 @@ public class OrdersEndpoint {
 
     private static Locale getExposedLocale(Session session)
     {
-        /*return (Locale)session.getUserProperties().get(LOCALE_KEY);*/
+        */
+/*return (Locale)session.getUserProperties().get(LOCALE_KEY);*//*
+
         return Locale.ENGLISH;
     }
 
 
 }
+*/

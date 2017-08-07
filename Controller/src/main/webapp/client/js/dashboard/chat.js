@@ -1,5 +1,6 @@
 
 var ws; //web-socket connection
+var wss;
 
 function connect(chatLang) {
     if (ws!=null) {
@@ -16,9 +17,26 @@ function connect(chatLang) {
                 $('#chat').find('.chat_message:last').addClass('right-to-left')
             }
         }
-
     };
 }
+
+function connectOrdersSocket() {
+    if (wss!=null) {
+        wss.close();
+    }
+    wss = new SockJS('/public_sockets?pair=EDR-BTC');
+    console.log("connect to client");
+    console.log(wss);
+    wss.onopen = function() {
+        console.log('orders open');
+        wss.send('usd');
+    };
+    wss.onmessage = function (message) {
+        console.log(message);
+    };
+}
+
+
 
 function toJson(a) {
     var o = {};
@@ -94,6 +112,9 @@ function changeChatLocale(lang) {
 
 
 $(function () {
+
+    connectOrdersSocket();
+
 
     initScrollbar();
 
