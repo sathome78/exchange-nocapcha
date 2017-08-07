@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import jota.IotaAPI;
 import jota.dto.response.GetNodeInfoResponse;
+import jota.error.*;
 import jota.model.Bundle;
 import jota.model.Transaction;
 import jota.model.Transfer;
@@ -179,7 +180,21 @@ public class IotaServiceImpl implements IotaService {
             }
             log.info(new java.util.Date());
 
-        } catch (Exception e) {
+//        } catch (Exception e) {
+//            log.error(e);
+        } catch (ArgumentException e) {
+            log.error(e);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error(e);
+        } catch (NoNodeInfoException e) {
+            log.error(e);
+        } catch (InvalidSignatureException e) {
+            log.error(e);
+        } catch (InvalidBundleException e) {
+            log.error(e);
+        } catch (NoInclusionStatesException e) {
+            log.error(e);
+        } catch (InvalidAddressException e) {
             log.error(e);
         }
     }
