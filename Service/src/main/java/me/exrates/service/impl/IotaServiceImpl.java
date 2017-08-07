@@ -161,6 +161,7 @@ public class IotaServiceImpl implements IotaService {
             Bundle[] bundles = iotaClient.bundlesFromAddresses(stockArr,true);
             for (Bundle bundle : bundles){
                 for (Transaction transaction : bundle.getTransactions()){
+                    log.info(transaction.toString());
                     String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
                     if ((transaction.getValue() <= 0) || (!transaction.getPersistence())
                             || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(addressWithChecksum,merchant.getId(),currency.getId()
@@ -180,22 +181,22 @@ public class IotaServiceImpl implements IotaService {
             }
             log.info(new java.util.Date());
 
-//        } catch (Exception e) {
+        } catch (Exception e) {
+            log.error(e);
+//        } catch (ArgumentException e) {
 //            log.error(e);
-        } catch (ArgumentException e) {
-            log.error(e);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error(e);
-        } catch (NoNodeInfoException e) {
-            log.error(e);
-        } catch (InvalidSignatureException e) {
-            log.error(e);
-        } catch (InvalidBundleException e) {
-            log.error(e);
-        } catch (NoInclusionStatesException e) {
-            log.error(e);
-        } catch (InvalidAddressException e) {
-            log.error(e);
+//        } catch (RefillRequestAppropriateNotFoundException e) {
+//            log.error(e);
+//        } catch (NoNodeInfoException e) {
+//            log.error(e);
+//        } catch (InvalidSignatureException e) {
+//            log.error(e);
+//        } catch (InvalidBundleException e) {
+//            log.error(e);
+//        } catch (NoInclusionStatesException e) {
+//            log.error(e);
+//        } catch (InvalidAddressException e) {
+//            log.error(e);
         }
     }
 }
