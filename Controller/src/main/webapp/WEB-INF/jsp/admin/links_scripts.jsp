@@ -39,7 +39,7 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numeral.min.js' />"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js' />"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
 <%----------%>

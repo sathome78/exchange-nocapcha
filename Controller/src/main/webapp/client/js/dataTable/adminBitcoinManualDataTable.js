@@ -66,13 +66,13 @@ $(document).ready(function () {
                     {
                         "data": "amount",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
                         "data": "commissionAmount",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
@@ -104,7 +104,7 @@ $(document).ready(function () {
                         "render": function (data, type, row) {
                             var readonly = data == null ? '' : 'readonly';
                             var totalAmount = row.amount + row.commissionAmount;
-                            return '<input id="manual_amount'+ row.invoiceId +'" ' + readonly + ' value="' + numeral(totalAmount).format('0.00000000') + '" style="width: 130px"  maxlength="15" ' +
+                            return '<input id="manual_amount'+ row.invoiceId +'" ' + readonly + ' value="' + numbro(totalAmount).format('0.00000000') + '" style="width: 130px"  maxlength="15" ' +
                                 'class="form-control input-block-wrapper__input numericInputField">';
                         }
                     },

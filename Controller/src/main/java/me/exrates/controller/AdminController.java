@@ -43,6 +43,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
@@ -1278,7 +1279,7 @@ public class AdminController {
   }
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void updateBot(@RequestBody BotTrader botTrader) {
+  public void updateBot(@RequestBody @Valid BotTrader botTrader) {
     botService.updateBot(botTrader);
 
   }
@@ -1307,8 +1308,13 @@ public class AdminController {
   public ErrorInfo orderExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
-  
- 
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseBody
+  public ErrorInfo methodArgumentNotValidExceptionHandler(HttpServletRequest req, MethodArgumentNotValidException ex) {
+    return new ErrorInfo(req.getRequestURL(), ex);
+  }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)

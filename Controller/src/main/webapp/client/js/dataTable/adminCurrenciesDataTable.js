@@ -99,7 +99,13 @@ function updateCurrencyLimitsDataTable() {
                     "data": "currency.name"
                 },
                 {
-                    "data": "minSum"
+                    "data": "minSum",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "maxDailyRequest"
@@ -139,16 +145,27 @@ function updateCurrencyPairLimitsDataTable() {
                     "data": "currencyPairName"
                 },
                 {
-                    "data": "minRate"
+                    "data": "minRate",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.[0000000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
-                    "data": "maxRate"
+                    "data": "maxRate",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.[0000000000]');
+                        }
+                        return data;
+                    }
                 }
             ]
         });
     }
 }
-
 
 
 function submitNewLimit() {
