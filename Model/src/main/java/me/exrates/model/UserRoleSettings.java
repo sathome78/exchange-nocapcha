@@ -11,4 +11,5 @@ public class UserRoleSettings {
     private UserRole userRole;
     private boolean isOrderAcceptionSameRoleOnly;
     private boolean isBotAcceptionAllowed;
+    private boolean isManualChangeAllowed;
 }

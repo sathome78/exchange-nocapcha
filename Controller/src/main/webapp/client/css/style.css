@@ -2285,11 +2285,11 @@ textarea#remark {
     color: #525f74;
 }
 
-#order-filter-selector .onoffswitch-inner:before {
+.blue-switch .onoffswitch-inner:before {
     background-color: #525f74;
 }
 
-#roles-table i {
+#roles-table i, .text-1_5 {
     font-size: 1.5rem;
 }
 

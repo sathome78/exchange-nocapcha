@@ -412,8 +412,9 @@ public class OrderServiceImpl implements OrderService {
   public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
     ProfileData profileData = new ProfileData(200);
     try {
+      boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
       List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-          OperationType.getOpposite(orderCreateDto.getOperationType()));
+          OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole());
       profileData.setTime1();
       logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
       if (acceptableOrders.isEmpty()) {
