@@ -20,8 +20,10 @@
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
+<link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
 <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
 
 <%--<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
 
@@ -37,7 +39,7 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numeral.min.js' />"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js' />"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
 <%----------%>

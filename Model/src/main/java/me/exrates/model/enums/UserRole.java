@@ -14,7 +14,8 @@ public enum UserRole {
   EXCHANGE(6),
   VIP_USER(7),
   TRADER(8),
-  FIN_OPERATOR(9);
+  FIN_OPERATOR(9),
+  BOT_TRADER(10);
 
   private final int role;
 

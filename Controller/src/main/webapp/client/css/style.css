@@ -2265,3 +2265,38 @@ textarea#remark {
 #no-address p {
     font-size: 1.5rem;
 }
+
+#order-filter-selector {
+    height: 50px
+}
+
+#order-filter-selector {
+    position: relative;
+}
+
+#order-filter-selector > div {
+    margin: 5px 10px;
+    height: 100%;
+}
+
+#order-filter-selector > div:first-child span {
+    vertical-align: middle;
+    font-size: 1.5rem;
+    color: #525f74;
+}
+
+.blue-switch .onoffswitch-inner:before {
+    background-color: #525f74;
+}
+
+#roles-table i, .text-1_5 {
+    font-size: 1.5rem;
+}
+
+#roles-table i:hover {
+    cursor:pointer;
+}
+
+#roles-table td:nth-child(2), #roles-table td:nth-child(3) {
+    text-align: center;
+}

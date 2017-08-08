@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.UserRoleDao;
+import me.exrates.model.UserRoleSettings;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.GroupUserRoleEnum;
 import me.exrates.model.enums.UserRole;
@@ -73,6 +74,37 @@ public class UserRoleServiceImpl implements UserRoleService {
   public List<Integer> getRealUserRoleIdByGroupRoleList(String groupUserRoleName) {
     GroupUserRoleEnum businessUserRoleEnum = GroupUserRoleEnum.convert(groupUserRoleName);
     return getRealUserRoleIdByGroupRoleList(businessUserRoleEnum);
+  }
+
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isOrderAcceptionAllowedForUser(Integer userId) {
+    return userRoleDao.isOrderAcceptionAllowedForUser(userId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
+    return userRoleDao.retrieveSettingsForRole(roleId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserRole> getRolesAvailableForChangeByAdmin() {
+    return userRoleDao.getRolesAvailableForChangeByAdmin();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserRoleSettings> retrieveSettingsForAllRoles() {
+    return userRoleDao.retrieveSettingsForAllRoles();
+  }
+
+  @Override
+  @Transactional
+  public void updateSettingsForRole(UserRoleSettings settings) {
+    userRoleDao.updateSettingsForRole(settings);
   }
 
 }

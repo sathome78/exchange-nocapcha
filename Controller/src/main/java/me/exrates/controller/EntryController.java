@@ -73,6 +73,9 @@ public class EntryController {
     @Autowired
     private StoreSessionListener storeSessionListener;
 
+    @Autowired
+    private UserRoleService userRoleService;
+
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
             @RequestParam(required = false) String errorNoty,
@@ -110,8 +113,10 @@ public class EntryController {
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
-            int userStatus = userService.findByEmail(principal.getName()).getStatus().getStatus();
+            User user = userService.findByEmail(principal.getName());
+            int userStatus = user.getStatus().getStatus();
             model.addObject("userStatus", userStatus);
+            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
         }
         return model;
     }

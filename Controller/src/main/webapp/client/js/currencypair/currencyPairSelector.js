@@ -20,7 +20,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             trading.clearOrdersCreationForm();
             trading.resetOrdersListForAccept();
             var newCurrentCurrencyPairName = showAllPairs ? null : $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, null, function (data) {
                 $item.siblings().removeClass('active');
                 $item.addClass('active');
                 that.currentCurrencyPair = $item.text();
@@ -32,7 +32,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     };
 
     this.syncState = function (callback) {
-        syncCurrentParams(null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
                 $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item.all-pairs-item');

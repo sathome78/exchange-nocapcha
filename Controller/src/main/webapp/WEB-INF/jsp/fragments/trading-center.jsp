@@ -18,6 +18,7 @@
             <%@include file="currencyPairSelector.jsp" %>
         </div>
 
+
         <div class="graphInfo">
             <div id="lastOrderAmountBase" class="graphInfo__item lightblue"><loc:message
                     code="dashboard.lastOrder"/><span class="green">USD</span></div>
@@ -43,6 +44,16 @@
                     margin: auto;
                     z-index: 999;'/>
         <%@include file="amcharts-graphics.jsp" %>
+    </div>
+    <div class="row">
+        <c:if test="${roleSettings.orderAcceptionSameRoleOnly}">
+            <div id="order-filter-selector">
+                <div class="col-md-3"><span><strong><loc:message code="orders.roleFilter"/> </strong></span></div>
+                <div class="col-md-1 blue-switch"><input id="order-row-filter-box" type="checkbox"/></div>
+
+
+            </div>
+        </c:if>
     </div>
 
     <div class="row">

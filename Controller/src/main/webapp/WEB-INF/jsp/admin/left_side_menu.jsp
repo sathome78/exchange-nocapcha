@@ -120,6 +120,15 @@
             </sec:authorize>
 
         </li>
+
+        <li>
+            <%--auto trading settings--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>"><loc:message code="admin.autoTrading.title"/></a>
+            </sec:authorize>
+
+        </li>
+
         <li>
             <%--candle--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
@@ -137,7 +146,7 @@
 
 
         <li>
-            <%--referral--%>
+            <%--session control--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
             </sec:authorize>

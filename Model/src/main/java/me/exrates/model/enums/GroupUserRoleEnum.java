@@ -11,7 +11,8 @@ import java.util.Arrays;
 @NoArgsConstructor
 public enum GroupUserRoleEnum {
   ADMINS,
-  USERS;
+  USERS,
+  BOT;
 
   public static GroupUserRoleEnum convert(String name) {
     return Arrays.stream(GroupUserRoleEnum.class.getEnumConstants())
