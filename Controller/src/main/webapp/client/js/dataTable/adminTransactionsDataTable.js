@@ -85,7 +85,7 @@ $(function () {
                     "name": "TRANSACTION.amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                         return data;
                     }
@@ -95,7 +95,7 @@ $(function () {
                     "name": "TRANSACTION.commission_amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                         return data;
                     }
@@ -151,10 +151,10 @@ $(function () {
                     $("#info-date").html(data.dateCreation);
                     $("#info-date-modif").html(data.statusModificationDate);
                     $("#info-currency").html(data.currencyName);
-                    $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
+                    $("#info-amount").html(numbro(data.amount).format('0.00[000000]'));
                     $("#info-userFrom").html("<a href='mailto:" + data.creatorEmail + "'>" + data.creatorEmail + "</a>");
                     $("#info-userTo").html("<a href='mailto:" + data.recipientEmail + "'>" + data.recipientEmail + "</a>");
-                    $("#info-commissionAmount").html(numeral(data.commissionAmount).format('0.00[000000]'));
+                    $("#info-commissionAmount").html(numbro(data.commissionAmount).format('0.00[000000]'));
                     $("#info-hash").html(data.hash);
                     $('#user_transfer_info_modal').modal();
                 }

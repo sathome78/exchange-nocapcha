@@ -34,7 +34,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numeral.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>

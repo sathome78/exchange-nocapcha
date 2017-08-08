@@ -69,31 +69,31 @@ $(function () {
                     {
                         "data": "lowRate",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
                         "data": "highRate",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
                         "data": "openRate",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
                         "data": "closeRate",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     },
                     {
                         "data": "baseVolume",
                         "render": function (data) {
-                            return numeral(data).format('0.00[000000]');
+                            return numbro(data).format('0.00[000000]');
                         }
                     }
                 ],
