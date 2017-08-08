@@ -53,7 +53,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
 
   @Override
   public UserRoleSettings retrieveSettingsForRole(Integer roleId) {
-    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed " +
+    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed, manual_change_allowed " +
             " FROM USER_ROLE_SETTINGS where user_role_id = :user_role_id";
     return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("user_role_id", roleId), (rs, rowNum) -> {
       UserRoleSettings settings = new UserRoleSettings();

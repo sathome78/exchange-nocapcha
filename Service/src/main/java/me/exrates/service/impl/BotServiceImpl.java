@@ -5,10 +5,14 @@ import me.exrates.dao.BotDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.service.*;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +23,10 @@ import java.util.concurrent.Executors;
 
 @Service
 @Log4j2
+@PropertySource("classpath:/bot_trader.properties")
 public class BotServiceImpl implements BotService {
+
+    private @Value("${bot.error.noMoney.email}") String errorEmail;
 
     @Autowired
     private OrderService orderService;
@@ -34,7 +41,13 @@ public class BotServiceImpl implements BotService {
     private SendMailService sendMailService;
 
     @Autowired
+    private ReferralService referralService;
+
+    @Autowired
     private BotDao botDao;
+
+
+
 
     private final static ExecutorService botExecutors = Executors.newCachedThreadPool();
 
@@ -53,9 +66,9 @@ public class BotServiceImpl implements BotService {
                             orderService.acceptOrder(botTrader.getUserId(), exOrder.getId(), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
-                            email.setMessage("asdf");
-                            email.setSubject("asdfdfd");
-                            email.setTo(userService.getEmailById(botTrader.getUserId()));
+                            email.setMessage("Insufficient costs on bot account");
+                            email.setSubject(e.getMessage());
+                            email.setTo(errorEmail);
                             sendMailService.sendInfoMail(email);
                             log.warn(e.getMessage());
                         } catch (OrderAcceptionException e) {
@@ -91,8 +104,12 @@ public class BotServiceImpl implements BotService {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(UserRole.BOT_TRADER);
+        user.setStatus(UserStatus.ACTIVE);
+
         userService.createUserByAdmin(user);
-        botDao.createBot(userService.getIdByEmail(email));
+        Integer userId = userService.getIdByEmail(email);
+        referralService.bindChildAndParent(userId, userService.getCommonReferralRoot().getId());
+        botDao.createBot(userId);
     }
 
     @Override

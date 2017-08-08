@@ -469,6 +469,7 @@ public class AdminController {
     User user = userService.getUserById(id);
     user.setId(id);
     model.addObject("user", user);
+    model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
     model.setViewName("admin/editUser");
@@ -1264,7 +1265,7 @@ public class AdminController {
     return userRoleService.retrieveSettingsForAllRoles();
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST/*, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE*/)
   @ResponseBody
   public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
     userRoleService.updateSettingsForRole(userRoleSettings);

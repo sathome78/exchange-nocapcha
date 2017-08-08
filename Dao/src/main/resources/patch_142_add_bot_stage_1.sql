@@ -9,8 +9,8 @@ VALUES ('BOT_TRADER',
   (SELECT id FROM USER_ROLE_BUSINESS_FEATURE WHERE name = 'BOT'),
   (SELECT id FROM USER_ROLE_GROUP_FEATURE WHERE name = 'BOT'));
 
-INSERT INTO USER_ROLE_SETTINGS(user_role_id, order_acception_same_role_only, manual_change_allowed)
-VALUES ((SELECT id FROM USER_ROLE WHERE name = 'BOT_TRADER'), 0, 0);
+INSERT INTO USER_ROLE_SETTINGS(user_role_id, order_acception_same_role_only, manual_change_allowed, bot_acception_allowed)
+VALUES ((SELECT id FROM USER_ROLE WHERE name = 'BOT_TRADER'), 0, 0, 1);
 
 
 
