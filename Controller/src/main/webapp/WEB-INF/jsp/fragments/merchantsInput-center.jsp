@@ -90,7 +90,7 @@
                       </button>
                     </c:when>
                     <c:otherwise>
-                      <div style="display: inline-block; ">
+                      <div style="overflow:auto; ">
                         <div>
                           <c:choose>
                             <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
@@ -100,13 +100,13 @@
                               </div>
                               <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
                               ${merchantCurrency.additionalFieldName}:
-                              <div id="address-to-pay" style="font-size:14px">
+                              <div id="address-to-pay" style="font-size:14px; overflow:auto">
                                   ${merchantCurrency.address}
                               </div>
                             </c:when>
                             <c:otherwise>
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
-                              <div id="address-to-pay" style="font-size:14px">
+                              <div id="address-to-pay" style="font-size:14px; overflow:auto">
                                   ${merchantCurrency.address}
                               </div>
                             </c:otherwise>
