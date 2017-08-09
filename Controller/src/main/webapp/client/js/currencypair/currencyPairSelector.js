@@ -35,7 +35,6 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     };
 
     this.syncState = function (callback) {
-        console.log("refresh");
         syncCurrentParams(null, null, null, null, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
@@ -74,8 +73,6 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
     };
 
     function setButtonTitle() {
-        console.log('current pair ' + currentCurrencyPair);
-        console.log('that ' + that.currentCurrencyPair);
         if(that.currentCurrencyPair == undefined) {
             return previousValue == undefined;
         }
@@ -84,16 +81,13 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             $(this).append('<span class="caret"></span>');
         });
         var $li = $(document.getElementById(that.currentCurrencyPair.trim()));
-        console.log($li);
         var market = $li.data("market");
         var newText = $li.text().trim();
-        console.log(market +' ' + newText);
         $('.' + market).each(function() {
             $(this).text(this.id);
             $(this).append('<span class="caret"></span>');
         });
         $('.' + market).text(newText).append('<span class="caret"></span>');
-        /*console.log('prev' + previousValue + ' new ' + newText);*/
         var res = previousValue == newText;
         previousValue = $('.currency-pair-selector__menu-item.active').attr('id');
         return res;
