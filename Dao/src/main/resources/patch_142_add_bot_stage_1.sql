@@ -7,7 +7,7 @@ create table USER_ROLE_SETTINGS
   manual_change_allowed tinyint(1) default '1' not null,
   bot_acception_allowed tinyint(1) default '0' not null,
   constraint user_role_settings_user_role_id_fk
-  foreign key (user_role_id) references user_role (id)
+  foreign key (user_role_id) references USER_ROLE (id)
 )
 ;
 
