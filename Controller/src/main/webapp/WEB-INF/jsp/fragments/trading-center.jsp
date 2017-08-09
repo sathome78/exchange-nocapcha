@@ -12,7 +12,9 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%----%>
+
 <div id="trading" data-menuitemid="menu-traiding" class="dashboard center-frame-container hidden">
+
     <div class="graphInfo__wrapper clearfix">
         <div id="dashboard-currency-pair-selector" class="currency-pair-selector dropdown">
             <%@include file="currencyPairSelector.jsp" %>

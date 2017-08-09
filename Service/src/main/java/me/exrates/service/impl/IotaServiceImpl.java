@@ -147,7 +147,7 @@ public class IotaServiceImpl implements IotaService {
             public void run() {
                 checkIncomingTransactions();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 0, 30, TimeUnit.MINUTES);
 
     }
 
@@ -161,20 +161,24 @@ public class IotaServiceImpl implements IotaService {
             Bundle[] bundles = iotaClient.bundlesFromAddresses(stockArr,true);
             for (Bundle bundle : bundles){
                 for (Transaction transaction : bundle.getTransactions()){
-                    log.info(transaction.toString());
-                    String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
-                    if ((transaction.getValue() <= 0) || (!transaction.getPersistence())
-                            || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(addressWithChecksum,merchant.getId(),currency.getId()
-                            ,transaction.getHash()).isPresent() || (!ADDRESSES.contains(addressWithChecksum))){
-                        continue;
+                    try {
+                        log.info(transaction.toString());
+                        String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
+                        if ((transaction.getValue() <= 0) || (!transaction.getPersistence())
+                                || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(addressWithChecksum,merchant.getId(),currency.getId()
+                                ,transaction.getHash()).isPresent() || (!ADDRESSES.contains(addressWithChecksum))){
+                            continue;
+                        }
+
+                        Map<String, String> mapPayment = new HashMap<>();
+                        mapPayment.put("address", addressWithChecksum);
+                        mapPayment.put("hash", transaction.getHash());
+                        mapPayment.put("amount", String.valueOf(transaction.getValue()));
+
+                        processPayment(mapPayment);
+                    }catch (Exception e){
+                        log.error(e);
                     }
-
-                    Map<String, String> mapPayment = new HashMap<>();
-                    mapPayment.put("address", addressWithChecksum);
-                    mapPayment.put("hash", transaction.getHash());
-                    mapPayment.put("amount", String.valueOf(transaction.getValue()));
-
-                    processPayment(mapPayment);
 
                     log.info("IOTA transaction hash-" + transaction.getHash() + ", sum-" + transaction.getValue() + " provided!");
                 }

@@ -27,7 +27,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
 
     private final String SELECT_STOCK_EXCHANGE = "SELECT STOCK_EXCHANGE.id AS stock_exchange_id, " +
             "STOCK_EXCHANGE.name AS stock_exchange_name, STOCK_EXCHANGE.link, CURRENCY_PAIR.id, " +
-            "CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, CURRENCY_PAIR.name, " +
+            "CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, CURRENCY_PAIR.name, CURRENCY_PAIR.market, " +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
             "(select name from CURRENCY where id = currency2_id) as currency2_name " +
             " FROM STOCK_EXCHANGE " +
