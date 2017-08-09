@@ -1125,7 +1125,7 @@ public class AdminController {
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
-    String serviceBeanName = merchantName.toLowerCase() + "ServiceImpl";
+    String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
     if (merchantService == null || !(merchantService instanceof BitcoinService)) {
       throw new NoRequestedBeansFoundException(serviceBeanName);
