@@ -33,7 +33,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
-    @Scheduled(cron = "0 0 23 * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void retrieveCurrencies() {
         LOGGER.debug("Start retrieving stock exchange statistics at: " + LocalDateTime.now());
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
@@ -41,7 +41,11 @@ public class StockExchangeServiceImpl implements StockExchangeService {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
         stockExrateRetrievalServices.forEach(service -> {
-            stockExchangeStatsList.addAll(service.retrieveStats(stockExchanges.get(service.getStockExchangeName())));
+            try {
+                stockExchangeStatsList.addAll(service.retrieveStats(stockExchanges.get(service.getStockExchangeName())));
+            } catch (Exception e) {
+                LOGGER.warn(e.getMessage());
+            }
         });
         stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
     }
