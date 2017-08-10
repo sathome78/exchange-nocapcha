@@ -2,6 +2,7 @@ package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
@@ -12,10 +13,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.ApiService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
@@ -86,7 +84,13 @@ public class MobileEntryController {
     private ApiService apiService;
 
     @Autowired
+    private BotService botService;
+
+    @Autowired
     private StoreSessionListener storeSessionListener;
+
+    @Autowired
+    private CurrencyService currencyService;
 
 
 
@@ -1051,6 +1055,11 @@ public class MobileEntryController {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/test/runBot", method = RequestMethod.POST)
+    public void runBot() {
+        botService.enableBotForCurrencyPair(currencyService.findCurrencyPairById(1));
     }
 
 

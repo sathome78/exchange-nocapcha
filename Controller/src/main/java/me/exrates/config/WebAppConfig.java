@@ -17,13 +17,17 @@ import me.exrates.service.EthereumCommonService;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
+import me.exrates.service.job.bot.QuartzJobFactory;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.quartz.Scheduler;
+import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -37,6 +41,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -405,6 +410,29 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
         return new RestTemplate();
+    }
+
+    @Bean
+    public JobFactory jobFactory(ApplicationContext applicationContext) {
+
+        QuartzJobFactory sampleJobFactory = new QuartzJobFactory();
+        sampleJobFactory.setApplicationContext(applicationContext);
+        return sampleJobFactory;
+    }
+
+    @Bean
+    public SchedulerFactoryBean schedulerFactoryBean(ApplicationContext applicationContext) {
+
+        SchedulerFactoryBean factory = new SchedulerFactoryBean();
+
+        factory.setOverwriteExistingJobs(true);
+        factory.setJobFactory(jobFactory(applicationContext));
+        return factory;
+    }
+
+    @Bean
+    public Scheduler botOrderCreationScheduler(ApplicationContext applicationContext) {
+        return schedulerFactoryBean(applicationContext).getScheduler();
     }
 
 }

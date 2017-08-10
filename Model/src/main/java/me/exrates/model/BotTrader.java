@@ -13,8 +13,8 @@ public class BotTrader {
     private Integer id;
     private Integer userId;
     private Boolean isEnabled;
-    @Min(value = 0, message = "Timeout value must be greater than 0")
-    @NotNull(message = "Please fill in the timeout value")
+    @Min(value = 0, message = "Accept timeout must be greater than 0")
+    @NotNull(message = "Please fill in the accept timeout field")
     private Integer acceptDelayInSeconds;
 
 }
