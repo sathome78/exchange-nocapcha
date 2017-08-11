@@ -24,9 +24,10 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2 content admin-container">
-            <div class="text-center"><h4><loc:message code="admin.autoTrading.title"/></h4></div>
 
+
+            <div class="col-md-6 col-md-offset-2 content admin-container">
+                <div class="text-center"><h4><loc:message code="admin.autoTrading.title"/></h4>
 
             <div id="autotradingMenu" class="buttons">
                 <button class="active adminForm-toggler blue-box">
@@ -36,10 +37,11 @@
                     <loc:message code="admin.autoTrading.settings.roles"/>
                 </button>
             </div>
+                </div>
             <div class="tab-content">
 
                 <div id="panel1" class="tab-pane active">
-                    <div class="col-md-8">
+                    <div class="col-md-8 col-md-offset-2">
                         <div class="text-center"><h4><loc:message code="admin.autoTrading.settings.bot"/></h4></div>
                         <div>
                             <c:choose>
@@ -124,7 +126,7 @@
                     </div>
                 </div>
                 <div id="panel2" class="tab-pane">
-                    <div class="col-sm-6">
+                    <div class="col-md-6 col-md-offset-3">
                         <div class="text-center"><h4><loc:message code="admin.autoTrading.settings.roles"/></h4></div>
 
 

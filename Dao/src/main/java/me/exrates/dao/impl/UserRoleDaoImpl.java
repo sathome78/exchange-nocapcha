@@ -60,6 +60,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
       settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
       settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
+      settings.setManualChangeAllowed(rs.getBoolean("manual_change_allowed"));
       return settings;
     });
   }
