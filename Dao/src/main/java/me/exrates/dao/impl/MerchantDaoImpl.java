@@ -212,7 +212,7 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
+  public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
         " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
         " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission, " +
@@ -222,8 +222,13 @@ public class MerchantDaoImpl implements MerchantDao {
         " FROM MERCHANT " +
         "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
         "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
+        (processTypes.isEmpty() ? "" : "WHERE MERCHANT.process_type IN (:process_types) ") +
         "ORDER BY merchant_id, currency_id";
-    return namedParameterJdbcTemplate.query(sql, (rs, rowNum) -> {
+    Map<String, List<String>> params = new HashMap<String, List<String>>();
+    params.put("process_types", processTypes);
+
+
+    return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
       dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setCurrencyId(rs.getInt("currency_id"));

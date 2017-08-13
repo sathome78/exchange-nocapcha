@@ -35,7 +35,7 @@ public interface MerchantDao {
 
   List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
 
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
+  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
