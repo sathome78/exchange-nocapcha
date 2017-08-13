@@ -125,7 +125,8 @@ public class IotaServiceImpl implements IotaService {
         return mapAddress;
     }
 
-    @PostConstruct
+    //TODO temporary disable
+ //   @PostConstruct
     public void init(){
 
         currency = currencyService.findByName("IOTA");
@@ -147,7 +148,7 @@ public class IotaServiceImpl implements IotaService {
             public void run() {
                 checkIncomingTransactions();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 0, 30, TimeUnit.MINUTES);
 
     }
 

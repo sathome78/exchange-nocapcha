@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair) {
+function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -12,6 +12,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     /**/
     var that = this;
     var chart = null;
+    var orderRoleFilter = null;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -275,7 +276,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $(document).one("ajaxStop", function () {
             var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
-            var initialAmountString = numeral(initialAmount).format(that.numeralFormat);
+            var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
             var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateBuy').val(lastBuyExrate);
@@ -319,11 +320,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             } else {
                 lastRate = $cell.next().text()
             }
-            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
+            return numbro(parseNumber(lastRate)).format(that.numeralFormat);
 
         } else {
             lastRate = $($selector).find('.order_exrate').text();
-            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
+            return numbro(parseNumber(lastRate)).format(that.numeralFormat);
         }
     }
 
@@ -361,7 +362,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function calculateFieldsForStop() {
         var amount = +$($amountStopInput).val();
         var exchangeRate = +$($limitRateInput).val();
-        $($totalStopInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
+        $($totalStopInput).val(numbro(amount * exchangeRate).format(that.numeralFormat));
     }
 
     function calculateFieldsForStopBackward() {
@@ -373,14 +374,14 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             $($amountStopInput).val(0);
             $($limitRateInput).val(0);
         } else {
-            $($amountBuyInput).val(numeral(totalForBuy / exchangeRate).format(that.numeralFormat));
+            $($amountBuyInput).val(numbro(totalForBuy / exchangeRate).format(that.numeralFormat));
         }
     }
 
     function calculateFieldsForBuy() {
         var amount = +$($amountBuyInput).val();
         var exchangeRate = +$($exchangeRateBuyInput).val();
-        $($totalForBuyInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
+        $($totalForBuyInput).val(numbro(amount * exchangeRate).format(that.numeralFormat));
         var totalForBuy = +$($totalForBuyInput).val();
         fillCommissionFieldsBuy(totalForBuy);
     }
@@ -393,7 +394,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             $($amountBuyInput).val(0);
             $($exchangeRateBuyInput).val(0);
         } else {
-            $($amountBuyInput).val(numeral(totalForBuy / exchangeRate).format(that.numeralFormat));
+            $($amountBuyInput).val(numbro(totalForBuy / exchangeRate).format(that.numeralFormat));
         }
         fillCommissionFieldsBuy(totalForBuy);
     }
@@ -401,7 +402,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function calculateFieldsForSell() {
         var amount = +$($amountSellInput).val();
         var exchangeRate = +$($exchangeRateSellInput).val();
-        $($totalForSellInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
+        $($totalForSellInput).val(numbro(amount * exchangeRate).format(that.numeralFormat));
         var totalForSell = +$($totalForSellInput).val();
         fillCommissionFieldsSell(totalForSell);
     }
@@ -415,7 +416,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             $($amountSellInput).val(0);
             $($exchangeRateSellInput).val(0);
         } else {
-            $($amountSellInput).val(numeral(totalForSell / exchangeRate).format(that.numeralFormat));
+            $($amountSellInput).val(numbro(totalForSell / exchangeRate).format(that.numeralFormat));
         }
         fillCommissionFieldsSell(totalForSell);
     }
@@ -439,7 +440,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair) {
+    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
@@ -457,6 +458,14 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             } catch (e) {
             }
         }
+        try {
+            orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
+        } catch (e) {
+        }
+
+
+
+
         that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
 
@@ -496,7 +505,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair);
+    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
@@ -530,10 +539,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.ordersListForAccept.push(data);
         orderAmountSumm += parseNumber(orderAmount);
         /**/
-        $('#amountBuy').val(numeral(orderAmountSumm).format(that.numeralFormat));
-        $('#exchangeRateBuy').val(numeral(orderExRate).format(that.numeralFormat));
-        $('#amountSell').val(numeral(orderAmountSumm).format(that.numeralFormat));
-        $('#exchangeRateSell').val(numeral(orderExRate).format(that.numeralFormat));
+        $('#amountBuy').val(numbro(orderAmountSumm).format(that.numeralFormat));
+        $('#exchangeRateBuy').val(numbro(orderExRate).format(that.numeralFormat));
+        $('#amountSell').val(numbro(orderAmountSumm).format(that.numeralFormat));
+        $('#exchangeRateSell').val(numbro(orderExRate).format(that.numeralFormat));
         /**/
         calculateFieldsForSell();
         calculateFieldsForBuy();

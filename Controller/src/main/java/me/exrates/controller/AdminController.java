@@ -43,6 +43,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
@@ -130,6 +131,9 @@ public class AdminController {
   StopOrderService stopOrderService;
   @Autowired
   RefillService refillService;
+
+  @Autowired
+  BotService botService;
 
   @Autowired
   private MerchantServiceContext serviceContext;
@@ -460,12 +464,13 @@ public class AdminController {
       currentRole = (String) httpSession.getAttribute("currentRole");
     }
     if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      roleList = userService.getAllRoles();
+      roleList = userRoleService.getRolesAvailableForChangeByAdmin();
     }
     model.addObject("roleList", roleList);
     User user = userService.getUserById(id);
     user.setId(id);
     model.addObject("user", user);
+    model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
     model.setViewName("admin/editUser");
@@ -539,7 +544,7 @@ public class AdminController {
       model.setViewName("admin/editUser");
       model.addObject("statusList", UserStatus.values());
       if (currentRole.equals(ADMINISTRATOR.name())) {
-        model.addObject("roleList", userService.getAllRoles());
+        model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
       }
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
@@ -1245,6 +1250,42 @@ public class AdminController {
     }
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading", method = GET)
+  public ModelAndView autoTrading() {
+    ModelAndView modelAndView = new ModelAndView("/admin/autoTrading");
+    botService.retrieveBotFromDB().ifPresent(bot -> {
+      modelAndView.addObject("bot", bot);
+      modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
+    });
+    return modelAndView;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public List<UserRoleSettings> getRoleSettings() {
+    return userRoleService.retrieveSettingsForAllRoles();
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST/*, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE*/)
+  @ResponseBody
+  public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
+    userRoleService.updateSettingsForRole(userRoleSettings);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST)
+  @ResponseBody
+  public void createBot(@RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
+    botService.createBot(nickname, email, password);
+  }
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public void updateBot(@RequestBody @Valid BotTrader botTrader) {
+    botService.updateBot(botTrader);
+
+  }
+
+
+
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
   @ResponseBody
@@ -1267,8 +1308,13 @@ public class AdminController {
   public ErrorInfo orderExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
-  
- 
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ResponseBody
+  public ErrorInfo methodArgumentNotValidExceptionHandler(HttpServletRequest req, MethodArgumentNotValidException ex) {
+    return new ErrorInfo(req.getRequestURL(), ex);
+  }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)

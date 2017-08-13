@@ -376,6 +376,7 @@ public class OnlineRestController {
       @RequestParam(required = false) String period,
       @RequestParam(required = false) String chart,
       @RequestParam(required = false) Boolean showAllPairs,
+      @RequestParam(required = false) Boolean orderRoleFilterEnabled,
       HttpServletRequest request) {
     CurrencyPair currencyPair;
     if (currencyPairName == null) {
@@ -425,11 +426,21 @@ public class OnlineRestController {
     }
     request.getSession().setAttribute("chartType", chartType);
         /**/
+    if (orderRoleFilterEnabled == null) {
+      if (request.getSession().getAttribute("orderRoleFilterEnabled") == null) {
+        orderRoleFilterEnabled = false;
+      } else {
+        orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+      }
+    }
+    request.getSession().setAttribute("orderRoleFilterEnabled", orderRoleFilterEnabled);
+
     CurrentParams currentParams = new CurrentParams();
     currentParams.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
     currentParams.setPeriod(((BackDealInterval) request.getSession().getAttribute("currentBackDealInterval")).getInterval());
     currentParams.setChartType(((ChartType) request.getSession().getAttribute("chartType")).getTypeName());
     currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
+    currentParams.setOrderRoleFilterEnabled(((Boolean) request.getSession().getAttribute("orderRoleFilterEnabled")));
     return currentParams;
   }
 
@@ -494,16 +505,17 @@ public class OnlineRestController {
   }
 
   /**
-   * returns list the data to create currency pairs menu
-   *
+   * returns map the data to create currency pairs menu
+   *  <market name, list<currencyPair name>>
    * @return: list the data to create currency pairs menu
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<String> getCurrencyPairNameList() {
-    List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-    List<String> result = currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
-    return result;
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(HttpServletRequest request) {
+    Locale locale = localeResolver.resolveLocale(request);
+    List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
+    list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
+    return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }
 
 
@@ -568,10 +580,14 @@ public class OnlineRestController {
     if (currencyPair == null) {
       return Collections.EMPTY_LIST;
     }
+    Boolean orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+    if (orderRoleFilterEnabled == null) {
+      orderRoleFilterEnabled = false;
+    }
     String cacheKey = "sellOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, localeResolver.resolveLocale(request), orderRoleFilterEnabled);
     return result;
   }
 
@@ -594,10 +610,15 @@ public class OnlineRestController {
     if (currencyPair == null) {
       return Collections.EMPTY_LIST;
     }
+    Boolean orderRoleFilterEnabled = (Boolean) request.getSession().getAttribute("orderRoleFilterEnabled");
+
+    if (orderRoleFilterEnabled == null) {
+      orderRoleFilterEnabled = false;
+    }
     String cacheKey = "BuyOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, localeResolver.resolveLocale(request), orderRoleFilterEnabled);
     return result;
   }
 

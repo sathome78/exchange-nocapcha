@@ -218,10 +218,10 @@ $(function refillCreation() {
 
     function showRefillDetailDialog() {
         resetForm();
-        $refillDetailedParamsDialog.find("#amount").html(numeral(amount).format(numberFormat));
+        $refillDetailedParamsDialog.find("#amount").html(numbro(amount).format(numberFormat));
         $refillDetailedParamsDialog.find("#commission-percent").html(commissionPercent);
-        $refillDetailedParamsDialog.find("#commission-amount").html(numeral(commissionAmount).format(numberFormat));
-        $refillDetailedParamsDialog.find("#total-amount").html(numeral(totalAmount).format(numberFormat));
+        $refillDetailedParamsDialog.find("#commission-amount").html(numbro(commissionAmount).format(numberFormat));
+        $refillDetailedParamsDialog.find("#total-amount").html(numbro(totalAmount).format(numberFormat));
         $refillDetailedParamsDialog.find(".currency").html(currencyName);
         getBankDataList(function () {
             var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list");
