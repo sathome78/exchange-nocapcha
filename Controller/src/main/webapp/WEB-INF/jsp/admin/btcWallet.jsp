@@ -174,10 +174,10 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="btcWallet.payment.dialog.title"/></h4>
+                <h4 class="modal-title"><loc:message code="btcWallet.payment.dialog.title" arguments="${currency}"/></h4>
             </div>
             <div class="modal-body">
-                <p id="btc-confirm-prompt"><loc:message code="btcWallet.payment.prompt"/></p>
+                <p id="btc-confirm-prompt"><loc:message code="btcWallet.payment.prompt" arguments="${currency}"/></p>
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
@@ -260,7 +260,7 @@
 
 
 
-<span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt"/></span>
+<span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt" arguments="${currency}"/></span>
 <span hidden id="viewMessage"><loc:message code="merchants.invoice.viewConfirm"/></span>
 <span hidden id="currencyName">${currency}</span>
 <span hidden id="merchantName">${merchant}</span>
