@@ -205,8 +205,8 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
-    return merchantDao.findMerchantCurrencyOptions();
+  public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
+    return merchantDao.findMerchantCurrencyOptions(processTypes);
   }
 
   @Override

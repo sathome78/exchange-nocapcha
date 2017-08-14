@@ -6,6 +6,7 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
@@ -34,10 +35,10 @@ public interface MerchantService {
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
-  
+
   List<TransferMerchantApiDto> findTransferMerchants();
-  
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
+
+  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
   Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
 
