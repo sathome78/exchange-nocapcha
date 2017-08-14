@@ -78,7 +78,7 @@
                             <tr>
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th data-operationtype="TRANSFER"><loc:message code="transaction.operationTypeINPUT"/></th>
+                                <th data-operationtype="TRANSFER"><loc:message code="merchants.transfer"/></th>
                             </tr>
                             </thead>
                             <tbody>

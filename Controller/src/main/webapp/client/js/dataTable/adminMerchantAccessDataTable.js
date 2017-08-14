@@ -94,7 +94,7 @@ $(document).ready(function () {
                 "data": "currencyName",
             },
             {
-                "data": "isRefillBlocked",
+                "data": "isTransferBlocked",
                 "render": function (data) {
                     return '<span data-operationtype="TRANSFER">'.concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
                         .concat('</span>');
