@@ -1021,7 +1021,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-    return merchantService.findMerchantCurrencyOptions();
+    return merchantService.findMerchantCurrencyOptions(new ArrayList<>());
 
   }
 
@@ -1049,8 +1049,8 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/data", method = RequestMethod.GET)
   @ResponseBody
-  public List<MerchantCurrencyOptionsDto> merchantAccessData() {
-    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
+  public List<MerchantCurrencyOptionsDto> merchantAccessData(@RequestParam List<String> processTypes) {
+    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions(processTypes);
     LOG.debug(merchantCurrencyOptions);
     return merchantCurrencyOptions;
   }

@@ -35,7 +35,7 @@ public interface MerchantService {
 
   List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
+  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
   Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
 
