@@ -10,7 +10,7 @@ create table USER_ROLE_SETTINGS
   foreign key (user_role_id) references USER_ROLE (id)
 )
 ;
-
+INSERT INTO USER_ROLE_SETTINGS(user_role_id) SELECT id FROM USER_ROLE;
 INSERT INTO USER_ROLE_BUSINESS_FEATURE (name) VALUES ('BOT');
 INSERT INTO USER_ROLE_GROUP_FEATURE (name) VALUES ('BOT');
 
