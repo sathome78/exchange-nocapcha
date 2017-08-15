@@ -172,7 +172,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("currency_id", currencyId);
       put("hash", hash);
     }};
-    return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    try {
+      return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -190,7 +194,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("currency_id", currencyId);
       put("hash", hash);
     }};
-    return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    try {
+      return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   @Override
