@@ -172,11 +172,25 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("currency_id", currencyId);
       put("hash", hash);
     }};
-    try {
-      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
-    } catch (EmptyResultDataAccessException e) {
-      return Optional.empty();
-    }
+    return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+  }
+
+  @Override
+  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndHash(
+          Integer merchantId,
+          Integer currencyId,
+          String hash) {
+    String sql = "SELECT RR.id " +
+            " FROM REFILL_REQUEST RR " +
+            " WHERE RR.merchant_id = :merchant_id " +
+            "       AND RR.currency_id = :currency_id " +
+            "       AND RR.merchant_transaction_id = :hash ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("hash", hash);
+    }};
+    return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
   }
 
   @Override
