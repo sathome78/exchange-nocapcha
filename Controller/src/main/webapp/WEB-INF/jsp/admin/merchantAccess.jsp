@@ -24,40 +24,71 @@
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-6 col-md-offset-2 admin-container">
-            <div class="text-center"><h4><loc:message code="admin.merchantAccess"/></h4></div>
-<hr/>
+            <div id="commissionsMenu" class="buttons" align="center">
+                <button class="active adminForm-toggler blue-box">
+                    <loc:message code="refill.merchant"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="merchants.transferTitle"/>
+                </button>
+            </div>
+
+            <div class="tab-content">
+
+                <div id="panel1" class="tab-pane active">
+                            <div class="col-sm-8 col-sm-offset-2">
+
+                                <table id="merchant-options-table">
+                                    <thead>
+                                    <tr>
+                                        <th><loc:message code="withdrawal.merchant"/> </th>
+                                        <th><loc:message code="withdrawal.currency"/> </th>
+                                        <th data-operationtype="INPUT"><loc:message code="transaction.operationTypeINPUT"/></th>
+                                        <th><loc:message code="transaction.operationTypeOUTPUT"/></th>
+                                        <th><loc:message code="merchant.withdrawAuto"/></th>
+                                        <th><loc:message code="merchant.withdrawAutoDelay"/></th>
+                                        <th><loc:message code="merchant.withdrawAutoThreshold"/></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+
+                                </table>
+
+                                <sec:authorize access="hasAuthority('${adminEnum}')">
+                                    <hr/>
+                                    <div class="row text-center">
+                                        <button id="block-all-input" class="red-box"><loc:message code="admin.blockAllInput" /></button>
+                                        <button id="block-all-output" class="red-box"><loc:message code="admin.blockAllOutput" /></button>
+                                    </div>
+                                    <div class="row text-center">
+                                        <button id="unblock-all-input" class="blue-box"><loc:message code="admin.unblockAllInput" /></button>
+                                        <button id="unblock-all-output" class="blue-box"><loc:message code="admin.unblockAllOutput" /></button>
+                                    </div>
+                                </sec:authorize>
+                            </div>
+               </div>
+
+                <div id="panel2" class="tab-pane">
                     <div class="col-sm-8 col-sm-offset-2">
 
-                        <table id="merchant-options-table">
+                        <table id="transfer-options-table">
                             <thead>
                             <tr>
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th data-operationtype="INPUT"><loc:message code="transaction.operationTypeINPUT"/></th>
-                                <th><loc:message code="transaction.operationTypeOUTPUT"/></th>
-                                <th><loc:message code="merchant.withdrawAuto"/></th>
-                                <th><loc:message code="merchant.withdrawAutoDelay"/></th>
-                                <th><loc:message code="merchant.withdrawAutoThreshold"/></th>
+                                <th data-operationtype="USER_TRANSFER"><loc:message code="merchants.transfer"/></th>
                             </tr>
                             </thead>
                             <tbody>
-
                             </tbody>
-
                         </table>
-
-                        <sec:authorize access="hasAuthority('${adminEnum}')">
-                            <hr/>
-                            <div class="row text-center">
-                                <button id="block-all-input" class="red-box"><loc:message code="admin.blockAllInput" /></button>
-                                <button id="block-all-output" class="red-box"><loc:message code="admin.blockAllOutput" /></button>
-                            </div>
-                            <div class="row text-center">
-                                <button id="unblock-all-input" class="blue-box"><loc:message code="admin.unblockAllInput" /></button>
-                                <button id="unblock-all-output" class="blue-box"><loc:message code="admin.unblockAllOutput" /></button>
-                            </div>
-                        </sec:authorize>
                     </div>
+                </div>
+
+            </div>
+
             </div>
         </div>
 </main>

@@ -3,9 +3,11 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
+import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.*;
 import me.exrates.service.*;
+import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.job.bot.BotCreateOrderJob;
@@ -16,7 +18,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +32,10 @@ import java.util.concurrent.Executors;
 public class BotServiceImpl implements BotService {
 
     private @Value("${bot.error.noMoney.email}") String errorEmail;
+
+    private static final String JOB_FORMAT = "job_%s_%s";
+
+    private static final String TRIGGER_FORMAT = "trigger_%s_%s";
 
     @Autowired
     private OrderService orderService;
@@ -57,9 +65,17 @@ public class BotServiceImpl implements BotService {
     private Scheduler botOrderCreationScheduler;
 
 
-
-
     private final static ExecutorService botAcceptExecutors = Executors.newCachedThreadPool();
+
+    @PostConstruct
+    private void initBot() {
+        retrieveBotFromDB().ifPresent(botTrader -> {
+            botDao.retrieveLaunchSettingsForAllPairs(botTrader.getId(), true).forEach(settings -> {
+                scheduleJobsForCurrencyPair(settings.getCurrencyPairId(), settings.getLaunchIntervalInMinutes());
+            });
+
+        });
+    }
 
 
     @Override
@@ -129,7 +145,6 @@ public class BotServiceImpl implements BotService {
 
 
     @Override
-    @Transactional
     public void runOrderCreation(Integer currencyPairId, OrderType orderType) {
         retrieveBotFromDB().ifPresent(bot -> {
             CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
@@ -145,7 +160,7 @@ public class BotServiceImpl implements BotService {
             BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(settings.getMinPrice());
             for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
                 try {
-                    Thread.sleep(settings.getBotLaunchSettings().getCreateTimeoutInSeconds());
+                    Thread.sleep(settings.getBotLaunchSettings().getCreateTimeoutInSeconds() * 1000);
                     BigDecimal newPrice = settings.nextPrice(lastPrice);
                     prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
                     lastPrice = newPrice;
@@ -160,47 +175,83 @@ public class BotServiceImpl implements BotService {
     }
 
 
-    private synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
+    @Override
+    @Transactional
+    public synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
     }
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void enableBotForCurrencyPair(CurrencyPair currencyPair) {
         retrieveBotFromDB().ifPresent(bot -> {
-            botDao.setEnabledForCurrencyPair(bot.getId(), currencyPair.getId(), true);
-            JobDetail jobDetailBuy = JobBuilder.newJob(BotCreateOrderJob.class)
-                    .withIdentity(String.format("job_%s_%s", currencyPair.getName(), OrderType.BUY.name()))
-                    .usingJobData("currencyPairId", currencyPair.getId())
-                    .usingJobData("orderType", OrderType.BUY.name())
-                    .build();
-            JobDetail jobDetailSell = JobBuilder.newJob(BotCreateOrderJob.class)
-                    .withIdentity(String.format("job_%s_%s", currencyPair.getName(), OrderType.SELL.name()))
-                    .usingJobData("currencyPairId", currencyPair.getId())
-                    .usingJobData("orderType", OrderType.SELL.name())
-                    .build();
-            Trigger triggerBuy = TriggerBuilder.newTrigger()
-                    .withIdentity(String.format("trigger_%s_%s", currencyPair.getName(), OrderType.BUY.name()))
-                    .startNow()
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(60).repeatForever())
-                    .build();
-            Trigger triggerSell = TriggerBuilder.newTrigger()
-                    .withIdentity(String.format("trigger_%s_%s", currencyPair.getName(), OrderType.SELL.name()))
-                    .startNow()
-                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(60).repeatForever())
-                    .build();
-            try {
-                botOrderCreationScheduler.scheduleJob(jobDetailBuy, triggerBuy);
-                botOrderCreationScheduler.scheduleJob(jobDetailSell, triggerSell);
-            } catch (SchedulerException e) {
-                e.printStackTrace();
+            BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPair.getId());
+            if (!launchSettings.getIsEnabledForPair()) {
+                botDao.setEnabledForCurrencyPair(bot.getId(), currencyPair.getId(), true);
+                scheduleJobsForCurrencyPair(currencyPair.getId(), launchSettings.getLaunchIntervalInMinutes() );
             }
+
         });
 
     }
+
+    private void scheduleJobsForCurrencyPair(Integer currencyPairId, int intervalInMinutes) {
+        int intervalInSeconds = intervalInMinutes * 60;
+        try {
+            scheduleJobForCurrencyPairAndOrderType(currencyPairId, OrderType.SELL, intervalInSeconds);
+            scheduleJobForCurrencyPairAndOrderType(currencyPairId, OrderType.BUY, intervalInSeconds);
+        } catch (SchedulerException e) {
+            log.error(e);
+            throw new BotException(e.getMessage());
+        }
+    }
+
+    private void scheduleJobForCurrencyPairAndOrderType(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) throws SchedulerException {
+        JobDetail jobDetail = JobBuilder.newJob(BotCreateOrderJob.class)
+                .withIdentity(String.format(JOB_FORMAT, currencyPairId, orderType.name()))
+                .usingJobData("currencyPairId", currencyPairId)
+                .usingJobData("orderType", orderType.name())
+                .build();
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(String.format(TRIGGER_FORMAT, currencyPairId, orderType.name()))
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(intervalInSeconds).repeatForever())
+                .build();
+        botOrderCreationScheduler.scheduleJob(jobDetail, trigger);
+    }
+
+    @Override
+    @Transactional
+    public void disableBotForCurrencyPair(Integer currencyPairId) {
+        retrieveBotFromDB().ifPresent(bot -> {
+            botDao.setEnabledForCurrencyPair(bot.getId(), currencyPairId, false);
+            try {
+                botOrderCreationScheduler.deleteJob(JobKey.jobKey(String.format(JOB_FORMAT, currencyPairId, OrderType.SELL.name())));
+                botOrderCreationScheduler.deleteJob(JobKey.jobKey(String.format(JOB_FORMAT, currencyPairId, OrderType.BUY.name())));
+            } catch (SchedulerException e) {
+                log.error(e);
+                throw new BotException(e.getMessage());
+            }
+
+        });
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId) {
+        return botDao.retrieveTradingSettingsShort(botLaunchSettingsId, orderTypeId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BotLaunchSettings> retrieveLaunchSettings(int botId) {
+        return botDao.retrieveLaunchSettingsForAllPairs(botId, null);
+    }
+
 
 
 

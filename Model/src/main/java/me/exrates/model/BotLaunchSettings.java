@@ -13,6 +13,7 @@ public class BotLaunchSettings {
     private Integer id;
     private Integer botId;
     private Integer currencyPairId;
+    private String currencyPairName;
     private Boolean isEnabledForPair;
     @Min(value = 0, message = "Launch interval must be greater than 0")
     @NotNull(message = "Please fill in the launch interval field")

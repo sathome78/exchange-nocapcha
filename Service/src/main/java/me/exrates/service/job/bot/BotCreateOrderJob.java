@@ -23,8 +23,7 @@ public class BotCreateOrderJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         Integer currencyPairId = jobExecutionContext.getMergedJobDataMap().getInt("currencyPairId");
         OrderType orderType = OrderType.valueOf(jobExecutionContext.getMergedJobDataMap().getString("orderType"));
-        System.out.printf("This is currencyPairId %s, orderType %s\n", currencyPairId, orderType.name());
-        System.out.printf("Bot service: - %s", botService + "\n");
+        log.debug("CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());
         botService.runOrderCreation(currencyPairId, orderType);
 
     }

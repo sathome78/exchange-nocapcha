@@ -75,7 +75,6 @@ import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
 import static me.exrates.model.enums.UserRole.FIN_OPERATOR;
-import static me.exrates.model.enums.UserRole.TRADER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
@@ -1026,7 +1025,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-    return merchantService.findMerchantCurrencyOptions();
+    return merchantService.findMerchantCurrencyOptions(new ArrayList<>());
 
   }
 
@@ -1054,8 +1053,8 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/data", method = RequestMethod.GET)
   @ResponseBody
-  public List<MerchantCurrencyOptionsDto> merchantAccessData() {
-    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
+  public List<MerchantCurrencyOptionsDto> merchantAccessData(@RequestParam List<String> processTypes) {
+    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions(processTypes);
     LOG.debug(merchantCurrencyOptions);
     return merchantCurrencyOptions;
   }
@@ -1256,6 +1255,8 @@ public class AdminController {
     botService.retrieveBotFromDB().ifPresent(bot -> {
       modelAndView.addObject("bot", bot);
       modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
+      modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
+      modelAndView.addObject("orderTypes", Arrays.asList(OrderType.values()));
     });
     return modelAndView;
   }
@@ -1266,7 +1267,7 @@ public class AdminController {
     return userRoleService.retrieveSettingsForAllRoles();
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST/*, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE*/)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST)
   @ResponseBody
   public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
     userRoleService.updateSettingsForRole(userRoleSettings);
@@ -1283,6 +1284,27 @@ public class AdminController {
     botService.updateBot(botTrader);
 
   }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/currencyPair/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public void updateBotSettingsForCurrencyPair(@RequestBody @Valid BotTrader botTrader) {
+   // botService.updateBot(botTrader);
+
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public List<BotLaunchSettings> getLaunchSettings(@RequestParam Integer botId) {
+    return botService.retrieveLaunchSettings(botId);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam Integer orderTypeid) {
+    return botService.retrieveTradingSettingsShort(launchSettingsId, orderTypeid);
+  }
+
+
 
 
 

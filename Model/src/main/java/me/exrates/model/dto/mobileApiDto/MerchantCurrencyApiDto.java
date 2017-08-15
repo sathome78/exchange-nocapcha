@@ -21,6 +21,7 @@ public class MerchantCurrencyApiDto {
     private Integer merchantId;
     private Integer currencyId;
     private String name;
+    private String processType;
     private BigDecimal minInputSum;
     private BigDecimal minOutputSum;
     private BigDecimal minTransferSum;
@@ -38,6 +39,8 @@ public class MerchantCurrencyApiDto {
     private String additionalFieldName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean generateAdditionalRefillAddressAvailable;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean withdrawCommissionDependsOnDestinationTag;
     private List<MerchantImageShortenedDto> listMerchantImage;
     @JsonIgnore
     private String serviceBeanName;

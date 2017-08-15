@@ -5,6 +5,7 @@ import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.*;
@@ -175,7 +176,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
     String destinationTag = payment.getDestinationTag();
-    if (!"CRYPTO".equals(merchant.getProcessType()) || amount.compareTo(BigDecimal.ZERO) != 0) {
+    if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
       try {
         merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
       } catch (EmptyResultDataAccessException e) {

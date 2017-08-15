@@ -5,9 +5,10 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.MerchantApiResponseType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
@@ -15,7 +16,10 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
+import me.exrates.service.exception.invoice.VoucherNotFoundException;
+import me.exrates.service.util.RateLimitService;
 import me.exrates.service.util.RestApiUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +42,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.PRESENT_VOUCHER;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -79,6 +85,15 @@ public class MobileInputOutputController {
 
     @Autowired
     RefillService refillService;
+    
+    @Autowired
+    private TransferService transferService;
+    
+    @Autowired
+    private RateLimitService rateLimitService;
+
+    @Autowired
+    private CurrencyService currencyService;
     
     
     
@@ -136,10 +151,10 @@ public class MobileInputOutputController {
     
     /**
      * @apiDefine InvoiceNotFoundException
-     * @apiError (406) {String} errorCode error code
-     * @apiError (406) {String} url request URL
-     * @apiError (406) {String} cause name of root exception
-     * @apiError (406) {String} details detail of root exception
+     * @apiError (404) {String} errorCode error code
+     * @apiError (404) {String} url request URL
+     * @apiError (404) {String} cause name of root exception
+     * @apiError (404) {String} details detail of root exception
      * @apiErrorExample {json} Invoice Not Found:
      * HTTP/1.1 404 Not Found
      *      {
@@ -147,6 +162,23 @@ public class MobileInputOutputController {
      *           "url": "http://localhost:8080/api/payments/invoice/confirm",
      *           "cause": "InvoiceNotFoundException",
      *           "detail": "invoice id: 23423"
+     *      }
+     *
+     * */
+
+    /**
+     * @apiDefine VoucherNotFoundException
+     * @apiError (404) {String} errorCode error code
+     * @apiError (404) {String} url request URL
+     * @apiError (404) {String} cause name of root exception
+     * @apiError (404) {String} details detail of root exception
+     * @apiErrorExample {json} Voucher Not Found:
+     * HTTP/1.1 404 Not Found
+     *      {
+     *            "errorCode": "VOUCHER_NOT_FOUND",
+     *            "url": "http://localhost:8080/api/payments/transfer/accept",
+     *            "cause": "VoucherNotFoundException",
+     *            "detail": "Ваучер не найден!"
      *      }
      *
      * */
@@ -204,16 +236,33 @@ public class MobileInputOutputController {
      *
      * */
 
+    /**
+     * @apiDefine CommissionExceedingAmountException
+     * @apiError (406) {String} errorCode error code
+     * @apiError (406) {String} url request URL
+     * @apiError (406) {String} cause name of root exception
+     * @apiError (406) {String} details detail of root exception
+     * @apiErrorExample {json} Insufficient Costs:
+     * HTTP/1.1 406 Not Acceptable
+     *      {
+     *          "errorCode": "COMMISSION_EXCEEDS_AMOUNT",
+     *          "url": "http://localhost:8080/api/payments/dynamicCommission",
+     *          "cause": "CommissionExceedingAmountException",
+     *          "detail": "Commission 6.001 exceeds amount 5"
+     *      }
+     *
+     * */
+
 
 
 
     /**
      * @api {get} /api/payments/merchants Merchants info
-     * @apiName findAllMerchantCurrencies
+     * @apiName findNonTransferMerchantCurrencies
      * @apiGroup Input-Output
      * @apiUse TokenHeader
      * @apiPermission user
-     * @apiDescription returns list of all merchants (sf no currencyId) or by currency
+     * @apiDescription returns list of all non-transfer merchants (if no currencyId) or by currency
      * @apiParam {Integer} currencyId - currency id (OPTIONAL)
      * @apiParamExample Request example
      * /api/payments/merchants?currencyId=7
@@ -222,7 +271,7 @@ public class MobileInputOutputController {
      * @apiSuccess {Integer} data.merchantId merchant id
      * @apiSuccess {Integer} data.currencyId currency id
      * @apiSuccess {String} data.name merchant name
-     * @apiSuccess {String} data.detail merchant detail
+     * @apiSuccess {String} merchant.processType merchant process type (CRYPTO, MERCHANT, INVOICE)
      * @apiSuccess {Number} data.minInputSum minimal sum of input payment
      * @apiSuccess {Number} data.minOutputSum minimal sum of output payment
      * @apiSuccess {Number} data.inputCommission commission rate for refill operations
@@ -231,6 +280,7 @@ public class MobileInputOutputController {
      * @apiSuccess {Boolean} data.additionalTagForWithdrawAddressIsUsed if additional tag is needed for output
      * @apiSuccess {String} data.additionalFieldName name of additional tag
      * @apiSuccess {Boolean} data.generateAdditionalRefillAddressAvailable for cryptos - if it is possible to generate new address
+     * @apiSuccess {Boolean} data.withdrawCommissionDependsOnDestinationTag - if withdraw commission is computed dynamically against dst tag value
      * @apiSuccess {Array} data.merchantImageList List of merchant images
      * @apiSuccess {Object} merchantImage Merchant image
      * @apiSuccess {String} data.merchantImage.merchantId merchant id
@@ -247,6 +297,7 @@ public class MobileInputOutputController {
      *          "merchantId": 20,
      *          "currencyId": 19,
      *          "name": "Ripple",
+     *          "processType": "CRYPTO",
      *          "minInputSum": 0.01,
      *          "minOutputSum": 5,
      *          "inputCommission": 0,
@@ -255,6 +306,7 @@ public class MobileInputOutputController {
      *          "additionalTagForWithdrawAddressIsUsed": true,
      *          "additionalFieldName": "Destination Tag",
      *          "generateAdditionalRefillAddressAvailable": false,
+     *          "withdrawCommissionDependsOnDestinationTag": false,
      *          "listMerchantImage": [],
      *          "withdrawBlocked": false,
      *          "refillBlocked": false
@@ -269,9 +321,162 @@ public class MobileInputOutputController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/merchants")
+    @RequestMapping(value = "/merchants", method = GET)
     public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(@RequestParam(required = false) Integer currencyId) {
-        return merchantService.findAllMerchantCurrencies(currencyId);
+        return merchantService.findNonTransferMerchantCurrencies(currencyId);
+    }
+    
+    
+    /**
+     * @api {get} /api/payments/transferMerchants Transfer merchants info
+     * @apiName findNonTransferMerchantCurrencies
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns list of transfer merchants
+     * @apiParam {Integer} currencyId - currency id (OPTIONAL)
+     * @apiParamExample Request example
+     * /api/payments/transferMerchants
+     * @apiSuccess {Array} merchants List of available merchants
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.merchantId merchant id
+     * @apiSuccess {String} data.name merchant name
+     * @apiSuccess {Boolean} data.isVoucher defines if transfer is by voucher
+     * @apiSuccess {Boolean} data.recipientUserIsNeeded defines if transfer is for a certain user
+     * @apiSuccess {Array} data.blockedForCurrencies IDs of currencies where the transfer is blocked
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *   [
+     *       {
+     *          "merchantId": 31,
+     *          "name": "VoucherTransfer",
+     *          "isVoucher": true,
+     *          "recipientUserIsNeeded": true,
+     *          "blockedForCurrencies": [
+     *              9,
+     *              10
+     *          ],
+     *       },
+     *    ]
+     *
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transferMerchants", method = GET)
+    public List<TransferMerchantApiDto> findAllTransferMerchantCurrencies() {
+        return merchantService.findTransferMerchants();
+    }
+
+
+    /**
+     * @api {get} /api/payments/dynamicCommission Dynamic withdraw commission
+     * @apiName retrieveDynamicCommissionValue
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns merchant commission value for withdraw
+     * @apiParam {Number} amount - amount for withdrawal
+     * @apiParam {Number} merchant - merchant id
+     * @apiParam {Number} currency - currency id
+     * @apiParam {String} memo - additional tag for withdraw (OPTIONAL)
+     * @apiParamExample Request example
+     * /api/payments/dynamicCommission?amount=20&merchant=33&currency=24&memo=jsdfkaksjdfhfgagksjdfga
+     * @apiSuccess {Number} commission merchant commission value for withdraw
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     *   2
+     *
+
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse CommissionExceedingAmountException
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/dynamicCommission", method = GET)
+    public Double retrieveDynamicCommissionValue(@RequestParam("amount") BigDecimal amount,
+                                                                  @RequestParam("currency") Integer currencyId,
+                                                                  @RequestParam("merchant") Integer merchantId,
+                                                                  @RequestParam(value = "memo", required = false) String memo) {
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+
+        Integer userId = userService.getIdByEmail(userEmail);
+        if (!StringUtils.isEmpty(memo)) {
+            merchantService.checkDestinationTag(merchantId, memo);
+        }
+        try {
+            Map<String, String> result = withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId,
+                    amount, currencyId, merchantId, userLocale, memo);
+            String merchantCommissionAmountString = result.get("merchantCommissionAmount");
+            BigDecimal merchantCommissionAmount = merchantCommissionAmountString == null ? BigDecimal.ZERO : new BigDecimal(merchantCommissionAmountString);
+            return merchantCommissionAmount.doubleValue();
+        } catch (InvalidAmountException e) {
+            throw new CommissionExceedingAmountException(e.getMessage());
+        }
+    }
+    
+    /**
+     * @api {post} /api/payments/transfer/accept Accept transfer
+     * @apiName acceptVoucher
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Accept transfer by entering voucher code
+     * @apiParam {String} code voucher code
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "code": "ad4b3e017838a373c8cc4c59d1ed8269ce0e0b4bc9588cdfa879c5adbef8273e"
+     *      }
+     * @apiSuccess {String} message success message
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     100,20 USD успешно переведено на ваш счёт
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse VoucherNotFoundException
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, String> acceptVoucher(@RequestBody Map<String, String> params) {
+        String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
+        LOGGER.debug("code {}", code);
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        if (!rateLimitService.checkLimitsExceed(userEmail)) {
+            throw new RequestsLimitExceedException();
+        }
+        InvoiceActionTypeEnum action = PRESENT_VOUCHER;
+        List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
+        if(requiredStatus.size() > 1) {
+            throw new RuntimeException("voucher processing error");
+        }
+        Optional<TransferRequestFlatDto> dto =  transferService
+                .getByHashAndStatus(code, requiredStatus.get(0).getCode(), true);
+        if (!dto.isPresent() || !transferService.checkRequest(dto.get(), userEmail)) {
+            rateLimitService.registerRequest(userEmail);
+            throw new VoucherNotFoundException(messageSource.getMessage(
+                    "voucher.invoice.not.found", null, userLocale));
+        }
+        TransferRequestFlatDto flatDto = dto.get();
+        flatDto.setInitiatorEmail(userEmail);
+        transferService.performTransfer(flatDto, userLocale, action);
+        return Collections.singletonMap("message", messageSource.getMessage("transfer.accept.success", new Object[]{BigDecimalProcessing.formatLocaleFixedSignificant(flatDto.getAmount(),
+                userLocale, 2) + " " + currencyService.getCurrencyName(flatDto.getCurrencyId())}, userLocale));
     }
 
     /**
@@ -393,21 +598,14 @@ public class MobileInputOutputController {
               item.getCurrencyId() == requestParamsDto.getCurrency() && item.getMerchantId() == merchant.getId()).findFirst()
               .orElseThrow(MerchantInternalException::new);
         MerchantInputResponseDto responseDto = new MerchantInputResponseDto();
-        if ("CRYPTO".equals(merchant.getProcessType()) || "INVOICE".equals(merchant.getProcessType())) {
+        if (merchant.getProcessType() == MerchantProcessType.CRYPTO || merchant.getProcessType() == MerchantProcessType.INVOICE) {
             responseDto.setType(MerchantApiResponseType.NOTIFY);
             if (requestParamsDto.getRecipientBankId() != null && requestParamsDto.getAddress() == null) {
                 InvoiceBank bank = refillService.findInvoiceBankById(requestParamsDto.getRecipientBankId()).orElseThrow(InvoiceBankNotFoundException::new);
                 requestParamsDto.setAddress(bank.getAccountNumber());
                 requestParamsDto.setRecipientBankName(bank.getName());
             }
-            RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
-            Payment payment = new Payment(INPUT);
-            payment.setCurrency(requestParamsDto.getCurrency());
-            payment.setMerchant(requestParamsDto.getMerchant());
-            payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-            CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
-                    .orElseThrow(InvalidAmountException::new);
-            RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+            RefillRequestCreateDto refillRequest = prepareRefillRequest(requestParamsDto, userEmail, userLocale);
             Map<String, Object> result = null;
     // TODO add last address retrieval method for crypto
             try {
@@ -438,7 +636,7 @@ public class MobileInputOutputController {
               responseDto.setAdditionalTag(merchantCurrency.getAddress());
             } else {
               responseDto.setQr(params.get("qr"));
-              responseDto.setWalletNumber("CRYPTO".equals(merchant.getProcessType()) ? params.get("address") : params.get("walletNumber"));
+              responseDto.setWalletNumber(merchant.getProcessType() == MerchantProcessType.CRYPTO ? params.get("address") : params.get("walletNumber"));
             }
             
         } else {
@@ -455,8 +653,19 @@ public class MobileInputOutputController {
         
         return responseDto;
     }
-    
-    
+
+    private RefillRequestCreateDto prepareRefillRequest(@RequestBody @Valid RefillRequestParamsDto requestParamsDto, String userEmail, Locale userLocale) {
+        RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
+        Payment payment = new Payment(INPUT);
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        return new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+    }
+
+
     /**
      * @api {post} /api/payments/invoice/confirm Confirm invoice
      * @apiName confirmInvoice
@@ -705,19 +914,32 @@ public class MobileInputOutputController {
      * @apiUse TokenHeader
      * @apiPermission user
      * @apiDescription Send transfer to other user
-     * @apiParam {Integer} walletId wallet id
-     * @apiParam {Integer} nickname nickname of receiver
-     * @apiParam {Number} amount amount of transfer
+     * @apiParam {Integer} merchant merchant id
+     * @apiParam {Integer} currency currency id
+     * @apiParam {String} recipient nickname of receiver
+     * @apiParam {Number} sum amount of transfer
      *
      * @apiParamExample {json} Request Example:
      *      {
-     *          "walletId": 6280,
-     *          "nickname": "qwerty123",
-     *          "sum": 10.0
+     *           "merchant": 31,
+     *           "currency": 2,
+     *           "recipient": "nickname",
+     *           "sum": 10.0
      *      }
      *
+     * @apiSuccess {String} message Localized success message
+     * @apiSuccess {String} balance Current active balance
+     * @apiSuccess {String} hash For voucher - a code to be sent to recipient
+     * @apiSuccess {String} recipient Recipient nickname (may be absent for free vouchers)
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
+     *     {
+     *          "message": "Ваш перевод #130 через систему VoucherTransfer был создан",
+     *          "balance": "USD 99899.80",
+     *          "hash": "7ab09209e505eb5d44085e8568d3274b5651b1b71424b210d61760845d835501",
+     *          "recipient": "talalai123"
+     *
+     *     }
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -729,16 +951,25 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
+    public TransferResponseDto submitTransfer(@RequestBody TransferRequestParamsDto requestParamsDto) {
+        requestParamsDto.setOperationType(USER_TRANSFER);
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
-        /*String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
-        if (userTransferDto.getNickname().equals(principalNickname)) {
-            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
-        }
-        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale, false);todo repair this
-        return new ResponseEntity<>(OK);*/
-        throw new RuntimeException(messageSource.getMessage("merchant.operationNotAvailable", null, userLocale));
+        String userEmail = getAuthenticatedUserEmail();
+        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
+        Payment payment = new Payment(requestParamsDto.getOperationType());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+        payment.setRecipient(requestParamsDto.getRecipient());
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
+        Map<String, Object> result = transferService.createTransferRequest(request);
+        TransferResponseDto responseDto = new TransferResponseDto();
+        responseDto.setBalance((String)result.get("balance"));
+        responseDto.setMessage((String)result.get("message"));
+        responseDto.setHash((String)result.get("hash"));
+        return responseDto;
     }
 
     /**
@@ -749,8 +980,9 @@ public class MobileInputOutputController {
      * @apiPermission user
      * @apiDescription returns last used address for currency
      * @apiParam {Integer} currencyId
+     * @apiParam {Integer} merchantId
      * @apiParamExample Request example
-     * /api/payments/lastAddress?currencyId=21
+     * /api/payments/lastAddress?currencyId=21&merchantId=22
      * @apiSuccess {Array} merchants List of addresses for each merchant (generally there's only one item)
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.merchantId merchant id
@@ -759,14 +991,12 @@ public class MobileInputOutputController {
      * @apiSuccess {String} data.additionalFieldName name of additional tag
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
-     *   [
      *      {
      *          "merchantId": 20,
      *          "mainAddress": "rEDz1wnKCSakb8AU1ScCRdkLHFgr7XTNij",
      *          "address": "495191240",
      *          "additionalFieldName": "Destination Tag"
      *      }
-     *   ]
      *
      *
      *
@@ -777,12 +1007,28 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/lastAddress", method = GET)
-    public List<CryptoAddressDto> getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId) {
+    public CryptoAddressDto getLastUsedAddressForMerchantAndCurrency(@RequestParam Integer currencyId, @RequestParam Integer merchantId) {
         String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(
-                Collections.singletonList(currencyId), OperationType.INPUT);
+                Collections.singletonList(currencyId), OperationType.INPUT).stream()
+                .filter(item -> item.getMerchantId() == merchantId).collect(Collectors.toList());
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
-        return merchantCurrencyData.stream().map(CryptoAddressDto::new).collect(Collectors.toList());
+        CryptoAddressDto result = merchantCurrencyData.stream().map(CryptoAddressDto::new).
+                findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        if (StringUtils.isEmpty(result.getAddress())) {
+            //TODO temp
+            RefillRequestParamsDto requestParamsDto = new RefillRequestParamsDto();
+            requestParamsDto.setCurrency(currencyId);
+            requestParamsDto.setMerchant(merchantId);
+            requestParamsDto.setSum(BigDecimal.ZERO);
+            RefillRequestCreateDto refillRequest = prepareRefillRequest(requestParamsDto, userEmail, userLocale);
+            refillService.createRefillRequest(refillRequest);
+            refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, userEmail);
+            result = merchantCurrencyData.stream().map(CryptoAddressDto::new).
+                    findFirst().orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
+        }
+        return result;
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -838,10 +1084,17 @@ public class MobileInputOutputController {
     }
 
     @ResponseStatus(NOT_FOUND)
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler({UserNotFoundException.class, me.exrates.dao.exception.UserNotFoundException.class})
     @ResponseBody
     public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(VoucherNotFoundException.class)
+    @ResponseBody
+    public ApiError VoucherNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.VOUCHER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(NOT_ACCEPTABLE)
@@ -870,6 +1123,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError outputRequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.OUTPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(CommissionExceedingAmountException.class)
+    @ResponseBody
+    public ApiError commissionExceedingAmountExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.COMMISSION_EXCEEDS_AMOUNT, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)

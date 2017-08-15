@@ -2,6 +2,7 @@
  * Created by OLEG on 23.09.2016.
  */
 var rolesDataTable;
+var launchSettingsDataTable;
 
 $(document).ready(function () {
     $('#bot-enabled-box').onoff()
@@ -12,6 +13,7 @@ $(document).ready(function () {
 
 
     updateRolesDataTable(rolesRowListener);
+    updateLaunchSettingsDataTable();
 
     function rolesRowListener() {
         $($rolesTable).find('tbody').on('click', 'i', function () {
@@ -45,6 +47,10 @@ $(document).ready(function () {
         e.preventDefault();
         submitNewBot();
     });
+    $('#launch-settings-table').on('click', '.settings-change-btn', function (e) {
+        e.preventDefault();
+        $('#editSettingsModal').modal();
+    })
 
 });
 
@@ -84,6 +90,53 @@ function updateRolesDataTable(initCallback) {
                     "render": function (data) {
                         return '<span data-attribute="botAcceptionAllowed">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
+                    }
+                }
+            ]
+        });
+    }
+}
+
+function updateLaunchSettingsDataTable(initCallback) {
+    var $launchSettingsTable = $('#launch-settings-table');
+    var launchUrl = '/2a8fy7b07dxe44/autoTrading/bot/launchSettings?botId=' + $('#bot-id').val();
+    if ($.fn.dataTable.isDataTable('#launch-settings-table')) {
+        launchSettingsDataTable = $($launchSettingsTable).DataTable();
+        launchSettingsDataTable.ajax.url(launchUrl).load();
+    } else {
+        launchSettingsDataTable = $($launchSettingsTable).DataTable({
+            "ajax": {
+                "url": launchUrl,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "order": [],
+            "initComplete": initCallback,
+            "columns": [
+                {
+                    "data": "currencyPairName"
+                },
+                {
+                    "data": "enabledForPair",
+                    "render": function (data) {
+                        return '<span class="text-1_5" data-attribute="isEnabledForPair">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                            .concat('</span>');
+                    }
+                },
+                {
+                    "data": "launchIntervalInMinutes"
+                },
+                {
+                    "data": "createTimeoutInSeconds"
+                },
+                {
+                    "data": "quantityPerSequence"
+                },
+                {
+                    "data": null,
+                    "orderable": false,
+                    "render": function () {
+                        return '<button class="settings-change-btn btn btn-sm btn-danger">Change</button>';
                     }
                 }
             ]

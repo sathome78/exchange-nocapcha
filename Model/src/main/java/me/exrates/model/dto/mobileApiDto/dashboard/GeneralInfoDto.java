@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 
 import java.util.List;
 
@@ -14,8 +15,9 @@ import java.util.List;
 @Getter @Setter
 @ToString
 public class GeneralInfoDto {
-  List<CurrencyPairWithLimitsDto> currencyPairs;
-  List<MerchantCurrencyApiDto> merchants;
-  CommissionsDto commissions;
-  List<TransferLimitDto> transferLimits;
+  private List<CurrencyPairWithLimitsDto> currencyPairs;
+  private List<MerchantCurrencyApiDto> merchants;
+  private CommissionsDto commissions;
+  private List<TransferMerchantApiDto> transferMerchants;
+  private List<TransferLimitDto> transferLimits;
 }

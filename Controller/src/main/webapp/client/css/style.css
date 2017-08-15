@@ -1294,7 +1294,7 @@ td.blue-white {
 #orders button,
 #mywallets button,
 #passwords-changing button {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
 }
 
 /********************************
@@ -2291,7 +2291,8 @@ textarea#remark {
     font-size: 1.5rem;
 }
 
-#roles-table i:hover {
+#roles-table i:hover,
+#launch-settings-table i:hover{
     cursor:pointer;
 }
 
@@ -2309,4 +2310,5 @@ textarea#remark {
     #order-filter-selector {
         height: 50px;
     }
+    
 }

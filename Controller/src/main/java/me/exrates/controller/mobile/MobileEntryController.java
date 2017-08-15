@@ -1062,6 +1062,12 @@ public class MobileEntryController {
         botService.enableBotForCurrencyPair(currencyService.findCurrencyPairById(1));
     }
 
+    @RequestMapping(value = "/test/stopBot", method = RequestMethod.POST)
+    public void stopBot() {
+        botService.disableBotForCurrencyPair(1);
+    }
+
+
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

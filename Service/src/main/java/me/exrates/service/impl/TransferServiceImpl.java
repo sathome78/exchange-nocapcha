@@ -27,7 +27,6 @@ import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,6 @@ import static me.exrates.model.enums.OperationType.USER_TRANSFER;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
-import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
 /**
  * created by ValkSam
@@ -101,13 +99,15 @@ public class TransferServiceImpl implements TransferService {
     ProfileData profileData = new ProfileData(1000);
     try {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
-      request.setIsVoucher(((ITransferable) merchantService).isVoucher());
-      if (((ITransferable) merchantService).recipientUserIsNeeded()) {
+      ITransferable transferMerchantService = (ITransferable) merchantService;
+
+      request.setIsVoucher(transferMerchantService.isVoucher());
+      if (transferMerchantService.recipientUserIsNeeded()) {
         checkTransferToSelf(request.getUserId(), request.getRecipientId(), request.getLocale());
       }
       Integer requestId = createTransfer(request);
       request.setId(requestId);
-      Map<String, String> data = ((ITransferable) merchantService).transfer(request);
+      Map<String, String> data = transferMerchantService.transfer(request);
       request.setHash(data.get("hash"));
       transferRequestDao.setHashById(requestId, data);
       /**/
@@ -295,9 +295,9 @@ public class TransferServiceImpl implements TransferService {
   }
 
   @Override
-  public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal) {
+  public boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail) {
     ITransferable merchantService = (ITransferable) merchantServiceContext.getMerchantService(transferRequestFlatDto.getMerchantId());
-    return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(principal.getName()));
+    return !merchantService.recipientUserIsNeeded() || transferRequestFlatDto.getRecipientId().equals(userService.getIdByEmail(userEmail));
   }
 
   @Transactional
