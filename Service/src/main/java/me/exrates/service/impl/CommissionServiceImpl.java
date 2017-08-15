@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -158,8 +159,7 @@ public class CommissionServiceImpl implements CommissionService {
     BigDecimal companyCommissionRate = companyCommission.getValue();
     String companyCommissionUnit = "%";
     Merchant merchant = merchantService.findById(merchantId);
-    String merchantProcessType = merchant.getProcessType();
-    if (!"CRYPTO".equals(merchantProcessType) || amount.compareTo(BigDecimal.ZERO) != 0) {
+    if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
       BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;
@@ -201,7 +201,9 @@ public class CommissionServiceImpl implements CommissionService {
       BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
       BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
       if (totalAmount.compareTo(ZERO) <= 0) {
-        throw new InvalidAmountException(amount.toString());
+        throw new InvalidAmountException(String.format("Commission %s exceeds amount %s",
+                BigDecimalProcessing.formatNonePoint(totalCommissionAmount, false),
+                BigDecimalProcessing.formatNonePoint(amount, false)));
       }
       return new CommissionDataDto(
           amount,

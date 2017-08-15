@@ -216,7 +216,7 @@ function InputOutputClass(currentCurrencyPair) {
 
             function showRefillDetailDialog(data) {
                 resetForm();
-                $refillDetailedParamsDialog.find("#amount").html(numeral(data.amount).format(numberFormat));
+                $refillDetailedParamsDialog.find("#amount").html(numbro(data.amount).format(numberFormat));
                 $refillDetailedParamsDialog.find("#bank-name").html(data.recipientBankName);
                 $refillDetailedParamsDialog.find("#bank-account").html(data.recipientBankAccount);
                 $refillDetailedParamsDialog.find("#bank-recipient").html(data.recipientBankRecipient);

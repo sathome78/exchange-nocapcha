@@ -67,7 +67,7 @@
                   <div style="float: left; height: 20px;  width: 183px; text-align: right; margin-right: 47px">
                     <img class="img-thumbnail" src="${merchantImage.image_path}"
                          style="width: 168px; height: 52px; margin-right: 10px"/>
-                    <div style="float: left;height: 20px;width: 448px;text-align: left;margin-right: 10px;padding-left: 228px;">
+                    <div style="float: left;height: 20px;width: 468px;text-align: left;margin-right: 10px;padding-left: 228px;">
                       <c:if test="${(merchantCurrency.minSum > 0) && (merchantCurrency.processType != \"INVOICE\")}">
                         <span><loc:message code="mercnahts.output.minSum"/></span>
                         <span >${minWithdrawSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}</span>

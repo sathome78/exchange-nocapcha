@@ -83,15 +83,17 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair) {
-        String email = null;
+    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 3 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate ASC";
-        Map<String, Object> namedParameters = new HashMap<>();
+        Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPair.getId());
+        if (filterRole != null) {
+            namedParameters.put("user_role_id", filterRole.getRole());
+        }
         return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
@@ -105,15 +107,17 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair) {
-        String email = null;
+    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (filterRole == null ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND USER.roleid = :user_role_id ") +
                 "  WHERE status_id = 2 and operation_type_id= 4 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate DESC";
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", currencyPair.getId());
+        if (filterRole != null) {
+            namedParameters.put("user_role_id", filterRole.getRole());
+        }
         return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
@@ -797,29 +801,32 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
-                                         OperationType orderType) {
+                                         OperationType orderType, boolean sameRoleOnly, Integer userAcceptorRoleId) {
         String sortDirection = "";
         String exrateClause = "";
         if (orderType == OperationType.BUY) {
             sortDirection = "DESC";
-            exrateClause = "AND exrate >= :exrate ";
+            exrateClause = "AND EO.exrate >= :exrate ";
         } else if (orderType == OperationType.SELL) {
             sortDirection = "ASC";
-            exrateClause = "AND exrate <= :exrate ";
+            exrateClause = "AND EO.exrate <= :exrate ";
         }
+        String roleJoinClause = sameRoleOnly ? " JOIN USER U ON EO.user_id = U.id AND U.roleid = :acceptor_role_id " : "";
         String sqlSetVar = "SET @cumsum := 0";
 
         /*needs to return several orders with best exrate if their total sum is less than amount in param,
         * or at least one order if base amount is greater than param amount*/
-        String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, " +
-                "commission_id, commission_fixed_amount, date_creation, status_id " +
-                "FROM EXORDERS WHERE status_id = 2 AND currency_pair_id = :currency_pair_id " +
-                "AND operation_type_id = :operation_type_id " + exrateClause +
-                " ORDER BY exrate " + sortDirection + ", amount_base ASC ";
+        String sql = "SELECT EO.id, EO.user_id, EO.currency_pair_id, EO.operation_type_id, EO.exrate, EO.amount_base, EO.amount_convert, " +
+                "EO.commission_id, EO.commission_fixed_amount, EO.date_creation, EO.status_id " +
+                "FROM EXORDERS EO " + roleJoinClause +
+                "WHERE EO.status_id = 2 AND EO.currency_pair_id = :currency_pair_id " +
+                "AND EO.operation_type_id = :operation_type_id " + exrateClause +
+                " ORDER BY EO.exrate " + sortDirection + ", EO.amount_base ASC ";
         Map<String, Number> params = new HashMap<String, Number>() {{
             put("currency_pair_id", currencyPairId);
             put("exrate", exrate);
             put("operation_type_id", orderType.getType());
+            put("acceptor_role_id", userAcceptorRoleId);
         }};
         namedParameterJdbcTemplate.execute(sqlSetVar, PreparedStatement::execute);
 

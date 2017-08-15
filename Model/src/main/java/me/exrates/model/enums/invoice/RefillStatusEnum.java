@@ -3,6 +3,7 @@ package me.exrates.model.enums.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.exceptions.*;
 
 import java.util.*;
@@ -297,7 +298,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
   }
 
   public InvoiceActionTypeEnum getStartAction(Merchant merchant) {
-    if ("INVOICE".equals(merchant.getProcessType())) {
+    if (merchant.getProcessType() == MerchantProcessType.INVOICE) {
       return PUT_FOR_CONFIRM_USER;
     } else {
       return PUT_FOR_PENDING;

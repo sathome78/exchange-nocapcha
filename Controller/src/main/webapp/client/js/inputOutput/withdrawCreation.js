@@ -247,10 +247,10 @@ $(function withdrawCreation() {
 
     function showWithdrawDetailDialog() {
         resetForm();
-        $withdrawDetailedParamsDialog.find("#amount").html(numeral(amount).format(numberFormat));
+        $withdrawDetailedParamsDialog.find("#amount").html(numbro(amount).format(numberFormat));
         $withdrawDetailedParamsDialog.find("#commission-percent").html(commissionPercent);
-        $withdrawDetailedParamsDialog.find("#commission-amount").html(numeral(commissionAmount).format(numberFormat));
-        $withdrawDetailedParamsDialog.find("#total-amount").html(numeral(totalAmount).format(numberFormat));
+        $withdrawDetailedParamsDialog.find("#commission-amount").html(numbro(commissionAmount).format(numberFormat));
+        $withdrawDetailedParamsDialog.find("#total-amount").html(numbro(totalAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find(".currency").html(currencyName);
         getBankDataList(function () {
             var $bankSelect = $withdrawDetailedParamsDialog.find("#bank-data-list");

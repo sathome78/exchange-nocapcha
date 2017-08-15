@@ -37,7 +37,7 @@ public interface TransferService {
 
   Optional<TransferRequestFlatDto> getByHashAndStatus(String code, Integer requiredStatus, boolean block);
 
-  boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, Principal principal);
+  boolean checkRequest(TransferRequestFlatDto transferRequestFlatDto, String userEmail);
 
   void performTransfer(TransferRequestFlatDto transferRequestFlatDto, Locale locale, InvoiceActionTypeEnum action);
 

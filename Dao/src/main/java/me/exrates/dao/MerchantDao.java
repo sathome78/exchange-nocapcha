@@ -7,6 +7,8 @@ import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
+import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
@@ -33,9 +35,11 @@ public interface MerchantDao {
 
   List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-  List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
+  List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole, List<String> merchantProcessTypes);
 
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
+  List<TransferMerchantApiDto> findTransferMerchants();
+
+  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 

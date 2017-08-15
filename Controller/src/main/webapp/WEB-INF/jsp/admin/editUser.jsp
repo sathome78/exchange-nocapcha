@@ -206,6 +206,7 @@
                       </div>
                     </div>
                     <sec:authorize access="hasAuthority('${adminEnum}')">
+                      <c:if test="${roleSettings.manualChangeAllowed}" >
                       <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                           <label for="user-role"
@@ -223,6 +224,7 @@
                           </form:select>
                         </div>
                       </div>
+                      </c:if>
                     </sec:authorize>
                     <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                       <form:hidden path="role" name="user-role"/>
