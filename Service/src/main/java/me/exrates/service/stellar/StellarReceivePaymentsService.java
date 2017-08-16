@@ -85,9 +85,7 @@ public class StellarReceivePaymentsService {
                         if (response.getAsset().equals(new AssetTypeNative())) {
                             TransactionResponse transactionResponse = null;
                             try {
-                                log.debug("getting transaction");
                                 transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
-                                log.debug(SEVER_URL + " " + response.getLinks().getTransaction().getUri());
                             } catch (Exception e) {
                                 log.error("error getting transaction {}", e);
                             }
