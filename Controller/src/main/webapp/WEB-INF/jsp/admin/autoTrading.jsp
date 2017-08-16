@@ -82,7 +82,7 @@
                                                 </div>
                                             </div>
 
-                                            <button id="submitBotSettings" class="blue-box"><loc:message code="admin.submit"/></button>
+                                            <button id="submitBotGeneralSettings" class="blue-box"><loc:message code="admin.submit"/></button>
                                         </form>
                                     </div>
 
@@ -123,12 +123,6 @@
                                 </c:otherwise>
                             </c:choose>
                         </div>
-
-
-
-
-
-
                     </div>
                 </div>
                 <div id="panel2" class="tab-pane">
@@ -147,43 +141,13 @@
                                                 <th><loc:message code="admin.autoTrading.bot.createTimeout"/></th>
                                                 <th><loc:message code="admin.autoTrading.bot.quantityPerSeq"/></th>
                                                 <th></th>
+                                                <th></th>
+                                                <th></th>
                                             </tr>
                                             </thead>
                                         </table>
 
                                     </div>
-
-                                   <%-- <div class="row">
-                                        <select id="currencyPair" class="input-block-wrapper__input admin-form-input">
-                                            <c:forEach items="${currencyPairs}" var="currencyPair">
-                                                <option value="${currencyPair.id}">${currencyPair.name}</option>
-                                            </c:forEach>
-                                        </select>
-
-                                        <form id="launch-settings-form">
-                                            <div class="input-block-wrapper">
-                                                <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                                    <label for="bot-pair-enabled-box" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.status"/></label>
-                                                </div>
-                                                <div class="col-md-8 input-block-wrapper__input-wrapper blue-switch">
-                                                    <input id="bot-pair-enabled-box" type="checkbox" name="isEnabled" <c:out value="${bot.isEnabled ? 'checked' : ''}"/> class="input-block-wrapper__input">
-                                                </div>
-                                            </div>
-
-                                        </form>
-
-                                    </div>
-                                    <div class="row">
-                                        <select id="orderType" class="input-block-wrapper__input admin-form-input">
-                                            <c:forEach items="${orderTypes}" var="orderType">
-                                                <option value="${orderType.type}">${orderType.name()}</option>
-                                            </c:forEach>
-                                            <form id="trading-settings-form">
-
-                                            </form>
-                                        </select>
-
-                                    </div>--%>
                                 </c:when>
                                 <c:otherwise>
                                     <div class="row text-center">
@@ -219,68 +183,112 @@
         </div>
 </main>
 
-<div id="editSettingsModal" class="modal fade">
+<div id="editLaunchSettingsModal" class="modal fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
-                <h4 class="modal-title">talala<%--<loc:message code="admin.editCommission"/>--%></h4>
+                <h4 class="modal-title"><loc:message code="admin.autoTrading.settings.bot.launch"/> - <span id="launch-title-pair"></span></h4>
             </div>
             <div class="modal-body">
-                <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
-                    <li><a data-toggle="tab" href="#menu1">Menu 1</a></li>
-                    <li><a data-toggle="tab" href="#menu2">Menu 2</a></li>
-                </ul>
-                <div class="tab-content">
-                    <div id="home" class="tab-pane fade in active">
-                        <h3>HOME</h3>
-                        <p>Some content.</p>
-                    </div>
-                    <div id="menu1" class="tab-pane fade">
-                        <h3>Menu 1</h3>
-                        <p>Some content in menu 1.</p>
-                    </div>
-                    <div id="menu2" class="tab-pane fade">
-                        <h3>Menu 2</h3>
-                        <p>Some content in menu 2.</p>
-                    </div>
-                </div>
-
-
-
-                <%--<form id="edit-settings-form" class="form_full_width form_auto_height">
+                <form id="launch-settings-form" class="form_full_width form_auto_height">
+                    <input hidden id="launch-settings-id" name="id">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="userRole" class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
+                            <label for="launchInterval" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.launchInterval"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="userRole" name="userRole" class="input-block-wrapper__input" readonly type="text">
+                        <div class="col-md-5 col-md-offset-2 input-block-wrapper__input-wrapper">
+                            <input id="launchInterval" name="launchIntervalInMinutes" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="operationType" class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
+                            <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.createTimeout"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="operationType" name="operationType" class="input-block-wrapper__input" readonly type="text">
+                        <div class="col-md-5 col-md-offset-2 input-block-wrapper__input-wrapper">
+                            <input id="createTimeout" name="createTimeoutInSeconds" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="commissionValue" class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                            <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.quantityPerSeq"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="commissionValue" name="commissionValue" class="input-block-wrapper__input" type="number">
+                        <div class="col-md-5 col-md-offset-2 input-block-wrapper__input-wrapper">
+                            <input id="quantityPerSeq" name="quantityPerSequence" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
-                    <button id="submitCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                </form>--%>
+                    <button id="submitLaunchSettings" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
+<div id="editTradeSettingsModal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
+                <h4 class="modal-title"><loc:message code="admin.autoTrading.settings.bot.trading"/> - <span id="trade-title-pair"></span> - <span id="trade-title-order-type"></span></h4>
+            </div>
+            <div class="modal-body">
+                <form id="trade-settings-form" class="form_full_width form_auto_height">
+                    <input hidden id="trade-settings-id" name="id">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.amountLimits"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minAmount" name="minAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxAmount" name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceLimits"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minPrice" name="minPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxPrice" name="maxPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
+                        </div>
+                        <div class="col-md-4 col-md-offset-1 input-block-wrapper__input-wrapper">
+                            <input id="priceStep" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+
+                    <button id="submitTradeSettings" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<span hidden id="launch-settings-loc"><loc:message code="admin.autoTrading.settings.bot.launch"/> </span>
+<span hidden id="buy-settings-loc"><loc:message code="admin.autoTrading.settings.bot.buy"/></span>
+<span hidden id="sell-settings-loc"><loc:message code="admin.autoTrading.settings.bot.sell"/></span>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

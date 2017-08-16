@@ -1059,7 +1059,7 @@ public class MobileEntryController {
 
     @RequestMapping(value = "/test/runBot", method = RequestMethod.POST)
     public void runBot() {
-        botService.enableBotForCurrencyPair(currencyService.findCurrencyPairById(1));
+        botService.enableBotForCurrencyPair(1);
     }
 
     @RequestMapping(value = "/test/stopBot", method = RequestMethod.POST)

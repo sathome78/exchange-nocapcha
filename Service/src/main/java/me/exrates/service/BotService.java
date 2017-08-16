@@ -25,11 +25,17 @@ public interface BotService {
 
     void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate);
 
-    void enableBotForCurrencyPair(CurrencyPair currencyPair);
+    void enableBotForCurrencyPair(Integer currencyPairId);
 
     void disableBotForCurrencyPair(Integer currencyPairId);
 
     BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId);
 
     List<BotLaunchSettings> retrieveLaunchSettings(int botId);
+
+    void toggleBotStatusForCurrencyPair(Integer currencyPairId, boolean status);
+
+    void updateLaunchSettings(BotLaunchSettings launchSettings);
+
+    void updateTradingSettings(BotTradingSettingsShortDto tradingSettings);
 }

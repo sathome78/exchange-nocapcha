@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -73,6 +74,18 @@ public class BotServiceImpl implements BotService {
             botDao.retrieveLaunchSettingsForAllPairs(botTrader.getId(), true).forEach(settings -> {
                 scheduleJobsForCurrencyPair(settings.getCurrencyPairId(), settings.getLaunchIntervalInMinutes());
             });
+
+        });
+    }
+
+    @PreDestroy
+    private void shutdownBot() {
+        retrieveBotFromDB().ifPresent(botTrader -> {
+            try {
+                botOrderCreationScheduler.shutdown();
+            } catch (SchedulerException e) {
+                log.error(e);
+            }
 
         });
     }
@@ -185,12 +198,12 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void enableBotForCurrencyPair(CurrencyPair currencyPair) {
+    public void enableBotForCurrencyPair(Integer currencyPairId) {
         retrieveBotFromDB().ifPresent(bot -> {
-            BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPair.getId());
+            BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPairId);
             if (!launchSettings.getIsEnabledForPair()) {
-                botDao.setEnabledForCurrencyPair(bot.getId(), currencyPair.getId(), true);
-                scheduleJobsForCurrencyPair(currencyPair.getId(), launchSettings.getLaunchIntervalInMinutes() );
+                botDao.setEnabledForCurrencyPair(bot.getId(), currencyPairId, true);
+                scheduleJobsForCurrencyPair(currencyPairId, launchSettings.getLaunchIntervalInMinutes() );
             }
 
         });
@@ -250,6 +263,27 @@ public class BotServiceImpl implements BotService {
     @Transactional(readOnly = true)
     public List<BotLaunchSettings> retrieveLaunchSettings(int botId) {
         return botDao.retrieveLaunchSettingsForAllPairs(botId, null);
+    }
+
+    @Override
+    public void toggleBotStatusForCurrencyPair(Integer currencyPairId, boolean status) {
+        if (status) {
+            enableBotForCurrencyPair(currencyPairId);
+        } else {
+            disableBotForCurrencyPair(currencyPairId);
+        }
+    }
+
+    @Override
+    public void updateLaunchSettings(BotLaunchSettings launchSettings) {
+        botDao.updateLaunchSettings(launchSettings);
+
+    }
+
+    @Override
+    public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
+        botDao.updateTradingSettings(tradingSettings);
+
     }
 
 

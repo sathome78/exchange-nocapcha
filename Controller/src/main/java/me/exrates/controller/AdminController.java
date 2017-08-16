@@ -1256,7 +1256,6 @@ public class AdminController {
       modelAndView.addObject("bot", bot);
       modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
       modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
-      modelAndView.addObject("orderTypes", Arrays.asList(OrderType.values()));
     });
     return modelAndView;
   }
@@ -1300,8 +1299,26 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam Integer orderTypeid) {
-    return botService.retrieveTradingSettingsShort(launchSettingsId, orderTypeid);
+  public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam OrderType orderType) {
+    return botService.retrieveTradingSettingsShort(launchSettingsId, orderType.getType());
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/toggle", method = POST)
+  @ResponseBody
+  public void toggleCreationForCurrencyPair(@RequestParam Integer currencyPairId, @RequestParam Boolean status) {
+    botService.toggleBotStatusForCurrencyPair(currencyPairId, status);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", method = POST)
+  @ResponseBody
+  public void updateLaunchSettings(BotLaunchSettings launchSettings) {
+    botService.updateLaunchSettings(launchSettings);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update", method = POST)
+  @ResponseBody
+  public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
+    botService.updateTradingSettings(tradingSettings);
   }
 
 

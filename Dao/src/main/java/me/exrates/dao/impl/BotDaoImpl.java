@@ -193,4 +193,30 @@ public class BotDaoImpl implements BotDao {
         });
     }
 
+    @Override
+    public void updateLaunchSettings(BotLaunchSettings launchSettings) {
+        String sql = "UPDATE BOT_LAUNCH_SETTINGS SET launch_interval_minutes = :launch_interval_minutes, create_timeout_seconds = :create_timeout_seconds, " +
+                "quantity_per_sequence = :quantity_per_sequence WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", launchSettings.getId());
+        params.put("launch_interval_minutes", launchSettings.getLaunchIntervalInMinutes());
+        params.put("create_timeout_seconds", launchSettings.getCreateTimeoutInSeconds());
+        params.put("quantity_per_sequence", launchSettings.getQuantityPerSequence());
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
+        String sql = "UPDATE BOT_TRADING_SETTINGS SET min_amount = :min_amount, max_amount = :max_amount, min_price = :min_price, " +
+                "max_price = :max_price, price_step = :price_step WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", tradingSettings.getId());
+        params.put("min_amount", tradingSettings.getMinAmount());
+        params.put("max_amount", tradingSettings.getMaxAmount());
+        params.put("min_price", tradingSettings.getMinPrice());
+        params.put("max_price", tradingSettings.getMaxPrice());
+        params.put("price_step", tradingSettings.getPriceStep());
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
 }

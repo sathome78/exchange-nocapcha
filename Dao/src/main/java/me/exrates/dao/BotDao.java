@@ -27,4 +27,8 @@ public interface BotDao {
     List<BotLaunchSettings> retrieveLaunchSettingsForAllPairs(int botId, Boolean isEnabled);
 
     BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId);
+
+    void updateLaunchSettings(BotLaunchSettings launchSettings);
+
+    void updateTradingSettings(BotTradingSettingsShortDto tradingSettings);
 }
