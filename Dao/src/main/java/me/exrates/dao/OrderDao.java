@@ -33,9 +33,9 @@ public interface OrderDao {
 
     boolean updateOrder(ExOrder exOrder);
 
-    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair);
+    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
-    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
+    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
@@ -76,7 +76,7 @@ public interface OrderDao {
 
     PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
-    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate, OperationType orderType);
+    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate, OperationType orderType, boolean sameRoleOnly, Integer userAcceptorRoleId);
 
     List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 }

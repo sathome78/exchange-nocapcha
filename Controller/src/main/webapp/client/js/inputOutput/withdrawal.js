@@ -300,7 +300,13 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "netAmount",
-                    "name": "WITHDRAW_REQUEST.amount"
+                    "name": "WITHDRAW_REQUEST.amount",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[00000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "currencyName",
@@ -309,7 +315,13 @@ function updateWithdrawalTable() {
 
                 {
                     "data": "commissionAmount",
-                    "name": "WITHDRAW_REQUEST.commission"
+                    "name": "WITHDRAW_REQUEST.commission",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[00000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "merchantName",

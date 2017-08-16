@@ -1,5 +1,12 @@
 package me.exrates.controller.exception;
 
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Created by Valk on 04.04.16.
  */
@@ -21,5 +28,18 @@ public class ErrorInfo {
         this.cause = ex.getClass().getSimpleName();
         while (ex.getCause() != null) ex = ex.getCause();
         this.detail = reason;
+    }
+
+    public ErrorInfo(CharSequence url, MethodArgumentNotValidException ex) {
+        this.url = url.toString();
+        this.cause = ex.getClass().getSimpleName();
+        List<ObjectError> errors = ex.getBindingResult().getAllErrors();
+        if (!errors.isEmpty()) {
+            this.detail = ex.getBindingResult().getFieldErrors().stream()
+                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage)).toString();
+        } else {
+            this.detail = ex.getLocalizedMessage();
+        }
+
     }
 }

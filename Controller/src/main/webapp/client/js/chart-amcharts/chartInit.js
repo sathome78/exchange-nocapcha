@@ -69,7 +69,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
                 break;
             }
         }
-        syncCurrentParams(null, period, null, null, function (data) {
+        syncCurrentParams(null, period, null, null, null, function (data) {
             $(button).siblings().removeClass('active');
             $(button).toggleClass('active');
             trading.getAndShowStatisticsForCurrency();
@@ -92,7 +92,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
                 break;
             }
         }
-        syncCurrentParams(null, null, chartType, null, function (data) {
+        syncCurrentParams(null, null, chartType, null, null, function (data) {
             $(button).siblings().removeClass('active');
             $(button).toggleClass('active');
             chartType = data.chartType;

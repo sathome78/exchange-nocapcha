@@ -10,6 +10,7 @@ import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -54,19 +55,19 @@ public class ServiceCacheableProxy {
   @CacheEvict(cacheNames = "orderBuy", key = "#currencyPair.id", condition = "#evictCache", beforeInvocation = true)
   @Cacheable(cacheNames = "orderBuy", key = "#currencyPair.id")
   public List<OrderListDto> getAllBuyOrders(
-      CurrencyPair currencyPair,
-      Boolean evictCache) {
+          CurrencyPair currencyPair,
+          UserRole filterRole, Boolean evictCache) {
     log.debug(String.format("\n%s evictCache: %s", currencyPair, evictCache));
-    return orderDao.getOrdersBuyForCurrencyPair(currencyPair);
+    return orderDao.getOrdersBuyForCurrencyPair(currencyPair, filterRole);
   }
 
   @CacheEvict(cacheNames = "orderSell", key = "#currencyPair.id", condition = "#evictCache", beforeInvocation = true)
   @Cacheable(cacheNames = "orderSell", key = "#currencyPair.id")
   public List<OrderListDto> getAllSellOrders(
-      CurrencyPair currencyPair,
-      Boolean evictCache) {
+          CurrencyPair currencyPair,
+          UserRole filterRole, Boolean evictCache) {
     log.debug(String.format("\n%s evictCache: %s", currencyPair, evictCache));
-    return orderDao.getOrdersSellForCurrencyPair(currencyPair);
+    return orderDao.getOrdersSellForCurrencyPair(currencyPair, filterRole);
   }
 
   @Cacheable(cacheNames = "newsBrief", key = "#locale")

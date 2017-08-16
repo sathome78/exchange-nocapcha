@@ -132,7 +132,7 @@ $(function dashdoardInit() {
         leftSider = new LeftSiderClass();
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -161,11 +161,9 @@ $(function dashdoardInit() {
         });
 
 
-        syncCurrentParams(null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, ws);
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, ws);
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
@@ -248,13 +246,15 @@ function showSubPage(subPageId) {
 }
 
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, callback) {
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+    console.log("show cur params");
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');
     url = url + (showAllPairs != null ? '&showAllPairs=' + showAllPairs : '');
+    url = url + (enableFilter != null ? '&orderRoleFilterEnabled=' + enableFilter : '');
     $.ajax({
         url: url,
         type: 'GET',

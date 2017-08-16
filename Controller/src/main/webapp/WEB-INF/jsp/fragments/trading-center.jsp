@@ -12,11 +12,14 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%----%>
+
 <div id="trading" data-menuitemid="menu-traiding" class="dashboard center-frame-container hidden">
+
     <div class="graphInfo__wrapper clearfix">
         <div id="dashboard-currency-pair-selector" class="currency-pair-selector dropdown">
             <%@include file="currencyPairSelector.jsp" %>
         </div>
+
 
         <div class="graphInfo">
             <div id="lastOrderAmountBase" class="graphInfo__item lightblue"><loc:message
@@ -43,6 +46,16 @@
                     margin: auto;
                     z-index: 999;'/>
         <%@include file="amcharts-graphics.jsp" %>
+    </div>
+    <div class="row">
+        <c:if test="${roleSettings.orderAcceptionSameRoleOnly}">
+            <div id="order-filter-selector">
+                <div class="col-md-3"><span><strong><loc:message code="orders.roleFilter"/> </strong></span></div>
+                <div class="col-md-1 blue-switch"><input id="order-row-filter-box" type="checkbox"/></div>
+
+
+            </div>
+        </c:if>
     </div>
 
     <div class="row">
