@@ -274,7 +274,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     this.fillOrderCreationFormFields = function () {
         $(document).one("ajaxStop", function () {
-            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
+            var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
             var initialAmount = 1;
             var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
