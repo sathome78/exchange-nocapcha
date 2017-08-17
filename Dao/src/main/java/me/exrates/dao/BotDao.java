@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface BotDao {
     Optional<BotTrader> retrieveBotTrader();
 
+    Optional<BotTrader> findById(int id);
+
     void createBot(Integer userId);
 
     void updateBot(BotTrader botTrader);
@@ -31,4 +33,6 @@ public interface BotDao {
     void updateLaunchSettings(BotLaunchSettings launchSettings);
 
     void updateTradingSettings(BotTradingSettingsShortDto tradingSettings);
+
+    void toggleCreationForAllCurrencyPairs(int botId, boolean newStatus);
 }

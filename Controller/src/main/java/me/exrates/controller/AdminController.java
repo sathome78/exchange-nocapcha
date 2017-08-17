@@ -42,6 +42,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -1266,30 +1267,24 @@ public class AdminController {
     return userRoleService.retrieveSettingsForAllRoles();
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
     userRoleService.updateSettingsForRole(userRoleSettings);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void createBot(@RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
     botService.createBot(nickname, email, password);
   }
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void updateBot(@RequestBody @Valid BotTrader botTrader) {
-    botService.updateBot(botTrader);
+  public void updateBot(@RequestBody @Valid BotTrader botTrader, Locale locale) {
+    botService.updateBot(botTrader, locale);
 
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/currencyPair/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  @ResponseBody
-  public void updateBotSettingsForCurrencyPair(@RequestBody @Valid BotTrader botTrader) {
-   // botService.updateBot(botTrader);
-
-  }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
@@ -1303,21 +1298,25 @@ public class AdminController {
     return botService.retrieveTradingSettingsShort(launchSettingsId, orderType.getType());
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/toggle", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/toggle", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void toggleCreationForCurrencyPair(@RequestParam Integer currencyPairId, @RequestParam Boolean status) {
-    botService.toggleBotStatusForCurrencyPair(currencyPairId, status);
+  public void toggleCreationForCurrencyPair(@RequestParam Integer currencyPairId, @RequestParam Boolean status, Locale locale) {
+    botService.toggleBotStatusForCurrencyPair(currencyPairId, status, locale);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void updateLaunchSettings(BotLaunchSettings launchSettings) {
+  public void updateLaunchSettings(@Valid BotLaunchSettings launchSettings) {
     botService.updateLaunchSettings(launchSettings);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
+  public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings, Locale locale) {
+    if (tradingSettings.getMinAmount().compareTo(tradingSettings.getMaxAmount()) > 0 ||
+            tradingSettings.getMinPrice().compareTo(tradingSettings.getMaxPrice()) > 0) {
+      throw new InvalidNumberParamException(messageSource.getMessage("admin.autoTrading.settings.minGreater", null, locale));
+    }
     botService.updateTradingSettings(tradingSettings);
   }
 
@@ -1352,6 +1351,13 @@ public class AdminController {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseBody
   public ErrorInfo methodArgumentNotValidExceptionHandler(HttpServletRequest req, MethodArgumentNotValidException ex) {
+    return new ErrorInfo(req.getRequestURL(), ex);
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler(BindException.class)
+  @ResponseBody
+  public ErrorInfo bindExceptionHandler(HttpServletRequest req, BindException ex) {
     return new ErrorInfo(req.getRequestURL(), ex);
   }
 

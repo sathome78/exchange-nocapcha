@@ -10,6 +10,7 @@ import me.exrates.model.enums.OrderType;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public interface BotService {
@@ -19,13 +20,13 @@ public interface BotService {
 
     void createBot(String nickname, String email, String password);
 
-    void updateBot(BotTrader botTrader);
+    void updateBot(BotTrader botTrader, Locale locale);
 
     void runOrderCreation(Integer currencyPairId, OrderType orderType);
 
     void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate);
 
-    void enableBotForCurrencyPair(Integer currencyPairId);
+    void enableBotForCurrencyPair(Integer currencyPairId, Locale locale);
 
     void disableBotForCurrencyPair(Integer currencyPairId);
 
@@ -33,7 +34,7 @@ public interface BotService {
 
     List<BotLaunchSettings> retrieveLaunchSettings(int botId);
 
-    void toggleBotStatusForCurrencyPair(Integer currencyPairId, boolean status);
+    void toggleBotStatusForCurrencyPair(Integer currencyPairId, boolean status, Locale locale);
 
     void updateLaunchSettings(BotLaunchSettings launchSettings);
 

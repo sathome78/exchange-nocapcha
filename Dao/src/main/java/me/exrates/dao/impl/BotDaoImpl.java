@@ -28,6 +28,15 @@ public class BotDaoImpl implements BotDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private final RowMapper<BotTrader> botRowMapper = (rs, rowNum) -> {
+        BotTrader botTrader = new BotTrader();
+        botTrader.setId(rs.getInt("id"));
+        botTrader.setUserId(rs.getInt("user_id"));
+        botTrader.setEnabled(rs.getBoolean("is_enabled"));
+        botTrader.setAcceptDelayInSeconds(rs.getInt("order_accept_timeout"));
+        return botTrader;
+    };
+
     private final RowMapper<BotLaunchSettings> botLaunchSettingsRowMapper = (rs, rowNum) -> {
         BotLaunchSettings launchSettings = new BotLaunchSettings();
         launchSettings.setId(rs.getInt("launch_id"));
@@ -45,14 +54,20 @@ public class BotDaoImpl implements BotDao {
     public Optional<BotTrader> retrieveBotTrader() {
         String sql = "SELECT id, user_id, is_enabled, order_accept_timeout FROM BOT_TRADER ORDER BY id DESC LIMIT 1";
         try {
-            return Optional.of(jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
-                BotTrader botTrader = new BotTrader();
-                botTrader.setId(rs.getInt("id"));
-                botTrader.setUserId(rs.getInt("user_id"));
-                botTrader.setIsEnabled(rs.getBoolean("is_enabled"));
-                botTrader.setAcceptDelayInSeconds(rs.getInt("order_accept_timeout"));
-                return botTrader;
-            }));
+            BotTrader botTrader = jdbcTemplate.queryForObject(sql, botRowMapper);
+            return Optional.of(botTrader);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<BotTrader> findById(int id) {
+        String sql = "SELECT id, user_id, is_enabled, order_accept_timeout FROM BOT_TRADER WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        try {
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, botRowMapper));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -79,7 +94,7 @@ public class BotDaoImpl implements BotDao {
                 "WHERE id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", botTrader.getId());
-        params.put("is_enabled", botTrader.getIsEnabled());
+        params.put("is_enabled", botTrader.isEnabled());
         params.put("accept_timeout", botTrader.getAcceptDelayInSeconds());
         namedParameterJdbcTemplate.update(sql, params);
     }
@@ -216,6 +231,15 @@ public class BotDaoImpl implements BotDao {
         params.put("min_price", tradingSettings.getMinPrice());
         params.put("max_price", tradingSettings.getMaxPrice());
         params.put("price_step", tradingSettings.getPriceStep());
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void toggleCreationForAllCurrencyPairs(int botId, boolean newStatus) {
+        String sql = "UPDATE BOT_LAUNCH_SETTINGS SET is_enabled = :enabled WHERE bot_trader_id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", botId);
+        params.put("enabled", newStatus);
         namedParameterJdbcTemplate.update(sql, params);
     }
 

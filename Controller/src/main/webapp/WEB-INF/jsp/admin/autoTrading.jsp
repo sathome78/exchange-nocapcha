@@ -69,7 +69,7 @@
                                                     <label for="bot-enabled-box" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.status"/></label>
                                                 </div>
                                                 <div class="col-md-8 input-block-wrapper__input-wrapper blue-switch">
-                                                    <input id="bot-enabled-box" type="checkbox" name="isEnabled" <c:out value="${bot.isEnabled ? 'checked' : ''}"/> class="input-block-wrapper__input">
+                                                    <input id="bot-enabled-box" type="checkbox" name="isEnabled" <c:out value="${bot.enabled ? 'checked' : ''}"/> class="input-block-wrapper__input">
                                                 </div>
                                             </div>
                                             <div class="input-block-wrapper">
@@ -193,6 +193,7 @@
             <div class="modal-body">
                 <form id="launch-settings-form" class="form_full_width form_auto_height">
                     <input hidden id="launch-settings-id" name="id">
+                    <input hidden id="launch-currency-pair-id" name="currencyPairId">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label for="launchInterval" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.launchInterval"/></label>

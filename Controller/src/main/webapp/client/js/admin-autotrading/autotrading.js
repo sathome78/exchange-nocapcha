@@ -47,6 +47,7 @@ $(document).ready(function () {
         var rowData = launchSettingsDataTable.row(row).data();
         $('#launch-title-pair').text(rowData['currencyPairName']);
         $('#launch-settings-id').val(rowData['id']);
+        $('#launch-currency-pair-id').val(rowData['currencyPairId']);
         $('#launchInterval').val(rowData['launchIntervalInMinutes']);
         $('#createTimeout').val(rowData['createTimeoutInSeconds']);
         $('#quantityPerSeq').val(rowData['quantityPerSequence']);
@@ -254,7 +255,7 @@ function submitBotGeneralSettings() {
     var formData = {
         id: $('#bot-id').val(),
         userId: $('#bot-user-id').val(),
-        isEnabled: $('#bot-enabled-box').prop('checked'),
+        enabled: $('#bot-enabled-box').prop('checked'),
         acceptDelayInSeconds: $('#timeout').val()
     };
     $.ajax({

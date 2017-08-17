@@ -15,13 +15,13 @@ public class BotLaunchSettings {
     private Integer currencyPairId;
     private String currencyPairName;
     private Boolean isEnabledForPair;
-    @Min(value = 0, message = "Launch interval must be greater than 0")
-    @NotNull(message = "Please fill in the launch interval field")
+    @Min(value = 1, message = "{bot.launch.min}")
+    @NotNull(message = "{bot.notnull}")
     private Integer launchIntervalInMinutes;
-    @Min(value = 0, message = "Create timeout value must be greater than 0")
-    @NotNull(message = "Please fill in the create timeout field")
+    @Min(value = 0, message = "{bot.timeout.create.min}")
+    @NotNull(message = "{bot.notnull}")
     private Integer createTimeoutInSeconds;
-    @Min(value = 0, message = "Quantity per launch value must be greater than 0")
-    @NotNull(message = "Please fill in the quantity per launch field")
+    @Min(value = 1, message = "{bot.quantity.seq.min}")
+    @NotNull(message = "{bot.notnull}")
     private Integer quantityPerSequence;
 }

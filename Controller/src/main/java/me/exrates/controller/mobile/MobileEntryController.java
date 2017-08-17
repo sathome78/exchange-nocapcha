@@ -2,7 +2,6 @@ package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
@@ -1056,18 +1055,6 @@ public class MobileEntryController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @RequestMapping(value = "/test/runBot", method = RequestMethod.POST)
-    public void runBot() {
-        botService.enableBotForCurrencyPair(1);
-    }
-
-    @RequestMapping(value = "/test/stopBot", method = RequestMethod.POST)
-    public void stopBot() {
-        botService.disableBotForCurrencyPair(1);
-    }
-
-
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
