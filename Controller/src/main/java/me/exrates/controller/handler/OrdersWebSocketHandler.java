@@ -3,11 +3,16 @@ package me.exrates.controller.handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
+import me.exrates.service.util.BiTuple;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -23,15 +28,14 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import javax.servlet.http.HttpSession;
+import javax.sound.sampled.SourceDataLine;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -45,7 +49,7 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
 
     private Map<String, List<WebSocketSession>> currencyPairSessions = new ConcurrentHashMap<>();
 
-    private List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
+    private Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
 
     @Autowired
     private CurrencyService currencyService;
@@ -53,12 +57,16 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
     private OrderService orderService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private StoreSessionListener sessionListener;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.debug("open session {}", session.isOpen());
-        session.sendMessage(new TextMessage("hello"));
-        sessions.add(session);
+        URI uri = session.getUri();
+        Optional<HttpSession> httpSession = sessionListener.getSessionById(getParamValue(uri.toString(), "session_id"));
+        log.debug("open session {}", uri.toString());
+        sessions.put(session.getId(), httpSession.orElseThrow(null));
     }
 
      @Override
@@ -69,16 +77,23 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         log.debug("inc message {}", message.getPayload());
-        switch (message.getPayload()) {
-            case "trading:newCurrencyPair" : {
-                CurrencyPair currencyPair = currencyService.getCurrencyPairByName("EDR/BTC");
-                setCurrencyPairSessions(currencyPair, session);
-                initOrders(currencyPair, session);
-                break;
-            }
-            default:{
+        try {
+            HttpSession httpSession = sessions.get(session.getId());
+        /*handle if htpSeesion null*/
+            switch (message.getPayload()) {
+                case "trading:newCurrencyPair" : {
+                    CurrencyPair currencyPair = (CurrencyPair)httpSession.getAttribute("currentCurrencyPair");
+                    log.debug("curr pair {}", currencyPair);
+                    setCurrencyPairSessions(currencyPair, session);
+                    initOrders(currencyPair, session);
+                    break;
+                }
+                default:{
 
+                }
             }
+        } catch (Exception e) {
+            log.error(e);
         }
     }
 
@@ -123,17 +138,17 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
 
     private void initOrders(CurrencyPair currencyPair, WebSocketSession socketSession) throws IOException, EncodeException {
         log.debug("init orders {}", currencyPair.getName());
-        broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrders
-                (currencyPair, Locale.ENGLISH), "refresh", OrderType.BUY.getType())),
+        broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
+                (currencyPair, Locale.ENGLISH, false), "init", "orders", OperationType.BUY.name())),
                 new ArrayList<WebSocketSession>(){{add(socketSession);}});
-        broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrders
-                        (currencyPair, Locale.ENGLISH), "refresh", OrderType.SELL.getType())),
+        broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
+                        (currencyPair, Locale.ENGLISH, false), "init", "orders", OperationType.SELL.name())),
                 new ArrayList<WebSocketSession>(){{add(socketSession);}});
     }
 
 
-    @Scheduled(fixedDelay = 6000)
-    public void refreshPairs() {
+    @Override
+    public void refreshAllPairs() {
         log.debug("refresh Pairs");
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         if (currencyPairs != null && !currencyPairs.isEmpty()) {
@@ -141,10 +156,10 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
                 List<WebSocketSession> list = getListByPairs(p.getName());
                 if (list != null && !list.isEmpty()) {
                   try {
-                    broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrders
-                            (p, Locale.ENGLISH), "refresh", OrderType.BUY.getType())), list);
-                    broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrders
-                            (p, Locale.ENGLISH), "refresh", OrderType.SELL.getType())), list);
+                    broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
+                            (p, Locale.ENGLISH, false), "refresh", "orders", OperationType.BUY.name())), list);
+                    broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
+                            (p, Locale.ENGLISH, false), "refresh", "orders", OperationType.SELL.name())), list);
                   } catch (Exception e) {
                     e.printStackTrace();
                   }
@@ -154,8 +169,29 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
     }
 
     @Override
-    public void broadcast(String message, List<WebSocketSession> wsSessions)
-            throws IOException, EncodeException {
+    public void refreshPair(OperationType type, CurrencyPair currencyPair) {
+        log.debug("refresh Pairs");
+        List<WebSocketSession> list = getListByPairs(currencyPair.getName());
+        if (list != null && !list.isEmpty()) {
+            try {
+                List<OrderListDto> orderList = new ArrayList<>();
+                if (type.equals(OperationType.BUY)) {
+                    orderList = orderService.getAllBuyOrdersEx
+                            (currencyPair, Locale.ENGLISH, false);
+                } else if (type.equals(OperationType.SELL)) {
+                    orderList = orderService.getAllSellOrdersEx
+                            (currencyPair, Locale.ENGLISH, false);
+                }
+                broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(
+                        orderList, "refresh", "orders", type.name())), list);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void broadcast(String message, List<WebSocketSession> wsSessions) throws IOException, EncodeException {
         wsSessions.forEach(s -> {
             synchronized (s) {
                 try {

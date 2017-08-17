@@ -43,9 +43,9 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
     this.ROUND_SCALE = 9;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
-    function onCurrencyPairChange(webSocket) {
-        webSocket.send('test');
-        that.updateAndShowAll(webSocket);
+    function onCurrencyPairChange() {
+       /* webSocket.send("trading:changeCurrencyPair");*/
+        that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
 
@@ -65,18 +65,43 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
     };
 
     this.updateAndShowOrders = function (refreshIfNeeded) {
-        if (showLog) {
+       /* if (showLog) {
             console.log("orders");
         }
         that.getAndShowSellOrders(refreshIfNeeded);
-        that.getAndShowBuyOrders(refreshIfNeeded);
+        that.getAndShowBuyOrders(refreshIfNeeded);*/
     };
 
-    this.updateAndShowAll = function (refreshIfNeeded, websocket) {
+    this.updateAndShowBuyOrders = function (orders, refreshIfNeeded) {
+        console.log("socketBuyOrders");
+        if (refreshIfNeeded) {
+            var $ordersBuyTable = $('#dashboard-orders-buy-table').find('tbody');
+            var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
+            clearTable($ordersBuyTable);
+            orders.forEach(function (e) {
+                $ordersBuyTable.append(tmpl($tmpl, e));
+            });
+            blink($('#dashboard-orders-buy-table'));
+        }
+    };
+
+    this.updateAndShowSellOrders = function (orders, refreshIfNeeded) {
+        console.log("socketSellOrders");
+        if (refreshIfNeeded) {
+            var $ordersSellTable = $('#dashboard-orders-sell-table').find('tbody');
+            var $tmpl = $('#dashboard-orders-sell-table_row').html().replace(/@/g, '%');
+            clearTable($ordersSellTable );
+            orders.forEach(function (e) {
+                $ordersSellTable.append(tmpl($tmpl, e));
+            });
+            blink($('#dashboard-orders-sell-table'));
+        }
+    };
+
+    this.updateAndShowAll = function (refreshIfNeeded) {
         if (showLog) {
             console.log("all");
         }
-        websocket.send('trading:newCurrencyPair');
         that.updateAndShowStatistics(refreshIfNeeded);
         that.updateAndShowOrders(refreshIfNeeded);
     };
@@ -201,7 +226,7 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
     };
 
     this.getAndShowSellOrders = function (refreshIfNeeded) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+        /*if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForOrders);
             timeOutIdForOrders = setTimeout(function () {
                 that.updateAndShowOrders(true);
@@ -234,11 +259,11 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
                     that.updateAndShowOrders(true);
                 }, ordersRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.getAndShowBuyOrders = function (refreshIfNeeded) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+      /*  if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForOrders);
             timeOutIdForOrders = setTimeout(function () {
                 that.updateAndShowOrders(true);
@@ -271,12 +296,12 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
                     that.updateAndShowOrders(true);
                 }, ordersRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.fillOrderCreationFormFields = function () {
         $(document).one("ajaxStop", function () {
-            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
+            var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
             var initialAmount = 1;
             var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
@@ -507,7 +532,7 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
+    })(period, chartType, currentCurrencyPair, webSocket, orderRoleFilterEnabled);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];

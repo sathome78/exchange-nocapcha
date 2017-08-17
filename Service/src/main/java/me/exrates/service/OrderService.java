@@ -246,6 +246,12 @@ public interface OrderService {
    */
   List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
+    @Transactional(readOnly = true)
+    List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
+
+  @Transactional(readOnly = true)
+  List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
+
   /**
    * Returns list of Sell orders of status open, exclude the orders of current user
    *

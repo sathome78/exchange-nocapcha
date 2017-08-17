@@ -12,29 +12,53 @@ var orders;
 var $currentPageMenuItem;
 var $currentSubMenuItem;
 var notifications;
-var ws; //web-socket connection
+var wss; //web-socket connection
 
-function connectOrdersSocket() {
+function connectOrdersSocket(sessionId) {
     if (wss!=null) {
         wss.close();
     }
-    wss = new SockJS('/public_sockets');
+    console.log("id" + sessionId);
+    wss = new SockJS('/public_sockets?session_id=' + sessionId);
     console.log("connect to client");
+
     wss.onopen = function() {
-        console.log('public sockets connected');
+        console.log('socket connected');
+        wss.send('trading:newCurrencyPair');
     };
+
     wss.onmessage = function (message) {
         console.log(message);
+        var payload = JSON.parse(message.data);
+        switch (payload.source) {
+            case "orders": {
+                ordersMessageHandle(payload);
+                break;
+            }
+        }
+
     };
+}
+
+function ordersMessageHandle(payload) {
+    console.log(payload.type);
+    switch (payload.type) {
+        case "BUY" : {
+            trading.updateAndShowBuyOrders(payload.data,true);
+            break;
+        }
+        case "SELL" : {
+            trading.updateAndShowSellOrders(payload.data, true);
+        }
+    }
 }
 
 
 $(function dashdoardInit() {
-    connectOrdersSocket();
+    var sessionId = $('#session').text();
+    connectOrdersSocket(sessionId);
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
-
-        console.log('started');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -123,7 +147,7 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-        var sessionId = $('#login-qr').text().trim();
+
         $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
@@ -163,7 +187,7 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, wss, data.orderRoleFilterEnabled);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });

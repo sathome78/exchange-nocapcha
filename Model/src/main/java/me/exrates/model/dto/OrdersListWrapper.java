@@ -11,13 +11,15 @@ import java.util.List;
 @Data
 public class OrdersListWrapper {
 
-    private List<OrderListDto> list;
+    private Object data;
     private String event;
-    private int type;
+    private String source;
+    private String type;
 
-    public OrdersListWrapper(List<OrderListDto> list, String event, int type) {
-        this.list = list;
+    public OrdersListWrapper(Object data, String event, String source, String type) {
+        this.data = data;
         this.event = event;
+        this.source = source;
         this.type = type;
     }
 }

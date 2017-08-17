@@ -1024,6 +1024,50 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional(readOnly = true)
   @Override
+  public List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
+    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, filterRole), OperationType.BUY, true);
+    result = new ArrayList<>(result);
+    result = result.stream()
+              .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+                @Override
+                public int compare(OrderListDto o1, OrderListDto o2) {
+                  return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+                }
+              })
+              .collect(toList());
+      result.forEach(e -> {
+        e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
+        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+        e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
+      });
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
+    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersSellForCurrencyPair(currencyPair, filterRole), OperationType.SELL, true);
+    result = new ArrayList<>(result);
+    result = result.stream()
+            .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+              @Override
+              public int compare(OrderListDto o1, OrderListDto o2) {
+                return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+              }
+            })
+            .collect(toList());
+    result.forEach(e -> {
+      e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
+      e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+      e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
+    });
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
   public List<OrderListDto> getAllSellOrders(CacheData cacheData,
                                              CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
     Boolean evictEhCache = cacheData.getForceUpdate();

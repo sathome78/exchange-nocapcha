@@ -119,6 +119,7 @@
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="session">${sessionId}</span>
 
 </body>
 </html>

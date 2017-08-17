@@ -117,7 +117,7 @@
 
                                         <div></div>
                                             <%--QR--%>
-                                            <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr">${sessionId}</span></div>
+                                            <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>
                                         <div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white"><loc:message code="dashboard.qrLogin.login"/></span></div>
                                     </form>
                                     <sec:authorize access="isAuthenticated()">
