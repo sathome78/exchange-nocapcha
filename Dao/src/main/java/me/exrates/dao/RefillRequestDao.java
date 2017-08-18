@@ -25,6 +25,11 @@ public interface RefillRequestDao {
 
   Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndHash(String address, Integer merchantId, Integer currencyId, String hash);
 
+  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndHash(
+          Integer merchantId,
+          Integer currencyId,
+          String hash);
+
   List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusList);
 
   List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusIdList);
