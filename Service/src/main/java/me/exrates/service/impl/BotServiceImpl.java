@@ -340,7 +340,9 @@ public class BotServiceImpl implements BotService {
         int intervalInSeconds = intervalInMinutes * 60;
         TriggerKey triggerKey = TriggerKey.triggerKey(getTriggerName(currencyPairId, orderType));
         JobDetail jobDetail = botOrderCreationScheduler.getJobDetail(JobKey.jobKey(getJobName(currencyPairId, orderType)));
-        botOrderCreationScheduler.rescheduleJob(triggerKey, createTrigger(currencyPairId, orderType, intervalInSeconds, jobDetail));
+        if (jobDetail != null) {
+            botOrderCreationScheduler.rescheduleJob(triggerKey, createTrigger(currencyPairId, orderType, intervalInSeconds, jobDetail));
+        }
     }
 
     @Override

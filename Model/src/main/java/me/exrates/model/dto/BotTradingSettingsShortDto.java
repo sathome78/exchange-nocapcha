@@ -16,23 +16,23 @@ import java.math.BigDecimal;
 public class BotTradingSettingsShortDto {
     private Integer id;
     private OrderType orderType;
-    @Min(value = 0, message = "Create timeout value must be greater than 0")
+    @Min(value = 0, message = "{bot.min.minAmount}")
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal minAmount;
-    @Min(value = 0, message = "Create timeout value must be greater than 0")
+    @Min(value = 0, message = "{bot.min.maxAmount}")
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal maxAmount;
-    @Min(value = 0, message = "Create timeout value must be greater than 0")
+    @Min(value = 0, message = "{bot.min.minPrice}")
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal minPrice;
-    @Min(value = 0, message = "Create timeout value must be greater than 0")
+    @Min(value = 0, message = "{bot.min.maxPrice}")
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal maxPrice;
-    @Min(value = 0, message = "Price step value must be greater than 0")
+    @Min(value = 0, message = "{bot.min.priceStep}")
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal priceStep;
