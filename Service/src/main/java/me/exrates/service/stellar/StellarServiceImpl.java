@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.NumberUtils;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
+import org.stellar.sdk.MemoText;
 import org.stellar.sdk.responses.TransactionResponse;
 
 
@@ -97,24 +98,37 @@ public class StellarServiceImpl implements StellarService {
     @Override
     public void onTransactionReceive(TransactionResponse payment, String amount) {
         log.debug("income transaction {} ", payment.getMemo() + " " + amount);
-        Map<String, String> paramsMap = new HashMap<>();
-        paramsMap.put("hash", payment.getHash());
-        MemoId memoid = (MemoId)payment.getMemo();
-        Long destinationTag = memoid.getId();
-        paramsMap.put("address", destinationTag.toString());
-        paramsMap.put("amount", amount);
-        if (checkTransactionForDuplicate(payment, destinationTag.toString())) {
+        if (checkTransactionForDuplicate(payment)) {
             try {
                 throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(payment.getHash());
             } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+                log.warn("transaction allready accepted");
                 return;
             }
         }
+        Map<String, String> paramsMap = new HashMap<>();
+        paramsMap.put("hash", payment.getHash());
+        String memo = defineAndGetMemo(payment.getMemo());
+        if(memo == null) {
+            log.warn("memo is null");
+            return;
+        }
+        paramsMap.put("address", memo);
+        paramsMap.put("amount", amount);
         try {
             this.processPayment(paramsMap);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error("xlm refill address not found {}", payment);
         }
+    }
+
+    private String defineAndGetMemo(Memo memo) {
+        if (memo instanceof MemoText) {
+            return ((MemoText) memo).getText();
+        } else if (memo instanceof MemoId) {
+            Long memoL = ((MemoId) memo).getId();
+            return memoL.toString();
+        } else return null;
     }
 
     @Transactional
@@ -130,9 +144,9 @@ public class StellarServiceImpl implements StellarService {
         }};
     }
 
-    private boolean checkTransactionForDuplicate(TransactionResponse payment, String adress) {
-        return refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-                adress, merchant.getId(), currency.getId(), payment.getHash()).isPresent();
+    private boolean checkTransactionForDuplicate(TransactionResponse payment) {
+        return refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                                                                            payment.getHash()).isPresent();
     }
 
     private Integer generateUniqDestinationTag(int userId) {

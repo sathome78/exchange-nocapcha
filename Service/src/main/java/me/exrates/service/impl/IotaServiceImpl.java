@@ -66,6 +66,7 @@ public class IotaServiceImpl implements IotaService {
     private @Value("${iota.seed}")String SEED;
     private @Value("${iota.message}")String MESSAGE;
     private @Value("${iota.tag}")String TAG;
+    private @Value("${iota.mode}")String MODE;
 
     private static List<String> ADDRESSES = new ArrayList<>();
 
@@ -125,8 +126,7 @@ public class IotaServiceImpl implements IotaService {
         return mapAddress;
     }
 
-    //TODO temporary disable
- //   @PostConstruct
+    @PostConstruct
     public void init(){
 
         currency = currencyService.findByName("IOTA");
@@ -134,22 +134,25 @@ public class IotaServiceImpl implements IotaService {
 
         ADDRESSES = refillService.findAllAddresses(merchant.getId(), currency.getId());
 
-        log.info("Iota starting...");
-        iotaClient = new IotaAPI.Builder()
-                .protocol(PROTOCOL)
-                .host(HOST)
-                .port(PORT)
-                .build();
-        log.info("Iota started");
-        GetNodeInfoResponse response = iotaClient.getNodeInfo();
-        System.out.println(response.toString());
+        if (MODE.equals("main")){
+            log.info("Iota starting...");
+            iotaClient = new IotaAPI.Builder()
+                    .protocol(PROTOCOL)
+                    .host(HOST)
+                    .port(PORT)
+                    .build();
+            log.info("Iota started");
+            GetNodeInfoResponse response = iotaClient.getNodeInfo();
+            System.out.println(response.toString());
 
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            public void run() {
-                checkIncomingTransactions();
-            }
-        }, 0, 30, TimeUnit.MINUTES);
-
+            scheduler.scheduleAtFixedRate(new Runnable() {
+                public void run() {
+                    checkIncomingTransactions();
+                }
+            }, 0, 30, TimeUnit.MINUTES);
+        }else {
+            log.info("Iota test mode...");
+        }
     }
 
     private void checkIncomingTransactions(){

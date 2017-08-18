@@ -40,7 +40,12 @@ public interface RefillService {
       Integer currencyId,
       String hash);
 
-  Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+    Optional<Integer> getRequestIdByMerchantIdAndCurrencyIdAndHash(
+            Integer merchantId,
+            Integer currencyId,
+            String hash);
+
+    Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
 
   Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
       String address,

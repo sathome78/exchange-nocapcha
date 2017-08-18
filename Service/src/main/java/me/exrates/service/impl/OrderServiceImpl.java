@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(40000);
+  private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
   @Autowired
@@ -1282,6 +1282,12 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType) {
+    return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
   }
 
 
