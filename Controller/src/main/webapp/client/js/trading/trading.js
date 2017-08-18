@@ -295,7 +295,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.fillOrderBalance = function (currencyPairName) {
-        if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0) {
+        if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0
+            && currencyPairName != undefined) {
             var currencies = currencyPairName.split('\/');
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
