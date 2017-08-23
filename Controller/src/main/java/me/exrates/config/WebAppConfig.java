@@ -381,6 +381,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Bitcoin Cash", "BCH", 4);
     }
 
+    @Bean(name = "dogecoinServiceImpl")
+    public BitcoinService dogeService() {
+        return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
+                "Dogecoin", "DOGE", 4);
+    }
+
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {

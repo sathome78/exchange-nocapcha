@@ -6,6 +6,7 @@ import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import org.glassfish.jersey.media.sse.EventSource;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,7 +70,7 @@ public class StellarReceivePaymentsService {
         if (lastToken != null) {
             paymentsRequest.cursor(lastToken);
         }
-        paymentsRequest.stream(new EventListener<OperationResponse>() {
+        EventSource es = paymentsRequest.stream(new EventListener<OperationResponse>() {
             @Override
             public void onEvent(OperationResponse payment) {
                 log.debug("stellar income payment for {}, id {}", payment.getSourceAccount().getAccountId(), payment.getId());
@@ -105,6 +106,7 @@ public class StellarReceivePaymentsService {
                 }
             }
         });
+        es.close();
     }
 
     private void savePagingToken(String pagingToken) {

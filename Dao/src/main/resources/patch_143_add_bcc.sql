@@ -30,16 +30,16 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='BCH/USD';
 
-INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden)
-VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'BTC'), 'BCH/BTC', 20, 0);
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market)
+VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'BTC'), 'BCH/BTC', 20, 0, 'BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='BCH/BTC';
 
-INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden)
-VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'EDR'), 'BCH/EDR', 20, 0);
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market)
+VALUES((select id from CURRENCY where name = 'BCH'), (select id from CURRENCY where name = 'EDR'), 'BCH/EDR', 20, 0, 'BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP

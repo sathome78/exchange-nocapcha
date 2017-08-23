@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static me.exrates.model.enums.ActionType.*;
@@ -166,13 +167,13 @@ public class CommissionServiceImpl implements CommissionService {
       String merchantCommissionUnit = "%";
       if (type == INPUT) {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
-        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        amount = amount.setScale(currencyScale, ROUND_DOWN);
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
       } else if (type == OUTPUT) {
         IWithdrawable wMerchant = (IWithdrawable)merchantServiceContext.getMerchantService(merchantId);
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
-        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        amount = amount.setScale(currencyScale, ROUND_DOWN);
         companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
           merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag);
@@ -187,7 +188,7 @@ public class CommissionServiceImpl implements CommissionService {
         }
       } else if (type == USER_TRANSFER) {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
-        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        amount = amount.setScale(currencyScale, ROUND_DOWN);
         companyCommissionAmount = BigDecimal.ZERO;
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);

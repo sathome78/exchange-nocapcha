@@ -1,5 +1,6 @@
 package me.exrates.service.nem;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
@@ -21,6 +22,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.stellar.sdk.responses.TransactionResponse;
 
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
@@ -122,10 +125,15 @@ public class NemServiceImpl implements NemService {
     }
 
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
+        if (isTransactionDuplicate(hash)) {
+            log.warn("nem tx duplicated {}", hash);
+            return;
+        }
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -155,6 +163,13 @@ public class NemServiceImpl implements NemService {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
     }
+
+    private boolean isTransactionDuplicate(String hash) {
+        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                hash).isPresent();
+    }
+
+
 
     @Override
     public void checkRecievedTransaction(RefillRequestFlatDto dto) throws RefillRequestAppropriateNotFoundException {
