@@ -12,14 +12,10 @@ import java.util.List;
 public class OrdersListWrapper {
 
     private Object data;
-    private String event;
-    private String source;
     private String type;
 
-    public OrdersListWrapper(Object data, String event, String source, String type) {
+    public OrdersListWrapper(Object data, String type) {
         this.data = data;
-        this.event = event;
-        this.source = source;
         this.type = type;
     }
 }

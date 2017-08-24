@@ -1054,7 +1054,7 @@ public class OrderServiceImpl implements OrderService {
             .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
               @Override
               public int compare(OrderListDto o1, OrderListDto o2) {
-                return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+                return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
               }
             })
             .collect(toList());

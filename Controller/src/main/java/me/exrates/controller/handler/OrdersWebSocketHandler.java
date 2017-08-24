@@ -137,19 +137,19 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
     }
 
     private void initOrders(CurrencyPair currencyPair, WebSocketSession socketSession) throws IOException, EncodeException {
-        log.debug("init orders {}", currencyPair.getName());
+      /*  log.debug("init orders {}", currencyPair.getName());
         broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
                 (currencyPair, Locale.ENGLISH, false), "init", "orders", OperationType.BUY.name())),
                 new ArrayList<WebSocketSession>(){{add(socketSession);}});
         broadcast(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllSellOrdersEx
                         (currencyPair, Locale.ENGLISH, false), "init", "orders", OperationType.SELL.name())),
-                new ArrayList<WebSocketSession>(){{add(socketSession);}});
+                new ArrayList<WebSocketSession>(){{add(socketSession);}});*/
     }
 
 
     @Override
     public void refreshAllPairs() {
-        log.debug("refresh Pairs");
+    /*    log.debug("refresh Pairs");
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         if (currencyPairs != null && !currencyPairs.isEmpty()) {
             currencyPairs.forEach(p -> {
@@ -165,12 +165,12 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
                   }
                 }
             });
-        }
+        }*/
     }
 
     @Override
     public void refreshPair(OperationType type, CurrencyPair currencyPair) {
-        log.debug("refresh Pairs");
+       /* log.debug("refresh Pairs");
         List<WebSocketSession> list = getListByPairs(currencyPair.getName());
         if (list != null && !list.isEmpty()) {
             try {
@@ -187,7 +187,7 @@ public class OrdersWebSocketHandler extends TextWebSocketHandler implements Orde
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     @Override

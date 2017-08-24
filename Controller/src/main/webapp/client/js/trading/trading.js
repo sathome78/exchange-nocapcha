@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRoleFilterEnabled) {
+function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -468,10 +468,10 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, webSocket,  orderRoleFilterEnabled) {
+    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange(webSocket));
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
         try {
             chart = new ChartGoogleClass();
         } catch (e) {
@@ -533,7 +533,7 @@ function TradingClass(period, chartType, currentCurrencyPair, webSocket, orderRo
         });
         /**/
         switchCreateOrAcceptButtons();
-    })(period, chartType, currentCurrencyPair, webSocket, orderRoleFilterEnabled);
+    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];

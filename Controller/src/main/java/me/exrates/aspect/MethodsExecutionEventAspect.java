@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 public class MethodsExecutionEventAspect {
 
-    @Autowired
+   /* @Autowired
     private OrdersHandler ordersHandler;
 
     @After(" execution(* me.exrates.service.impl.OrderServiceImpl.createOrder(..))"
@@ -46,6 +46,6 @@ public class MethodsExecutionEventAspect {
         if (exOrder != null) {
             ordersHandler.refreshPair(exOrder.getOperationType(), exOrder.getCurrencyPair());
         }
-    }
+    }*/
 
 }

@@ -12,9 +12,81 @@ var orders;
 var $currentPageMenuItem;
 var $currentSubMenuItem;
 var notifications;
-var wss; //web-socket connection
 
-function connectOrdersSocket(sessionId) {
+var wss; //web-socket connection
+var ordersSubscription;
+var connectedPS = false;
+var currentCurrencyPairId;
+var subscribedCurrencyPairId;
+
+
+var socket = new SockJS('/public_socket');
+var client = Stomp.over(socket);
+
+var onConnect = function() {
+    connectedPS = true;
+    subscribeTradeOrders();
+};
+
+function subscribeTradeOrders() {
+    console.log('subscribe to ' + currentCurrencyPairId);
+    if (subscribedCurrencyPairId != undefined) {
+        ordersSubscription.unsubscribe();
+    }
+    ordersSubscription = client.subscribe("/app/topic.trade_orders." + currentCurrencyPairId, function(message) {
+        subscribedCurrencyPairId = currentCurrencyPairId;
+        onTradeOrdersMessage(JSON.parse(message.body));
+    });
+}
+
+
+function connectSocket() {
+    client.connect({}, onConnect);
+}
+
+function onTradeOrdersMessage(message) {
+    console.log(message);
+    $.each( message, function( key, value ) {
+        console.log(key);
+        switch (key) {
+            case "INIT" : {
+                initTradeOrders(value);
+                break;
+            }
+            case "ADD" : {
+                break;
+            }
+            case "REMOVE" : {
+                break;
+            }
+            case "REPLACE" : {
+                break
+            }
+        }
+    });
+}
+
+function initTradeOrders(array) {
+    console.log(array);
+    array.forEach(function(object){
+        object = JSON.parse(object);
+        switch (object.type){
+            case "BUY" : {
+                console.log('update buy orders');
+                trading.updateAndShowBuyOrders(object.data, true);
+                break;
+            }
+            case "SELL" : {
+                console.log('update sell orders');
+                trading.updateAndShowSellOrders(object.data, true);
+                break;
+            }
+        }
+    });
+}
+
+
+/*function connectOrdersSocket(sessionId) {
     if (wss!=null) {
         wss.close();
     }
@@ -38,25 +110,13 @@ function connectOrdersSocket(sessionId) {
         }
 
     };
-}
+}*/
 
-function ordersMessageHandle(payload) {
-    console.log(payload.type);
-    switch (payload.type) {
-        case "BUY" : {
-            trading.updateAndShowBuyOrders(payload.data,true);
-            break;
-        }
-        case "SELL" : {
-            trading.updateAndShowSellOrders(payload.data, true);
-        }
-    }
-}
 
 
 $(function dashdoardInit() {
     var sessionId = $('#session').text();
-    connectOrdersSocket(sessionId);
+    connectSocket(sessionId);
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {
@@ -187,7 +247,7 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, wss, data.orderRoleFilterEnabled);
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
@@ -195,8 +255,7 @@ $(function dashdoardInit() {
             myStatements = new MyStatementsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
             orders = new OrdersClass(data.currencyPair.name);
-            showSubPage($('#startup-subPage-id').text().trim())
-
+            showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
 
@@ -271,7 +330,6 @@ function showSubPage(subPageId) {
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
-    console.log("show cur params");
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
@@ -287,6 +345,11 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyBaseName').text(data.currencyPair.currency1.name);
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
+            currentCurrencyPairId = data.currencyPair.id;
+            console.log('connected= ' + connectedPS + ' subscribedID=' + subscribedCurrencyPairId + ' currentId=' + currentCurrencyPairId);
+            if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
+                subscribeTradeOrders()
+            }
             if (callback) {
                 callback(data);
             }

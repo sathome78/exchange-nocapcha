@@ -205,8 +205,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/payeer/payment/success").permitAll()
         .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
         .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
-        .antMatchers(POST, "/public_sockets/**", "/public_sockets/orders/**").permitAll()
-        .antMatchers(GET, "/public_sockets/**", "/public_sockets/orders/**").permitAll()
+        .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
+        .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
         .antMatchers(GET, "/generateReferral").permitAll()
         .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
         .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
@@ -275,7 +275,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .csrf()
         .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
-                "/public_sockets/orders/**", "/public_sockets/**",
+                "/public_socket/", "/public_socket/**",
             "/merchants/perfectmoney/payment/status",
             "/merchants/perfectmoney/payment/failure",
             "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
