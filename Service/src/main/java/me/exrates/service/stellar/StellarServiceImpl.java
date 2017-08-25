@@ -1,5 +1,6 @@
 package me.exrates.service.stellar;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.NumberUtils;
+import org.springframework.util.StringUtils;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.MemoText;
@@ -95,6 +97,7 @@ public class StellarServiceImpl implements StellarService {
         return stellarTransactionService.withdraw(withdrawMerchantOperationDto, SEVER_URL, ACCOUNT_SECRET);
     }
 
+    @Synchronized
     @Override
     public void onTransactionReceive(TransactionResponse payment, String amount) {
         log.debug("income transaction {} ", payment.getMemo() + " " + amount);
@@ -102,7 +105,7 @@ public class StellarServiceImpl implements StellarService {
             try {
                 throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(payment.getHash());
             } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-                log.warn("transaction allready accepted");
+                log.warn("xlm transaction {} allready accepted", payment.getHash());
                 return;
             }
         }
@@ -145,7 +148,7 @@ public class StellarServiceImpl implements StellarService {
     }
 
     private boolean checkTransactionForDuplicate(TransactionResponse payment) {
-        return refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+        return StringUtils.isEmpty(payment.getHash()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
                                                                             payment.getHash()).isPresent();
     }
 

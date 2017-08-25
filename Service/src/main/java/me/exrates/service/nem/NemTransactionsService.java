@@ -107,9 +107,11 @@ public class NemTransactionsService {
 
     boolean checkIsConfirmed(JSONObject transactionMetaDataPair, int confirmationsNeeded) {
         JSONObject responseMeta = transactionMetaDataPair.getJSONObject("meta");
+        log.debug("xem check confirmations {}", responseMeta);
         if (responseMeta.has("height")) {
             long height = responseMeta.getLong("height");
             long currentHeight = nodeService.getLastBlockHeight();
+            log.debug("currentHeight {}", currentHeight);
             return (currentHeight - height) >= confirmationsNeeded;
         }
         return false;
