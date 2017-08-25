@@ -1,13 +1,11 @@
-package me.exrates.model.dto.btcTransactionFacade;
+package me.exrates.model.dto.merchants.btcTransactionFacade;
 
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.logging.log4j.core.util.Assert;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * Created by OLEG on 25.05.2017.

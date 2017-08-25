@@ -230,6 +230,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
+        .antMatchers( "/test/**").permitAll()
         .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
@@ -301,6 +302,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/okpay/payment/status",
             "/merchants/payeer/payment/success",
             "/merchants/payeer/payment/status",
+                "/test/**",
             "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
     http
         .headers()

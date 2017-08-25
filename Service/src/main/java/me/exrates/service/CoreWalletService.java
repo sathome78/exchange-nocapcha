@@ -3,8 +3,8 @@ package me.exrates.service;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
-import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;

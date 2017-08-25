@@ -21,6 +21,7 @@ import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
+import me.exrates.service.lisk.LiskService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,6 +47,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
@@ -1051,6 +1053,38 @@ public class MobileEntryController {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Autowired
+    private LiskService liskService;
+
+
+    @RequestMapping(value = "/test/lisk", method = RequestMethod.GET)
+    @ResponseBody
+    public Object testLisk(@RequestParam String txId) {
+        return liskService.getTransactionsByRecipient(txId);
+
+    }
+
+    @RequestMapping(value = "/test/lisk/getAccount", method = RequestMethod.GET)
+    @ResponseBody
+    public Object testLiskAcc(@RequestParam String address) {
+        return liskService.getAccountByAddress(address);
+
+    }
+
+    @RequestMapping(value = "/test/lisk/send", method = RequestMethod.POST)
+    @ResponseBody
+    public String testLisk(@RequestParam String secret, @RequestParam BigDecimal amount, @RequestParam String recipientId) {
+        return liskService.sendTransaction(secret, amount, recipientId);
+
+    }
+
+    @RequestMapping(value = "/test/lisk/account/new", method = RequestMethod.POST)
+    @ResponseBody
+    public Object testLiskAccNew(@RequestParam String secret) {
+        return liskService.createNewLiskAccount(secret);
+
     }
 
 
