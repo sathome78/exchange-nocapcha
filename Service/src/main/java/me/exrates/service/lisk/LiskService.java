@@ -45,9 +45,13 @@ public interface LiskService extends IRefillable, IWithdrawable {
         return null;
     }
 
+    void processTransactionsForKnownAddresses();
+
     LiskTransaction getTransactionById(String txId);
 
     List<LiskTransaction> getTransactionsByRecipient(String recipientAddress);
+
+    String sendTransaction(String secret, Long amount, String recipientId);
 
     String sendTransaction(String secret, BigDecimal amount, String recipientId);
 

@@ -273,7 +273,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
     try {
       refillService.setConfirmationCollectedNumber(dto);
-      if (dto.getConfirmations() >= CONFIRMATION_NEEDED_COUNT) {
+      if (dto.getConfirmations() >= minConfirmations) {
         log.debug("Providing transaction!");
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(dto.getRequestId())

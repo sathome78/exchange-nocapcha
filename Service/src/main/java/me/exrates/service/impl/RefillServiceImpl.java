@@ -323,6 +323,14 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
+  public Optional<RefillRequestFlatDto> findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(
+          String address, Integer merchantId,
+          Integer currencyId,
+          String hash) {
+    return refillRequestDao.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(address, merchantId, currencyId, hash);
+  }
+
+  @Override
   public Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
     return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
@@ -965,5 +973,20 @@ public class RefillServiceImpl implements RefillService {
   public String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale) {
     IMerchantService merchantService = merchantServiceContext.getMerchantService(serviceBeanName);
     return merchantService.getPaymentMessage(tag, locale);
+  }
+
+  @Override
+  public List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAllNotAcceptedByAddressAndMerchantAndCurrency(address, merchantId, currencyId);
+  }
+
+  @Override
+  public int getTxOffsetForAddress(String address) {
+    return refillRequestDao.getTxOffsetForAddress(address);
+  }
+
+  @Override
+  public void updateTxOffsetForAddress(String address, Integer offset) {
+    refillRequestDao.updateTxOffsetForAddress(address, offset);
   }
 }

@@ -1066,6 +1066,13 @@ public class MobileEntryController {
 
     }
 
+    @RequestMapping(value = "/test/lisk/payments", method = RequestMethod.GET)
+    @ResponseBody
+    public void testLiskPayments() {
+        liskService.processTransactionsForKnownAddresses();
+
+    }
+
     @RequestMapping(value = "/test/lisk/getAccount", method = RequestMethod.GET)
     @ResponseBody
     public Object testLiskAcc(@RequestParam String address) {
@@ -1075,7 +1082,7 @@ public class MobileEntryController {
 
     @RequestMapping(value = "/test/lisk/send", method = RequestMethod.POST)
     @ResponseBody
-    public String testLisk(@RequestParam String secret, @RequestParam BigDecimal amount, @RequestParam String recipientId) {
+    public String testLisk(@RequestParam String secret, @RequestParam Long amount, @RequestParam String recipientId) {
         return liskService.sendTransaction(secret, amount, recipientId);
 
     }

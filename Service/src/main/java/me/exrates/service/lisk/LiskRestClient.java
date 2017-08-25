@@ -11,6 +11,10 @@ public interface LiskRestClient {
 
     List<LiskTransaction> getTransactionsByRecipient(String recipientAddress);
 
+    List<LiskTransaction> getAllTransactionsByRecipient(String recipientAddress, int offset);
+
+    Long getFee();
+
     String sendTransaction(LiskSendTxDto dto);
 
     LiskAccount createAccount(String secret);

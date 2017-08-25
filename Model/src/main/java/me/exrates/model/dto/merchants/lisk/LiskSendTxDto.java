@@ -10,6 +10,6 @@ import java.math.BigDecimal;
 @ToString
 public class LiskSendTxDto {
     private String secret;
-    private BigDecimal amount;
+    private Long amount;
     private String recipientId;
 }

@@ -45,6 +45,11 @@ public interface RefillService {
             Integer currencyId,
             String hash);
 
+    Optional<RefillRequestFlatDto> findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(
+            String address, Integer merchantId,
+            Integer currencyId,
+            String hash);
+
     Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
 
   Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
@@ -104,4 +109,10 @@ public interface RefillService {
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
   
   String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
+
+  List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+
+    int getTxOffsetForAddress(String address);
+
+    void updateTxOffsetForAddress(String address, Integer offset);
 }

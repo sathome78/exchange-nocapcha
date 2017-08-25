@@ -22,10 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 @Service
@@ -45,6 +42,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     private final String getTransactionsEndpoint = "/api/transactions";
     private final String getTransactionByIdEndpoint = "/api/transactions/get";
     private final String sendTransactionEndpoint = "/api/transactions";
+    private final String getFeeEndpoint = "/api/blocks/getFee";
 
     private final int MAX_LIMIT_OF_TRANSACTIONS = 1000;
 
@@ -60,7 +58,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public List<LiskTransaction> getTransactionsByRecipient(String recipientAddress) {
             Map<String, String> params = new HashMap<String, String>() {{
                put("recipientId", recipientAddress);
-               put("orderBy", "timestamp:desc");
+               put("orderBy", "timestamp:asc");
             }};
             String response = restTemplate.getForObject(getURIWithParams(getTransactionsEndpoint, params),
                     String.class);
@@ -68,20 +66,36 @@ public class LiskRestClientImpl implements LiskRestClient {
             return extractListFromResponse(response, "transactions", LiskTransaction.class);
     }
 
-    public List<LiskTransaction> getAllTransactionsAwaitingConfirmationByRecipient(String recipientAddress, int minConfirmations) {
-        List<LiskTransaction> result = null;
-        int offset = 0;
+    @Override
+    public List<LiskTransaction> getAllTransactionsByRecipient(String recipientAddress, int offset) {
+        List<LiskTransaction> result = new ArrayList<>();
+        int newOffset = offset;
+        int count;
+        do {
+            String response = sendGetTransactionsRequest(recipientAddress, newOffset);
+            count = Integer.parseInt(extractTargetNodeFromLiskResponse(response, "count", JsonNodeType.STRING).textValue());
+            result.addAll(extractListFromResponse(response, "transactions", LiskTransaction.class));
+            newOffset += result.size();
+        } while (newOffset < count);
+        return result;
+    }
+
+    private String sendGetTransactionsRequest(String recipientAddress, int offset) {
         Map<String, String> params = new HashMap<String, String>() {{
             put("recipientId", recipientAddress);
             put("limit", String.valueOf(MAX_LIMIT_OF_TRANSACTIONS));
             put("offset", String.valueOf(offset));
-            put("orderBy", "confirmations:desc");
+            put("orderBy", "timestamp:asc");
         }};
-        String response = restTemplate.getForObject(getURIWithParams(getTransactionsEndpoint, params),
+        return restTemplate.getForObject(getURIWithParams(getTransactionsEndpoint, params),
                 String.class);
-        return Collections.emptyList();
     }
 
+    @Override
+    public Long getFee() {
+        String response = restTemplate.getForObject(absoluteURI(getFeeEndpoint), String.class);
+        return extractTargetNodeFromLiskResponse(response, "fee", JsonNodeType.NUMBER).longValue();
+    }
 
 
     @Override
@@ -94,8 +108,8 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount createAccount(String secret) {
         LiskOpenAccountDto dto = new LiskOpenAccountDto();
         dto.setSecret(secret);
-            ResponseEntity<String> response = restTemplate.exchange(absoluteURI(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
-            return extractObjectFromResponse(response.getBody(), "account", LiskAccount.class);
+        ResponseEntity<String> response = restTemplate.exchange(absoluteURI(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+        return extractObjectFromResponse(response.getBody(), "account", LiskAccount.class);
 
     }
 
@@ -142,8 +156,10 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     private JsonNode getAndValidateJsonNode(String fieldName, JsonNode parent, Predicate<JsonNode> validator) {
         JsonNode target = parent.get(fieldName);
-        if (target == null || !validator.test(target)) {
+        if (target == null) {
             throw new LiskRestException(String.format("Field not found: %s", fieldName));
+        } else if (!validator.test(target)) {
+            throw new LiskRestException(String.format("Field %s is not in appropriate format: %s", fieldName, target.getNodeType()));
         }
         return target;
     }
