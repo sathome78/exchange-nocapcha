@@ -175,7 +175,7 @@ public class CommonMerchantsController {
         .getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
   }
 
-  @RequestMapping(value = "merchants/commission", method = GET)
+  @RequestMapping(value = "/merchants/commission", method = GET)
   @ResponseBody
   public Map<String,String> getCommissions(final @RequestParam("type") OperationType type,
                                            final @RequestParam("amount") BigDecimal amount,
@@ -188,6 +188,14 @@ public class CommonMerchantsController {
     } catch (InvalidAmountException e) {
       throw new InvalidAmountException(messageSource.getMessage(e.getMessage(), null, locale));
     }
+  }
+
+  @RequestMapping(value = "/merchants/warnings", method = GET)
+  @ResponseBody
+  public List<String> getMerchantWarnings( @RequestParam("type") OperationType type,
+                                           @RequestParam("merchant") Integer merchantId,
+                                           Locale locale) {
+    return merchantService.getWarningsForMerchant(type, merchantId, locale);
   }
 
 

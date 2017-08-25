@@ -65,7 +65,9 @@ public interface CurrencyService {
   
   List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
-  Currency getById(int id);
+    List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum);
+
+    Currency getById(int id);
   
   CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType);
   

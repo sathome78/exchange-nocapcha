@@ -291,6 +291,19 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
+  public List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum) {
+    String sql = "SELECT PHT.template " +
+            " FROM PHRASE_TEMPLATE PHT " +
+            " JOIN USER_COMMENT_TOPIC UCT ON (UCT.id = PHT.topic_id) AND (UCT.topic = :topic)  " +
+            " JOIN MERCHANT MCH ON (MCH.id = :merchant_id)" +
+            " WHERE PHT.template LIKE CONCAT('%.', REPLACE(MCH.name, ' ', '')) ";
+    Map<String, Object> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("topic", currencyWarningTopicEnum.name());
+    return jdbcTemplate.queryForList(sql, params, String.class);
+  }
+
+  @Override
   public CurrencyPair findCurrencyPairByOrderId(int orderId) {
     String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, " +
             "CURRENCY_PAIR.market, " +
