@@ -1313,7 +1313,7 @@ public class OrderServiceImpl implements OrderService {
     }
     if (currentOrderStatus.equals(OrderStatus.OPENED)) {
       ExOrder exOrder = getOrderById(orderId);
-      eventHandlerService.onEvent(exOrder.getCurrencyPair().getId(), exOrder.getOperationType());
+      eventHandlerService.onEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
     return processedRows;
   }
