@@ -11,6 +11,7 @@ import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.job.bot.BotCreateOrderJob;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
-@Log4j2
+@Log4j2(topic = "bot_trader")
 @PropertySource("classpath:/bot_trader.properties")
 public class BotServiceImpl implements BotService {
 
@@ -104,6 +105,7 @@ public class BotServiceImpl implements BotService {
                     botAcceptExecutors.execute(() -> {
                         try {
                             Thread.sleep(1000 * botTrader.getAcceptDelayInSeconds());
+                            log.debug("Accepting order: {}", exOrder);
                             orderService.acceptOrder(botTrader.getUserId(), exOrder.getId(), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
@@ -190,7 +192,9 @@ public class BotServiceImpl implements BotService {
             BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(settings.getMinPrice());
             for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
                 try {
-                    Thread.sleep(settings.getBotLaunchSettings().getCreateTimeoutInSeconds() * 1000);
+                    int timeout = (int) new RandomDataGenerator().nextUniform(100, settings.getBotLaunchSettings()
+                            .getCreateTimeoutInSeconds() * 1000);
+                    Thread.sleep(timeout);
                     BigDecimal newPrice = settings.nextPrice(lastPrice);
                     prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
                     lastPrice = newPrice;
@@ -209,6 +213,7 @@ public class BotServiceImpl implements BotService {
     @Transactional
     public synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
+        log.debug("Prepared order: {}", orderCreateDto);
         orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
     }
 
