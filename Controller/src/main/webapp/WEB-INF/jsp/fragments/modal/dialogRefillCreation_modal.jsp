@@ -20,6 +20,7 @@
             <hr>
             <div class="red">
               <loc:message code="merchant.commission.warning"/>
+              <span id="merchant-warnings"></span>
             </div>
             <hr>
           </div>

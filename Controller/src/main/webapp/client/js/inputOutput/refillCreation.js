@@ -35,6 +35,7 @@ $(function refillCreation() {
     var commissionMerchantAmount;
     var totalAmount;
     var bankDataList;
+    var merchantWarningList;
 
     $container.find(".start-refill").on('click', function () {
         startRefill(this);
@@ -112,6 +113,14 @@ $(function refillCreation() {
         } else if (merchantIsCrypto) {
             performRefill();
         } else {
+            $refillParamsDialog.find("#merchant-warnings").empty();
+
+            getMerchantWarnings(function () {
+                $refillParamsDialog.find("#merchant-warnings").append('<br/>');
+                merchantWarningList.forEach(function (item) {
+                    $refillParamsDialog.find("#merchant-warnings").append(item + '<br/>');
+                })
+            });
             $refillParamsDialog.find("#merchant-commission-warning").show();
             $refillParamsDialog.find('#request-money-operation-btns-wrapper').show();
             $refillParamsDialog.find('#destination-input-wrapper').show();
@@ -143,7 +152,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
-            operationType: operationType,
+            operationType: operationType
         };
         if (merchantIsSimpleInvoice) {
             var refillDetailedParamsDialogResult = false;
@@ -303,6 +312,21 @@ $(function refillCreation() {
             data: {"currencyId": currency}
         }).success(function (response) {
             bankDataList = response;
+            if (callback) {
+                callback();
+            }
+        });
+    }
+
+    function getMerchantWarnings(callback) {
+        $.ajax({
+            url: '/merchants/warnings',
+            async: false,
+            type: "get",
+            contentType: "application/json",
+            data: {"merchant": merchant, "type": operationType}
+        }).success(function (response) {
+            merchantWarningList = response;
             if (callback) {
                 callback();
             }

@@ -198,6 +198,11 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
+  public List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum) {
+    return currencyDao.getWarningForMerchant(merchantId, currencyWarningTopicEnum);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Currency getById(int id) {
     return currencyDao.findById(id);

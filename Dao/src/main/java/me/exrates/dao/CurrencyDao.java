@@ -49,7 +49,9 @@ public interface CurrencyDao {
 
   List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
-  CurrencyPair findCurrencyPairByOrderId(int orderId);
+    List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum);
+
+    CurrencyPair findCurrencyPairByOrderId(int orderId);
 
   CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
 

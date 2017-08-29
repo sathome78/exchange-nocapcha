@@ -6,7 +6,6 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
@@ -72,4 +71,6 @@ public interface MerchantService {
                                                            String merchant);
 
     void checkDestinationTag(Integer merchantId, String memo);
+
+    List<String> getWarningsForMerchant(OperationType operationType, Integer merchantId, Locale locale);
 }

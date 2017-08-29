@@ -9,10 +9,7 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -387,6 +384,27 @@ public class MerchantServiceImpl implements MerchantService {
       if (merchantService instanceof IWithdrawable && ((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed()) {
           ((IWithdrawable) merchantService).checkDestinationTag(destinationTag);
       }
+  }
+
+  @Override
+  public List<String> getWarningsForMerchant(OperationType operationType, Integer merchantId, Locale locale) {
+    UserCommentTopicEnum commentTopic;
+    switch (operationType) {
+      case INPUT:
+        commentTopic = UserCommentTopicEnum.REFILL_MERCHANT_WARNING;
+        break;
+      case OUTPUT:
+        commentTopic = UserCommentTopicEnum.WITHDRAW_MERCHANT_WARNING;
+        break;
+      default:
+        throw new IllegalArgumentException(String.format("Illegal operation type %s", operationType.name()));
+    }
+    List<String> result = currencyService.getWarningForMerchant(merchantId, commentTopic);
+    LOG.info("Warning result: " + result);
+    List<String> resultLocalized = currencyService.getWarningForMerchant(merchantId, commentTopic).stream()
+            .map(code -> messageSource.getMessage(code, null, locale)).collect(Collectors.toList());
+    LOG.info("Localized result: " + resultLocalized);
+    return resultLocalized;
   }
 
 }
