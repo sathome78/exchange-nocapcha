@@ -3,12 +3,15 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
-import me.exrates.model.enums.OrderBaseType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.dto.BotTradingSettingsShortDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.enums.*;
 import me.exrates.service.*;
+import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.job.bot.BotCreateOrderJob;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -16,6 +19,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +34,10 @@ import java.util.concurrent.Executors;
 public class BotServiceImpl implements BotService {
 
     private @Value("${bot.error.noMoney.email}") String errorEmail;
+
+    private static final String JOB_FORMAT = "job_%s_%s";
+
+    private static final String TRIGGER_FORMAT = "trigger_%s_%s";
 
     @Autowired
     private OrderService orderService;
@@ -44,14 +55,44 @@ public class BotServiceImpl implements BotService {
     private ReferralService referralService;
 
     @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
     private BotDao botDao;
 
+    @Autowired
+    private Scheduler botOrderCreationScheduler;
 
 
+    private final static ExecutorService botAcceptExecutors = Executors.newCachedThreadPool();
 
-    private final static ExecutorService botExecutors = Executors.newCachedThreadPool();
+    @PostConstruct
+    private void initBot() {
+        retrieveBotFromDB().ifPresent(botTrader -> {
+            scheduleJobsForActiveCurrencyPairs(botTrader.getId());
+        });
+    }
 
+    private void scheduleJobsForActiveCurrencyPairs(Integer botId) {
+        botDao.retrieveLaunchSettingsForAllPairs(botId, true).forEach(settings -> {
+            scheduleJobsForCurrencyPair(settings.getCurrencyPairId(), settings.getLaunchIntervalInMinutes());
+        });
+    }
 
+    @PreDestroy
+    private void shutdownBot() {
+        retrieveBotFromDB().ifPresent(botTrader -> {
+            try {
+                botOrderCreationScheduler.shutdown();
+            } catch (SchedulerException e) {
+                log.error(e);
+            }
+
+        });
+    }
 
 
     @Override
@@ -59,8 +100,8 @@ public class BotServiceImpl implements BotService {
     public void acceptAfterDelay(ExOrder exOrder) {
         if (checkNeedToAccept(exOrder)) {
             retrieveBotFromDB().ifPresent(botTrader -> {
-                if (botTrader.getIsEnabled()) {
-                    botExecutors.execute(() -> {
+                if (botTrader.isEnabled()) {
+                    botAcceptExecutors.execute(() -> {
                         try {
                             Thread.sleep(1000 * botTrader.getAcceptDelayInSeconds());
                             orderService.acceptOrder(botTrader.getUserId(), exOrder.getId(), Locale.ENGLISH);
@@ -114,12 +155,202 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional
-    public void updateBot(BotTrader botTrader) {
-        botDao.updateBot(botTrader);
+    public void updateBot(BotTrader botTrader, Locale locale) {
+        BotTrader oldBot = botDao.findById(botTrader.getId()).orElseThrow(() -> new BotException(messageSource.getMessage("admin.autoTrading.bot.notFound",
+                new Object[]{botTrader.getId()}, locale)));
+        if (botTrader.isEnabled() != oldBot.isEnabled()) {
+            if (botTrader.isEnabled()) {
+                scheduleJobsForActiveCurrencyPairs(botTrader.getId());
+            } else {
+                try {
+                    botOrderCreationScheduler.clear();
+                } catch (SchedulerException e) {
+                    throw new BotException(e.getMessage());
+                }
 
+            }
+        }
+        botDao.updateBot(botTrader);
     }
 
 
+    @Override
+    public void runOrderCreation(Integer currencyPairId, OrderType orderType) {
+        retrieveBotFromDB().ifPresent(bot -> {
+            CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+            runOrderCreationSequence(currencyPair, orderType, bot);
+        });
+    }
+
+    private void runOrderCreationSequence(CurrencyPair currencyPair, OrderType orderType, BotTrader botTrader) {
+        botDao.retrieveBotSettingsForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType.getType()).ifPresent(settings -> {
+            String userEmail = userService.getEmailById(botTrader.getUserId());
+            OperationType operationType = OperationType.valueOf(orderType.name());
+            PriceGrowthDirection initialDirection = settings.getDirection();
+            BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(settings.getMinPrice());
+            for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
+                try {
+                    Thread.sleep(settings.getBotLaunchSettings().getCreateTimeoutInSeconds() * 1000);
+                    BigDecimal newPrice = settings.nextPrice(lastPrice);
+                    prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
+                    lastPrice = newPrice;
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }
+            if (settings.getDirection() != initialDirection) {
+                botDao.updatePriceGrowthDirection(settings.getId(), settings.getDirection());
+            }
+        });
+    }
+
+
+    @Override
+    @Transactional
+    public synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
+        OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
+        orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void enableBotForCurrencyPair(Integer currencyPairId, Locale locale) {
+        retrieveBotFromDB().ifPresent(bot -> {
+            if (bot.isEnabled()) {
+                BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPairId);
+                if (!launchSettings.getIsEnabledForPair()) {
+                    botDao.setEnabledForCurrencyPair(bot.getId(), currencyPairId, true);
+                    scheduleJobsForCurrencyPair(currencyPairId, launchSettings.getLaunchIntervalInMinutes() );
+                }
+            } else {
+                throw new BotException(messageSource.getMessage("admin.autoTrading.bot.notEnabled", null, locale));
+            }
+        });
+
+    }
+
+    private void scheduleJobsForCurrencyPair(Integer currencyPairId, int intervalInMinutes) {
+        int intervalInSeconds = intervalInMinutes * 60;
+        try {
+            scheduleJobForCurrencyPairAndOrderType(currencyPairId, OrderType.SELL, intervalInSeconds);
+            scheduleJobForCurrencyPairAndOrderType(currencyPairId, OrderType.BUY, intervalInSeconds);
+        } catch (SchedulerException e) {
+            log.error(e);
+            throw new BotException(e.getMessage());
+        }
+    }
+
+    private void scheduleJobForCurrencyPairAndOrderType(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) throws SchedulerException {
+        JobDetail jobDetail = createJobDetail(currencyPairId, orderType);
+        Trigger trigger = createTrigger(currencyPairId, orderType, intervalInSeconds);
+        botOrderCreationScheduler.scheduleJob(jobDetail, trigger);
+    }
+
+    private JobDetail createJobDetail(Integer currencyPairId, OrderType orderType) {
+        return JobBuilder.newJob(BotCreateOrderJob.class)
+                    .withIdentity(getJobName(currencyPairId, orderType))
+                    .usingJobData("currencyPairId", currencyPairId)
+                    .usingJobData("orderType", orderType.name())
+                    .build();
+    }
+
+    private Trigger createTrigger(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) {
+        return TriggerBuilder.newTrigger()
+                .withIdentity(getTriggerName(currencyPairId, orderType))
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(intervalInSeconds).repeatForever())
+                .build();
+    }
+
+    private Trigger createTrigger(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds, JobDetail jobDetail) {
+        return TriggerBuilder.newTrigger()
+                    .withIdentity(getTriggerName(currencyPairId, orderType))
+                    .forJob(jobDetail)
+                    .startNow()
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                            .withIntervalInSeconds(intervalInSeconds).repeatForever())
+                    .build();
+    }
+
+    private String getJobName(Integer currencyPairId, OrderType orderType) {
+        return String.format(JOB_FORMAT, currencyPairId, orderType.name());
+    }
+
+    private String getTriggerName(Integer currencyPairId, OrderType orderType) {
+        return String.format(TRIGGER_FORMAT, currencyPairId, orderType.name());
+    }
+
+    @Override
+    @Transactional
+    public void disableBotForCurrencyPair(Integer currencyPairId) {
+        retrieveBotFromDB().ifPresent(bot -> {
+            botDao.setEnabledForCurrencyPair(bot.getId(), currencyPairId, false);
+            try {
+                botOrderCreationScheduler.deleteJob(JobKey.jobKey(getJobName(currencyPairId, OrderType.SELL)));
+                botOrderCreationScheduler.deleteJob(JobKey.jobKey(getJobName(currencyPairId, OrderType.BUY)));
+            } catch (SchedulerException e) {
+                log.error(e);
+                throw new BotException(e.getMessage());
+            }
+
+        });
+
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId) {
+        return botDao.retrieveTradingSettingsShort(botLaunchSettingsId, orderTypeId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BotLaunchSettings> retrieveLaunchSettings(int botId) {
+        return botDao.retrieveLaunchSettingsForAllPairs(botId, null);
+    }
+
+    @Override
+    @Transactional
+    public void toggleBotStatusForCurrencyPair(Integer currencyPairId, boolean status, Locale locale) {
+        if (status) {
+            enableBotForCurrencyPair(currencyPairId, locale);
+        } else {
+            disableBotForCurrencyPair(currencyPairId);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateLaunchSettings(BotLaunchSettings launchSettings) {
+        botDao.updateLaunchSettings(launchSettings);
+        try {
+            rescheduleJob(launchSettings.getCurrencyPairId(), OrderType.SELL, launchSettings.getLaunchIntervalInMinutes());
+            rescheduleJob(launchSettings.getCurrencyPairId(), OrderType.BUY, launchSettings.getLaunchIntervalInMinutes());
+        } catch (SchedulerException e) {
+            log.error(e);
+            throw new BotException(e.getMessage());
+        }
+
+
+    }
+
+    private void rescheduleJob(int currencyPairId, OrderType orderType, int intervalInMinutes) throws SchedulerException {
+        int intervalInSeconds = intervalInMinutes * 60;
+        TriggerKey triggerKey = TriggerKey.triggerKey(getTriggerName(currencyPairId, orderType));
+        JobDetail jobDetail = botOrderCreationScheduler.getJobDetail(JobKey.jobKey(getJobName(currencyPairId, orderType)));
+        if (jobDetail != null) {
+            botOrderCreationScheduler.rescheduleJob(triggerKey, createTrigger(currencyPairId, orderType, intervalInSeconds, jobDetail));
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
+        botDao.updateTradingSettings(tradingSettings);
+
+    }
 
 
 

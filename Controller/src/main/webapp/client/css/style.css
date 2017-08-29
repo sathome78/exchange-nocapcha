@@ -2291,7 +2291,8 @@ textarea#remark {
     font-size: 1.5rem;
 }
 
-#roles-table i:hover {
+#roles-table i:hover,
+#launch-settings-table i:hover{
     cursor:pointer;
 }
 

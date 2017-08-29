@@ -1,5 +1,6 @@
 package me.exrates.controller.exception;
 
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,11 +36,26 @@ public class ErrorInfo {
         this.cause = ex.getClass().getSimpleName();
         List<ObjectError> errors = ex.getBindingResult().getAllErrors();
         if (!errors.isEmpty()) {
-            this.detail = ex.getBindingResult().getFieldErrors().stream()
-                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage)).toString();
+            this.detail = ex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage)
+                    .collect(Collectors.joining(";\n"));
         } else {
             this.detail = ex.getLocalizedMessage();
         }
 
     }
+    public ErrorInfo(CharSequence url, BindException ex) {
+        this.url = url.toString();
+        this.cause = ex.getClass().getSimpleName();
+
+        List<ObjectError> errors = ex.getAllErrors();
+        if (!errors.isEmpty()) {
+            this.detail = ex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage)
+                    .collect(Collectors.joining(";\n"));
+            System.out.println(detail);
+        } else {
+            this.detail = ex.getLocalizedMessage();
+        }
+
+    }
+
 }

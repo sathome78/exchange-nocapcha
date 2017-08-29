@@ -1284,6 +1284,12 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType) {
+    return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
+  }
+
 
 }
 
