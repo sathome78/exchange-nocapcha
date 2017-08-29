@@ -43,7 +43,6 @@ public class WsContorller {
         log.debug("init orders {}", currencyPair);
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
-            /*todo: throws exception*/
             return null;
         }
         JSONArray objectsArray = new JSONArray();

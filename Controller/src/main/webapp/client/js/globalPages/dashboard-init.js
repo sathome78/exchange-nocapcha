@@ -36,6 +36,7 @@ var onConnect = function() {
 function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
+    client.debug = null;
     client.connect({}, onConnect, onConnectFail);
 }
 
@@ -46,7 +47,6 @@ function subscribeTradeOrders() {
         ordersSubscription.unsubscribe();
     }
     ordersSubscription = client.subscribe("/app/topic.trade_orders." + currentCurrencyPairId, function(message) {
-        console.log(message);
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
@@ -60,16 +60,13 @@ function subscribeTradeOrders() {
 }
 
 function initTradeOrders(object) {
-    console.log(object);
     object = JSON.parse(object);
     switch (object.type){
         case "BUY" : {
-            console.log('update buy orders');
             trading.updateAndShowBuyOrders(object.data, true);
             break;
         }
         case "SELL" : {
-            console.log('update sell orders');
             trading.updateAndShowSellOrders(object.data, true);
             break;
         }
@@ -245,7 +242,6 @@ $(function dashdoardInit() {
         /*2fa notify*/
 
         var notify2fa = $("#noty2fa").val() == 'true';
-        console.log('2fa here ' + notify2fa );
         if (notify2fa) {
           $2faModal.modal({
               backdrop: 'static',
