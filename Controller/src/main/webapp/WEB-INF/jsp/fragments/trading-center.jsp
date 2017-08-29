@@ -154,7 +154,7 @@
                         <th class="center currencyConvertName"></th>
                     </tr>
                     <script type="text/template" id="dashboard-orders-sell-table_row">
-                        <tr class="dashboard-order__tr" class="SELL <@=exrate@>" id="SELL_<@=exrate@>">
+                        <tr class="dashboard-order__tr">
                             <@ var symbolsLimit = 14; @>
                             <td class="order_exrate left" title="<@=exrate@>"><@=exrate.length > symbolsLimit ?
                                 exrate.substring(0, symbolsLimit) + '...' : exrate@></td>
@@ -267,7 +267,7 @@
                         <th class="center currencyConvertName"></th>
                     </tr>
                     <script type="text/template" id="dashboard-orders-buy-table_row">
-                        <tr class="dashboard-order__tr" class="BUY <@=exrate@>" id="BUY_<@=exrate@>">
+                        <tr class="dashboard-order__tr">
                             <@ var symbolsLimit = 14; @>
                             <td class="order_exrate left" title="<@=exrate@>"><@=exrate.length > symbolsLimit ?
                                 exrate.substring(0, symbolsLimit) + '...' : exrate@></td>

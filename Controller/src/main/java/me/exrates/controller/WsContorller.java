@@ -59,8 +59,7 @@ public class WsContorller {
                 (cp, Locale.ENGLISH, false), OperationType.SELL.name())));
         objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
                 (cp, Locale.ENGLISH, false), OperationType.BUY.name())));
-        return new JSONObject() {{
-            put(SocketOperationsEnum.INIT.name(), objectsArray);}}.toString();
+        return objectsArray.toString();
 
     }
 

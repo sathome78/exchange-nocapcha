@@ -49,7 +49,6 @@ public interface StopOrderService {
 
     void onLimitOrderAccept(ExOrder exOrder);
 
-    @Async
     void onStopOrderCreate(ExOrder exOrder);
 
     @Transactional(readOnly = true)

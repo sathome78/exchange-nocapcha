@@ -13,20 +13,32 @@ var $currentPageMenuItem;
 var $currentSubMenuItem;
 var notifications;
 
-var wss; //web-socket connection
 var ordersSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
 var subscribedCurrencyPairId;
 
+var socket_url = '/public_socket';
+var socket;
+var client;
 
-var socket = new SockJS('/public_socket');
-var client = Stomp.over(socket);
+
+var onConnectFail = function () {
+    connectedPS = false;
+    setTimeout(connectAndReconnect, 3000);
+};
 
 var onConnect = function() {
     connectedPS = true;
     subscribeTradeOrders();
 };
+
+function connectAndReconnect() {
+    socket = new SockJS(socket_url);
+    client = Stomp.over(socket);
+    client.connect({}, onConnect, onConnectFail);
+}
+
 
 function subscribeTradeOrders() {
     console.log('subscribe to ' + currentCurrencyPairId);
@@ -34,89 +46,42 @@ function subscribeTradeOrders() {
         ordersSubscription.unsubscribe();
     }
     ordersSubscription = client.subscribe("/app/topic.trade_orders." + currentCurrencyPairId, function(message) {
-        subscribedCurrencyPairId = currentCurrencyPairId;
-        onTradeOrdersMessage(JSON.parse(message.body));
-    });
-}
-
-
-function connectSocket() {
-    client.connect({}, onConnect);
-}
-
-function onTradeOrdersMessage(message) {
-    console.log(message);
-    $.each( message, function( key, value ) {
-        console.log(key);
-        switch (key) {
-            case "INIT" : {
-                initTradeOrders(value);
-                break;
-            }
-            case "ADD" : {
-                break;
-            }
-            case "REMOVE" : {
-                break;
-            }
-            case "REPLACE" : {
-                break
-            }
-        }
-    });
-}
-
-function initTradeOrders(array) {
-    console.log(array);
-    array.forEach(function(object){
-        object = JSON.parse(object);
-        switch (object.type){
-            case "BUY" : {
-                console.log('update buy orders');
-                trading.updateAndShowBuyOrders(object.data, true);
-                break;
-            }
-            case "SELL" : {
-                console.log('update sell orders');
-                trading.updateAndShowSellOrders(object.data, true);
-                break;
-            }
-        }
-    });
-}
-
-
-/*function connectOrdersSocket(sessionId) {
-    if (wss!=null) {
-        wss.close();
-    }
-    console.log("id" + sessionId);
-    wss = new SockJS('/public_sockets?session_id=' + sessionId);
-    console.log("connect to client");
-
-    wss.onopen = function() {
-        console.log('socket connected');
-        wss.send('trading:newCurrencyPair');
-    };
-
-    wss.onmessage = function (message) {
         console.log(message);
-        var payload = JSON.parse(message.data);
-        switch (payload.source) {
-            case "orders": {
-                ordersMessageHandle(payload);
-                break;
-            }
+        subscribedCurrencyPairId = currentCurrencyPairId;
+        var messageBody = JSON.parse(message.body);
+        if (messageBody instanceof Array) {
+            messageBody.forEach(function(object){
+                initTradeOrders(object);
+            });
+        } else {
+            initTradeOrders(message.body);
         }
+    });
+}
 
-    };
-}*/
+function initTradeOrders(object) {
+    console.log(object);
+    object = JSON.parse(object);
+    switch (object.type){
+        case "BUY" : {
+            console.log('update buy orders');
+            trading.updateAndShowBuyOrders(object.data, true);
+            break;
+        }
+        case "SELL" : {
+            console.log('update sell orders');
+            trading.updateAndShowSellOrders(object.data, true);
+            break;
+        }
+    }
+}
+
 
 
 
 $(function dashdoardInit() {
     var sessionId = $('#session').text();
-    connectSocket(sessionId);
+    connectAndReconnect();
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {

@@ -6,7 +6,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.controller.handler.OrdersWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
@@ -19,6 +18,7 @@ import me.exrates.service.EthereumCommonService;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
+import me.exrates.service.stomp.OrdersMessage;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -38,6 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,9 +63,13 @@ import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static org.springframework.context.annotation.EnableLoadTimeWeaving.AspectJWeaving.ENABLED;
 
+@EnableAsync
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement

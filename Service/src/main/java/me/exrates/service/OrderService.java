@@ -299,4 +299,6 @@ public interface OrderService {
   List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale);
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
+
+  String getOrdersForRefresh(Integer pairId, OperationType operationType);
 }

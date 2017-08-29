@@ -1,5 +1,7 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -23,14 +25,17 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
+import me.exrates.service.stomp.OrdersMessage;
 import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
+import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
@@ -38,12 +43,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -103,9 +112,14 @@ public class OrderServiceImpl implements OrderService {
   RatesHolder ratesHolder;
   @Autowired
   private UserRoleService userRoleService;
-
   @Autowired
   private BotService botService;
+  @Autowired
+  private ObjectMapper objectMapper;
+
+  @Autowired
+  private OrdersEventHandleService eventHandlerService;
+
 
   @Transactional
   @Override
@@ -378,6 +392,7 @@ public class OrderServiceImpl implements OrderService {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
+      eventHandlerService.onEvent(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType());
       return createdOrderId;
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
@@ -758,9 +773,9 @@ public class OrderServiceImpl implements OrderService {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
             "acceptorder.message", new Object[]{exOrder.getId()});
       }
-
-      stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process
-*/
+      stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process*/
+      /*action for refresh orders*/
+      eventHandlerService.onEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     } catch (Exception e) {
       logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
       throw e;
@@ -835,7 +850,12 @@ public class OrderServiceImpl implements OrderService {
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
-      return setStatus(exOrder.getId(), OrderStatus.CANCELLED);
+
+      boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
+      if (result) {
+        eventHandlerService.onEvent(exOrder.getCurrencyPair().getId(), exOrder.getOperationType());
+      }
+      return result;
     } catch (Exception e) {
       logger.error("Error while cancelling order " + exOrder.getId() + " , " + e.getLocalizedMessage());
       throw e;
@@ -1291,6 +1311,10 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
+    if (currentOrderStatus.equals(OrderStatus.OPENED)) {
+      ExOrder exOrder = getOrderById(orderId);
+      eventHandlerService.onEvent(exOrder.getCurrencyPair().getId(), exOrder.getOperationType());
+    }
     return processedRows;
   }
 
@@ -1331,6 +1355,28 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
+  @Override
+  public String getOrdersForRefresh(Integer pairId, OperationType operationType) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    List<OrderListDto> dtos;
+    switch (operationType) {
+      case BUY: {
+        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, false);
+        break;
+      }
+      case SELL: {
+        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, false);
+        break;
+      }
+      default: return null;
+    }
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name()));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
 
 
 }
