@@ -5,26 +5,18 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.SocketOperationsEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.socket.WebSocketSession;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Created by Maks on 24.08.2017.
