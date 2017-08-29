@@ -11,6 +11,7 @@ import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.job.bot.BotCreateOrderJob;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -190,7 +191,10 @@ public class BotServiceImpl implements BotService {
             BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(settings.getMinPrice());
             for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
                 try {
-                    Thread.sleep(settings.getBotLaunchSettings().getCreateTimeoutInSeconds() * 1000);
+                    int timeout = (int) new RandomDataGenerator().nextUniform(100, settings.getBotLaunchSettings()
+                            .getCreateTimeoutInSeconds() * 1000);
+                    log.debug("Timeout: {}", timeout);
+                    Thread.sleep(timeout);
                     BigDecimal newPrice = settings.nextPrice(lastPrice);
                     prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
                     lastPrice = newPrice;
