@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
-@Log4j2
+@Log4j2(topic = "bot_trader")
 @PropertySource("classpath:/bot_trader.properties")
 public class BotServiceImpl implements BotService {
 
@@ -105,6 +105,7 @@ public class BotServiceImpl implements BotService {
                     botAcceptExecutors.execute(() -> {
                         try {
                             Thread.sleep(1000 * botTrader.getAcceptDelayInSeconds());
+                            log.debug("Accepting order: {}", exOrder);
                             orderService.acceptOrder(botTrader.getUserId(), exOrder.getId(), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
@@ -193,7 +194,6 @@ public class BotServiceImpl implements BotService {
                 try {
                     int timeout = (int) new RandomDataGenerator().nextUniform(100, settings.getBotLaunchSettings()
                             .getCreateTimeoutInSeconds() * 1000);
-                    log.debug("Timeout: {}", timeout);
                     Thread.sleep(timeout);
                     BigDecimal newPrice = settings.nextPrice(lastPrice);
                     prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
@@ -213,6 +213,7 @@ public class BotServiceImpl implements BotService {
     @Transactional
     public synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
+        log.debug("Prepared order: {}", orderCreateDto);
         orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
     }
 
