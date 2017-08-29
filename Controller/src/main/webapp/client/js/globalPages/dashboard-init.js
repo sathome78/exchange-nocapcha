@@ -25,7 +25,7 @@ var client;
 
 var onConnectFail = function () {
     connectedPS = false;
-    setTimeout(connectAndReconnect, 3000);
+    setTimeout(connectAndReconnect, 5000);
 };
 
 var onConnect = function() {
