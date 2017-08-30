@@ -53,6 +53,11 @@
                                 <loc:message code="manageOrder.title"/>
                             </a>
                         </sec:authorize>
+                        <sec:authorize access="<%=AdminController.botAuthority%>">
+                            <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>">
+                                <loc:message code="admin.title"/>
+                            </a>
+                        </sec:authorize>
                     </li>
                 </sec:authorize>
 

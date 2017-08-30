@@ -143,28 +143,21 @@ public class AdminController {
   private SessionRegistry sessionRegistry;
 
   public static String adminAnyAuthority;
-  public static String pureAdminAnyAuthority;
   public static String nonAdminAnyAuthority;
   public static String traderAuthority;
+  public static String botAuthority;
 
   @PostConstruct
   private void init() {
-    List<UserRole> adminRoles = userRoleService.getRealUserRoleByBusinessRoleList(ADMIN);
-    String adminList = adminRoles.stream()
-        .map(e -> "'" + e.name() + "'")
-        .collect(Collectors.joining(","));
-    List<UserRole> traderRoles = userRoleService.getRealUserRoleByBusinessRoleList(BusinessUserRoleEnum.TRADER);
-    String traderList = traderRoles.stream()
-            .map(e -> "'" + e.name() + "'")
-            .collect(Collectors.joining(","));
-    traderAuthority = "hasAnyAuthority(" + traderList + ")";
-    adminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
+    traderAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.TRADER);
+    adminAnyAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.ADMIN);
     nonAdminAnyAuthority = "!" + adminAnyAuthority;
-    String pureAdminList = adminRoles.stream()
-        .filter(e -> e != FIN_OPERATOR)
-        .map(e -> "'" + e.name() + "'")
-        .collect(Collectors.joining(","));
-    pureAdminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
+    botAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.BOT);
+  }
+
+  private String retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum businessUserRole) {
+    List<UserRole> roles = userRoleService.getRealUserRoleByBusinessRoleList(businessUserRole);
+    return roles.stream().map(e -> "'" + e.name() + "'").collect(Collectors.joining(",", "hasAnyAuthority(", ")"));
   }
 
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
