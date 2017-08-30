@@ -63,7 +63,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
-    <script src="https://surveyjs.azureedge.net/0.12.14/survey.jquery.min.js"></script>
+   <%-- <script src="https://surveyjs.azureedge.net/0.12.14/survey.jquery.min.js"></script>--%>
     <!-- Amcharts Charts ... -->
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>

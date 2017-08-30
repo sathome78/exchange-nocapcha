@@ -15,10 +15,6 @@ public class OrdersListWrapper {
     private String type;
     private int currencyPairId;
 
-    public OrdersListWrapper(Object data, String type) {
-        this.data = data;
-        this.type = type;
-    }
 
     public OrdersListWrapper(Object data, String type, int currencyPairId) {
         this.data = data;

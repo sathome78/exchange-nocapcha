@@ -44,14 +44,12 @@ function connectAndReconnect() {
 
 
 function subscribeTradeOrders() {
-    console.log('subscribe to ' + currentCurrencyPairId);
     if (subscribedCurrencyPairId != currentCurrencyPairId && ordersSubscription != undefined) {
         ordersSubscription.unsubscribe();
     }
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
     var fn = f ? 'f.' : '';
     var tradeOrdersSubscr = '/app/topic.trade_orders.' + fn + currentCurrencyPairId;
-    console.log(tradeOrdersSubscr);
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
@@ -67,7 +65,6 @@ function subscribeTradeOrders() {
 
 function initTradeOrders(object) {
     object = JSON.parse(object);
-    console.log(object.currencyPairId);
     if (object.currencyPairId != subscribedCurrencyPairId) {
         return
     }
@@ -317,8 +314,8 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
-            console.log('connected= ' + connectedPS + ' subscribedID=' + subscribedCurrencyPairId + ' currentId=' + currentCurrencyPairId);
-            if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableFilter)) {
+          /*  console.log('connected= ' + connectedPS + ' subscribedID=' + subscribedCurrencyPairId + ' currentId=' + currentCurrencyPairId);
+        */    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableFilter)) {
                 f = enableFilter;
                 subscribeTradeOrders()
             }
