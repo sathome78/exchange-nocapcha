@@ -15,8 +15,10 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.CacheData;
+import me.exrates.service.events.AcceptOrderEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +49,8 @@ public interface StopOrderService {
 
     OrderCreateDto getOrderById(Integer orderId, boolean forUpdate);
 
-    void onLimitOrderAccept(ExOrder exOrder);
+    @TransactionalEventListener
+    void onLimitOrderAccept(AcceptOrderEvent event);
 
     void onStopOrderCreate(ExOrder exOrder);
 

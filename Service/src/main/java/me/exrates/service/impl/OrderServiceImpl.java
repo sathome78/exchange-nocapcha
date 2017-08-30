@@ -23,6 +23,9 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.CancelOrderEvent;
+import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
@@ -109,10 +112,6 @@ public class OrderServiceImpl implements OrderService {
   private ObjectMapper objectMapper;
   @Autowired
   private ApplicationEventPublisher eventPublisher;
-
-  @Autowired
-  private OrdersEventHandleService eventHandlerService;
-
 
   @Transactional
   @Override
@@ -387,7 +386,7 @@ public class OrderServiceImpl implements OrderService {
       }
     /*  eventHandlerService.onEvent(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType());
     */
-      eventPublisher.publishEvent(new OrderEvent(new ExOrder(orderCreateDto)));
+      eventPublisher.publishEvent(new CreateOrderEvent(new ExOrder(orderCreateDto)));
       return createdOrderId;
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
@@ -768,9 +767,9 @@ public class OrderServiceImpl implements OrderService {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
             "acceptorder.message", new Object[]{exOrder.getId()});
       }
-      stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process*/
+    /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
       /*action for refresh orders*/
-      eventHandlerService.onEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+      eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
     } catch (Exception e) {
       logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
       throw e;
@@ -848,7 +847,7 @@ public class OrderServiceImpl implements OrderService {
 
       boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
       if (result) {
-        eventHandlerService.onEvent(exOrder.getCurrencyPair().getId(), exOrder.getOperationType());
+        eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
       }
       return result;
     } catch (Exception e) {
@@ -1305,8 +1304,7 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     if (currentOrderStatus.equals(OrderStatus.OPENED)) {
-      ExOrder exOrder = getOrderById(orderId);
-      eventHandlerService.onEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
+        eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
     }
     return processedRows;
   }

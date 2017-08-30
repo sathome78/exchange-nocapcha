@@ -1,24 +1,25 @@
 package me.exrates.service.events;
 
 import me.exrates.model.ExOrder;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderEventTypeEnum;
-import org.springframework.context.ApplicationEvent;
 
 /**
  * Created by Maks on 30.08.2017.
  */
-public class OrderEvent extends ApplicationEvent {
+public class CancelOrderEvent extends OrderEvent {
 
+    private boolean byAdmin;
 
-    private OrderEventTypeEnum eventTypeEnum;
+    public boolean isByAdmin() {
+        return byAdmin;
+    }
 
     /**
      * Create a new ApplicationEvent.
      *
      * @param source the object on which the event initially occurred (never {@code null})
      */
-    public OrderEvent(ExOrder source) {
+    public CancelOrderEvent(ExOrder source, boolean byAdmin) {
         super(source);
+        this.byAdmin = byAdmin;
     }
 }
