@@ -1364,7 +1364,7 @@ public class OrderServiceImpl implements OrderService {
       default: return null;
     }
     try {
-      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name()));
+      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name(), pairId));
     } catch (JsonProcessingException e) {
       log.error(e);
       return null;
