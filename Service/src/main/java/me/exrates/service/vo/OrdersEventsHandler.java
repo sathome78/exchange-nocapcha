@@ -36,10 +36,10 @@ public class OrdersEventsHandler {
     private AtomicInteger eventsCount = new AtomicInteger(0);
     private AtomicBoolean started = new AtomicBoolean(false);
 
-    private float loadFactor = 1;
-    private long refreshTime = 1500; /*in millis*/
-    private static final long MIN_REFRESH_TIME = 500;
-    private static final long MAX_REFRESH_TIME = 2000;
+    private volatile float loadFactor = 1;
+    private final long refreshTime = 1300; /*in millis*/
+    private static final long MIN_REFRESH_TIME = 700;
+    private static final long MAX_REFRESH_TIME = 1800;
 
     private Timer timer;
 

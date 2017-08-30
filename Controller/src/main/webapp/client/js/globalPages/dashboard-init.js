@@ -21,6 +21,7 @@ var subscribedCurrencyPairId;
 var socket_url = '/public_socket';
 var socket;
 var client;
+var f = false;
 
 
 var onConnectFail = function () {
@@ -37,16 +38,21 @@ function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
     client.debug = null;
-    client.connect({}, onConnect, onConnectFail);
+    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    client.connect(headers, onConnect, onConnectFail);
 }
 
 
 function subscribeTradeOrders() {
     console.log('subscribe to ' + currentCurrencyPairId);
-    if (subscribedCurrencyPairId != undefined) {
+    if (subscribedCurrencyPairId != currentCurrencyPairId && ordersSubscription != undefined) {
         ordersSubscription.unsubscribe();
     }
-    ordersSubscription = client.subscribe("/app/topic.trade_orders." + currentCurrencyPairId, function(message) {
+    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var fn = f ? 'f.' : '';
+    var tradeOrdersSubscr = '/app/topic.trade_orders.' + fn + currentCurrencyPairId;
+    console.log(tradeOrdersSubscr);
+    ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
@@ -56,11 +62,15 @@ function subscribeTradeOrders() {
         } else {
             initTradeOrders(message.body);
         }
-    });
+    }, headers);
 }
 
 function initTradeOrders(object) {
     object = JSON.parse(object);
+    console.log(object.currencyPairId);
+    if (object.currencyPairId != subscribedCurrencyPairId) {
+        return
+    }
     switch (object.type){
         case "BUY" : {
             trading.updateAndShowBuyOrders(object.data, true);
@@ -308,7 +318,8 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             /**/
             currentCurrencyPairId = data.currencyPair.id;
             console.log('connected= ' + connectedPS + ' subscribedID=' + subscribedCurrencyPairId + ' currentId=' + currentCurrencyPairId);
-            if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
+            if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableFilter)) {
+                f = enableFilter;
                 subscribeTradeOrders()
             }
             if (callback) {

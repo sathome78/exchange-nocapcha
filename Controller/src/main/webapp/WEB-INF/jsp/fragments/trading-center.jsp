@@ -52,8 +52,6 @@
             <div id="order-filter-selector">
                 <div class="col-md-3"><span><strong><loc:message code="orders.roleFilter"/> </strong></span></div>
                 <div class="col-md-1 blue-switch"><input id="order-row-filter-box" type="checkbox"/></div>
-
-
             </div>
         </c:if>
     </div>

@@ -18,7 +18,6 @@ import me.exrates.service.EthereumCommonService;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
-import me.exrates.service.stomp.OrdersMessage;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;

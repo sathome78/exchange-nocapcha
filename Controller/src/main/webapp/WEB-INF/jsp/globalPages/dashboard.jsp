@@ -121,6 +121,7 @@
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="session">${sessionId}</span>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
 </body>
 </html>

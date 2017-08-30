@@ -25,38 +25,27 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
-import me.exrates.service.stomp.OrdersMessage;
 import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
-import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.websocket.EncodeException;
-import java.io.IOException;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.*;
 
@@ -1044,9 +1033,8 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
-    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
-    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, filterRole), OperationType.BUY, true);
+  public List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
     result = new ArrayList<>(result);
     result = result.stream()
               .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
@@ -1066,9 +1054,8 @@ public class OrderServiceImpl implements OrderService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled) {
-    UserRole filterRole = orderRoleFilterEnabled ? userService.getUserRoleFromSecurityContext() : null;
-    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersSellForCurrencyPair(currencyPair, filterRole), OperationType.SELL, true);
+  public List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersSellForCurrencyPair(currencyPair, userRole), OperationType.SELL, true);
     result = new ArrayList<>(result);
     result = result.stream()
             .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
@@ -1356,16 +1343,16 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public String getOrdersForRefresh(Integer pairId, OperationType operationType) {
+  public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
     List<OrderListDto> dtos;
     switch (operationType) {
       case BUY: {
-        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, false);
+        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, null);
         break;
       }
       case SELL: {
-        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, false);
+        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, null);
         break;
       }
       default: return null;
@@ -1377,8 +1364,6 @@ public class OrderServiceImpl implements OrderService {
       return null;
     }
   }
-
-
 }
 
 
