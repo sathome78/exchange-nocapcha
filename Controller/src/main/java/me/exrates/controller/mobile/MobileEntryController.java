@@ -12,10 +12,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.ApiService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
@@ -86,7 +83,13 @@ public class MobileEntryController {
     private ApiService apiService;
 
     @Autowired
+    private BotService botService;
+
+    @Autowired
     private StoreSessionListener storeSessionListener;
+
+    @Autowired
+    private CurrencyService currencyService;
 
 
 
@@ -1052,7 +1055,6 @@ public class MobileEntryController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

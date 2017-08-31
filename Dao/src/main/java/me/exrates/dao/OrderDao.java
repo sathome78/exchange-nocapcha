@@ -22,10 +22,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public interface OrderDao {
 
     int createOrder(ExOrder order);
+
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     ExOrder getOrderById(int orderid);
 

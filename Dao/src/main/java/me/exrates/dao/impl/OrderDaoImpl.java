@@ -131,6 +131,20 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId) {
+        String sql = "SELECT exrate FROM EXORDERS WHERE status_id = 3 AND currency_pair_id = :currency_pair_id AND operation_type_id = :operation_type_id " +
+                "ORDER BY date_acception DESC, id DESC LIMIT 1";
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", currencyPairId);
+        namedParameters.put("operation_type_id", operationTypeId);
+        try {
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public ExOrder getOrderById(int orderId) {
         String sql = "SELECT * FROM EXORDERS WHERE id = :id";
         Map<String, String> namedParameters = new HashMap<>();

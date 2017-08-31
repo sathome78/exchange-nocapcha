@@ -301,6 +301,8 @@ public interface OrderService {
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
 }
