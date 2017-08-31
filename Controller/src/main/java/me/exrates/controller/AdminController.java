@@ -1297,6 +1297,12 @@ public class AdminController {
     botService.toggleBotStatusForCurrencyPair(currencyPairId, status, locale);
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/userOrders/toggle", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public void toggleConsiderUserOrders(@RequestParam Integer launchSettingsId, @RequestParam Boolean considerUserOrders, Locale locale) {
+    botService.setConsiderUserOrders(launchSettingsId, considerUserOrders);
+  }
+
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateLaunchSettings(@Valid BotLaunchSettings launchSettings) {

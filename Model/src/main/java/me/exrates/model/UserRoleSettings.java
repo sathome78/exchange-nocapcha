@@ -12,4 +12,5 @@ public class UserRoleSettings {
     private boolean isOrderAcceptionSameRoleOnly;
     private boolean isBotAcceptionAllowed;
     private boolean isManualChangeAllowed;
+    private boolean isConsideredForPriceRange;
 }

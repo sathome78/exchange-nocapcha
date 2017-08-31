@@ -21,4 +21,5 @@ public interface UserRoleDao {
     List<UserRole> getRolesAvailableForChangeByAdmin();
 
 
+  List<UserRole> getRolesConsideredForPriceRangeComputation();
 }

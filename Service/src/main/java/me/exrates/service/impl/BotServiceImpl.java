@@ -185,25 +185,25 @@ public class BotServiceImpl implements BotService {
     }
 
     private void runOrderCreationSequence(CurrencyPair currencyPair, OrderType orderType, BotTrader botTrader) {
-        botDao.retrieveBotSettingsForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType.getType()).ifPresent(settings -> {
+        botDao.retrieveBotCalculatorForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType).ifPresent(calculator -> {
             String userEmail = userService.getEmailById(botTrader.getUserId());
             OperationType operationType = OperationType.valueOf(orderType.name());
-            PriceGrowthDirection initialDirection = settings.getDirection();
-            BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(settings.getMinPrice());
-            for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
+            PriceGrowthDirection initialDirection = calculator.getDirection();
+            BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(calculator.getLowerPriceBound());
+            for(int i = 0; i < calculator.getBotLaunchSettings().getQuantityPerSequence(); i++) {
                 try {
-                    int timeout = (int) new RandomDataGenerator().nextUniform(100, settings.getBotLaunchSettings()
+                    int timeout = (int) new RandomDataGenerator().nextUniform(100, calculator.getBotLaunchSettings()
                             .getCreateTimeoutInSeconds() * 1000);
                     Thread.sleep(timeout);
-                    BigDecimal newPrice = settings.nextPrice(lastPrice);
-                    prepareAndSaveOrder(currencyPair, operationType, userEmail, settings.getRandomizedAmount(), newPrice);
+                    BigDecimal newPrice = calculator.nextPrice(lastPrice);
+                    prepareAndSaveOrder(currencyPair, operationType, userEmail, calculator.getRandomizedAmount(), newPrice);
                     lastPrice = newPrice;
                 } catch (Exception e) {
                     log.error(e);
                 }
             }
-            if (settings.getDirection() != initialDirection) {
-                botDao.updatePriceGrowthDirection(settings.getId(), settings.getDirection());
+            if (calculator.getDirection() != initialDirection) {
+                botDao.updatePriceGrowthDirection(calculator.getId(), calculator.getDirection());
             }
         });
     }
@@ -224,7 +224,7 @@ public class BotServiceImpl implements BotService {
         retrieveBotFromDB().ifPresent(bot -> {
             if (bot.isEnabled()) {
                 BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPairId);
-                if (!launchSettings.getIsEnabledForPair()) {
+                if (!launchSettings.isEnabledForPair()) {
                     botDao.setEnabledForCurrencyPair(bot.getId(), currencyPairId, true);
                     scheduleJobsForCurrencyPair(currencyPairId, launchSettings.getLaunchIntervalInMinutes() );
                 }
@@ -355,6 +355,12 @@ public class BotServiceImpl implements BotService {
     public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
         botDao.updateTradingSettings(tradingSettings);
 
+    }
+
+    @Override
+    @Transactional
+    public void setConsiderUserOrders(int launchSettingsId, boolean considerUserOrders) {
+        botDao.setConsiderUserOrders(launchSettingsId, considerUserOrders);
     }
 
 

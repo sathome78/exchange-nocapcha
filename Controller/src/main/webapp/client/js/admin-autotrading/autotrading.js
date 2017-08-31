@@ -75,10 +75,16 @@ $(document).ready(function () {
         submitTradingSettings();
     });
 
-    $($launchSettingsTable).on('click', 'i', function () {
+    $($launchSettingsTable).on('click', 'i.enable-for-pair', function () {
         var row = $(this).parents('tr');
         var rowData = launchSettingsDataTable.row(row).data();
-        toggleBotLaunchStatus(rowData['currencyPairId'], !rowData['isEnabledForPair']);
+        toggleBotLaunchStatus(rowData['currencyPairId'], !rowData['enabledForPair']);
+    });
+
+    $($launchSettingsTable).on('click', 'i.consider-user-orders', function () {
+        var row = $(this).parents('tr');
+        var rowData = launchSettingsDataTable.row(row).data();
+        toggleConsiderUserOrders(rowData['id'], !rowData['userOrderPriceConsidered']);
     });
 
 });
@@ -131,6 +137,13 @@ function updateRolesDataTable() {
                         return '<span data-attribute="botAcceptionAllowed">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
                     }
+                },
+                {
+                    "data": "consideredForPriceRange",
+                    "render": function (data) {
+                        return '<span data-attribute="consideredForPriceRange">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                            .concat('</span>');
+                    }
                 }
             ]
         });
@@ -158,9 +171,18 @@ function updateLaunchSettingsDataTable() {
                     "data": "currencyPairName"
                 },
                 {
-                    "data": "isEnabledForPair",
+                    "data": "enabledForPair",
                     "render": function (data) {
-                        return '<span class="text-1_5">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                        return '<span class="text-1_5">'.concat(data ? '<i class="fa fa-check green enable-for-pair"></i>' :
+                            '<i class="fa fa-close red enable-for-pair"></i>')
+                            .concat('</span>');
+                    }
+                },
+                {
+                    "data": "userOrderPriceConsidered",
+                    "render": function (data) {
+                        return '<span class="text-1_5">'.concat(data ? '<i class="fa fa-check green consider-user-orders"></i>' :
+                            '<i class="fa fa-close red consider-user-orders"></i>')
                             .concat('</span>');
                     }
                 },
@@ -210,7 +232,7 @@ function submitLaunchSettings() {
         data: formData,
         success: function () {
             $('#editLaunchSettingsModal').modal('hide');
-            updateLaunchSettingsDataTable();
+            launchSettingsDataTable.ajax.reload(null, false);
         }
     });
 }
@@ -245,7 +267,27 @@ function toggleBotLaunchStatus(currencyPairId, status) {
         contentType: false,
         processData: false,
         success: function () {
-            updateLaunchSettingsDataTable();
+            launchSettingsDataTable.ajax.reload(null, false);
+        }
+    });
+}
+
+function toggleConsiderUserOrders(settingsId, considerUserOrders) {
+    var formData = new FormData();
+    formData.append("launchSettingsId", settingsId);
+    formData.append("considerUserOrders", considerUserOrders);
+
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/autoTrading/bot/launchSettings/userOrders/toggle',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () {
+            launchSettingsDataTable.ajax.reload(null, false);
         }
     });
 }

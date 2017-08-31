@@ -137,6 +137,7 @@
                                             <tr>
                                                 <th><loc:message code="currency.pair"/></th>
                                                 <th><loc:message code="admin.autoTrading.bot.status"/> </th>
+                                                <th><loc:message code="admin.autoTrading.settings.considerRange"/> </th>
                                                 <th><loc:message code="admin.autoTrading.bot.launchInterval"/></th>
                                                 <th><loc:message code="admin.autoTrading.bot.createTimeout"/></th>
                                                 <th><loc:message code="admin.autoTrading.bot.quantityPerSeq"/></th>
@@ -171,6 +172,7 @@
                                 <th><loc:message code="admin.autoTrading.role"/> </th>
                                 <th><loc:message code="admin.autoTrading.sameRoleOnly"/></th>
                                 <th><loc:message code="admin.autoTrading.botAccept"/></th>
+                                <th><loc:message code="admin.autoTrading.considerRange"/></th>
                             </tr>
                             </thead>
                         </table>

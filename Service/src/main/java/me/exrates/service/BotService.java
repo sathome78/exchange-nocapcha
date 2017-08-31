@@ -39,4 +39,6 @@ public interface BotService {
     void updateLaunchSettings(BotLaunchSettings launchSettings);
 
     void updateTradingSettings(BotTradingSettingsShortDto tradingSettings);
+
+    void setConsiderUserOrders(int launchSettingsId, boolean considerUserOrders);
 }

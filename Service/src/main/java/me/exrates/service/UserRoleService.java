@@ -32,4 +32,6 @@ public interface UserRoleService {
     List<UserRoleSettings> retrieveSettingsForAllRoles();
 
     void updateSettingsForRole(UserRoleSettings settings);
+
+    List<UserRole> getRolesConsideredForPriceRangeComputation();
 }

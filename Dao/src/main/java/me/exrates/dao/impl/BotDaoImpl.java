@@ -2,9 +2,10 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.BotDao;
 import me.exrates.model.BotLaunchSettings;
-import me.exrates.model.BotTradingSettings;
+import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Repository
@@ -43,7 +45,8 @@ public class BotDaoImpl implements BotDao {
         launchSettings.setBotId(rs.getInt("bot_trader_id"));
         launchSettings.setCurrencyPairId(rs.getInt("currency_pair_id"));
         launchSettings.setCurrencyPairName(rs.getString("currency_pair_name"));
-        launchSettings.setIsEnabledForPair(rs.getBoolean("is_enabled"));
+        launchSettings.setEnabledForPair(rs.getBoolean("is_enabled"));
+        launchSettings.setUserOrderPriceConsidered(rs.getBoolean("consider_user_orders"));
         launchSettings.setLaunchIntervalInMinutes(rs.getInt("launch_interval_minutes"));
         launchSettings.setCreateTimeoutInSeconds(rs.getInt("create_timeout_seconds"));
         launchSettings.setQuantityPerSequence(rs.getInt("quantity_per_sequence"));
@@ -100,35 +103,38 @@ public class BotDaoImpl implements BotDao {
     }
 
     @Override
-    public Optional<BotTradingSettings> retrieveBotSettingsForCurrencyPairAndOrderType(int botId, int currencyPairId, int orderTypeId) {
-        String sql = "SELECT BTS.id AS trading_id, BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name," +
-                " BTS.order_type_id, BLCH.is_enabled, " +
-                "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, " +
-                "BTS.max_amount, BTS.min_amount, BTS.max_price, BTS.min_price, BTS.price_step, BTS.price_growth_direction " +
+    public Optional<BotTradingCalculator> retrieveBotCalculatorForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType) {
+        String sql = "SELECT BTS.id AS trading_id, BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, " +
+                "  BTS.order_type_id, BLCH.is_enabled, BLCH.consider_user_orders, " +
+                "  BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, " +
+                "  BTS.max_amount, BTS.min_amount, BTS.max_price, BTS.min_price, BTS.price_step, BTS.price_growth_direction, " +
+                "  MIN(EX.exrate) AS min_user_price, MAX(EX.exrate) AS max_user_price " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
-                "JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
-                "JOIN BOT_TRADING_SETTINGS BTS ON BLCH.id = BTS.bot_launch_settings_id " +
+                "  JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
+                "  JOIN BOT_TRADING_SETTINGS BTS ON BLCH.id = BTS.bot_launch_settings_id " +
+                "  JOIN EXORDERS EX ON EX.status_id = 2 AND EX.currency_pair_id = :currency_pair_id AND EX.operation_type_id = :operation_type_id " +
+                "  JOIN USER ON EX.user_id = USER.id AND USER.roleid IN (SELECT user_role_id FROM USER_ROLE_SETTINGS where considered_for_price_range = 1) " +
                 "WHERE BLCH.bot_trader_id = :bot_id AND BLCH.currency_pair_id = :currency_pair_id AND BTS.order_type_id = :order_type_id";
-        Map<String, Integer> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("bot_id", botId);
         params.put("currency_pair_id", currencyPairId);
-        params.put("order_type_id", orderTypeId);
+        params.put("order_type_id", orderType.getType());
+        params.put("operation_type_id", OperationType.valueOf(orderType.name()).getType());
 
         try {
             return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
                 BotLaunchSettings launchSettings = botLaunchSettingsRowMapper.mapRow(rs, rowNum);
-
-                BotTradingSettings tradingSettings = new BotTradingSettings();
-                tradingSettings.setId(rs.getInt("trading_id"));
-                tradingSettings.setBotLaunchSettings(launchSettings);
-                tradingSettings.setOrderType(OrderType.convert(rs.getInt("order_type_id")));
-                tradingSettings.setMaxAmount(rs.getBigDecimal("max_amount"));
-                tradingSettings.setMinAmount(rs.getBigDecimal("min_amount"));
-                tradingSettings.setMaxPrice(rs.getBigDecimal("max_price"));
-                tradingSettings.setMinPrice(rs.getBigDecimal("min_price"));
-                tradingSettings.setPriceStep(rs.getBigDecimal("price_step"));
-                tradingSettings.setDirection(PriceGrowthDirection.valueOf(rs.getString("price_growth_direction")));
-                return tradingSettings;
+                Integer id = rs.getInt("trading_id");
+                BigDecimal maxAmount = rs.getBigDecimal("max_amount");
+                BigDecimal minAmount = rs.getBigDecimal("min_amount");
+                BigDecimal maxPrice = rs.getBigDecimal("max_price");
+                BigDecimal minPrice = rs.getBigDecimal("min_price");
+                BigDecimal maxUserPrice = rs.getBigDecimal("max_user_price");
+                BigDecimal minUserPrice = rs.getBigDecimal("min_user_price");
+                BigDecimal priceStep = rs.getBigDecimal("price_step");
+                PriceGrowthDirection direction = PriceGrowthDirection.valueOf(rs.getString("price_growth_direction"));
+                return new BotTradingCalculator(id, launchSettings, orderType, minAmount, maxAmount, minPrice, maxPrice,
+                        minUserPrice, maxUserPrice, priceStep, direction);
             }));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -138,7 +144,7 @@ public class BotDaoImpl implements BotDao {
     @Override
     public BotLaunchSettings retrieveBotLaunchSettingsForCurrencyPair(int botId, int currencyPairId) {
         String sql = "SELECT BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, BLCH.is_enabled, " +
-                "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence " +
+                "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, BLCH.consider_user_orders " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
                 "JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
                 "WHERE BLCH.bot_trader_id = :bot_id AND BLCH.currency_pair_id = :currency_pair_id ";
@@ -175,7 +181,7 @@ public class BotDaoImpl implements BotDao {
         String enabledClause = isEnabled == null ? "" : " AND BLCH.is_enabled = :is_enabled ";
 
         String sql = "SELECT BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, BLCH.is_enabled, " +
-                "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence " +
+                "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, BLCH.consider_user_orders " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
                 "JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
                 "WHERE BLCH.bot_trader_id = :bot_id " + enabledClause;
@@ -242,5 +248,16 @@ public class BotDaoImpl implements BotDao {
         params.put("enabled", newStatus);
         namedParameterJdbcTemplate.update(sql, params);
     }
+
+    @Override
+    public void setConsiderUserOrders(int launchSettingsId, boolean considerUserOrders) {
+        String sql = "UPDATE BOT_LAUNCH_SETTINGS SET consider_user_orders = :consider_user_orders WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", launchSettingsId);
+        params.put("consider_user_orders", considerUserOrders);
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+
 
 }
