@@ -74,4 +74,6 @@ public interface WalletDao {
   void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
+
+    boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
 }

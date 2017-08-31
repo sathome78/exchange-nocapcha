@@ -878,4 +878,16 @@ public class WalletDaoImpl implements WalletDao {
         return result;
     }
 
+    @Override
+    public boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId) {
+      String sql = "SELECT user_id FROM USER_ADMIN_AUTHORITY_ROLE_APPLICATION " +
+              "WHERE admin_authority_id = 8 AND user_id = :admin_id AND applied_to_role_id = " +
+              "(SELECT roleid FROM USER where id = :user_holder_id) ";
+      Map<String, Integer> params = new HashMap<String, Integer>() {{
+        put("admin_id", adminId);
+        put("user_holder_id", walletHolderUserId);
+      }};
+      return jdbcTemplate.queryForList(sql, params, Integer.class).size() > 0;
+    }
+
 }

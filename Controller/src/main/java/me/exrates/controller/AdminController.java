@@ -70,12 +70,10 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static me.exrates.model.enums.BusinessUserRoleEnum.ADMIN;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
-import static me.exrates.model.enums.UserRole.FIN_OPERATOR;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
@@ -445,7 +443,7 @@ public class AdminController {
   }
 
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
-  public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request) {
+  public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request, Principal principal) {
 
     ModelAndView model = new ModelAndView();
 
@@ -484,6 +482,7 @@ public class AdminController {
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("enable_2fa", userService.getUse2Fa(user.getEmail()));
+    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
     return model;
   }
 
@@ -994,9 +993,9 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
-                                                  @RequestParam BigDecimal amount) {
+                                                  @RequestParam BigDecimal amount, Principal principal) {
     LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
-    walletService.manualBalanceChange(userId, currencyId, amount);
+    walletService.manualBalanceChange(userId, currencyId, amount, principal.getName());
     return new ResponseEntity<>(HttpStatus.OK);
 
   }

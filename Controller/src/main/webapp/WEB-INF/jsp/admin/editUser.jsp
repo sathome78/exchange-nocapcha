@@ -461,7 +461,7 @@
               </thead>
             </table>
 
-            <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
+            <sec:authorize access="(hasAuthority('${admin_manualBalanceChange}') && ${manualChangeAllowed})">
               <hr/>
               <div class="text-center"><h4><loc:message code="admin.manualBalanceChange.title"/></h4></div>
               <div class="col-md-12">
