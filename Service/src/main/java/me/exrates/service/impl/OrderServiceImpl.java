@@ -751,10 +751,10 @@ public class OrderServiceImpl implements OrderService {
       if (!updateOrder(exOrder)) {
         throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
       }
-      if (sendNotification) {
+      /*if (sendNotification) {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
             "acceptorder.message", new Object[]{exOrder.getId()});
-      }
+      }*/
 
       stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process
 */
