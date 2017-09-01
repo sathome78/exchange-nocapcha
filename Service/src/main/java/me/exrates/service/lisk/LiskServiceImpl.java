@@ -160,7 +160,7 @@ public class LiskServiceImpl implements LiskService {
 
 
     @Override
-    @Scheduled(initialDelay = 1000, fixedDelay = 2 * 60 * 1000)
+    @Scheduled(initialDelay = 1000, fixedDelay = 20 * 60 * 1000)
     public void processTransactionsForKnownAddresses() {
         log.debug("Start checking Lisk transactions");
         Currency currency = currencyService.findByName(currencyName);
