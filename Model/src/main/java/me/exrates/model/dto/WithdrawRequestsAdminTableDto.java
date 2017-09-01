@@ -49,6 +49,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private TransactionSourceType sourceType = WITHDRAW;
   private InvoiceOperationPermission invoiceOperationPermission;
   private Boolean isEndStatus;
+  private Boolean authorizedUserIsHolder;
   private List<Map<String, Object>> buttons;
 
   public WithdrawRequestsAdminTableDto(
