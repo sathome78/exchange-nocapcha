@@ -250,13 +250,17 @@ public class WithdrawServiceImpl implements WithdrawService {
     DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
     output.setData(result.getData().stream()
         .map(e -> new WithdrawRequestsAdminTableDto(e, withdrawRequestDao.getAdditionalDataForId(e.getId())))
-        .peek(e -> e.setButtons(
-            inputOutputService.generateAndGetButtonsSet(
-                e.getStatus(),
-                e.getInvoiceOperationPermission(),
-                authorizedUserId.equals(e.getAdminHolderId()),
-                locale)
-        ))
+        .peek(e -> {
+          boolean authorizedUserIsHolder = authorizedUserId.equals(e.getAdminHolderId());
+          e.setButtons(
+                  inputOutputService.generateAndGetButtonsSet(
+                          e.getStatus(),
+                          e.getInvoiceOperationPermission(),
+                          authorizedUserIsHolder,
+                          locale)
+          );
+          e.setAuthorizedUserIsHolder(authorizedUserIsHolder);
+        })
         .collect(Collectors.toList())
     );
     output.setRecordsTotal(result.getTotal());
