@@ -30,7 +30,12 @@ public interface RefillRequestDao {
           Integer currencyId,
           String hash);
 
-  List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusList);
+    Optional<RefillRequestFlatDto> findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(
+            String address, Integer merchantId,
+            Integer currencyId,
+            String hash);
+
+    List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusList);
 
   List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusIdList);
 
@@ -96,4 +101,10 @@ public interface RefillRequestDao {
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
+
+    List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+
+    int getTxOffsetForAddress(String address);
+
+    void updateTxOffsetForAddress(String address, Integer offset);
 }
