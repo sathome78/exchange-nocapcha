@@ -34,10 +34,6 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='XMR/BTC';
 
-ALTER TABLE REFILL_REQUEST_ADDRESS
-CHANGE COLUMN `address` `address` VARCHAR(128) NOT NULL ;
-
-
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
 VALUES ((SELECT id from MERCHANT WHERE name='Monero'), (select id from CURRENCY where name='XMR'), 'bchWallet.title');
 
