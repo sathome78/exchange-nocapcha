@@ -174,6 +174,8 @@ public class MoneroServiceImpl implements MoneroService {
                     try {
                         log.info(transaction.toString());
                         String integratedAddress = mapAddresses.get(transaction.getPaymentId());
+                        log.info("integratedAddress: " + integratedAddress);
+                        log.info(refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(integratedAddress,merchant.getId(),currency.getId(),transaction.getHash()));
                         if ((transaction.getType().equals("INCOMING")) || !transaction.getUnlockTime().equals(0)
                                 || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(integratedAddress,merchant.getId(),currency.getId()
                                 ,transaction.getHash()).isPresent() || (!ADDRESSES.contains(integratedAddress))){
