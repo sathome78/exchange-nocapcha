@@ -162,7 +162,9 @@ public class MoneroServiceImpl implements MoneroService {
             HashMap<String,String> mapAddresses = new HashMap<>();
             Set<String> payments = new HashSet<>();
 
+            log.info(ADDRESSES.toString());
             for (String address : ADDRESSES){
+                log.info(address.toString());
                 String paymentId = wallet.splitIntegratedAddress(address).getPaymentId();
                 mapAddresses.put(paymentId, address);
             }
