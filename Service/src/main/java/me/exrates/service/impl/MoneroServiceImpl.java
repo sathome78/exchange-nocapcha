@@ -180,7 +180,7 @@ public class MoneroServiceImpl implements MoneroService {
                             continue;
                         }
                         int confirmations = wallet.getHeight() - transaction.getHeight();
-                        log.info(confirmations);
+                        log.info("confirmations:" + confirmations);
                         if (confirmations < 10){
                             continue;
                         }
