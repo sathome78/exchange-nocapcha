@@ -52,14 +52,20 @@ public class WsContorller {
 
     @SubscribeMapping("trades_charts.{currencyPairId}")
     public String subscribeAllTradesAndChart(@DestinationVariable Integer currencyPairId) throws Exception {
-        log.debug("pair " + currencyPairId);
+        log.debug("allTrades " + currencyPairId);
         return orderService.getTradesForRefresh(currencyPairId, null, RefreshObjectsEnum.ALL_TRADES);
     }
 
-    @SubscribeMapping("myTrades.{currencyPairId}")
+    /*@SubscribeMapping("myTrades.{currencyPairId}")
     public String subscribeMyOrders(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
         log.debug("pair " + currencyPairId);
         return orderService.getTradesForRefresh(currencyPairId, principal.getName(), RefreshObjectsEnum.MY_TRADES);
+    }*/
+
+    @SubscribeMapping("trade_orders.{currencyPairId}")
+    public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
+        log.debug("pair " + currencyPairId);
+        return initOrders(currencyPairId, null);
     }
 
     @SubscribeMapping("trade_orders.f.{currencyPairId}")

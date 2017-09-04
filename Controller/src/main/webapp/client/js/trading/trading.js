@@ -177,7 +177,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.getAndShowAcceptedOrdersHistory = function (refreshIfNeeded, callback) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+        if (callback) {
+            callback();
+        }
+      /*  if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForStatistics);
             timeOutIdForStatistics = setTimeout(function () {
                 that.updateAndShowStatistics(true);
@@ -213,7 +216,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                     that.updateAndShowStatistics(true);
                 }, statisticsRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.getAndShowAcceptedOrdersHistory_myDeals = function (refreshIfNeeded) {
@@ -556,7 +559,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             var $tableId = $('#' + $(this).data('tableid'));
             $('.orders-history-table').addClass('hidden');
             $tableId.removeClass('hidden');
-            that.getAndShowAcceptedOrdersHistory();
+            /*that.getAndShowAcceptedOrdersHistory(); move on sockets*/
             that.getAndShowAcceptedOrdersHistory_myDeals();
         });
         /**/

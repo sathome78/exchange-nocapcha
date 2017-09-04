@@ -11,6 +11,7 @@ import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.OrdersEventsHandler;
+import me.exrates.service.vo.TradesEventsHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -38,23 +39,8 @@ public class OrdersEventHandleService  {
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
 
-    private static final Semaphore SEMAPHORE = new Semaphore(1, true);
+    private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
 
-    /*@Async*/
-    private void onOrdersEvent(Integer pairId, OperationType operationType) {
-        Map<Integer, OrdersEventsHandler> mapForWork;
-        if (operationType.equals(OperationType.BUY)) {
-            mapForWork = mapBuy;
-        } else if (operationType.equals(OperationType.SELL)) {
-            mapForWork = mapSell;
-        } else {
-            log.error("no such map");
-            return;
-        }
-        OrdersEventsHandler handler = mapForWork
-                .computeIfAbsent(pairId, k -> OrdersEventsHandler.init(pairId, operationType));
-        handler.onOrderEvent();
-    }
 
     @Async
     @TransactionalEventListener
@@ -73,29 +59,28 @@ public class OrdersEventHandleService  {
     @TransactionalEventListener
     void handleOrderEventAsync(AcceptOrderEvent event) {
         log.debug("new thr accept {} ", Thread.currentThread().getName());
-        /*sendMyTrades((ExOrder)event.getSource());*/
-        try {
-            sendAllTrades((ExOrder)event.getSource());
-        } catch (InterruptedException e) {
-            log.error("erro sending all Trades {}", e);
-        }
+        handleAllTrades((ExOrder)event.getSource());
     }
 
-    private void sendAllTrades(ExOrder exOrder) throws InterruptedException {
-        if (SEMAPHORE.tryAcquire()) {
-            Thread.sleep(1400);
-            SEMAPHORE.release();
-            String message = orderService.getTradesForRefresh(exOrder.getCurrencyPairId(), null, RefreshObjectsEnum.ALL_TRADES);
-            stompMessenger.sendAllTradesToUser(exOrder.getCurrencyPairId(), message);
+    private void onOrdersEvent(Integer pairId, OperationType operationType) {
+        Map<Integer, OrdersEventsHandler> mapForWork;
+        if (operationType.equals(OperationType.BUY)) {
+            mapForWork = mapBuy;
+        } else if (operationType.equals(OperationType.SELL)) {
+            mapForWork = mapSell;
+        } else {
+            log.error("no such map");
+            return;
         }
+        OrdersEventsHandler handler = mapForWork
+                .computeIfAbsent(pairId, k -> OrdersEventsHandler.init(pairId, operationType));
+        handler.onOrderEvent();
     }
-/*
-    private void sendMyTrades(ExOrder exOrder) throws InterruptedException {
-        Thread.sleep(1200);
-        *//*get orders*//*
-        String message = "";
-        stompMessenger.sendMyTradesToUser(userService.getEmailById());
-    }*/
 
+    private void handleAllTrades(ExOrder exOrder) {
+        TradesEventsHandler handler = mapTrades
+                .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
+        handler.onAcceptOrderEvent();
+    }
 
 }

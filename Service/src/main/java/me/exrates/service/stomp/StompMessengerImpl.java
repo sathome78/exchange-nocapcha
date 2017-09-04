@@ -2,6 +2,7 @@ package me.exrates.service.stomp;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -66,14 +67,16 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
    @Override
-   public void sendMyTradesToUser(String userEmail, Integer currencyPair, String message) {
+   public void sendMyTradesToUser(String userEmail, Integer currencyPair) {
        String destination = "/app/topic.myTrades.".concat(currencyPair.toString());
+       String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
        sendMessageToDestinationAndUser(userEmail, destination, message);
    }
 
     @Override
-    public void sendAllTradesToUser(Integer currencyPair, String message) {
+    public void sendAllTradesToUser(Integer currencyPair) {
         String destination = "/app/topic.trades_charts.".concat(currencyPair.toString());
+        String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination(destination, message);
     }
 

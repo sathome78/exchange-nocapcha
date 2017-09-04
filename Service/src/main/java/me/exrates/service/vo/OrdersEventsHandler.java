@@ -15,6 +15,7 @@ import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,12 +35,13 @@ public class OrdersEventsHandler {
     private OperationType operationType;
 
     private AtomicInteger eventsCount = new AtomicInteger(0);
-    private AtomicBoolean started = new AtomicBoolean(false);
+
+    private static final Semaphore SEMAPHORE = new Semaphore(1, true);
 
     private volatile float loadFactor = 1;
-    private final long refreshTime = 1300; /*in millis*/
-    private static final long MIN_REFRESH_TIME = 700;
-    private static final long MAX_REFRESH_TIME = 1800;
+    private final long refreshTime = 900; /*in millis*/
+    private static final long MIN_REFRESH_TIME = 600;
+    private static final long MAX_REFRESH_TIME = 1000;
 
     private Timer timer;
 
@@ -59,18 +61,16 @@ public class OrdersEventsHandler {
         return new OrdersEventsHandler(pairId, operationType);
     }
 
-    @Synchronized
     public void onOrderEvent() {
         eventsCount.incrementAndGet();
         calculateLoadFactor();
-        if (!started.get()) {
-            started.set(true);
+        if (SEMAPHORE.tryAcquire()) {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     lastEventsCountBeforeSend = eventsCount.get();
                     eventsCount.set(0);
-                    started.set(false);
+                    SEMAPHORE.release();
                     stompMessenger.sendRefreshTradeOrdersMessage(pairId, operationType);
                 }
             }, getProperlyRefreshTime((long) (loadFactor * refreshTime)));

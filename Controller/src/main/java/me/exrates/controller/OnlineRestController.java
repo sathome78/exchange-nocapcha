@@ -295,6 +295,7 @@ public class OnlineRestController {
     }
     final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
     ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
+    L
         /**/
     ArrayList<List> arrayListMain = new ArrayList<>();
         /*in first row return backDealInterval - to synchronize period menu with it*/
