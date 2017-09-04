@@ -235,16 +235,7 @@ public class OrderServiceImpl implements OrderService {
     if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
       errors.put("exrate_" + errors.size(), "order.fillfield");
     }
-    if (orderCreateDto.getAmount() != null) {
-      if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
-        errors.put("amount_" + errors.size(), "order.maxvalue");
-        errors.put("amount_" + errors.size(), "order.valuerange");
-      }
-      if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
-        errors.put("amount_" + errors.size(), "order.minvalue");
-        errors.put("amount_" + errors.size(), "order.valuerange");
-      }
-    }
+
     CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
             orderCreateDto.getOperationType());
     if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
@@ -261,6 +252,26 @@ public class OrderServiceImpl implements OrderService {
           errors.put(key, "order.maxrate");
           errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
         }
+      }
+    }
+    if (orderCreateDto.getAmount() != null) {
+      if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
+        String key1 = "amount_" + errors.size();
+        errors.put(key1, "order.maxvalue");
+        errorParams.put(key1, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
+        String key2 = "amount_" + errors.size();
+        errors.put(key2, "order.valuerange");
+        errorParams.put(key2, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false),
+                BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
+      }
+      if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMinAmount()) < 0) {
+        String key1 = "amount_" + errors.size();
+        errors.put(key1, "order.minvalue");
+        errorParams.put(key1, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false)});
+        String key2 = "amount_" + errors.size();
+        errors.put(key2, "order.valuerange");
+        errorParams.put(key2, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false),
+                BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
       }
     }
     if (orderCreateDto.getExchangeRate() != null) {
