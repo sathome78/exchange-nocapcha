@@ -6,6 +6,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -49,10 +50,16 @@ public class WsContorller {
     private UserService userService;
 
 
-    @SubscribeMapping("trade_orders.{currencyPairId}")
-    public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
+    @SubscribeMapping("trades_charts.{currencyPairId}")
+    public String subscribeAllTradesAndChart(@DestinationVariable Integer currencyPairId) throws Exception {
         log.debug("pair " + currencyPairId);
-        return initOrders(currencyPairId, null);
+        return orderService.getTradesForRefresh(currencyPairId, null, RefreshObjectsEnum.ALL_TRADES);
+    }
+
+    @SubscribeMapping("myTrades.{currencyPairId}")
+    public String subscribeMyOrders(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
+        log.debug("pair " + currencyPairId);
+        return orderService.getTradesForRefresh(currencyPairId, principal.getName(), RefreshObjectsEnum.MY_TRADES);
     }
 
     @SubscribeMapping("trade_orders.f.{currencyPairId}")

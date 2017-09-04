@@ -26,7 +26,6 @@ import me.exrates.service.*;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -993,6 +992,22 @@ public class OrderServiceImpl implements OrderService {
     return result;
   }
 
+  @Transactional
+  @Override
+  public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriodEx(String email,
+                                                                   BackDealInterval backDealInterval,
+                                                                   Integer limit, CurrencyPair currencyPair, Locale locale) {
+    List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
+    result = result.stream()
+              .map(OrderAcceptedHistoryDto::new)
+              .collect(toList());
+      result.forEach(e -> {
+        e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
+        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+      });
+    return result;
+  }
+
   @Transactional(readOnly = true)
   @Override
   public OrderCommissionsDto getCommissionForOrder() {
@@ -1363,6 +1378,23 @@ public class OrderServiceImpl implements OrderService {
     }
     try {
       return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name(), pairId));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
+
+
+  @Override
+  public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(email,
+            new BackDealInterval("24 HOUR"),
+            100,
+            cp,
+            Locale.ENGLISH);
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId));
     } catch (JsonProcessingException e) {
       log.error(e);
       return null;

@@ -44,7 +44,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
-       /* webSocket.send("trading:changeCurrencyPair");*/
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
@@ -97,6 +96,35 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             blink($('#dashboard-orders-sell-table'));
         }
     };
+
+    this.updateAndShowAllTrades = function (data) {
+        var $ordersHistoryTable = $('#orders-history-table').find('tbody');
+        var $tmpl = $('#orders-history-table_row').html().replace(/@/g, '%');
+        clearTable($ordersHistoryTable);
+        data.forEach(function (e) {
+            $ordersHistoryTable.append(tmpl($tmpl, e));
+        });
+        blink($ordersHistoryTable);
+    };
+
+    this.updateAndShowMyTrades = function (data) {
+        var $ordersHistoryTable = $('#orders-history-table__my-deals').find('tbody');
+        var $tmpl = $('#orders-history-table_row').html().replace(/@/g, '%');
+        clearTable($ordersHistoryTable);
+        data.forEach(function (e) {
+            $ordersHistoryTable.append(tmpl($tmpl, e));
+        });
+        blink($ordersHistoryTable);
+    };
+
+    this.updateAndShowChart = function (data) {
+      /*todo*/
+    };
+
+    this.updateAndShowStatistic = function (data) {
+       /*todo*/
+    };
+
 
     this.updateAndShowAll = function (refreshIfNeeded) {
         if (showLog) {

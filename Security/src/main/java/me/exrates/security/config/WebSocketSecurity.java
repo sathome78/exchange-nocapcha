@@ -29,6 +29,8 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
         /*-----------------------------------------------------------------------------------------------------------*/
         messages.nullDestMatcher().permitAll()
                 .simpSubscribeDestMatchers("/app/topic.trade_orders.*").permitAll()
+                .simpSubscribeDestMatchers("/app/topic.trades_charts.*").permitAll()
+                .simpSubscribeDestMatchers("/app/topic.myTrades.*").authenticated()
                 .simpSubscribeDestMatchers("/app/topic.trade_orders.f.*").hasAnyAuthority(roles)
                 .anyMessage().denyAll();
 

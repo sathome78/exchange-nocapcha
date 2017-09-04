@@ -12,10 +12,7 @@ import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderActionEnum;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
@@ -229,6 +226,11 @@ public interface OrderService {
    */
   List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData, String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
+  @Transactional
+  List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriodEx(String email,
+                                                            BackDealInterval backDealInterval,
+                                                            Integer limit, CurrencyPair currencyPair, Locale locale);
+
   /**
    * Returns SELL and BUY commissions for orders
    *
@@ -300,6 +302,8 @@ public interface OrderService {
   List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale);
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
+
+    String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 

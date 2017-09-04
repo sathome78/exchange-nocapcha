@@ -51,6 +51,7 @@ public class StellarServiceImpl implements StellarService {
     private @Value("${stellar.horizon.url}")String SEVER_URL;
     private @Value("${stellar.account.name}")String ACCOUNT_NAME;
     private @Value("${stellar.account.seed}")String ACCOUNT_SECRET;
+
     @Autowired
     private MerchantService merchantService;
     @Autowired

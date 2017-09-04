@@ -65,6 +65,18 @@ public class StompMessengerImpl implements StompMessenger{
       }
    }
 
+   @Override
+   public void sendMyTradesToUser(String userEmail, Integer currencyPair, String message) {
+       String destination = "/app/topic.myTrades.".concat(currencyPair.toString());
+       sendMessageToDestinationAndUser(userEmail, destination, message);
+   }
+
+    @Override
+    public void sendAllTradesToUser(Integer currencyPair, String message) {
+        String destination = "/app/topic.trades_charts.".concat(currencyPair.toString());
+        sendMessageToDestination(destination, message);
+    }
+
    private Set<SimpSubscription> findSubscribersByDestination(String destination) {
        return registry.findSubscriptions(new SimpSubscriptionMatcher() {
            @Override
