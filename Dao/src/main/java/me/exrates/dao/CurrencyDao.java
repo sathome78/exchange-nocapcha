@@ -43,9 +43,7 @@ public interface CurrencyDao {
 
   CurrencyPair findCurrencyPairById(int currencyPairId);
 
-    CurrencyPair findCurrencyPairByName(String currencyPairName);
-
-    List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
+  List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
 
   List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
 
@@ -67,4 +65,6 @@ public interface CurrencyDao {
   List<Currency> findAllCurrenciesWithHidden();
 
   MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
+
+  CurrencyPair findCurrencyPairByName(String pairName);
 }

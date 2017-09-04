@@ -13,11 +13,82 @@ var $currentPageMenuItem;
 var $currentSubMenuItem;
 var notifications;
 
+var ordersSubscription;
+var connectedPS = false;
+var currentCurrencyPairId;
+var subscribedCurrencyPairId;
+
+var socket_url = '/public_socket';
+var socket;
+var client;
+var f = false;
+
+
+var onConnectFail = function () {
+    connectedPS = false;
+    setTimeout(connectAndReconnect, 5000);
+};
+
+var onConnect = function() {
+    connectedPS = true;
+    subscribeTradeOrders();
+};
+
+function connectAndReconnect() {
+    socket = new SockJS(socket_url);
+    client = Stomp.over(socket);
+    client.debug = null;
+    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    client.connect(headers, onConnect, onConnectFail);
+}
+
+
+function subscribeTradeOrders() {
+   /* console.log('subscribe to ' + currentCurrencyPairId);*/
+    if (subscribedCurrencyPairId != currentCurrencyPairId && ordersSubscription != undefined) {
+        ordersSubscription.unsubscribe();
+    }
+    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var fn = f ? 'f.' : '';
+    var tradeOrdersSubscr = '/app/topic.trade_orders.' + fn + currentCurrencyPairId;
+    ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
+        subscribedCurrencyPairId = currentCurrencyPairId;
+        var messageBody = JSON.parse(message.body);
+        if (messageBody instanceof Array) {
+            messageBody.forEach(function(object){
+                initTradeOrders(object);
+            });
+        } else {
+            initTradeOrders(message.body);
+        }
+    }, headers);
+}
+
+function initTradeOrders(object) {
+    object = JSON.parse(object);
+    if (object.currencyPairId != subscribedCurrencyPairId) {
+        return
+    }
+    switch (object.type){
+        case "BUY" : {
+            trading.updateAndShowBuyOrders(object.data, true);
+            break;
+        }
+        case "SELL" : {
+            trading.updateAndShowSellOrders(object.data, true);
+            break;
+        }
+    }
+}
+
+
+
+
 $(function dashdoardInit() {
+    var sessionId = $('#session').text();
+    connectAndReconnect();
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
-
-        console.log('started');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -106,7 +177,7 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-        var sessionId = $('#login-qr').text().trim();
+
         $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
@@ -154,8 +225,7 @@ $(function dashdoardInit() {
             myStatements = new MyStatementsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
             orders = new OrdersClass(data.currencyPair.name);
-            showSubPage($('#startup-subPage-id').text().trim())
-
+            showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
 
@@ -180,7 +250,6 @@ $(function dashdoardInit() {
         /*2fa notify*/
 
         var notify2fa = $("#noty2fa").val() == 'true';
-        console.log('2fa here ' + notify2fa );
         if (notify2fa) {
           $2faModal.modal({
               backdrop: 'static',
@@ -230,7 +299,6 @@ function showSubPage(subPageId) {
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
-    console.log("show cur params");
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
@@ -246,6 +314,12 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyBaseName').text(data.currencyPair.currency1.name);
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
+            currentCurrencyPairId = data.currencyPair.id;
+         /*   console.log('connected= ' + connectedPS + ' subscribedID=' + subscribedCurrencyPairId + ' currentId=' + currentCurrencyPairId);
+         */   if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableFilter)) {
+                f = enableFilter;
+                subscribeTradeOrders()
+            }
             if (callback) {
                 callback(data);
             }

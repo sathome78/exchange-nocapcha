@@ -15,6 +15,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
@@ -246,6 +247,12 @@ public interface OrderService {
    */
   List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
+    @Transactional(readOnly = true)
+    List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole);
+
+  @Transactional(readOnly = true)
+  List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole);
+
   /**
    * Returns list of Sell orders of status open, exclude the orders of current user
    *
@@ -295,4 +302,7 @@ public interface OrderService {
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+
+  String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
+
 }

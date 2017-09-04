@@ -16,9 +16,9 @@ function connect(chatLang) {
                 $('#chat').find('.chat_message:last').addClass('right-to-left')
             }
         }
-
     };
 }
+
 
 function toJson(a) {
     var o = {};

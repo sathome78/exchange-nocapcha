@@ -44,6 +44,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
+       /* webSocket.send("trading:changeCurrencyPair");*/
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
@@ -64,11 +65,37 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.updateAndShowOrders = function (refreshIfNeeded) {
-        if (showLog) {
+       /* if (showLog) {
             console.log("orders");
         }
         that.getAndShowSellOrders(refreshIfNeeded);
-        that.getAndShowBuyOrders(refreshIfNeeded);
+        that.getAndShowBuyOrders(refreshIfNeeded);*/
+    };
+
+    this.updateAndShowBuyOrders = function (orders, refreshIfNeeded) {
+        console.log("socketBuyOrders");
+        if (refreshIfNeeded) {
+            var $ordersBuyTable = $('#dashboard-orders-buy-table').find('tbody');
+            var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
+            clearTable($ordersBuyTable);
+            orders.forEach(function (e) {
+                $ordersBuyTable.append(tmpl($tmpl, e));
+            });
+            blink($('#dashboard-orders-buy-table'));
+        }
+    };
+
+    this.updateAndShowSellOrders = function (orders, refreshIfNeeded) {
+        console.log("socketSellOrders");
+        if (refreshIfNeeded) {
+            var $ordersSellTable = $('#dashboard-orders-sell-table').find('tbody');
+            var $tmpl = $('#dashboard-orders-sell-table_row').html().replace(/@/g, '%');
+            clearTable($ordersSellTable );
+            orders.forEach(function (e) {
+                $ordersSellTable.append(tmpl($tmpl, e));
+            });
+            blink($('#dashboard-orders-sell-table'));
+        }
     };
 
     this.updateAndShowAll = function (refreshIfNeeded) {
@@ -199,7 +226,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.getAndShowSellOrders = function (refreshIfNeeded) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+        /*if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForOrders);
             timeOutIdForOrders = setTimeout(function () {
                 that.updateAndShowOrders(true);
@@ -232,11 +259,11 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                     that.updateAndShowOrders(true);
                 }, ordersRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.getAndShowBuyOrders = function (refreshIfNeeded) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+      /*  if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForOrders);
             timeOutIdForOrders = setTimeout(function () {
                 that.updateAndShowOrders(true);
@@ -269,7 +296,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                     that.updateAndShowOrders(true);
                 }, ordersRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.fillOrderCreationFormFields = function () {

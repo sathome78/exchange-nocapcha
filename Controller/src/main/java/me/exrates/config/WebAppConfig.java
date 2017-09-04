@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.aspect.LoggingAspect;
@@ -40,6 +41,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -65,9 +67,13 @@ import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TreeSet;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static org.springframework.context.annotation.EnableLoadTimeWeaving.AspectJWeaving.ENABLED;
 
+@EnableAsync
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
@@ -439,6 +445,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public Scheduler botOrderCreationScheduler(ApplicationContext applicationContext) {
         return schedulerFactoryBean(applicationContext).getScheduler();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
 }

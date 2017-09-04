@@ -1,5 +1,7 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
@@ -21,6 +23,10 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.CancelOrderEvent;
+import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.OrderEvent;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -31,6 +37,7 @@ import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,13 +45,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.*;
 
@@ -100,9 +106,12 @@ public class OrderServiceImpl implements OrderService {
   RatesHolder ratesHolder;
   @Autowired
   private UserRoleService userRoleService;
-
   @Autowired
   private BotService botService;
+  @Autowired
+  private ObjectMapper objectMapper;
+  @Autowired
+  private ApplicationEventPublisher eventPublisher;
 
   @Transactional
   @Override
@@ -375,6 +384,8 @@ public class OrderServiceImpl implements OrderService {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
+
+      eventPublisher.publishEvent(new CreateOrderEvent(new ExOrder(orderCreateDto)));
       return createdOrderId;
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
@@ -756,8 +767,9 @@ public class OrderServiceImpl implements OrderService {
             "acceptorder.message", new Object[]{exOrder.getId()});
       }*/
 
-      stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process
-*/
+    /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
+      /*action for refresh orders*/
+      eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
     } catch (Exception e) {
       logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
       throw e;
@@ -832,7 +844,12 @@ public class OrderServiceImpl implements OrderService {
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
-      return setStatus(exOrder.getId(), OrderStatus.CANCELLED);
+
+      boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
+      if (result) {
+        eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
+      }
+      return result;
     } catch (Exception e) {
       logger.error("Error while cancelling order " + exOrder.getId() + " , " + e.getLocalizedMessage());
       throw e;
@@ -1016,6 +1033,48 @@ public class OrderServiceImpl implements OrderService {
         e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
       });
     }
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
+    result = new ArrayList<>(result);
+    result = result.stream()
+              .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+                @Override
+                public int compare(OrderListDto o1, OrderListDto o2) {
+                  return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
+                }
+              })
+              .collect(toList());
+      result.forEach(e -> {
+        e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
+        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+        e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
+      });
+    return result;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
+    List<OrderListDto> result = aggregateOrders(orderDao.getOrdersSellForCurrencyPair(currencyPair, userRole), OperationType.SELL, true);
+    result = new ArrayList<>(result);
+    result = result.stream()
+            .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
+              @Override
+              public int compare(OrderListDto o1, OrderListDto o2) {
+                return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
+              }
+            })
+            .collect(toList());
+    result.forEach(e -> {
+      e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
+      e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+      e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
+    });
     return result;
   }
 
@@ -1244,6 +1303,9 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
+    if (currentOrderStatus.equals(OrderStatus.OPENED)) {
+        eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
+    }
     return processedRows;
   }
 
@@ -1282,6 +1344,29 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
+  }
+
+  @Override
+  public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    List<OrderListDto> dtos;
+    switch (operationType) {
+      case BUY: {
+        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, null);
+        break;
+      }
+      case SELL: {
+        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, null);
+        break;
+      }
+      default: return null;
+    }
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name(), pairId));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
   }
 
   @Override
