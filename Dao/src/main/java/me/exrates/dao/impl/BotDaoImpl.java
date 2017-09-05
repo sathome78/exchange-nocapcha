@@ -35,7 +35,7 @@ public class BotDaoImpl implements BotDao {
         botTrader.setId(rs.getInt("id"));
         botTrader.setUserId(rs.getInt("user_id"));
         botTrader.setEnabled(rs.getBoolean("is_enabled"));
-        botTrader.setAcceptDelayInSeconds(rs.getInt("order_accept_timeout"));
+        botTrader.setAcceptDelayInMillis(rs.getInt("order_accept_timeout"));
         return botTrader;
     };
 
@@ -98,7 +98,7 @@ public class BotDaoImpl implements BotDao {
         Map<String, Object> params = new HashMap<>();
         params.put("id", botTrader.getId());
         params.put("is_enabled", botTrader.isEnabled());
-        params.put("accept_timeout", botTrader.getAcceptDelayInSeconds());
+        params.put("accept_timeout", botTrader.getAcceptDelayInMillis());
         namedParameterJdbcTemplate.update(sql, params);
     }
 

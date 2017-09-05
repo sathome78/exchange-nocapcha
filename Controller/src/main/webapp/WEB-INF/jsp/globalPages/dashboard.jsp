@@ -34,6 +34,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init.js'/>"></script>
@@ -62,7 +63,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
-    <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>
+   <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
     <!-- Amcharts Charts ... -->
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
@@ -119,6 +120,8 @@
 <%@include file="../fragments/modal/poll_invite_modal.jsp" %>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="session">${sessionId}</span>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
 </body>
 </html>

@@ -224,7 +224,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
             "(select name from CURRENCY where id = currency2_id) as currency2_name " +
             " FROM CURRENCY_PAIR WHERE name = :currencyPairName";
     Map<String, String> namedParameters = new HashMap<>();
-    namedParameters.put("currencyPairId", String.valueOf(currencyPairName));
+    namedParameters.put("currencyPairName", String.valueOf(currencyPairName));
     return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
   }
 

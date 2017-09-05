@@ -149,7 +149,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
                     "/2a8fy7b07dxe44/removeOrder").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name(), UserRole.FIN_OPERATOR.name())
 
-            .antMatchers("/2a8fy7b07dxe44/userswallets",
+         .antMatchers("/2a8fy7b07dxe44/userswallets",
             "/2a8fy7b07dxe44/editCurrencyLimits",
             "/2a8fy7b07dxe44/commissions",
             "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
@@ -206,8 +206,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/okpay/payment/failure").permitAll()
         .antMatchers(POST, "/merchants/payeer/payment/status",
             "/merchants/payeer/payment/success").permitAll()
-         .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
+        .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
         .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
+        .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
+        .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
         .antMatchers(GET, "/generateReferral").permitAll()
         .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
         .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
@@ -236,7 +238,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers( "/test/**").permitAll()
         .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
-            .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
@@ -277,6 +279,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .and()
         .csrf()
         .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
+                "/public_socket/", "/public_socket/**",
             "/merchants/perfectmoney/payment/status",
             "/merchants/perfectmoney/payment/failure",
             "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",

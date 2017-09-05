@@ -257,5 +257,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     return result;
   }
 
+  @Override
+  public CurrencyPair getCurrencyPairByName(String pairName) {
+    return currencyDao.findCurrencyPairByName(pairName);
+  }
+
 
 }

@@ -19,15 +19,18 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.NotCreatableOrderException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.StopOrderNoConditionException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -193,9 +196,11 @@ public class StopOrderServiceImpl implements StopOrderService {
         return stopOrderDao.getOrderById(orderId, forUpdate);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Override
-    public void onLimitOrderAccept(ExOrder exOrder) {
+    @TransactionalEventListener
+    public void onLimitOrderAccept(AcceptOrderEvent event) {
+        log.debug("orderAcceptedd");
+        ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
         checkExecutors.execute(() -> {
             checkOrders(exOrder, OperationType.BUY);

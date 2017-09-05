@@ -399,8 +399,12 @@ public class MerchantServiceImpl implements MerchantService {
       default:
         throw new IllegalArgumentException(String.format("Illegal operation type %s", operationType.name()));
     }
-    return currencyService.getWarningForMerchant(merchantId, commentTopic).stream()
+    List<String> result = currencyService.getWarningForMerchant(merchantId, commentTopic);
+    LOG.info("Warning result: " + result);
+    List<String> resultLocalized = currencyService.getWarningForMerchant(merchantId, commentTopic).stream()
             .map(code -> messageSource.getMessage(code, null, locale)).collect(Collectors.toList());
+    LOG.info("Localized result: " + resultLocalized);
+    return resultLocalized;
   }
 
 }

@@ -24,6 +24,7 @@ import static me.exrates.model.enums.ChatLang.*;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
+
     
     @Value("${ws.lib.url}")
     private String clientLibraryUrl;
@@ -35,6 +36,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public WebSocketConfig(final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.handlers = handlers;
     }
+
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
@@ -75,4 +77,5 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public ChatWebSocketHandler chatINWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
+
 }

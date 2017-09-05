@@ -104,7 +104,7 @@ public class BotServiceImpl implements BotService {
                 if (botTrader.isEnabled()) {
                     botAcceptExecutors.execute(() -> {
                         try {
-                            Thread.sleep(1000 * botTrader.getAcceptDelayInSeconds());
+                            Thread.sleep(botTrader.getAcceptDelayInMillis());
                             log.debug("Accepting order: {}", exOrder);
                             orderService.acceptOrder(botTrader.getUserId(), exOrder.getId(), Locale.ENGLISH);
                         } catch (InsufficientCostsForAcceptionException e) {
@@ -129,7 +129,7 @@ public class BotServiceImpl implements BotService {
         UserRoleSettings userRoleSettings = userRoleService.retrieveSettingsForRole(
                 userService.getUserRoleFromDB(exOrder.getUserId()).getRole());
 
-        return exOrder.getOrderBaseType() == OrderBaseType.LIMIT && userRoleSettings.isBotAcceptionAllowed();
+        return exOrder.getOrderBaseType() == OrderBaseType.LIMIT && userRoleSettings.isBotAcceptionAllowedOnly();
 
     }
 
