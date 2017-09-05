@@ -15,6 +15,6 @@ public class BotTrader {
     private boolean isEnabled;
     @Min(value = 0, message = "{bot.min.timeout.accept}")
     @NotNull(message = "{bot.notnull}")
-    private Integer acceptDelayInSeconds;
+    private Integer acceptDelayInMillis;
 
 }

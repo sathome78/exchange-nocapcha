@@ -164,7 +164,11 @@ public class OrderControllerRest {
             try {
                 int userId = userService.getIdByEmail(principal.getName());
                 orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
-            } catch (Exception e) {
+            } catch (AttemptToAcceptBotOrderException e) {
+                return "";
+            }
+
+            catch (Exception e) {
                 throw e;
             }
             return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";

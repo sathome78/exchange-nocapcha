@@ -26,7 +26,6 @@ import me.exrates.service.*;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -777,9 +776,14 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
+    UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
+    UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
+
+    UserRoleSettings creatorSettings = userRoleService.retrieveSettingsForRole(creatorRole.getRole());
+    if (creatorSettings.isBotAcceptionAllowedOnly() && acceptorRole != UserRole.BOT_TRADER) {
+      throw new AttemptToAcceptBotOrderException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
+    }
     if (userRoleService.isOrderAcceptionAllowedForUser(acceptorId)) {
-      UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
-      UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
       if (acceptorRole != creatorRole) {
         throw new OrderAcceptionException(messageSource.getMessage("order.accept.wrongRole", new Object[]{creatorRole.name()}, locale));
       }
