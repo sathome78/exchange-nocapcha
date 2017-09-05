@@ -1,5 +1,6 @@
 package me.exrates.service.vo;
 
+import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by Maks on 04.09.2017.
  */
+@EqualsAndHashCode
 @Log4j2
 public class TradesEventsHandler {
 
@@ -18,7 +20,7 @@ public class TradesEventsHandler {
 
     private int currencyPairId;
 
-    private static final Semaphore SEMAPHORE = new Semaphore(1, true);
+    private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
     private static final int LATENCY = 1200;
 

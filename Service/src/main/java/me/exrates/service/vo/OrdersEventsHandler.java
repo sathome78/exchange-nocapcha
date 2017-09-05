@@ -36,7 +36,7 @@ public class OrdersEventsHandler {
 
     private AtomicInteger eventsCount = new AtomicInteger(0);
 
-    private static final Semaphore SEMAPHORE = new Semaphore(1, true);
+    private final Semaphore SEMAPHORE = new Semaphore(1, true);
 
     private volatile float loadFactor = 1;
     private final long refreshTime = 900; /*in millis*/

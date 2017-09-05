@@ -76,14 +76,14 @@ public class StompMessengerImpl implements StompMessenger{
 
    @Override
    public void sendMyTradesToUser(String userEmail, Integer currencyPair) {
-       String destination = "/app/topic.myTrades.".concat(currencyPair.toString());
+       String destination = "/app/topic.trades.".concat(currencyPair.toString());
        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
        sendMessageToDestinationAndUser(userEmail, destination, message);
    }
 
     @Override
     public void sendAllTrades(Integer currencyPair) {
-        String destination = "/app/topic.trades_charts.".concat(currencyPair.toString());
+        String destination = "/app/topic.trades.".concat(currencyPair.toString());
         String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination(destination, message);
     }
@@ -99,14 +99,8 @@ public class StompMessengerImpl implements StompMessenger{
     }
 
     private Set<SimpSubscription> findSubscribersByDestination(String destination) {
-       return registry.findSubscriptions(new SimpSubscriptionMatcher() {
-           @Override
-           public boolean match(SimpSubscription subscription) {
-               return subscription.getDestination().equals(destination);
-           }
-       });
+       return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
    }
-
 
    private void sendMessageToDestination(String destination, String message) {
        log.debug("send to {}, {}", destination, message);

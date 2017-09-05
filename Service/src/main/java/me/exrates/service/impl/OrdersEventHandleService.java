@@ -48,6 +48,7 @@ public class OrdersEventHandleService  {
     @TransactionalEventListener
     void handleOrderEventAsync(OrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
+        log.debug("order event {} ", exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
     }
 

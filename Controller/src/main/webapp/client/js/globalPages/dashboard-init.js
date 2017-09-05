@@ -101,7 +101,6 @@ function subscribeTrades() {
 }
 
 function subscribeChart() {
-    console.log('subscribe chart ' + currentCurrencyPairId + ' ' + newChartPeriod);
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
@@ -111,7 +110,6 @@ function subscribeChart() {
         chartSubscription = client.subscribe(path, function (message) {
             chartPeriod = newChartPeriod;
             var messageBody = JSON.parse(message.body);
-            console.log(message);
             trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
