@@ -231,7 +231,7 @@ public final class WalletServiceImpl implements WalletService {
 
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount) {
+  public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail) {
     if (amount.equals(BigDecimal.ZERO)) {
       return;
     }
@@ -239,9 +239,13 @@ public final class WalletServiceImpl implements WalletService {
     if (amount.signum() == -1 && amount.abs().compareTo(wallet.getActiveBalance()) > 0) {
       throw new InvalidAmountException("Negative amount exceeds current balance!");
     }
+    if (!isUserAllowedToManuallyChangeWalletBalance(adminEmail, wallet.getUser().getId())) {
+      throw new ForbiddenOperationException(String.format("admin: %s, wallet %s", adminEmail, wallet.getId()));
+    }
     changeWalletActiveBalance(amount, wallet, OperationType.MANUAL, TransactionSourceType.MANUAL);
 
   }
+
 
   private void changeWalletActiveBalance(BigDecimal amount, Wallet wallet, OperationType operationType,
                                          TransactionSourceType transactionSourceType) {
@@ -385,4 +389,11 @@ public final class WalletServiceImpl implements WalletService {
   public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
     return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPairId);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId) {
+    return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
+  }
+
 }

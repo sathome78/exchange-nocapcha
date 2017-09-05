@@ -383,8 +383,7 @@ public class OrderServiceImpl implements OrderService {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
-    /*  eventHandlerService.onEvent(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType());
-    */
+
       eventPublisher.publishEvent(new CreateOrderEvent(new ExOrder(orderCreateDto)));
       return createdOrderId;
     } finally {
@@ -762,10 +761,11 @@ public class OrderServiceImpl implements OrderService {
       if (!updateOrder(exOrder)) {
         throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
       }
-      if (sendNotification) {
+      /*if (sendNotification) {
         notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
             "acceptorder.message", new Object[]{exOrder.getId()});
-      }
+      }*/
+
     /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
       /*action for refresh orders*/
       eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));

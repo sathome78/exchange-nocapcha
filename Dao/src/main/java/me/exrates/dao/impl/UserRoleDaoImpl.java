@@ -67,30 +67,39 @@ public class UserRoleDaoImpl implements UserRoleDao {
 
   @Override
   public List<UserRoleSettings> retrieveSettingsForAllRoles() {
-    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed FROM USER_ROLE_SETTINGS";
+    String sql = "SELECT user_role_id, order_acception_same_role_only, bot_acception_allowed, considered_for_price_range FROM USER_ROLE_SETTINGS";
     return jdbcTemplate.query(sql, (rs, rowNum) -> {
       UserRoleSettings settings = new UserRoleSettings();
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
       settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
       settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
+      settings.setConsideredForPriceRange(rs.getBoolean("considered_for_price_range"));
       return settings;
     });
   }
 
   @Override
   public void updateSettingsForRole(UserRoleSettings settings) {
-    String sql = "UPDATE USER_ROLE_SETTINGS SET order_acception_same_role_only = :same_role_only, bot_acception_allowed = :bot_acception_allowed " +
+    String sql = "UPDATE USER_ROLE_SETTINGS SET order_acception_same_role_only = :same_role_only, bot_acception_allowed = :bot_acception_allowed, " +
+            "considered_for_price_range = :considered_for_price_range " +
             "WHERE user_role_id = :role_id";
     Map<String, Object> params = new HashMap<>();
     params.put("role_id", settings.getUserRole().getRole());
     params.put("same_role_only", settings.isOrderAcceptionSameRoleOnly());
     params.put("bot_acception_allowed", settings.isBotAcceptionAllowed());
+    params.put("considered_for_price_range", settings.isConsideredForPriceRange());
     namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
   public List<UserRole> getRolesAvailableForChangeByAdmin() {
     String sql = "SELECT user_role_id FROM USER_ROLE_SETTINGS WHERE manual_change_allowed = 1";
+    return jdbcTemplate.queryForList(sql, Integer.class).stream().map(UserRole::convert).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<UserRole> getRolesConsideredForPriceRangeComputation() {
+    String sql = "SELECT user_role_id FROM USER_ROLE_SETTINGS WHERE considered_for_price_range = 1";
     return jdbcTemplate.queryForList(sql, Integer.class).stream().map(UserRole::convert).collect(Collectors.toList());
   }
 

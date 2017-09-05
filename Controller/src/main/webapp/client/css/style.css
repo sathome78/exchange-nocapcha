@@ -2296,7 +2296,9 @@ textarea#remark {
     cursor:pointer;
 }
 
-#roles-table td:nth-child(2), #roles-table td:nth-child(3) {
+#roles-table td:nth-child(2),
+#roles-table td:nth-child(3),
+#roles-table td:nth-child(4) {
     text-align: center;
 }
 

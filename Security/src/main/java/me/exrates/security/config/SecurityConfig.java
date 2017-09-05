@@ -145,16 +145,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(MANAGE_ACCESS.name())
         .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
-        .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAnyAuthority(UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
-        .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
-            "/2a8fy7b07dxe44/removeOrder").hasAnyAuthority(UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name(), UserRole.FIN_OPERATOR.name())
+            .antMatchers(POST,"/2a8fy7b07dxe44/order/accept").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name())
+            .antMatchers("/2a8fy7b07dxe44/orderdelete", "/2a8fy7b07dxe44/searchorders", "/2a8fy7b07dxe44/orderinfo",
+                    "/2a8fy7b07dxe44/removeOrder").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), AdminAuthority.DELETE_ORDER.name(), UserRole.FIN_OPERATOR.name())
 
          .antMatchers("/2a8fy7b07dxe44/userswallets",
             "/2a8fy7b07dxe44/editCurrencyLimits",
             "/2a8fy7b07dxe44/commissions",
             "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
         .antMatchers("/2a8fy7b07dxe44/candleTable",
-            "/2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+            "/2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.BOT_TRADER.name())
             /*admin withdraw action ...*/
         .antMatchers("/2a8fy7b07dxe44/editCurrencyPermissions/submit").hasAuthority(MANAGE_ACCESS.name())
         .antMatchers("/2a8fy7b07dxe44/withdrawal").hasAuthority(PROCESS_WITHDRAW.name())
@@ -164,9 +164,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
             /*... admin report */
         .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
-        .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/roleSettings/update", "/2a8fy7b07dxe44/autoTrading/bot/create",
-                "/2a8fy7b07dxe44/autoTrading/bot/update", "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/toggle",
-                "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update").hasAuthority(UserRole.ADMINISTRATOR.name())
+        .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
+            .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
         .antMatchers("/2a8fy7b07dxe44/**",
             "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
         /*... ADMIN */
@@ -241,7 +241,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name())
+        UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
         /*user withdraw action ...*/
         .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/

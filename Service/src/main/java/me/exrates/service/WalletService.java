@@ -86,7 +86,7 @@ public interface WalletService {
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     @Transactional(rollbackFor = Exception.class)
-    void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
+    void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 
@@ -106,4 +106,6 @@ public interface WalletService {
 
     @Transactional
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
+
+    boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId);
 }

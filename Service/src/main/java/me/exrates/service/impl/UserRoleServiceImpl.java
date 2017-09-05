@@ -107,4 +107,9 @@ public class UserRoleServiceImpl implements UserRoleService {
     userRoleDao.updateSettingsForRole(settings);
   }
 
+  @Override
+  public List<UserRole> getRolesConsideredForPriceRangeComputation() {
+    return userRoleDao.getRolesConsideredForPriceRangeComputation();
+  }
+
 }

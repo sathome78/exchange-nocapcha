@@ -14,7 +14,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <html>
 <head>
-    <title><loc:message code="admin.currencyLimits.title"/></title>
+    <title><loc:message code="admin.candleTable.title"/></title>
     <%@include file='links_scripts.jsp' %>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCandleDataTable.js'/>"></script>
 </head>

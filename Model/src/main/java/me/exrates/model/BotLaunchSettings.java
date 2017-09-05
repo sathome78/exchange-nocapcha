@@ -14,7 +14,8 @@ public class BotLaunchSettings {
     private Integer botId;
     private Integer currencyPairId;
     private String currencyPairName;
-    private Boolean isEnabledForPair;
+    private boolean isEnabledForPair;
+    private boolean isUserOrderPriceConsidered;
     @Min(value = 1, message = "{bot.min.launch}")
     @NotNull(message = "{bot.notnull}")
     private Integer launchIntervalInMinutes;
