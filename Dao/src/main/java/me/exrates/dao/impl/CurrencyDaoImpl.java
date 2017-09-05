@@ -182,9 +182,9 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<CurrencyPair> getAllCurrencyPairs() {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, \n" +
-        "(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
-        "(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market,  " +
+        "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+        "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR " +
         " WHERE hidden IS NOT TRUE " +
         " ORDER BY -pair_order DESC";
@@ -196,9 +196,9 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, \n" +
-        "(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
-        "(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
+    String sql = "SELECT id, currency1_id, currency2_id, name, market,  " +
+        "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+        "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("currency1Id", String.valueOf(currency1Id));
@@ -381,25 +381,27 @@ public class CurrencyDaoImpl implements CurrencyDao {
   @Override
   public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
     String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, CP.market, " +
-        "     (select name from CURRENCY where id = currency1_id) as currency1_name, " +
-        "			(select name from CURRENCY where id = currency2_id) as currency2_name, " +
-        "			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
-        "					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS min_rate_sell, " +
-        "			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
-        "					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS min_rate_buy, " +
-        "			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
-        "					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS max_rate_sell, " +
-        "			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
-        "					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS max_rate_buy " +
-        "			FROM CURRENCY_PAIR CP " +
-        "			WHERE CP.hidden != 1 ";
+            "             (select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "        (select name from CURRENCY where id = currency2_id) as currency2_name, " +
+            "  LIM_SELL.min_rate AS min_rate_sell, LIM_SELL.max_rate AS max_rate_sell, LIM_SELL.min_amount AS min_amount_sell, LIM_SELL.max_amount AS max_amount_sell, " +
+            "  LIM_BUY.min_rate AS min_rate_buy, LIM_BUY.max_rate AS max_rate_buy, LIM_BUY.min_amount AS min_amount_buy, LIM_BUY.max_amount AS max_amount_buy " +
+            "        FROM CURRENCY_PAIR CP " +
+            "                JOIN CURRENCY_PAIR_LIMIT LIM_SELL ON CP.id = LIM_SELL.currency_pair_id AND LIM_SELL.user_role_id = :role_id " +
+            "                                                     AND LIM_SELL.order_type_id = 1 " +
+            "                JOIN CURRENCY_PAIR_LIMIT LIM_BUY ON CP.id = LIM_BUY.currency_pair_id AND LIM_BUY.user_role_id = :role_id " +
+            "                                                     AND LIM_BUY.order_type_id = 2 " +
+            "        WHERE CP.hidden != 1 ";
     return jdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
       CurrencyPair currencyPair = currencyPairRowMapper.mapRow(rs, row);
       return new CurrencyPairWithLimitsDto(currencyPair,
           rs.getBigDecimal("min_rate_sell"),
           rs.getBigDecimal("max_rate_sell"),
           rs.getBigDecimal("min_rate_buy"),
-          rs.getBigDecimal("max_rate_buy"));
+          rs.getBigDecimal("max_rate_buy"),
+          rs.getBigDecimal("min_amount_sell"),
+          rs.getBigDecimal("max_amount_sell"),
+          rs.getBigDecimal("min_amount_buy"),
+          rs.getBigDecimal("max_amount_buy"));
     });
 
   }

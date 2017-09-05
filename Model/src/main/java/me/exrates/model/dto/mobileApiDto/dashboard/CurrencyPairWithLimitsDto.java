@@ -22,9 +22,14 @@ public class CurrencyPairWithLimitsDto {
   private BigDecimal maxRateSell;
   private BigDecimal minRateBuy;
   private BigDecimal maxRateBuy;
-  
-  public CurrencyPairWithLimitsDto(CurrencyPair currencyPair,
-                                   BigDecimal minRateSell, BigDecimal maxRateSell, BigDecimal minRateBuy, BigDecimal maxRateBuy) {
+  private BigDecimal minAmountSell;
+  private BigDecimal maxAmountSell;
+  private BigDecimal minAmountBuy;
+  private BigDecimal maxAmountBuy;
+
+  public CurrencyPairWithLimitsDto(CurrencyPair currencyPair, BigDecimal minRateSell,
+                                   BigDecimal maxRateSell, BigDecimal minRateBuy, BigDecimal maxRateBuy, BigDecimal minAmountSell,
+                                   BigDecimal maxAmountSell, BigDecimal minAmountBuy, BigDecimal maxAmountBuy) {
     this.id = currencyPair.getId();
     this.name = currencyPair.getName();
     this.currency1 = currencyPair.getCurrency1();
@@ -33,5 +38,9 @@ public class CurrencyPairWithLimitsDto {
     this.maxRateSell = maxRateSell;
     this.minRateBuy = minRateBuy;
     this.maxRateBuy = maxRateBuy;
+    this.minAmountSell = minAmountSell;
+    this.maxAmountSell = maxAmountSell;
+    this.minAmountBuy = minAmountBuy;
+    this.maxAmountBuy = maxAmountBuy;
   }
 }
