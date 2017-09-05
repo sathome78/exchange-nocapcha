@@ -173,10 +173,14 @@ public class MobileDashboardController {
      * @apiDescription Retrieves list of basic information: commissions, currency pairs, merchants, limits
      * @apiSuccess (200) {Array} data Array of currency pairs
      * @apiUse CurrencyPair
-     * @apiSuccess (200) (Number) currencyPair.minRateSell Min rate for sell orders
-     * @apiSuccess (200) (Number) currencyPair.maxRateSell Max rate for sell orders
-     * @apiSuccess (200) (Number) currencyPair.minRateBuy Min rate for buy orders
-     * @apiSuccess (200) (Number) currencyPair.maxRateBuy Max rate for buy orders
+     * @apiSuccess (200) {Number} currencyPair.minRateSell Min rate for sell orders
+     * @apiSuccess (200) {Number} currencyPair.maxRateSell Max rate for sell orders
+     * @apiSuccess (200) {Number} currencyPair.minRateBuy Min rate for buy orders
+     * @apiSuccess (200) {Number} currencyPair.maxRateBuy Max rate for buy orders
+     * @apiSuccess (200) {Number} currencyPair.minAmountSell Min amount for sell orders
+     * @apiSuccess (200) {Number} currencyPair.maxAmountSell Max amount for sell orders
+     * @apiSuccess (200) {Number} currencyPair.minAmountBuy Min amount for buy orders
+     * @apiSuccess (200) {Number} currencyPair.maxAmountBuy Max amount for buy orders
      *
      * @apiSuccess {Array} merchants List of available merchants
      * @apiSuccess {Object} merchant Container object
@@ -240,7 +244,11 @@ public class MobileDashboardController {
      *                  "minRateSell": 0,
      *                  "maxRateSell": 99999999999,
      *                  "minRateBuy": 0,
-     *                  "maxRateBuy": 99999999999
+     *                  "maxRateBuy": 99999999999,
+     *                  "minAmountSell": 0.5,
+     *                  "maxAmountSell": 2,
+     *                  "minAmountBuy": 0,
+     *                  "maxAmountBuy": 0
      *               }
      *            ],
      *          "merchants": [
@@ -319,10 +327,14 @@ public class MobileDashboardController {
      * @apiDescription Retrieves list of available currency pairs
      * @apiSuccess (200) {Array} data Array of currency pairs
      * @apiUse CurrencyPair
-     * @apiSuccess (200) (Number) minRateSell Min rate for sell orders
-     * @apiSuccess (200) (Number) maxRateSell Max rate for sell orders
-     * @apiSuccess (200) (Number) minRateBuy Min rate for buy orders
-     * @apiSuccess (200) (Number) maxRateBuy Max rate for buy orders
+     * @apiSuccess (200) {Number} minRateSell Min rate for sell orders
+     * @apiSuccess (200) {Number} maxRateSell Max rate for sell orders
+     * @apiSuccess (200) {Number} minRateBuy Min rate for buy orders
+     * @apiSuccess (200) {Number} maxRateBuy Max rate for buy orders
+     * @apiSuccess (200) {Number} currencyPair.minAmountSell Min amount for sell orders
+     * @apiSuccess (200) {Number} currencyPair.maxAmountSell Max amount for sell orders
+     * @apiSuccess (200) {Number} currencyPair.minAmountBuy Min amount for buy orders
+     * @apiSuccess (200) {Number} currencyPair.maxAmountBuy Max amount for buy orders
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      * [
@@ -345,7 +357,12 @@ public class MobileDashboardController {
      *          "minRateSell": 500,
      *          "maxRateSell": 5000,
      *          "minRateBuy": 700,
-     *          "maxRateBuy": 99999999999
+     *          "maxRateBuy": 99999999999,
+     *          "minAmountSell": 0.5,
+     *          "maxAmountSell": 2,
+     *          "minAmountBuy": 0,
+     *          "maxAmountBuy": 0
+     *
      *  ]
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError

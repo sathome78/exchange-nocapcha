@@ -99,6 +99,8 @@
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
                                 <th><loc:message code="admin.currencyLimits.minRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.maxRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.minAmount"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxAmount"/></th>
                             </tr>
                             </thead>
                             <tbody></tbody>
@@ -121,7 +123,7 @@
                 <h4 class="modal-title"><loc:message code="admin.currencyLimits.modalTitle"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-currency-limit-form" class="form_full_width">
+                <form id="edit-currency-limit-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyId">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
@@ -173,7 +175,7 @@
     </div>
 </div>
 
-<div id="editPairLimitModal" class="modal modal-small fade">
+<div id="editPairLimitModal" class="modal fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -182,14 +184,14 @@
                 <h4 class="modal-title"><loc:message code="admin.currencyLimits.modalTitle"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-currency-pair-limit-form" class="form_full_width">
+                <form id="edit-currency-pair-limit-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyPairId">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="currency.pair"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="currency-pair-name" class="input-block-wrapper__input" readonly type="text">
+                            <input id="currency-pair-name" class="input-block-wrapper__input admin-form-input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -198,7 +200,7 @@
                                     code="admin.commissions.operationType"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="orderType" class="input-block-wrapper__input" readonly type="text">
+                            <input name="orderType" class="input-block-wrapper__input admin-form-input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -206,7 +208,7 @@
                             <label class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="roleName" class="input-block-wrapper__input" readonly type="text">
+                            <input name="roleName" class="input-block-wrapper__input admin-form-input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -215,7 +217,7 @@
                                     code="admin.currencyLimits.minRate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="minRate" class="input-block-wrapper__input" type="number">
+                            <input name="minRate" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -224,7 +226,25 @@
                                     code="admin.currencyLimits.maxRate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="maxRate" class="input-block-wrapper__input" type="number">
+                            <input name="maxRate" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.minAmount"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="minAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.maxAmount"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <button id="submitNewPairLimit" class="blue-box admin-form-submit" type="submit"><loc:message

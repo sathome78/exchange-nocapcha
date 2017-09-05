@@ -960,16 +960,22 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
-  public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
+  public void editCurrencyPairLimit(@RequestParam int currencyPairId,
                                                     @RequestParam OrderType orderType,
                                                     @RequestParam String roleName,
                                                     @RequestParam BigDecimal minRate,
-                                                    @RequestParam BigDecimal maxRate) {
-    if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
+                                                    @RequestParam BigDecimal maxRate,
+                                                    @RequestParam BigDecimal minAmount,
+                                                    @RequestParam BigDecimal maxAmount) {
+    validateDecimalLimitValues(minAmount, maxAmount);
+    validateDecimalLimitValues(minRate, maxRate);
+    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount);
+  }
+
+  private void validateDecimalLimitValues(BigDecimal min, BigDecimal max) {
+    if (!BigDecimalProcessing.isNonNegative(min) || !BigDecimalProcessing.isNonNegative(max) || min.compareTo(max) >= 0) {
       throw new InvalidNumberParamException("Invalid request params!");
     }
-    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
-    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)

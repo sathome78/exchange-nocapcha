@@ -16,4 +16,6 @@ public class CurrencyPairLimitDto {
   private String currencyPairName;
   private BigDecimal minRate;
   private BigDecimal maxRate;
+  private BigDecimal minAmount;
+  private BigDecimal maxAmount;
 }

@@ -73,7 +73,7 @@ public interface CurrencyService {
   
   List<CurrencyPairLimitDto> findAllCurrencyLimitsForRoleAndType(String roleName, OrderType orderType);
   
-  void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate);
+  void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate, BigDecimal minAmount, BigDecimal maxAmount);
   
   List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
 
