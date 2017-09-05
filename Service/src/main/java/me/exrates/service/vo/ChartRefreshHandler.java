@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
  * Created by Maks on 04.09.2017.
  */
 @Log4j2
-public class TradesEventsHandler {
+public class ChartRefreshHandler {
 
     @Autowired
     private StompMessenger stompMessenger;
@@ -20,16 +20,16 @@ public class TradesEventsHandler {
 
     private static final Semaphore SEMAPHORE = new Semaphore(1, true);
 
-    private static final int LATENCY = 1200;
+    private static final int LATENCY = 8000;
 
 
-    private TradesEventsHandler(int currencyPairId) {
+    private ChartRefreshHandler(int currencyPairId) {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         this.currencyPairId = currencyPairId;
     }
 
-    public static TradesEventsHandler init(int currencyPairId) {
-        return new TradesEventsHandler(currencyPairId);
+    public static ChartRefreshHandler init(int currencyPairId) {
+        return new ChartRefreshHandler(currencyPairId);
     }
 
     public void onAcceptOrderEvent() {
@@ -40,7 +40,7 @@ public class TradesEventsHandler {
                 log.error("interrupted ", e);
             }
             SEMAPHORE.release();
-            stompMessenger.sendAllTrades(currencyPairId);
+            stompMessenger.sendChartData(currencyPairId);
         }
 
     }

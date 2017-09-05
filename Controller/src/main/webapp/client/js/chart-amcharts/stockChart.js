@@ -22,8 +22,8 @@ function StockChartAmchartsClass($loadingImg) {
 
     this.$loadingImg = $loadingImg;
 
-    this.this.draw = function (queryResultArray) {
-        that.$loadingImg.removeClass('hidden');
+    this.draw = function (queryResultArray) {
+        /*that.$loadingImg.removeClass('hidden');*/
         if (!queryResultArray || !queryResultArray.length) {
             return;
         }
@@ -33,7 +33,7 @@ function StockChartAmchartsClass($loadingImg) {
         queryResultArray.forEach(function (item, i) {
             //if (item[6] != 0)
             chartData.push({
-            /*/!*.replace... - for Safari browser*!/*/
+            /*.replace... - for Safari browser*/
             preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/, '')),
                 date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/, '')),
                 open: item[2],
@@ -61,15 +61,15 @@ function StockChartAmchartsClass($loadingImg) {
                 break;
             }
         }
+        that.$loadingImg.addClass('hidden');
         if (!chart.div) {
             chart.write(stockChartDivId);
         } else {
             chart.validateData();
         }
-    }
+    };
 
     /*this.draw = function () {
-        console.log("load chart");
         that.$loadingImg.removeClass('hidden');
         /!**!/
         $.ajax({
@@ -122,11 +122,12 @@ function StockChartAmchartsClass($loadingImg) {
             complete: function () {
                 that.$loadingImg.addClass('hidden');
             }
-        });*/
-    /*};*/
+        });
+    };*/
 
     /*=================================================*/
     (function init() {
+        that.$loadingImg.removeClass('hidden');
         chart = new AmCharts.AmStockChart();
         //chart.dataDateFormat = "YYYY-MM-DD HH:NN:SS";
         /*CANDLE*/
@@ -340,7 +341,8 @@ function StockChartAmchartsClass($loadingImg) {
             label: "MAX"
         }];
         //chart.periodSelector = periodSelector;
-        that.$loadingImg.addClass('hidden');
+        console.log('init cg=hart');
+
     })();
 
     function getBalloonText(graphDataItem, graph) {

@@ -10,6 +10,7 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.vo.ChartRefreshHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.TradesEventsHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class OrdersEventHandleService  {
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
 
     private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
+    private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
 
 
     @Async
@@ -59,7 +61,9 @@ public class OrdersEventHandleService  {
     @TransactionalEventListener
     void handleOrderEventAsync(AcceptOrderEvent event) {
         log.debug("new thr accept {} ", Thread.currentThread().getName());
-        handleAllTrades((ExOrder)event.getSource());
+        ExOrder order = (ExOrder)event.getSource();
+        handleAllTrades(order);
+        handleChart(order);
     }
 
     private void onOrdersEvent(Integer pairId, OperationType operationType) {
@@ -80,6 +84,12 @@ public class OrdersEventHandleService  {
     private void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
+        handler.onAcceptOrderEvent();
+    }
+
+    private void handleChart(ExOrder exOrder) {
+        ChartRefreshHandler handler = mapChart
+                .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();
     }
 

@@ -48,6 +48,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         that.fillOrderCreationFormFields();
     }
 
+    this.getChart = function () {
+        return chart;
+    };
+
     this.syncCurrencyPairSelector = function () {
         dashboardCurrencyPairSelector.syncState();
     };
@@ -59,7 +63,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
             that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
             that.getAndShowStatisticsForCurrency();
-            that.getAndShowChart();
+            /*that.getAndShowChart();*/
         });
     };
 
@@ -117,9 +121,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         blink($ordersHistoryTable);
     };
 
-    this.updateAndShowChart = function (data) {
-      /*todo*/
-    };
 
     this.updateAndShowStatistic = function (data) {
        /*todo*/

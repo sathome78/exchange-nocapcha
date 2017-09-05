@@ -1361,6 +1361,7 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
@@ -1384,7 +1385,7 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
-
+  @Transactional(readOnly = true)
   @Override
   public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
@@ -1407,7 +1408,36 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
   }
 
+  @Transactional
+  @Override
+  public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+    List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
+    ArrayList<List> arrayListMain = new ArrayList<>();
+        /*in first row return backDealInterval - to synchronize period menu with it*/
+    arrayListMain.add(new ArrayList<Object>() {{
+      add(backDealInterval);
+    }});
+    for (CandleChartItemDto candle : rows) {
+      ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
+      arrayList.add(candle.getBeginDate().toString());
+      arrayList.add(candle.getEndDate().toString());
+      arrayList.add(candle.getOpenRate());
+      arrayList.add(candle.getCloseRate());
+      arrayList.add(candle.getLowRate());
+      arrayList.add(candle.getHighRate());
+      arrayList.add(candle.getBaseVolume());
+      arrayListMain.add(arrayList);
+    }
 
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain, backDealInterval.getInterval(), currencyPairId));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
 }
 
 

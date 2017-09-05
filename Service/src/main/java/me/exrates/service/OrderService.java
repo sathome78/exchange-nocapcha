@@ -303,10 +303,11 @@ public interface OrderService {
 
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
-    String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
+  String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
-    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+  Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
+  String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 }

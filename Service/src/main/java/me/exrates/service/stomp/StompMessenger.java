@@ -11,5 +11,7 @@ public interface StompMessenger {
 
     void sendMyTradesToUser(String userEmail, Integer currencyPair);
 
-    void sendAllTradesToUser(Integer currencyPair);
+    void sendAllTrades(Integer currencyPair);
+
+    void sendChartData(Integer currencyPairId);
 }
