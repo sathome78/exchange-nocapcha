@@ -1064,8 +1064,13 @@ public class MobileEntryController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({MethodArgumentNotValidException.class, InvalidPasswordException.class,
-            InvalidNicknameException.class, InvalidEmailException.class})
+    @ExceptionHandler(InvalidNicknameException.class)
+    public ApiError invalidNicknameExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(INVALID_NICKNAME, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({MethodArgumentNotValidException.class, InvalidPasswordException.class, InvalidEmailException.class})
     public ApiError methodArgumentNotValidExceptionHandler(HttpServletRequest req, Exception exception) {
          return new ApiError(INVALID_PARAM_VALUE, req.getRequestURL(), exception);
     }
