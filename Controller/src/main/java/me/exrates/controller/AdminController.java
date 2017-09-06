@@ -340,7 +340,7 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
+  public Future<List<OrderWideListDto>> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                                               final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
     CurrencyPair currencyPair;
@@ -352,49 +352,53 @@ public class AdminController {
     String email = userService.getUserById(id).getEmail();
     Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
 
-    List<OrderWideListDto> result = new ArrayList<>();
-    switch (tableType) {
-      case "ordersBuyClosed":
-        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyClosed;
-        break;
-      case "ordersSellClosed":
-        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellClosed;
-        break;
-      case "ordersBuyOpened":
-        List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyOpened;
-        break;
-      case "ordersSellOpened":
-        List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellOpened;
-        break;
-      case "ordersBuyCancelled":
-        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyCancelled;
-        break;
-      case "ordersSellCancelled":
-        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellCancelled;
-        break;
-      case "stopOrdersCancelled":
-        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersCancelled ;
-        break;
-      case "stopOrdersClosed":
-        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersClosed ;
-        break;
-      case "stopOrdersOpened":
-        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersOpened;
-        break;
-    }
-    return result;
+      return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
   }
 
-  @RequestMapping("/2a8fy7b07dxe44/addUser")
+    private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
+        List<OrderWideListDto> result = new ArrayList<>();
+        switch (tableType) {
+          case "ordersBuyClosed":
+            List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyClosed;
+            break;
+          case "ordersSellClosed":
+            List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellClosed;
+            break;
+          case "ordersBuyOpened":
+            List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyOpened;
+            break;
+          case "ordersSellOpened":
+            List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellOpened;
+            break;
+          case "ordersBuyCancelled":
+            List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyCancelled;
+            break;
+          case "ordersSellCancelled":
+            List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellCancelled;
+            break;
+          case "stopOrdersCancelled":
+            List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
+            result = stopOrdersCancelled ;
+            break;
+          case "stopOrdersClosed":
+            List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
+            result = stopOrdersClosed ;
+            break;
+          case "stopOrdersOpened":
+            List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, locale);
+            result = stopOrdersOpened;
+            break;
+        }
+        return result;
+    }
+
+    @RequestMapping("/2a8fy7b07dxe44/addUser")
   public ModelAndView addUser(HttpSession httpSession) {
 
     final Object mutex = WebUtils.getSessionMutex(httpSession);
