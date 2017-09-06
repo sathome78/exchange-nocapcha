@@ -75,7 +75,8 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
    @Override
-   public void sendMyTradesToUser(String userEmail, Integer currencyPair) {
+   public void sendMyTradesToUser(int userId, Integer currencyPair) {
+       String userEmail = userService.getEmailById(userId);
        String destination = "/app/topic.trades.".concat(currencyPair.toString());
        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
        sendMessageToDestinationAndUser(userEmail, destination, message);

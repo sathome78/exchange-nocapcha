@@ -9,7 +9,7 @@ public interface StompMessenger {
 
     void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType);
 
-    void sendMyTradesToUser(String userEmail, Integer currencyPair);
+    void sendMyTradesToUser(int userId, Integer currencyPair);
 
     void sendAllTrades(Integer currencyPair);
 

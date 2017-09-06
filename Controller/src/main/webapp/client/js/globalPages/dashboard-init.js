@@ -125,6 +125,7 @@ function initTrades(object, currentCurrencyPair) {
             break;
         }
         case "MY_TRADES" : {
+            trading.updateAndShowMyTrades(object.data);
             break;
         }
     }

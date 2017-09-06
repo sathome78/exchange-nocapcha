@@ -61,7 +61,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             console.log("statistics");
         }
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
-            that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
+           /* that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);*/
             that.getAndShowStatisticsForCurrency();
             /*that.getAndShowChart();*/
         });
