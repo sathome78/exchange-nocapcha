@@ -66,6 +66,8 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -272,7 +274,7 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(
+  public Future<DataTable<List<OperationViewDto>>> getUserTransactions(
       AdminTransactionsFilterData filterData,
       @RequestParam Integer id,
       @RequestParam Map<String, String> params,
@@ -281,12 +283,12 @@ public class AdminController {
     filterData.initFilterItems();
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(
-        requesterAdminId,
-        id,
-        filterData,
-        dataTableParams,
-        localeResolver.resolveLocale(request));
+    return CompletableFuture.supplyAsync(() -> transactionService.showUserOperationHistory(
+            requesterAdminId,
+            id,
+            filterData,
+            dataTableParams,
+            localeResolver.resolveLocale(request)));
   }
 
 
