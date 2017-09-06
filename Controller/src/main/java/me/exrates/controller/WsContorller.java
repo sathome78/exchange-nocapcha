@@ -5,8 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.UserRoleSettings;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserRoleService;
@@ -49,6 +52,19 @@ public class WsContorller {
     private UserService userService;
 
 
+    @SubscribeMapping("trades.{currencyPairId}")
+    public String subscribeTrades(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
+        log.debug("allTrades " + currencyPairId);
+        return packInitTrades(currencyPairId, principal);
+    }
+
+    @SubscribeMapping("charts.{currencyPairId}.{period}")
+    public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
+        log.debug("sbs chart {}, {}", currencyPairId, period);
+        BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
+        return orderService.getChartData(currencyPairId, backDealInterval);
+    }
+
     @SubscribeMapping("trade_orders.{currencyPairId}")
     public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
         log.debug("pair " + currencyPairId);
@@ -74,7 +90,16 @@ public class WsContorller {
         objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
                 (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
         return objectsArray.toString();
+    }
 
+    private String packInitTrades(int pairId, Principal principal) {
+        JSONArray jsonArray = new JSONArray(){{
+            put(orderService.getTradesForRefresh(pairId, null, RefreshObjectsEnum.ALL_TRADES));
+        }};
+        if (principal != null) {
+            jsonArray.put(orderService.getTradesForRefresh(pairId, principal.getName(), RefreshObjectsEnum.ALL_TRADES));
+        }
+        return jsonArray.toString();
     }
 
 }

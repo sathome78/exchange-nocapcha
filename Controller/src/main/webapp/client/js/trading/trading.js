@@ -44,10 +44,13 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
-       /* webSocket.send("trading:changeCurrencyPair");*/
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
     }
+
+    this.getChart = function () {
+        return chart;
+    };
 
     this.syncCurrencyPairSelector = function () {
         dashboardCurrencyPairSelector.syncState();
@@ -58,9 +61,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             console.log("statistics");
         }
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
-            that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
+           /* that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);*/
             that.getAndShowStatisticsForCurrency();
-            that.getAndShowChart();
+            /*that.getAndShowChart();*/
         });
     };
 
@@ -97,6 +100,32 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             blink($('#dashboard-orders-sell-table'));
         }
     };
+
+    this.updateAndShowAllTrades = function (data) {
+        var $ordersHistoryTable = $('#orders-history-table').find('tbody');
+        var $tmpl = $('#orders-history-table_row').html().replace(/@/g, '%');
+        clearTable($ordersHistoryTable);
+        data.forEach(function (e) {
+            $ordersHistoryTable.append(tmpl($tmpl, e));
+        });
+        blink($ordersHistoryTable);
+    };
+
+    this.updateAndShowMyTrades = function (data) {
+        var $ordersHistoryTable = $('#orders-history-table__my-deals').find('tbody');
+        var $tmpl = $('#orders-history-table_row').html().replace(/@/g, '%');
+        clearTable($ordersHistoryTable);
+        data.forEach(function (e) {
+            $ordersHistoryTable.append(tmpl($tmpl, e));
+        });
+        blink($ordersHistoryTable);
+    };
+
+
+    this.updateAndShowStatistic = function (data) {
+       /*todo*/
+    };
+
 
     this.updateAndShowAll = function (refreshIfNeeded) {
         if (showLog) {
@@ -149,7 +178,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.getAndShowAcceptedOrdersHistory = function (refreshIfNeeded, callback) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+        if (callback) {
+            callback();
+        }
+      /*  if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForStatistics);
             timeOutIdForStatistics = setTimeout(function () {
                 that.updateAndShowStatistics(true);
@@ -185,7 +217,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                     that.updateAndShowStatistics(true);
                 }, statisticsRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.getAndShowAcceptedOrdersHistory_myDeals = function (refreshIfNeeded) {
@@ -528,7 +560,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             var $tableId = $('#' + $(this).data('tableid'));
             $('.orders-history-table').addClass('hidden');
             $tableId.removeClass('hidden');
-            that.getAndShowAcceptedOrdersHistory();
+            /*that.getAndShowAcceptedOrdersHistory(); move on sockets*/
             that.getAndShowAcceptedOrdersHistory_myDeals();
         });
         /**/

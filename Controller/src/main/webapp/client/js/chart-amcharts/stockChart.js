@@ -22,10 +22,56 @@ function StockChartAmchartsClass($loadingImg) {
 
     this.$loadingImg = $loadingImg;
 
-    this.draw = function () {
-        console.log("load chart");
+    this.draw = function (queryResultArray) {
+        /*that.$loadingImg.removeClass('hidden');*/
+        if (!queryResultArray || !queryResultArray.length) {
+            return;
+        }
+        backDealInterval = queryResultArray[0][0]; //BackDealInterval is here
+        queryResultArray.splice(0, 1);
+        chartData.length = 0;
+        queryResultArray.forEach(function (item, i) {
+            //if (item[6] != 0)
+            chartData.push({
+            /*.replace... - for Safari browser*/
+            preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/, '')),
+                date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/, '')),
+                open: item[2],
+                close: item[3],
+                high: item[5],
+                low: item[4],
+                volume: item[6],
+                value: item[6]
+        });
+        });
+        switch (backDealInterval.intervalType) {
+            case 'MONTH':
+            {
+                chart.categoryAxesSettings.minPeriod = "DD";
+                break;
+            }
+            case 'DAY':
+            {
+                chart.categoryAxesSettings.minPeriod = "hh";
+                break;
+            }
+            case 'HOUR':
+            {
+                chart.categoryAxesSettings.minPeriod = "mm";
+                break;
+            }
+        }
+        that.$loadingImg.addClass('hidden');
+        if (!chart.div) {
+            chart.write(stockChartDivId);
+        } else {
+            chart.validateData();
+        }
+    };
+
+    /*this.draw = function () {
         that.$loadingImg.removeClass('hidden');
-        /**/
+        /!**!/
         $.ajax({
             url: candleDataSourceUrl,
             type: 'GET',
@@ -39,7 +85,7 @@ function StockChartAmchartsClass($loadingImg) {
                 queryResultArray.forEach(function (item, i) {
                     //if (item[6] != 0)
                     chartData.push({
-                        /*.replace... - for Safari browser*/
+                        /!*.replace... - for Safari browser*!/
                         preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/, '')),
                         date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/, '')),
                         open: item[2],
@@ -77,10 +123,11 @@ function StockChartAmchartsClass($loadingImg) {
                 that.$loadingImg.addClass('hidden');
             }
         });
-    };
+    };*/
 
     /*=================================================*/
     (function init() {
+        that.$loadingImg.removeClass('hidden');
         chart = new AmCharts.AmStockChart();
         //chart.dataDateFormat = "YYYY-MM-DD HH:NN:SS";
         /*CANDLE*/
@@ -294,7 +341,8 @@ function StockChartAmchartsClass($loadingImg) {
             label: "MAX"
         }];
         //chart.periodSelector = periodSelector;
-        that.$loadingImg.addClass('hidden');
+        console.log('init cg=hart');
+
     })();
 
     function getBalloonText(graphDataItem, graph) {

@@ -26,7 +26,6 @@ import me.exrates.service.*;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.OrderEvent;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -993,6 +992,22 @@ public class OrderServiceImpl implements OrderService {
     return result;
   }
 
+  @Transactional
+  @Override
+  public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriodEx(String email,
+                                                                   BackDealInterval backDealInterval,
+                                                                   Integer limit, CurrencyPair currencyPair, Locale locale) {
+    List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
+    result = result.stream()
+              .map(OrderAcceptedHistoryDto::new)
+              .collect(toList());
+      result.forEach(e -> {
+        e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
+        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+      });
+    return result;
+  }
+
   @Transactional(readOnly = true)
   @Override
   public OrderCommissionsDto getCommissionForOrder() {
@@ -1346,6 +1361,7 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole) {
     CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
@@ -1369,13 +1385,59 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
+  @Transactional(readOnly = true)
+  @Override
+  public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(email,
+            new BackDealInterval("24 HOUR"),
+            100,
+            cp,
+            Locale.ENGLISH);
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType) {
     return orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair.getId(), operationType.getType());
   }
 
+  @Transactional
+  @Override
+  public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
+    CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+    List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
+    ArrayList<List> arrayListMain = new ArrayList<>();
+        /*in first row return backDealInterval - to synchronize period menu with it*/
+    arrayListMain.add(new ArrayList<Object>() {{
+      add(backDealInterval);
+    }});
+    for (CandleChartItemDto candle : rows) {
+      ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
+      arrayList.add(candle.getBeginDate().toString());
+      arrayList.add(candle.getEndDate().toString());
+      arrayList.add(candle.getOpenRate());
+      arrayList.add(candle.getCloseRate());
+      arrayList.add(candle.getLowRate());
+      arrayList.add(candle.getHighRate());
+      arrayList.add(candle.getBaseVolume());
+      arrayListMain.add(arrayList);
+    }
 
+    try {
+      return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain, backDealInterval.getInterval(), currencyPairId));
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
 }
 
 

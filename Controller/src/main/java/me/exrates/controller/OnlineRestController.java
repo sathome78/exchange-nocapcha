@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
@@ -46,6 +47,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  *
  * @author ValkSam
  */
+@Log4j2
 @PropertySource("classpath:session.properties")
 @RestController
 public class OnlineRestController {
@@ -295,6 +297,7 @@ public class OnlineRestController {
     }
     final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
     ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
+    log.error("chartType {}", chartType);
         /**/
     ArrayList<List> arrayListMain = new ArrayList<>();
         /*in first row return backDealInterval - to synchronize period menu with it*/

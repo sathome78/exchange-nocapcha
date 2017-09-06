@@ -8,4 +8,10 @@ import me.exrates.model.enums.OperationType;
 public interface StompMessenger {
 
     void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType);
+
+    void sendMyTradesToUser(int userId, Integer currencyPair);
+
+    void sendAllTrades(Integer currencyPair);
+
+    void sendChartData(Integer currencyPairId);
 }

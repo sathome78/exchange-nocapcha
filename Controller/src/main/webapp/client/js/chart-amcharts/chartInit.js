@@ -19,12 +19,11 @@ function ChartAmchartsClass(type, period, $loadingImg) {
 
     var stockChart;
 
-    this.drawChart = function () {
-        console.log('draw chart');
+    this.drawChart = function (data) {
         switch (that.chartType) {
             case 'STOCK':
             {
-                stockChart.draw();
+                stockChart.draw(data);
                 break;
             }
         }
@@ -40,6 +39,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
     })(type, period, $loadingImg);
 
     function setPeriod() {
+        stockChart.$loadingImg.removeClass('hidden');
         var period;
         var button = this;
         switch ($(button).attr('id')) {
@@ -73,7 +73,7 @@ function ChartAmchartsClass(type, period, $loadingImg) {
             $(button).siblings().removeClass('active');
             $(button).toggleClass('active');
             trading.getAndShowStatisticsForCurrency();
-            that.drawChart(data.chartType);
+            that.drawChart(data, data.chartType);
         });
     }
 
