@@ -116,6 +116,7 @@ function subscribeChart() {
 }
 
 function initTrades(object, currentCurrencyPair) {
+    object = JSON.parse(object);
     if (object.currencyPairId != currentCurrencyPair) {
         return;
     }
@@ -124,23 +125,13 @@ function initTrades(object, currentCurrencyPair) {
             trading.updateAndShowAllTrades(object.data);
             break;
         }
-        case "MY_TRADES" : {
+        /*case "MY_TRADES" : {
             trading.updateAndShowMyTrades(object.data);
             break;
-        }
+        }*/
     }
 }
 
-/*function subscribeMyTrades() {
-    if (subscribedCurrencyPairId != currentCurrencyPairId && myTradesSubscription != undefined) {
-        tr.unsubscribe();
-    }
-    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
-    var path = '/app/topic.myTrades.' + currentCurrencyPairId;
-    myTradesSubscription = client.subscribe(path, function(message) {
-        myTradesSubscription.log(message);
-    }, headers);
-}*/
 
 function initTradeOrders(object) {
     object = JSON.parse(object);

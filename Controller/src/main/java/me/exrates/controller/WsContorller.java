@@ -53,9 +53,9 @@ public class WsContorller {
 
 
     @SubscribeMapping("trades.{currencyPairId}")
-    public String subscribeTrades(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
+    public String subscribeTrades(@DestinationVariable Integer currencyPairId/*, Principal principal*/) throws Exception {
         log.debug("allTrades " + currencyPairId);
-        return packInitTrades(currencyPairId, principal);
+        return packInitTrades(currencyPairId, null);
     }
 
     @SubscribeMapping("charts.{currencyPairId}.{period}")
@@ -97,7 +97,7 @@ public class WsContorller {
             put(orderService.getTradesForRefresh(pairId, null, RefreshObjectsEnum.ALL_TRADES));
         }};
         if (principal != null) {
-            jsonArray.put(orderService.getTradesForRefresh(pairId, principal.getName(), RefreshObjectsEnum.ALL_TRADES));
+            jsonArray.put(orderService.getTradesForRefresh(pairId, principal.getName(), RefreshObjectsEnum.MY_TRADES));
         }
         return jsonArray.toString();
     }

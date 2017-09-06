@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maks on 06.06.2017.
@@ -54,60 +55,59 @@ public class StellarReceivePaymentsService {
 
     // Create an API call to query payments involving the account.
     private PaymentsRequestBuilder paymentsRequest;
+    private EventSource eventSource;
 
 
     @PostConstruct
     public void init() {
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
-        paymentsRequest = server.payments().forAccount(account);
     }
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 1000 * 60 * 5)
+    @Scheduled(initialDelay = 15000, fixedDelay = 1000 * 30 * 5)
     private void checkIncomePayment() {
         log.debug("starting check xlm income payments");
+        paymentsRequest = server.payments().forAccount(account);
         String lastToken = loadLastPagingToken();
+        log.debug("lastToken {}", lastToken);
         if (lastToken != null) {
             paymentsRequest.cursor(lastToken);
         }
-        EventSource es = paymentsRequest.stream(new EventListener<OperationResponse>() {
-            @Override
-            public void onEvent(OperationResponse payment) {
-                log.debug("stellar income payment for {}, id {}", payment.getSourceAccount().getAccountId(), payment.getId());
-                // The payments stream includes both sent and received payments. We only
-                // want to process received payments here.
-                if (payment instanceof PaymentOperationResponse) {
-                    log.debug("its payment response");
-                    log.debug(((PaymentOperationResponse) payment).getTo().getAccountId());
-                    log.debug(((PaymentOperationResponse) payment).getFrom().getAccountId());
-                    if (((PaymentOperationResponse) payment).getTo().getAccountId().equals(ACCOUNT_NAME)) {
-                        PaymentOperationResponse response = ((PaymentOperationResponse) payment);
-                        log.debug(response.getAsset().getType());
-                        if (response.getAsset().equals(new AssetTypeNative())) {
-                            TransactionResponse transactionResponse = null;
-                            try {
-                                transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
-                            } catch (Exception e) {
-                                log.error("error getting transaction {}", e);
-                            }
-                            log.debug("process transaction");
-                            stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
-                            // Record the paging token so we can start from here next time.
-                            savePagingToken(payment.getPagingToken());
-                            log.debug("transaction xlm {} saved ", transactionResponse.getHash());
-                        } else {
-                            return;
+        eventSource = paymentsRequest.stream(payment -> {
+            log.debug("stellar income payment for {}, id {}", payment.getSourceAccount().getAccountId(), payment.getId());
+            // The payments stream includes both sent and received payments. We only
+            // want to process received payments here.
+            if (payment instanceof PaymentOperationResponse) {
+                log.debug("its payment response");
+                log.debug(((PaymentOperationResponse) payment).getTo().getAccountId());
+                log.debug(((PaymentOperationResponse) payment).getFrom().getAccountId());
+                if (((PaymentOperationResponse) payment).getTo().getAccountId().equals(ACCOUNT_NAME)) {
+                    PaymentOperationResponse response = ((PaymentOperationResponse) payment);
+                    log.debug(response.getAsset().getType());
+                    if (response.getAsset().equals(new AssetTypeNative())) {
+                        TransactionResponse transactionResponse = null;
+                        try {
+                            transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
+                        } catch (Exception e) {
+                            log.error("error getting transaction {}", e);
                         }
+                        log.debug("process transaction");
+                        stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
+                        // Record the paging token so we can start from here next time.
+                        savePagingToken(payment.getPagingToken());
+                        log.debug("transaction xlm {} saved ", transactionResponse.getHash());
                     } else {
-                        log.debug("payment not for us");
+                        return;
                     }
                 } else {
-                    log.debug("its not !! payment response");
+                    log.debug("payment not for us");
                 }
+            } else {
+                log.debug("its not !! payment response");
             }
         });
-        es.close();
     }
+
 
     private void savePagingToken(String pagingToken) {
         specParamsDao.updateParam(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM, pagingToken);

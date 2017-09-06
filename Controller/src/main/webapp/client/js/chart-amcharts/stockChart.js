@@ -341,7 +341,6 @@ function StockChartAmchartsClass($loadingImg) {
             label: "MAX"
         }];
         //chart.periodSelector = periodSelector;
-        console.log('init cg=hart');
 
     })();
 
