@@ -66,6 +66,8 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -272,7 +274,7 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(
+  public Future<DataTable<List<OperationViewDto>>> getUserTransactions(
       AdminTransactionsFilterData filterData,
       @RequestParam Integer id,
       @RequestParam Map<String, String> params,
@@ -281,12 +283,12 @@ public class AdminController {
     filterData.initFilterItems();
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(
-        requesterAdminId,
-        id,
-        filterData,
-        dataTableParams,
-        localeResolver.resolveLocale(request));
+    return CompletableFuture.supplyAsync(() -> transactionService.showUserOperationHistory(
+            requesterAdminId,
+            id,
+            filterData,
+            dataTableParams,
+            localeResolver.resolveLocale(request)));
   }
 
 
@@ -338,7 +340,7 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
+  public Future<List<OrderWideListDto>> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                                               final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
     CurrencyPair currencyPair;
@@ -350,49 +352,53 @@ public class AdminController {
     String email = userService.getUserById(id).getEmail();
     Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
 
-    List<OrderWideListDto> result = new ArrayList<>();
-    switch (tableType) {
-      case "ordersBuyClosed":
-        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyClosed;
-        break;
-      case "ordersSellClosed":
-        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellClosed;
-        break;
-      case "ordersBuyOpened":
-        List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyOpened;
-        break;
-      case "ordersSellOpened":
-        List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellOpened;
-        break;
-      case "ordersBuyCancelled":
-        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersBuyCancelled;
-        break;
-      case "ordersSellCancelled":
-        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        result = ordersSellCancelled;
-        break;
-      case "stopOrdersCancelled":
-        List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersCancelled ;
-        break;
-      case "stopOrdersClosed":
-        List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersClosed ;
-        break;
-      case "stopOrdersOpened":
-        List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, localeResolver.resolveLocale(request));
-        result = stopOrdersOpened;
-        break;
-    }
-    return result;
+      return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
   }
 
-  @RequestMapping("/2a8fy7b07dxe44/addUser")
+    private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
+        List<OrderWideListDto> result = new ArrayList<>();
+        switch (tableType) {
+          case "ordersBuyClosed":
+            List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyClosed;
+            break;
+          case "ordersSellClosed":
+            List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellClosed;
+            break;
+          case "ordersBuyOpened":
+            List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyOpened;
+            break;
+          case "ordersSellOpened":
+            List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellOpened;
+            break;
+          case "ordersBuyCancelled":
+            List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
+            result = ordersBuyCancelled;
+            break;
+          case "ordersSellCancelled":
+            List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
+            result = ordersSellCancelled;
+            break;
+          case "stopOrdersCancelled":
+            List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
+            result = stopOrdersCancelled ;
+            break;
+          case "stopOrdersClosed":
+            List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
+            result = stopOrdersClosed ;
+            break;
+          case "stopOrdersOpened":
+            List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null,0, -1, locale);
+            result = stopOrdersOpened;
+            break;
+        }
+        return result;
+    }
+
+    @RequestMapping("/2a8fy7b07dxe44/addUser")
   public ModelAndView addUser(HttpSession httpSession) {
 
     final Object mutex = WebUtils.getSessionMutex(httpSession);
@@ -960,16 +966,22 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
-  public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
+  public void editCurrencyPairLimit(@RequestParam int currencyPairId,
                                                     @RequestParam OrderType orderType,
                                                     @RequestParam String roleName,
                                                     @RequestParam BigDecimal minRate,
-                                                    @RequestParam BigDecimal maxRate) {
-    if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
+                                                    @RequestParam BigDecimal maxRate,
+                                                    @RequestParam BigDecimal minAmount,
+                                                    @RequestParam BigDecimal maxAmount) {
+    validateDecimalLimitValues(minAmount, maxAmount);
+    validateDecimalLimitValues(minRate, maxRate);
+    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate, minAmount, maxAmount);
+  }
+
+  private void validateDecimalLimitValues(BigDecimal min, BigDecimal max) {
+    if (!BigDecimalProcessing.isNonNegative(min) || !BigDecimalProcessing.isNonNegative(max) || min.compareTo(max) >= 0) {
       throw new InvalidNumberParamException("Invalid request params!");
     }
-    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
-    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)

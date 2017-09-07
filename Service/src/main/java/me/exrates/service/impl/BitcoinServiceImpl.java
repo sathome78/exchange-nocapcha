@@ -4,11 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.btcTransactionFacade.BtcPaymentFlatDto;
-import me.exrates.model.dto.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,8 +114,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
-    String address = getIfNotNull(params, "address");
-    String txId = getIfNotNull(params, "txId");
+    String address = ParamMapUtils.getIfNotNull(params, "address");
+    String txId = ParamMapUtils.getIfNotNull(params, "txId");
     BtcTransactionDto btcTransactionDto = bitcoinWalletService.getTransaction(txId);
     Integer confirmations = btcTransactionDto.getConfirmations();
     BigDecimal amount = btcTransactionDto.getDetails().stream().filter(payment -> address.equals(payment.getAddress()))
@@ -127,13 +128,7 @@ public class BitcoinServiceImpl implements BitcoinService {
             .merchantId(merchant.getId())
             .currencyId(currency.getId()).build());
   }
-  
-  
-  private String getIfNotNull(Map<String, String> params, String paramName) {
-    String value = params.get(paramName);
-    Assert.requireNonNull(value, String.format("Absent value for param %s", paramName));
-    return value;
-  }
+
   
   private String address() {
     boolean isFreshAddress = false;
@@ -278,7 +273,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
     try {
       refillService.setConfirmationCollectedNumber(dto);
-      if (dto.getConfirmations() >= CONFIRMATION_NEEDED_COUNT) {
+      if (dto.getConfirmations() >= minConfirmations) {
         log.debug("Providing transaction!");
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(dto.getRequestId())

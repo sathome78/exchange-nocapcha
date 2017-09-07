@@ -132,9 +132,9 @@ function updateRolesDataTable() {
                     }
                 },
                 {
-                    "data": "botAcceptionAllowed",
+                    "data": "botAcceptionAllowedOnly",
                     "render": function (data) {
-                        return '<span data-attribute="botAcceptionAllowed">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
+                        return '<span data-attribute="botAcceptionAllowedOnly">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
                     }
                 },
@@ -298,7 +298,7 @@ function submitBotGeneralSettings() {
         id: $('#bot-id').val(),
         userId: $('#bot-user-id').val(),
         enabled: $('#bot-enabled-box').prop('checked'),
-        acceptDelayInSeconds: $('#timeout').val()
+        acceptDelayInMillis: $('#timeout').val()
     };
     $.ajax({
         headers: {

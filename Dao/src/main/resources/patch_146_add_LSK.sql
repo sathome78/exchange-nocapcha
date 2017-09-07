@@ -56,3 +56,5 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 
 INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'LSK'));
+
+ALTER TABLE REFILL_REQUEST_ADDRESS ADD confirmed_tx_offset INT DEFAULT 0 NULL;

@@ -77,7 +77,7 @@
                                                     <label for="timeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.bot.timeout"/></label>
                                                 </div>
                                                 <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                                    <input id="timeout" type="number" name="acceptDelayInSeconds" value="<c:out value="${bot.acceptDelayInSeconds}"/>"
+                                                    <input id="timeout" type="number" name="acceptDelayInSeconds" value="<c:out value="${bot.acceptDelayInMillis}"/>"
                                                            class="input-block-wrapper__input admin-form-input">
                                                 </div>
                                             </div>

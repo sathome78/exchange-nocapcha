@@ -343,7 +343,7 @@ function updateWithdrawalTable() {
                     "data": "adminHolderEmail",
                     "name": "WITHDRAW_REQUEST.admin_holder_id",
                     "render": function (data, type, row) {
-                        if (data && row.isEndStatus) {
+                        if (data && (row.isEndStatus || !row.authorizedUserIsHolder)) {
                             return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
                             return tableViewType == "ALL" ? row.status : getButtonsSet(row.id, row.sourceType, row.merchantName,

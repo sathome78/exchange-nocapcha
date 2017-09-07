@@ -1,4 +1,4 @@
-package me.exrates.model.dto.btcTransactionFacade;
+package me.exrates.model.dto.merchants.btcTransactionFacade;
 
 import lombok.*;
 

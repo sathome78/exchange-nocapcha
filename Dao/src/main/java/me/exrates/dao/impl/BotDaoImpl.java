@@ -35,7 +35,7 @@ public class BotDaoImpl implements BotDao {
         botTrader.setId(rs.getInt("id"));
         botTrader.setUserId(rs.getInt("user_id"));
         botTrader.setEnabled(rs.getBoolean("is_enabled"));
-        botTrader.setAcceptDelayInSeconds(rs.getInt("order_accept_timeout"));
+        botTrader.setAcceptDelayInMillis(rs.getInt("order_accept_timeout"));
         return botTrader;
     };
 
@@ -98,7 +98,7 @@ public class BotDaoImpl implements BotDao {
         Map<String, Object> params = new HashMap<>();
         params.put("id", botTrader.getId());
         params.put("is_enabled", botTrader.isEnabled());
-        params.put("accept_timeout", botTrader.getAcceptDelayInSeconds());
+        params.put("accept_timeout", botTrader.getAcceptDelayInMillis());
         namedParameterJdbcTemplate.update(sql, params);
     }
 
@@ -183,7 +183,7 @@ public class BotDaoImpl implements BotDao {
         String sql = "SELECT BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, BLCH.is_enabled, " +
                 "BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, BLCH.consider_user_orders " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
-                "JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
+                "JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id AND CP.hidden != 1 " +
                 "WHERE BLCH.bot_trader_id = :bot_id " + enabledClause;
         Map<String, Object> params = new HashMap<>();
         params.put("bot_id", botId);

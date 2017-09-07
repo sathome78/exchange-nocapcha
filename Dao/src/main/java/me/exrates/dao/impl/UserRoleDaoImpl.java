@@ -59,7 +59,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
       UserRoleSettings settings = new UserRoleSettings();
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
       settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
-      settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
+      settings.setBotAcceptionAllowedOnly(rs.getBoolean("bot_acception_allowed"));
       settings.setManualChangeAllowed(rs.getBoolean("manual_change_allowed"));
       return settings;
     });
@@ -72,7 +72,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
       UserRoleSettings settings = new UserRoleSettings();
       settings.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
       settings.setOrderAcceptionSameRoleOnly(rs.getBoolean("order_acception_same_role_only"));
-      settings.setBotAcceptionAllowed(rs.getBoolean("bot_acception_allowed"));
+      settings.setBotAcceptionAllowedOnly(rs.getBoolean("bot_acception_allowed"));
       settings.setConsideredForPriceRange(rs.getBoolean("considered_for_price_range"));
       return settings;
     });
@@ -86,7 +86,7 @@ public class UserRoleDaoImpl implements UserRoleDao {
     Map<String, Object> params = new HashMap<>();
     params.put("role_id", settings.getUserRole().getRole());
     params.put("same_role_only", settings.isOrderAcceptionSameRoleOnly());
-    params.put("bot_acception_allowed", settings.isBotAcceptionAllowed());
+    params.put("bot_acception_allowed", settings.isBotAcceptionAllowedOnly());
     params.put("considered_for_price_range", settings.isConsideredForPriceRange());
     namedParameterJdbcTemplate.update(sql, params);
   }
