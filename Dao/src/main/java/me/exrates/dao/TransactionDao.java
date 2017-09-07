@@ -25,7 +25,7 @@ public interface TransactionDao {
   Transaction findById(int id);
 
   PagingData<List<Transaction>> findAllByUserWallets(
-          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
+          Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
   boolean provide(int id);
 

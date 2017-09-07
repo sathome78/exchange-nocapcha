@@ -220,10 +220,9 @@ public final class TransactionDaoImpl implements TransactionDao {
   private final String SELECT_COUNT =
       " SELECT COUNT(*)" +
           " FROM TRANSACTION " +
+          " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) " +
           "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
           "   JOIN USER ON WALLET.user_id = USER.id" +
-          "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-          "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
           "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id";
   private final String SELECT_ALL =
       " SELECT " +
@@ -244,6 +243,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
           "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmations " +
           " FROM TRANSACTION " +
+          " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) " +
           "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
           "   JOIN USER ON WALLET.user_id = USER.id" +
           "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
@@ -261,16 +261,11 @@ public final class TransactionDaoImpl implements TransactionDao {
           "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
           "             )";
 
-  private String PERMISSION_CLAUSE = " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-      "  (WALLET.user_id=:requester_user_id) OR " +
-      "  ((IOP.user_id=:requester_user_id) AND " +
-      "  (IOP.currency_id=TRANSACTION.currency_id) AND " +
-      "  ( " +
-      "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
-      "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=8 AND IOP.operation_direction='REFILL')" +
-      "  )) ";
+  private String PERMISSION_CLAUSE = " JOIN (select IOP.currency_id AS permitted_currency, OTD.operation_type_id AS permitted_optype " +
+          " from USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+          "    JOIN OPERATION_TYPE_DIRECTION OTD ON IOP.operation_direction_id = OTD.operation_direction_id " +
+          "  WHERE IOP.user_id = :requester_user_id) PERMS " +
+          "    ON TRANSACTION.currency_id = PERMS.permitted_currency AND TRANSACTION.operation_type_id = PERMS.permitted_optype";
 
 
   @Autowired
@@ -362,13 +357,13 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+          Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     String trClause = filterData.getTransationTypeClauses();
-    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+    final String whereClauseBasic = "WHERE WALLET.user_id = :user_id";
     Map<String, Object> params = new HashMap<>();
-    params.put("ids", walletIds);
+    params.put("user_id", userId);
     params.put("offset", dataTableParams.getStart());
     params.put("limit", dataTableParams.getLength());
     params.put("requester_user_id", requesterUserId);
