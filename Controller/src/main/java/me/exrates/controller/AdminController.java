@@ -475,8 +475,6 @@ public class AdminController {
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
     List<Merchant> merchantList = merchantService.findAll();
     model.addObject("merchants", merchantList);
-    model.addObject("maxAmount", transactionService.maxAmount());
-    model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
     Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
     AuthorityOptionsForm form = new AuthorityOptionsForm();

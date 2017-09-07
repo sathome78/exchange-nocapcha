@@ -38,6 +38,7 @@ $(function () {
         var id = $("#user-id").val();
         transactionsDataTable = $('#transactionsTable').DataTable({
             "serverSide": true,
+            "deferRender": true,
             "ajax": {
                 "url": '/2a8fy7b07dxe44/transactions?id=' + id,
                 "dataSrc": "data"

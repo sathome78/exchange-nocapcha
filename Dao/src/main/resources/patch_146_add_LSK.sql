@@ -22,8 +22,8 @@ INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY wh
 
 -- !!!!!!!!!!!!!PAIR ORDERS!!!!!!!!!!
 
-INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden)
-VALUES((select id from CURRENCY where name = 'LSK'), (select id from CURRENCY where name = 'USD'), 'LSK/USD', 281, 0);
+INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market)
+VALUES((select id from CURRENCY where name = 'LSK'), (select id from CURRENCY where name = 'USD'), 'LSK/USD', 290, 0, 'USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -31,7 +31,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='LSK/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market)
-VALUES((select id from CURRENCY where name = 'LSK'), (select id from CURRENCY where name = 'BTC'), 'LSK/BTC', 282, 0, 'BTC');
+VALUES((select id from CURRENCY where name = 'LSK'), (select id from CURRENCY where name = 'BTC'), 'LSK/BTC', 290, 0, 'BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP

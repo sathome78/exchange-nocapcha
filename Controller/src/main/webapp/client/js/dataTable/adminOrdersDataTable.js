@@ -52,6 +52,7 @@ $(function () {
                     },
                     "dataSrc": ""
                 },
+                "deferRender": true,
                 "paging": true,
                 "info": true,
                 "columns": [
@@ -118,6 +119,7 @@ $(function () {
                     },
                     "dataSrc": ""
                 },
+                "deferRender": true,
                 "paging": true,
                 "info": true,
                 "columns": [
@@ -184,6 +186,7 @@ $(function () {
                     },
                     "dataSrc": ""
                 },
+                "deferRender": true,
                 "paging": true,
                 "info": true,
                 "columns": [
