@@ -146,7 +146,7 @@ public class MoneroServiceImpl implements MoneroService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 0, 1, TimeUnit.MINUTES);
+                }, 0, 30, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }
@@ -162,7 +162,9 @@ public class MoneroServiceImpl implements MoneroService {
             HashMap<String,String> mapAddresses = new HashMap<>();
             Set<String> payments = new HashSet<>();
 
+            log.info(ADDRESSES.toString());
             for (String address : ADDRESSES){
+                log.info(address.toString());
                 String paymentId = wallet.splitIntegratedAddress(address).getPaymentId();
                 mapAddresses.put(paymentId, address);
             }
@@ -172,12 +174,15 @@ public class MoneroServiceImpl implements MoneroService {
                     try {
                         log.info(transaction.toString());
                         String integratedAddress = mapAddresses.get(transaction.getPaymentId());
+                        log.info("integratedAddress: " + integratedAddress);
+                        log.info(refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(integratedAddress,merchant.getId(),currency.getId(),transaction.getHash()));
                         if ((transaction.getType().equals("INCOMING")) || !transaction.getUnlockTime().equals(0)
                                 || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(integratedAddress,merchant.getId(),currency.getId()
                                 ,transaction.getHash()).isPresent() || (!ADDRESSES.contains(integratedAddress))){
                             continue;
                         }
                         int confirmations = wallet.getHeight() - transaction.getHeight();
+                        log.info("confirmations:" + confirmations);
                         if (confirmations < 10){
                             continue;
                         }
