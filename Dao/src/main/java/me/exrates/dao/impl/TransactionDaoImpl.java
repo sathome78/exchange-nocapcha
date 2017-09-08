@@ -218,12 +218,10 @@ public final class TransactionDaoImpl implements TransactionDao {
   };
 
   private final String SELECT_COUNT =
-      " SELECT COUNT(*)" +
-          " FROM TRANSACTION " +
-          " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) " +
-          "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-          "   JOIN USER ON WALLET.user_id = USER.id" +
-          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id";
+      " SELECT STRAIGHT_JOIN COUNT(*)" +
+          " FROM TRANSACTION "
+       //  + " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) "
+        ;
   private final String SELECT_ALL =
       " SELECT " +
           "   TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
