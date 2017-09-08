@@ -161,13 +161,7 @@ public class AdminController {
   }
 
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
-  public ModelAndView admin(Principal principal, HttpSession httpSession) {
-
-    final Object mutex = WebUtils.getSessionMutex(httpSession);
-    synchronized (mutex) {
-      httpSession.setAttribute("currentRole", ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority());
-    }
-
+  public ModelAndView admin() {
     ModelAndView model = new ModelAndView();
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
     model.addObject("currencyPairList", currencyPairList);
@@ -400,15 +394,6 @@ public class AdminController {
 
     @RequestMapping("/2a8fy7b07dxe44/addUser")
   public ModelAndView addUser(HttpSession httpSession) {
-
-    final Object mutex = WebUtils.getSessionMutex(httpSession);
-    String currentRole = "";
-    synchronized (mutex) {
-      currentRole = (String) httpSession.getAttribute("currentRole");
-    }
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      return new ModelAndView("403");
-    }
     ModelAndView model = new ModelAndView();
 
     model.addObject("roleList", userService.getAllRoles());
@@ -420,17 +405,7 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/adduser/submit", method = RequestMethod.POST)
-  public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request,
-                                   HttpSession httpSession) {
-
-    final Object mutex = WebUtils.getSessionMutex(httpSession);
-    String currentRole = "";
-    synchronized (mutex) {
-      currentRole = (String) httpSession.getAttribute("currentRole");
-    }
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      return new ModelAndView("403");
-    }
+  public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
     user.setConfirmPassword(user.getPassword());
     user.setStatus(UserStatus.ACTIVE);
@@ -449,18 +424,14 @@ public class AdminController {
   }
 
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
-  public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request, Principal principal) {
+  public ModelAndView editUser(@RequestParam int id, HttpServletRequest request, Principal principal) {
 
     ModelAndView model = new ModelAndView();
 
     model.addObject("statusList", UserStatus.values());
     List<UserRole> roleList = new ArrayList<>();
-    final Object mutex = WebUtils.getSessionMutex(httpSession);
-    String currentRole = "";
-    synchronized (mutex) {
-      currentRole = (String) httpSession.getAttribute("currentRole");
-    }
-    if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+    UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+    if (currentUserRole == UserRole.ADMINISTRATOR) {
       roleList = userRoleService.getRolesAvailableForChangeByAdmin();
     }
     model.addObject("roleList", roleList);
@@ -520,14 +491,10 @@ public class AdminController {
     }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
-  public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
-                                 HttpSession httpSession) {
-    final Object mutex = WebUtils.getSessionMutex(httpSession);
-    String currentRole = "";
-    synchronized (mutex) {
-      currentRole = (String) httpSession.getAttribute("currentRole");
-    }
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && user.getRole() == ADMINISTRATOR) {
+  public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
+    UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+
+    if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
       return new ModelAndView("403");
     }
     user.setConfirmPassword(user.getPassword());
@@ -539,7 +506,7 @@ public class AdminController {
     if (result.hasErrors()) {
       model.setViewName("admin/editUser");
       model.addObject("statusList", UserStatus.values());
-      if (currentRole.equals(ADMINISTRATOR.name())) {
+      if (currentUserRole == ADMINISTRATOR) {
         model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
       }
     } else {
@@ -547,7 +514,7 @@ public class AdminController {
       updateUserDto.setEmail(user.getEmail());
       updateUserDto.setPassword(user.getPassword());
       updateUserDto.setPhone(user.getPhone());
-      if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+      if (currentUserRole == ADMINISTRATOR) {
         updateUserDto.setRole(user.getRole());
       }
       updateUserDto.setStatus(user.getUserStatus());
