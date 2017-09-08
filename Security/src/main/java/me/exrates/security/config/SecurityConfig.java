@@ -50,7 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public LoginSuccessHandler loginSuccessHandler() {
-    return new LoginSuccessHandler("/dashboard");
+    return new LoginSuccessHandler();
   }
 
   @Bean
