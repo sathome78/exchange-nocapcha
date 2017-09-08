@@ -12,6 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.ServletException;
@@ -25,7 +26,7 @@ import java.util.Locale;
  */
 @Log4j2
 @PropertySource("classpath:session.properties")
-public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
 
     @Autowired
@@ -37,10 +38,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private UserService userService;
 
-    private String successUrl;
 
-    public LoginSuccessHandler(String successUrl) {
-        this.successUrl = successUrl;
+    public LoginSuccessHandler() {
+
     }
 
     @Override
@@ -71,8 +71,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
-            response.sendRedirect(successUrl);
-            return;
+            super.onAuthenticationSuccess(request, response, authentication);
 
 
         } catch (Exception e) {
