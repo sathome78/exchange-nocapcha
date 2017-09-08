@@ -31,8 +31,8 @@ INSERT INTO OPERATION_TYPE_DIRECTION VALUES
   (5, 2),
   (8, 1);
 
-CREATE INDEX tx_idx_user_wallet_id_cur_id_optype_id
-  ON TRANSACTION (user_wallet_id, currency_id, operation_type_id);
+CREATE INDEX tx__idx_wlt_optype_source_type
+  ON transaction (user_wallet_id, operation_type_id, source_type);
 
 CREATE INDEX transaction__datetime
   ON transaction (datetime);
