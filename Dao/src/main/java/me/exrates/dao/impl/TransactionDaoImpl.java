@@ -380,13 +380,20 @@ public final class TransactionDaoImpl implements TransactionDao {
     long start = System.currentTimeMillis();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     log.debug("count in {}", System.currentTimeMillis() - start);
-    start = System.currentTimeMillis();
-    List<Integer> transactionIds = jdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
-    String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
-    final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
-    log.debug("data sql {}", selectLimitedAllSql);
-    result.setData(jdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
-    log.debug("data in {}", System.currentTimeMillis() - start);
+
+    if (total == 0) {
+      result.setData(Collections.emptyList());
+    } else {
+      start = System.currentTimeMillis();
+      List<Integer> transactionIds = jdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+      String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
+      final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
+      log.debug("data sql {}", selectLimitedAllSql);
+      result.setData(jdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
+      log.debug("data in {}", System.currentTimeMillis() - start);
+    }
+
+
     result.setFiltered(total);
     result.setTotal(total);
     return result;
