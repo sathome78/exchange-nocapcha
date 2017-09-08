@@ -243,7 +243,6 @@ public final class TransactionDaoImpl implements TransactionDao {
           "   INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
           "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmations " +
           " FROM TRANSACTION " +
-          " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) " +
           "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
           "   JOIN USER ON WALLET.user_id = USER.id" +
           "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
@@ -261,7 +260,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
           "             )";
 
-  private String PERMISSION_CLAUSE = " JOIN (select IOP.currency_id AS permitted_currency, OTD.operation_type_id AS permitted_optype " +
+  private String PERMISSION_CLAUSE = " JOIN (SELECT DISTINCT IOP.currency_id AS permitted_currency, OTD.operation_type_id AS permitted_optype " +
           " from USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
           "    JOIN OPERATION_TYPE_DIRECTION OTD ON IOP.operation_direction_id = OTD.operation_direction_id " +
           "  WHERE IOP.user_id = :requester_user_id) PERMS " +
@@ -357,13 +356,14 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-          Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+          Integer requesterUserId, List<Integer> userWalletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+    String selectIdsSql = "SELECT STRAIGHT_JOIN id FROM TRANSACTION ";
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     String trClause = filterData.getTransationTypeClauses();
-    final String whereClauseBasic = "WHERE WALLET.user_id = :user_id";
+    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id IN(:user_wallet_ids)";
     Map<String, Object> params = new HashMap<>();
-    params.put("user_id", userId);
+    params.put("user_wallet_ids", userWalletIds);
     params.put("offset", dataTableParams.getStart());
     params.put("limit", dataTableParams.getLength());
     params.put("requester_user_id", requesterUserId);
@@ -375,16 +375,19 @@ public final class TransactionDaoImpl implements TransactionDao {
       log.debug("filter {}", filterClause);
     }
     String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
-    final String selectLimitedAllSql = String.join(" ", SELECT_ALL, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
+    final String selectLimitedIdsSql = String.join(" ", selectIdsSql, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
     final String selectAllCountSql = String.join(" ", SELECT_COUNT, permissionClause, whereClauseBasic, filterClause);
     final PagingData<List<Transaction>> result = new PagingData<>();
     log.debug("count sql {}", selectAllCountSql);
-    log.debug("data sql {}", selectLimitedAllSql);
     long start = System.currentTimeMillis();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     log.debug("count in {}", System.currentTimeMillis() - start);
     start = System.currentTimeMillis();
-    result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
+    List<Integer> transactionIds = jdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+    String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
+    final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
+    log.debug("data sql {}", selectLimitedAllSql);
+    result.setData(jdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
     log.debug("data in {}", System.currentTimeMillis() - start);
     result.setFiltered(total);
     result.setTotal(total);

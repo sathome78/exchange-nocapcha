@@ -180,8 +180,12 @@ public class TransactionServiceImpl implements TransactionService {
           Integer userId,
           AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
     requesterUserId = requesterUserId.equals(userId) ? null : requesterUserId;
+    final List<Integer> wallets = walletService.getAllWallets(userId).stream()
+            .mapToInt(Wallet::getId)
+            .boxed()
+            .collect(Collectors.toList());
     final DataTable<List<OperationViewDto>> result = new DataTable<>();
-    final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(requesterUserId, userId,
+    final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(requesterUserId, wallets,
             filterData, dataTableParams, locale);
     final List<OperationViewDto> operationViews = new ArrayList<>();
     for (final Transaction t : transactions.getData()) {
