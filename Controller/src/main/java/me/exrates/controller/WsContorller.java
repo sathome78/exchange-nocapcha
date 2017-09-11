@@ -62,16 +62,18 @@ public class WsContorller {
     }
 
     @SubscribeMapping("/statistics")
-    public String subscribeEvents() {
+    public String subscribeStatistic() {
         log.debug("sbs currencies stat ");
         return orderService.getAllCurrenciesStatForRefresh();
     }
 
-
-    @SendToUser("/queue/position-updates")
-    public String subscribePersonal(@DestinationVariable String email, Principal principal) {
-        return "";
+    @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
+    public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
+        log.debug("subscribe filtered ");
+        UserRole role = userService.getUserRoleFromDB(principal.getName());
+        return initOrders(currencyId, role);
     }
+
 
     @SubscribeMapping("/trades/{currencyPairId}")
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {

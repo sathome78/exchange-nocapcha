@@ -1402,11 +1402,11 @@ public class OrderServiceImpl implements OrderService {
     List<OrderListDto> dtos;
     switch (operationType) {
       case BUY: {
-        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, null);
+        dtos = getAllBuyOrdersEx(cp, Locale.ENGLISH, userRole);
         break;
       }
       case SELL: {
-        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, null);
+        dtos = getAllSellOrdersEx(cp, Locale.ENGLISH, userRole);
         break;
       }
       default: return null;

@@ -46,10 +46,7 @@ var onConnect = function() {
 
 function subscribeAll() {
     console.log('try subscribe');
-    if (connectedPS && personalSubscription == undefined) {
-        subscribeForPersonal();
-    }
-    if (connectedPS && email == undefined) {
+    if (connectedPS) {
         subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
@@ -63,21 +60,33 @@ function subscribeAll() {
     }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
+        subscribeForPersonal();
     }
 }
 
 function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
-   /* client.debug = null;*/
+    client.debug = null;
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
     client.connect(headers, onConnect, onConnectFail);
 }
 
 function subscribeForPersonal() {
+    if (personalSubscription != undefined) {
+        personalSubscription.unsubscribe();
+    }
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
-    personalSubscription = client.subscribe("/user/queue/trades", function(message) {
+    personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
         console.log("message " + message);
+        var messageBody = JSON.parse(message.body);
+        if (messageBody instanceof Array) {
+            messageBody.forEach(function(object){
+                initTrades(JSON.parse(object), currentCurrencyPairId);
+            });
+        } else {
+            initTrades(messageBody, currentCurrencyPairId);
+        }
     }, headers);
 }
 
@@ -112,7 +121,6 @@ function subscribeTrades() {
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
-        console.log('trades' + message);
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
             messageBody.forEach(function(object){
@@ -129,7 +137,6 @@ function subscribeStatistics() {
         var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
         var path = '/app/statistics';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
-            console.log("statistics " + message);
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
                 handleStatisticMessages(object);
@@ -158,9 +165,7 @@ function subscribeEvents() {
     if (eventsSubscrition == undefined) {
         var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
         var path = '/app/ev/' + sessionId;
-        /*console.log(path);*/
         eventsSubscrition = client.subscribe(path, function (message) {
-            console.log("events " + message);
             handleEventsMessage(message.body);
         }, headers);
     }

@@ -54,6 +54,7 @@ public class StompMessengerImpl implements StompMessenger{
    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
        String message = orderService.getOrdersForRefresh(pairId, operationType, null);
        sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
+       sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
    }
 
    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
@@ -84,11 +85,10 @@ public class StompMessengerImpl implements StompMessenger{
    @Override
    public void sendMyTradesToUser(int userId, Integer currencyPair) {
        String userEmail = userService.getEmailById(userId);
-       String destination = "/app/personal/".concat(userEmail);
+       String destination = "/queue/personal/".concat(currencyPair.toString());
        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
-       experimentalSend(userEmail, message);
-       /*log.debug("send my trades to {}, {}", userEmail, destination);
-       sendMessageToDestination(destination, message);*/
+       log.debug("send my trades to {}, {}", userEmail, destination);
+       messagingTemplate.convertAndSendToUser(userEmail, destination, message);
    }
 
     @Override
@@ -118,14 +118,6 @@ public class StompMessengerImpl implements StompMessenger{
         sendMessageToDestination("/app/topic/ev/".concat(sessionId), message);
     }
 
-    public void experimentalSend(String email, String message) {
-       Set<SimpSubscription> subscriptions = findSubscribersByDestination("/user/queue/trades");
-       SimpSubscription subscription = subscriptions.stream().filter(p->p.getSession().getUser().getName().equals(email)).findFirst().orElse(null);
-        String destination = "/queue/trades";
-       log.debug("send to user {}, {}", destination, subscription.getId());
-       messagingTemplate.convertAndSendToUser(email, destination, message);
-    }
-
 
     private Set<SimpSubscription> findSubscribersByDestination(String destination) {
        return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
@@ -137,8 +129,8 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
    private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
-       log.debug("suscr {}, dest {}", subscription.getSession().getUser().getName(), subscription.getDestination());
-       sendMessageToDestinationAndUser(subscription.getSession().getId(), dest, message);
+       log.debug("suscr {}, dest {}", subscription.getSession().getUser().getName(), dest);
+       sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), dest, message);
    }
 
     private void sendMessageToDestinationAndUser(String user, String destination, String message) {
