@@ -231,8 +231,8 @@ public class OnlineRestController {
           }});
         }};
       }*/
-      if (session.getAttribute("QR_LOGGED_IN") != null) {
-            /*after authentication via QR main page must be reloaded*/
+      /*if (session.getAttribute("QR_LOGGED_IN") != null) {
+            *//*after authentication via QR main page must be reloaded*//*
         session.removeAttribute("QR_LOGGED_IN");
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -241,7 +241,7 @@ public class OnlineRestController {
             put("successQR", messageSource.getMessage("dashboard.qrLogin.successful", null, localeResolver.resolveLocale(request)));
           }});
         }};
-      }
+      }*/
       String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
       refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
       CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);

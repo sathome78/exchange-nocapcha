@@ -26,7 +26,12 @@ import java.util.Optional;
 
 public interface OrderService {
 
-  List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
+
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx();
+
+    List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
+
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
   OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
   
@@ -310,4 +315,8 @@ public interface OrderService {
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
+
+  String getAllCurrenciesStatForRefresh();
+
+  String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 }

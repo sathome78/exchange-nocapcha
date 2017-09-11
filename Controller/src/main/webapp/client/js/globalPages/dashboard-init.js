@@ -16,7 +16,9 @@ var notifications;
 var ordersSubscription;
 var tradesSubscription;
 var chartSubscription;
-var isLogIn = false;
+var eventsSubscrition;
+var currencyPairStatisticSubscription;
+var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
 var subscribedCurrencyPairId;
@@ -28,6 +30,8 @@ var socket;
 var client;
 var f = false;
 var enableF = false;
+var sessionId;
+var email;
 
 
 var onConnectFail = function () {
@@ -41,8 +45,18 @@ var onConnect = function() {
 };
 
 function subscribeAll() {
+    console.log('try subscribe');
+    if (connectedPS && personalSubscription == undefined) {
+        subscribeForPersonal();
+    }
+    if (connectedPS && email == undefined) {
+        subscribeEvents();
+    }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
+    }
+    if (connectedPS) {
+        subscribeStatistics();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
@@ -55,9 +69,16 @@ function subscribeAll() {
 function connectAndReconnect() {
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
-    client.debug = null;
+   /* client.debug = null;*/
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
     client.connect(headers, onConnect, onConnectFail);
+}
+
+function subscribeForPersonal() {
+    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    personalSubscription = client.subscribe("/user/queue/trades", function(message) {
+        console.log("message " + message);
+    }, headers);
 }
 
 
@@ -66,9 +87,10 @@ function subscribeTradeOrders() {
         ordersSubscription.unsubscribe();
     }
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
-    var fn = enableF ? 'f.' : '';
-    var tradeOrdersSubscr = '/app/topic.trade_orders.' + fn + currentCurrencyPairId;
+    var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
+    var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
+        console.log(message);
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
@@ -82,22 +104,38 @@ function subscribeTradeOrders() {
     f = enableF;
 }
 
+
 function subscribeTrades() {
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
     var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
-    var path = '/app/topic.trades.' + currentCurrencyPairId;
+    var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
+        console.log('trades' + message);
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
             messageBody.forEach(function(object){
-                initTrades(object, currentCurrencyPairId);
+                initTrades(JSON.parse(object), currentCurrencyPairId);
             });
         } else {
             initTrades(messageBody, currentCurrencyPairId);
         }
     }, headers);
+}
+
+function subscribeStatistics() {
+    if (currencyPairStatisticSubscription == undefined) {
+        var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
+        var path = '/app/statistics';
+        currencyPairStatisticSubscription = client.subscribe(path, function (message) {
+            console.log("statistics " + message);
+            var messageBody = JSON.parse(message.body);
+            messageBody.forEach(function(object){
+                handleStatisticMessages(object);
+            });
+        }, headers);
+    }
 }
 
 function subscribeChart() {
@@ -106,8 +144,9 @@ function subscribeChart() {
     }
     if (currentCurrencyPairId != null && newChartPeriod != null) {
         var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
-        var path = '/app/topic.charts.' + currentCurrencyPairId + '.' + newChartPeriod;
+        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
         chartSubscription = client.subscribe(path, function (message) {
+            console.log("charts " + message);
             chartPeriod = newChartPeriod;
             var messageBody = JSON.parse(message.body);
             trading.getChart().drawChart(messageBody.data);
@@ -115,8 +154,50 @@ function subscribeChart() {
     }
 }
 
-function initTrades(object, currentCurrencyPair) {
+function subscribeEvents() {
+    if (eventsSubscrition == undefined) {
+        var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
+        var path = '/app/ev/' + sessionId;
+        /*console.log(path);*/
+        eventsSubscrition = client.subscribe(path, function (message) {
+            console.log("events " + message);
+            handleEventsMessage(message.body);
+        }, headers);
+    }
+}
+
+function handleStatisticMessages(object) {
     object = JSON.parse(object);
+    switch (object.type){
+        case "CURRENCIES_STATISTIC" : {
+            leftSider.updateStatisticsForAllCurrencies(object.data);
+            break;
+        }
+        case "CURRENCY_STATISTIC" : {
+            object.data.forEach(function(object){
+                leftSider.updateStatisticsForCurrency(object);
+            });
+
+            break;
+        }
+    }
+}
+
+function handleEventsMessage(data) {
+   /* console.log(data);*/
+    if (!data) return;
+    if (data.indexOf('redirect') > 0) {
+        var registered = $('#hello-my-friend')[0];
+        var noty = '';
+        if (data.redirect.urlParam1 && registered) {
+            noty = "?errorNoty=" + data.redirect.urlParam1;
+        }
+        window.location = data.redirect.url + noty;
+    }
+
+}
+
+function initTrades(object, currentCurrencyPair) {
     if (object.currencyPairId != currentCurrencyPair) {
         return;
     }
@@ -125,10 +206,10 @@ function initTrades(object, currentCurrencyPair) {
             trading.updateAndShowAllTrades(object.data);
             break;
         }
-        /*case "MY_TRADES" : {
+        case "MY_TRADES" : {
             trading.updateAndShowMyTrades(object.data);
             break;
-        }*/
+        }
     }
 }
 
@@ -154,8 +235,7 @@ function initTradeOrders(object) {
 
 
 $(function dashdoardInit() {
-    var sessionId = $('#session').text();
-    connectAndReconnect();
+    sessionId = $('#session').text();
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {
@@ -252,7 +332,7 @@ $(function dashdoardInit() {
 
         /*FOR LEFT-SIDER ...*/
 
-        leftSider = new LeftSiderClass();
+
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
             syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
@@ -288,6 +368,7 @@ $(function dashdoardInit() {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
             newChartPeriod = data.period;
+            leftSider = new LeftSiderClass();
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
@@ -346,7 +427,8 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-
+    console.log('ls ' + leftSider);
+    connectAndReconnect();
 });
 
 

@@ -21,4 +21,9 @@ public class OrdersListWrapper {
         this.type = type;
         this.currencyPairId = currencyPairId;
     }
+
+    public OrdersListWrapper(Object data, String type) {
+        this.data = data;
+        this.type = type;
+    }
 }

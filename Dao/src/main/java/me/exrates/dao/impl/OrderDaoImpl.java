@@ -335,6 +335,49 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public List<ExOrderStatisticsShortByPairsDto> getOrderStatisticForSomePairs(List<Integer> pairsIds) {
+        long before = System.currentTimeMillis();
+        try {
+            String sql = "SELECT " +
+                    "   CP.name AS currency_pair_name,       " +
+                    "   (SELECT LASTORDER.exrate " +
+                    "       FROM EXORDERS LASTORDER  " +
+                    "       WHERE  " +
+                    "       (LASTORDER.currency_pair_id = CP.id)  AND  " +
+                    "       (LASTORDER.status_id = :status_id) " +
+                    "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
+                    "       LIMIT 1) AS last_exrate, " +
+                    "   (SELECT PRED_LASTORDER.exrate " +
+                    "       FROM EXORDERS PRED_LASTORDER  " +
+                    "       WHERE  " +
+                    "       (PRED_LASTORDER.currency_pair_id = CP.id)  AND  " +
+                    "       (PRED_LASTORDER.status_id = :status_id) " +
+                    "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
+                    "       LIMIT 1,1) AS pred_last_exrate " +
+                    " FROM CURRENCY_PAIR CP " +
+                    " WHERE CP.id IN (:pair_id) AND CP.hidden != 1";
+
+            Map<String, Object> namedParameters = new HashMap<>();
+            namedParameters.put("status_id", String.valueOf(3));
+            namedParameters.put("pair_id", pairsIds);
+            return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+                ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
+                exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+                exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+                return exOrderStatisticsDto;
+            });
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("query completed ... ms: " + (after - before));
+        }
+    }
+
+    @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
         List<CoinmarketApiDto> result = namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {

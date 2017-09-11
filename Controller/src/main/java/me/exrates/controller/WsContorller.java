@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.eventbus.Subscribe;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.UserRoleSettings;
@@ -18,7 +19,10 @@ import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -39,7 +43,6 @@ import static java.util.stream.Collectors.toList;
  */
 @Log4j2
 @Controller
-@MessageMapping("topic")
 public class WsContorller {
 
     @Autowired
@@ -52,31 +55,52 @@ public class WsContorller {
     private UserService userService;
 
 
-    @SubscribeMapping("trades.{currencyPairId}")
-    public String subscribeTrades(@DestinationVariable Integer currencyPairId/*, Principal principal*/) throws Exception {
-        log.debug("allTrades " + currencyPairId);
-        return packInitTrades(currencyPairId, null);
+    @SubscribeMapping("/ev/{sessionId}")
+    public String subscribeEvents(@DestinationVariable String sessionId) {
+        log.debug("sessionId {} subscribed", sessionId);
+        return "ok";
     }
 
-    @SubscribeMapping("charts.{currencyPairId}.{period}")
+    @SubscribeMapping("/statistics")
+    public String subscribeEvents() {
+        log.debug("sbs currencies stat ");
+        return orderService.getAllCurrenciesStatForRefresh();
+    }
+
+
+    @SendToUser("/queue/position-updates")
+    public String subscribePersonal(@DestinationVariable String email, Principal principal) {
+        return "";
+    }
+
+    @SubscribeMapping("/trades/{currencyPairId}")
+    public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
+        log.debug(headerAccessor.getSessionId());
+        Principal principal = headerAccessor.getUser();
+        log.debug("allTrades " + currencyPairId);
+        return packInitTrades(currencyPairId, principal);
+    }
+
+    @SubscribeMapping("/charts/{currencyPairId}/{period}")
     public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
         log.debug("sbs chart {}, {}", currencyPairId, period);
         BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
         return orderService.getChartData(currencyPairId, backDealInterval);
     }
 
-    @SubscribeMapping("trade_orders.{currencyPairId}")
+    @SubscribeMapping("/trade_orders/{currencyPairId}")
     public String subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
         log.debug("pair " + currencyPairId);
         return initOrders(currencyPairId, null);
     }
 
-    @SubscribeMapping("trade_orders.f.{currencyPairId}")
+
+   /* @SubscribeMapping("/queue/trade_orders/f/{currencyPairId}")
     public String subscribeTradeOrdersFiltered(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
         log.debug("filtered_pair " + currencyPairId);
         UserRole role = userService.getUserRoleFromDB(principal.getName());
         return initOrders(currencyPairId, role);
-    }
+    }*/
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         log.debug("init orders {}", currencyPair);

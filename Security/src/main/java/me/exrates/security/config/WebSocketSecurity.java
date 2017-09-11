@@ -14,27 +14,29 @@ import java.util.List;
 /**
  * Created by Maks on 29.08.2017.
  */
-@Configuration
-public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerConfigurer {
-    @Autowired
-    private UserRoleService userRoleService;
-
-    @Override
-    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
-        String[] roles = settings.stream()
-                .filter(UserRoleSettings::isOrderAcceptionSameRoleOnly)
-                .map(p->p.getUserRole().name())
-                .toArray(String[]::new);
-        /*-----------------------------------------------------------------------------------------------------------*/
-        messages.nullDestMatcher().permitAll()
-                .simpSubscribeDestMatchers("/app/topic.trade_orders.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.charts.*.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.trades.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.myTrades.*").authenticated()
-                .simpSubscribeDestMatchers("/app/topic.trade_orders.f.*").hasAnyAuthority(roles)
-                .anyMessage().denyAll();
-
-    }
-
-}
+//@Configuration
+//public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerConfigurer {
+//    @Autowired
+//    private UserRoleService userRoleService;
+//
+//    @Override
+//    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
+//        List<UserRoleSettings> settings = userRoleService.retrieveSettingsForAllRoles();
+//        String[] roles = settings.stream()
+//                .filter(UserRoleSettings::isOrderAcceptionSameRoleOnly)
+//                .map(p->p.getUserRole().name())
+//                .toArray(String[]::new);
+//       /* -----------------------------------------------------------------------------------------------------------*/
+//        messages.nullDestMatcher().permitAll()
+//                .simpSubscribeDestMatchers("/app/statistics").permitAll()
+//                .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()
+//                .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
+//                .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+//                .simpDestMatchers("/app/ev/*").permitAll()
+//                .simpSubscribeDestMatchers("/app/myTrades/*").authenticated()
+//                .simpSubscribeDestMatchers("/app/topic/trade_orders/f/*").hasAnyAuthority(roles)
+//                .anyMessage().denyAll();
+//
+//    }
+//
+//}

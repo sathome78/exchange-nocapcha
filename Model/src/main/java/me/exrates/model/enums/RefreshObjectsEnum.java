@@ -5,5 +5,5 @@ package me.exrates.model.enums;
  */
 public enum RefreshObjectsEnum {
 
-    MY_TRADES, ALL_TRADES, CHART, STATISTICS;
+    MY_TRADES, ALL_TRADES, CHART, STATISTICS, CURRENCIES_STATISTIC, CURRENCY_STATISTIC;
 }

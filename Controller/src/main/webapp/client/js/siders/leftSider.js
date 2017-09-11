@@ -16,6 +16,7 @@ function LeftSiderClass() {
     var refreshIntervalForStatisticsForMyWallets = 30000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatisticsForAllCurrencies;
     var refreshIntervalForStatisticsForAllCurrencies = 10000 * REFRESH_INTERVAL_MULTIPLIER;
+    var $currencyTable = $('#currency_table').find('tbody');
     /**/
     var showLog = false;
 
@@ -61,9 +62,27 @@ function LeftSiderClass() {
         });
     };
 
+    that.updateStatisticsForAllCurrencies = function (data) {
+        var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
+        clearTable($currencyTable);
+        data.forEach(function (e) {
+            $currencyTable.append(tmpl($tmpl, e));
+        });
+        blink($('#currency_table'));
+        setPairFilter();
+    };
+
+    that.updateStatisticsForCurrency = function (data) {
+        var sel = 'stat_' + data.currencyPairName;
+        var $row = $(document.getElementById(sel));
+        $row.find('.last_rate').text(data.lastOrderRate);
+        $row.find('.percent').text(data.percentChange);
+        blink($row);
+    };
+
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
         /*change true to false id need to poll always: if window inactive too*/
-        if (true && !windowIsActive) {
+       /* if (true && !windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForAllCurrencies);
             timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                 that.getStatisticsForAllCurrencies(true);
@@ -115,7 +134,7 @@ function LeftSiderClass() {
                     console.log(new Date() + ' getStatisticsForAllCurrencies ' + ' error: ' + jqXHR + ' | ' + status + ' | ' + error);
                 }
             }
-        });
+        });*/
     };
 
     this.setOnWalletsRefresh = function(refreshCallback) {
@@ -129,7 +148,7 @@ function LeftSiderClass() {
             url: '/dashboard/firstentry',
             type: 'GET',
             success: function () {
-                that.getStatisticsForAllCurrencies();
+              /*  that.getStatisticsForAllCurrencies();*/
             }
         });
         that.getStatisticsForMyWallets();

@@ -1,7 +1,10 @@
 package me.exrates.security.filter;
 
+import me.exrates.service.events.QRLoginEvent;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +31,8 @@ public class QRAuthorizationFilter extends GenericFilterBean {
 
     @Autowired
     private SessionParamsService sessionParamsService;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     private SessionAuthenticationStrategy authenticationStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -42,7 +47,7 @@ public class QRAuthorizationFilter extends GenericFilterBean {
                 Object mutex = WebUtils.getSessionMutex(session);
                 synchronized (mutex) {
                     session.removeAttribute("USER_DETAIL_TOKEN");
-                    session.setAttribute("QR_LOGGED_IN", true);
+                  /*  session.setAttribute("QR_LOGGED_IN", true);*/
                 }
                 Authentication auth = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
@@ -50,6 +55,7 @@ public class QRAuthorizationFilter extends GenericFilterBean {
                 SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
                 sessionParamsService.setSessionLifeParams((HttpServletRequest) request);
                 authenticationStrategy.onAuthentication(auth, httpServletRequest, ((HttpServletResponse)response));
+                eventPublisher.publishEvent(new QRLoginEvent(httpServletRequest));
             }
 
         }
@@ -63,4 +69,5 @@ public class QRAuthorizationFilter extends GenericFilterBean {
     public void setAuthenticationStrategy(SessionAuthenticationStrategy authenticationStrategy) {
         this.authenticationStrategy = authenticationStrategy;
     }
+
 }

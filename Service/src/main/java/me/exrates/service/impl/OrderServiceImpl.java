@@ -35,6 +35,7 @@ import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
@@ -154,28 +155,61 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
-    Boolean evictEhCache = cacheData.getForceUpdate() && false;
-    List<ExOrderStatisticsShortByPairsDto> result = serviceCacheableProxy.getOrdersStatisticByPairs(evictEhCache);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
-        add(new ExOrderStatisticsShortByPairsDto(false));
-      }};
-    } else {
-      result = result.stream()
-          .map(ExOrderStatisticsShortByPairsDto::new)
-          .collect(toList());
-      result.forEach(e -> {
-            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-            BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-          }
-      );
-    }
+      Boolean evictEhCache = cacheData.getForceUpdate() && false;
+      List<ExOrderStatisticsShortByPairsDto> result = serviceCacheableProxy.getOrdersStatisticByPairs(evictEhCache);
+      if (Cache.checkCache(cacheData, result)) {
+        result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
+          add(new ExOrderStatisticsShortByPairsDto(false));
+        }};
+      } else {
+        result = result.stream()
+                .map(ExOrderStatisticsShortByPairsDto::new)
+                .collect(toList());
+        result.forEach(e -> {
+                  BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+                  BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+                  e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+                  e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+                  BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+                  e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+                }
+        );
+      }
     return result;
   }
+   @Transactional(readOnly = true)
+   @Override
+   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
+     Locale locale = Locale.ENGLISH;
+     List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+     result = result.stream()
+             .map(ExOrderStatisticsShortByPairsDto::new)
+             .collect(toList());
+     result.forEach(e -> {
+       BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+       BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+       e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+       e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+       BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+       e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+     });
+     return result;
+   }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
+      List<ExOrderStatisticsShortByPairsDto> dto = orderDao.getOrderStatisticForSomePairs(pairsIds);
+      Locale locale = Locale.ENGLISH;
+      dto.forEach(e -> {
+        BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+        BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+        e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+        e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+        BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+        e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+      });  return dto;
+    }
 
   @Transactional
   @Override
@@ -1432,12 +1466,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     try {
-      return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain, backDealInterval.getInterval(), currencyPairId));
+      return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain,
+              backDealInterval.getInterval(), currencyPairId));
     } catch (JsonProcessingException e) {
       log.error(e);
       return null;
     }
   }
+
+  @Override
+  public String getAllCurrenciesStatForRefresh() {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(),
+                                                      RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
+    try {
+      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
+
+  @Override
+  public String getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.getStatForSomeCurrencies(currencyIds),
+            RefreshObjectsEnum.CURRENCY_STATISTIC.name());
+    try {
+      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
+    } catch (JsonProcessingException e) {
+      log.error(e);
+      return null;
+    }
+  }
+
 }
 
 

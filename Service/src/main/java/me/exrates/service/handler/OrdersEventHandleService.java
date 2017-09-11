@@ -1,4 +1,4 @@
-package me.exrates.service.impl;
+package me.exrates.service.handler;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
@@ -10,10 +10,7 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.stomp.StompMessenger;
-import me.exrates.service.vo.ChartRefreshHandler;
-import me.exrates.service.vo.MyTradesHandler;
-import me.exrates.service.vo.OrdersEventsHandler;
-import me.exrates.service.vo.TradesEventsHandler;
+import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -37,6 +34,8 @@ public class OrdersEventHandleService  {
     private UserService userService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private CurrencyStatisticsHandler currencyStatisticsHandler;
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -47,7 +46,7 @@ public class OrdersEventHandleService  {
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
 
 
-    @Async
+   /* @Async*/
     @TransactionalEventListener
     void handleOrderEventAsync(OrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
@@ -66,9 +65,13 @@ public class OrdersEventHandleService  {
     void handleOrderEventAsync(AcceptOrderEvent event) {
         log.debug("new thr accept {} ", Thread.currentThread().getName());
         ExOrder order = (ExOrder)event.getSource();
+        currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
         handleAllTrades(order);
+        handleMyTrades(order);
         handleChart(order);
+
     }
+
 
     private void onOrdersEvent(Integer pairId, OperationType operationType) {
         Map<Integer, OrdersEventsHandler> mapForWork;
@@ -85,12 +88,14 @@ public class OrdersEventHandleService  {
         handler.onOrderEvent();
     }
 
+    @Async
     private void handleAllTrades(ExOrder exOrder) {
         TradesEventsHandler handler = mapTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> TradesEventsHandler.init(exOrder.getCurrencyPairId()));
         handler.onAcceptOrderEvent();
     }
 
+    @Async
     private void handleMyTrades(ExOrder exOrder) {
         MyTradesHandler handler = mapMyTrades
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> MyTradesHandler.init(exOrder.getCurrencyPairId()));
@@ -98,6 +103,7 @@ public class OrdersEventHandleService  {
         handler.onAcceptOrderEvent(exOrder.getUserAcceptorId());
     }
 
+    @Async
     private void handleChart(ExOrder exOrder) {
         ChartRefreshHandler handler = mapChart
                 .computeIfAbsent(exOrder.getCurrencyPairId(), k -> ChartRefreshHandler.init(exOrder.getCurrencyPairId()));

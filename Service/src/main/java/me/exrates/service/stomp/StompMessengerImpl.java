@@ -1,5 +1,6 @@
 package me.exrates.service.stomp;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
@@ -8,11 +9,17 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.QRLoginEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSubscription;
-import org.springframework.messaging.simp.user.SimpSubscriptionMatcher;
+import org.springframework.messaging.simp.user.UserDestinationMessageHandler;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
@@ -35,6 +42,7 @@ public class StompMessengerImpl implements StompMessenger{
     @Autowired
     private UserService userService;
 
+
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
                                                     .map(ChartPeriodsEnum::getBackDealInterval)
                                                     .collect(Collectors.toList());
@@ -45,13 +53,12 @@ public class StompMessengerImpl implements StompMessenger{
    @Override
    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
        String message = orderService.getOrdersForRefresh(pairId, operationType, null);
-       sendMessageToDestination("/app/topic.trade_orders.".concat(pairId.toString()), message);
-       sendRefreshTradeOrdersMessageToFiltered(pairId, operationType);
+       sendMessageToDestination("/app/trade_orders/".concat(pairId.toString()), message);
    }
 
    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
       Set<SimpSubscription> subscriptions =
-              findSubscribersByDestination("/app/topic.trade_orders.f.concat(pairId.toString())");
+              findSubscribersByDestination("/user/queue/trade_orders/f/".concat(pairId.toString()));
       if (!subscriptions.isEmpty()) {
           Map<UserRole, List<SimpSubscription>> map = new HashMap<>();
           subscriptions.forEach(p -> {
@@ -68,7 +75,7 @@ public class StompMessengerImpl implements StompMessenger{
           map.forEach((k,v) -> {
               String message = orderService.getOrdersForRefresh(pairId, operationType, k);
               for (SimpSubscription subscription : v) {
-                  sendMessageToSubscription(subscription, message);
+                  sendMessageToSubscription(subscription, message, "/queue/trade_orders/f/".concat(pairId.toString()));
               }
           });
       }
@@ -77,14 +84,16 @@ public class StompMessengerImpl implements StompMessenger{
    @Override
    public void sendMyTradesToUser(int userId, Integer currencyPair) {
        String userEmail = userService.getEmailById(userId);
-       String destination = "/app/topic.trades.".concat(currencyPair.toString());
+       String destination = "/app/personal/".concat(userEmail);
        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
-       sendMessageToDestinationAndUser(userEmail, destination, message);
+       experimentalSend(userEmail, message);
+       /*log.debug("send my trades to {}, {}", userEmail, destination);
+       sendMessageToDestination(destination, message);*/
    }
 
     @Override
     public void sendAllTrades(Integer currencyPair) {
-        String destination = "/app/topic.trades.".concat(currencyPair.toString());
+        String destination = "/app/trades/".concat(currencyPair.toString());
         String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination(destination, message);
     }
@@ -93,11 +102,30 @@ public class StompMessengerImpl implements StompMessenger{
     public void sendChartData(Integer currencyPairId) {
         intervals.forEach(p-> {
             String message = orderService.getChartData(currencyPairId, p);
-            String destination = "/app/topic.charts.".concat(currencyPairId.toString().concat(".").concat(p.getInterval()));
+            String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
             sendMessageToDestination(destination, message);
         });
-
     }
+
+    @Synchronized
+    @Override
+    public void sendStatisticMessage(List<Integer> currenciesIds) {
+       sendMessageToDestination("/app/statistics", orderService.getSomeCurrencyStatForRefresh(currenciesIds));
+    }
+
+    @Override
+    public void sendEventMessage(String sessionId, String message) {
+        sendMessageToDestination("/app/topic/ev/".concat(sessionId), message);
+    }
+
+    public void experimentalSend(String email, String message) {
+       Set<SimpSubscription> subscriptions = findSubscribersByDestination("/user/queue/trades");
+       SimpSubscription subscription = subscriptions.stream().filter(p->p.getSession().getUser().getName().equals(email)).findFirst().orElse(null);
+        String destination = "/queue/trades";
+       log.debug("send to user {}, {}", destination, subscription.getId());
+       messagingTemplate.convertAndSendToUser(email, destination, message);
+    }
+
 
     private Set<SimpSubscription> findSubscribersByDestination(String destination) {
        return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
@@ -108,13 +136,25 @@ public class StompMessengerImpl implements StompMessenger{
        messagingTemplate.convertAndSend(destination, message);
    }
 
-   private void sendMessageToSubscription(SimpSubscription subscription, String message) {
-       sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), subscription.getDestination(), message);
+   private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
+       log.debug("suscr {}, dest {}", subscription.getSession().getUser().getName(), subscription.getDestination());
+       sendMessageToDestinationAndUser(subscription.getSession().getId(), dest, message);
    }
 
     private void sendMessageToDestinationAndUser(String user, String destination, String message) {
-        messagingTemplate.convertAndSendToUser(user,
+       log.debug("send to {}, {}", user, destination);
+       messagingTemplate.convertAndSendToUser(user,
                                                destination,
                                                message);
     }
+
+
+    private MessageHeaders createHeaders(String sessionId) {
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        headerAccessor.setSessionId(sessionId);
+        headerAccessor.setLeaveMutable(true);
+        return headerAccessor.getMessageHeaders();
+    }
+
+
 }
