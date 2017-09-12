@@ -38,27 +38,20 @@ public class CurrencyStatisticsHandler {
     public void onEvent(int pairId) {
         try {
             if (lock.isLocked()) {
-                log.debug("thr. wait");
                 lock.newCondition().await(10, TimeUnit.SECONDS);
             }
             log.debug("add pair {}", pairId);
             currenciesSet.add(pairId);
             if (semaphoreMain.tryAcquire()) {
-                log.debug("try to send stat");
                 Thread.sleep(DELAY);
                 lock.lock();
-                log.debug("locked");
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 List<Integer> forUpdate = Lists.newArrayList(currenciesSet);
-                log.debug("copied");
                 currenciesSet.clear();
                 semaphoreMain.release();
-                log.debug("semaphore released");
                 lock.newCondition().signalAll();
                 lock.unlock();
-                log.debug("lock unlocked");
                 stompMessenger.sendStatisticMessage(forUpdate);
-                log.debug("sended");
             }
         } catch (Exception e) {
             log.error(e);
