@@ -32,6 +32,8 @@ var f = false;
 var enableF = false;
 var sessionId;
 var email;
+var csrf;
+var reconnectsCounter = 0;
 
 
 var onConnectFail = function () {
@@ -45,7 +47,6 @@ var onConnect = function() {
 };
 
 function subscribeAll() {
-    console.log('try subscribe');
     if (connectedPS) {
         subscribeEvents();
     }
@@ -60,33 +61,33 @@ function subscribeAll() {
     }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
-        subscribeForPersonal();
+        subscribeForMyTrades();
     }
 }
 
 function connectAndReconnect() {
+    reconnectsCounter ++;
+    console.log("try to reconnect " + reconnectsCounter);
+    if (reconnectsCounter > 10) {
+        location.reload()
+    }
     socket = new SockJS(socket_url);
     client = Stomp.over(socket);
     client.debug = null;
-    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var headers = {'X-CSRF-TOKEN' : csrf};
     client.connect(headers, onConnect, onConnectFail);
 }
 
-function subscribeForPersonal() {
+function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
         personalSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var headers = {'X-CSRF-TOKEN' : csrf};
     personalSubscription = client.subscribe("/user/queue/personal/" + currentCurrencyPairId, function(message) {
-        console.log("message " + message);
         var messageBody = JSON.parse(message.body);
-        if (messageBody instanceof Array) {
-            messageBody.forEach(function(object){
-                initTrades(JSON.parse(object), currentCurrencyPairId);
-            });
-        } else {
-            initTrades(messageBody, currentCurrencyPairId);
-        }
+        messageBody.forEach(function(object){
+            initTrades(JSON.parse(object), currentCurrencyPairId);
+        });
     }, headers);
 }
 
@@ -95,11 +96,10 @@ function subscribeTradeOrders() {
     if (ordersSubscription != undefined) {
         ordersSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var headers = {'X-CSRF-TOKEN' : csrf};
     var fn = enableF ? '/user/queue/trade_orders/f/' : '/app/trade_orders/';
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
-        console.log(message);
         subscribedCurrencyPairId = currentCurrencyPairId;
         var messageBody = JSON.parse(message.body);
         if (messageBody instanceof Array) {
@@ -118,28 +118,25 @@ function subscribeTrades() {
     if (tradesSubscription != undefined) {
         tradesSubscription.unsubscribe();
     }
-    var headers = {'X-CSRF-TOKEN' : $('.s_csrf').val()};
+    var headers = {'X-CSRF-TOKEN' : csrf};
     var path = '/app/trades/' + currentCurrencyPairId;
     tradesSubscription = client.subscribe(path, function(message) {
         var messageBody = JSON.parse(message.body);
-        if (messageBody instanceof Array) {
-            messageBody.forEach(function(object){
-                initTrades(JSON.parse(object), currentCurrencyPairId);
-            });
-        } else {
-            initTrades(messageBody, currentCurrencyPairId);
-        }
+        messageBody.forEach(function(object){
+            initTrades(JSON.parse(object), currentCurrencyPairId);
+        });
+
     }, headers);
 }
 
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
-        var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
+        var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/statistics';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
-                handleStatisticMessages(object);
+                handleStatisticMessages(JSON.parse(object));
             });
         }, headers);
     }
@@ -150,10 +147,9 @@ function subscribeChart() {
         chartSubscription.unsubscribe();
     }
     if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
+        var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
         chartSubscription = client.subscribe(path, function (message) {
-            console.log("charts " + message);
             chartPeriod = newChartPeriod;
             var messageBody = JSON.parse(message.body);
             trading.getChart().drawChart(messageBody.data);
@@ -163,7 +159,7 @@ function subscribeChart() {
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
-        var headers = {'X-CSRF-TOKEN': $('.s_csrf').val()};
+        var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/ev/' + sessionId;
         eventsSubscrition = client.subscribe(path, function (message) {
             handleEventsMessage(message.body);
@@ -172,7 +168,6 @@ function subscribeEvents() {
 }
 
 function handleStatisticMessages(object) {
-    object = JSON.parse(object);
     switch (object.type){
         case "CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
@@ -189,13 +184,13 @@ function handleStatisticMessages(object) {
 }
 
 function handleEventsMessage(data) {
-   /* console.log(data);*/
     if (!data) return;
-    if (data.indexOf('redirect') > 0) {
+    if (data.indexOf("redirect") > 0) {
+        data = JSON.parse(data);
         var registered = $('#hello-my-friend')[0];
         var noty = '';
-        if (data.redirect.urlParam1 && registered) {
-            noty = "?errorNoty=" + data.redirect.urlParam1;
+        if (data.redirect.url && registered) {
+            noty = "?errorNoty=" + data.redirect.successQR;
         }
         window.location = data.redirect.url + noty;
     }
@@ -241,6 +236,7 @@ function initTradeOrders(object) {
 
 $(function dashdoardInit() {
     sessionId = $('#session').text();
+    csrf = $('.s_csrf').val();
     var $2faModal = $('#noty2fa_modal');
     var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {
@@ -432,7 +428,6 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    console.log('ls ' + leftSider);
     connectAndReconnect();
 });
 

@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1429,11 +1430,34 @@ public class OrderServiceImpl implements OrderService {
             cp,
             Locale.ENGLISH);
     try {
-      return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId));
+      return new JSONArray(){{put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId)));}}.toString();
     } catch (JsonProcessingException e) {
       log.error(e);
       return null;
     }
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException {
+    CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
+    List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
+            new BackDealInterval("24 HOUR"),
+            100,
+            cp,
+            Locale.ENGLISH);
+    JSONArray jsonArray = new JSONArray(){{
+      put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, RefreshObjectsEnum.ALL_TRADES.name(), pairId)));
+    }};
+    if (principal != null) {
+      List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
+              new BackDealInterval("24 HOUR"),
+              100,
+              cp,
+              Locale.ENGLISH);
+      jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
+    }
+    return jsonArray.toString();
   }
 
   @Override

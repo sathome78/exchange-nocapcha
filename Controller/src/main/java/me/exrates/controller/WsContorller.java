@@ -77,10 +77,9 @@ public class WsContorller {
 
     @SubscribeMapping("/trades/{currencyPairId}")
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
-        log.debug(headerAccessor.getSessionId());
         Principal principal = headerAccessor.getUser();
         log.debug("allTrades " + currencyPairId);
-        return packInitTrades(currencyPairId, principal);
+        return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
     }
 
     @SubscribeMapping("/charts/{currencyPairId}/{period}")
@@ -97,13 +96,6 @@ public class WsContorller {
     }
 
 
-   /* @SubscribeMapping("/queue/trade_orders/f/{currencyPairId}")
-    public String subscribeTradeOrdersFiltered(@DestinationVariable Integer currencyPairId, Principal principal) throws Exception {
-        log.debug("filtered_pair " + currencyPairId);
-        UserRole role = userService.getUserRoleFromDB(principal.getName());
-        return initOrders(currencyPairId, role);
-    }*/
-
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         log.debug("init orders {}", currencyPair);
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
@@ -116,16 +108,6 @@ public class WsContorller {
         objectsArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(orderService.getAllBuyOrdersEx
                 (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
         return objectsArray.toString();
-    }
-
-    private String packInitTrades(int pairId, Principal principal) {
-        JSONArray jsonArray = new JSONArray(){{
-            put(orderService.getTradesForRefresh(pairId, null, RefreshObjectsEnum.ALL_TRADES));
-        }};
-        if (principal != null) {
-            jsonArray.put(orderService.getTradesForRefresh(pairId, principal.getName(), RefreshObjectsEnum.MY_TRADES));
-        }
-        return jsonArray.toString();
     }
 
 }

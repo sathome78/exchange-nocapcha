@@ -115,7 +115,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendEventMessage(String sessionId, String message) {
-        sendMessageToDestination("/app/topic/ev/".concat(sessionId), message);
+        sendMessageToDestination("/app/ev/".concat(sessionId), message);
     }
 
 

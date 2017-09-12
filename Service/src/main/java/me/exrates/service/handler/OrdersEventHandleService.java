@@ -46,7 +46,7 @@ public class OrdersEventHandleService  {
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
 
 
-   /* @Async*/
+    @Async
     @TransactionalEventListener
     void handleOrderEventAsync(OrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();

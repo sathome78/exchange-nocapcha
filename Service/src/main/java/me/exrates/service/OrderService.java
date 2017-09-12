@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -18,6 +19,7 @@ import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -310,7 +312,10 @@ public interface OrderService {
 
   String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
-  Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
+    @Transactional(readOnly = true)
+    String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
+
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(CurrencyPair currencyPair, OperationType operationType);
 
   String getOrdersForRefresh(Integer pairId, OperationType operationType, UserRole userRole);
 
