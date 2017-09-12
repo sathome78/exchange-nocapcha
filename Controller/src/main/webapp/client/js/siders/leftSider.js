@@ -73,11 +73,12 @@ function LeftSiderClass() {
     };
 
     that.updateStatisticsForCurrency = function (data) {
+        var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
         var sel = 'stat_' + data.currencyPairName;
         var $row = $(document.getElementById(sel));
-        $row.find('.last_rate').text(data.lastOrderRate);
-        $row.find('.percent').text(data.percentChange);
+        $row.replaceWith(tmpl($tmpl, data));
         blink($row);
+        setPairFilter();
     };
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
