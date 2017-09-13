@@ -863,7 +863,7 @@ public class UserDaoImpl implements UserDao {
         ps.setInt(2, dto.getCurrencyId());
         ps.setInt(3, dto.getInvoiceOperationPermission().getCode());
         ps.setString(4, dto.getInvoiceOperationDirection().name());
-        ps.setInt(5, dto.getInvoiceOperationDirection().ordinal());
+        ps.setInt(5, dto.getInvoiceOperationDirection().getId());
       }
 
       @Override
