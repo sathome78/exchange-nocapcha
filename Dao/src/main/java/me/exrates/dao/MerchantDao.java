@@ -41,7 +41,9 @@ public interface MerchantDao {
 
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
-  void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+
+    void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
   void setBlockForAll(OperationType operationType, boolean blockStatus);
 

@@ -34,6 +34,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private String currencyName;
   private BigDecimal commissionAmount;
   private BigDecimal netAmount;
+  private BigDecimal netAmountCorrectedForMerchantCommission;
   private String merchantName;
   private String wallet;
   private String destinationTag;

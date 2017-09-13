@@ -13,49 +13,53 @@ $(document).ready(function () {
     var $roleNameSelect = $('#roleName');
     currentLocale = $('#language').text().trim().toLowerCase();
 
+    $($commissionTable).on('click', 'tr', function () {
+        var currentRoleName = $($roleNameSelect).val();
+        var rowData = commissionsDataTable.row(this).data();
+        var operationType = rowData.operationType;
+        var commissionValue = parseFloat(rowData.value);
+        $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
+        $('#operationType').val(operationType);
+        $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
+        $('#editCommissionModal').modal();
+    });
+
+    $($merchantCommissionTable).on('click', 'tr', function () {
+        var rowData = merchantsCommissionsDataTable.row(this).data();
+        var merchantId = rowData.merchantId;
+        var currencyId = rowData.currencyId;
+        var merchantName = rowData.merchantName;
+        var currencyName = rowData.currencyName;
+        var inputCommissionValue = parseFloat(rowData.inputCommission);
+        var outputCommissionValue = parseFloat(rowData.outputCommission);
+        var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
+        $($merchantCommissionForm).find('input[name="merchantId"]').val(merchantId);
+        $($merchantCommissionForm).find('input[name="currencyId"]').val(currencyId);
+        $('#merchantName').val(merchantName);
+        $('#currencyName').val(currencyName);
+        $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
+        $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
+        $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
+        $('#editMerchantCommissionModal').modal();
+    });
+
+    $($merchantCommissionTable).on('click', 'i', function (e) {
+        var event = e || window.event;
+        event.stopPropagation();
+        var row = $(this).parents('tr');
+        var rowData = merchantsCommissionsDataTable.row(row).data();
+        var merchantId = rowData.merchantId;
+        var currencyId = rowData.currencyId;
+        var subtractFromWithdraw = !rowData.isMerchantCommissionSubtractedForWithdraw;
+        toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractFromWithdraw)
+    });
 
 
 
-    updateCommissionsDataTable(addCommissionRowListener);
-    updateMerchantCommissionsDataTable(addMerchantCommissionRowListener);
+
+    updateCommissionsDataTable();
+    updateMerchantCommissionsDataTable();
     $($roleNameSelect).on("change", updateCommissionsDataTable);
-
-
-
-
-    function addCommissionRowListener() {
-        $($commissionTable).find('tbody').on('click', 'tr', function () {
-            var currentRoleName = $($roleNameSelect).val();
-            var rowData = commissionsDataTable.row(this).data();
-            var operationType = rowData.operationType;
-            var commissionValue = parseFloat(rowData.value);
-            $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
-            $('#operationType').val(operationType);
-            $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
-            $('#editCommissionModal').modal();
-        });
-    }
-
-    function addMerchantCommissionRowListener() {
-        $($merchantCommissionTable).find('tbody').on('click', 'tr', function () {
-            var rowData = merchantsCommissionsDataTable.row(this).data();
-            var merchantId = rowData.merchantId;
-             var currencyId = rowData.currencyId;
-             var merchantName = rowData.merchantName;
-             var currencyName = rowData.currencyName;
-             var inputCommissionValue = parseFloat(rowData.inputCommission);
-             var outputCommissionValue = parseFloat(rowData.outputCommission);
-             var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
-             $($merchantCommissionForm).find('input[name="merchantId"]').val(merchantId);
-             $($merchantCommissionForm).find('input[name="currencyId"]').val(currencyId);
-             $('#merchantName').val(merchantName);
-             $('#currencyName').val(currencyName);
-             $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
-             $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
-             $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
-             $('#editMerchantCommissionModal').modal();
-        });
-    }
 
 
 
@@ -73,7 +77,7 @@ $(document).ready(function () {
 });
 
 
-function updateMerchantCommissionsDataTable(initCallback) {
+function updateMerchantCommissionsDataTable() {
     var $merchantCommissionTable = $('#merchant-commissions-table');
     var merchantCommissionUrl = '/2a8fy7b07dxe44/getMerchantCommissions';
     if ($.fn.dataTable.isDataTable('#merchant-commissions-table')) {
@@ -88,7 +92,6 @@ function updateMerchantCommissionsDataTable(initCallback) {
             "bFilter": false,
             "paging": false,
             "order": [],
-            "initComplete": initCallback,
             "bLengthChange": false,
             "bPaginate": false,
             "bInfo": false,
@@ -107,13 +110,20 @@ function updateMerchantCommissionsDataTable(initCallback) {
                 },
                 {
                     "data": "minFixedCommission"
+                },
+                {
+                    "data": "isMerchantCommissionSubtractedForWithdraw",
+                    "render": function (data) {
+                        return '<span>'.concat(data ? '<i class="fa fa-check green text-1_5"></i>' : '<i class="fa fa-close red text-1_5"></i>')
+                            .concat('</span>');
+                    }
                 }
             ]
         });
     }
 }
 
-function updateCommissionsDataTable(initCallback) {
+function updateCommissionsDataTable() {
     var $commissionTable = $('#commissions-table');
 
     var currentRoleName = $('#roleName').val();
@@ -131,7 +141,6 @@ function updateCommissionsDataTable(initCallback) {
             "bFilter": false,
             "paging": false,
             "order": [],
-            "initComplete": initCallback,
             "bLengthChange": false,
             "bPaginate": false,
             "bInfo": false,
@@ -188,5 +197,25 @@ function submitMerchantCommission() {
          $('#editCommissionModal').modal('hide');
          console.log(error);
          }
+    });
+}
+
+function toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractFromWithdraw) {
+    var formData = new FormData();
+    formData.append("merchantId", merchantId);
+    formData.append("currencyId", currencyId);
+    formData.append("subtractMerchantCommissionForWithdraw", subtractFromWithdraw);
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function () {
+            updateMerchantCommissionsDataTable();
+        }
     });
 }

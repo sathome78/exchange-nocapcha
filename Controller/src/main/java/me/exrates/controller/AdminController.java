@@ -995,7 +995,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-    return merchantService.findMerchantCurrencyOptions(new ArrayList<>());
+    return merchantService.findMerchantCurrencyOptions(Collections.emptyList());
 
   }
 
@@ -1014,6 +1014,13 @@ public class AdminController {
   public ResponseEntity<Void> editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
     commissionService.updateMerchantCommission(editMerchantCommissionDto);
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission/toggleSubtractWithdraw", method = RequestMethod.POST)
+  @ResponseBody
+  public void toggleSubtractMerchantCommissionForWithdraw(@RequestParam Integer merchantId, @RequestParam Integer currencyId,
+                                                                          @RequestParam Boolean subtractMerchantCommissionForWithdraw) {
+    merchantService.toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractMerchantCommissionForWithdraw);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)

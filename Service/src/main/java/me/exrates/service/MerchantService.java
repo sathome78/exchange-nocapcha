@@ -43,7 +43,9 @@ public interface MerchantService {
 
   Map<String, String> formatResponseMessage(Transaction transaction);
 
-  void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+
+    void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
   void setBlockForAll(OperationType operationType, boolean blockStatus);
 

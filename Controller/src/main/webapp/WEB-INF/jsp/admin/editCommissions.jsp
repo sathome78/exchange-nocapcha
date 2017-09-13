@@ -68,6 +68,7 @@
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.subtractForWithdraw"/></th>
                             </tr>
                             </thead>
                         </table>

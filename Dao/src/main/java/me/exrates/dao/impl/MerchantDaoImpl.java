@@ -239,7 +239,8 @@ public class MerchantDaoImpl implements MerchantDao {
         " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission, " +
         " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, " +
         " MERCHANT_CURRENCY.merchant_fixed_commission, " +
-        " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount " +
+        " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount," +
+        " MERCHANT_CURRENCY.subtract_merchant_commission_for_withdraw " +
         " FROM MERCHANT " +
         "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
         "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
@@ -265,8 +266,20 @@ public class MerchantDaoImpl implements MerchantDao {
       dto.setWithdrawAutoEnabled(rs.getBoolean("withdraw_auto_enabled"));
       dto.setWithdrawAutoDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
       dto.setWithdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"));
+      dto.setIsMerchantCommissionSubtractedForWithdraw(rs.getBoolean("subtract_merchant_commission_for_withdraw"));
       return dto;
     });
+  }
+
+  @Override
+  public void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw) {
+    String sql = "UPDATE MERCHANT_CURRENCY SET subtract_merchant_commission_for_withdraw = :subtract_merchant_commission " +
+            " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Object> params = new HashMap<>();
+    params.put("subtract_merchant_commission", subtractMerchantCommissionForWithdraw);
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override

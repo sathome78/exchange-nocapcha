@@ -270,6 +270,11 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
+  public void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw) {
+    merchantDao.toggleSubtractMerchantCommissionForWithdraw(merchantId, currencyId, subtractMerchantCommissionForWithdraw);
+  }
+
+  @Override
   @Transactional
   public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
     merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
