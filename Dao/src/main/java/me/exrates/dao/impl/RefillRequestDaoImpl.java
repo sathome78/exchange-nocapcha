@@ -548,7 +548,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   public List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId) {
     final String sql = "SELECT id, currency_id, name, account_number, recipient, bank_details " +
         " FROM INVOICE_BANK " +
-        " WHERE currency_id = :currency_id";
+        " WHERE currency_id = :currency_id AND hidden = 0";
     final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
     return namedParameterJdbcTemplate.query(sql, params, invoiceBankRowMapper);
   }
