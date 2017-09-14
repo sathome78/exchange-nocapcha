@@ -260,6 +260,7 @@ public class WithdrawServiceImpl implements WithdrawService {
                           locale)
           );
           e.setAuthorizedUserIsHolder(authorizedUserIsHolder);
+
         })
         .collect(Collectors.toList())
     );

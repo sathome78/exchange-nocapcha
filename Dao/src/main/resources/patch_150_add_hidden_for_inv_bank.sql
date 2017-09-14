@@ -8,3 +8,4 @@ INSERT INTO INVOICE_BANK (currency_id, name, account_number, recipient) VALUES
 
 ALTER TABLE merchant_currency ADD subtract_merchant_commission_for_withdraw TINYINT(1) DEFAULT 0 NOT NULL;
 
+ALTER TABLE withdraw_request ADD merchant_commission DECIMAL(40,9) NULL AFTER commission;

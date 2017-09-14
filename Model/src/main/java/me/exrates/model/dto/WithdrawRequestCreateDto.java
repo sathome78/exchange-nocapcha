@@ -34,6 +34,7 @@ public class WithdrawRequestCreateDto {
   private String remark;
   private Boolean autoEnabled;
   private BigDecimal autoThresholdAmount;
+  private BigDecimal merchantCommissionAmount;
 
   public WithdrawRequestCreateDto(WithdrawRequestParamsDto withdrawRequestParamsDto, CreditsOperation creditsOperation, WithdrawStatusEnum status) {
     this.userId = creditsOperation.getUser().getId();
@@ -55,5 +56,6 @@ public class WithdrawRequestCreateDto {
     this.remark = withdrawRequestParamsDto.getRemark();
     this.autoEnabled = null;
     this.autoThresholdAmount = null;
+    this.merchantCommissionAmount = creditsOperation.getMerchantCommissionAmount();
   }
 }

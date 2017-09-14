@@ -116,7 +116,8 @@ function updateMerchantCommissionsDataTable() {
                     "render": function (data) {
                         return '<span>'.concat(data ? '<i class="fa fa-check green text-1_5"></i>' : '<i class="fa fa-close red text-1_5"></i>')
                             .concat('</span>');
-                    }
+                    },
+                    "className": "text-center"
                 }
             ]
         });

@@ -22,6 +22,7 @@ public class CreditsOperation {
   private final Currency currency;
   private final Wallet wallet;
   private final Merchant merchant;
+  private final BigDecimal merchantCommissionAmount;
   private final Optional<String> destination;
   private final Optional<String> destinationTag;
   private final TransactionSourceType transactionSourceType;
@@ -39,6 +40,7 @@ public class CreditsOperation {
     this.commission = builder.commission;
     this.currency = builder.currency;
     this.merchant = builder.merchant;
+    this.merchantCommissionAmount = builder.merchantCommissionAmount;
     this.destination = builder.destination == null ?
         Optional.empty() : builder.destination;
     this.destinationTag = builder.destinationTag == null ?
@@ -60,6 +62,7 @@ public class CreditsOperation {
     private Currency currency;
     private Wallet wallet;
     private Merchant merchant;
+    private BigDecimal merchantCommissionAmount;
     private Optional<String> destination;
     private Optional<String> destinationTag;
     private TransactionSourceType transactionSourceType;
@@ -134,6 +137,11 @@ public class CreditsOperation {
 
     public Builder recipientWallet(Wallet recipientWallet) {
       this.recipientWallet = recipientWallet;
+      return this;
+    }
+
+    public Builder merchantCommissionAmount(BigDecimal merchantCommissionAmount) {
+      this.merchantCommissionAmount = merchantCommissionAmount;
       return this;
     }
 

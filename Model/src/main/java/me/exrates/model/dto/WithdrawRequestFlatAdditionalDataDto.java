@@ -3,6 +3,8 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 /**
  * Created by ValkSam
  */
@@ -12,4 +14,5 @@ public class WithdrawRequestFlatAdditionalDataDto {
   private String currencyName;
   private String merchantName;
   private String adminHolderEmail;
+  private Boolean isMerchantCommissionSubtractedForWithdraw;
 }

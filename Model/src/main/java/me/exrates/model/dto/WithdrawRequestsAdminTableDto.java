@@ -64,6 +64,11 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.currencyName = withdrawRequestFlatAdditionalDataDto.getCurrencyName();
     this.commissionAmount = withdrawRequestFlatDto.getCommissionAmount();
     this.netAmount = BigDecimalProcessing.doAction(this.amount, this.commissionAmount, ActionType.SUBTRACT);
+    if (withdrawRequestFlatDto.getMerchantCommissionAmount() != null) {
+      this.netAmountCorrectedForMerchantCommission = withdrawRequestFlatAdditionalDataDto.getIsMerchantCommissionSubtractedForWithdraw() ?
+              BigDecimalProcessing.doAction(this.netAmount, withdrawRequestFlatDto.getMerchantCommissionAmount(), ActionType.SUBTRACT) :
+              this.netAmount;
+    }
     this.merchantName = withdrawRequestFlatAdditionalDataDto.getMerchantName();
     this.wallet = withdrawRequestFlatDto.getWallet();
     this.destinationTag = withdrawRequestFlatDto.getDestinationTag();

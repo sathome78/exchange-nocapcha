@@ -309,6 +309,18 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
+                    "data": "netAmountCorrectedForMerchantCommission",
+                    "name": "WITHDRAW_REQUEST.amount",
+                    "render": function (data, type, row) {
+                        if (!data) return "";
+
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[00000000]');
+                        }
+                        return data;
+                    }
+                },
+                {
                     "data": "currencyName",
                     "name": "CURRENCY.name"
                 },

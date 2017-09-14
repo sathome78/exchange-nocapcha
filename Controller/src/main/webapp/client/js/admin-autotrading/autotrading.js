@@ -129,21 +129,24 @@ function updateRolesDataTable() {
                     "render": function (data) {
                         return '<span data-attribute="orderAcceptionSameRoleOnly">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
-                    }
+                    },
+                    "className": "text-center"
                 },
                 {
                     "data": "botAcceptionAllowedOnly",
                     "render": function (data) {
                         return '<span data-attribute="botAcceptionAllowedOnly">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
-                    }
+                    },
+                    "className": "text-center"
                 },
                 {
                     "data": "consideredForPriceRange",
                     "render": function (data) {
                         return '<span data-attribute="consideredForPriceRange">'.concat(data ? '<i class="fa fa-check green"></i>' : '<i class="fa fa-close red"></i>')
                             .concat('</span>');
-                    }
+                    },
+                    "className": "text-center"
                 }
             ]
         });

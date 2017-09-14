@@ -206,6 +206,7 @@ public class InputOutputServiceImpl implements InputOutputService {
         .currency(currency)
         .wallet(wallet)
         .merchant(merchant)
+        .merchantCommissionAmount(commissionData.getMerchantCommissionAmount())
         .destination(destination)
         .destinationTag(destinationTag)
         .transactionSourceType(transactionSourceType)
