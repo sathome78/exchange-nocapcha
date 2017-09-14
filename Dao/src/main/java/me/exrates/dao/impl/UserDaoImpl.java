@@ -851,8 +851,8 @@ public class UserDaoImpl implements UserDao {
     namedParameterJdbcTemplate.update(sql, params);
 
     sql = "INSERT INTO USER_CURRENCY_INVOICE_OPERATION_PERMISSION " +
-        " (user_id, currency_id, invoice_operation_permission_id, operation_direction) " +
-        " VALUES (?, ?, ?, ?)";
+        " (user_id, currency_id, invoice_operation_permission_id, operation_direction, operation_direction_id) " +
+        " VALUES (?, ?, ?, ?, ?)";
 
     jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -863,6 +863,7 @@ public class UserDaoImpl implements UserDao {
         ps.setInt(2, dto.getCurrencyId());
         ps.setInt(3, dto.getInvoiceOperationPermission().getCode());
         ps.setString(4, dto.getInvoiceOperationDirection().name());
+        ps.setInt(5, dto.getInvoiceOperationDirection().getId());
       }
 
       @Override

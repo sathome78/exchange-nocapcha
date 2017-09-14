@@ -70,15 +70,18 @@ $(function () {
                 },
                 {
                     "data": "operationType",
-                    "name": "TRANSACTION.operation_type_id"
+                    "name": "TRANSACTION.operation_type_id",
+                    "orderable": false
                 },
                 {
                     "data": "status",
-                    "name": "TRANSACTION.provided"
+                    "name": "TRANSACTION.provided",
+                    "orderable": false
                 },
                 {
                     "data": "currency",
-                    "name": "TRANSACTION.currency_id"
+                    "name": "TRANSACTION.currency_id",
+                    "orderable": false
 
                 },
                 {
@@ -103,7 +106,8 @@ $(function () {
                 },
                 {
                     "data": "merchant.description",
-                    "name": "MERCHANT.description"
+                    "name": "MERCHANT.description",
+                    "orderable": false
                 },
                 {
                     "data": "sourceId",

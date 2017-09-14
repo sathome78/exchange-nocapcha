@@ -218,13 +218,10 @@ public final class TransactionDaoImpl implements TransactionDao {
   };
 
   private final String SELECT_COUNT =
-      " SELECT COUNT(*)" +
-          " FROM TRANSACTION " +
-          "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-          "   JOIN USER ON WALLET.user_id = USER.id" +
-          "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-          "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id";
+      " SELECT STRAIGHT_JOIN COUNT(*)" +
+          " FROM TRANSACTION "
+       //  + " USE INDEX (tx_idx_user_wallet_id_cur_id_optype_id) "
+        ;
   private final String SELECT_ALL =
       " SELECT " +
           "   TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
@@ -261,16 +258,11 @@ public final class TransactionDaoImpl implements TransactionDao {
           "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
           "             )";
 
-  private String PERMISSION_CLAUSE = " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-      "  (WALLET.user_id=:requester_user_id) OR " +
-      "  ((IOP.user_id=:requester_user_id) AND " +
-      "  (IOP.currency_id=TRANSACTION.currency_id) AND " +
-      "  ( " +
-      "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
-      "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') OR " +
-      "  (TRANSACTION.operation_type_id=8 AND IOP.operation_direction='REFILL')" +
-      "  )) ";
+  private String PERMISSION_CLAUSE = " JOIN (SELECT DISTINCT IOP.currency_id AS permitted_currency, OTD.operation_type_id AS permitted_optype " +
+          " from USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+          "    JOIN OPERATION_TYPE_DIRECTION OTD ON IOP.operation_direction_id = OTD.operation_direction_id " +
+          "  WHERE IOP.user_id = :requester_user_id) PERMS " +
+          "    ON TRANSACTION.currency_id = PERMS.permitted_currency AND TRANSACTION.operation_type_id = PERMS.permitted_optype";
 
 
   @Autowired
@@ -362,13 +354,14 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+          Integer requesterUserId, List<Integer> userWalletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+    String selectIdsSql = "SELECT STRAIGHT_JOIN id FROM TRANSACTION ";
     String orderByClause = dataTableParams.getOrderByClause();
     String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     String trClause = filterData.getTransationTypeClauses();
-    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id IN(:user_wallet_ids)";
     Map<String, Object> params = new HashMap<>();
-    params.put("ids", walletIds);
+    params.put("user_wallet_ids", userWalletIds);
     params.put("offset", dataTableParams.getStart());
     params.put("limit", dataTableParams.getLength());
     params.put("requester_user_id", requesterUserId);
@@ -380,17 +373,27 @@ public final class TransactionDaoImpl implements TransactionDao {
       log.debug("filter {}", filterClause);
     }
     String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
-    final String selectLimitedAllSql = String.join(" ", SELECT_ALL, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
+    final String selectLimitedIdsSql = String.join(" ", selectIdsSql, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
     final String selectAllCountSql = String.join(" ", SELECT_COUNT, permissionClause, whereClauseBasic, filterClause);
     final PagingData<List<Transaction>> result = new PagingData<>();
     log.debug("count sql {}", selectAllCountSql);
-    log.debug("data sql {}", selectLimitedAllSql);
     long start = System.currentTimeMillis();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     log.debug("count in {}", System.currentTimeMillis() - start);
-    start = System.currentTimeMillis();
-    result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
-    log.debug("data in {}", System.currentTimeMillis() - start);
+
+    if (total == 0) {
+      result.setData(Collections.emptyList());
+    } else {
+      start = System.currentTimeMillis();
+      List<Integer> transactionIds = jdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+      String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
+      final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
+      log.debug("data sql {}", selectLimitedAllSql);
+      result.setData(jdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
+      log.debug("data in {}", System.currentTimeMillis() - start);
+    }
+
+
     result.setFiltered(total);
     result.setTotal(total);
     return result;

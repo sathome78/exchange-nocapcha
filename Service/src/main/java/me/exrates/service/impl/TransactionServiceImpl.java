@@ -185,10 +185,6 @@ public class TransactionServiceImpl implements TransactionService {
             .boxed()
             .collect(Collectors.toList());
     final DataTable<List<OperationViewDto>> result = new DataTable<>();
-    if (wallets.isEmpty()) {
-      result.setData(Collections.EMPTY_LIST);
-      return result;
-    }
     final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(requesterUserId, wallets,
             filterData, dataTableParams, locale);
     final List<OperationViewDto> operationViews = new ArrayList<>();

@@ -82,21 +82,6 @@ public class AdminTransactionsFilterData extends TableFilterData {
     return allClause;
   }
  
-  private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
-    
-    put("orderedDatetime", "TRANSACTION.datetime+TRANSACTION.id");
-    put("datetime", "TRANSACTION.datetime");
-    put("operationType", "TRANSACTION.operation_type_id");
-    put("amount", "TRANSACTION.amount");
-    put("status", "TRANSACTION.provided");
-    put("currency", "CURRENCY.name");
-    put("merchant.description", "MERCHANT.description");
-    put("commissionAmount", "TRANSACTION.commission_amount");
-    put("order", "TRANSACTION.source_id");
-    
-  }};
-  
-  
-  
+
 }
   
