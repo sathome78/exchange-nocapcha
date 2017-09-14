@@ -89,7 +89,7 @@ $(function () {
         updateWithdrawalTable();
     });
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].post_holded_button', function (e) {
+    $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].post_holded_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -112,7 +112,7 @@ $(function () {
         $modal.modal();
     });
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].take_to_work_button', function (e) {
+    $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].take_to_work_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -135,7 +135,7 @@ $(function () {
         $modal.modal();
     });
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].return_from_work_button', function (e) {
+    $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].return_from_work_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -159,7 +159,7 @@ $(function () {
     });
 
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].decline_holded_button, button[data-source=WITHDRAW].decline_button', function (e) {
+    $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].decline_holded_button, button[data-source=WITHDRAW].decline_button', function (e) {
         e.stopPropagation();
         var id = $(this).data("id");
         var $modal = $("#note-before-decline-modal");
@@ -201,7 +201,7 @@ $(function () {
         });
     });
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].confirm_admin_button', function (e) {
+    $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].confirm_admin_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -222,6 +222,10 @@ $(function () {
             });
         });
         $modal.modal();
+    });
+
+    $($withdrawalTable).on('click', 'input.wallet-number', function (e) {
+        selectAndCopyInputValue(this);
     });
 });
 
@@ -349,7 +353,13 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "wallet",
-                    "name": "WITHDRAW_REQUEST.wallet"
+                    "name": "WITHDRAW_REQUEST.wallet",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return '<input class="form-control wallet-number" value="' + data + '">';
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "adminHolderEmail",

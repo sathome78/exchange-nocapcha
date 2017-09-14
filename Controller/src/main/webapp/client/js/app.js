@@ -74,3 +74,12 @@ function selectAndCopyText($e) {
     selection.removeAllRanges();
     blink_green($e);
 }
+
+function selectAndCopyInputValue(input) {
+    input.setSelectionRange(0, input.value.length);
+    document.execCommand("copy", true);
+    input.setSelectionRange(0, 0);
+    var $input = $(input);
+    blink_green($input);
+    $input.blur();
+}
