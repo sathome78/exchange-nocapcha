@@ -26,6 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -66,15 +67,12 @@ public class EntryController {
     private SurveyService surveyService;
     @Autowired
     private SessionParamsService sessionService;
-
     @Autowired
     private NotificationService notificationService;
-
-    @Autowired
-    private StoreSessionListener storeSessionListener;
-
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private DefaultSimpUserRegistry registry;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(

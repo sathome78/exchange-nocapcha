@@ -33,7 +33,7 @@
 		<spring-expression.version>4.3.7.RELEASE</spring-expression.version>
 		<spring-security.version>4.1.0.RELEASE</spring-security.version>
 		<spring-websocket.version>4.3.2.RELEASE</spring-websocket.version>
-		<spring-messaging.version>4.3.0.RELEASE</spring-messaging.version>
+		<spring-messaging.version>4.3.10.RELEASE</spring-messaging.version>
 		<bitcoinj.version>0.14.3</bitcoinj.version>
 		<aspectj.version>1.8.10</aspectj.version>
 	</properties>
@@ -336,6 +336,12 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.6.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>23.0</version>
 		</dependency>
 
 	</dependencies>

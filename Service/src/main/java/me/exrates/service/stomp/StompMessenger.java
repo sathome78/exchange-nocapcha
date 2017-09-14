@@ -2,6 +2,8 @@ package me.exrates.service.stomp;
 
 import me.exrates.model.enums.OperationType;
 
+import java.util.List;
+
 /**
  * Created by Maks on 24.08.2017.
  */
@@ -14,4 +16,8 @@ public interface StompMessenger {
     void sendAllTrades(Integer currencyPair);
 
     void sendChartData(Integer currencyPairId);
+
+    void sendStatisticMessage(List<Integer> currenciesIds);
+
+    void sendEventMessage(String sessionId, String message);
 }

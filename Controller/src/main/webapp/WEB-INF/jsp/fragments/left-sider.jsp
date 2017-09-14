@@ -61,10 +61,10 @@
         <script type="text/template" id="currency_table_row">
             <@var c = lastOrderRate == predLastOrderRate ? "black" : percentChange[0] == '-' ? "red" :
             "green";@>
-            <tr>
+            <tr id="stat_<@=currencyPairName@>">
                 <td><@=currencyPairName@></td>
-                <td class="right <@=c@>"><@=lastOrderRate@></td>
-                <td class="right <@=c@>"><@=percentChange@></td>
+                <td class="right <@=c@> last_rate"><@=lastOrderRate@></td>
+                <td class="right <@=c@> percent"><@=percentChange@></td>
             </tr>
         </script>
     </table>

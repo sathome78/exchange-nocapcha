@@ -52,12 +52,15 @@ public class MyTradesHandler {
 
     public void onAcceptOrderEvent(int userId) {
         Semaphore semaphore = locksMap.computeIfAbsent(userId, k -> new Semaphore(1, true));
+        log.debug("try to refresh {}", userId);
         if (semaphore.tryAcquire()) {
             try {
+                log.debug("wait refresh {}", userId);
                 Thread.sleep(LATENCY);
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
             }
+            semaphore.release();
             stompMessenger.sendMyTradesToUser(userId, currencyPairId);
         }
     }

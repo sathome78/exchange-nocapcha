@@ -61,7 +61,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             console.log("statistics");
         }
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
-            that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
+           /* that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);*/
             that.getAndShowStatisticsForCurrency();
             /*that.getAndShowChart();*/
         });
@@ -221,7 +221,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.getAndShowAcceptedOrdersHistory_myDeals = function (refreshIfNeeded) {
-        if ($tradingContainer.hasClass('hidden') || !windowIsActive || $('#orders-history-table__my-deals').hasClass('hidden')) {
+      /*  if ($tradingContainer.hasClass('hidden') || !windowIsActive || $('#orders-history-table__my-deals').hasClass('hidden')) {
             clearTimeout(timeOutIdForStatistics);
             timeOutIdForStatistics = setTimeout(function () {
                 that.updateAndShowStatistics(true);
@@ -254,7 +254,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
                     that.updateAndShowStatistics(true);
                 }, statisticsRefreshInterval);
             }
-        });
+        });*/
     };
 
     this.getAndShowSellOrders = function (refreshIfNeeded) {

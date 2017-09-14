@@ -26,13 +26,15 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .filter(UserRoleSettings::isOrderAcceptionSameRoleOnly)
                 .map(p->p.getUserRole().name())
                 .toArray(String[]::new);
-        /*-----------------------------------------------------------------------------------------------------------*/
+       /* -----------------------------------------------------------------------------------------------------------*/
         messages.nullDestMatcher().permitAll()
-                .simpSubscribeDestMatchers("/app/topic.trade_orders.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.charts.*.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.trades.*").permitAll()
-                .simpSubscribeDestMatchers("/app/topic.myTrades.*").authenticated()
-                .simpSubscribeDestMatchers("/app/topic.trade_orders.f.*").hasAnyAuthority(roles)
+                .simpSubscribeDestMatchers("/app/statistics").permitAll()
+                .simpSubscribeDestMatchers("/app/trade_orders/*").permitAll()
+                .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
+                .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+                .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
+                .simpDestMatchers("/app/ev/*").permitAll()
+                .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .anyMessage().denyAll();
 
     }

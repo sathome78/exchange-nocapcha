@@ -38,7 +38,7 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.setApplicationDestinationPrefixes("/app");
-        config.setPathMatcher(new AntPathMatcher("."));
+        config.setApplicationDestinationPrefixes("/app", "/user");
+        config.enableSimpleBroker("/queue", "/topic", "/app");
     }
 }
