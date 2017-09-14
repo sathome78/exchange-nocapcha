@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.ethTokensWrappers;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
