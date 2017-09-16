@@ -203,6 +203,7 @@ public final class Rep extends Contract {
                 typedResponse.from = (Address) eventValues.getIndexedValues().get(0);
                 typedResponse.to = (Address) eventValues.getIndexedValues().get(1);
                 typedResponse.value = (Uint256) eventValues.getNonIndexedValues().get(0);
+                typedResponse.txHash = log.getTransactionHash();
                 return typedResponse;
             }
         });
@@ -364,6 +365,8 @@ public final class Rep extends Contract {
     }
 
     public static class TransferEventResponse {
+        public String txHash;
+
         public Address from;
 
         public Address to;

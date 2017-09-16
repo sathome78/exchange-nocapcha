@@ -1,6 +1,5 @@
 package me.exrates.service.vo;
 
-import jnr.ffi.provider.jffi.NumberUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
