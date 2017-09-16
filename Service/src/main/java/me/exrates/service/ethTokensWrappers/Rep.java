@@ -369,5 +369,6 @@ public final class Rep extends Contract {
         public Address to;
 
         public Uint256 value;
+
     }
 }
