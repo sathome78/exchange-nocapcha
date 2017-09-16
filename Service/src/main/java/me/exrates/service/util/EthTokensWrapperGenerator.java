@@ -63,18 +63,22 @@ public class EthTokensWrapperGenerator {
 
 
     private static void exeprimental() throws Exception, CipherException, ExecutionException, InterruptedException {
-     /*   String RepContract = "0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6";
-        String url = "http://localhost:8545/"*//* "http://163.172.77.155:8485"*//*;
+        String RepContract = "0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6";
+        String url = "http://localhost:8545/";
         Web3j web3j = Web3j.build(new HttpService(url));
         Credentials credentials = WalletUtils.loadCredentials("sprinter31313",
                 "c:/Users/Maks/AppData/Roaming/Ethereum/keystore/UTC--2017-09-14T08-03-01.933401300Z--85c481f3c74cbd72d0bf84ffd68a5cc608c4d700");
         Rep contract = Rep.load("0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6", web3j, credentials, GAS_PRICE, GAS_LIMIT);
-        Future<Bool> future = contract.initialized();*/
-     /*   System.out.println("contract initialized " + future.get().getValue());
+        Future<Bool> future = contract.initialized();
+        System.out.println("contract initialized " + future.get().getValue());
+
+        /*Это подписка на транзы токена, где нет хэша транзакций*/
         rx.Observable<Rep.TransferEventResponse> observable = contract.transferEventObservable(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST);
         observable.subscribe(p->System.out.println(p.from.toString() + " " + p.to.toString() + " " + p.value.getValue()));
-    */ ;
-        /*EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST,
+
+        /*
+         подписка через фильтр, тоже не возвращает хэш
+        EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST,
                 DefaultBlockParameterName.LATEST, "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
         web3j.ethLogObservable(filter).subscribe(log -> {
             System.out.println(log.getBlockNumber() + " " + log.getTransactionHash());
@@ -87,23 +91,19 @@ public class EthTokensWrapperGenerator {
         });*/
 
         String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
-        byte[] bytes = hexStringToByteArray(data);
-        String st = new String(bytes);
-
-        System.out.println(st);
 
 
-        /*Observable<Transaction> observable1;
+        /*подписка на все транзы, фильтрует входящие транзы токена rep*/
+        Observable<Transaction> observable1;
         Subscription subscription;
         observable1 = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4276501));
         subscription = observable1.subscribe(transaction -> {
             System.out.println(transaction.getTo());
             if (transaction.getTo() != null && transaction.getTo().equalsIgnoreCase(RepContract)) {
                 prettyPrint(transaction);
-                String encodedData = transaction.getInput();
+                String inputData = transaction.getInput();
                 try {
-                    byte[] bytes = DatatypeConverter.parseHexBinary(encodedData);
-                    System.out.println(new String(bytes, "UTF-8"));
+                  /*  тут надо раскодировать inputData*/
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -111,10 +111,9 @@ public class EthTokensWrapperGenerator {
 
             }
         });
-*/
     }
 
-    public static byte[] hexStringToByteArray(String hex) {
+    /*public static byte[] hexStringToByteArray(String hex) {
         int l = hex.length();
         byte[] data = new byte[l/2];
         for (int i = 0; i < l; i += 2) {
@@ -122,14 +121,15 @@ public class EthTokensWrapperGenerator {
                     + Character.digit(hex.charAt(i+1), 32));
         }
         return data;
-    }
+    }*/
 
-    /*private static Rep.TransferEventResponse extractData(String data) {
+    /*метод для раскодирования inputData, не хватает   List<Topic>
+    private static Rep.TransferEventResponse extractData(String data) {
         final Event event = new Event("Transfer",
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         String encodedEventSignature = EventEncoder.encode(event);
-        Topic
+        List<Topic>
         if (!topics.get(0).equals(encodedEventSignature)) {
             return null;
         }
@@ -151,12 +151,6 @@ public class EthTokensWrapperGenerator {
         return typedResponse;
     }*/
 
-    static Action1<Log> onNextAction = new Action1<Log>() {
-        @Override
-        public void call(Log s) {
-            System.out.println(s);
-        }
-    };
 
     private static void prettyPrint(Transaction transaction) {
         System.out.println(transaction.getHash() + " "
