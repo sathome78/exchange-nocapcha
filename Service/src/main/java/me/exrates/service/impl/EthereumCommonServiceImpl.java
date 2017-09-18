@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.*;
+import me.exrates.service.ethTokensWrappers.Eos;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -19,6 +20,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -38,6 +40,9 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.web3j.tx.Contract.GAS_LIMIT;
+import static org.web3j.tx.ManagedTransaction.GAS_PRICE;
 
 /**
  * Created by ajet
@@ -93,6 +98,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private String currencyName;
 
     private Integer minConfirmations;
+
+    private Credentials mainWalletETH;
+
+    private Eos eosContract;
 
     @Override
     public Integer minConfirmationsRefill() {
@@ -153,6 +162,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             Merchant merchant = merchantService.findByName(merchantName);
             Currency currency = currencyService.findByName(currencyName);
 
+            if (currencyName.equals("ETH")){
+                mainWalletETH = WalletUtils.loadCredentials("jet2103",
+                        "d:/Ethereum1/Original/keystore/UTC--2017-03-28T13-44-46.443655600Z--061372f91f949effb934abadff5f0636de09113d");
+                eosContract = Eos.load("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0", web3j, mainWalletETH, GAS_PRICE, GAS_LIMIT);
+            }
+
 
             refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
@@ -195,7 +210,50 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentBlockNumber = ethBlock.getBlockNumber();
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
+// -------------------- EOS
+                if (ethBlock.getTo().equals("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0")){
+                    try {
+                        TransactionReceipt transactionReceipt = new TransactionReceipt();
+                        transactionReceipt = web3j.ethGetTransactionReceipt(ethBlock.getHash()).send().getResult();
+                        System.out.println(transactionReceipt);
+                        List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);
+                        String contractRecipient = receipt.get(0).to.toString();
+                        if (accounts.contains(contractRecipient)){
+                            if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(contractRecipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
+                                BigDecimal amount = Convert.fromWei(String.valueOf(receipt.get(0).value), Convert.Unit.ETHER);
+                                LOG.debug(merchantName + " recipient: " + contractRecipient + ", amount: " + amount);
+
+                                Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
+                                        .address(contractRecipient)
+                                        .amount(amount)
+                                        .merchantId(merchant.getId())
+                                        .currencyId(currency.getId())
+                                        .merchantTransactionId(ethBlock.getHash()).build());
+
+                                try {
+                                    refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
+                                            .requestId(requestId)
+                                            .merchantId(merchant.getId())
+                                            .currencyId(currency.getId())
+                                            .address(contractRecipient)
+                                            .amount(amount)
+                                            .hash(ethBlock.getHash())
+                                            .blockhash(ethBlock.getBlockNumber().toString()).build());
+                                } catch (RefillRequestAppropriateNotFoundException e) {
+                                    LOG.error(e);
+                                }
+
+                                pendingTransactions.add(refillService.getFlatById(requestId));
+
+                            }                        }
+                    } catch (Exception e) {
+                        LOG.error(e);
+                    }
+                }
+// -------------------- /EOS
+
                 String recipient = ethBlock.getTo();
+
                 if (accounts.contains(recipient)){
                     if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(recipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
                         BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
@@ -301,7 +359,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
                 LOG.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
-                transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
+//                transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
 //        } catch (RefillRequestAppropriateNotFoundException e) {
         } catch (Exception e) {
             LOG.error(e);

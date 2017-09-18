@@ -193,7 +193,11 @@ public class RefillServiceImpl implements RefillService {
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
-      e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      if (e.getMerchantId() == merchantService.findByName("EOS").getId()) {
+        e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(merchantService.findByName("Ethereum").getId(), currencyService.findByName("ETH").getId(), userId).orElse(""));
+      }else {
+        e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      }
       /**/
       //TODO: Temporary fix
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
