@@ -221,11 +221,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
 // -------------------- EOS
-                if (ethBlock.getTo().equals("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0")){
+                if (ethBlock.getTo() != null && ethBlock.getTo().equals("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0")){
                     try {
                         TransactionReceipt transactionReceipt = new TransactionReceipt();
                         transactionReceipt = web3j.ethGetTransactionReceipt(ethBlock.getHash()).send().getResult();
-                        System.out.println(transactionReceipt);
+                        if (transactionReceipt == null) {
+                            LOG.error("receipt null " + ethBlock.getHash());
+                        }
                         Log log = transactionReceipt.getLogs().get(0);
                         Eos.TransferEventResponse response = extractData(log.getTopics(), log.getData());
                         if (response == null) {

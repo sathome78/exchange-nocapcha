@@ -75,11 +75,6 @@ public class EthTokensWrapperGenerator {
         Rep contract = Rep.load("0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6", web3j, credentials, GAS_PRICE, GAS_LIMIT);
         Future<Bool> future = contract.initialized();
         System.out.println("contract initialized " + future.get().getValue());
-        Optional<TransactionReceipt> receipt = web3j
-                .ethGetTransactionReceipt("0xabd55117b167e330878b9dc3c249f6141a38efca3054a79eac438d8a5210afd7")
-                .send().getTransactionReceipt();
-        System.out.println(receipt.isPresent());
-        System.out.println(receipt.get().getTo());
 
 
      /*   Это подписка на транзы токена, где нет хэша транзакций*/
@@ -105,27 +100,32 @@ public class EthTokensWrapperGenerator {
        /*подписка на все транзы, фильтрует входящие транзы токена rep*/
         Observable<Transaction> observable1;
         Subscription subscription;
-        observable1 = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4276501));
+        observable1 = web3j.transactionObservable();
+        System.out.println("listening...............");
         subscription = observable1.subscribe(transaction -> {
-            System.out.println(transaction.getTo());
+            System.out.println(transaction.getHash());
             if (transaction.getTo() != null && transaction.getTo().equalsIgnoreCase(RepContract)) {
                 System.out.println("-----------------------------------------------------------");
-                prettyPrint(transaction);
+               /* prettyPrint(transaction);*/
                 try {
                     TransactionReceipt transactionReceipt = new TransactionReceipt();
                     transactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send().getResult();
-                    System.out.println(transactionReceipt);
+                    if (transactionReceipt == null) {
+                        System.out.println("receipt null");
+                    }
                     if(transactionReceipt != null) {
                         Log log = transactionReceipt.getLogs().get(0);
                         Rep.TransferEventResponse response = extractData(log.getTopics(), log.getData());
+                        if (response == null) {
+                            System.out.println("response null");
+                            return;
+                        }
                         BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
                         System.out.println("amount conv: " + amount.toString());
-                        System.out.println("amount: " + response.value.getValue());
+                        System.out.println("hash: " + transactionReceipt.getTransactionHash());
                         System.out.println("to: " + response.to.toString());
                         System.out.println("-----------------------------------------------------------");
                     }
-
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
