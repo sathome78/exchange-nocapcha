@@ -9,10 +9,7 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
-import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.codegen.SolidityFunctionWrapperGenerator;
 import org.web3j.crypto.CipherException;
@@ -26,6 +23,8 @@ import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.request.Filter;
 import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Convert;
+import org.web3j.utils.Numeric;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -33,13 +32,18 @@ import rx.functions.Action1;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static org.web3j.abi.datatypes.Type.MAX_BYTE_LENGTH;
 import static org.web3j.tx.Contract.GAS_LIMIT;
 import static org.web3j.tx.ManagedTransaction.GAS_PRICE;
+import static org.web3j.utils.Numeric.hexStringToByteArray;
+import static org.web3j.utils.Numeric.toBigInt;
 
 /**
  * Created by Maks on 14.09.2017.
@@ -64,19 +68,24 @@ public class EthTokensWrapperGenerator {
 
     private static void exeprimental() throws Exception, CipherException, ExecutionException, InterruptedException {
         String RepContract = "0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6";
-        String url = "http://localhost:8545/";
+        String url = "http://163.172.77.155:8545/";
         Web3j web3j = Web3j.build(new HttpService(url));
         Credentials credentials = WalletUtils.loadCredentials("sprinter31313",
                 "c:/Users/Maks/AppData/Roaming/Ethereum/keystore/UTC--2017-09-14T08-03-01.933401300Z--85c481f3c74cbd72d0bf84ffd68a5cc608c4d700");
         Rep contract = Rep.load("0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6", web3j, credentials, GAS_PRICE, GAS_LIMIT);
         Future<Bool> future = contract.initialized();
         System.out.println("contract initialized " + future.get().getValue());
+        Optional<TransactionReceipt> receipt = web3j
+                .ethGetTransactionReceipt("0xabd55117b167e330878b9dc3c249f6141a38efca3054a79eac438d8a5210afd7")
+                .send().getTransactionReceipt();
+        System.out.println(receipt.isPresent());
+        System.out.println(receipt.get().getTo());
 
-        /*Это подписка на транзы токена, где нет хэша транзакций*/
-        rx.Observable<Rep.TransferEventResponse> observable = contract.transferEventObservable(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST);
-        observable.subscribe(p->System.out.println(p.from.toString() + " " + p.to.toString() + " " + p.value.getValue()));
 
-        /*
+     /*   Это подписка на транзы токена, где нет хэша транзакций*/
+      /*  rx.Observable<Rep.TransferEventResponse> observable = contract.transferEventObservable(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST);
+        observable.subscribe(p->System.out.println(p.from.toString() + " " + p.to.toString() + " " + p.value.getValue() + p.txHash));
+     */   /*
          подписка через фильтр, тоже не возвращает хэш
         EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST,
                 DefaultBlockParameterName.LATEST, "0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
@@ -90,28 +99,66 @@ public class EthTokensWrapperGenerator {
             });*//*
         });*/
 
-        String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
+   /*     String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
 
 
-        /*подписка на все транзы, фильтрует входящие транзы токена rep*/
+       /*подписка на все транзы, фильтрует входящие транзы токена rep*/
         Observable<Transaction> observable1;
         Subscription subscription;
         observable1 = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4276501));
         subscription = observable1.subscribe(transaction -> {
             System.out.println(transaction.getTo());
             if (transaction.getTo() != null && transaction.getTo().equalsIgnoreCase(RepContract)) {
+                System.out.println("-----------------------------------------------------------");
                 prettyPrint(transaction);
-                String inputData = transaction.getInput();
                 try {
-                  /*  тут надо раскодировать inputData*/
+                    TransactionReceipt transactionReceipt = new TransactionReceipt();
+                    transactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send().getResult();
+                    System.out.println(transactionReceipt);
+                    if(transactionReceipt != null) {
+                        Log log = transactionReceipt.getLogs().get(0);
+                        Rep.TransferEventResponse response = extractData(log.getTopics(), log.getData());
+                        BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
+                        System.out.println("amount conv: " + amount.toString());
+                        System.out.println("amount: " + response.value.getValue());
+                        System.out.println("to: " + response.to.toString());
+                        System.out.println("-----------------------------------------------------------");
+                    }
+
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
         });
+
+      /*  String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
+
+        byte[] bytes = hexStringToByteArray(data);
+        BytesType type = new BytesType(bytes, "byte");
+        System.out.println(encodeBytes(type));*/
+
+
+
     }
+
+    static String encodeBytes(BytesType bytesType) {
+        byte[] value = bytesType.getValue();
+        int length = value.length;
+        int mod = length % MAX_BYTE_LENGTH;
+
+        byte[] dest;
+        if (mod != 0) {
+            int padding = MAX_BYTE_LENGTH - mod;
+            dest = new byte[length + padding];
+            System.arraycopy(value, 0, dest, 0, length);
+        } else {
+            dest = value;
+        }
+        return Numeric.toHexStringNoPrefix(dest);
+    }
+
+
 
     /*public static byte[] hexStringToByteArray(String hex) {
         int l = hex.length();
@@ -123,13 +170,11 @@ public class EthTokensWrapperGenerator {
         return data;
     }*/
 
-    /*метод для раскодирования inputData, не хватает   List<Topic>
-    private static Rep.TransferEventResponse extractData(String data) {
+    private static Rep.TransferEventResponse extractData(List<String> topics, String data) {
         final Event event = new Event("Transfer",
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         String encodedEventSignature = EventEncoder.encode(event);
-        List<Topic>
         if (!topics.get(0).equals(encodedEventSignature)) {
             return null;
         }
@@ -149,7 +194,7 @@ public class EthTokensWrapperGenerator {
         typedResponse.to = (Address) eventValues.getIndexedValues().get(1);
         typedResponse.value = (Uint256) eventValues.getNonIndexedValues().get(0);
         return typedResponse;
-    }*/
+    }
 
 
     private static void prettyPrint(Transaction transaction) {

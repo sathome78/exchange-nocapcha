@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.*;
 import me.exrates.service.ethTokensWrappers.Eos;
+import me.exrates.service.ethTokensWrappers.Rep;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -15,11 +16,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.EventEncoder;
+import org.web3j.abi.EventValues;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
@@ -216,11 +226,18 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         TransactionReceipt transactionReceipt = new TransactionReceipt();
                         transactionReceipt = web3j.ethGetTransactionReceipt(ethBlock.getHash()).send().getResult();
                         System.out.println(transactionReceipt);
-                        List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);
-                        String contractRecipient = receipt.get(0).to.toString();
+                        Log log = transactionReceipt.getLogs().get(0);
+                        Eos.TransferEventResponse response = extractData(log.getTopics(), log.getData());
+                        if (response == null) {
+                            return;
+                        }
+                        /*List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);*/
+                       /* String contractRecipient = receipt.get(0).to.toString();*/
+                        String contractRecipient = response.to.toString();
                         if (accounts.contains(contractRecipient)){
                             if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(contractRecipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
-                                BigDecimal amount = Convert.fromWei(String.valueOf(receipt.get(0).value), Convert.Unit.ETHER);
+                               /* BigDecimal amount = Convert.fromWei(String.valueOf(receipt.get(0).value), Convert.Unit.ETHER);*/
+                                BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
                                 LOG.debug(merchantName + " recipient: " + contractRecipient + ", amount: " + amount);
 
                                 Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
@@ -389,5 +406,31 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         scheduler.shutdown();
         subscription.unsubscribe();
         LOG.debug(merchantName + " destroyed");
+    }
+
+    private static Eos.TransferEventResponse extractData(List<String> topics, String data) {
+        final Event event = new Event("Transfer",
+                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
+        String encodedEventSignature = EventEncoder.encode(event);
+        if (!topics.get(0).equals(encodedEventSignature)) {
+            return null;
+        }
+        System.out.println("event signature " + encodedEventSignature);
+        List<Type> indexedValues = new ArrayList<>();
+        List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
+                data, event.getNonIndexedParameters());
+        List<TypeReference<Type>> indexedParameters = event.getIndexedParameters();
+        for (int i = 0; i < indexedParameters.size(); i++) {
+            Type value = FunctionReturnDecoder.decodeIndexedValue(
+                    topics.get(i + 1), indexedParameters.get(i));
+            indexedValues.add(value);
+        }
+        EventValues eventValues = new EventValues(indexedValues, nonIndexedValues);
+        Eos.TransferEventResponse typedResponse = new Eos.TransferEventResponse();
+        typedResponse.from = (Address) eventValues.getIndexedValues().get(0);
+        typedResponse.to = (Address) eventValues.getIndexedValues().get(1);
+        typedResponse.value = (Uint256) eventValues.getNonIndexedValues().get(0);
+        return typedResponse;
     }
 }
