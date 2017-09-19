@@ -17,6 +17,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.EthereumCommonService;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.EthTokenService;
+import me.exrates.service.impl.EthTokenServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.job.bot.QuartzJobFactory;
 import me.exrates.service.token.TokenScheduler;
@@ -407,6 +409,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
                 "Ethereum Classic", "ETC", 12);
+    }
+
+    @Bean(name = "EosServiceImpl")
+    public EthTokenService EosService() {
+        return new EthTokenServiceImpl("0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0", "ETH", "EOS");
+    }
+
+    @Bean(name = "RepServiceImpl")
+    public EthTokenService RepService() {
+        return new EthTokenServiceImpl("0xe94327d07fc17907b4db788e5adf2ed424addff6", "ETH", "REP");
     }
 
     @Bean
