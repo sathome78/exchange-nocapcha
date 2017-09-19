@@ -124,6 +124,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return web3j;
     }
 
+
+
     @Override
     public Integer minConfirmationsRefill() {
         return minConfirmations;

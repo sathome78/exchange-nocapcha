@@ -411,14 +411,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Ethereum Classic", "ETC", 12);
     }
 
-    @Bean(name = "EosServiceImpl")
+    @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {
-        return new EthTokenServiceImpl("0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0", "ETH", "EOS");
+        return new EthTokenServiceImpl(
+                "0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0",
+                "EOS",
+                "EOS");
     }
 
-    @Bean(name = "RepServiceImpl")
+    @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
-        return new EthTokenServiceImpl("0xe94327d07fc17907b4db788e5adf2ed424addff6", "ETH", "REP");
+        return new EthTokenServiceImpl(
+                "0xe94327d07fc17907b4db788e5adf2ed424addff6",
+                "REP",
+                "REP");
     }
 
     @Bean

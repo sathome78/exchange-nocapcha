@@ -6,10 +6,10 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.ethTokensWrappers.Eos;
 import me.exrates.service.events.EthPendingTransactionsEvent;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.jvnet.hk2.annotations.Service;
@@ -51,12 +51,13 @@ public class EthTokenServiceImpl implements EthTokenService{
     private String contractAddress;
     private String merchantName;
     private String currencyName;
+    private int minConfirmations;
     private Web3j web3j;
 
     @Autowired
     private RefillService refillService;
     @Autowired
-    private CurrencyServiceImpl currencyService;
+    private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
     @Qualifier(value = "ethereumServiceImpl")
@@ -68,6 +69,7 @@ public class EthTokenServiceImpl implements EthTokenService{
         merchant = merchantService.findByName(merchantName);
         currency = currencyService.findByName(currencyName);
         web3j = ethereumCommonService.getWeb3j();
+        this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
     }
 
     public EthTokenServiceImpl(String contractAddress, String merchantName, String currencyName) {
