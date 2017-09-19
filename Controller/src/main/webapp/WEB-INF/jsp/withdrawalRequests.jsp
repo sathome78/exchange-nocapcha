@@ -210,6 +210,11 @@
         </thead>
 
       </table>
+          <div class="row text-1_5" style="margin-top: 20px">
+            <strong><loc:message code="withdrawal.amountExplained"/><br/></strong>
+            <strong><loc:message code="withdrawal.amountToWithdrawExplained"/></strong>
+          </div>
+
     </div>
   </div>
 

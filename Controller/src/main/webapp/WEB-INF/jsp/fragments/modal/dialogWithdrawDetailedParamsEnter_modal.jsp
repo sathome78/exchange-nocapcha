@@ -126,6 +126,10 @@
               <div class="col-md-6 right"><span id="commission-amount"></span> <span class="currency"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
+              <div class="col-md-6"><loc:message code="transaction.merchantCommissionAmount"/></div>
+              <div class="col-md-6 right"><span id="merchant-commission-amount"></span> <span class="currency"></span></div>
+            </div>
+            <div class="credits-operation-info__item clearfix">
               <div class="col-md-6"><loc:message code="merchants.withdrawDetails.outputFinalSum"/></div>
               <div class="col-md-6 right"><span id="total-amount"></span> <span class="currency"></span></div>
             </div>

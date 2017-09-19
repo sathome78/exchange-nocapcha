@@ -250,6 +250,7 @@ $(function withdrawCreation() {
         $withdrawDetailedParamsDialog.find("#amount").html(numbro(amount).format(numberFormat));
         $withdrawDetailedParamsDialog.find("#commission-percent").html(commissionPercent);
         $withdrawDetailedParamsDialog.find("#commission-amount").html(numbro(commissionAmount).format(numberFormat));
+        $withdrawDetailedParamsDialog.find("#merchant-commission-amount").html(numbro(commissionMerchantAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find("#total-amount").html(numbro(totalAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find(".currency").html(currencyName);
         getBankDataList(function () {
