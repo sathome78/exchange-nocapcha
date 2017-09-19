@@ -201,6 +201,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
                     System.out.println(merchantName + " Current block number: " + ethBlock.getBlockNumber());
                     LOG.debug(merchantName + " Current block number: " + ethBlock.getBlockNumber());
+                    /* ****publish event**** */
+                    eventPublisher.publishEvent(new EthPendingTransactionsEvent(ethBlock));
 
                     List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
                     pendingTransactions.forEach(transaction ->
