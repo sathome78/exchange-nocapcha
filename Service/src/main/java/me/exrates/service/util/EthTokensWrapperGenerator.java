@@ -68,13 +68,14 @@ public class EthTokensWrapperGenerator {
 
     private static void exeprimental() throws Exception, CipherException, ExecutionException, InterruptedException {
         String RepContract = "0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6";
+        String EosContarct = "0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0";
         String url = "http://163.172.77.155:8545/";
         Web3j web3j = Web3j.build(new HttpService(url));
         Credentials credentials = WalletUtils.loadCredentials("sprinter31313",
                 "c:/Users/Maks/AppData/Roaming/Ethereum/keystore/UTC--2017-09-14T08-03-01.933401300Z--85c481f3c74cbd72d0bf84ffd68a5cc608c4d700");
-        Rep contract = Rep.load("0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6", web3j, credentials, GAS_PRICE, GAS_LIMIT);
-        Future<Bool> future = contract.initialized();
-        System.out.println("contract initialized " + future.get().getValue());
+        Eos contract = Eos.load("0xE94327D07Fc17907b4DB788E5aDf2ed424adDff6", web3j, credentials, GAS_PRICE, GAS_LIMIT);
+        Future<Uint256> future = contract.totalSupply();
+        System.out.println("contract initialized " + future.get().getValue().toString());
 
 
      /*   Это подписка на транзы токена, где нет хэша транзакций*/
@@ -97,27 +98,29 @@ public class EthTokensWrapperGenerator {
    /*     String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
 
 
+
        /*подписка на все транзы, фильтрует входящие транзы токена rep*/
         Observable<Transaction> observable1;
         Subscription subscription;
         observable1 = web3j.transactionObservable();
         System.out.println("listening...............");
         subscription = observable1.subscribe(transaction -> {
-            System.out.println(transaction.getHash());
-            if (transaction.getTo() != null && transaction.getTo().equalsIgnoreCase(RepContract)) {
+            /*System.out.println(transaction.getHash());*/
+            if (transaction.getTo() != null && transaction.getTo().equalsIgnoreCase(EosContarct)) {
                 System.out.println("-----------------------------------------------------------");
                /* prettyPrint(transaction);*/
                 try {
-                    TransactionReceipt transactionReceipt = new TransactionReceipt();
-                    transactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send().getResult();
+                    final TransactionReceipt transactionReceipt = web3j
+                            .ethGetTransactionReceipt(transaction.getHash()).send().getResult();
                     if (transactionReceipt == null) {
-                        System.out.println("receipt null");
+                        System.out.println("receipt null " + transaction.getHash());
+                        return;
                     }
-                    if(transactionReceipt != null) {
-                        Log log = transactionReceipt.getLogs().get(0);
-                        Rep.TransferEventResponse response = extractData(log.getTopics(), log.getData());
+                    List<Log> log = transactionReceipt.getLogs();
+                    log.forEach(l -> {
+                        Eos.TransferEventResponse response = extractData(l.getTopics(), l.getData());
                         if (response == null) {
-                            System.out.println("response null");
+                            System.out.println("response null " + transaction.getHash());
                             return;
                         }
                         BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
@@ -125,12 +128,16 @@ public class EthTokensWrapperGenerator {
                         System.out.println("hash: " + transactionReceipt.getTransactionHash());
                         System.out.println("to: " + response.to.toString());
                         System.out.println("-----------------------------------------------------------");
-                    }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+
+     /*   rx.Observable<Eos.TransferEventResponse> observable = contract.transferEventObservable(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST);
+        observable.subscribe(p->System.out.println(p.from.toString() + " " + p.to.toString() + " " + p.value.getValue()));
+*/
 
       /*  String data= "0xa9059cbb000000000000000000000000967975346803fbd816c41ad23a7edc67c5b547dc000000000000000000000000000000000000000000000018cdae8c9afa0b0c00";
 
@@ -170,7 +177,7 @@ public class EthTokensWrapperGenerator {
         return data;
     }*/
 
-    private static Rep.TransferEventResponse extractData(List<String> topics, String data) {
+    private static Eos.TransferEventResponse extractData(List<String> topics, String data) {
         final Event event = new Event("Transfer",
                 Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}),
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
@@ -178,7 +185,6 @@ public class EthTokensWrapperGenerator {
         if (!topics.get(0).equals(encodedEventSignature)) {
             return null;
         }
-        System.out.println("event signature " + encodedEventSignature);
         List<Type> indexedValues = new ArrayList<>();
         List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
                 data, event.getNonIndexedParameters());
@@ -189,7 +195,7 @@ public class EthTokensWrapperGenerator {
             indexedValues.add(value);
         }
         EventValues eventValues = new EventValues(indexedValues, nonIndexedValues);
-        Rep.TransferEventResponse typedResponse = new Rep.TransferEventResponse();
+        Eos.TransferEventResponse typedResponse = new Eos.TransferEventResponse();
         typedResponse.from = (Address) eventValues.getIndexedValues().get(0);
         typedResponse.to = (Address) eventValues.getIndexedValues().get(1);
         typedResponse.value = (Uint256) eventValues.getNonIndexedValues().get(0);

@@ -227,44 +227,53 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         transactionReceipt = web3j.ethGetTransactionReceipt(ethBlock.getHash()).send().getResult();
                         if (transactionReceipt == null) {
                             LOG.error("receipt null " + ethBlock.getHash());
-                        }
-                        Log log = transactionReceipt.getLogs().get(0);
-                        Eos.TransferEventResponse response = extractData(log.getTopics(), log.getData());
-                        if (response == null) {
                             return;
                         }
-                        /*List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);*/
-                       /* String contractRecipient = receipt.get(0).to.toString();*/
-                        String contractRecipient = response.to.toString();
-                        if (accounts.contains(contractRecipient)){
-                            if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(contractRecipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
+                        List<Log> log = transactionReceipt.getLogs();
+                        log.forEach(l -> {
+                            Eos.TransferEventResponse response = extractData(l.getTopics(), l.getData());
+                            if (response == null) {
+                                LOG.debug("response null " + ethBlock.getHash());
+                                return;
+                            }
+                            String contractRecipient = response.to.toString();
+                            if (accounts.contains(contractRecipient)){
+                                if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(contractRecipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
                                /* BigDecimal amount = Convert.fromWei(String.valueOf(receipt.get(0).value), Convert.Unit.ETHER);*/
-                                BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
-                                LOG.debug(merchantName + " recipient: " + contractRecipient + ", amount: " + amount);
+                                    BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
+                                    LOG.debug(merchantName + " recipient: " + contractRecipient + ", amount: " + amount);
 
-                                Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
-                                        .address(contractRecipient)
-                                        .amount(amount)
-                                        .merchantId(merchant.getId())
-                                        .currencyId(currency.getId())
-                                        .merchantTransactionId(ethBlock.getHash()).build());
-
-                                try {
-                                    refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
-                                            .requestId(requestId)
-                                            .merchantId(merchant.getId())
-                                            .currencyId(currency.getId())
+                                    Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
                                             .address(contractRecipient)
                                             .amount(amount)
-                                            .hash(ethBlock.getHash())
-                                            .blockhash(ethBlock.getBlockNumber().toString()).build());
-                                } catch (RefillRequestAppropriateNotFoundException e) {
-                                    LOG.error(e);
+                                            .merchantId(merchant.getId())
+                                            .currencyId(currency.getId())
+                                            .merchantTransactionId(ethBlock.getHash()).build());
+
+                                    try {
+                                        refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
+                                                .requestId(requestId)
+                                                .merchantId(merchant.getId())
+                                                .currencyId(currency.getId())
+                                                .address(contractRecipient)
+                                                .amount(amount)
+                                                .hash(ethBlock.getHash())
+                                                .blockhash(ethBlock.getBlockNumber().toString()).build());
+                                    } catch (RefillRequestAppropriateNotFoundException e) {
+                                        LOG.error(e);
+                                    }
+
+                                    pendingTransactions.add(refillService.getFlatById(requestId));
+
                                 }
+                            }
 
-                                pendingTransactions.add(refillService.getFlatById(requestId));
+                        });
 
-                            }                        }
+                        /*List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);*/
+                       /* String contractRecipient = receipt.get(0).to.toString();*/
+
+
                     } catch (Exception e) {
                         LOG.error(e);
                     }
