@@ -4,10 +4,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
@@ -27,8 +33,31 @@ public class LoggingAspect {
   private static final Logger refillExtLog = LogManager.getLogger("refill_asp_ext_log");
   private static final Logger transferLog = LogManager.getLogger("transfer_asp_log");
   private static final Logger transferExtLog = LogManager.getLogger("transfer_asp_ext_log");
-  
-  
+  private static final Logger adminLog = LogManager.getLogger("admin_log");
+
+
+  @After("execution(* * (..))"
+          + " && @annotation(me.exrates.controller.annotation.AdminLoggable)"
+  )
+  public void logAdminExec(JoinPoint joinPoint) {
+    HttpServletRequest s = (HttpServletRequest) RequestContextHolder
+            .currentRequestAttributes()
+            .resolveReference(RequestAttributes.REFERENCE_REQUEST);
+    adminLog.debug(String.format("logged admin method %s executed by user %s with args: \n%s \n%s",
+            String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()),
+            s.getUserPrincipal() == null ? " no user " : s.getUserPrincipal().getName(),
+            s.getParameterMap().entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + " : " + Arrays.stream(entry.getValue())
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", ")))
+                    .collect(Collectors.joining(", ")),
+            String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
+                    .map(Object::toString).collect(Collectors.toList()))));
+  }
+
+
   @AfterThrowing(pointcut = "(execution(* me.exrates.controller..*(..)) " +
           "|| execution(* me.exrates.dao..*(..))" +
           "|| execution(* me.exrates.security.service..*(..))" +

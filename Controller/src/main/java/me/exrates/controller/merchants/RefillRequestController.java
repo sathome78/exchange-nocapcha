@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
@@ -101,6 +102,7 @@ public class RefillRequestController {
     return refillService.createRefillRequest(request);
   }
 
+
   @RequestMapping(value = "/refill/request/revoke", method = POST)
   @ResponseBody
   public void revokeWithdrawRequest(
@@ -114,6 +116,7 @@ public class RefillRequestController {
       @RequestParam Integer id) {
     return refillService.getFlatById(id);
   }
+
 
   @RequestMapping(value = "/refill/request/confirm", method = POST)
   @ResponseBody
@@ -148,6 +151,7 @@ public class RefillRequestController {
     return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId, locale);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/take", method = POST)
   @ResponseBody
   public void takeToWork(
@@ -157,6 +161,7 @@ public class RefillRequestController {
     refillService.takeInWorkRefillRequest(id, requesterAdminId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/return", method = POST)
   @ResponseBody
   public void returnFromWork(
@@ -166,6 +171,7 @@ public class RefillRequestController {
     refillService.returnFromWorkRefillRequest(id, requesterAdminId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/decline", method = POST)
   @ResponseBody
   public void decline(
@@ -176,6 +182,7 @@ public class RefillRequestController {
     refillService.declineRefillRequest(id, requesterAdminId, comment);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/accept", method = POST)
   @ResponseBody
   public void accept(

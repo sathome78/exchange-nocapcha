@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.JsonObject;
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.controller.exception.RequestsLimitExceedException;
@@ -145,6 +146,7 @@ public class TransferRequestController {
     transferService.revokeByUser(id, principal);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/revoke", method = POST)
   @ResponseBody
   public void revokeVoucherByAdmin(
