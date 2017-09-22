@@ -36,16 +36,16 @@ public class LoggingAspect {
   private static final Logger adminLog = LogManager.getLogger("admin_log");
 
 
-  @After("execution(* * (..))"
-          + " && @annotation(me.exrates.controller.annotation.AdminLoggable)"
-  )
-  public void logAdminExec(JoinPoint joinPoint) {
+  @AfterReturning(value = "execution(* * (..)) && " +
+          "@annotation(me.exrates.controller.annotation.AdminLoggable)", returning = "res")
+  public void logAdminExec(JoinPoint joinPoint, Object res) {
     HttpServletRequest s = (HttpServletRequest) RequestContextHolder
             .currentRequestAttributes()
             .resolveReference(RequestAttributes.REFERENCE_REQUEST);
+    String method = String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName());
+    String executor =  s.getUserPrincipal() == null ? " no user " : s.getUserPrincipal().getName();
     adminLog.debug(String.format("logged admin method %s executed by user %s with args: \n%s \n%s",
-            String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()),
-            s.getUserPrincipal() == null ? " no user " : s.getUserPrincipal().getName(),
+            method, executor,
             s.getParameterMap().entrySet()
                     .stream()
                     .map(entry -> entry.getKey() + " : " + Arrays.stream(entry.getValue())
@@ -55,6 +55,13 @@ public class LoggingAspect {
                     .collect(Collectors.joining(", ")),
             String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
                     .map(Object::toString).collect(Collectors.toList()))));
+    try {
+      if (res != null) {
+        adminLog.debug(String.format("result of execution %s by %s is %s", method, executor, res.toString()));
+      }
+    } catch (Throwable throwable) {
+      log.error("proceed joinpoint error", throwable);
+    }
   }
 
 

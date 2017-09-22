@@ -26,4 +26,11 @@ public enum InvoiceOperationPermission {
                 .findAny()
                 .orElseThrow(() -> new UnsupportedOperationPermissionException(String.valueOf(id)));
     }
+
+    @Override
+    public String toString() {
+        return "InvoiceOperationPermission{" +
+                "code=" + code +
+                '}';
+    }
 }

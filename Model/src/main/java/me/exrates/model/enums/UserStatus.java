@@ -16,4 +16,11 @@ public enum UserStatus {
     public int getStatus() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return "UserStatus{" +
+                "status=" + status +
+                '}';
+    }
 }

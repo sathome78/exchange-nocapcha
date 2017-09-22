@@ -181,6 +181,7 @@ public class AdminController {
     return "admin/administrators";
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
   public ModelAndView referral() {
     ModelAndView model = new ModelAndView();
@@ -296,12 +297,14 @@ public class AdminController {
   }
 
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
     return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<Comment> getUserComments(@RequestParam int id, HttpServletRequest request) {
@@ -452,7 +455,7 @@ public class AdminController {
     return model;
   }
 
-
+  @AdminLoggable
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
   public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request, Principal principal) {
 
@@ -721,18 +724,21 @@ public class AdminController {
     return model;
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public AdminOrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return orderService.getAdminOrderInfo(id, localeResolver.resolveLocale(request));
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderinfo", method = RequestMethod.GET)
   public OrderInfoDto getStopOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return stopOrderService.getStopOrderInfo(id, localeResolver.resolveLocale(request));
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transferInfo", method = RequestMethod.GET)
   public UserTransferInfoDto getTransferInfo(@RequestParam int id, HttpServletRequest request) {
@@ -871,6 +877,7 @@ public class AdminController {
     return new ModelAndView("/admin/user_statement", "walletId", walletId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getStatements", method = RequestMethod.GET)
   @ResponseBody
   public DataTable<List<AccountStatementDto>> getStatements(@RequestParam Integer walletId, @RequestParam Map<String, String> params,
@@ -951,6 +958,7 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
@@ -971,6 +979,7 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
@@ -1031,6 +1040,7 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
   @ResponseBody
   public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
@@ -1038,6 +1048,7 @@ public class AdminController {
 
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
@@ -1069,6 +1080,7 @@ public class AdminController {
     return new ModelAndView("admin/merchantAccess");
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/data", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> merchantAccessData(@RequestParam List<String> processTypes) {
@@ -1188,6 +1200,7 @@ public class AdminController {
   public BigDecimal getActualFee(@PathVariable String merchantName) {
     return getBitcoinServiceByMerchantName(merchantName).getActualFee();
   }
+
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setFee", method = RequestMethod.POST)
   @ResponseBody
@@ -1274,6 +1287,7 @@ public class AdminController {
     }
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading", method = GET)
   public ModelAndView autoTrading() {
     ModelAndView modelAndView = new ModelAndView("/admin/autoTrading");
@@ -1285,6 +1299,7 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public List<UserRoleSettings> getRoleSettings() {
@@ -1313,12 +1328,14 @@ public class AdminController {
 
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public List<BotLaunchSettings> getLaunchSettings(@RequestParam Integer botId) {
     return botService.retrieveLaunchSettings(botId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam OrderType orderType) {
