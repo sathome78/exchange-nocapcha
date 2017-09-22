@@ -154,6 +154,7 @@ public class TransferRequestController {
     transferService.revokeByAdmin(id, principal);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/transfer/request/info", method = GET)
   @ResponseBody
   public TransferRequestFlatDto getInfoTransfer(

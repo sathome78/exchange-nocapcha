@@ -835,6 +835,60 @@
                 </div>
               </div>
             </sec:authorize>
+            <sec:authorize access="hasAuthority('${admin_processWithdraw}')">
+              <div class="col-md-6 content">
+                <c:if test="${!fn:contains(userActiveAuthorityOptions, admin_processWithdraw)}">
+                  <c:set value="disabled" var="withdrawDisabledAttrib"/>
+                </c:if>
+                <div class="text-center"><h4><loc:message code="admin.userCurrencyPermissionsTransfer"/></h4></div>
+                <hr/>
+                <div id="currency_permissions-withdraw" class="currency_permissions">
+                  <table class="table table-striped currency_permissions__table">
+                    <thead>
+                    <tr>
+                      <th class="left"><loc:message code="inputoutput.currency"/></th>
+                      <th class="center">${none}</th>
+                      <th class="center">${view}</th>
+                      <th class="center">${write}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${usersInvoiceTransferCurrencyPermissions}" var="transferPermission">
+                      <tr class="currency_permissions__item">
+                        <td class="left">
+                            ${transferPermission.currencyName}
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=transfer"${transferPermission.currencyId}" value="${none}"
+                                 data-userId="${transferPermission.userId}"
+                                 data-id="${transferPermission.currencyId}"
+                                 data-direction="TRANSFER_VOUCHER"
+                                 data-checked="${transferPermission.invoiceOperationPermission==none}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=transfer"${transferPermission.currencyId}" value="${view}"
+                                 data-userId="${transferPermission.userId}"
+                                 data-id="${transferPermission.currencyId}"
+                                 data-direction="TRANSFER_VOUCHER"
+                                 data-checked="${transferPermission.invoiceOperationPermission==view}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=transfer"${transferPermission.currencyId}" value="${write}"
+                                 data-userId="${transferPermission.userId}"
+                                 data-id="${transferPermission.currencyId}"
+                                 data-direction="TRANSFER_VOUCHER"
+                                 data-checked="${transferPermission.invoiceOperationPermission==write}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                      </tr>
+                    </c:forEach>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </sec:authorize>
             <div class="raw">
               <div class="col-md-12 content">
                 <div class="currency_permissions__buttons">

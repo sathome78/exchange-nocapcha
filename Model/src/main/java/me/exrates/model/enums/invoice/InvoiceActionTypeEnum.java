@@ -30,6 +30,7 @@ public enum InvoiceActionTypeEnum {
   }},
   REVOKE_ADMIN {{
     getProperty().setActionTypeButton(REVOKE_ADMIN_BUTTON);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   EXPIRE,
   BCH_EXAMINE,

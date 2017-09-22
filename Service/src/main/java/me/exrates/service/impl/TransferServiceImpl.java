@@ -203,7 +203,9 @@ public class TransferServiceImpl implements TransferService {
     if (principal == null || !getUserEmailByTrnasferId(requestId).equals(principal.getName())) {
       throw new TransferRequestRevokeException();
     }
-    revokeTransferRequest(transferRequest, REVOKE);
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(REVOKE);
+    revokeTransferRequest(transferRequest, REVOKE, newStatus);
   }
 
   @Transactional
@@ -216,20 +218,23 @@ public class TransferServiceImpl implements TransferService {
             transferRequest.getCurrencyId(),
             TRANSFER_VOUCHER
     );
-    if (permission != null) {
+    if (permission != null && REVOKE_ADMIN.getOperationPermissionOnlyList().contains(permission)) {
 
-      revokeTransferRequest(transferRequest, REVOKE_ADMIN);
     }
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(REVOKE, InvoiceActionParamsValue.builder()
+            .authorisedUserIsHolder(true)
+            .permittedOperation(permission)
+            .availableForCurrentContext(false).build());
+    revokeTransferRequest(transferRequest, REVOKE_ADMIN, newStatus);
   }
 
   @Transactional
-  private void revokeTransferRequest(TransferRequestFlatDto transferRequest, InvoiceActionTypeEnum action) {
-    TransferStatusEnum currentStatus = transferRequest.getStatus();
-    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
+  private void revokeTransferRequest(TransferRequestFlatDto transferRequest, InvoiceActionTypeEnum action, TransferStatusEnum newStatus) {
     transferRequestDao.setStatusById(transferRequest.getId(), newStatus);
     /**/
     Integer userWalletId = walletService.getWalletId(transferRequest.getUserId(), transferRequest.getCurrencyId());
-    String description = transactionDescription.get(currentStatus, action);
+    String description = transactionDescription.get(transferRequest.getStatus(), action);
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
         transferRequest.getAmount(),
