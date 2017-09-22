@@ -2,6 +2,7 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.Wallet;
 import me.exrates.model.util.BigDecimalProcessing;
 
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
  * Created by OLEG on 23.03.2017.
  */
 @Getter @Setter
+@ToString
 public class WalletFormattedDto {
   private Integer id;
   private String name;

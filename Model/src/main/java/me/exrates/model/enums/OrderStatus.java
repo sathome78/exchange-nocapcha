@@ -28,4 +28,11 @@ public enum OrderStatus {
     public int getStatus() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return "OrderStatus{" +
+                "status=" + status +
+                '}';
+    }
 }

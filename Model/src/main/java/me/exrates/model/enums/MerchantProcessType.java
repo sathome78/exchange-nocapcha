@@ -12,4 +12,9 @@ public enum MerchantProcessType {
             .filter(val -> val.name().equals(type))
             .findAny().orElseThrow(() -> new UnsupportedProcessTypeException(type));
   }
+
+  @Override
+  public String toString() {
+    return "MerchantProcessType " + this.name();
+  }
 }

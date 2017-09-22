@@ -60,7 +60,7 @@ public class LoggingAspect {
         adminLog.debug(String.format("result of execution %s by %s is %s", method, executor, res.toString()));
       }
     } catch (Throwable throwable) {
-      log.error("proceed joinpoint error", throwable);
+        adminLog.error("proceed joinpoint error", throwable);
     }
   }
 

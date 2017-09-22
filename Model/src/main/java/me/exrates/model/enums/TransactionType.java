@@ -95,4 +95,8 @@ public enum TransactionType {
     return candidates.get(0);
   }
 
+  @Override
+  public String toString() {
+    return "TransactionType " + this.name();
+  }
 }

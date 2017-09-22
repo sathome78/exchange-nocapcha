@@ -183,7 +183,7 @@ public interface UserService {
 
     String getUserPin(String email);
 
-  boolean getUse2Fa(String email);
+    boolean getUse2Fa(String email);
 
     boolean setUse2Fa(String email, boolean newValue);
 
