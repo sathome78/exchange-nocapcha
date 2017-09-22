@@ -13,10 +13,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 public interface UserDao {
 
@@ -136,9 +133,13 @@ public interface UserDao {
 
   Collection<Comment> getUserComments(int id);
 
-  boolean addUserComment(Comment comment);
+    Optional<Comment> getCommentById(int id);
 
-  boolean deleteUserComment(int id);
+    boolean addUserComment(Comment comment);
+
+    void editUserComment(int id, String newComment, boolean sendMessage);
+
+    boolean deleteUserComment(int id);
 
   Integer retrieveNicknameSearchLimit();
 

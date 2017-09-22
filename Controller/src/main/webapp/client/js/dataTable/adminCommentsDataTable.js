@@ -21,7 +21,7 @@ $(function () {
                 "columns": [
 
                     {
-                        "data": "commentsTime"
+                        "data": "creationTime"
                     },
                     {
                         "data": "creator.email"
@@ -32,12 +32,12 @@ $(function () {
                     {
                         "data": "messageSent",
                         "render": function (data, type, row){
-                            if (row.messageSent == true) {
+                            if (data) {
                                 return '<input type="image" src="/client/img/email.png" style="width: 20px; height: 20px"/> ';
-                            }else {
-                                return "<input type='image' src='/client/img/Delete_Icon_16.png' onclick='deleteUserComment.call(this, event)' />" ;
+                            } else if (row.editable) {
+                                return '<input type="image" src="/client/img/edit_icon_32.png" onclick="editUserComment(this)" style="width: 20px; height: 20px"/>' ;
                             }
-                            return data;
+                            return "";
                         }
                     },
                     {
@@ -60,20 +60,11 @@ $(function () {
 
 
     $('#comments-button').on('click', function () {
+        $("#commentText").val("");
         $("#myModal").modal();
     });
-    $('#createCommentConfirm').on('click', function () {
-        var newComment = document.getElementById("commentText").value;
-        var email = $("input[name='email']").val();
-        var sendMessage = document.getElementById("sendMessageCheckbox").checked;
-        if (sendMessage == true){
-            if (confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
 
-            }else{
-                $("[data-dismiss=modal]").trigger({ type: "click" });
-                return;
-            }
-        }
+    function sendAddComment(newComment, email, sendMessage) {
         $.ajax({
             url: '/2a8fy7b07dxe44/addComment',
             type: 'POST',
@@ -93,7 +84,50 @@ $(function () {
                 console.log(err);
             }
         });
-        $("[data-dismiss=modal]").trigger({ type: "click" });
+    }
+
+    function sendEditComment(commentId, newComment, email, sendMessage) {
+        $.ajax({
+            url: '/2a8fy7b07dxe44/editUserComment',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "commentId": commentId,
+                "newComment": newComment,
+                "email": email,
+                "sendMessage": sendMessage
+
+            },
+            success: function (data) {
+                $('#commentId').val("");
+                update();
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    }
+
+    $('#createCommentConfirm').on('click', function () {
+        var commentId = $('#commentId').val();
+        var newComment = document.getElementById("commentText").value;
+        var email = $("input[name='email']").val();
+        var sendMessage = document.getElementById("sendMessageCheckbox").checked;
+        if (sendMessage){
+            if (!confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
+                $("#myModal").modal('hide');
+                return;
+            }
+        }
+        if (commentId == null || commentId =="") {
+            sendAddComment(newComment, email, sendMessage);
+        } else {
+            sendEditComment(commentId, newComment, email, sendMessage)
+
+        }
+        $("#myModal").modal('hide');
     });
 
     $('#createCommentCancel').on('click', function () {
@@ -110,6 +144,16 @@ $(function () {
     });
 
     });
+
+function editUserComment(elem) {
+    var row = $(elem).parents('tr');
+    var rowData = commentsDataTable.row(row).data();
+    console.log(rowData.comment);
+    $("#commentId").val(rowData.id);
+    $("#commentText").val(rowData.comment);
+    $("#myModal").modal();
+
+}
 
 function deleteUserComment(e) {
 

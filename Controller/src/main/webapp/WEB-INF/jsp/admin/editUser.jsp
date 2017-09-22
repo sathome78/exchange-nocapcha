@@ -633,6 +633,7 @@
                     <h4 class="modal-title">${user.nickname}, ${user.email}, ${userLang} </h4>
                   </div>
                   <div class="modal-body">
+                    <input hidden id="commentId">
                     <p><loc:message code="admin.comment"/>:<Br>
                       <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
                     <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">

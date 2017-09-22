@@ -40,6 +40,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -532,10 +533,17 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Collection<Comment> getUserComments(int id) {
+  public Collection<Comment> getUserComments(int id, String authenticatedAdminEmail) {
+    User admin = findByEmail(authenticatedAdminEmail);
+    Collection<Comment> comments = userDao.getUserComments(id);
+    comments.forEach(comment -> comment.setEditable(isCommentEditable(admin.getId()).test(comment)));
+    return comments;
 
-    return userDao.getUserComments(id);
+  }
 
+  private Predicate<Comment> isCommentEditable(int authenticatedAdminId) {
+    return comment -> LocalDateTime.now().isBefore(comment.getCreationTime().plusHours(24L)) &&
+            comment.getCreator().getId() == authenticatedAdminId && !comment.isMessageSent();
   }
 
   @Override
@@ -563,6 +571,21 @@ public class UserServiceImpl implements UserService {
     }
 
     return success;
+  }
+
+  @Override
+  public void editUserComment(int commentId, String newComment, String email, boolean sendMessage, String authenticatedAdminEmail) {
+    Comment comment = userDao.getCommentById(commentId).orElseThrow(() -> new UserCommentNotFoundException("id " + commentId));
+    User admin = findByEmail(authenticatedAdminEmail);
+    if (isCommentEditable(admin.getId()).test(comment)) {
+      userDao.editUserComment(commentId, newComment, sendMessage);
+      if (sendMessage) {
+        notificationService.notifyUser(comment.getUser().getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
+                "admin.subjectCommentMessage", new Object[]{": " + newComment});
+      }
+    } else {
+      throw new CommentNonEditableException();
+    }
   }
 
   @Override

@@ -14,7 +14,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -60,6 +59,18 @@ public class UserDaoImpl implements UserDao {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+
+  private RowMapper<Comment> userCommentRowMapper = (resultSet, i) -> {
+    Comment comment = new Comment();
+    comment.setId(resultSet.getInt("id"));
+    comment.setUser(getUserById(resultSet.getInt("user_id")));
+    comment.setComment(resultSet.getString("users_comment"));
+    comment.setCreator(getUserById(resultSet.getInt("user_creator_id")));
+    comment.setCreationTime(resultSet.getTimestamp("creation_time").toLocalDateTime());
+    comment.setEditTime(resultSet.getTimestamp("edit_time").toLocalDateTime());
+    comment.setMessageSent(resultSet.getBoolean("message_sent"));
+    return comment;
+  };
 
   private RowMapper<User> getUserRowMapper() {
     return (resultSet, i) -> {
@@ -782,19 +793,22 @@ public class UserDaoImpl implements UserDao {
   @Override
   public Collection<Comment> getUserComments(int id) {
 
-    String sql = "SELECT id, user_id, users_comment, user_creator_id, edit_time, message_sent  FROM birzha.USER_COMMENT WHERE USER_COMMENT.user_id = :user_id";
+    String sql = "SELECT id, user_id, users_comment, user_creator_id, creation_time, edit_time, message_sent  FROM USER_COMMENT " +
+            "WHERE user_id = :user_id";
     Map<String, Object> params = Collections.singletonMap("user_id", id);
-    return namedParameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
-      Comment comment = new Comment();
-      comment.setId(resultSet.getInt("id"));
-      comment.setUser(getUserById(resultSet.getInt("user_id")));
-      comment.setComment(resultSet.getString("users_comment"));
-      comment.setCreator(getUserById(resultSet.getInt("user_creator_id")));
-      comment.setCommentsTime(resultSet.getTimestamp("edit_time").toLocalDateTime());
-      comment.setMessageSent(resultSet.getBoolean("message_sent"));
-      return comment;
-    });
+    return namedParameterJdbcTemplate.query(sql, params, userCommentRowMapper);
+  }
 
+  @Override
+  public Optional<Comment> getCommentById(int id) {
+    String sql = "SELECT id, user_id, users_comment, user_creator_id, creation_time, edit_time, message_sent  FROM USER_COMMENT " +
+            "WHERE id = :id";
+    Map<String, Object> params = Collections.singletonMap("id", id);
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, userCommentRowMapper));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -806,9 +820,18 @@ public class UserDaoImpl implements UserDao {
     namedParameters.put("comment", comment.getComment());
     namedParameters.put("user_creator_id", comment.getCreator() == null ? -1 : comment.getCreator().getId());
     namedParameters.put("message_sent", comment.isMessageSent());
-    namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
+
+  @Override
+  public void editUserComment(int id, String newComment, boolean sendMessage) {
+    String sql = "UPDATE USER_COMMENT SET users_comment = :new_comment, message_sent = :message_sent WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("message_sent", sendMessage);
+    params.put("new_comment", newComment);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override

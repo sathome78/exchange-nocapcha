@@ -35,7 +35,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
@@ -52,7 +51,6 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.WebUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -304,9 +302,9 @@ public class AdminController {
   @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Collection<Comment> getUserComments(@RequestParam int id, HttpServletRequest request) {
+  public Collection<Comment> getUserComments(@RequestParam int id, Principal principal) {
 
-    return userService.getUserComments(id);
+    return userService.getUserComments(id, principal.getName());
   }
 
   @AdminLoggable
@@ -328,6 +326,23 @@ public class AdminController {
   }
 
   @AdminLoggable
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/editUserComment", method = POST)
+  public ResponseEntity<Map<String, String>> editUserComment(final @RequestParam("commentId") int commentId,
+                                                               @RequestParam String newComment, @RequestParam String email,
+                                                             @RequestParam boolean sendMessage, Principal principal,
+                                                               final Locale locale) {
+    try {
+      userService.editUserComment(commentId, newComment,email, sendMessage, principal.getName());
+    } catch (Exception e) {
+      LOG.error(e);
+      return new ResponseEntity<>(singletonMap("error",
+              messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+    }
+    return new ResponseEntity<>(singletonMap("success",
+            messageSource.getMessage("admin.successCommentDelete", null, locale)), OK);
+  }
+
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/deleteUserComment", method = POST)
   public ResponseEntity<Map<String, String>> deleteUserComment(final @RequestParam("commentId") int commentId,

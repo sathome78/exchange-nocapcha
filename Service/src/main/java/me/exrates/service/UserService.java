@@ -152,11 +152,13 @@ public interface UserService {
 
   Locale getUserLocaleForMobile(String email);
 
-  Collection<Comment> getUserComments(int id);
+  Collection<Comment> getUserComments(int id, String authenticatedAdminEmail);
 
   boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage);
 
-  boolean deleteUserComment(int id);
+    void editUserComment(int commentId, String newComment, String email, boolean sendMessage, String authenticatedAdminEmail);
+
+    boolean deleteUserComment(int id);
 
   List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
