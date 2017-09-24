@@ -65,10 +65,7 @@ import org.springframework.web.servlet.view.JstlView;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -413,16 +410,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0");
+
         return new EthTokenServiceImpl(
-                "0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0",
+                tokensList,
                 "EOS",
                 "EOS");
     }
 
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+
         return new EthTokenServiceImpl(
-                "0xe94327d07fc17907b4db788e5adf2ed424addff6",
+                tokensList,
                 "REP",
                 "REP");
     }

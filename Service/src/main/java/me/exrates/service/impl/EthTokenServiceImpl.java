@@ -12,6 +12,8 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.events.EthPendingTransactionsEvent;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,7 +50,7 @@ public class EthTokenServiceImpl implements EthTokenService{
     private Currency currency;
     private final List<String> accounts = new ArrayList<>();
 
-    private String contractAddress;
+    private List<String> contractAddress;
     private String merchantName;
     private String currencyName;
     private int minConfirmations;
@@ -60,9 +62,13 @@ public class EthTokenServiceImpl implements EthTokenService{
     private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
+
     @Qualifier(value = "ethereumServiceImpl")
     @Autowired
     private EthereumCommonService ethereumCommonService;
+
+
+    private final Logger LOG = LogManager.getLogger("node_ethereum");
 
     @PostConstruct
     public void init() {
@@ -72,7 +78,7 @@ public class EthTokenServiceImpl implements EthTokenService{
         this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
     }
 
-    public EthTokenServiceImpl(String contractAddress, String merchantName, String currencyName) {
+    public EthTokenServiceImpl(List<String> contractAddress, String merchantName, String currencyName) {
         this.contractAddress = contractAddress;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
@@ -83,7 +89,7 @@ public class EthTokenServiceImpl implements EthTokenService{
     @EventListener
     public void onPendingTransaction(EthPendingTransactionsEvent event) {
         Transaction transaction = (Transaction) event.getSource();
-        if (transaction.getTo() != null && transaction.getTo().equals(contractAddress)){
+        if (transaction.getTo() != null && contractAddress.contains(transaction.getTo())){
             try {
                 TransactionReceipt transactionReceipt = new TransactionReceipt();
                 transactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send().getResult();

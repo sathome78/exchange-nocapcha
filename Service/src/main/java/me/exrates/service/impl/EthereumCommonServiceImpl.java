@@ -14,8 +14,11 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.abi.EventEncoder;
@@ -31,6 +34,8 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
@@ -105,7 +110,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Subscription subscription;
 
-    private boolean subscribeCreated;
+    private boolean subscribeCreated = false;
 
     private BigInteger currentBlockNumber;
 
@@ -160,9 +165,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
         try {
-            createSubscribe();
+//            createSubscribe();
         } catch (EthereumException e) {
             LOG.error(e);
         }
@@ -180,6 +185,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     public void createSubscribe(){
         try {
+            TimeUnit.SECONDS.sleep(60);
             LOG.debug(merchantName + " Connecting ethereum...");
 
             Merchant merchant = merchantService.findByName(merchantName);
@@ -197,7 +203,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
-            observable = web3j.transactionObservable();
+//            observable = web3j.transactionObservable();
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4308100));
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
