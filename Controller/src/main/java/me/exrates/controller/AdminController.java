@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;
 import me.exrates.controller.exception.NotAcceptableOrderException;
@@ -77,6 +78,7 @@ import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -176,6 +178,7 @@ public class AdminController {
     return "admin/administrators";
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
   public ModelAndView referral() {
     ModelAndView model = new ModelAndView();
@@ -185,6 +188,7 @@ public class AdminController {
     model.setViewName("admin/referral");
     return model;
   }
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
   public ModelAndView orderDeletion() {
@@ -198,6 +202,7 @@ public class AdminController {
     return model;
   }
 
+
   @RequestMapping(value = "/2a8fy7b07dxe44/removeStopOrder", method = GET)
   public ModelAndView stopOrderDeletion() {
     ModelAndView model = new ModelAndView();
@@ -209,6 +214,7 @@ public class AdminController {
     return model;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCmnRefRoot", method = POST)
   @ResponseBody
   public ResponseEntity<Void> editCommonReferralRoot(final @RequestParam("id") int id) {
@@ -216,6 +222,7 @@ public class AdminController {
     return new ResponseEntity<>(OK);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editLevel", method = POST)
   @ResponseBody
   public ResponseEntity<Map<String, String>> editReferralLevel(final @RequestParam("level") int level, final @RequestParam("oldLevelId") int oldLevelId, final @RequestParam("percent") BigDecimal percent, final Locale locale) {
@@ -232,6 +239,7 @@ public class AdminController {
     }
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/users/deleteUserFile", method = POST)
   public ResponseEntity<Map<String, String>> deleteUserDoc(final @RequestParam("fileId") int fileId,
@@ -286,12 +294,14 @@ public class AdminController {
   }
 
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
     return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<Comment> getUserComments(@RequestParam int id, HttpServletRequest request) {
@@ -299,6 +309,7 @@ public class AdminController {
     return userService.getUserComments(id);
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Map<String, String>> addUserComment(@RequestParam String newComment, @RequestParam String email,
@@ -316,6 +327,7 @@ public class AdminController {
         messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/deleteUserComment", method = POST)
   public ResponseEntity<Map<String, String>> deleteUserComment(final @RequestParam("commentId") int commentId,
@@ -392,7 +404,7 @@ public class AdminController {
         return result;
     }
 
-    @RequestMapping("/2a8fy7b07dxe44/addUser")
+  @RequestMapping("/2a8fy7b07dxe44/addUser")
   public ModelAndView addUser(HttpSession httpSession) {
     ModelAndView model = new ModelAndView();
 
@@ -404,6 +416,7 @@ public class AdminController {
     return model;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/adduser/submit", method = RequestMethod.POST)
   public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
@@ -423,6 +436,7 @@ public class AdminController {
     return model;
   }
 
+  @AdminLoggable
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
   public ModelAndView editUser(@RequestParam int id, HttpServletRequest request, Principal principal) {
 
@@ -456,11 +470,13 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
+    model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
     model.addObject("enable_2fa", userService.getUse2Fa(user.getEmail()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
     return model;
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/editUser/submit2faOptions", method = POST)
   public String submitNotificationOptions(@RequestParam String email,
@@ -476,9 +492,10 @@ public class AdminController {
     return "ok";
   }
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
-    public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
+  @AdminLoggable
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
+  public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
         boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
         try {
             userService.setGlobal2FaActive(use2fa);
@@ -488,8 +505,9 @@ public class AdminController {
             return "error";
         }
         return "ok";
-    }
+  }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
   public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
     UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
@@ -544,6 +562,7 @@ public class AdminController {
       sessionRegistry.getAllSessions(updatedUser.get(), false).forEach(SessionInformation::expireNow);
     }
   }
+
 
   @RequestMapping(value = "/settings/uploadFile", method = POST)
   public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
@@ -677,24 +696,28 @@ public class AdminController {
     return model;
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public AdminOrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return orderService.getAdminOrderInfo(id, localeResolver.resolveLocale(request));
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderinfo", method = RequestMethod.GET)
   public OrderInfoDto getStopOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return stopOrderService.getStopOrderInfo(id, localeResolver.resolveLocale(request));
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transferInfo", method = RequestMethod.GET)
   public UserTransferInfoDto getTransferInfo(@RequestParam int id, HttpServletRequest request) {
     return userTransferService.getTransferInfoBySourceId(id);
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
   public Integer deleteOrderByAdmin(@RequestParam int id) {
@@ -706,6 +729,7 @@ public class AdminController {
     }
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/order/accept", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public Map<String, Object> acceptOrderByAdmin(@RequestParam int id, Principal principal, Locale locale) {
@@ -713,6 +737,7 @@ public class AdminController {
     return Collections.singletonMap("result", messageSource.getMessage("admin.order.acceptsuccess", new Object[]{id}, locale));
   }
 
+  @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderDelete", method = RequestMethod.POST)
   public boolean deleteStopOrderByAdmin(@RequestParam int id, HttpServletRequest request) {
@@ -824,6 +849,7 @@ public class AdminController {
     return new ModelAndView("/admin/user_statement", "walletId", walletId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getStatements", method = RequestMethod.GET)
   @ResponseBody
   public DataTable<List<AccountStatementDto>> getStatements(@RequestParam Integer walletId, @RequestParam Map<String, String> params,
@@ -883,6 +909,7 @@ public class AdminController {
     return result;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/expireSession", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
@@ -903,6 +930,7 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
@@ -910,6 +938,7 @@ public class AdminController {
     return currencyService.retrieveCurrencyLimitsForRole(roleName, operationType);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
@@ -922,6 +951,7 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
   @ResponseBody
   public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
@@ -929,6 +959,7 @@ public class AdminController {
     return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
   @ResponseBody
   public void editCurrencyPairLimit(@RequestParam int currencyPairId,
@@ -949,6 +980,7 @@ public class AdminController {
     }
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
   public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
                                       RedirectAttributes redirectAttributes) {
@@ -967,6 +999,7 @@ public class AdminController {
     return redirectView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
@@ -985,6 +1018,7 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
   @ResponseBody
   public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
@@ -992,6 +1026,7 @@ public class AdminController {
 
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
@@ -999,6 +1034,7 @@ public class AdminController {
 
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editCommission", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
@@ -1009,6 +1045,7 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
@@ -1028,6 +1065,7 @@ public class AdminController {
     return new ModelAndView("admin/merchantAccess");
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/data", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> merchantAccessData(@RequestParam List<String> processTypes) {
@@ -1036,6 +1074,7 @@ public class AdminController {
     return merchantCurrencyOptions;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams", method = RequestMethod.POST, consumes = "application/json")
   @ResponseBody
   public void setAutoWithdrawParams(@RequestBody MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
@@ -1045,6 +1084,7 @@ public class AdminController {
     withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
@@ -1055,6 +1095,7 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/setBlockForAll", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> switchBlockStatusForAll(@RequestParam OperationType operationType,
@@ -1080,6 +1121,7 @@ public class AdminController {
     }};
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyPermissions/submit", method = RequestMethod.POST, consumes = "application/json")
   @ResponseBody
   public void editCurrencyPermissions(
@@ -1143,19 +1185,22 @@ public class AdminController {
   public BigDecimal getActualFee(@PathVariable String merchantName) {
     return getBitcoinServiceByMerchantName(merchantName).getActualFee();
   }
-  
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setFee", method = RequestMethod.POST)
   @ResponseBody
   public void setFee(@PathVariable String merchantName, @RequestParam BigDecimal fee) {
     getBitcoinServiceByMerchantName(merchantName).setTxFee(fee);
   }
-  
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/unlock", method = RequestMethod.POST)
   @ResponseBody
   public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
     getBitcoinServiceByMerchantName(merchantName).submitWalletPassword(password);
   }
-  
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
@@ -1182,6 +1227,7 @@ public class AdminController {
     return dtoResult.isPresent() ? Collections.singletonMap("result", dtoResult.get()) : Collections.EMPTY_MAP;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/create", method = RequestMethod.POST)
   @ResponseBody
   public void createBtcRefillRequest(@PathVariable String merchantName, @RequestParam Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
@@ -1226,6 +1272,7 @@ public class AdminController {
     }
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading", method = GET)
   public ModelAndView autoTrading() {
     ModelAndView modelAndView = new ModelAndView("/admin/autoTrading");
@@ -1237,23 +1284,28 @@ public class AdminController {
     return modelAndView;
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public List<UserRoleSettings> getRoleSettings() {
     return userRoleService.retrieveSettingsForAllRoles();
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/roleSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateSettingsForRole(@RequestBody UserRoleSettings userRoleSettings) {
     userRoleService.updateSettingsForRole(userRoleSettings);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/create", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void createBot(@RequestParam String nickname, @RequestParam String email, @RequestParam String password) {
     botService.createBot(nickname, email, password);
   }
+
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/update", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateBot(@RequestBody @Valid BotTrader botTrader, Locale locale) {
@@ -1261,37 +1313,42 @@ public class AdminController {
 
   }
 
-
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public List<BotLaunchSettings> getLaunchSettings(@RequestParam Integer botId) {
     return botService.retrieveLaunchSettings(botId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam OrderType orderType) {
     return botService.retrieveTradingSettingsShort(launchSettingsId, orderType.getType());
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/toggle", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void toggleCreationForCurrencyPair(@RequestParam Integer currencyPairId, @RequestParam Boolean status, Locale locale) {
     botService.toggleBotStatusForCurrencyPair(currencyPairId, status, locale);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/userOrders/toggle", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void toggleConsiderUserOrders(@RequestParam Integer launchSettingsId, @RequestParam Boolean considerUserOrders, Locale locale) {
     botService.setConsiderUserOrders(launchSettingsId, considerUserOrders);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/launchSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateLaunchSettings(@Valid BotLaunchSettings launchSettings) {
     botService.updateLaunchSettings(launchSettings);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings, Locale locale) {

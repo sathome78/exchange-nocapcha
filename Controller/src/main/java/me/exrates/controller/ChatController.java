@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.RemovedMessageDto;
@@ -91,6 +92,7 @@ public class ChatController {
         return chatService.getLastMessages(ChatLang.toInstance(lang));
     }
 
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/chat/deleteMessage", method = POST)
     public @ResponseBody String deleteMessage(HttpServletRequest request) {
 

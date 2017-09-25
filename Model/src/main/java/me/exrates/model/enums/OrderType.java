@@ -29,4 +29,11 @@ public enum OrderType {
     return Arrays.stream(OrderType.values()).filter(ot -> ot.name().equals(name)).findAny()
             .orElseThrow(UnsupportedOrderTypeException::new);
   }
+
+  @Override
+  public String toString() {
+    return "OrderType{" +
+            "type=" + this.name() +
+            '}';
+  }
 }

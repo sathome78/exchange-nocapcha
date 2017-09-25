@@ -34,4 +34,10 @@ public enum UserRole {
         .orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)));
   }
 
+  @Override
+  public String toString() {
+    return "UserRole{" +
+            "role=" + role + " " + this.name() +
+            '}';
+  }
 }

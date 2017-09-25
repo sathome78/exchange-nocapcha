@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
@@ -122,6 +123,7 @@ public class WithdrawRequestController {
     return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchantId, locale, memo);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)
   @ResponseBody
   public void takeToWork(
@@ -131,6 +133,7 @@ public class WithdrawRequestController {
     withdrawService.takeInWorkWithdrawalRequest(id, requesterAdminId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/return", method = POST)
   @ResponseBody
   public void returnFromWork(
@@ -140,6 +143,7 @@ public class WithdrawRequestController {
     withdrawService.returnFromWorkWithdrawalRequest(id, requesterAdminId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/decline", method = POST)
   @ResponseBody
   public void decline(
@@ -150,6 +154,7 @@ public class WithdrawRequestController {
     withdrawService.declineWithdrawalRequest(id, requesterAdminId, comment);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/confirm", method = POST)
   @ResponseBody
   public void confirm(
@@ -159,6 +164,7 @@ public class WithdrawRequestController {
     withdrawService.confirmWithdrawalRequest(id, requesterAdminId);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/post", method = POST)
   @ResponseBody
   public void postHolded(
