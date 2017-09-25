@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.service.CurrencyService;
@@ -11,6 +12,7 @@ import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.events.EthPendingTransactionsEvent;
+import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -34,10 +36,13 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Convert;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Maks on 19.09.2017.
@@ -55,6 +60,8 @@ public class EthTokenServiceImpl implements EthTokenService{
     private String currencyName;
     private int minConfirmations;
     private Web3j web3j;
+    private BigInteger currentBlockNumber;
+    List<RefillRequestFlatDto> pendingTransactions;
 
     @Autowired
     private RefillService refillService;
@@ -75,6 +82,8 @@ public class EthTokenServiceImpl implements EthTokenService{
         merchant = merchantService.findByName(merchantName);
         currency = currencyService.findByName(currencyName);
         web3j = ethereumCommonService.getWeb3j();
+        currentBlockNumber = new BigInteger("0");
+        pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         this.minConfirmations = ethereumCommonService.minConfirmationsRefill();
     }
 
@@ -91,6 +100,39 @@ public class EthTokenServiceImpl implements EthTokenService{
         Transaction transaction = (Transaction) event.getSource();
         if (transaction.getTo() != null && contractAddress.contains(transaction.getTo())){
             try {
+                if (!currentBlockNumber.equals(transaction.getBlockNumber())){
+                    System.out.println(merchantName + " Current block number: " + transaction.getBlockNumber());
+                    log.debug(merchantName + " Current block number: " + transaction.getBlockNumber());
+
+                    List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
+                    pendingTransactions.forEach(pendingTransaction ->
+                            {
+                                try {
+                                    if (web3j.ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult()==null){
+                                        return;
+                                    }
+                                    BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
+                                    if (transaction.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
+                                        provideTransactionAndTransferFunds(pendingTransaction.getAddress(), pendingTransaction.getMerchantTransactionId());
+                                        log.debug(merchantName + " Transaction: " + pendingTransaction + " - PROVIDED!!!");
+                                        log.debug(merchantName + " Confirmations count: " + transaction.getBlockNumber().subtract(transactionBlockNumber).intValue());
+                                        providedTransactions.add(pendingTransaction);
+                                    }
+                                } catch (EthereumException | IOException e) {
+                                    log.error(merchantName + " " + e);
+                                }
+
+                                System.out.println(merchantName + " Pending transaction: " + pendingTransaction);
+                            }
+
+                    );
+                    providedTransactions.forEach(pendingTransaction -> pendingTransactions.remove(pendingTransaction));
+                }
+
+                System.out.println("transaction1.getBlockNumber(): " + transaction.getBlockNumber());
+                currentBlockNumber = transaction.getBlockNumber();
+                System.out.println("currentBlockNumber1: " + currentBlockNumber);
+
                 TransactionReceipt transactionReceipt = new TransactionReceipt();
                 transactionReceipt = web3j.ethGetTransactionReceipt(transaction.getHash()).send().getResult();
                 if (transactionReceipt == null) {
@@ -105,11 +147,12 @@ public class EthTokenServiceImpl implements EthTokenService{
                         return;
                     }
 
-                    refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(accounts::add);
+//                    refillService.findAllAddresses(merchantEth.getId(), currencyEth.getId()).forEach(accounts::add);
                     List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
 
                     String contractRecipient = response.to.toString();
-                    if (accounts.contains(contractRecipient)){
+//                    if (accounts.contains(contractRecipient)){
+                    if (ethereumCommonService.getAccounts().contains(contractRecipient)){
                         if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
                                 contractRecipient,
                                 merchant.getId(),
@@ -145,6 +188,31 @@ public class EthTokenServiceImpl implements EthTokenService{
             }
         }
     }
+
+    private void provideTransactionAndTransferFunds(String address, String merchantTransactionId){
+
+        try {
+            Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
+            log.debug("Providing transaction!");
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .requestId(refillRequestInfoDto.get().getId())
+                    .address(refillRequestInfoDto.get().getAddress())
+                    .amount(refillRequestInfoDto.get().getAmount())
+                    .currencyId(currencyService.findByName(currencyName).getId())
+                    .merchantId(merchantService.findByName(merchantName).getId())
+                    .merchantTransactionId(merchantTransactionId)
+                    .build();
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            log.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
+
+//            transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
+        } catch (RefillRequestAppropriateNotFoundException e) {
+        } catch (Exception e) {
+            log.error(e);
+        }
+
+    }
+
 
     @Override
     public TransferEventResponse extractData(List<String> topics, String data) {

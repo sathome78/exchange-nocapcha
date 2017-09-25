@@ -129,7 +129,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return web3j;
     }
 
-
+    @Override
+    public List<String> getAccounts() {
+        return accounts;
+    }
 
     @Override
     public Integer minConfirmationsRefill() {
@@ -204,7 +207,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             currentBlockNumber = new BigInteger("0");
 
 //            observable = web3j.transactionObservable();
-            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4308100));
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4309642));
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
