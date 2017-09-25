@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by maks on 06.06.2017.
  */
-@Log4j2
+@Log4j2(topic = "stellar_log")
 @Component
 @PropertySource("classpath:/merchants/stellar.properties")
 public class StellarReceivePaymentsService {

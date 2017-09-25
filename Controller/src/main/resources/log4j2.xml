@@ -285,6 +285,43 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="stellar_log" fileName="${sys:catalina.home}/logs/crypto/stellar_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/stellar_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ripple_log" fileName="${sys:catalina.home}/logs/crypto/ripple_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ripple_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="nem_log" fileName="${sys:catalina.home}/logs/crypto/nem_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/nem_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ws_stomp_log" fileName="${sys:catalina.home}/logs/ws/ws_stomp_log.log"
+                     filePattern="${sys:catalina.home}/logs/ws/ws_stomp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -439,10 +476,29 @@
         <logger name="bot_trader" level="ALL" additivity="false">
             <AppenderRef ref="bot_trader_log"/>
         </logger>
-        <logger name="admin_log" level="DEBUG" additivity="false">
+        <logger name="admin_log" level="ALL" additivity="false">
             <AppenderRef ref="admin_log"/>
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="Logs"/>
+        </logger>
+        <logger name="stellar_log" level="ALL" additivity="false">
+            <AppenderRef ref="stellar_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ripple_log" level="ALL" additivity="false">
+            <AppenderRef ref="ripple_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="nem_log" level="ALL" additivity="false">
+            <AppenderRef ref="nem_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="ws_stomp_log" level="ALL" additivity="false">
+            <AppenderRef ref="ws_stomp_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
+            <AppenderRef ref="ws_stomp_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
 

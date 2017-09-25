@@ -31,8 +31,6 @@ public enum OrderStatus {
 
     @Override
     public String toString() {
-        return "OrderStatus{" +
-                "status=" + status +
-                '}';
+        return this.name();
     }
 }

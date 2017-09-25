@@ -32,8 +32,6 @@ public enum OrderType {
 
   @Override
   public String toString() {
-    return "OrderType{" +
-            "type=" + this.name() +
-            '}';
+    return this.name();
   }
 }

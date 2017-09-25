@@ -68,7 +68,7 @@ function subscribeAll() {
 function connectAndReconnect() {
     reconnectsCounter ++;
     console.log("try to reconnect " + reconnectsCounter);
-    if (reconnectsCounter > 10) {
+    if (reconnectsCounter > 7) {
         location.reload()
     }
     socket = new SockJS(socket_url);

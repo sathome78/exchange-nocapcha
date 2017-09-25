@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Created by maks on 20.07.2017.
  */
-@Log4j2
+@Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
 public class NemNodeService {

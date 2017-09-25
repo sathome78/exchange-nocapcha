@@ -29,8 +29,6 @@ public enum InvoiceOperationPermission {
 
     @Override
     public String toString() {
-        return "InvoiceOperationPermission{" +
-                "code=" + code +
-                '}';
+        return this.name();
     }
 }

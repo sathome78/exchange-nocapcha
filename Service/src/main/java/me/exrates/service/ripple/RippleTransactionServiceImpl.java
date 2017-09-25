@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Created by maks on 11.05.2017.
  */
-@Log4j2
+@Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
 public class RippleTransactionServiceImpl implements RippleTransactionService {

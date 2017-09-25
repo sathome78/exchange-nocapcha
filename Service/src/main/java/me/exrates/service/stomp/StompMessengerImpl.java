@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Maks on 24.08.2017.
  */
-@Log4j2
+@Log4j2(topic = "ws_stomp_log")
 @Component
 public class StompMessengerImpl implements StompMessenger{
 

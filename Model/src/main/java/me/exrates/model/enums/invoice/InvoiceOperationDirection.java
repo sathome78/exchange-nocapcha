@@ -30,6 +30,6 @@ public enum InvoiceOperationDirection {
 
     @Override
     public String toString() {
-        return "InvoiceOperationDirection " + this.name();
+        return this.name();
     }
 }

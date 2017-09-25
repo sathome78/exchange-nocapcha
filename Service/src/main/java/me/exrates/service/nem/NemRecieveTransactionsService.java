@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Created by maks on 21.07.2017.
  */
-@Log4j2
+@Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
 public class NemRecieveTransactionsService {
@@ -69,6 +69,10 @@ public class NemRecieveTransactionsService {
         for (int i = 0; transactions.opt(i) != null; i++) {
             JSONObject transactionData = transactions.getJSONObject(i);
             Map<String, String> params = extractParams(transactionData);
+            /*check for mosaic transaction and*/
+            if (params.get("mosaics") != null) {
+                continue;
+            }
             String trHash = params.get("hash");
             if (trHash.equals(lastHash)) {
                 return null;
@@ -108,6 +112,7 @@ public class NemRecieveTransactionsService {
         paramsMap.put("address", message);
         paramsMap.put("amount", transactionsService.transformToString(transaction.getLong("amount")));
         paramsMap.put("transaction", transactionMetaPair.toString());
+        paramsMap.put("mosaics", transaction.has("mosaics") ? "" : null);
         return paramsMap;
     }
 

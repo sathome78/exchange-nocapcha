@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Created by Maks on 24.08.2017.
  */
-@Log4j2
+@Log4j2(topic = "ws_stomp_log")
 @Controller
 public class WsContorller {
 

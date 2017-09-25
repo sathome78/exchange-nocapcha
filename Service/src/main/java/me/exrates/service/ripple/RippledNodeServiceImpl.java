@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Created by maks on 05.05.2017.
  */
-@Log4j2
+@Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
 public class RippledNodeServiceImpl implements RippledNodeService {

@@ -97,6 +97,6 @@ public enum TransactionType {
 
   @Override
   public String toString() {
-    return "TransactionType " + this.name();
+    return this.name();
   }
 }
