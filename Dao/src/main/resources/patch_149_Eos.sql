@@ -67,5 +67,13 @@ UPDATE MERCHANT SET `tokens_parrent_id`=(select id from MERCHANT where name = 'E
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS (`merchant_id`, `param_name`) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4313714);
 
-
+ALTER TABLE REFILL_REQUEST
+DROP FOREIGN KEY `FK_refill_request_refill_request_address_2`;
+ALTER TABLE REFILL_REQUEST
+DROP INDEX `FK_refill_request_refill_request_address_2` ,
+ADD INDEX `FK_refill_request_refill_request_address_2` (`user_id` ASC, `refill_request_address_id` ASC);
+ALTER TABLE REFILL_REQUEST
+ADD CONSTRAINT `FK_refill_request_refill_request_address_2`
+  FOREIGN KEY (`user_id` , `refill_request_address_id`)
+  REFERENCES REFILL_REQUEST_ADDRESS (`user_id` , `id`);
 
