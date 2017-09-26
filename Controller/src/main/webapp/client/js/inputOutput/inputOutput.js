@@ -95,7 +95,7 @@ function InputOutputClass(currentCurrencyPair) {
         inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
-            that.getAndShowInputOutputData();
+            /*that.getAndShowInputOutputData();*/
         });
         /**/
         $('.inputoutput-table__backward').on('click', function (e) {

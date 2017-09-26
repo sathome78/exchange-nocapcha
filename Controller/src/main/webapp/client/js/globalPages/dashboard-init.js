@@ -68,7 +68,7 @@ function subscribeAll() {
 function connectAndReconnect() {
     reconnectsCounter ++;
     console.log("try to reconnect " + reconnectsCounter);
-    if (reconnectsCounter > 7) {
+    if (reconnectsCounter > 5) {
         location.reload()
     }
     socket = new SockJS(socket_url);
@@ -311,6 +311,7 @@ $(function dashdoardInit() {
             if (!e.ctrlKey) {
                 showPage('myhistory');
                 myHistory.updateAndShowAll();
+                myHistory.updateActiveTab();
             } else {
                 window.open('/dashboard?startupPage=myhistory', '_blank');
                 return false;

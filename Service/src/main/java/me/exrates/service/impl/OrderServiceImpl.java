@@ -429,7 +429,6 @@ public class OrderServiceImpl implements OrderService {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
-
       eventPublisher.publishEvent(new CreateOrderEvent(new ExOrder(orderCreateDto)));
       return createdOrderId;
     } finally {

@@ -298,13 +298,13 @@ function MyOrdersClass(currentCurrencyPair) {
         });
         /**/
         syncTableParams(tableSellId, tableSellPageSize, function (data) {
-            that.getAndShowMySellOrdersData();
+            /*that.getAndShowMySellOrdersData();*/
         });
         syncTableParams(tableBuyId, tableBuyPageSize, function (data) {
-            that.getAndShowMyBuyOrdersData();
+            /*that.getAndShowMyBuyOrdersData();*/
         });
         syncTableParams(tableStopId, tableStopPageSize, function (data) {
-            that.getAndShowMyStopOrdersData();
+            /*that.getAndShowMyStopOrdersData();*/
         });
         /**/
         $('.myorders-sell-table__backward').on('click', function(e){
