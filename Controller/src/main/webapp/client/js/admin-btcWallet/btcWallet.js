@@ -4,6 +4,7 @@
 var txHistoryDataTable;
 var urlBase;
 $(function () {
+   const $loadingDialog = $('#loading-process-modal');
    var $passwordModal = $('#password-modal');
    var $paymentConfirmModal = $('#payment-confirm-modal');
    var merchantName = $('#merchantName').text();
@@ -59,12 +60,17 @@ $(function () {
     });
 
     $('#confirm-btc-submit').click(function () {
+        var confirmButton = this;
+        $(confirmButton).prop('disabled', true);
         var data = {};
         $('.btcWalletPayment').each(function () {
             var address = $(this).find('input[name="address"]').val();
             data[address] = parseFloat($(this).find('input[name="amount"]').val());
         });
         console.log(data);
+        $loadingDialog.modal({
+            backdrop: 'static'
+        });
         $.ajax(urlBase + 'sendToMany', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -73,10 +79,15 @@ $(function () {
             contentType: 'application/json; charset=UTF-8',
             data: JSON.stringify(data),
             success: function (data) {
+                $loadingDialog.modal('hide');
                 $($paymentConfirmModal).modal('hide');
                 resetForm();
                 $('#current-btc-balance').text(data.newBalance);
                 successNoty(data.message)
+            },
+            complete: function () {
+                $loadingDialog.modal('hide');
+                $(confirmButton).prop('disabled', false);
             }
         })
     });
