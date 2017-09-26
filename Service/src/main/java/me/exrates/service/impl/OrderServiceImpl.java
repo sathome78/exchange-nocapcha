@@ -424,14 +424,14 @@ public class OrderServiceImpl implements OrderService {
           setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
           profileData.setTime4();
         }
-        botService.acceptAfterDelay(exOrder);
+        eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
+        return createdOrderId;
+
       } else {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
 
-      eventPublisher.publishEvent(new CreateOrderEvent(new ExOrder(orderCreateDto)));
-      return createdOrderId;
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
     }

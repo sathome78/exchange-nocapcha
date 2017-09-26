@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
@@ -7,6 +8,7 @@ import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.*;
 import me.exrates.service.*;
+import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.BotException;
 import me.exrates.service.exception.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.OrderAcceptionException;
@@ -19,6 +21,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -95,6 +98,13 @@ public class BotServiceImpl implements BotService {
         });
     }
 
+    @Override
+    @TransactionalEventListener
+    public void onOrderCreated(CreateOrderEvent event) {
+        ExOrder exOrder = (ExOrder) event.getSource();
+        acceptAfterDelay(exOrder);
+    }
+
 
     @Override
     @Transactional
@@ -112,7 +122,7 @@ public class BotServiceImpl implements BotService {
                             email.setMessage("Insufficient costs on bot account");
                             email.setSubject(e.getMessage());
                             email.setTo(errorEmail);
-                            sendMailService.sendInfoMail(email);
+             //               sendMailService.sendInfoMail(email);
                             log.warn(e.getMessage());
                         } catch (OrderAcceptionException e) {
                             log.warn(e.getMessage());
@@ -211,7 +221,8 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional
-    public synchronized void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
+    @Synchronized
+    public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         log.debug("Prepared order: {}", orderCreateDto);
         orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
@@ -236,6 +247,7 @@ public class BotServiceImpl implements BotService {
     }
 
     private void scheduleJobsForCurrencyPair(Integer currencyPairId, int intervalInMinutes) {
+
         int intervalInSeconds = intervalInMinutes * 60;
         try {
             scheduleJobForCurrencyPairAndOrderType(currencyPairId, OrderType.SELL, intervalInSeconds);
@@ -249,6 +261,7 @@ public class BotServiceImpl implements BotService {
     private void scheduleJobForCurrencyPairAndOrderType(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) throws SchedulerException {
         JobDetail jobDetail = createJobDetail(currencyPairId, orderType);
         Trigger trigger = createTrigger(currencyPairId, orderType, intervalInSeconds);
+        log.debug("SCHEDULING JOB FOR PAIR ID " + currencyPairId + " " + orderType.name());
         botOrderCreationScheduler.scheduleJob(jobDetail, trigger);
     }
 

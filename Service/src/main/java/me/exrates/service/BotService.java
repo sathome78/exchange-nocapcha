@@ -7,6 +7,8 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
+import me.exrates.service.events.CreateOrderEvent;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -14,6 +16,9 @@ import java.util.Locale;
 import java.util.Optional;
 
 public interface BotService {
+    @TransactionalEventListener
+    void onOrderCreated(CreateOrderEvent event);
+
     void acceptAfterDelay(ExOrder exOrder);
 
     Optional<BotTrader> retrieveBotFromDB();
