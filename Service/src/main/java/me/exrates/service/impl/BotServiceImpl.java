@@ -278,7 +278,9 @@ public class BotServiceImpl implements BotService {
                 .withIdentity(getTriggerName(currencyPairId, orderType))
                 .startNow()
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInSeconds(intervalInSeconds).repeatForever())
+                        .withIntervalInSeconds(intervalInSeconds)
+                        .withMisfireHandlingInstructionNowWithRemainingCount()
+                        .repeatForever())
                 .build();
     }
 
@@ -288,7 +290,9 @@ public class BotServiceImpl implements BotService {
                     .forJob(jobDetail)
                     .startNow()
                     .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                            .withIntervalInSeconds(intervalInSeconds).repeatForever())
+                            .withIntervalInSeconds(intervalInSeconds)
+                            .withMisfireHandlingInstructionNowWithRemainingCount()
+                            .repeatForever())
                     .build();
     }
 
