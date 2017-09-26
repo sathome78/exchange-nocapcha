@@ -12,6 +12,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -96,4 +97,6 @@ public interface RefillRequestDao {
   Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
 
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
+
+  Map<String,Integer> getTokensParentIfExists(Integer merchantId, Integer currencyId);
 }

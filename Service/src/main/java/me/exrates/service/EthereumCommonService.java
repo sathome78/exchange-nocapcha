@@ -50,4 +50,8 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     Web3j getWeb3j();
 
     List<String> getAccounts();
+
+    void saveLastBlock(String block);
+
+    String loadLastBlock();
 }

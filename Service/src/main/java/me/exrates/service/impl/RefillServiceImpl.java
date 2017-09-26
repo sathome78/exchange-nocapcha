@@ -120,6 +120,11 @@ public class RefillServiceImpl implements RefillService {
       put("params", new HashMap<String, String>());
     }};
     try {
+
+      Map<String, Integer> tokensParentMap = refillRequestDao.getTokensParentIfExists(request.getMerchantId(), request.getCurrencyId());
+      request.setMerchantId(tokensParentMap.get("merchantId"));
+      request.setCurrencyId(tokensParentMap.get("currencyId"));
+
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
       if (merchantService.createdRefillRequestRecordNeeded()) {
@@ -193,12 +198,10 @@ public class RefillServiceImpl implements RefillService {
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
-      if (e.getMerchantId() == merchantService.findByName("EOS").getId()) {
-        e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(merchantService.findByName("Ethereum").getId(), currencyService.findByName("ETH").getId(), userId).orElse(""));
-      }else {
-        e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
-      }
-      /**/
+
+      Map<String, Integer> tokensParentMap = refillRequestDao.getTokensParentIfExists(e.getMerchantId(), e.getCurrencyId());
+      e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(tokensParentMap.get("merchantId"), tokensParentMap.get("currencyId"), userId).orElse(""));
+
       //TODO: Temporary fix
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
         e.setAddress("");
@@ -222,7 +225,8 @@ public class RefillServiceImpl implements RefillService {
     Integer currencyId = requestAcceptDto.getCurrencyId();
     Integer merchantId = requestAcceptDto.getMerchantId();
     BigDecimal amount = requestAcceptDto.getAmount();
-    Integer userId = getUserIdByAddressAndMerchantIdAndCurrencyId(address, merchantId, currencyId)
+    Map<String, Integer> tokensParentMap = refillRequestDao.getTokensParentIfExists(merchantId, currencyId);
+    Integer userId = getUserIdByAddressAndMerchantIdAndCurrencyId(address, tokensParentMap.get("merchantId"), tokensParentMap.get("currencyId"))
         .orElseThrow(() -> new CreatorForTheRefillRequestNotDefinedException(String.format("address: %s currency: %s merchant: %s amount: %s",
             address, currencyId, merchantId, amount)));
     Locale locale = new Locale(userService.getPreferedLang(userId));
@@ -944,8 +948,10 @@ public class RefillServiceImpl implements RefillService {
                                                                                               String merchantTransactionId,
                                                                                               String merchantName,
                                                                                               String currencyName) {
-    Integer merchantId = merchantService.findByName(merchantName).getId();
-    Integer currencyId = currencyService.findByName(currencyName).getId();
+    Map<String, Integer> tokensParentMap =
+            refillRequestDao.getTokensParentIfExists(merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId());
+    Integer merchantId = tokensParentMap.get("merchantId");
+    Integer currencyId = tokensParentMap.get("currencyId");
     return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
   }
 

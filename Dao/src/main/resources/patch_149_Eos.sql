@@ -58,3 +58,14 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 
 INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'EOS'));
+
+
+
+ALTER TABLE MERCHANT
+ADD COLUMN `tokens_parrent_id` INT(11) NULL DEFAULT NULL AFTER `process_type`;
+UPDATE MERCHANT SET `tokens_parrent_id`=(select id from MERCHANT where name = 'Ethereum') WHERE `id`=(select id from MERCHANT where name = 'EOS');
+
+INSERT INTO MERCHANT_SPEC_PARAMETERS (`merchant_id`, `param_name`) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4313714);
+
+
+

@@ -361,9 +361,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " FROM REFILL_REQUEST_ADDRESS " +
         " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id AND address = :address " +
         " LIMIT 1 ";
+    Map<String, Integer> tokensParentMap = getTokensParentIfExists(merchantId, currencyId);
+
     params = new MapSqlParameterSource()
-        .addValue("currency_id", currencyId)
-        .addValue("merchant_id", merchantId)
+        .addValue("currency_id", tokensParentMap.get("currencyId"))
+        .addValue("merchant_id", tokensParentMap.get("merchantId"))
         .addValue("address", address)
         .addValue("user_id", userId);
     try {
@@ -994,5 +996,25 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> rs.getString("address"));
   }
 
+  @Override
+  public Map<String,Integer> getTokensParentIfExists(Integer merchantId, Integer currencyId) {
+    final String sql = "SELECT currency_id, merchant_id FROM MERCHANT_CURRENCY" +
+            " WHERE merchant_id = (SELECT MERCHANT.tokens_parrent_id FROM MERCHANT WHERE MERCHANT.id = :merchant_id)";
+
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("merchant_id", merchantId),  (rs, row) -> {
+        Map<String,Integer> map = new HashMap<>();
+        map.put("merchantId", rs.getInt("merchant_id"));
+        map.put("currencyId", rs.getInt("currency_id"));
+
+        return map;
+      });
+    } catch (EmptyResultDataAccessException e){
+      Map<String,Integer> map = new HashMap<>();
+      map.put("merchantId", merchantId);
+      map.put("currencyId", currencyId);
+      return map;
+    }
+  }
 }
 

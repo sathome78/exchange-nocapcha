@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.EthereumNodeDao;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -14,6 +15,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -37,6 +39,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
@@ -91,6 +94,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
+    @Autowired
+    private MerchantSpecParamsDao specParamsDao;
+
+    @Qualifier(value = "eosServiceImpl")
+    @Autowired
+    private EthTokenService eosServiceImpl;
+
 
     private String url;
 
@@ -120,10 +130,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Integer minConfirmations;
 
-    private Credentials mainWalletETH;
-
-    private Eos eosContract;
-
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -142,6 +148,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private final Logger LOG = LogManager.getLogger("node_ethereum");
+
+    private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
@@ -170,7 +178,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }
         }, 0, 5, TimeUnit.MINUTES);
         try {
-//            createSubscribe();
+            createSubscribe();
         } catch (EthereumException e) {
             LOG.error(e);
         }
@@ -188,33 +196,22 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     public void createSubscribe(){
         try {
-            TimeUnit.SECONDS.sleep(60);
             LOG.debug(merchantName + " Connecting ethereum...");
 
             Merchant merchant = merchantService.findByName(merchantName);
             Currency currency = currencyService.findByName(currencyName);
-
-            if (currencyName.equals("ETH")){
-                mainWalletETH = WalletUtils.loadCredentials("jet2103",
-                        "d:/Ethereum1/Original/keystore/UTC--2017-03-28T13-44-46.443655600Z--061372f91f949effb934abadff5f0636de09113d");
-                eosContract = Eos.load("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0", web3j, mainWalletETH, GAS_PRICE, GAS_LIMIT);
-            }
-
 
             refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
-//            observable = web3j.transactionObservable();
-            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(4309642));
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
                     System.out.println(merchantName + " Current block number: " + ethBlock.getBlockNumber());
                     LOG.debug(merchantName + " Current block number: " + ethBlock.getBlockNumber());
-                    /* ****publish event**** */
-                    eventPublisher.publishEvent(new EthPendingTransactionsEvent(ethBlock));
 
                     List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
                     pendingTransactions.forEach(transaction ->
@@ -226,6 +223,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                     BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
                                     if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
                                         provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
+                                        saveLastBlock(ethBlock.getBlockNumber().toString());
                                         LOG.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
                                         LOG.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
                                         providedTransactions.add(transaction);
@@ -245,66 +243,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentBlockNumber = ethBlock.getBlockNumber();
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
-// -------------------- EOS
-           /*     if (ethBlock.getTo() != null && ethBlock.getTo().equals("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0")){
-                    try {
-                        TransactionReceipt transactionReceipt = new TransactionReceipt();
-                        transactionReceipt = web3j.ethGetTransactionReceipt(ethBlock.getHash()).send().getResult();
-                        if (transactionReceipt == null) {
-                            LOG.error("receipt null " + ethBlock.getHash());
-                            return;
-                        }
-                        List<Log> log = transactionReceipt.getLogs();
-                        log.forEach(l -> {
-                            Eos.TransferEventResponse response = extractData(l.getTopics(), l.getData());
-                            if (response == null) {
-                                LOG.debug("response null " + ethBlock.getHash());
-                                return;
-                            }
-                            String contractRecipient = response.to.toString();
-                            if (accounts.contains(contractRecipient)){
-                                if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(contractRecipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
-                               *//* BigDecimal amount = Convert.fromWei(String.valueOf(receipt.get(0).value), Convert.Unit.ETHER);*//*
-                                    BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
-                                    LOG.debug(merchantName + " recipient: " + contractRecipient + ", amount: " + amount);
-
-                                    Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
-                                            .address(contractRecipient)
-                                            .amount(amount)
-                                            .merchantId(merchant.getId())
-                                            .currencyId(currency.getId())
-                                            .merchantTransactionId(ethBlock.getHash()).build());
-
-                                    try {
-                                        refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
-                                                .requestId(requestId)
-                                                .merchantId(merchant.getId())
-                                                .currencyId(currency.getId())
-                                                .address(contractRecipient)
-                                                .amount(amount)
-                                                .hash(ethBlock.getHash())
-                                                .blockhash(ethBlock.getBlockNumber().toString()).build());
-                                    } catch (RefillRequestAppropriateNotFoundException e) {
-                                        LOG.error(e);
-                                    }
-
-                                    pendingTransactions.add(refillService.getFlatById(requestId));
-
-                                }
-                            }
-
-                        });
-
-                        *//*List<Eos.TransferEventResponse> receipt = eosContract.getTransferEvents(transactionReceipt);*//*
-                       *//* String contractRecipient = receipt.get(0).to.toString();*//*
-
-
-                    } catch (Exception e) {
-                        LOG.error(e);
-                    }
-                }*/
-// -------------------- /EOS
-
+//  --------------EOS token
+                if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo())){
+                    eosServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
                 String recipient = ethBlock.getTo();
 
                 if (accounts.contains(recipient)){
@@ -412,7 +355,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
                 LOG.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
-//                transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
+                transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
 //        } catch (RefillRequestAppropriateNotFoundException e) {
         } catch (Exception e) {
             LOG.error(e);
@@ -442,6 +385,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         scheduler.shutdown();
         subscription.unsubscribe();
         LOG.debug(merchantName + " destroyed");
+    }
+
+    public void saveLastBlock(String block) {
+        specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, block);
+    }
+
+    public String loadLastBlock() {
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(merchantName, LAST_BLOCK_PARAM);
+        return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 
 }

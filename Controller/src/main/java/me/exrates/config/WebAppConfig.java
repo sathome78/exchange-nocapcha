@@ -411,7 +411,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x86Fa049857E0209aa7D9e616F7eb3b3B78ECfdb0");
+        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
 
         return new EthTokenServiceImpl(
                 tokensList,
