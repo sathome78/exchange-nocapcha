@@ -2,12 +2,11 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,14 +21,11 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 15.12.2016.
  */
-@Service
+@Log4j2(topic = "tracker")
+@Service(value = "xBTCe")
 public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
-    private static final Logger LOGGER = LogManager.getLogger(XBTCeRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
-    private final String STOCK_EXCHANGE_NAME = "xBTCe";
-
-
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -59,16 +55,11 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
 
         } catch (IOException e) {
-            LOGGER.error(e);
+            log.error(e);
         }
         return stockExchangeStatsList;
 
 
-    }
-
-    @Override
-    public String getStockExchangeName() {
-        return STOCK_EXCHANGE_NAME;
     }
 
     private BigDecimal extractLastPrice(JsonNode jsonNode) {

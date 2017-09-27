@@ -3,6 +3,7 @@ package me.exrates.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 import me.exrates.model.serializer.StockExchangeSerializer;
 
@@ -44,6 +45,21 @@ public class StockExchangeStats {
     @JsonProperty(value = "timestamp")
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime date;
+
+    public StockExchangeStats() {
+    }
+
+    public StockExchangeStats(CoinmarketApiDto dto, StockExchange stockExchange) {
+        this.currencyPairId = dto.getCurrencyPairId();
+        this.stockExchange = stockExchange;
+        this.priceLast = dto.getLast();
+        this.priceBuy = dto.getHighestBid();
+        this.priceSell = dto.getLowestAsk();
+        this.priceLow = dto.getHigh24hr();
+        this.priceHigh = dto.getLow24hr();
+        this.volume = dto.getBaseVolume();
+        this.date = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;

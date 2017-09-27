@@ -65,11 +65,6 @@ public class YoBitRetrievalService implements StockExrateRetrievalService {
 
     }
 
-    @Override
-    public String getStockExchangeName() {
-        return "YoBit";
-    }
-
     private String convertCurrencyName(String currencyName) {
         return "RUB".equals(currencyName) ? "rur" : currencyName.toLowerCase();
     }

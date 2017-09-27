@@ -2,12 +2,12 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,14 +21,12 @@ import java.util.Locale;
 /**
  * Created by OLEG on 14.12.2016.
  */
-@Service
+@Log4j2(topic = "tracker")
+@Service(value = "BITFINEX")
 public class BitfinexRetrievalService implements StockExrateRetrievalService {
 
-    private static final Logger LOGGER = LogManager.getLogger(BitfinexRetrievalService.class);
-    private ObjectMapper objectMapper = new ObjectMapper();
-
-    private final String STOCK_EXCHANGE_NAME = "BITFINEX";
-
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -60,7 +58,7 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
                 stockExchangeStats.setVolume(volume);
                 stockExchangeStatsList.add(stockExchangeStats);
             } catch (IOException e) {
-                LOGGER.error(e);
+                log.error(e);
             }
 
         });
@@ -68,8 +66,4 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
 
     }
 
-    @Override
-    public String getStockExchangeName() {
-        return STOCK_EXCHANGE_NAME;
-    }
 }

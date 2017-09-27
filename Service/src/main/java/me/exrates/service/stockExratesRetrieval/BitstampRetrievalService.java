@@ -2,6 +2,7 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -20,7 +21,8 @@ import java.util.Locale;
 /**
  * Created by OLEG on 20.12.2016.
  */
-@Service
+@Log4j2(topic = "tracker")
+@Service(value = "Bitstamp")
 public class BitstampRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(BitstampRetrievalService.class);
@@ -63,8 +65,4 @@ public class BitstampRetrievalService implements StockExrateRetrievalService {
 
     }
 
-    @Override
-    public String getStockExchangeName() {
-        return "Bitstamp";
-    }
 }

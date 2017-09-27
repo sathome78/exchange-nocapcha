@@ -29,7 +29,8 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
             "STOCK_EXCHANGE.name AS stock_exchange_name, STOCK_EXCHANGE.link, CURRENCY_PAIR.id, " +
             "CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, CURRENCY_PAIR.name, CURRENCY_PAIR.market, " +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
-            "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+            "(select name from CURRENCY where id = currency2_id) as currency2_name," +
+            " STOCK_CURRENCY_PAIR.currency_pair_alias " +
             " FROM STOCK_EXCHANGE " +
             "INNER JOIN STOCK_CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.stock_exchange_id = STOCK_EXCHANGE.id " +
             "INNER JOIN CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.currency_pair_id = CURRENCY_PAIR.id ";
@@ -108,6 +109,11 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     @Override
     public List<StockExchange> findAll() {
         return jdbcTemplate.query(SELECT_STOCK_EXCHANGE, stockExchangeResultSetExtractor);
+    }
+
+    @Override
+    public List<StockExchange> findAllActive() {
+        return jdbcTemplate.query(SELECT_STOCK_EXCHANGE + " WHERE STOCK_EXCHANGE.is_active = 1", stockExchangeResultSetExtractor);
     }
 
     @Override

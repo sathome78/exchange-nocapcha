@@ -2,6 +2,7 @@ package me.exrates.service.stockExratesRetrieval;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
@@ -23,7 +24,8 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 20.12.2016.
  */
-@Service
+@Log4j2(topic = "tracker")
+@Service(value = "alcurEX")
 public class AlcurExRetrievalService implements StockExrateRetrievalService {
     private static final Logger LOGGER = LogManager.getLogger(AlcurExRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -75,9 +77,5 @@ public class AlcurExRetrievalService implements StockExrateRetrievalService {
 
     }
 
-    @Override
-    public String getStockExchangeName() {
-        return "alcurEX";
-    }
 
 }

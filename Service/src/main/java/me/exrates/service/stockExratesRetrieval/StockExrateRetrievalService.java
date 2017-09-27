@@ -10,6 +10,4 @@ import java.util.List;
  */
 public interface StockExrateRetrievalService {
     List<StockExchangeStats> retrieveStats(StockExchange stockExchange);
-
-    String getStockExchangeName();
 }

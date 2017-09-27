@@ -268,7 +268,7 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingFile>
         <RollingFile name="bot_trader_log" fileName="${sys:catalina.home}/logs/bot/bot_trader_log.log"
-                     filePattern="${sys:catalina.home}/logs/survey/survey_log%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/bot/bot_trader_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -314,6 +314,15 @@
         </RollingFile>
         <RollingFile name="ws_stomp_log" fileName="${sys:catalina.home}/logs/ws/ws_stomp_log.log"
                      filePattern="${sys:catalina.home}/logs/ws/ws_stomp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="tracker_log" fileName="${sys:catalina.home}/logs/tracker/tracker_log.log"
+                     filePattern="${sys:catalina.home}/logs/tracker/tracker_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -498,6 +507,10 @@
         </logger>
         <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
             <AppenderRef ref="ws_stomp_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="tracker" level="ALL" additivity="false">
+            <AppenderRef ref="tracker_log"/>
             <AppenderRef ref="Console"/>
         </logger>
 

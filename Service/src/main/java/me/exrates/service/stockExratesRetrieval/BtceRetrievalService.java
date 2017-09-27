@@ -67,11 +67,6 @@ public class BtceRetrievalService implements StockExrateRetrievalService {
 
     }
 
-    @Override
-    public String getStockExchangeName() {
-        return "BTC-E";
-    }
-
     private String convertCurrencyName(String currencyName) {
         return "RUB".equals(currencyName) ? "rur" : currencyName.toLowerCase();
     }
