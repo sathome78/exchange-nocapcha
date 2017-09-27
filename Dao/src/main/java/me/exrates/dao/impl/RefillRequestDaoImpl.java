@@ -363,6 +363,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           .addValue("refill_request_address_id", refillRequestAddressId)
           .addValue("remark", request.getRemark());
       namedParameterJdbcTemplate.update(setKeysSql, params);
+    } else if (isToken(request.getMerchantId())) {
+      List<Map<String, Integer>> list = getTokenMerchants(request.getMerchantId());
+      for (Map<String, Integer> record : list) {
+        request.setMerchantId(record.get("merchantId"));
+        request.setCurrencyId(record.get("currencyId"));
+        storeRefillRequestAddress(request);
+      }
     } else {
       storeRefillRequestAddress(request);
     }
