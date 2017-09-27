@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('REP', 'REP', 2, 'repServiceImpl', 'CRYPTO');
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('REP', 'REP', 2, 'ethereumServiceImpl', 'CRYPTO', (select id from MERCHANT where name = 'Ethereum'));
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('REP', 'REP', '0', 8, 8, 8);
 
@@ -33,10 +33,6 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='REP/BTC';
-
-ALTER TABLE REFILL_REQUEST_ADDRESS
-CHANGE COLUMN `address` `address` VARCHAR(128) NOT NULL ;
-
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
 VALUES ((SELECT id from MERCHANT WHERE name='REP'), (select id from CURRENCY where name='REP'), 'bchWallet.title');

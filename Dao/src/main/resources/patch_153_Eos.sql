@@ -1,5 +1,8 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('EOS', 'EOS', 2, 'eosServiceImpl', 'CRYPTO');
+ALTER TABLE MERCHANT
+ADD COLUMN `tokens_parrent_id` INT(11) NULL DEFAULT NULL AFTER `process_type`;
+
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('EOS', 'EOS', 2, 'ethereumServiceImpl', 'CRYPTO', (select id from MERCHANT where name = 'Ethereum'));
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('EOS', 'EOS', '0', 8, 8, 8);
 
@@ -34,10 +37,6 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='EOS/BTC';
 
-ALTER TABLE REFILL_REQUEST_ADDRESS
-CHANGE COLUMN `address` `address` VARCHAR(128) NOT NULL ;
-
-
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
 VALUES ((SELECT id from MERCHANT WHERE name='EOS'), (select id from CURRENCY where name='EOS'), 'bchWallet.title');
 
@@ -59,12 +58,6 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'EOS'));
 
-
-
-ALTER TABLE MERCHANT
-ADD COLUMN `tokens_parrent_id` INT(11) NULL DEFAULT NULL AFTER `process_type`;
-UPDATE MERCHANT SET `tokens_parrent_id`=(select id from MERCHANT where name = 'Ethereum') WHERE `id`=(select id from MERCHANT where name = 'EOS');
-
-INSERT INTO MERCHANT_SPEC_PARAMETERS (`merchant_id`, `param_name`) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4315876);
+INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4315876);
 
 
