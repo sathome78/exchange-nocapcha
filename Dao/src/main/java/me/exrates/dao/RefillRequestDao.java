@@ -98,5 +98,7 @@ public interface RefillRequestDao {
 
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
 
-  Map<String,Integer> getTokensParentIfExists(Integer merchantId, Integer currencyId);
+  boolean isToken(Integer merchantId);
+
+  List<Map<String,Integer>> getTokenMerchants(Integer merchantId);
 }
