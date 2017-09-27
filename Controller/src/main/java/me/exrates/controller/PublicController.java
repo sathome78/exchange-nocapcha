@@ -31,7 +31,8 @@ public class PublicController {
     @Autowired
     OrderService orderService;
 
-    @RequestMapping(value = "/public/coinmarketcap/ticker", produces = MediaType.APPLICATION_JSON_VALUE)
+//TODO temporary disable coinmarketcap ticker
+  //  @RequestMapping(value = "/public/coinmarketcap/ticker", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, CoinmarketApiJsonDto> tiker(@RequestParam(required = false) String currencyPair, HttpServletRequest request) {
         long before = System.currentTimeMillis();
