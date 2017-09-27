@@ -17,6 +17,8 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.EthereumCommonService;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.EthTokenService;
+import me.exrates.service.impl.EthTokenServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.job.bot.QuartzJobFactory;
 import me.exrates.service.token.TokenScheduler;
@@ -60,10 +62,7 @@ import org.springframework.web.servlet.view.JstlView;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -410,6 +409,28 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthereumCommonService ethereumClassicService() {
         return new EthereumCommonServiceImpl("merchants/ethereumClassic.properties",
                 "Ethereum Classic", "ETC", 12);
+    }
+
+    @Bean(name = "eosServiceImpl")
+    public EthTokenService EosService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
+
+        return new EthTokenServiceImpl(
+                tokensList,
+                "EOS",
+                "EOS");
+    }
+
+    @Bean(name = "repServiceImpl")
+    public EthTokenService RepService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+
+        return new EthTokenServiceImpl(
+                tokensList,
+                "REP",
+                "REP");
     }
 
     @Bean

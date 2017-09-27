@@ -3,6 +3,9 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.web3j.protocol.Web3j;
+
+import java.util.List;
 
 /**
  * Created by ajet on
@@ -44,4 +47,11 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
         return false;
     }
 
+    Web3j getWeb3j();
+
+    List<String> getAccounts();
+
+    void saveLastBlock(String block);
+
+    String loadLastBlock();
 }
