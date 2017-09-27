@@ -1470,7 +1470,7 @@ public class OrderServiceImpl implements OrderService {
               100,
               cp,
               Locale.ENGLISH);
-      jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
+      jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(myDtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
     }
     return jsonArray.toString();
   }
