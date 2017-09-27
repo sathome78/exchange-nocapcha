@@ -33,10 +33,10 @@ function MyHistoryClass(currentCurrencyPair) {
     /**/
     this.updateAndShowAll = function () {
         showMyHistoryPage($myHistoryActivePage);
-        that.getAndShowMyOrdersPage();
+      /*  that.getAndShowMyOrdersPage();
         that.getAndShowInputOutputPage();
         that.getAndShowMyReferralPage();
-        that.getAndShowMyReferralStrucurePage();
+        that.getAndShowMyReferralStrucurePage();*/
     };
 
     this.getAndShowMyOrdersPage = function () {
@@ -68,8 +68,32 @@ function MyHistoryClass(currentCurrencyPair) {
         if ($myhistoryContainer.hasClass('hidden')) {
             return;
         }
+        inputOutput.syncCurrencyPairSelector();
+        inputOutput.updateAndShowAll();
         /**/
     };
+
+    this.updateActiveTab = function () {
+        switch ($myHistoryActivePage) {
+            case $inputOutputContainer : {
+                that.getAndShowInputOutputPage();
+                break;
+            }
+            case $myordersContainer : {
+                that.getAndShowMyOrdersPage();
+                break;
+            }
+            case $myreferralContainer : {
+                that.getAndShowMyReferralPage();
+                break;
+            }
+            case $myreferralStrucuteContainer : {
+                that.getAndShowMyReferralStrucurePage();
+                break;
+            }
+        }
+    };
+
     /*=====================================================*/
     (function init (currentCurrencyPair) {
         myOrders = new MyOrdersClass(currentCurrencyPair);
@@ -84,32 +108,36 @@ function MyHistoryClass(currentCurrencyPair) {
             $(this).addClass('active');
             $myHistoryActivePage = $myordersContainer;
             showMyHistoryPage($myHistoryActivePage);
-            that.updateAndShowAll();
+            that.getAndShowMyOrdersPage();
+            /*that.updateAndShowAll();*/
         });
         $('#myhistory-button-inputoutput').on('click', function () {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
             $myHistoryActivePage = $inputOutputContainer;
             showMyHistoryPage($myHistoryActivePage);
-            that.updateAndShowAll();
+            that.getAndShowInputOutputPage();
+            /*that.updateAndShowAll();*/
         });
         $('#myhistory-button-referral').on('click', function () {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
             $myHistoryActivePage = $myreferralContainer;
             showMyHistoryPage($myHistoryActivePage);
-            that.updateAndShowAll();
+            that.getAndShowMyReferralPage();
+            /*that.updateAndShowAll();*/
         });
         $('#myhistory-button-referral_structure').on('click', function () {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
             $myHistoryActivePage = $myreferralStrucuteContainer;
             showMyHistoryPage($myHistoryActivePage);
-            that.updateAndShowAll();
+            that.getAndShowMyReferralStrucurePage();
+            /*that.updateAndShowAll();*/
         });
         $myHistoryActivePage = $myordersContainer;
         showMyHistoryPage($myHistoryActivePage);
-        that.updateAndShowAll();
+       /* that.updateAndShowAll();*/
     })(currentCurrencyPair);
 
 }

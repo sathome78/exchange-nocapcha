@@ -86,7 +86,7 @@ function MyReferralClass(currentCurrencyPair) {
         myreferralCurrencyPairSelector.init(onCurrencyPairChange);
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
-            that.getAndShowMyReferralData();
+            /*that.getAndShowMyReferralData();*/
         });
         /**/
         $('.myreferral-table__backward').on('click', function (e) {

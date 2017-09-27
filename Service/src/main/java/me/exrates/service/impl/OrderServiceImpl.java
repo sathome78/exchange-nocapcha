@@ -431,7 +431,6 @@ public class OrderServiceImpl implements OrderService {
         //this exception will be caught in controller, populated  with message text  and thrown further
         throw new NotEnoughUserWalletMoneyException("");
       }
-
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
     }

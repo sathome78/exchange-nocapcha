@@ -1131,7 +1131,7 @@ public class AdminController {
         .map(e -> messageSource.getMessage(e, null, userLocale))
         .collect(Collectors.toList());
     return new HashMap<String, List<String>>() {{
-      put("lang", Arrays.asList(userLocale.getISO3Language()));
+      put("lang", Arrays.asList(userLocale.getLanguage()));
       put("list", phrases);
     }};
   }

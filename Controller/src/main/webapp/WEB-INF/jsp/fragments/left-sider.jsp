@@ -72,4 +72,9 @@
     <br>
     <br>
     <br>
+    <div style="text-align: center; height: 1000px; vertical-align: top">
+        <a href="https://atbcoin.com/" target="_blank">
+            <img src="/client/img/ATB_banner_new.gif" style="width: 185px; height: 600px; "/>
+        </a>
+    </div>
 </div>
