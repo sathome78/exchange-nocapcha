@@ -34,12 +34,6 @@ import java.util.*;
 public class KrakenRetrievalService implements StockExrateRetrievalService {
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    private Map<String, String> altCurrencyNames = new HashMap<String, String>() {{
-        put("BTC", "XXBT");
-        put("USD", "ZUSD");
-        put("EUR", "ZEUR");
-    }};
-
 
     private final String LAST_ARRAY = "a";
     private final String ASK_ARRAY = "a";
@@ -61,8 +55,8 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
 
-        stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
-            String name = altCurrencyNames.get(currencyPair.getCurrency1().getName()) + altCurrencyNames.get(currencyPair.getCurrency2().getName());
+        stockExchange.getAliasedCurrencyPairs(String::concat)
+                .forEach((name, currencyPair ) -> {
             String url = "https://api.kraken.com/0/public/Ticker";
             Map<String, String> params = Collections.singletonMap("pair", name);
             String jsonResponse = OkHttpUtils.sendGetRequest(url, params);
@@ -71,29 +65,31 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats= new StockExchangeStats();
                 stockExchangeStats.setCurrencyPairId(currencyPair.getId());
-                JsonNode currencyPairNode = root.get("result").get(name);
-                BigDecimal priceLast = BigDecimalProcessing.parseLocale(currencyPairNode.get(LAST_ARRAY)
-                        .get(LAST_PRICE_ITEM).asText(), Locale.ENGLISH, false);
-                BigDecimal priceBuy = BigDecimalProcessing.parseLocale(currencyPairNode.get(BID_ARRAY)
-                        .get(BID_PRICE_ITEM).asText(), Locale.ENGLISH, false);
-                BigDecimal priceSell = BigDecimalProcessing.parseLocale(currencyPairNode.get(ASK_ARRAY)
-                        .get(ASK_PRICE_ITEM).asText(), Locale.ENGLISH, false);
-                BigDecimal priceLow = BigDecimalProcessing.parseLocale(currencyPairNode.get(LOW_ARRAY)
-                        .get(LOW_PRICE_ITEM).asText(), Locale.ENGLISH, false);
-                BigDecimal priceHigh = BigDecimalProcessing.parseLocale(currencyPairNode.get(HIGH_ARRAY)
-                        .get(HIGH_PRICE_ITEM).asText(), Locale.ENGLISH, false);
-                BigDecimal volume = BigDecimalProcessing.parseLocale(currencyPairNode.get(VOLUME_ARRAY)
-                        .get(VOLUME_ITEM).asText(), Locale.ENGLISH, false);
+                root.get("result").elements().forEachRemaining(currencyPairNode -> {
+                    BigDecimal priceLast = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(LAST_ARRAY)
+                            .get(LAST_PRICE_ITEM).asText());
+                    BigDecimal priceBuy = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(BID_ARRAY)
+                            .get(BID_PRICE_ITEM).asText());
+                    BigDecimal priceSell = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(ASK_ARRAY)
+                            .get(ASK_PRICE_ITEM).asText());
+                    BigDecimal priceLow = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(LOW_ARRAY)
+                            .get(LOW_PRICE_ITEM).asText());
+                    BigDecimal priceHigh = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(HIGH_ARRAY)
+                            .get(HIGH_PRICE_ITEM).asText());
+                    BigDecimal volume = BigDecimalProcessing.parseNonePoint(currencyPairNode.get(VOLUME_ARRAY)
+                            .get(VOLUME_ITEM).asText());
 
-                stockExchangeStats.setDate(LocalDateTime.now());
-                stockExchangeStats.setStockExchange(stockExchange);
-                stockExchangeStats.setPriceLast(priceLast);
-                stockExchangeStats.setPriceBuy(priceBuy);
-                stockExchangeStats.setPriceSell(priceSell);
-                stockExchangeStats.setPriceLow(priceLow);
-                stockExchangeStats.setPriceHigh(priceHigh);
-                stockExchangeStats.setVolume(volume);
-                stockExchangeStatsList.add(stockExchangeStats);
+                    stockExchangeStats.setDate(LocalDateTime.now());
+                    stockExchangeStats.setStockExchange(stockExchange);
+                    stockExchangeStats.setPriceLast(priceLast);
+                    stockExchangeStats.setPriceBuy(priceBuy);
+                    stockExchangeStats.setPriceSell(priceSell);
+                    stockExchangeStats.setPriceLow(priceLow);
+                    stockExchangeStats.setPriceHigh(priceHigh);
+                    stockExchangeStats.setVolume(volume);
+                    stockExchangeStatsList.add(stockExchangeStats);
+                });
+
             } catch (IOException e) {
                 log.error(e);
             }

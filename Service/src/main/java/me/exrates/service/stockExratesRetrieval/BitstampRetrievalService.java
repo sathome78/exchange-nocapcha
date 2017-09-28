@@ -1,22 +1,14 @@
 package me.exrates.service.stockExratesRetrieval;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by OLEG on 20.12.2016.
@@ -25,40 +17,19 @@ import java.util.Locale;
 @Service(value = "Bitstamp")
 public class BitstampRetrievalService implements StockExrateRetrievalService {
 
-    private static final Logger LOGGER = LogManager.getLogger(BitstampRetrievalService.class);
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ExchangeResponseProcessingService exchangeResponseProcessingService;
 
 
     @Override
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
-        stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
-            String currencyPairName = currencyPair.getCurrency1().getName().toLowerCase() +
-                    currencyPair.getCurrency2().getName().toLowerCase();
+        stockExchange.getAliasedCurrencyPairs((name1, name2) -> name1.toLowerCase() + name2.toLowerCase())
+                .forEach((currencyPairName, currencyPair) -> {
             String url = "https://www.bitstamp.net/api/v2/ticker/" + currencyPairName + "/";
             String jsonResponse = OkHttpUtils.sendGetRequest(url);
-            try {
-                JsonNode root = objectMapper.readTree(jsonResponse);
-                StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                stockExchangeStats.setStockExchange(stockExchange);
-                stockExchangeStats.setCurrencyPairId(currencyPair.getId());
-                BigDecimal priceLast = BigDecimalProcessing.parseLocale(root.get("last").asText(), Locale.ENGLISH, false);
-                BigDecimal priceBuy = BigDecimalProcessing.parseLocale(root.get("bid").asText(), Locale.ENGLISH, false);
-                BigDecimal priceSell = BigDecimalProcessing.parseLocale(root.get("ask").asText(), Locale.ENGLISH, false);
-                BigDecimal priceLow = BigDecimalProcessing.parseLocale(root.get("low").asText(), Locale.ENGLISH, false);
-                BigDecimal priceHigh = BigDecimalProcessing.parseLocale(root.get("high").asText(), Locale.ENGLISH, false);
-                BigDecimal volume = BigDecimalProcessing.parseLocale(root.get("volume").asText(), Locale.ENGLISH, false);
-                stockExchangeStats.setPriceLast(priceLast);
-                stockExchangeStats.setPriceBuy(priceBuy);
-                stockExchangeStats.setPriceSell(priceSell);
-                stockExchangeStats.setPriceLow(priceLow);
-                stockExchangeStats.setPriceHigh(priceHigh);
-                stockExchangeStats.setVolume(volume);
-                stockExchangeStats.setDate(LocalDateTime.now());
-                stockExchangeStatsList.add(stockExchangeStats);
-            } catch (IOException e) {
-                LOGGER.error(e);
-            }
+            stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
+                            stockExchange, currencyPair.getId())) ;
         });
         return stockExchangeStatsList;
 

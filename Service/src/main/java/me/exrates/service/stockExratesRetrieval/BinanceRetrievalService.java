@@ -7,33 +7,33 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by OLEG on 14.12.2016.
+ * Created by OLEG on 20.12.2016.
  */
 @Log4j2(topic = "tracker")
-@Service(value = "BITFINEX")
-public class BitfinexRetrievalService implements StockExrateRetrievalService {
-
+@Service(value = "Binance")
+public class BinanceRetrievalService implements StockExrateRetrievalService {
     @Autowired
     private ExchangeResponseProcessingService exchangeResponseProcessingService;
 
+
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
-        stockExchange.getAliasedCurrencyPairs((name1, name2) -> name1.toLowerCase() + name2.toLowerCase())
-                .forEach((name, currencyPair)-> {
-            String jsonResponse = OkHttpUtils.sendGetRequest("https://api.bitfinex.com/v1/pubticker/" + name);
-            stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
+        stockExchange.getAliasedCurrencyPairs(String::concat)
+                .forEach((currencyPairName, currencyPair) -> {
+                    String jsonResponse = OkHttpUtils.sendGetRequest("https://www.binance.com/api/v1/ticker/24hr",
+                            Collections.singletonMap("symbol", currencyPairName));
+                    stockExchangeStatsList.add(exchangeResponseProcessingService.extractStatsFromSingleNode(jsonResponse,
                             stockExchange, currencyPair.getId())) ;
-
-        });
+                });
         return stockExchangeStatsList;
+
 
     }
 
