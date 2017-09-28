@@ -120,6 +120,10 @@ public class RefillServiceImpl implements RefillService {
       put("params", new HashMap<String, String>());
     }};
     try {
+
+      request.setMerchantId(request.getMerchantId());
+      request.setCurrencyId(request.getCurrencyId());
+
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
       if (merchantService.createdRefillRequestRecordNeeded()) {
@@ -193,8 +197,9 @@ public class RefillServiceImpl implements RefillService {
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
+
       e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
-      /**/
+
       //TODO: Temporary fix
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
         e.setAddress("");
@@ -948,6 +953,7 @@ public class RefillServiceImpl implements RefillService {
                                                                                               String merchantTransactionId,
                                                                                               String merchantName,
                                                                                               String currencyName) {
+
     Integer merchantId = merchantService.findByName(merchantName).getId();
     Integer currencyId = currencyService.findByName(currencyName).getId();
     return refillRequestDao.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantId, currencyId);
