@@ -130,8 +130,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Integer minConfirmations;
 
-    private String fee;
-
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -161,7 +159,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.destinationDir = props.getProperty("ethereum.destinationDir");
             this.password = props.getProperty("ethereum.password");
             this.mainAddress = props.getProperty("ethereum.mainAddress");
-            this.fee = props.getProperty("ethereum.fee");
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
@@ -374,7 +371,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             LOG.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
             Transfer.sendFunds(
                     web3j, credentials, mainAddress, refillRequest.getAmount()
-                            .subtract(new BigDecimal(fee)), Convert.Unit.ETHER);
+                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
             LOG.debug(merchantName + " Funds " + refillRequest.getAmount() + " sent to main account!!!");
         } catch (Exception e) {
             subscribeCreated = false;
