@@ -58,6 +58,7 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'EOS'));
 
-INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4315876);
+INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES ((select id from MERCHANT where name = 'Ethereum'), 'LastRecievedBlock', 4318754);
 
+INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES ((select id from MERCHANT where name = 'Ethereum Classic'), 'LastRecievedBlock', 4550652);
 
