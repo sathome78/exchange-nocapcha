@@ -422,16 +422,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EOS");
     }
 
-//    @Bean(name = "repServiceImpl")
-//    public EthTokenService RepService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
-//
-//        return new EthTokenServiceImpl(
-//                tokensList,
-//                "REP",
-//                "REP");
-//    }
+    @Bean(name = "repServiceImpl")
+    public EthTokenService RepService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+
+        return new EthTokenServiceImpl(
+                tokensList,
+                "REP",
+                "REP");
+    }
 
     @Bean
     public RestTemplate restTemplate() {

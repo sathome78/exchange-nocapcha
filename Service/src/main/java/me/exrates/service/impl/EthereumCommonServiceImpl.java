@@ -101,6 +101,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService eosServiceImpl;
 
+    @Qualifier(value = "repServiceImpl")
+    @Autowired
+    private EthTokenService repServiceImpl;
 
     private String url;
 
@@ -246,6 +249,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 //  --------------EOS token
                 if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo())){
                     eosServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+//  --------------REP token
+                if (ethBlock.getTo() != null && repServiceImpl.getContractAddress().contains(ethBlock.getTo())){
+                   repServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
                 String recipient = ethBlock.getTo();
