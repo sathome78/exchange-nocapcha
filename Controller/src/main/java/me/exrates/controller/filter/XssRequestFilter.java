@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 
-@WebFilter("/*")
+@WebFilter(value = "/*", asyncSupported = true)
 public class XssRequestFilter implements Filter {
 
 
