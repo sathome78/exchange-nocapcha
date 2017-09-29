@@ -71,7 +71,7 @@ public class LoggingAspect {
           "|| execution(* me.exrates.service.impl..*(..)) " +
           "|| execution(* me.exrates.service.stockExratesRetrieval..*(..)) " +
           "|| execution(* me.exrates.service.newsExt..*(..))) " +
-          "&& !execution(* me.exrates.controller.filter.RequestFilter.*(..))" +
+          "&& !execution(* me.exrates.controller.filter.XssRequestFilter.*(..))" +
           "&& !execution(* me.exrates.controller.validator..*(..))" +
           "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..))", throwing = "ex")
   public void logException(JoinPoint joinPoint, Exception ex) {

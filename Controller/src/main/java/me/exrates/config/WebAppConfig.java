@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.aspect.LoggingAspect;
-import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
@@ -66,8 +65,6 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static org.springframework.context.annotation.EnableLoadTimeWeaving.AspectJWeaving.ENABLED;
 
 @EnableAsync
 @Configuration
@@ -345,11 +342,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StandardServletMultipartResolver();
     }
 
-
-    @Bean
-    public RequestFilter requestFilter() {
-        return RequestFilter.getInstance();
-    }
 
     @Bean
     public StoreSessionListener storeSessionListener() {

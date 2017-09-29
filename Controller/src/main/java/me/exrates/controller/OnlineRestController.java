@@ -42,7 +42,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * The online request is the automatic request and is not sign of user activity and should not update
  * session param "sessionEndTime", which stores the time of end the current session.
  * Another (not online) methods, excluding resources request, reset session param "sessionEndTime" and session life starts from begin
- * Updating session param "sessionEndTime" happens in class RequestFilter.
+ * Updating session param "sessionEndTime" happens in class XssRequestFilter.
  * <p>
  * IMPORTANT!
  * The OnlineRestController can contain not online methods. But all online methods must be placed in the OnlineRestController

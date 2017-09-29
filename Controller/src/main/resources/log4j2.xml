@@ -390,7 +390,7 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="PublicServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.filter.RequestFilter" level="ERROR" additivity="false">
+        <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="SessionLog"/>
         </Logger>
