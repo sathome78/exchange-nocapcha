@@ -24,14 +24,14 @@ public class XssRequestFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
-            Map<String, String[]> parameterMap = request.getParameterMap();
+          /*  Map<String, String[]> parameterMap = request.getParameterMap();
             parameterMap.forEach((k,v) -> {
                 Stream.of(v).forEach(va -> {
                     if (!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
                         throw new RuntimeException("xss detected!");
                     }
                 });
-            });
+            });*/
             chain.doFilter(request, response);
         } catch (RuntimeException e) {
             ((HttpServletResponse)response).sendRedirect("/dashboard");
