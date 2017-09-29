@@ -399,7 +399,6 @@
             <AppenderRef ref="SessionLog"/>
         </Logger>
         <Logger name="mobileAPI" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="MobileAPILog"/>
         </Logger>
 

@@ -10,6 +10,6 @@ public class TestSchedulingJob {
 
     @Scheduled(initialDelay = 1000, fixedDelay = 1000)
     public void foo() {
-        log.debug("Executing scheduled method at " + System.currentTimeMillis());
+        log.debug(" ----------- Executing scheduled method at " + System.currentTimeMillis());
     }
 }
