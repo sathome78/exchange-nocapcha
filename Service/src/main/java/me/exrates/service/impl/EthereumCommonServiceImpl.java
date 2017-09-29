@@ -247,13 +247,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
 //  --------------EOS token
-                if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo())){
+                if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     eosServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
 
 //  --------------REP token
-                if (ethBlock.getTo() != null && repServiceImpl.getContractAddress().contains(ethBlock.getTo())){
+                if (ethBlock.getTo() != null && repServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                    repServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
