@@ -54,9 +54,9 @@ public class withdrawRequestJob {
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void setInPostingStatus() throws Exception {
-    log.info("before autoPostWithdrawalRequest()");
+    log.info("before setInPostingStatus()");
     withdrawService.setAllAvailableInPostingStatus();
-    log.info("after autoPostWithdrawalRequest()");
+    log.info("after setInPostingStatus()");
 
   }
 
