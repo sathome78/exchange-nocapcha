@@ -4,8 +4,8 @@ import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -39,16 +39,19 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SecureService secureService;
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
     private @Value("${session.passwordParam}") String passwordParam;
+    private String authenticationParamName = "authentication";
 
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         HttpSession session = request.getSession(false);
         /*----------------------------*/
-        String authenticationParamName = "authentication";
+
         if (session.getAttribute(checkPinParam) != null && request.getParameter(pinParam) != null
                          && request.getParameter(super.getUsernameParameter()) == null
                          && request.getParameter(super.getPasswordParameter()) == null
@@ -90,15 +93,26 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
         /*-------------------*/
-        User principal = (User) authentication.getPrincipal();
-        if (userService.isGlobal2FaActive() && userService.getUse2Fa(principal.getUsername())) {
-            userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
+
+        secureService.resolveLoginAuth(request, authentication, this);
+        if(secureService.additionalAuthNedded(principal.getUsername())) {
             request.getSession().setAttribute(checkPinParam, "");
             request.getSession().setAttribute(authenticationParamName, authentication);
             request.getSession().setAttribute(passwordParam, request.getParameter(super.getPasswordParameter()));
             authentication.setAuthenticated(false);
             throw new PinCodeCheckNeedException("");
         }
+
+        /* old impl
+        User principal = (User) authentication.getPrincipal();
+        if (userService.isGlobal2FaActive() || userService.getUse2Fa(principal.getUsername())) {
+            userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
+            request.getSession().setAttribute(checkPinParam, "");
+            request.getSession().setAttribute(authenticationParamName, authentication);
+            request.getSession().setAttribute(passwordParam, request.getParameter(super.getPasswordParameter()));
+            authentication.setAuthenticated(false);
+            throw new PinCodeCheckNeedException("");
+        }*/
         /*----------------------*/
         return authentication;
     }
