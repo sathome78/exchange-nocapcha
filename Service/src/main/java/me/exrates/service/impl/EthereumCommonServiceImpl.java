@@ -213,7 +213,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
-                    System.out.println(merchantName + " Current block number: " + ethBlock.getBlockNumber());
                     LOG.debug(merchantName + " Current block number: " + ethBlock.getBlockNumber());
 
                     List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
@@ -236,7 +235,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                     LOG.error(merchantName + " " + e);
                                 }
 
-                                System.out.println(merchantName + " Pending transaction: " + transaction);
                             }
 
                     );

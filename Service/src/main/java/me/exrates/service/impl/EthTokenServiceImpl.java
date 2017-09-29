@@ -99,7 +99,6 @@ public class EthTokenServiceImpl implements EthTokenService{
     public void tokenTransaction(Transaction transaction){
         try {
             if (!currentBlockNumber.equals(transaction.getBlockNumber())){
-                System.out.println(merchant.getName() + " Current block number: " + transaction.getBlockNumber());
                 LOG.debug(merchant.getName() + " Current block number: " + transaction.getBlockNumber());
 
                 List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
@@ -122,16 +121,13 @@ public class EthTokenServiceImpl implements EthTokenService{
                                 LOG.error(merchant.getName() + " " + e);
                             }
 
-                            System.out.println(merchant.getName() + " Pending transaction: " + pendingTransaction);
                         }
 
                 );
                 providedTransactions.forEach(pendingTransaction -> pendingTransactions.remove(pendingTransaction));
             }
 
-            System.out.println("transaction1.getBlockNumber(): " + transaction.getBlockNumber());
             currentBlockNumber = transaction.getBlockNumber();
-            System.out.println("currentBlockNumberEos: " + currentBlockNumber);
 
             TransactionReceipt transactionReceipt = new TransactionReceipt();
             transactionReceipt = ethereumCommonService.getWeb3j().ethGetTransactionReceipt(transaction.getHash()).send().getResult();
@@ -182,7 +178,6 @@ public class EthTokenServiceImpl implements EthTokenService{
         } catch (Exception e) {
             LOG.error(e);
         }
-        System.out.println(transaction);
     }
 
     private void provideTransactionAndTransferFunds(String address, String merchantTransactionId){
@@ -218,7 +213,6 @@ public class EthTokenServiceImpl implements EthTokenService{
         if (!topics.get(0).equals(encodedEventSignature)) {
             return null;
         }
-        System.out.println("event signature " + encodedEventSignature);
         List<Type> indexedValues = new ArrayList<>();
         List<Type> nonIndexedValues = FunctionReturnDecoder.decode(
                 data, event.getNonIndexedParameters());
