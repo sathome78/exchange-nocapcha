@@ -55,7 +55,7 @@ create table STOCK_EXCHANGE_CURRENCY_ALIAS
 )
 ;
 
-CREATE INDEX stock_exrate__idx_cur_id_ex_id_date ON stock_exrate (currency_pair_id, stock_exchange_id, date);
+CREATE INDEX stock_exrate__idx_cur_id_ex_id_date ON STOCK_EXRATE (currency_pair_id, stock_exchange_id, date);
 
 -- update existing exchanges
 
@@ -116,9 +116,9 @@ INSERT INTO STOCK_CURRENCY_PAIR(stock_exchange_id, currency_pair_id) VALUES
 
   ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'alcurEX'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'LTC/BTC')),
   ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'alcurEX'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'DASH/BTC')),
-  ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'alcurEX'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'DOGE/BTC'))
+  ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'alcurEX'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'DOGE/BTC'));
 
-;
+
 
 
 INSERT INTO STOCK_EXCHANGE_CURRENCY_ALIAS VALUES
@@ -145,7 +145,7 @@ INSERT INTO STOCK_CURRENCY_PAIR(stock_exchange_id, currency_pair_id) VALUES
   ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'Poloniex'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'XEM/BTC')),
   ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'Poloniex'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'XMR/BTC')),
   ((SELECT id FROM STOCK_EXCHANGE WHERE name = 'Poloniex'), (SELECT id FROM CURRENCY_PAIR WHERE name = 'XRP/BTC'));
-  ;
+
 
 INSERT INTO STOCK_EXCHANGE (name, is_active, last_field_name, buy_field_name, sell_field_name, low_field_name, high_field_name, volume_field_name)
 VALUES ('Bittrex', 0, 'Last', 'Bid', 'Ask', 'Low', 'High', 'Volume');
