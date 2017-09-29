@@ -12,6 +12,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -107,4 +108,8 @@ public interface RefillRequestDao {
     int getTxOffsetForAddress(String address);
 
     void updateTxOffsetForAddress(String address, Integer offset);
+
+  boolean isToken(Integer merchantId);
+
+  List<Map<String,Integer>> getTokenMerchants(Integer merchantId);
 }

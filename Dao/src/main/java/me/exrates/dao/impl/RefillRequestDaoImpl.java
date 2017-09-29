@@ -363,6 +363,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           .addValue("refill_request_address_id", refillRequestAddressId)
           .addValue("remark", request.getRemark());
       namedParameterJdbcTemplate.update(setKeysSql, params);
+    } else if (isToken(request.getMerchantId())) {
+      List<Map<String, Integer>> list = getTokenMerchants(request.getMerchantId());
+      for (Map<String, Integer> record : list) {
+        request.setMerchantId(record.get("merchantId"));
+        request.setCurrencyId(record.get("currencyId"));
+        storeRefillRequestAddress(request);
+      }
     } else {
       storeRefillRequestAddress(request);
     }
@@ -1055,7 +1062,41 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
      }});
   }
 
+  @Override
+  public boolean isToken(Integer merchantId) {
 
+    final String sql = "SELECT COUNT(id) FROM MERCHANT where (id = :merchant_id AND tokens_parrent_id is not null) " +
+            "OR (tokens_parrent_id = :merchant_id)";
+
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("merchant_id", merchantId), Integer.class) > 0;
+    } catch (EmptyResultDataAccessException e){
+      return false;
+    }
+  }
+
+  @Override
+  public List<Map<String,Integer>> getTokenMerchants(Integer merchantId) {
+
+    final String sql = "SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY where merchant_id" +
+            " IN (SELECT id FROM (SELECT id FROM MERCHANT where id = :merchant_id OR tokens_parrent_id = :merchant_id" +
+            " UNION" +
+            " SELECT id FROM MERCHANT where MERCHANT.tokens_parrent_id IN (SELECT tokens_parrent_id FROM MERCHANT where id = :merchant_id)" +
+            " OR MERCHANT.id IN (SELECT tokens_parrent_id FROM MERCHANT where id = :merchant_id)) as InnerQuery)";
+
+    try {
+      return namedParameterJdbcTemplate.query(sql, singletonMap("merchant_id", merchantId), (rs, row) -> {
+        Map<String,Integer> map = new HashMap<>();
+        map.put("merchantId", rs.getInt("merchant_id"));
+        map.put("currencyId", rs.getInt("currency_id"));
+
+        return map;
+      });
+    } catch (EmptyResultDataAccessException e){
+      Map<String,Integer> map = new HashMap<>();
+      return new ArrayList((Collection) map);
+    }
+  }
 
 }
 

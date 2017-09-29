@@ -54,12 +54,16 @@ public class withdrawRequestJob {
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void setInPostingStatus() throws Exception {
+    log.info("before autoPostWithdrawalRequest()");
     withdrawService.setAllAvailableInPostingStatus();
+    log.info("after autoPostWithdrawalRequest()");
+
   }
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void postWithdraw() {
     try {
+      log.info("start postWithdraw()");
       InvoiceActionTypeEnum action = POST_AUTO;
       List<InvoiceStatus> candidate = WithdrawStatusEnum.getAvailableForActionStatusesList(action);
       if (candidate.size() != 1) {
@@ -69,7 +73,9 @@ public class withdrawRequestJob {
       List<WithdrawRequestPostDto> withdrawForPostingList = withdrawService.dirtyReadForPostByStatusList(candidate.get(0));
       for (WithdrawRequestPostDto withdrawRequest : withdrawForPostingList) {
         try {
+          log.info("before autoPostWithdrawalRequest()");
           withdrawService.autoPostWithdrawalRequest(withdrawRequest);
+          log.info("successful withdrawal: " + withdrawRequest.toString());
         }
         catch (InsufficientCostsInWalletException e) {
           log.error(ExceptionUtils.getStackTrace(e));
