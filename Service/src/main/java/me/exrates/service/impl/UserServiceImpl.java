@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
+import me.exrates.dao.UserPinDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
@@ -50,6 +51,9 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserPinDao userPinDao;
 
   @Autowired
   private SendMailService sendMailService;
@@ -691,6 +695,14 @@ public class UserServiceImpl implements UserService {
     email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
     email.setTo(userEmail);
     sendMailService.sendInfoMail(email);
+  }
+
+  @Transactional
+  @Override
+  public String createOrUpdatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event) {
+    String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
+    userPinDao.createOrUpdatePinByUserEmail(userEmail, passwordEncoder.encode(pin), event);
+    return pin;
   }
 
   @Override

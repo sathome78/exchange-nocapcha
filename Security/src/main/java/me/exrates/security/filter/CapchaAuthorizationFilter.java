@@ -3,7 +3,6 @@ package me.exrates.security.filter;
 import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,16 +92,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
         /*-------------------*/
-
-        secureService.resolveLoginAuth(request, authentication, this);
-        if(secureService.additionalAuthNedded(principal.getUsername())) {
-            request.getSession().setAttribute(checkPinParam, "");
-            request.getSession().setAttribute(authenticationParamName, authentication);
-            request.getSession().setAttribute(passwordParam, request.getParameter(super.getPasswordParameter()));
-            authentication.setAuthenticated(false);
-            throw new PinCodeCheckNeedException("");
-        }
-
+        secureService.checkLoginAuth(request, authentication, this);
         /* old impl
         User principal = (User) authentication.getPrincipal();
         if (userService.isGlobal2FaActive() || userService.getUse2Fa(principal.getUsername())) {
@@ -113,7 +103,6 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             authentication.setAuthenticated(false);
             throw new PinCodeCheckNeedException("");
         }*/
-        /*----------------------*/
         return authentication;
     }
 

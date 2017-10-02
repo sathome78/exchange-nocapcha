@@ -5,6 +5,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -183,7 +184,10 @@ public interface UserService {
     @Transactional
     void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request);
 
-    String getUserPin(String email);
+  @Transactional
+  String createOrUpdatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event);
+
+  String getUserPin(String email);
 
     boolean getUse2Fa(String email);
 

@@ -8,6 +8,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
@@ -85,6 +86,8 @@ public class MainController {
     private ReferralService referralService;
     @Autowired
     private SendMailService sendMailService;
+    @Autowired
+    private SecureService secureService;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -275,7 +278,7 @@ public class MainController {
 
     @ResponseBody
     @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
-    public ResponseEntity<String> sendPinAgain(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
         Object auth = request.getSession().getAttribute("authentication");
         if (auth == null) {;
@@ -283,8 +286,10 @@ public class MainController {
         }
         Authentication authentication = (Authentication)auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(messageSource.getMessage("message.2fa.pinsended", null, localeResolver.resolveLocale(request)));
+        String result = secureService.sendLoginMessage(principal.getUsername(), request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(result);
     }
 
 
