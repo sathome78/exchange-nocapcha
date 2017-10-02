@@ -345,6 +345,11 @@ public class BitcoinServiceImpl implements BitcoinService {
       });
     });
   }
+
+  @Override
+  public String getNewAddressForAdmin() {
+    return bitcoinWalletService.getNewAddress(walletPassword);
+  }
   
 
 }

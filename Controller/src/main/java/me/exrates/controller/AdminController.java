@@ -1249,6 +1249,12 @@ public class AdminController {
     LOG.debug(params);
     getBitcoinServiceByMerchantName(merchantName).processPayment(params);
   }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/newAddress", method = RequestMethod.GET)
+  @ResponseBody
+  public String getNewAddress(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).getNewAddressForAdmin();
+  }
   
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")

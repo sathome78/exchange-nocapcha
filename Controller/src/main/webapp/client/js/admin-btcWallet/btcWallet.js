@@ -8,6 +8,8 @@ $(function () {
    var $passwordModal = $('#password-modal');
    var $paymentConfirmModal = $('#payment-confirm-modal');
    var merchantName = $('#merchantName').text();
+   var $copyAddressButton = $('#copy-address');
+    $copyAddressButton.hide();
    urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + merchantName + '/';
 
 
@@ -37,6 +39,13 @@ $(function () {
 
     $('#submit-btc').click(function () {
         $($passwordModal).modal();
+    });
+
+    $('#generate-address').click(function () {
+        retrieveAddress();
+    });
+    $($copyAddressButton).click(function () {
+        selectAndCopyText($('#refill-address'))
     });
 
     $('#reset-btc').click(function () {
@@ -314,6 +323,14 @@ function hideRowIfAbsent($elem, value) {
         $($elem).text(value);
         $($row).show();
     }
+}
+
+function retrieveAddress() {
+    $.get(urlBase + 'newAddress', function (data) {
+        $('#refill-address').text(data);
+        $('#address-qr').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + data + "'>")
+        $('#copy-address').show();
+    })
 }
 
 
