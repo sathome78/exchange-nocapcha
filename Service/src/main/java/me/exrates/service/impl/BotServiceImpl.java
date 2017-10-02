@@ -26,9 +26,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -323,8 +321,14 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional(readOnly = true)
-    public BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId) {
-        return botDao.retrieveTradingSettingsShort(botLaunchSettingsId, orderTypeId);
+    public Map<String, BotTradingSettingsShortDto> retrieveTradingSettingsShort(int botLaunchSettingsId) {
+        BotTradingSettingsShortDto sellSettings = botDao.retrieveTradingSettingsShort(botLaunchSettingsId, OrderType.SELL.getType());
+        BotTradingSettingsShortDto buySettings = botDao.retrieveTradingSettingsShort(botLaunchSettingsId, OrderType.BUY.getType());
+
+        return new HashMap<String, BotTradingSettingsShortDto>() {{
+            put(OrderType.SELL.name(), sellSettings);
+            put(OrderType.BUY.name(), buySettings);
+        }};
     }
 
     @Override

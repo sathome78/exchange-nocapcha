@@ -13,6 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 public interface BotService {
@@ -35,7 +36,7 @@ public interface BotService {
 
     void disableBotForCurrencyPair(Integer currencyPairId);
 
-    BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId);
+    Map<String, BotTradingSettingsShortDto> retrieveTradingSettingsShort(int botLaunchSettingsId);
 
     List<BotLaunchSettings> retrieveLaunchSettings(int botId);
 

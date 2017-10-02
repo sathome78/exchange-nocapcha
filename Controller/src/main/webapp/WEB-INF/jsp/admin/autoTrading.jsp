@@ -143,7 +143,6 @@
                                                 <th><loc:message code="admin.autoTrading.bot.quantityPerSeq"/></th>
                                                 <th></th>
                                                 <th></th>
-                                                <th></th>
                                             </tr>
                                             </thead>
                                         </table>
@@ -232,26 +231,33 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
-                <h4 class="modal-title"><loc:message code="admin.autoTrading.settings.bot.trading"/> - <span id="trade-title-pair"></span> - <span id="trade-title-order-type"></span></h4>
+                <h4 class="modal-title"><loc:message code="admin.autoTrading.settings.bot.trading"/> - <span id="trade-title-pair"></span></h4>
             </div>
             <div class="modal-body">
-                <form id="trade-settings-form" class="form_full_width form_auto_height">
-                    <input hidden id="trade-settings-id" name="id">
+                <form id="trade-settings-form-sell" class="form_full_width form_auto_height">
+                    <input hidden id="trade-settings-id-sell" name="id">
+
+                    <div class="input-block-wrapper">
+                        <div class="col-md-12 input-block-wrapper__label-wrapper text-center">
+                            <label class="input-block-wrapper__label"><loc:message code="operationtype.SELL"/></label>
+                        </div>
+                    </div>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-2 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.amountLimits"/></label>
                         </div>
                         <div class="col-md-1 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
-                        </div>
-                        <div class="col-md-4 input-block-wrapper__input-wrapper">
-                            <input id="minAmount" name="minAmount" class="input-block-wrapper__input admin-form-input" type="number">
-                        </div>
-                        <div class="col-md-1 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
                         </div>
                         <div class="col-md-4 input-block-wrapper__input-wrapper">
-                            <input id="maxAmount" name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                            <input id="maxAmountSell" name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minAmountSell" name="minAmount" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -259,16 +265,16 @@
                             <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceLimits"/></label>
                         </div>
                         <div class="col-md-1 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
-                        </div>
-                        <div class="col-md-4 input-block-wrapper__input-wrapper">
-                            <input id="minPrice" name="minPrice" class="input-block-wrapper__input admin-form-input" type="number">
-                        </div>
-                        <div class="col-md-1 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
                         </div>
                         <div class="col-md-4 input-block-wrapper__input-wrapper">
-                            <input id="maxPrice" name="maxPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                            <input id="maxPriceSell" name="maxPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minPriceSell" name="minPrice" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -276,12 +282,64 @@
                             <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
                         </div>
                         <div class="col-md-4 col-md-offset-1 input-block-wrapper__input-wrapper">
-                            <input id="priceStep" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">
+                            <input id="priceStepSell" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
+                </form>
+                <form id="trade-settings-form-buy" class="form_full_width form_auto_height">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-12 input-block-wrapper__label-wrapper text-center">
+                            <label class="input-block-wrapper__label"><loc:message code="operationtype.BUY"/></label>
+                        </div>
+                    </div>
+                    <input hidden id="trade-settings-id-buy" name="id">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.amountLimits"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxAmountBuy" name="maxAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minAmountBuy" name="minAmount" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceLimits"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxPriceBuy" name="maxPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minPriceBuy" name="minPrice" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
+                        </div>
+                        <div class="col-md-4 col-md-offset-1 input-block-wrapper__input-wrapper">
+                            <input id="priceStepBuy" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                </form>
+
+
 
                     <button id="submitTradeSettings" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                </form>
             </div>
         </div>
     </div>
@@ -290,8 +348,7 @@
 
 
 <span hidden id="launch-settings-loc"><loc:message code="admin.autoTrading.settings.bot.launch"/> </span>
-<span hidden id="buy-settings-loc"><loc:message code="admin.autoTrading.settings.bot.buy"/></span>
-<span hidden id="sell-settings-loc"><loc:message code="admin.autoTrading.settings.bot.sell"/></span>
+<span hidden id="trading-settings-loc"><loc:message code="admin.autoTrading.settings.bot.trading"/></span>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
