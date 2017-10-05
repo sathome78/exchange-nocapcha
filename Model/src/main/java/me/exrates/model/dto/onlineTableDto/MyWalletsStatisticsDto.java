@@ -5,6 +5,7 @@ package me.exrates.model.dto.onlineTableDto;
  */
 public class MyWalletsStatisticsDto extends OnlineTableDto {
     private String currencyName;
+    private String description;
     private String activeBalance;
 
     public MyWalletsStatisticsDto() {
@@ -16,13 +17,27 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
     }
 
     /*hash*/
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MyWalletsStatisticsDto that = (MyWalletsStatisticsDto) o;
+
+        if (currencyName != null ? !currencyName.equals(that.currencyName) : that.currencyName != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return activeBalance != null ? activeBalance.equals(that.activeBalance) : that.activeBalance == null;
+    }
+
     @Override
     public int hashCode() {
         int result = currencyName != null ? currencyName.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (activeBalance != null ? activeBalance.hashCode() : 0);
         return result;
     }
-    /*getters setters*/
+   /*getters setters*/
 
     public boolean isNeedRefresh() {
         return needRefresh;
@@ -46,5 +61,13 @@ public class MyWalletsStatisticsDto extends OnlineTableDto {
 
     public void setActiveBalance(String activeBalance) {
         this.activeBalance = activeBalance;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

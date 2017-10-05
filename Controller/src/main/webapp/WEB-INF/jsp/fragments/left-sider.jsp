@@ -23,20 +23,24 @@
         </div>
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
         <hr class="under_h4">
-        <table id="mywallets_table" class="table mywallets_table">
-            <tbody>
-            <tr>
-                <th><loc:message code="mywallets.currency"/></th>
-                <th><loc:message code="mywallets.amount"/></th>
-            </tr>
-            <script type="text/template" id="mywallets_table_row">
+        <div id="mywallets_table_wrapper">
+            <table id="mywallets_table" class="table mywallets_table">
+                <tbody>
                 <tr>
-                    <td><@=currencyName@></td>
-                    <td class="right"><@=activeBalance@></td>
+                    <th><loc:message code="mywallets.currency"/></th>
+                    <th><loc:message code="mywallets.amount"/></th>
                 </tr>
-            </script>
-            </tbody>
-        </table>
+                <script type="text/template" id="mywallets_table_row">
+                    <tr>
+                        <td><@=currencyName@> <br/>
+                            <span class="text-muted"><@=description@></span>
+                        </td>
+                        <td class="right"><@=activeBalance@></td>
+                    </tr>
+                </script>
+                </tbody>
+            </table>
+        </div>
     </sec:authorize>
 
     <div class="table-header-wrapper">
