@@ -66,4 +66,6 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   default Boolean additionalFieldForRefillIsUsed() {
     return false;
   }
+
+  String getNewAddressForAdmin();
 }
