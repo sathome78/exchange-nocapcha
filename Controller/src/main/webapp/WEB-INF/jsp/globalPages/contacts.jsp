@@ -143,9 +143,7 @@
     </div>
     <div class="row">
         <strong><p><loc:message code="contacts.arm.title"/> </p></strong>
-<%--
         <p><loc:message code="contacts.arm.phone"/> </p>
---%>
         <loc:message code="contacts.arm.address"/>
     </div>
 

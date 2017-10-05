@@ -1941,7 +1941,7 @@ form span.repass,  form span.repass-error{
 
 input[type=email], .dropdown-menu__form,
 .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv,
-#merchantList, #amcharts-stock_chart_div, .graphInfo {
+#merchantList, #amcharts-stock_chart_div, .graphInfo, #termsContent {
     direction: ltr !important;
 }
 
