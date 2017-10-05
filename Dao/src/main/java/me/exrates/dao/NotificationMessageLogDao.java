@@ -9,5 +9,8 @@ import java.math.BigDecimal;
  * Created by Maks on 29.09.2017.
  */
 public interface NotificationMessageLogDao {
-    void saveLogNotification(String userEmail, BigDecimal payAmount, NotificationMessageEventEnum event, NotificationTypeEnum notificationTypeEnum);
+
+    int saveLogNotification(String userEmail, BigDecimal payAmount, NotificationMessageEventEnum event, NotificationTypeEnum notificationTypeEnum);
+
+    void update(int notyId, BigDecimal payAmount, NotificationTypeEnum type);
 }

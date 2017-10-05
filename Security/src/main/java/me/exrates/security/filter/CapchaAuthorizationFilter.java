@@ -2,6 +2,7 @@ package me.exrates.security.filter;
 
 import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
@@ -57,8 +58,8 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
                          && session.getAttribute(authenticationParamName) != null) {
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
-            if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam))) {
-                userService.createSendAndSaveNewPinForUser(principal.getUsername(), request);
+            if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
+                secureService.sendLoginMessage(principal.getUsername(), request);
                 throw new IncorrectPinException("");
             }
             return attemptAuthentication(principal.getUsername(),

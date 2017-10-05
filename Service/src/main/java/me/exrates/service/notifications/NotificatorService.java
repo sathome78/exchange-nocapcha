@@ -13,17 +13,16 @@ import java.math.BigDecimal;
  */
 public interface NotificatorService {
 
-    String sendMessageToUser(String userEmail, String message) throws MessageUndeliweredException;
+
+    String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException;
 
     BigDecimal getMessageCost();
-
-    BigDecimal getCommissionCost(UserRole userRole);
 
     NotificationPayTypeEnum getPayType();
 
     NotificationTypeEnum getNotificationType();
 
-    default BigDecimal getTotalMessageCost(UserRole userRole) {
+    /*default BigDecimal getTotalMessageCost(UserRole userRole) {
         return getMessageCost().add(getCommissionCost(userRole));
-    }
+    }*/
 }

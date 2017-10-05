@@ -9,9 +9,13 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -66,13 +70,17 @@ public class WithdrawRequestController {
   private CommissionService commissionService;
   @Autowired
   private LocaleResolver localeResolver;
+  @Autowired
+  private SecureService secureService;
+
+  private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
   @FinPassCheck
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
       @RequestBody WithdrawRequestParamsDto requestParamsDto,
-      Principal principal,
+      Principal principal, HttpServletRequest request,
       Locale locale) throws UnsupportedEncodingException {
     if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
@@ -90,7 +98,24 @@ public class WithdrawRequestController {
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    secureService.checkWithdrawAdditionalPin(request, principal.getName(), withdrawRequestCreateDto);
     return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
+  }
+
+  @RequestMapping(value = "/withdraw/request/revoke", method = POST)
+  @ResponseBody
+  public void withdrawRequestCheckPin(
+          @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
+    Object object = request.getSession().getAttribute(withdrawRequestSessionAttr);
+    if (object == null) {
+      throw new RuntimeException();
+    }
+    if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.LOGIN)) {
+      withdrawService.createWithdrawalRequest((WithdrawRequestCreateDto)object, locale);
+      request.getSession().removeAttribute(withdrawRequestSessionAttr);
+    } else {
+      throw new IncorrectPinException("");
+    }
   }
 
   @RequestMapping(value = "/withdraw/request/revoke", method = POST)
@@ -231,6 +256,20 @@ public class WithdrawRequestController {
   @ResponseBody
   public ErrorInfo finPassExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({IncorrectPinException.class})
+  @ResponseBody
+  public ErrorInfo incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((IncorrectPinException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({PinCodeCheckNeedException.class})
+  @ResponseBody
+  public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((IncorrectPinException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

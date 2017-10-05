@@ -24,7 +24,8 @@ public enum OperationType {
     REFERRAL(6),
     STORNO(7),
     MANUAL(8),
-    USER_TRANSFER(9);
+    USER_TRANSFER(9),
+    BUY_SMS(11);
 
     public class AdditionalRandomAmountParam {
         public String currencyName;

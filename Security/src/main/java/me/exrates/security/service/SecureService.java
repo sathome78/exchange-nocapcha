@@ -2,6 +2,9 @@ package me.exrates.security.service;
 
 import com.sun.corba.se.spi.resolver.LocalResolver;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.NotificationResultDto;
+import me.exrates.model.dto.TransferRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
@@ -61,13 +64,15 @@ public class SecureService {
     public String sendLoginMessage(String email, HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
         String pin = userService.createOrUpdatePinForUserForEvent(email, NotificationMessageEventEnum.LOGIN);
+        String subject = messageSource.getMessage("message.subj.login.pin", null, locale);
         String messageText = messageSource.getMessage("message.pincode.forlogin",
                 new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
-        return notificationService.notifyUser(email, messageText, NotificationMessageEventEnum.LOGIN);
+        NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, NotificationMessageEventEnum.LOGIN);
+        return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
     }
 
-    public void checkWithdrawAuth(HttpServletRequest request, String email) {
-      /*  if (userService.isWithdraw2faActive(email)) {
+    public void checkWithdrawAdditionalPin(HttpServletRequest request, String email, WithdrawRequestCreateDto withdrawRequestCreateDto) {
+        if (userService.isWithdraw2faActive(email)) {
             Locale locale = localeResolver.resolveLocale(request);
             String pin = userService.createSendAndSaveNewPinForUser(email);
             String messageText = messageSource.getMessage("message.pincode.forlogin",
@@ -78,9 +83,36 @@ public class SecureService {
             request.getSession().setAttribute(passwordParam, request.getParameter(filter.getPasswordParameter()));
             authentication.setAuthenticated(false);
             throw new PinCodeCheckNeedException(result);
-        }*/
+        }
+    }
+
+    public String sendWithdrawMessage(String email, HttpServletRequest request) {
+        Locale locale = localeResolver.resolveLocale(request);
+        String pin = userService.createOrUpdatePinForUserForEvent(email, NotificationMessageEventEnum.LOGIN);
+        String subject = messageSource.getMessage("message.subj.withdraw.pin", null, locale);
+        String messageText = messageSource.getMessage("message.pincode.forWithdraw",
+                new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
+        NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, NotificationMessageEventEnum.WITHDRAW);
+        return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
     }
 
 
+    public void checkTransferAdditionalPin(HttpServletRequest request, String email, TransferRequestCreateDto transferRequest) {
+        if(true/*check is pin needed*/) {
+            String result = sendPinMessage(email, request);
+            request.getSession().setAttribute("", transferRequest);
+            throw new PinCodeCheckNeedException(result);
+        }
+    }
+
+    public String sendPinMessage(String email, HttpServletRequest request) {
+        Locale locale = localeResolver.resolveLocale(request);
+        String pin = userService.createOrUpdatePinForUserForEvent(email, NotificationMessageEventEnum.LOGIN);
+        String subject = messageSource.getMessage("message.subj.withdraw.pin", null, locale);
+        String messageText = messageSource.getMessage("message.pincode.forWithdraw",
+                new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
+        NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, NotificationMessageEventEnum.WITHDRAW);
+        return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
+    }
 
 }

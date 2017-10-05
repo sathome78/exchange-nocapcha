@@ -193,7 +193,7 @@ public interface UserService {
 
     boolean setUse2Fa(String email, boolean newValue);
 
-    boolean checkPin(String email, String pin);
+    boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
 
     boolean checkIsNotifyUserAbout2fa(String email);
 }

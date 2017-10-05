@@ -3,7 +3,9 @@ package me.exrates.controller.merchants;
 import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.service.exception.InvalidNicknameException;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.SecureService;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
@@ -31,8 +33,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -74,6 +74,10 @@ public class TransferRequestController {
   private RateLimitService rateLimitService;
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private SecureService secureService;
+
+  private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
 
   @RequestMapping(value = "/transfer/request/create", method = POST)
@@ -98,8 +102,25 @@ public class TransferRequestController {
     payment.setRecipient(requestParamsDto.getRecipient());
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    return transferService.createTransferRequest(request);
+    TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+    secureService.checkTransferAdditionalPin(servletRequest, principal.getName(), transferRequest);
+    return transferService.createTransferRequest(transferRequest);
+  }
+
+  @RequestMapping(value = "/withdraw/request/revoke", method = POST)
+  @ResponseBody
+  public void withdrawRequestCheckPin(
+          @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
+    Object object = request.getSession().getAttribute(transferRequestCreateDto);
+    if (object == null) {
+      throw new RuntimeException();
+    }
+    if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.TRANSFER)) {
+      transferService.createTransferRequest((TransferRequestCreateDto)object);
+      request.getSession().removeAttribute(transferRequestCreateDto);
+    } else {
+      throw new IncorrectPinException("");
+    }
   }
 
   @ResponseBody

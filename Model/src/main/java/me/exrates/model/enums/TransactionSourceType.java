@@ -20,7 +20,8 @@ public enum TransactionSourceType {
   USER_TRANSFER(6),
   WITHDRAW(9),
   STOP_ORDER(10),
-  REFILL(11);
+  REFILL(11),
+  BUY_NOTIFICATION(12);
 
   private final int code;
 
