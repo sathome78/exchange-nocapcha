@@ -81,62 +81,6 @@ function LeftSiderClass() {
         setPairFilter();
     };
 
-    this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
-        /*change true to false id need to poll always: if window inactive too*/
-       /* if (true && !windowIsActive) {
-            clearTimeout(timeOutIdForStatisticsForAllCurrencies);
-            timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
-                that.getStatisticsForAllCurrencies(true);
-            }, refreshIntervalForStatisticsForAllCurrencies);
-            return;
-        }
-        if (showLog) {
-            console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForAllCurrencies');
-        }
-        var $currencyTable = $('#currency_table').find('tbody');
-        var url = '/dashboard/currencyPairStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
-        $.ajax({
-            url: url,
-            type: 'GET',
-            headers: {
-                "windowid": windowId
-            },
-            success: function (data) {
-                if (!data) return;
-                if ('redirect' in data) {
-                    var registered = $('#hello-my-friend')[0];
-                    var noty = '';
-                    if (data.redirect.urlParam1 && registered) {
-                        noty = "?errorNoty=" + data.redirect.urlParam1;
-                    }
-                    window.location = data.redirect.url + noty;
-                    return;
-                }
-                data = data['list'];
-                if (data.length == 0 || data[0].needRefresh) {
-                    var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
-                    clearTable($currencyTable);
-                    data.forEach(function (e) {
-                        $currencyTable.append(tmpl($tmpl, e));
-                    });
-                    blink($('#currency_table'));
-                }
-                setPairFilter();
-                clearTimeout(timeOutIdForStatisticsForAllCurrencies);
-                timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
-                    that.getStatisticsForAllCurrencies(true);
-                }, refreshIntervalForStatisticsForAllCurrencies);
-                if (showLog) {
-                    console.log(new Date() + ' getStatisticsForAllCurrencies ' + ' success');
-                }
-            },
-            error: function (jqXHR, status, error) {
-                if (showLog) {
-                    console.log(new Date() + ' getStatisticsForAllCurrencies ' + ' error: ' + jqXHR + ' | ' + status + ' | ' + error);
-                }
-            }
-        });*/
-    };
 
     this.setOnWalletsRefresh = function(refreshCallback) {
         onWalletStatisticRefresh = refreshCallback;

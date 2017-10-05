@@ -151,7 +151,7 @@ public class WalletDaoImpl implements WalletDao {
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
     final String sql =
-        " SELECT CURRENCY.name, WALLET.active_balance " +
+        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance " +
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
@@ -159,14 +159,12 @@ public class WalletDaoImpl implements WalletDao {
     final Map<String, String> params = new HashMap<String, String>() {{
       put("email", email);
     }};
-    return jdbcTemplate.query(sql, params, new RowMapper<MyWalletsStatisticsDto>() {
-      @Override
-      public MyWalletsStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-        MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
-        myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
-        myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, true));
-        return myWalletsStatisticsDto;
-      }
+    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+      MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
+      myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
+      myWalletsStatisticsDto.setDescription(rs.getString("description"));
+      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, true));
+      return myWalletsStatisticsDto;
     });
   }
 
@@ -194,15 +192,15 @@ public class WalletDaoImpl implements WalletDao {
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =
-        " SELECT wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance, " +
+        " SELECT wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
             "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
             "   SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
             "   SUM(input_confirmation_amount+input_confirmation_commission) AS on_input_cofirmation, " +
             "   SUM(input_confirmation_stage) AS input_confirmation_stage, SUM(input_count) AS input_count" +
             " FROM " +
             " ( " +
-            " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, " +
-            " WALLET.reserved_balance AS reserved_balance,   " +
+            " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, CURRENCY.description AS currency_description, " +
+                "WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
             " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount, " +
             " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
             " 0 AS input_confirmation_amount, 0 AS input_confirmation_commission, 0 AS input_confirmation_stage, 0 AS input_count  " +
@@ -215,7 +213,7 @@ public class WalletDaoImpl implements WalletDao {
             "  " +
             " UNION ALL " +
                 "  " +
-                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name , WALLET.active_balance, " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, " +
                 " WALLET.reserved_balance,   " +
                 " IFNULL(SOSELL.amount_base,0), 0, 0, " +
                 " 0, 0,  " +
@@ -229,7 +227,7 @@ public class WalletDaoImpl implements WalletDao {
                 "  " +
                 " UNION ALL " +
                 "  " +
-                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
                 " 0, IFNULL(SOBUY.amount_convert,0), IFNULL(SOBUY.commission_fixed_amount,0), " +
                 " 0, 0, " +
                 " 0, 0, 0, 0 " +
@@ -242,7 +240,7 @@ public class WalletDaoImpl implements WalletDao {
                 "  " +
                 " UNION ALL " +
             "  " +
-            " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+            " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
             " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0), " +
             " 0, 0, " +
             " 0, 0, 0, 0 " +
@@ -255,7 +253,7 @@ public class WalletDaoImpl implements WalletDao {
             "  " +
             " UNION ALL " +
             "  " +
-            " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+            " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
             " 0, 0, 0, " +
             " IFNULL(WITHDRAW_REQUEST.amount, 0), IFNULL(WITHDRAW_REQUEST.commission, 0), " +
             " 0, 0, 0, 0 " +
@@ -267,7 +265,7 @@ public class WalletDaoImpl implements WalletDao {
             "  " +
                 " UNION ALL " +
                 "  " +
-                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
                 " 0, 0, 0, " +
                 " IFNULL(TRANSFER_REQUEST.amount, 0), IFNULL(TRANSFER_REQUEST.commission, 0), " +
                 " 0, 0, 0, 0 " +
@@ -279,7 +277,8 @@ public class WalletDaoImpl implements WalletDao {
                 "  " +
             " UNION ALL " +
             "  " +
-            " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+            " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, CURRENCY.description AS currency_description, " +
+            " WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
             " 0 AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
             " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
             " SUM(TRANSACTION.amount), SUM(TRANSACTION.commission_amount), SUM(TRANSACTION.confirmation), COUNT(TRANSACTION.id) " +
@@ -300,23 +299,21 @@ public class WalletDaoImpl implements WalletDao {
       put("currencyIds", currencyIds);
       put("status_id_list", withdrawStatusIds);
     }};
-    return jdbcTemplate.query(sql, params, new RowMapper<MyWalletsDetailedDto>() {
-      @Override
-      public MyWalletsDetailedDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-        MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
-        myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
-        myWalletsDetailedDto.setUserId(rs.getInt("user_id"));
-        myWalletsDetailedDto.setCurrencyId(rs.getInt("currency_id"));
-        myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
-        myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
-        myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
-        myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));
-        myWalletsDetailedDto.setOnConfirmationCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_count"), locale, 0));
-        myWalletsDetailedDto.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), locale, 2));
-        myWalletsDetailedDto.setReservedByOrders(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_orders"), locale, 2));
-        myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_withdraw"), locale, 2));
-        return myWalletsDetailedDto;
-      }
+    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+      MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
+      myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
+      myWalletsDetailedDto.setUserId(rs.getInt("user_id"));
+      myWalletsDetailedDto.setCurrencyId(rs.getInt("currency_id"));
+      myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
+      myWalletsDetailedDto.setCurrencyDescription(rs.getString("currency_description"));
+      myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
+      myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
+      myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));
+      myWalletsDetailedDto.setOnConfirmationCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_count"), locale, 0));
+      myWalletsDetailedDto.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), locale, 2));
+      myWalletsDetailedDto.setReservedByOrders(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_orders"), locale, 2));
+      myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_withdraw"), locale, 2));
+      return myWalletsDetailedDto;
     });
   }
 
