@@ -18,3 +18,4 @@ UPDATE CURRENCY SET description = 'Emirati Dirham' WHERE name = 'AED';
 UPDATE CURRENCY SET description = 'Ripple' WHERE name = 'XRP';
 UPDATE CURRENCY SET description = 'Stellar Lumens' WHERE name = 'XLM';
 UPDATE CURRENCY SET description = 'NEM' WHERE name = 'XEM';
+UPDATE CURRENCY SET description = 'Augur' WHERE name = 'REP';
