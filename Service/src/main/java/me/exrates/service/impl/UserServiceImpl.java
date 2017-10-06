@@ -721,7 +721,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public boolean checkPin(String email, String pin) {
+  public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     return passwordEncoder.matches(pin, getUserPin(email));
   }
 

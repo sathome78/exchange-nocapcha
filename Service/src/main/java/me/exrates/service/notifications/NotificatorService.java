@@ -16,13 +16,5 @@ public interface NotificatorService {
 
     String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException;
 
-    BigDecimal getMessageCost();
-
-    NotificationPayTypeEnum getPayType();
-
     NotificationTypeEnum getNotificationType();
-
-    /*default BigDecimal getTotalMessageCost(UserRole userRole) {
-        return getMessageCost().add(getCommissionCost(userRole));
-    }*/
 }

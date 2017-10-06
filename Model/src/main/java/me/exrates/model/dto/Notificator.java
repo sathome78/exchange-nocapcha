@@ -14,7 +14,7 @@ public class Notificator {
 
     private int id;
     private String beanName;
-    private BigDecimal messageCost;
-    private BigDecimal subscribeCost;
+    private BigDecimal messagePrice;
+    private BigDecimal subscribePrice;
     private NotificationPayTypeEnum payTypeEnum;
 }

@@ -36,11 +36,6 @@ public class EmailNotificatorService implements NotificatorService {
     }
 
     @Override
-    public BigDecimal getMessageCost() {
-        return BigDecimal.ZERO;
-    }
-
-    @Override
     public NotificationPayTypeEnum getPayType() {
         return NotificationPayTypeEnum.FREE;
     }

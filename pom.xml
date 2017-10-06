@@ -344,6 +344,12 @@
 			<version>23.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots</artifactId>
+			<version>3.3</version>
+		</dependency>
+
 	</dependencies>
 
 
