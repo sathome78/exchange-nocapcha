@@ -139,7 +139,7 @@
     <dependency>
       <groupId>iota</groupId>
       <artifactId>jota</artifactId>
-      <version>0.9.5-SNAPSHOT</version>
+      <version>0.9.3</version>
     </dependency>
     <dependency>
       <groupId>monero</groupId>
