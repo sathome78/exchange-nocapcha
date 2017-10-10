@@ -200,7 +200,7 @@
           <th><loc:message code="withdrawal.requestDatetime"/></th>
           <th><loc:message code="withdrawal.user"/></th>
           <th><loc:message code="withdrawal.amount"/></th>
-          <th><loc:message code="withdrawal.amountToWithdraw"/></th>
+          <th><strong><loc:message code="withdrawal.amountToWithdraw"/></strong></th>
           <th><loc:message code="withdrawal.currency"/></th>
           <th><loc:message code="withdrawal.commission"/></th>
           <th><loc:message code="withdrawal.merchant"/></th>

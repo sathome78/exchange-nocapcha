@@ -319,7 +319,7 @@ function updateWithdrawalTable() {
                         if (!data) return "";
 
                         if (type === 'display') {
-                            return numbro(data).format('0.00[00000000]');
+                            return '<strong>' + numbro(data).format('0.00[00000000]') + '</strong>';
                         }
                         return data;
                     }
