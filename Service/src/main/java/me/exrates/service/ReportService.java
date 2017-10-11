@@ -20,4 +20,6 @@ public interface ReportService {
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String requesterUserEmail, String startDate, String endDate, String businessRole);
 
   List<OperationViewDto> getTransactionsHistory(String requesterUserEmail, Integer userId, AdminTransactionsFilterData filterData);
+
+    List<UserIpReportDto> getUserIpReport(String businessRole);
 }

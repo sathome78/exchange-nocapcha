@@ -70,7 +70,11 @@
                 <b><loc:message code="admin.usersWallet"/> ${mapRole.key}</b>
               </h4>
             </div>
-
+          <div class="row">
+              <button id="upload-users-ip-info" class="blue-box pull-right"
+                      onclick="uploadUserIps('${mapRole.key}')" type="submit"><loc:message
+                      code="wallets.downloadUserIps"/></button>
+          </div>
           <div class="row">
               <button id="upload-users-wallets" class="blue-box pull-right"
                       onclick="uploadUserWallets('${mapRole.key}')" type="submit"><loc:message

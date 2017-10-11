@@ -225,4 +225,12 @@ public class ReportServiceImpl implements ReportService {
         Locale.ENGLISH);
     return history.getData();
   }
+
+  @Override
+  public List<UserIpReportDto> getUserIpReport(String businessRole) {
+    List<Integer> realUserRoleIds = StringUtils.isEmpty(businessRole) ? Collections.emptyList() :
+            userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
+
+    return userService.getUserIpReportForRoles(realUserRoleIds);
+  }
 }

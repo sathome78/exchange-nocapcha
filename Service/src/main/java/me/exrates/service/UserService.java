@@ -1,10 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -192,4 +189,6 @@ public interface UserService {
     boolean checkPin(String email, String pin);
 
     boolean checkIsNotifyUserAbout2fa(String email);
+
+    List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
 }
