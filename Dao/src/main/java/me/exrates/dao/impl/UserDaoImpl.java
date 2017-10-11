@@ -3,10 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.*;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -1001,5 +998,36 @@ public class UserDaoImpl implements UserDao {
       return null;
     }
     return date;
+  }
+
+  @Override
+  public List<UserIpReportDto> getUserIpReportByRoleLest(List<Integer> userRoleList) {
+
+    String sql = "SELECT U.id, U.nickname, U.email, U.regdate, f_ip.ip AS first_ip, l_ip.ip AS last_ip, l_ip.last_registration_date " +
+            "FROM USER U " +
+            "    JOIN (SELECT user_id, MAX(last_registration_date) AS last_date, MIN(registration_date) AS first_date " +
+            "            FROM USER_IP GROUP BY user_id) AS agg ON U.id = agg.user_id " +
+            "JOIN USER_IP f_ip ON U.id = f_ip.user_id AND f_ip.registration_date = agg.first_date " +
+            "LEFT JOIN USER_IP l_ip ON U.id = l_ip.user_id AND l_ip.last_registration_date = agg.last_date " ;
+    String whereClause = "";
+    Map<String, Object> params = new HashMap<>();
+    if (userRoleList.size() > 0) {
+      whereClause = "WHERE U.roleid IN (:roles)";
+      params.put("roles", userRoleList);
+    }
+    return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
+      UserIpReportDto dto = new UserIpReportDto();
+      dto.setId(rs.getInt("id"));
+      dto.setEmail(rs.getString("email"));
+      dto.setNickname(rs.getString("nickname"));
+      Timestamp creationTime = rs.getTimestamp("regdate");
+      dto.setCreationTime(creationTime == null ? null : creationTime.toLocalDateTime());
+      dto.setFirstIp(rs.getString("first_ip"));
+      dto.setLastIp(rs.getString("last_ip"));
+      Timestamp lastLoginTime = rs.getTimestamp("last_registration_date");
+      dto.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toLocalDateTime());
+      return dto;
+    });
+
   }
 }
