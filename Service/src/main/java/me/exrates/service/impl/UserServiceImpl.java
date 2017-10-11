@@ -723,7 +723,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds) {
-    return userDao.getUserIpReportByRoleLest(roleIds);
+    return userDao.getUserIpReportByRoleList(roleIds);
   }
 
 }

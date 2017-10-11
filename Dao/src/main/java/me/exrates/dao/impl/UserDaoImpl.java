@@ -1001,7 +1001,7 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public List<UserIpReportDto> getUserIpReportByRoleLest(List<Integer> userRoleList) {
+  public List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList) {
 
     String sql = "SELECT U.id, U.nickname, U.email, U.regdate, f_ip.ip AS first_ip, l_ip.ip AS last_ip, l_ip.last_registration_date " +
             "FROM USER U " +

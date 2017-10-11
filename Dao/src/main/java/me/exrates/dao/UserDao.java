@@ -166,5 +166,5 @@ public interface UserDao {
 
   LocalDate getLast2faNotifyDate(String email);
 
-  List<UserIpReportDto> getUserIpReportByRoleLest(List<Integer> userRoleList);
+  List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
 }
