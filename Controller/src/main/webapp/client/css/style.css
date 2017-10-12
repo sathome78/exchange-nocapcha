@@ -2325,7 +2325,7 @@ textarea#remark {
     
 }
 
-input.wallet-number:hover{
+input.copyable:hover{
     cursor:pointer;
 }
 

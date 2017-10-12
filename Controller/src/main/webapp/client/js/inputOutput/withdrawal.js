@@ -224,7 +224,7 @@ $(function () {
         $modal.modal();
     });
 
-    $($withdrawalTable).on('click', 'input.wallet-number', function (e) {
+    $($withdrawalTable).on('click', 'input.copyable', function (e) {
         selectAndCopyInputValue(this);
     });
 });
@@ -319,7 +319,7 @@ function updateWithdrawalTable() {
                         if (!data) return "";
 
                         if (type === 'display') {
-                            return '<strong>' + numbro(data).format('0.00[00000000]') + '</strong>';
+                            return '<input class="form-control copyable" value="' + numbro(data).format('0.00[00000000]') + '">';
                         }
                         return data;
                     }
@@ -356,7 +356,7 @@ function updateWithdrawalTable() {
                     "name": "WITHDRAW_REQUEST.wallet",
                     "render": function (data, type, row) {
                         if (type === 'display') {
-                            return '<input class="form-control wallet-number" value="' + data + '">';
+                            return '<input class="form-control copyable" value="' + data + '">';
                         }
                         return data;
                     }
