@@ -259,7 +259,7 @@ public class BotServiceImpl implements BotService {
     private void scheduleJobForCurrencyPairAndOrderType(Integer currencyPairId, OrderType orderType, Integer intervalInSeconds) throws SchedulerException {
         JobDetail jobDetail = createJobDetail(currencyPairId, orderType);
         Trigger trigger = createTrigger(currencyPairId, orderType, intervalInSeconds);
-        log.debug("SCHEDULING JOB FOR PAIR ID " + currencyPairId + " " + orderType.name());
+        log.info("SCHEDULING JOB FOR PAIR ID " + currencyPairId + " " + orderType.name());
         botOrderCreationScheduler.scheduleJob(jobDetail, trigger);
     }
 

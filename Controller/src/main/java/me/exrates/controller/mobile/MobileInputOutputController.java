@@ -454,7 +454,6 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/transfer/accept", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> acceptVoucher(@RequestBody Map<String, String> params) {
         String code = RestApiUtils.retrieveParamFormBody(params, "code", true);
-        LOGGER.debug("code {}", code);
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         if (!rateLimitService.checkLimitsExceed(userEmail)) {
@@ -896,7 +895,6 @@ public class MobileInputOutputController {
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
         RefillRequestCreateDto refillRequest = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, userLocale);
         final Map<String,Object> result = refillService.createRefillRequest(refillRequest);
-        LOGGER.debug(result);
         return result;
     }
 

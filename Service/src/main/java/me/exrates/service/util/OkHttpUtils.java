@@ -51,9 +51,7 @@ public class OkHttpUtils {
                 logger.error(errorMessage);
                 throw new RestRetrievalException(errorMessage);
             }
-            String responseBody = response.body().string();
-            logger.debug(responseBody);
-            return responseBody;
+            return response.body().string();
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new RestRetrievalException(e.getMessage());

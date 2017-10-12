@@ -685,7 +685,6 @@ public class MobileEntryController {
         }
         if (userAgent == UserAgent.ANDROID || userAgent == UserAgent.IOS) {
             String actualKey = apiService.retrieveApplicationKey(userAgent);
-            logger.debug(actualKey);
             if (!appKey.equals(actualKey)) {
                 throw new InvalidAppKeyException("Invalid app key");
             }

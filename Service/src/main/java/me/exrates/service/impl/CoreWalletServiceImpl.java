@@ -89,14 +89,14 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       daemon.addWalletListener(new WalletListener() {
         @Override
         public void walletChanged(Transaction transaction) {
-          log.debug(String.format("Wallet change: tx %s", transaction.toString()));
+          log.debug(String.format("Wallet change: tx %s", transaction.getTxId()));
           walletHandler.accept(convert(transaction));
         }
       });
       daemon.addInstantSendListener(new InstantSendListener() {
         @Override
         public void transactionBlocked(Transaction transaction) {
-          log.debug(String.format("Transaction blocked: tx %s", transaction.toString()));
+          log.debug(String.format("Transaction blocked: tx %s", transaction.getTxId()));
           instantSendHandler.accept(convert(transaction));
         }
       });
