@@ -425,6 +425,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "REP");
     }
 
+    @Bean(name = "golemServiceImpl")
+    public EthTokenService GolemService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa74476443119a942de498590fe1f2454d7d4ac0d");
+
+        return new EthTokenServiceImpl(
+                tokensList,
+                "Golem",
+                "GNT");
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
