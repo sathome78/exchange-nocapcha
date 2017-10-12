@@ -83,7 +83,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
             if (info != null) {
                 if (info.isExpired()) {
                     // Expired - abort processing
-                    logger.error("do logout");
                     doLogout(request, response);
                     String targetUrl = determineExpiredUrl(request, info);
                     if (targetUrl != null) {
@@ -92,7 +91,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                         return;
                     }
                     else {
-                        logger.error("do logout, no redirect");
                         response.getWriter().print(
                                 "This session has been expired (possibly due to multiple concurrent "
                                         + "logins being attempted as the same user).");
@@ -130,10 +128,8 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
                 .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
-            logger.debug("refresh session " + request.getServletPath());
             return true;
         }
-        logger.debug("not refresh session " + request.getRequestURI());
         return false;
     }
 
