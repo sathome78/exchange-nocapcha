@@ -383,19 +383,15 @@
             <appender-ref ref="Console" />
         </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
         <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="RestServices"/>
         </Logger>
         <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="PublicServices"/>
         </Logger>
         <Logger name="me.exrates.controller.filter.XssRequestFilter" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="SessionLog"/>
         </Logger>
         <Logger name="mobileAPI" level="DEBUG" additivity="false">
@@ -404,28 +400,23 @@
 
         <!--WALLET ... -->
         <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
         <Logger name="me.exrates.service.impl.WalletServiceImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
         <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
         <!--... WALLET-->
 
         <!--PROXY-->
         <Logger name="me.exrates.service.impl.proxy" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="proxy_log"/>
         </Logger>
 
         <!--profiling-->
         <Logger name="profile" level="ALL" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="profile_log"/>
         </Logger>
 
@@ -435,15 +426,12 @@
         </Logger>
 
         <Logger name="withdraw" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
         <Logger name="refill" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="refill_log"/>
         </Logger>
         <Logger name="transfer" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
@@ -488,27 +476,21 @@
         </logger>
         <logger name="admin_log" level="ALL" additivity="false">
             <AppenderRef ref="admin_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="stellar_log" level="ALL" additivity="false">
             <AppenderRef ref="stellar_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="nem_log" level="ALL" additivity="false">
             <AppenderRef ref="nem_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
             <AppenderRef ref="ws_stomp_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="tracker" level="ALL" additivity="false">
             <AppenderRef ref="tracker_log"/>
@@ -517,10 +499,9 @@
 
         <logger name="test" level="ALL" additivity="false">
             <AppenderRef ref="test_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
 
-        <Root level="DEBUG">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>
