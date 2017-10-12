@@ -6,6 +6,7 @@ import me.exrates.model.Email;
 import me.exrates.model.dto.LookupResponseDto;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.SmsSubscriptionDto;
+import me.exrates.model.dto.TelegramSubscription;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
@@ -44,6 +46,11 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
 
     private static final String CURRENCY_NAME = "USD";
 
+
+    @Override
+    public Object getSubscriptionByUserId(int userId) {
+        return subscriptionDao.getByUserId(userId);
+    }
 
     @Transactional
     @Override

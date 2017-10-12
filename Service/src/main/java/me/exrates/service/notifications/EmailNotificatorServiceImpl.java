@@ -26,6 +26,11 @@ public class EmailNotificatorServiceImpl implements NotificatorService {
 
 
     @Override
+    public Object getSubscriptionByUserId(int userId) {
+        return null;
+    }
+
+    @Override
     public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
         Email email = new Email();
         email.setTo(userEmail);

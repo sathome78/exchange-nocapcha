@@ -5,10 +5,15 @@ import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
 import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.Notificator;
+import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by Maks on 06.10.2017.
@@ -22,6 +27,33 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     private NotificatorsDao notificatorsDao;
     @Autowired
     private NotificatorPriceDao notificatorPriceDao;
+
+    @Autowired
+    Map<String, NotificatorService> notificatorsMap;
+
+    @Override
+    public NotificatorService getNotificationService(Integer notificatorId) {
+        Notificator notificator = Optional.ofNullable(this.getById(notificatorId))
+                .orElseThrow(() -> new RuntimeException(String.valueOf(notificatorId)));
+        return notificatorsMap.get(notificator.getBeanName());
+    }
+
+    @Override
+    public NotificatorService getNotificationServiceByBeanName(String beanName) {
+        return notificatorsMap.get(beanName);
+    }
+
+    @Override
+    public Map<Integer, Object> getSubscriptions(int userId) {
+        Map<Integer, Object> subscrMap = new HashMap<>();
+        Arrays.asList(NotificationTypeEnum.values()).forEach(p->{
+            if (p.isNeedSubscribe()) {
+                NotificatorService service = this.getNotificationService(p.getCode());
+                subscrMap.put(p.getCode(), service.getSubscriptionByUserId(userId));
+            }
+        });
+        return subscrMap;
+    }
 
     @Override
     public Notificator getById(int id){

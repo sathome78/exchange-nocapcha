@@ -1,11 +1,10 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TelegramSubscriptionDao;
-import me.exrates.model.dto.Notificator;
 import me.exrates.model.dto.TelegramSubscription;
-import me.exrates.model.enums.NotificationPayTypeEnum;
 import me.exrates.model.enums.TelegramSubscriptionStateEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -46,15 +45,23 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("code", code)
                 .addValue("email", email);
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, params, telegramSubscribtionRowMapper));
+        try {
+            return Optional.of(jdbcTemplate.queryForObject(sql, params, telegramSubscribtionRowMapper));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<TelegramSubscription> getSubscribtionByUserId(int userId) {
+    public TelegramSubscription getSubscribtionByUserId(int userId) {
         final String sql = " SELECT * FROM SUBSCRIPTION WHERE user_id = :id ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", userId);
-        return Optional.ofNullable(jdbcTemplate.queryForObject(sql, params, telegramSubscribtionRowMapper));
+        try{
+            return jdbcTemplate.queryForObject(sql, params, telegramSubscribtionRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override

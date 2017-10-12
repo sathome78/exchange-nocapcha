@@ -18,10 +18,24 @@
                             <thead>
                             <tr>
                                 <th></th>
+                                <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
                                 <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
                                     <th>${notificatorHead}</th>
-                       <%--             <c:if test="${notificatorHead.needSubscribe}"><button><loc:message code="notificator.conect"/></button></c:if>
-                       --%>         </c:forEach>
+                                    <c:if test="${notificatorHead.needSubscribe}">
+                                        <c:choose>
+                                            <c:when test="${subscriptions.get(notificatorHead.code) == null
+                                            or not subscriptions.get(notificatorHead.code).isConnected()}">
+                                                <button id="subscribe_${notificatorHead}">
+                                                    <loc:message code="notificator.conect"/></button>
+                                            </c:when>
+                                            <c:otherwise>
+                                               <p>subscriptions.get(notificatorHead.code).getContactStr()</p>
+                                                <button id="subscribe_${notificatorHead}">
+                                                    <loc:message code="notificator.reconnect"/></button>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:if>
+                                </c:forEach>
                                 <th>Disable</th>
                             </tr>
                             </thead>
@@ -32,6 +46,10 @@
                                         <td>${event}</td>
                                         <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
                                             <td><input type="radio" name="${event.code}" value="${notificator.code}"
+                                                    <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.code) == null
+                                                    or not subscriptions.get(notificator.code).isConnected())}">
+                                                        disabled
+                                                    </c:if>
                                                     <c:if test="${settings.get(event.code) != null
                                                     and settings.get(event.code).notificatorId == notificator.code}">CHECKED</c:if>>
                                             </td>

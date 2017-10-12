@@ -81,6 +81,11 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         return null;
     }
 
+    @Override
+    public Object getSubscriptionByUserId(int userId) {
+        return subscribtionDao.getSubscribtionByUserId(userId);
+    }
+
     @Transactional
     public String createSubscription(String userEmail) {
         String code = generateCode(userEmail);
@@ -107,7 +112,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     @Transactional
     @Override
     public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
-        Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByUserId(userService.getIdByEmail(userEmail));
+        Optional<TelegramSubscription> subscriptionOptional = Optional.ofNullable(subscribtionDao.getSubscribtionByUserId(userService.getIdByEmail(userEmail)));
         TelegramSubscription subscription = subscriptionOptional.orElseThrow(MessageUndeliweredException::new);
         if (!subscription.getSubscriptionState().isFinalState()) {
             throw new MessageUndeliweredException();
@@ -132,7 +137,6 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         UserRole role = userService.getUserRoleFromDB(userEmail);
         BigDecimal fee = notificatorsService.getFeePrice(getNotificationType().getCode(), role.getRole(), payEventEnum);
         BigDecimal totalAmount = doAction(amount, fee, ActionType.ADD);
-
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setOperationType(operationType);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currency.getId()));

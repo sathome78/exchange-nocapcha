@@ -28,7 +28,7 @@ public class SmsSubscriptionDaoImpl implements SmsSubscriptionDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("user_id", dto.getUserId());
-        params.addValue("contact", dto.getContact());
+        params.addValue("userAccount", dto.getContact());
         jdbcTemplate.update(sql, params, keyHolder);
         return keyHolder.getKey().intValue();
     }
@@ -40,7 +40,7 @@ public class SmsSubscriptionDaoImpl implements SmsSubscriptionDao {
                 " WHERE id = :id ";
         Map<String, Object> params = new HashMap<>();
         params.put("id", dto.getId());
-        params.put("contact", dto.getContact());
+        params.put("userAccount", dto.getContact());
         jdbcTemplate.update(sql, params);
     }
 
@@ -54,7 +54,7 @@ public class SmsSubscriptionDaoImpl implements SmsSubscriptionDao {
         return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
             SmsSubscriptionDto dto = new SmsSubscriptionDto();
             dto.setUserId(rs.getInt("user_id"));
-            dto.setContact(rs.getLong("contact"));
+            dto.setContact(rs.getLong("userAccount"));
             dto.setId(rs.getInt("id"));
             return dto;
         });

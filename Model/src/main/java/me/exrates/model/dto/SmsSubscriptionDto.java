@@ -9,11 +9,21 @@ import lombok.experimental.Tolerate;
  */
 @Data
 @Builder
-public class SmsSubscriptionDto {
+public class SmsSubscriptionDto implements NotificatorSubscription {
 
     private int id;
     private int userId;
     private long contact;
+
+    @Override
+    public String getContactStr() {
+        return String.valueOf(contact);
+    }
+
+    @Override
+    public boolean isConnected() {
+        return true;
+    }
 
     @Tolerate
     public SmsSubscriptionDto() {

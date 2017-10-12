@@ -9,12 +9,19 @@ import java.util.Arrays;
  */
 public enum NotificationTypeEnum {
 
-    EMAIL(1), SMS(2), TELEGRAM(3);
+    EMAIL(1, false), SMS(2, true), TELEGRAM(3, true);
 
     private int code;
 
-    NotificationTypeEnum(int code) {
+    private boolean needSubscribe;
+
+    NotificationTypeEnum(int code, boolean needSubscribe) {
         this.code = code;
+        this.needSubscribe = needSubscribe;
+    }
+
+    public boolean isNeedSubscribe() {
+        return needSubscribe;
     }
 
     public int getCode() {

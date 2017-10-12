@@ -7,10 +7,12 @@ import me.exrates.model.dto.Notificator;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +24,8 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 
     @Autowired
     private NotificationUserSettingsDao settingsDao;
+    @Autowired
+    private NotificatorsService notificatorsService;
 
 
     @Override
@@ -41,10 +45,10 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     @Override
     public Map<String, Object> get2faOptionsForUser(int userId) {
         Map<String, Object> map = new HashMap<>();
-        Notificator
         map.put("notificators", Arrays.asList(NotificationTypeEnum.values()));
         map.put("events", Arrays.asList(NotificationMessageEventEnum.values()));
         map.put("settings", getSettingsMap(userId));
+        map.put("subscriptions", notificatorsService.getSubscriptions(userId));
         return map;
     }
 
@@ -57,4 +61,7 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
         );
         return settingsMap;
     }
+
+
+
 }

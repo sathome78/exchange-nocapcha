@@ -22,9 +22,6 @@ import java.util.Optional;
 public class NotificationMessageServiceImpl implements NotificationMessageService {
 
     @Autowired
-    Map<String, NotificatorService> notificatorsMap;
-
-    @Autowired
     private NotificatorsService notificatorsService;
     @Autowired
     private NotificationMessagesDao notificationMessagesDao;
@@ -36,7 +33,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
                                             final String message,
                                             final String subject,
                                             final NotificationsUserSetting setting) {
-        NotificatorService service = getNotificationService(setting.getNotificatorId());
+        NotificatorService service = notificatorsService.getNotificationService(setting.getNotificatorId());
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
         try {
@@ -44,7 +41,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
         } catch (Exception e) {
             log.error(e);
             if (notificationTypeEnum.getCode() != NotificationTypeEnum.EMAIL.getCode()) {
-                NotificatorService emailService = getNotificationService(setting.getNotificatorId());
+                NotificatorService emailService = notificatorsService.getNotificationService(setting.getNotificatorId());
                 contactToNotify = emailService.sendMessageToUser(userEmail, message, subject);
             } else {
                 throw new MessageUndeliweredException();
@@ -58,13 +55,5 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
         return new NotificationResultDto(message, new String[]{contactToNotify});
     }
 
-    private NotificatorService getNotificationService(Integer notificatorId) {
-        Notificator notificator = Optional.ofNullable(notificatorsService.getById(notificatorId))
-                .orElseThrow(() -> new RuntimeException(String.valueOf(notificatorId)));
-        return notificatorsMap.get(notificator.getBeanName());
-    }
 
-    private NotificatorService getNotificationServiceByBeanName(String beanName) {
-        return notificatorsMap.get(beanName);
-    }
 }

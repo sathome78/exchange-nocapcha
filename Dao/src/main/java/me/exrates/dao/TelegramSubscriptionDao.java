@@ -11,7 +11,7 @@ public interface TelegramSubscriptionDao {
 
     Optional<TelegramSubscription> getSubscribtionByCodeAndEmail(String code, String email);
 
-    Optional<TelegramSubscription> getSubscribtionByUserId(int userId);
+    TelegramSubscription getSubscribtionByUserId(int userId);
 
     void updateSubscription(TelegramSubscription subscribtion);
 

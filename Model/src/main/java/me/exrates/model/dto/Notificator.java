@@ -17,5 +17,4 @@ public class Notificator {
     private BigDecimal messagePrice;
     private BigDecimal subscribePrice;
     private NotificationPayTypeEnum payTypeEnum;
-    private Subscription subscription;
 }
