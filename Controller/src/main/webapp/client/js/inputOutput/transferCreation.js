@@ -14,6 +14,12 @@ $(function transferCreation() {
     const urlForTransferCreate = "/transfer/request/create";
     const modalTemplate = $container.find('.transferInfo p');
     const numberFormat = '0,0.00[0000000]';
+    const urlForPin = "/transfer/request/pin";
+    const $pinDialogModal = $container.find('#pin_modal');
+    const $pinDialogText = $pinDialogModal.find('#pin_text');
+    const $pinWrong = $pinDialogModal.find('#pin_wrong');
+    const $pinSendButton = $container.find("#check-pin-button");
+    const $pinInput = $('#pin_code');
 
     var currency;
     var currencyName;
@@ -148,16 +154,68 @@ $(function transferCreation() {
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data)
-            }).success(function (result) {
-                console.log(result);
-                showTransferDialogAfterCreation(result['message'], result['hash']);
-                notifications.getNotifications();
+            }).success(function (result, textStatus, xhr) {
+                if (xhr.status == 202 && result.cause == 'PinCodeCheckNeedException') {
+                    $pinDialogModal.modal();
+                    $pinDialogText.text(result.detail);
+                } else {
+                    transferSuccess(result)
+                }
             }).complete(function () {
                 $loadingDialog.modal("hide");
             });
         });
         $loadingDialog.modal({
             backdrop: 'static'
+        });
+    }
+
+    function transferSuccess(result) {
+        console.log(result);
+        showTransferDialogAfterCreation(result['message'], result['hash']);
+        notifications.getNotifications();
+    }
+
+    $pinInput.on('input', function (e) {
+        checkPinInput()
+    });
+
+    function checkPinInput() {
+        var value = $pinInput.val();
+        if (value.length > 2 && value.length < 15 ) {
+            $pinSendButton.prop('disabled', false);
+        } else {
+            $pinSendButton.prop('disabled', true);
+        }
+    }
+
+
+
+    $pinSendButton.on('click', function () {
+        sendPin($pinInput.val());
+    });
+
+    function sendPin(pin) {
+        $pinWrong.hide();
+        $.ajax({
+            url: urlForPin + '?pin=' + pin,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function (result) {
+            $pinDialogModal.modal("hide");
+            transferSuccess(result)
+        }).error(function (result) {
+            var res = result.responseJSON;
+            if (res.cause == 'IncorrectPinException') {
+                $pinDialogText.text(res.detail);
+                $pinWrong.show();
+            }
+        }).complete(function () {
+            $pinInput.val("");
         });
     }
 

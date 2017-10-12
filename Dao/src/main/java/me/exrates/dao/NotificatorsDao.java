@@ -13,4 +13,6 @@ public interface NotificatorsDao {
     BigDecimal getSubscriptionPrice(int notificatorId);
 
     BigDecimal getMessagePrice(int notificatorId);
+
+    BigDecimal getLookUpPrice(int notificatorId);
 }

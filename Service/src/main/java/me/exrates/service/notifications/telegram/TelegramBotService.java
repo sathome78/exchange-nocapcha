@@ -25,21 +25,22 @@ import javax.annotation.PostConstruct;
  * Created by Maks on 05.10.2017.
  */
 @PropertySource("classpath:telegram_bot.properties")
-@Log4j2(topic = "telegram_bot")
+@Log4j2(topic = "message_notify")
 @Component
 public class TelegramBotService  extends TelegramLongPollingBot {
 
-    @Qualifier("TelegramNotificatorService")
+    @Qualifier("telegramNotificatorServiceImpl")
     @Autowired
     private Subscribable subscribable;
 
     private @Value("${telegram.bot.key}") String key;
-    private @Value("${exrates_me_bot}") String botName;
+    private @Value("${telegram.bot.username}") String botName;
+
+    static {ApiContextInitializer.init();}
 
 
     @PostConstruct
     private void init() {
-        ApiContextInitializer.init();
         TelegramBotsApi botsApi = new TelegramBotsApi();
         try {
             botsApi.registerBot(this);
@@ -71,7 +72,7 @@ public class TelegramBotService  extends TelegramLongPollingBot {
                 subscribable.subscribe(TelegramSubscription.builder()
                         .chatId(chatId)
                         .rawText(text)
-                        .subscriptionEnum(TelegramSubscriptionStateEnum.getBeginState())
+                        .subscriptionState(TelegramSubscriptionStateEnum.getBeginState())
                         .userAccount(sender)
                         .build());
             } catch (Exception e) {

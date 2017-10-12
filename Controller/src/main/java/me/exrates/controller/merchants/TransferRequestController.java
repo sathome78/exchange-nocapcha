@@ -1,11 +1,14 @@
 package me.exrates.controller.merchants;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
+import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
@@ -75,7 +78,7 @@ public class TransferRequestController {
   @Autowired
   private CurrencyService currencyService;
   @Autowired
-  private SecureService secureService;
+  private SecureService secureServiceImpl;
 
   private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
@@ -103,23 +106,34 @@ public class TransferRequestController {
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    secureService.checkTransferAdditionalPin(servletRequest, principal.getName(), transferRequest);
+    try {
+      secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
+              NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+    } catch (PinCodeCheckNeedException e) {
+      servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
+      throw e;
+    }
     return transferService.createTransferRequest(transferRequest);
   }
 
-  @RequestMapping(value = "/withdraw/request/revoke", method = POST)
+  private String getAmountWithCurrency(TransferRequestCreateDto dto) {
+    return new StringJoiner(" ", dto.getAmount().toString(), dto.getCurrencyName()).toString();
+  }
+
+  @RequestMapping(value = "/transfer/request/pin", method = POST)
   @ResponseBody
-  public void withdrawRequestCheckPin(
+  public Map<String, Object> withdrawRequestCheckPin(
           @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
     Object object = request.getSession().getAttribute(transferRequestCreateDto);
-    if (object == null) {
-      throw new RuntimeException();
-    }
+    Preconditions.checkNotNull(object);
+    Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
     if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.TRANSFER)) {
-      transferService.createTransferRequest((TransferRequestCreateDto)object);
       request.getSession().removeAttribute(transferRequestCreateDto);
+      return transferService.createTransferRequest((TransferRequestCreateDto)object);
     } else {
-      throw new IncorrectPinException("");
+      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+              NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency((TransferRequestCreateDto)object));
+      throw new IncorrectPinException(res);
     }
   }
 
@@ -263,6 +277,20 @@ public class TransferRequestController {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception, messageSource
             .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({IncorrectPinException.class})
+  @ResponseBody
+  public ErrorInfo incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @ExceptionHandler({PinCodeCheckNeedException.class})
+  @ResponseBody
+  public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

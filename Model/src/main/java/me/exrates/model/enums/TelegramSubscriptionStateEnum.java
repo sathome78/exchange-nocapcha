@@ -12,7 +12,7 @@ public enum TelegramSubscriptionStateEnum {
         return WAIT_FOR_SUBSCRIBE;
     }
 
-    TelegramSubscriptionStateEnum(boolean beginState, TelegramSubscriptionStateEnum nextState, boolean finalState) {
+    TelegramSubscriptionStateEnum(boolean beginState,  boolean finalState, TelegramSubscriptionStateEnum nextState) {
         this.beginState = beginState;
         this.nextState = nextState;
         this.finalState = finalState;

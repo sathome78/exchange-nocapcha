@@ -17,9 +17,9 @@ import java.util.Locale;
 /**
  * Created by Maks on 29.09.2017.
  */
-@Log4j2
+@Log4j2(topic = "message_notify")
 @Component
-public class EmailNotificatorService implements NotificatorService {
+public class EmailNotificatorServiceImpl implements NotificatorService {
 
     @Autowired
     private SendMailService sendMailService;
@@ -33,11 +33,6 @@ public class EmailNotificatorService implements NotificatorService {
         email.setSubject(subject);
         sendMailService.sendInfoMail(email);
         return userEmail;
-    }
-
-    @Override
-    public NotificationPayTypeEnum getPayType() {
-        return NotificationPayTypeEnum.FREE;
     }
 
     @Override

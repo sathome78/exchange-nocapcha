@@ -146,7 +146,9 @@
                 <c:if test="${pinNeed != null}">
                 <%--PIN--%>
                     <div id="pin_block">
-                        <h4 class=""><loc:message code="message.pin_code.sent.toyou"/></h4>
+                        <h4 class=""><loc:message
+                                code="message.pin_code"/></h4>
+                        <h5 id="res">${pinNeed}</h5>
                         <hr>
                         <c:url value="/login" var="loginUrl"/>
                         <div class="clearfix">

@@ -5,5 +5,5 @@ package me.exrates.service.notifications;
  */
 public interface Subscribable {
 
-    void subscribe(Object subscriptionObject);
+    Object subscribe(Object subscriptionObject);
 }

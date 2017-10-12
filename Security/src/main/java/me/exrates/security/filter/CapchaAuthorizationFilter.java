@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
+import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     private UserService userService;
     @Autowired
-    private SecureService secureService;
+    private SecureService secureServiceImpl;
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
@@ -59,8 +60,8 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                secureService.sendLoginMessage(principal.getUsername(), request);
-                throw new IncorrectPinException("");
+                String res = secureServiceImpl.reSendLoginMessage(request, authentication.getName());
+                throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),
                     String.valueOf(session.getAttribute(passwordParam)),request, response);
@@ -93,7 +94,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
         /*-------------------*/
-        secureService.checkLoginAuth(request, authentication, this);
+        secureServiceImpl.checkLoginAuth(request, authentication, this);
         /* old impl
         User principal = (User) authentication.getPrincipal();
         if (userService.isGlobal2FaActive() || userService.getUse2Fa(principal.getUsername())) {

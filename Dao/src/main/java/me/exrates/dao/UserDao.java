@@ -158,17 +158,11 @@ public interface UserDao {
 
   boolean checkPollIsDoneByUser(String email);
 
-    String getPinByEmail(String email);
-
-  boolean getUse2FaByEmail(String email);
-
-    boolean setUse2FaByEmail(String email, boolean use2fa);
-
-    boolean updatePinByUserEmail(String email, String pin);
-
-    boolean updateLast2faNotifyDate(String email);
+  boolean updateLast2faNotifyDate(String email);
 
   LocalDate getLast2faNotifyDate(String email);
 
-    void updatePinByUserEmail(String userEmail, String encode, NotificationMessageEventEnum event);
+  String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
+
+  void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 }

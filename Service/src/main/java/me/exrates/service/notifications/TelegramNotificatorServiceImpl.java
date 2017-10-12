@@ -1,10 +1,9 @@
 package me.exrates.service.notifications;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.NotificatorsDao;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.Notificator;
+import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.TelegramSubscription;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.WalletOperationData;
@@ -25,14 +24,15 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.StringJoiner;
 
+import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * Created by Maks on 29.09.2017.
  */
-@Log4j2
-@Component
-public class TelegramNotificatorService implements NotificatorService, Subscribable {
+@Log4j2(topic = "message_notify")
+@Component("telegramNotificatorServiceImpl")
+public class TelegramNotificatorServiceImpl implements NotificatorService, Subscribable {
 
     @Autowired
     private TelegramSubscriptionDao subscribtionDao;
@@ -45,7 +45,7 @@ public class TelegramNotificatorService implements NotificatorService, Subscriba
     @Autowired
     private CurrencyService currencyService;
     @Autowired
-    private NotificatorsDao notificatorsDao;
+    private NotificatorsService notificatorsService;
 
 
     private Currency currency;
@@ -58,7 +58,7 @@ public class TelegramNotificatorService implements NotificatorService, Subscriba
 
     @Transactional
     @Override
-    public void subscribe(Object subscribeData) {
+    public Object subscribe(Object subscribeData) {
         TelegramSubscription subscriptionDto = (TelegramSubscription)subscribeData;
         String[] data = (subscriptionDto.getRawText()).split("\\:");
         String email = data[0];
@@ -78,6 +78,7 @@ public class TelegramNotificatorService implements NotificatorService, Subscriba
             subscription.setCode(null);
         }
         subscribtionDao.updateSubscription(subscription);
+        return null;
     }
 
     @Transactional
@@ -85,15 +86,14 @@ public class TelegramNotificatorService implements NotificatorService, Subscriba
         String code = generateCode(userEmail);
         int id = subscribtionDao.create(TelegramSubscription.builder()
                 .id(userService.getIdByEmail(userEmail))
-                .subscriptionEnum(TelegramSubscriptionStateEnum.getBeginState())
+                .subscriptionState(TelegramSubscriptionStateEnum.getBeginState())
                 .code(new StringJoiner(":", userEmail, code).toString()).build());
-        Notificator notificator = notificatorsDao.getById(getNotificationType().getCode());
         payForSubscribe(
-                notificator.getSubscribePrice(),
+                BigDecimal.ZERO,
                 userEmail,
-                id,
                 OperationType.BUY_NOTIFICATION_SUBSCRIPTION,
-                "telegram subscription");
+                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.SUBSCRIBE.name()),
+                NotificationPayEventEnum.SUBSCRIBE);
         return code;
     }
 
@@ -120,31 +120,30 @@ public class TelegramNotificatorService implements NotificatorService, Subscriba
         return new StringJoiner(":", email, String.valueOf(100000000 + new Random().nextInt(100000000))).toString();
     }
 
-
-    @Override
-    public NotificationPayTypeEnum getPayType() {
-        return NotificationPayTypeEnum.PREPAID_LIFETIME;
-    }
-
     @Override
     public NotificationTypeEnum getNotificationType() {
         return NotificationTypeEnum.TELEGRAM;
     }
 
     @Transactional
-    private void payForSubscribe(BigDecimal amount, String userEmail, int subscriptionId, OperationType operationType, String description) {
+    private BigDecimal payForSubscribe(BigDecimal amount, String userEmail, OperationType operationType,
+                                 String description, NotificationPayEventEnum payEventEnum) {
         int userId = userService.getIdByEmail(userEmail);
+        UserRole role = userService.getUserRoleFromDB(userEmail);
+        BigDecimal fee = notificatorsService.getFeePrice(getNotificationType().getCode(), role.getRole(), payEventEnum);
+        BigDecimal totalAmount = doAction(amount, fee, ActionType.ADD);
+
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setOperationType(operationType);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currency.getId()));
         walletOperationData.setBalanceType(ACTIVE);
-        walletOperationData.setAmount(amount);
+        walletOperationData.setAmount(totalAmount);
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
-        walletOperationData.setSourceId(subscriptionId);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if(!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
             throw new PaymentException(walletTransferStatus);
         }
+        return totalAmount;
     }
 }

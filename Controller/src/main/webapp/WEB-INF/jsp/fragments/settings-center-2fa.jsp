@@ -11,10 +11,45 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-6 content">
-                <c:if test="${enable_2fa != null}">
+
                     <form method="post" action="/settings/2FaOptions/submit" id="2faSettings_form">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <table id="notification-options-table" class="table">
+                        <table id="2fa-options-table" class="table">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
+                                    <th>${notificatorHead}</th>
+                       <%--             <c:if test="${notificatorHead.needSubscribe}"><button><loc:message code="notificator.conect"/></button></c:if>
+                       --%>         </c:forEach>
+                                <th>Disable</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
+                            <c:forEach items="${user2faOptions.get('events')}" var="event">
+                                    <tr>
+                                        <td>${event}</td>
+                                        <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
+                                            <td><input type="radio" name="${event.code}" value="${notificator.code}"
+                                                    <c:if test="${settings.get(event.code) != null
+                                                    and settings.get(event.code).notificatorId == notificator.code}">CHECKED</c:if>>
+                                            </td>
+                                        </c:forEach>
+                                            <td><input type="radio" name="${event.code}" value="0"
+                                                    <c:if test="${settings.get(event.code) == null or settings.get(event.code).notificatorId == null}"> CHECKED</c:if>
+                                                />
+                                            </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                            <loc:message code="button.update"/></button>
+
+
+
+                       <%-- <table id="notification-options-table" class="table">
                             <tbody>
                             <tr id="2fa_cell">
                                 <td><loc:message code="message.2fa.via_email"/>:<c:if test="${global_use_2fa == false}">  \disabled!\</disabled></c:if></td>
@@ -25,13 +60,10 @@
                                 </td>
                             </tr>
                             </tbody>
-                        </table>
-                        <div id="result" hidden></div>
-                        <button id="submitSessionOptionsButton" type="submit"
-                                <c:if test="${global_use_2fa == false}">disabled</c:if> class="blue-box">
-                            <loc:message code="button.update"/></button>
+                        </table>&ndash;%&gt;
+                        <div id="result" hidden></div>--%>
+
                     </form>
-                </c:if>
 
             </div>
         </div>

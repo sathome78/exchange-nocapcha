@@ -2,27 +2,24 @@ package me.exrates.service.notifications;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationMessagesDao;
-import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
 import me.exrates.model.enums.*;
-import me.exrates.service.*;
 import me.exrates.service.exception.MessageUndeliweredException;
-import org.jvnet.hk2.annotations.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Created by Maks on 29.09.2017.
  */
-@Log4j2
-@Service
-public class NotificationsServiceImpl implements NotificationService {
+@Log4j2(topic = "message_notify")
+@Component
+public class NotificationMessageServiceImpl implements NotificationMessageService {
 
     @Autowired
     Map<String, NotificatorService> notificatorsMap;
@@ -31,24 +28,14 @@ public class NotificationsServiceImpl implements NotificationService {
     private NotificatorsService notificatorsService;
     @Autowired
     private NotificationMessagesDao notificationMessagesDao;
-    @Autowired
-    private NotificationUserSettingsDao settingsDao;
-    @Autowired
-    private UserService userService;
 
-
-    private NotificationsUserSetting defaultSetting;
-
-    @PostConstruct
-    private void init() {
-        defaultSetting = NotificationsUserSetting.builder().notificatorId(NotificationTypeEnum.EMAIL.getCode()).build();
-    }
 
     @Override
     @Transactional
-    public NotificationResultDto notifyUser(final String userEmail, final String message, final String subject, final NotificationMessageEventEnum event) {
-        NotificationsUserSetting setting = settingsDao.getByUserAndEvent(userService.getIdByEmail(userEmail), event)
-                                                        .orElse(defaultSetting);
+    public NotificationResultDto notifyUser(final String userEmail,
+                                            final String message,
+                                            final String subject,
+                                            final NotificationsUserSetting setting) {
         NotificatorService service = getNotificationService(setting.getNotificatorId());
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
@@ -63,15 +50,13 @@ public class NotificationsServiceImpl implements NotificationService {
                 throw new MessageUndeliweredException();
             }
         }
-        return getResponseString(event, notificationTypeEnum, contactToNotify);
+        return getResponseString(setting.getNotificationMessageEventEnum(), notificationTypeEnum, contactToNotify);
     }
 
     private NotificationResultDto getResponseString(NotificationMessageEventEnum event, NotificationTypeEnum typeEnum, String contactToNotify) {
         String message = notificationMessagesDao.gerResourceString(event, typeEnum);
         return new NotificationResultDto(message, new String[]{contactToNotify});
     }
-
-
 
     private NotificatorService getNotificationService(Integer notificatorId) {
         Notificator notificator = Optional.ofNullable(notificatorsService.getById(notificatorId))

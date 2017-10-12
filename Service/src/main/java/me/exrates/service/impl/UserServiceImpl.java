@@ -3,12 +3,8 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
-import me.exrates.dao.UserPinDao;
 import me.exrates.model.*;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -20,6 +16,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -53,9 +50,6 @@ public class UserServiceImpl implements UserService {
   private UserDao userDao;
 
   @Autowired
-  private UserPinDao userPinDao;
-
-  @Autowired
   private SendMailService sendMailService;
 
   @Autowired
@@ -73,8 +67,11 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private ReferralService referralService;
 
+  @Autowired
+  private NotificationsSettingsService settingsService;
+
   /*this variable is set to use or not 2 factor authorization for all users*/
-  private boolean global2FaActive = true;
+  private boolean global2FaActive = false;
 
   @Override
   public boolean isGlobal2FaActive() {
@@ -684,51 +681,32 @@ public class UserServiceImpl implements UserService {
 
   @Transactional
   @Override
-  public void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request) {
+  public String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event) {
     String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
-    userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin));
-    Locale locale = Locale.forLanguageTag(getPreferedLangByEmail(userEmail));
-    String messageText = messageSource.getMessage("message.pincode.forlogin",
-            new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")), IpUtils.getClientIpAddress(request), pin}, locale);
-    Email email = new Email();
-    email.setMessage(messageText);
-    email.setSubject(messageSource.getMessage("message.pincode.login.subject", null, locale));
-    email.setTo(userEmail);
-    sendMailService.sendInfoMail(email);
-  }
-
-  @Transactional
-  @Override
-  public String createOrUpdatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event) {
-    String pin = String.valueOf(10000000 + new Random().nextInt(90000000));
-    userPinDao.createOrUpdatePinByUserEmail(userEmail, passwordEncoder.encode(pin), event);
+    userDao.updatePinByUserEmail(userEmail, passwordEncoder.encode(pin), event);
     return pin;
   }
 
   @Override
-  public String getUserPin(String email) {
-    return userDao.getPinByEmail(email);
-  }
-
-  @Override
-  public boolean getUse2Fa(String email) {
-    return userDao.getUse2FaByEmail(email);
-  }
-
-  @Override
-  public boolean setUse2Fa(String email, boolean newValue) {
-    return userDao.setUse2FaByEmail(email, newValue);
-  }
-
-  @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
-    return passwordEncoder.matches(pin, getUserPin(email));
+    return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
+
+  private String getPinForEvent(String email, NotificationMessageEventEnum event) {
+    return userDao.getPinByEmailAndEvent(email, event);
+  }
+
+  @Override
+  public boolean isLogin2faUsed(String email) {
+    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
+    return setting != null && setting.getNotificatorId() != null;
+  }
+
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
     LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
-    boolean res = !getUse2Fa(email) &&
+    boolean res = !isLogin2faUsed(email) &&
             (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
     if (res) {
       userDao.updateLast2faNotifyDate(email);

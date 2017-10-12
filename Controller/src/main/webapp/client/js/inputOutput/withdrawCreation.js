@@ -17,12 +17,18 @@ $(function withdrawCreation() {
     const $destinationTagHolder = $withdrawParamsDialog.find("#address-tag");
     const notifications = new NotificationsClass();
     const urlForWithdrawCreate = "/withdraw/request/create";
+    const urlForPin = "/withdraw/request/pin";
     const modalTemplate = $container.find('.paymentInfo p');
     const numberFormat = '0,0.00[0000000]';
     const phrases = {
         "bankNotSelected": $container.find("#bank-not-selected").html(),
         "enterOtherBankPhrase": $container.find("#enter-other-bank-phrase").html()
     };
+    const $pinDialogModal = $container.find('#pin_modal');
+    const $pinDialogText = $pinDialogModal.find('#pin_text');
+    const $pinWrong = $pinDialogModal.find('#pin_wrong');
+    const $pinSendButton = $container.find("#check-pin-button");
+    const $pinInput = $('#pin_code');
     var $continueButton = $('#continue-btn');
 
     var currency;
@@ -228,13 +234,13 @@ $(function withdrawCreation() {
                 },
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
-            }).success(function (result) {
-                if (!result || !result['redirectionUrl']) {
-                    showWithdrawDialogAfterCreation(result['message']);
-                    notifications.getNotifications();
+                data: JSON.stringify(data)
+            }).success(function (result, textStatus, xhr) {
+                if (xhr.status == 202 && result.cause == 'PinCodeCheckNeedException') {
+                    $pinDialogModal.modal();
+                    $pinDialogText.text(result.detail);
                 } else {
-                    window.location = result['redirectionUrl'];
+                    withdrawSuccess(result)
                 }
             }).complete(function () {
                 $loadingDialog.modal("hide");
@@ -242,6 +248,58 @@ $(function withdrawCreation() {
         });
         $loadingDialog.modal({
             backdrop: 'static'
+        });
+    }
+
+    function withdrawSuccess(result) {
+        if (!result || !result['redirectionUrl']) {
+            showWithdrawDialogAfterCreation(result['message']);
+            notifications.getNotifications();
+        } else {
+            window.location = result['redirectionUrl'];
+        }
+    }
+
+    $pinInput.on('input', function (e) {
+        checkPinInput()
+    });
+
+    function checkPinInput() {
+        var value = $pinInput.val();
+        if (value.length > 2 && value.length < 15 ) {
+            $pinSendButton.prop('disabled', false);
+        } else {
+            $pinSendButton.prop('disabled', true);
+        }
+    }
+
+
+
+    $pinSendButton.on('click', function () {
+        sendPin($pinInput.val());
+    });
+
+    function sendPin(pin) {
+        $pinWrong.hide();
+        $.ajax({
+            url: urlForPin + '?pin=' + pin,
+            async: true,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            contentType: 'application/json'
+        }).success(function (result) {
+            $pinDialogModal.modal("hide");
+            withdrawSuccess(result)
+        }).error(function (result) {
+            var res = result.responseJSON;
+            if (res.cause == 'IncorrectPinException') {
+                $pinDialogText.text(res.detail);
+                $pinWrong.show();
+            }
+        }).complete(function () {
+            $pinInput.val("");
         });
     }
 

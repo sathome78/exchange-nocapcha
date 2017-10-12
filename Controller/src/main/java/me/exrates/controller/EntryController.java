@@ -5,12 +5,13 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
-import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.*;
+import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
+import me.exrates.service.notifications.NotificationsSettingsService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,8 @@ public class EntryController {
     private UserRoleService userRoleService;
     @Autowired
     private DefaultSimpUserRegistry registry;
+    @Autowired
+    private NotificationsSettingsService settingsService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -106,7 +109,7 @@ public class EntryController {
         model.addObject("sessionId", request.getSession().getId());
       /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
       */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
-        model.addObject("alwaysNotify2fa", principal != null && !userService.getUse2Fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -138,8 +141,7 @@ public class EntryController {
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
-        mav.addObject("enable_2fa", userService.getUse2Fa(principal.getName()));
-        mav.addObject("global_use_2fa", userService.isGlobal2FaActive());
+        mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
         return mav;
     }
 
@@ -190,20 +192,26 @@ public class EntryController {
     public RedirectView submitNotificationOptions(RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {
         RedirectView redirectView = new RedirectView("/settings");
-
-        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
-        if (!userService.isGlobal2FaActive()) {
-            redirectAttributes.addFlashAttribute("msg", "Not available now");
-            return redirectView;
-        }
         try {
-            userService.setUse2Fa(principal.getName(), use2fa);
+            int userId = userService.getIdByEmail(principal.getName());
+            Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
+            settingsMap.forEach((k,v) -> {
+                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
+                if (notificatorId.equals(0)) {
+                    notificatorId = null;
+                }
+                if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
+                    v.setNotificatorId(notificatorId);
+                    settingsService.createOrUpdate(v);
+                }
+            });
             redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
                     localeResolver.resolveLocale(request)));
         } catch (Exception e) {
             log.error(e);
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
                     localeResolver.resolveLocale(request)));
+            throw e;
         }
         return redirectView;
     }

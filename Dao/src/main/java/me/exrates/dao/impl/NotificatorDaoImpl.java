@@ -52,4 +52,11 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         String sql = "SELECT message_cost FROM NOTIFICATOR WHERE id = :id ";
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", notificatorId), BigDecimal.class);
     }
+
+    @Override
+    public BigDecimal getLookUpPrice(int notificatorId) {
+        String sql = "SELECT lookup_cost FROM NOTIFICATOR WHERE id = :id ";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", notificatorId), BigDecimal.class);
+
+    }
 }

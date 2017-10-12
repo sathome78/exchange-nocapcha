@@ -947,40 +947,6 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public String getPinByEmail(String email) {
-    String sql = "SELECT USER.pin FROM USER WHERE email = :email";
-    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
-  }
-
-  @Override
-  public boolean getUse2FaByEmail(String email) {
-    String sql = "SELECT USER.use2fa FROM USER WHERE email = :email";
-    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), Boolean.class);
-  }
-
-  @Override
-  public boolean setUse2FaByEmail(String email, boolean use2fa) {
-    String sql = "UPDATE USER SET USER.use2fa =:use2fa " +
-            "WHERE USER.email = :email";
-    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-      put("email", email);
-      put("use2fa", use2fa);
-    }};
-    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
-
-  @Override
-  public boolean updatePinByUserEmail(String email, String pin) {
-    String sql = "UPDATE USER SET USER.pin =:pin " +
-            "WHERE USER.email = :email";
-    Map<String, String> namedParameters = new HashMap<String, String>() {{
-      put("email", email);
-      put("pin", pin);
-    }};
-    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
-
-  @Override
   public boolean updateLast2faNotifyDate(String email) {
     String sql = "UPDATE USER SET USER.2fa_last_notify_date =:date " +
             "WHERE USER.email = :email";
@@ -1001,5 +967,23 @@ public class UserDaoImpl implements UserDao {
       return null;
     }
     return date;
+  }
+
+  @Override
+  public String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event) {
+    final String sql = String.format("SELECT %s_pin FROM USER " +
+            " WHERE email = :email ", event.name().toLowerCase());
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+  }
+
+  @Override
+  public void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event) {
+    String sql = String.format("UPDATE USER SET %s_pin = :pin " +
+            "WHERE USER.email = :email", event.name().toLowerCase());
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", userEmail);
+      put("pin", pin);
+    }};
+    namedParameterJdbcTemplate.update(sql, namedParameters);
   }
 }

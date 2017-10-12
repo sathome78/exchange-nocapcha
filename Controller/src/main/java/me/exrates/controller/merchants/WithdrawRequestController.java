@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import com.google.common.base.Preconditions;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
@@ -16,6 +17,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderExceptio
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
+import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -38,6 +40,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -53,25 +56,20 @@ public class WithdrawRequestController {
 
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
   WithdrawService withdrawService;
-
   @Autowired
   UserService userService;
-
   @Autowired
   MerchantService merchantService;
-
   @Autowired
   private InputOutputService inputOutputService;
-
   @Autowired
   private CommissionService commissionService;
   @Autowired
   private LocaleResolver localeResolver;
   @Autowired
-  private SecureService secureService;
+  private SecureService secureServiceImpl;
 
   private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
@@ -98,23 +96,35 @@ public class WithdrawRequestController {
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-    secureService.checkWithdrawAdditionalPin(request, principal.getName(), withdrawRequestCreateDto);
+    try {
+      secureServiceImpl.checkEventAdditionalPin(request, principal.getName(),
+              NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency(withdrawRequestCreateDto));
+    } catch (PinCodeCheckNeedException e) {
+      request.getSession().setAttribute(withdrawRequestSessionAttr, withdrawRequestCreateDto);
+      throw e;
+    }
     return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
   }
 
-  @RequestMapping(value = "/withdraw/request/revoke", method = POST)
+  private String getAmountWithCurrency(WithdrawRequestCreateDto dto) {
+    return new StringJoiner(" ", dto.getAmount().toString(), dto.getCurrencyName()).toString();
+  }
+
+  @RequestMapping(value = "/withdraw/request/pin", method = POST)
   @ResponseBody
-  public void withdrawRequestCheckPin(
+  public Map<String, String> withdrawRequestCheckPin(
           @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
+    log.debug("withdraw pin {}", pin);
     Object object = request.getSession().getAttribute(withdrawRequestSessionAttr);
-    if (object == null) {
-      throw new RuntimeException();
-    }
-    if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.LOGIN)) {
-      withdrawService.createWithdrawalRequest((WithdrawRequestCreateDto)object, locale);
+    Preconditions.checkNotNull(object);
+    Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+    if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.WITHDRAW)) {
       request.getSession().removeAttribute(withdrawRequestSessionAttr);
+      return withdrawService.createWithdrawalRequest((WithdrawRequestCreateDto)object, locale);
     } else {
-      throw new IncorrectPinException("");
+      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+              NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency((WithdrawRequestCreateDto)object));
+      throw new IncorrectPinException(res);
     }
   }
 
@@ -262,14 +272,14 @@ public class WithdrawRequestController {
   @ExceptionHandler({IncorrectPinException.class})
   @ResponseBody
   public ErrorInfo incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((IncorrectPinException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
   @ExceptionHandler({PinCodeCheckNeedException.class})
   @ResponseBody
   public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage(((IncorrectPinException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

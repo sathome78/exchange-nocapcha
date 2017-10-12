@@ -13,10 +13,10 @@ import me.exrates.model.enums.NotificationPayTypeEnum;
 @Builder
 public class NotificationsUserSetting {
     
-    private int id;
+    private Integer id;
     private int userId;
     private NotificationMessageEventEnum notificationMessageEventEnum;
-    private int notificatorId;
+    private Integer notificatorId;
 
     @Tolerate
     public NotificationsUserSetting() {

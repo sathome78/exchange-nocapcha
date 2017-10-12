@@ -7,6 +7,8 @@ import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.form.FeedbackMessageForm;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.ReferralService;
@@ -260,9 +262,11 @@ public class MainController {
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 }   else if (exceptionClass.equals("PinCodeCheckNeedException")) {
-                    model.addObject("pinNeed", "");
+                    PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
+                    model.addObject("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
-                    model.addObject("pinNeed", "");
+                    IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
+                    model.addObject("pinNeed", exception.getMessage());
                     model.addObject("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else {
                     model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
@@ -286,10 +290,10 @@ public class MainController {
         }
         Authentication authentication = (Authentication)auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String result = secureService.sendLoginMessage(principal.getUsername(), request);
+        String res = secureService.reSendLoginMessage(request, authentication.getName());
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .body(result);
+                .body(res);
     }
 
 

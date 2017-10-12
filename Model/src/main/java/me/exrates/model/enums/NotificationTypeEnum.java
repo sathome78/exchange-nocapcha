@@ -9,7 +9,7 @@ import java.util.Arrays;
  */
 public enum NotificationTypeEnum {
 
-    SMS(1), EMAIL(2), TELEGRAM(3), WEIBO(4);
+    EMAIL(1), SMS(2), TELEGRAM(3);
 
     private int code;
 

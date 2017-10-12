@@ -112,8 +112,6 @@ public class AdminController {
   @Autowired
   private ReferralService referralService;
   @Autowired
-  private InvoiceService invoiceService;
-  @Autowired
   private Map<String, BitcoinService> bitcoinLikeServices;
   @Autowired
   private NotificationService notificationService;
@@ -486,12 +484,12 @@ public class AdminController {
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
-    model.addObject("enable_2fa", userService.getUse2Fa(user.getEmail()));
+    model.addObject("enable_2fa", userService.isLogin2faUsed(user.getEmail()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
     return model;
   }
 
-  @AdminLoggable
+ /*todo @AdminLoggable
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/editUser/submit2faOptions", method = POST)
   public String submitNotificationOptions(@RequestParam String email,
@@ -505,7 +503,7 @@ public class AdminController {
       return "error";
     }
     return "ok";
-  }
+  }*/
 
   @AdminLoggable
   @ResponseBody
