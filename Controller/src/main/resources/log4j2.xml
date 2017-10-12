@@ -341,7 +341,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="merchant" level="TRACE" additivity="false">
+        <Logger name="merchant" level="DEBUG" additivity="false">
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
         </Logger>
@@ -349,7 +349,7 @@
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants_edr"/>
         </Logger>
-        <Logger name="node_ethereum" level="TRACE" additivity="false">
+        <Logger name="node_ethereum" level="DEBUG" additivity="false">
 
             <AppenderRef ref="Node_ethereum"/>
         </Logger>
