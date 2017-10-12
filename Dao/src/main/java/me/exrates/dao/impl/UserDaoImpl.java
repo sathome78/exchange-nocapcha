@@ -1017,6 +1017,7 @@ public class UserDaoImpl implements UserDao {
     }
     return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
       UserIpReportDto dto = new UserIpReportDto();
+      dto.setOrderNum(rowNum + 1);
       dto.setId(rs.getInt("id"));
       dto.setEmail(rs.getString("email"));
       dto.setNickname(rs.getString("nickname"));

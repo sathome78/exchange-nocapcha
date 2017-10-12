@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 @Getter @Setter
 public class UserIpReportDto {
+    private Integer orderNum;
     private Integer id;
     private String nickname;
     private String email;
@@ -21,7 +22,7 @@ public class UserIpReportDto {
     private LocalDateTime lastLoginTime;
 
     public static String getTitle() {
-        return Stream.of("user_id", "nickname", "email",
+        return Stream.of("No.", "user_id", "nickname", "email",
                 "creation_time", "first_ip", "last_ip", "last_login_time")
                 .collect(Collectors.joining(";", "", "\r\n"));
     }
@@ -29,7 +30,7 @@ public class UserIpReportDto {
 
     @Override
     public String toString() {
-        return Stream.of(String.valueOf(id), nickname, email,
+        return Stream.of(String.valueOf(orderNum), String.valueOf(id), nickname, email,
                 formattedDateTime(creationTime), emptyIfNull(firstIp), emptyIfNull(lastIp), formattedDateTime(lastLoginTime))
                 .collect(Collectors.joining(";", "", "\r\n"));
     }
