@@ -155,7 +155,8 @@ public class WalletDaoImpl implements WalletDao {
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 ";
+            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 " +
+            " ORDER BY active_balance DESC, CURRENCY.name ASC ";
     final Map<String, String> params = new HashMap<String, String>() {{
       put("email", email);
     }};
