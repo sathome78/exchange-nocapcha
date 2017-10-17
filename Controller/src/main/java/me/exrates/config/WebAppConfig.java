@@ -58,6 +58,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.zeromq.ZMQ;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
@@ -477,6 +478,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
+    }
+
+    @Bean
+    public ZMQ.Context zmqContext() {
+        return ZMQ.context(1);
     }
 
 }
