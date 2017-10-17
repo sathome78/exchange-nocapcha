@@ -33,7 +33,7 @@ READS SQL DATA
 
     DECLARE AGRIGATE CURSOR
     FOR SELECT
-          CP.name,
+          CP.ticker_name,
           EO.currency_pair_id,
           EO.status_id,
           MIN(EO.date_acception) AS first_date_acception,
