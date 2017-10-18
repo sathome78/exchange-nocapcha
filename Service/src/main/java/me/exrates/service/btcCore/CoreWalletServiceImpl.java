@@ -19,28 +19,28 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
 import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
-import me.exrates.service.events.BtcBlockEvent;
-import me.exrates.service.events.BtcWalletEvent;
 import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
-import me.exrates.service.impl.BtcdZMQDaemonImpl;
+import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.zeromq.ZMQ;
+import reactor.core.publisher.Flux;
 
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -55,13 +55,12 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
 
   @Autowired
-  private ApplicationEventPublisher eventPublisher;
-
-  @Autowired
   private ZMQ.Context zmqContext;
 
   
   private BtcdClient btcdClient;
+
+  private BtcDaemon btcDaemon;
 
   
   @Override
@@ -83,7 +82,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   @Override
   public void initBtcdDaemon(boolean zmqEnabled)  {
-    BtcDaemon btcDaemon;
     if (zmqEnabled) {
       btcDaemon = new BtcdZMQDaemonImpl(btcdClient, zmqContext);
     } else {
@@ -91,17 +89,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
 
     try {
-      btcDaemon.init(
-              block -> {
-                log.debug(String.format("Block detected: hash %s, height %s ", block.getHash(), block.getHeight()));
-                eventPublisher.publishEvent(new BtcBlockEvent(new BtcBlockDto(block.getHash(), block.getHeight(), block.getTime())));
-              }, transaction -> {
-                log.debug(String.format("Wallet change: tx %s", transaction.getTxId()));
-                eventPublisher.publishEvent(new BtcWalletEvent(convert(transaction)));
-              }, transaction -> {
-                log.debug(String.format("Transaction blocked: tx %s", transaction.getTxId()));
-                eventPublisher.publishEvent(new BtcWalletEvent(convert(transaction)));
-              });
+      btcDaemon.init();
     } catch (Exception e) {
       log.error(e);
     }
@@ -141,13 +129,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
   }
   
-/*  @PreDestroy
+  @PreDestroy
   public void shutdownDaemon() {
-    daemon.removeAlertListeners();
-    daemon.removeBlockListeners();
-    daemon.removeWalletListeners();
-    daemon.shutdown();
-  }*/
+    btcDaemon.destroy();
+  }
   
   
   private Optional<Transaction> handleConflicts(Transaction transaction) {
@@ -172,6 +157,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   @Override
   public Optional<BtcTransactionDto> handleTransactionConflicts(String txId) {
     try {
+      log.debug(this);
       return handleConflicts(btcdClient.getTransaction(txId)).map(this::convert);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
@@ -364,6 +350,32 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
- 
+
+  @Override
+  public Flux<BtcBlockDto> blockFlux() {
+    return notificationFlux("node.bitcoind.notification.block.port", btcDaemon::blockFlux, block ->
+            new BtcBlockDto(block.getHash(), block.getHeight(), block.getTime()));
+  }
+
+  @Override
+  public Flux<BtcTransactionDto> walletFlux() {
+    return notificationFlux("node.bitcoind.notification.wallet.port", btcDaemon::walletFlux, this::convert);
+  }
+
+  @Override
+  public Flux<BtcTransactionDto> instantSendFlux() {
+    return notificationFlux("node.bitcoind.notification.instantsend.port", btcDaemon::instantSendFlux, this::convert);
+  }
+
+  private <S, T> Flux<T> notificationFlux(String portProperty, Function<String, Flux<S>> source, Function<S, T> mapper) {
+    if (btcdClient != null) {
+      String port = btcdClient.getNodeConfig().getProperty(portProperty);
+      return source.apply(port).map(mapper);
+    } else {
+      log.error("Client not initialized!");
+      return Flux.empty();
+    }
+  }
+
+
 }

@@ -9,8 +9,6 @@ import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
-import me.exrates.service.events.BtcBlockEvent;
-import me.exrates.service.events.BtcWalletEvent;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.ParamMapUtils;
@@ -21,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -91,6 +87,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   void startBitcoin() {
     bitcoinWalletService.initCoreClient(nodePropertySource);
     bitcoinWalletService.initBtcdDaemon(zmqEnabled);
+    bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
+    bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+    bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
     examineMissingPaymentsOnStartup();
   }
 
@@ -154,10 +153,9 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
     return address;
   }
+
   @Override
-  @EventListener(value = BtcWalletEvent.class)
-  public void onPayment(BtcWalletEvent event) {
-    BtcTransactionDto transactionDto = (BtcTransactionDto) event.getSource();
+  public void onPayment(BtcTransactionDto transactionDto) {
     log.debug("on payment {} - {}", currencyName, transactionDto);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
@@ -234,9 +232,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   @Override
-  @EventListener(value = BtcBlockEvent.class)
-  public void onIncomingBlock(BtcBlockEvent event) {
-    BtcBlockDto blockDto = (BtcBlockDto) event.getSource();
+  public void onIncomingBlock(BtcBlockDto blockDto) {
     String blockHash = blockDto.getHash();
     log.debug("incoming block {} - {}", currencyName, blockHash);
     Merchant merchant = merchantService.findByName(merchantName);

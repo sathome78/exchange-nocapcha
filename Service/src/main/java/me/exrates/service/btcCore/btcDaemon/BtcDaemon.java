@@ -2,13 +2,18 @@ package me.exrates.service.btcCore.btcDaemon;
 
 import com.neemre.btcdcli4j.core.domain.Block;
 import com.neemre.btcdcli4j.core.domain.Transaction;
-
-import java.util.function.Consumer;
+import reactor.core.publisher.Flux;
 
 public interface BtcDaemon {
 
 
-    void init(Consumer<Block> blockHandler,
-              Consumer<Transaction> walletHandler,
-              Consumer<Transaction> instantSendHandler);
+    void init();
+
+    void destroy();
+
+    Flux<Block> blockFlux(String port);
+
+    Flux<Transaction> walletFlux(String port);
+
+    Flux<Transaction> instantSendFlux(String port);
 }

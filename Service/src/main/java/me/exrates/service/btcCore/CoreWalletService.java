@@ -3,9 +3,11 @@ package me.exrates.service.btcCore;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import org.springframework.scheduling.annotation.Scheduled;
+import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,4 +50,10 @@ public interface CoreWalletService {
   String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
   
   String sendToMany(Map<String, BigDecimal> payments);
+
+    Flux<BtcBlockDto> blockFlux();
+
+    Flux<BtcTransactionDto> walletFlux();
+
+  Flux<BtcTransactionDto> instantSendFlux();
 }
