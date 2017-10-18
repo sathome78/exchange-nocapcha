@@ -362,6 +362,17 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
+                    "data": "destinationTag",
+                    "name": "WITHDRAW_REQUEST.destinationTag",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            var tag = data == null ? '' : data;
+                            return '<input class="form-control copyable" value="' + tag + '">';
+                        }
+                        return data;
+                    }
+                },
+                {
                     "data": "adminHolderEmail",
                     "name": "WITHDRAW_REQUEST.admin_holder_id",
                     "render": function (data, type, row) {

@@ -205,6 +205,7 @@
           <th><loc:message code="withdrawal.commission"/></th>
           <th><loc:message code="withdrawal.merchant"/></th>
           <th><loc:message code="merchants.withdrawDetails.recipientAccount"/></th>
+          <th><loc:message code="merchants.withdrawDetails.destinationTag"/></th>
           <th></th>
         </tr>
         </thead>
