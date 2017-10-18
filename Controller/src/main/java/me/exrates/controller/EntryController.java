@@ -1,20 +1,27 @@
 package me.exrates.controller;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.FileLoadingException;
-import me.exrates.controller.exception.NewsCreationException;
-import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.controller.exception.*;
 import me.exrates.model.*;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
-import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.exception.IncorrectSmsPinException;
+import me.exrates.service.exception.PaymentException;
+import me.exrates.service.exception.ServiceUnavailableException;
+import me.exrates.service.exception.UnoperableNumberException;
+import me.exrates.service.notifications.*;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -31,12 +38,15 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -65,17 +75,15 @@ public class EntryController {
     @Autowired
     private UserService userService;
     @Autowired
-    private SurveyService surveyService;
-    @Autowired
     private SessionParamsService sessionService;
     @Autowired
     private NotificationService notificationService;
     @Autowired
     private UserRoleService userRoleService;
     @Autowired
-    private DefaultSimpUserRegistry registry;
-    @Autowired
     private NotificationsSettingsService settingsService;
+    @Autowired
+    private NotificatorsService notificatorService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -216,6 +224,87 @@ public class EntryController {
         return redirectView;
     }
 
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/getNotyPrice")
+    public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
+        Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
+        Object subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
+        UserRole role = userService.getUserRoleFromDB(principal.getName());
+        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());;
+        if (subscription != null && subscription instanceof TelegramSubscription) {
+            if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
+                throw new IllegalStateException();
+            }
+            dto.setCode(((TelegramSubscription)subscription).getCode());
+        }
+        return dto;
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/preconnect_sms")
+    public String preconnectSms(@RequestParam String number, Principal principal, HttpServletRequest request) {
+        number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
+        if (!NumberUtils.isDigits(number)) {
+            throw new UnoperableNumberException();
+        }
+        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
+        int userId = userService.getIdByEmail(principal.getName());
+        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
+                .userId(userId)
+                .newContact(number)
+                .build();
+        return subscribable.prepareSubscription(subscriptionDto).toString();
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/confirm_connect_sms")
+    public String connectSms(Principal principal) {
+        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
+        subscribable.createSubscription(principal.getName());
+        return "ok";
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_connect_sms")
+    public String verifyConnectSms(@RequestParam String code, Principal principal) {
+        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.SMS.getCode());
+        int userId = userService.getIdByEmail(principal.getName());
+        SmsSubscriptionDto subscriptionDto = SmsSubscriptionDto.builder()
+                .code(code)
+                .userId(userId)
+                .build();
+        return subscribable.subscribe(subscriptionDto).toString();
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/connect_telegram")
+    public String getNotyPrice(Principal principal) {
+        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
+        return subscribable.createSubscription(principal.getName()).toString();
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/reconnect_telegram")
+    public String reconnectTelegram(Principal principal) {
+        Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
+        return subscribable.reconnect(principal.getName()).toString();
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/contact_info")
+    public String getInfo(@RequestParam int id, Principal principal) {
+        Subscribable subscribable = notificatorService.getByNotificatorId(id);
+        Preconditions.checkNotNull(subscribable);
+        NotificatorSubscription subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
+        Preconditions.checkState(subscription.isConnected());
+        String contact = Preconditions.checkNotNull(subscription.getContactStr());
+        int roleId = userService.getUserRoleFromSecurityContext().getRole();
+        BigDecimal fee = notificatorService.getMessagePrice(id, roleId);
+        BigDecimal price = doAction(fee, subscription.getPrice(), ActionType.ADD);
+        return new JSONObject(){{put("contact", contact);
+                                 put("price", price);}}.toString();
+    }
+
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/{newsVariant}/newstopic")
     public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {
@@ -277,6 +366,34 @@ public class EntryController {
     @ResponseBody
     public ErrorInfo NewsCreationExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler(ServiceUnavailableException.class)
+    @ResponseBody
+    public ErrorInfo SmsSubscribeExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, "service is unavilable now");
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler(IncorrectSmsPinException.class)
+    @ResponseBody
+    public ErrorInfo IncorrectSmsPinExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, "incorrect pin-code");
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler(UnoperableNumberException.class)
+    @ResponseBody
+    public ErrorInfo SmsSubscribeUnoperableNumberExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, "this number is unoperable");
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler(PaymentException.class)
+    @ResponseBody
+    public ErrorInfo msSubscribeMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, "not enought money");
     }
 
 }

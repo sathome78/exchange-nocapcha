@@ -1,9 +1,11 @@
 package me.exrates.service.notifications;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.NotificationPayEventEnum;
+import me.exrates.model.dto.NotificatorSubscription;
 import me.exrates.model.dto.TelegramSubscription;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.WalletOperationData;
@@ -16,6 +18,7 @@ import me.exrates.service.exception.TelegramSubscriptionException;
 import me.exrates.service.notifications.telegram.TelegramBotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -60,18 +63,18 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     @Override
     public Object subscribe(Object subscribeData) {
         TelegramSubscription subscriptionDto = (TelegramSubscription)subscribeData;
-        String[] data = (subscriptionDto.getRawText()).split("\\:");
+        String[] data = (subscriptionDto.getRawText()).split(":");
         String email = data[0];
-        String code = data[1];
-        Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByCodeAndEmail(code, email);
+        log.debug("code {}, email {}", subscriptionDto.getRawText(), email);
+        Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByCodeAndEmail(subscriptionDto.getRawText(), email);
         TelegramSubscription subscription = subscriptionOptional.orElseThrow(TelegramSubscriptionException::new);
-        TelegramSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
-        if (nextState == null) {
+        NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
+        if (subscription.getSubscriptionState().isFinalState()) {
             /*set New account for subscription if allready subscribed*/
             subscription.setChatId(subscriptionDto.getChatId());
             subscription.setUserAccount(subscriptionDto.getUserAccount());
             subscription.setCode(null);
-        } else if (subscription.getSubscriptionState().isFinalState()) {
+        } else if (subscription.getSubscriptionState().isBeginState()) {
             subscription.setSubscriptionState(nextState);
             subscription.setChatId(subscriptionDto.getChatId());
             subscription.setUserAccount(subscriptionDto.getUserAccount());
@@ -86,30 +89,45 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         return subscribtionDao.getSubscribtionByUserId(userId);
     }
 
+    @Override
     @Transactional
     public String createSubscription(String userEmail) {
         String code = generateCode(userEmail);
         int id = subscribtionDao.create(TelegramSubscription.builder()
-                .id(userService.getIdByEmail(userEmail))
-                .subscriptionState(TelegramSubscriptionStateEnum.getBeginState())
-                .code(new StringJoiner(":", userEmail, code).toString()).build());
+                .userId(userService.getIdByEmail(userEmail))
+                .subscriptionState(NotificatorSubscriptionStateEnum.getBeginState())
+                .code(code).build());
         payForSubscribe(
                 BigDecimal.ZERO,
                 userEmail,
                 OperationType.BUY_NOTIFICATION_SUBSCRIPTION,
-                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.SUBSCRIBE.name()),
-                NotificationPayEventEnum.SUBSCRIBE);
+                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.SUBSCRIBE.name())
+        );
         return code;
     }
 
+    @Override
+    public NotificatorSubscription getSubscription(int userId) {
+        return subscribtionDao.getSubscribtionByUserId(userId);
+    }
+
+    @Override
+    public Object prepareSubscription(Object subscriptionObject) {
+        return null;
+    }
+
+    @Override
     @Transactional
-    public String getNewCode(String userEmail) {
+    public Object reconnect(Object object) {
+        String userEmail = String.valueOf(object);
+        TelegramSubscription subscription = subscribtionDao.getSubscribtionByUserId(userService.getIdByEmail(userEmail));
+        Preconditions.checkState(subscription.getSubscriptionState().isFinalState());
         String code = generateCode(userEmail);
         subscribtionDao.updateCode(code, userService.getIdByEmail(userEmail));
         return code;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
         Optional<TelegramSubscription> subscriptionOptional = Optional.ofNullable(subscribtionDao.getSubscribtionByUserId(userService.getIdByEmail(userEmail)));
@@ -122,7 +140,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     }
 
     private String generateCode(String email) {
-        return new StringJoiner(":", email, String.valueOf(100000000 + new Random().nextInt(100000000))).toString();
+        return new StringJoiner(":").add(email).add(String.valueOf(100000000 + new Random().nextInt(100000000))).toString();
     }
 
     @Override
@@ -132,16 +150,17 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
 
     @Transactional
     private BigDecimal payForSubscribe(BigDecimal amount, String userEmail, OperationType operationType,
-                                 String description, NotificationPayEventEnum payEventEnum) {
+                                 String description) {
         int userId = userService.getIdByEmail(userEmail);
         UserRole role = userService.getUserRoleFromDB(userEmail);
-        BigDecimal fee = notificatorsService.getFeePrice(getNotificationType().getCode(), role.getRole(), payEventEnum);
+        BigDecimal fee = notificatorsService.getSubscriptionPrice(getNotificationType().getCode(), role.getRole());
         BigDecimal totalAmount = doAction(amount, fee, ActionType.ADD);
         WalletOperationData walletOperationData = new WalletOperationData();
+        walletOperationData.setCommissionAmount(BigDecimal.ZERO);
         walletOperationData.setOperationType(operationType);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currency.getId()));
         walletOperationData.setBalanceType(ACTIVE);
-        walletOperationData.setAmount(totalAmount);
+        walletOperationData.setAmount(totalAmount.negate());
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);

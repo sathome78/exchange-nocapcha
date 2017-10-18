@@ -10,9 +10,4 @@ import java.math.BigDecimal;
 public interface NotificatorsDao {
     Notificator getById(int id);
 
-    BigDecimal getSubscriptionPrice(int notificatorId);
-
-    BigDecimal getMessagePrice(int notificatorId);
-
-    BigDecimal getLookUpPrice(int notificatorId);
 }

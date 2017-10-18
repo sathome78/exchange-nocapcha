@@ -27,8 +27,6 @@ public class NotificatorDaoImpl implements NotificatorsDao {
         notificator.setId(rs.getInt("id"));
         notificator.setBeanName(rs.getString("bean_name"));
         notificator.setPayTypeEnum(NotificationPayTypeEnum.valueOf(rs.getString("pay_type")));
-        notificator.setMessagePrice(rs.getBigDecimal("message_cost"));
-        notificator.setSubscribePrice(rs.getBigDecimal("subscribe_cost"));
         return notificator;
     };
 
@@ -39,24 +37,5 @@ public class NotificatorDaoImpl implements NotificatorsDao {
             put("id", id);
         }};
         return namedParameterJdbcTemplate.queryForObject(sql, params, notificatorRowMapper);
-    }
-
-    @Override
-    public BigDecimal getSubscriptionPrice(int notificatorId) {
-        String sql = "SELECT subscribe_cost FROM NOTIFICATOR WHERE id = :id ";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", notificatorId), BigDecimal.class);
-    }
-
-    @Override
-    public BigDecimal getMessagePrice(int notificatorId) {
-        String sql = "SELECT message_cost FROM NOTIFICATOR WHERE id = :id ";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", notificatorId), BigDecimal.class);
-    }
-
-    @Override
-    public BigDecimal getLookUpPrice(int notificatorId) {
-        String sql = "SELECT lookup_cost FROM NOTIFICATOR WHERE id = :id ";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", notificatorId), BigDecimal.class);
-
     }
 }

@@ -1,23 +1,30 @@
 package me.exrates.service.notifications;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.SmsSubscriptionDao;
 import me.exrates.model.Email;
-import me.exrates.model.dto.LookupResponseDto;
-import me.exrates.model.dto.NotificationPayEventEnum;
-import me.exrates.model.dto.SmsSubscriptionDto;
-import me.exrates.model.dto.TelegramSubscription;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.notifications.sms.Sms1s2uService;
-import org.jvnet.hk2.annotations.Service;
+import me.exrates.service.notifications.sms.epochta.EpochtaApi;
+import me.exrates.service.notifications.sms.epochta.Phones;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.xml.sax.SAXException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.util.*;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
@@ -26,7 +33,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
  * Created by Maks on 29.09.2017.
  */
 @Log4j2(topic = "message_notify")
-@Service
+@Component
 public class SmsNotificatorServiceImpl implements NotificatorService, Subscribable {
 
     @Autowired
@@ -40,11 +47,14 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     @Autowired
     private SmsSubscriptionDao subscriptionDao;
     @Autowired
-    private Sms1s2uService smsService;
+    private EpochtaApi smsService;
     @Autowired
     private SendMailService sendMailService;
+    @Autowired
+    private MessageSource messageSource;
 
     private static final String CURRENCY_NAME = "USD";
+    private static final String SENDER = "Exrates";
 
 
     @Override
@@ -52,46 +62,110 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         return subscriptionDao.getByUserId(userId);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
         int userId = userService.getIdByEmail(userEmail);
-        BigDecimal messageCost = notificatorsService.getMessagePrice(getNotificationType().getCode());
-        pay(
-                messageCost,
-                userId,
-                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.BUY_ONE.name()),
-                NotificationPayEventEnum.BUY_ONE);
+        int roleId = userService.getUserRoleFromDB(userId).getRole();
+        BigDecimal messagePrice = notificatorsService.getMessagePrice(getNotificationType().getCode(), roleId);
         SmsSubscriptionDto subscriptionDto = subscriptionDao.getByUserId(userService.getIdByEmail(userEmail));
-        smsService.sendMessage(subscriptionDto.getContact(), message);
+        BigDecimal totalAmount = doAction(messagePrice, subscriptionDto.getPriceForContact(), ActionType.ADD);
+        pay(
+                totalAmount,
+                userId,
+                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.BUY_ONE.name())
+        );
+        String xml = smsService.sendSms(SENDER, message,
+                new ArrayList<Phones>(){{add(new Phones("id1","", subscriptionDto.getContact()));}});
+        log.debug("send sms status {}", xml);
+        String status;
+        try {
+            status = smsService.getValueFromXml(xml, "status");
+        } catch (Exception e) {
+            throw new MessageUndeliweredException();
+        }
+        Preconditions.checkState(!status.equals("-1"));
         return String.valueOf(subscriptionDto.getContact());
+    }
+
+    /*return sms cost for user and phone number*/
+    @Override
+    public Object prepareSubscription(Object subscriptionObject) {
+        SmsSubscriptionDto subscriptionDto = (SmsSubscriptionDto) subscriptionObject;
+        Map<String, String> phones = new HashMap<>();
+        Preconditions.checkArgument(!StringUtils.isEmpty(subscriptionDto.getNewContact()));
+        phones.put("id1", subscriptionDto.getNewContact());
+        log.debug("contact {}", subscriptionDto.getNewContact());
+        String xml = smsService.getPrice("text", phones);
+        log.debug("response {}", xml);
+        BigDecimal cost;
+        String status;
+        try {
+            status = smsService.getValueFromXml(xml, "status");
+            Preconditions.checkArgument(!status.equals("-1"));
+            cost = new BigDecimal(smsService.getValueFromXml(xml, "amount"));
+        } catch (Exception e) {
+            throw new ServiceUnavailableException();
+        }
+        SmsSubscriptionDto oldDto = getByUserId(subscriptionDto.getUserId());
+        if (oldDto != null) {
+            subscriptionDto.setStateEnum(oldDto.getStateEnum());
+            subscriptionDto.setPriceForContact(oldDto.getPriceForContact());
+            subscriptionDto.setContact(oldDto.getContact());
+        } else  {
+            subscriptionDto.setStateEnum(NotificatorSubscriptionStateEnum.getBeginState());
+        }
+        subscriptionDto.setNewPrice(cost);
+        UserRole role = userService.getUserRoleFromDB(subscriptionDto.getUserId());
+        BigDecimal totalAmount = notificatorsService.getMessagePrice(getNotificationType().getCode(), role.getRole());
+        createOrUpdate(subscriptionDto);
+        return doAction(cost, totalAmount, ActionType.ADD);
+    }
+
+    @Override
+    public Object createSubscription(String email) {
+        SmsSubscriptionDto subscriptionDto = getByUserId(userService.getIdByEmail(email));
+        Preconditions.checkArgument(subscriptionDto.getNewContact() != null && subscriptionDto.getNewPrice() != null);
+        subscriptionDto.setCode(generateCode());
+        createOrUpdate(subscriptionDto);
+        Locale locale = userService.getUserLocaleForMobile(email);
+        sendMessageToUser(email,
+                messageSource.getMessage("message.sms.codeForSubscribe", new String[]{subscriptionDto.getCode()}, locale),
+                null);
+        return subscriptionDto;
     }
 
     @Transactional
     @Override
     public Object subscribe(Object subscriptionObject) {
-        SmsSubscriptionDto subscriptionDto = (SmsSubscriptionDto) subscriptionObject;
-        BigDecimal lookUpCost = notificatorsService.getLookUpPrice(getNotificationType().getCode());
-        LookupResponseDto dto;
-        try {
-            pay(
-                    lookUpCost,
-                    subscriptionDto.getUserId(),
-                    getNotificationType().name().concat(":").concat(NotificationPayEventEnum.LOOKUP.name()),
-                    NotificationPayEventEnum.LOOKUP);
-            dto = smsService.getLookup(subscriptionDto.getContact());
-        } catch (InvalidRefNumberException e) {
-            throw new ServiceUnavailableException();
-        } catch (InsuficcienceServiceBalanceException e) {
-            sendAlertMessage();
-            throw new ServiceUnavailableException();
+        SmsSubscriptionDto recievedDto = (SmsSubscriptionDto) subscriptionObject;
+        SmsSubscriptionDto userDto = Preconditions.checkNotNull(getByUserId(recievedDto.getUserId()));
+        if (recievedDto.getCode().equals(userDto.getCode())) {
+            userDto.setStateEnum(NotificatorSubscriptionStateEnum.getFinalState());
+            userDto.setCode(null);
+            userDto.setPriceForContact(userDto.getNewPrice());
+            userDto.setContact(userDto.getNewContact());
+            userDto.setNewPrice(null);
+            userDto.setNewContact(null);
+            createOrUpdate(userDto);
+            return userDto;
         }
-        if (dto.isOperable()) {
-            this.createOrUpdate(subscriptionDto);
-        } else {
-            throw new UnoperableNumberException(dto);
-        }
-        return dto;
+        throw new IncorrectSmsPinException();
+    }
+
+    private String generateCode() {
+        return String.valueOf(10000 + new Random().nextInt(10000));
+    }
+
+    @Override
+    public NotificatorSubscription getSubscription(int userId) {
+        return subscriptionDao.getByUserId(userId);
+    }
+
+    @Transactional
+    @Override
+    public Object reconnect(Object subscriptionObject) {
+        return subscribe(subscriptionObject);
     }
 
     @Override
@@ -100,22 +174,20 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     }
 
     @Transactional
-    private BigDecimal pay(BigDecimal price, int userId, String description, NotificationPayEventEnum payEventEnum) {
-        UserRole role = userService.getUserRoleFromDB(userId);
-        BigDecimal fee = notificatorsService.getFeePrice(getNotificationType().getCode(), role.getRole(), payEventEnum);
-        BigDecimal totalAmount = doAction(price, fee, ActionType.ADD);
+    private BigDecimal pay(BigDecimal amount, int userId, String description) {
         WalletOperationData walletOperationData = new WalletOperationData();
-        walletOperationData.setOperationType(OperationType.PAY_FOR_NOTIFICATION);
+        walletOperationData.setOperationType(OperationType.PAY_FOR_SMS);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currencyService.findByName(CURRENCY_NAME).getId()));
         walletOperationData.setBalanceType(ACTIVE);
-        walletOperationData.setAmount(totalAmount);
+        walletOperationData.setCommissionAmount(BigDecimal.ZERO);
+        walletOperationData.setAmount(amount.negate());
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if(!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
             throw new PaymentException(walletTransferStatus);
         }
-        return totalAmount;
+        return amount;
     }
 
     private void sendAlertMessage() {

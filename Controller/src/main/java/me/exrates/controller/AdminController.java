@@ -26,6 +26,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -42,6 +43,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -129,12 +131,12 @@ public class AdminController {
   StopOrderService stopOrderService;
   @Autowired
   RefillService refillService;
-
   @Autowired
   BotService botService;
-
   @Autowired
   private MerchantServiceContext serviceContext;
+  @Autowired
+  private NotificatorsService notificatorsService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -1370,6 +1372,18 @@ public class AdminController {
       throw new InvalidNumberParamException(messageSource.getMessage("admin.autoTrading.settings.minGreater", null, locale));
     }
     botService.updateTradingSettings(tradingSettings);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/notificatorsSettings")
+  public String notificatorsSettings(Model model) {
+    model.addAttribute("roleNames", BusinessUserRoleEnum.values());
+    return "admin/notificatorsSettings";
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/getNotificatorsSettings")
+  public List<NotificatorSettingAdminDto> getNotificatorsSettings(@RequestParam String role) {
+    return notificatorsService.getNotificatorSettingsByRole(role);
   }
 
 

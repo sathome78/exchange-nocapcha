@@ -3,17 +3,15 @@ package me.exrates.service.notifications;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
-import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.Notificator;
+import me.exrates.model.dto.NotificatorSettingAdminDto;
+import me.exrates.model.dto.NotificatorTotalPriceDto;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by Maks on 06.10.2017.
@@ -30,6 +28,8 @@ public class NotificatorsServiceImpl implements NotificatorsService {
 
     @Autowired
     Map<String, NotificatorService> notificatorsMap;
+    @Autowired
+    Map<String, Subscribable> subscribableMap;
 
     @Override
     public NotificatorService getNotificationService(Integer notificatorId) {
@@ -45,14 +45,26 @@ public class NotificatorsServiceImpl implements NotificatorsService {
 
     @Override
     public Map<Integer, Object> getSubscriptions(int userId) {
+        log.debug("map size {}", notificatorsMap.size() );
+        notificatorsMap.forEach((k,v)-> {
+            log.debug("key {}, val {}", k, v);
+        });
         Map<Integer, Object> subscrMap = new HashMap<>();
         Arrays.asList(NotificationTypeEnum.values()).forEach(p->{
             if (p.isNeedSubscribe()) {
                 NotificatorService service = this.getNotificationService(p.getCode());
+                log.debug("service {}, notificator {}", service, p);
                 subscrMap.put(p.getCode(), service.getSubscriptionByUserId(userId));
             }
         });
         return subscrMap;
+    }
+
+    @Override
+    public Subscribable getByNotificatorId(int id) {
+        Notificator notificator = Optional.ofNullable(this.getById(id))
+                .orElseThrow(() -> new RuntimeException(String.valueOf(id)));
+        return subscribableMap.get(notificator.getBeanName());
     }
 
     @Override
@@ -61,22 +73,27 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     }
 
     @Override
-    public BigDecimal getMessagePrice(int notificatorId) {
-        return notificatorsDao.getMessagePrice(notificatorId);
+    public BigDecimal getMessagePrice(int notificatorId, int roleId) {
+        return notificatorPriceDao.getFeeMessagePrice(notificatorId, roleId);
     }
 
     @Override
-    public BigDecimal getFeePrice(int notificatorId, int roleId, NotificationPayEventEnum payEventEnum) {
-        return notificatorPriceDao.getMessagePrice(notificatorId, roleId, payEventEnum);
+    public NotificatorTotalPriceDto getPrices(int notificatorId, int roleId) {
+        return notificatorPriceDao.getPrices(notificatorId, roleId);
     }
 
     @Override
-    public BigDecimal getSubscriptionPrice(int notificatorId) {
-        return notificatorsDao.getSubscriptionPrice(notificatorId);
+    public BigDecimal getSubscriptionPrice(int notificatorId, int roleId) {
+        return notificatorPriceDao.getSubscriptionPrice(notificatorId, roleId);
     }
 
     @Override
-    public BigDecimal getLookUpPrice(int notificatorId) {
-        return notificatorsDao.getLookUpPrice(notificatorId);
+    public BigDecimal getLookUpPrice(int notificatorId, int roleId) {
+        return notificatorPriceDao.getLookUpPrice(notificatorId, roleId);
+    }
+
+    @Override
+    public List<NotificatorSettingAdminDto> getNotificatorSettingsByRole(String role) {
+        return ;
     }
 }

@@ -2,7 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.TelegramSubscriptionDao;
 import me.exrates.model.dto.TelegramSubscription;
-import me.exrates.model.enums.TelegramSubscriptionStateEnum;
+import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -32,14 +32,14 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
         subscription.setUserId(rs.getInt("user_id"));
         subscription.setUserAccount(rs.getString("user_account"));
         subscription.setCode(rs.getString("code"));
-        subscription.setSubscriptionState(TelegramSubscriptionStateEnum.valueOf(rs.getString("subscription_state")));
+        subscription.setSubscriptionState(NotificatorSubscriptionStateEnum.valueOf(rs.getString("subscription_state")));
         return subscription;
     };
 
 
     @Override
     public Optional<TelegramSubscription> getSubscribtionByCodeAndEmail(String code, String email) {
-        final String sql = " SELECT * FROM SUBSCRIPTION " +
+        final String sql = " SELECT * FROM TELEGRAM_SUBSCRIPTION " +
                 " INNER JOIN USER U ON U.email = :email " +
                 " WHERE code = :code ";
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -54,7 +54,7 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 
     @Override
     public TelegramSubscription getSubscribtionByUserId(int userId) {
-        final String sql = " SELECT * FROM SUBSCRIPTION WHERE user_id = :id ";
+        final String sql = " SELECT * FROM TELEGRAM_SUBSCRIPTION WHERE user_id = :id ";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", userId);
         try{
@@ -66,8 +66,8 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 
     @Override
     public void updateSubscription(TelegramSubscription subscribtion) {
-        final String sql = " UPDATE SUBSCRIPTION " +
-                " SET code = :code, subscription_state = :state, user_account = :account, chat_id = :chatId " +
+        final String sql = " UPDATE TELEGRAM_SUBSCRIPTION " +
+                " SET code = :code, subscription_state = :subscription_state, user_account = :user_account, chat_id = :chat_id " +
                 " WHERE id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", subscribtion.getId());
@@ -80,7 +80,7 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 
     @Override
     public int create(TelegramSubscription subscription) {
-        final String sql = " INSERT INTO SUBSCRIPTION (user_id, chat_id, subscription_state, user_account, code)" +
+        final String sql = " INSERT INTO TELEGRAM_SUBSCRIPTION (user_id, chat_id, subscription_state, user_account, code)" +
                 " VALUES (:user_id, :chat_id, :state, :user_account, :code) ";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
@@ -95,7 +95,7 @@ public class TelegramSubscriptionDaoImpl implements TelegramSubscriptionDao {
 
     @Override
     public void updateCode(String code, int userId) {
-        final String sql = " UPDATE SUBSCRIPTION " +
+        final String sql = " UPDATE TELEGRAM_SUBSCRIPTION " +
                 " SET code = :code" +
                 " WHERE user_id = :id";
         Map<String, Object> params = new HashMap<>();

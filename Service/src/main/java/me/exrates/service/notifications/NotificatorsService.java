@@ -1,9 +1,11 @@
 package me.exrates.service.notifications;
 
-import me.exrates.model.dto.NotificationPayEventEnum;
 import me.exrates.model.dto.Notificator;
+import me.exrates.model.dto.NotificatorSettingAdminDto;
+import me.exrates.model.dto.NotificatorTotalPriceDto;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,13 +19,18 @@ public interface NotificatorsService {
 
     Map<Integer, Object> getSubscriptions(int userId);
 
+    Subscribable getByNotificatorId(int id);
+
     Notificator getById(int id);
 
-    BigDecimal getMessagePrice(int notificatorId);
+    BigDecimal getMessagePrice(int notificatorId, int roleId);
 
-    BigDecimal getFeePrice(int notificatorId, int role, NotificationPayEventEnum payEventEnum);
+    NotificatorTotalPriceDto getPrices(int notificatorId, int roleId);
 
-    BigDecimal getSubscriptionPrice(int notificatorId);
 
-    BigDecimal getLookUpPrice(int code);
+    BigDecimal getSubscriptionPrice(int notificatorId, int roleId);
+
+    BigDecimal getLookUpPrice(int code, int roleId);
+
+    List<NotificatorSettingAdminDto> getNotificatorSettingsByRole(String role);
 }

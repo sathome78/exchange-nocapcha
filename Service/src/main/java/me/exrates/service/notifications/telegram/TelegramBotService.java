@@ -2,7 +2,7 @@ package me.exrates.service.notifications.telegram;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.TelegramSubscription;
-import me.exrates.model.enums.TelegramSubscriptionStateEnum;
+import me.exrates.model.enums.NotificatorSubscriptionStateEnum;
 import me.exrates.service.exception.MessageUndeliweredException;
 import me.exrates.service.exception.TelegramSubscriptionException;
 import me.exrates.service.notifications.Subscribable;
@@ -54,7 +54,7 @@ public class TelegramBotService  extends TelegramLongPollingBot {
                 .setChatId(chatId)
                 .setText(text);
         try {
-            sendMessage(message); // Call method to send the message
+            execute(message); // Call method to send the message
         } catch (TelegramApiException e) {
             throw new MessageUndeliweredException();
         }
@@ -64,26 +64,33 @@ public class TelegramBotService  extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String sender = update.getMessage().getFrom().getUserName();
-            Long chatId = update.getMessage().getChatId();
+            Long chatId = update.getMessage().getChat().getId();
             String text = update.getMessage().getText();
+            log.debug("telegram recieve message {} {}", text, update.getMessage().getContact());
             SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
                     .setChatId(update.getMessage().getChatId());
-            try {
-                subscribable.subscribe(TelegramSubscription.builder()
-                        .chatId(chatId)
-                        .rawText(text)
-                        .subscriptionState(TelegramSubscriptionStateEnum.getBeginState())
-                        .userAccount(sender)
-                        .build());
-            } catch (Exception e) {
-                message.setText("error registering profile");
+            if (text.startsWith("/")) {
+                message.setText("Hello!");
+            } else {
+                try {
+                    subscribable.subscribe(TelegramSubscription.builder()
+                            .chatId(chatId)
+                            .rawText(text)
+                            .subscriptionState(NotificatorSubscriptionStateEnum.getFinalState())
+                            .userAccount(sender)
+                            .build());
+                    message.setText("Registered");
+                } catch (Exception e) {
+                    log.error(e);
+                    message.setText("error registering profile");
+                }
             }
-            message.setText("successRegister");
             try {
-                sendMessage(message); // Call method to send the message
+                execute(message); // Call method to send the message
             } catch (TelegramApiException e) {
-               throw new TelegramSubscriptionException();
+                throw new TelegramSubscriptionException();
             }
+
         }
     }
 

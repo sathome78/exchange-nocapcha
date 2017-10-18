@@ -3,16 +3,20 @@ package me.exrates.model.enums;
 /**
  * Created by Maks on 05.10.2017.
  */
-public enum TelegramSubscriptionStateEnum {
+public enum NotificatorSubscriptionStateEnum {
 
     SUBSCRIBED(false, true, null),
     WAIT_FOR_SUBSCRIBE(true, false, SUBSCRIBED);
 
-    public static TelegramSubscriptionStateEnum getBeginState() {
+    public static NotificatorSubscriptionStateEnum getBeginState() {
         return WAIT_FOR_SUBSCRIBE;
     }
 
-    TelegramSubscriptionStateEnum(boolean beginState,  boolean finalState, TelegramSubscriptionStateEnum nextState) {
+    public static NotificatorSubscriptionStateEnum getFinalState() {
+        return SUBSCRIBED;
+    }
+
+    NotificatorSubscriptionStateEnum(boolean beginState, boolean finalState, NotificatorSubscriptionStateEnum nextState) {
         this.beginState = beginState;
         this.nextState = nextState;
         this.finalState = finalState;
@@ -22,10 +26,10 @@ public enum TelegramSubscriptionStateEnum {
 
     boolean finalState;
 
-    TelegramSubscriptionStateEnum nextState;
+    NotificatorSubscriptionStateEnum nextState;
 
 
-    public TelegramSubscriptionStateEnum getNextState() {
+    public NotificatorSubscriptionStateEnum getNextState() {
         return SUBSCRIBED;
     }
 

@@ -113,8 +113,7 @@ public class SecureServiceImpl implements SecureService {
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(email, setting.getNotificationMessageEventEnum());
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[]{LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")),
-                        IpUtils.getClientIpAddress(request), pin, amountCurrency}, locale);
+                new String[]{pin, amountCurrency}, locale);
         NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, setting);
         return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
     }

@@ -6,9 +6,10 @@ import me.exrates.model.dto.LookupResponseDto;
  * Created by Maks on 09.10.2017.
  */
 public class UnoperableNumberException extends RuntimeException {
-    private LookupResponseDto lookupResponseDto;
 
-    public UnoperableNumberException(LookupResponseDto dto) {
-        this.lookupResponseDto = dto;
+    public UnoperableNumberException() {
+
     }
+
+
 }

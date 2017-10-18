@@ -51,7 +51,7 @@
                     </div>
                     <br>
                     <div id="post_url" hidden>${post_url}</div>
-                    <%@include file="../fragments/settings-center-2fa.jsp" %>
+                   <%-- <%@include file="../fragments/settings-center-2fa.jsp" %>--%>
                 </sec:authorize>
 
             </div>
