@@ -57,12 +57,12 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                                 Consumer<Throwable> onError,
                                 Consumer<Void> onCompleted) {
         try {
-            log.debug("Subscribing on port: " + port);
+            log.debug("Subscribing {} listener on port {} ", topic, port);
             Socket subscriber = zmqContext.socket(ZMQ.SUB);
             if (port != null) {
                 if (subscriber.connect(SOCKET_ADDRESS_BASE + port)) {
                     subscriber.subscribe(topic);
-                    log.debug("Subscribed!");
+                    log.debug("Successfully subscribed {} listener on port {} ", topic, port);
                     while (isActive) {
                         String hex = extractMessage(subscriber);
                         if (hexStringChecker.test(hex)) {
