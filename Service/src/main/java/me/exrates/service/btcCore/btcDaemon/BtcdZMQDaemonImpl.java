@@ -56,25 +56,29 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
     private void initSubscriber(String port, String topic, Consumer<String> onNext,
                                 Consumer<Throwable> onError,
                                 Consumer<Void> onCompleted) {
-        log.debug("Subscribing on port: " + port);
-        Socket subscriber = zmqContext.socket(ZMQ.SUB);
-        if (port != null) {
-            if (subscriber.connect(SOCKET_ADDRESS_BASE + port)) {
-                subscriber.subscribe(topic);
-                log.debug("Subscribed!");
-                while (isActive) {
-                    String hex = extractMessage(subscriber);
-                    if (hexStringChecker.test(hex)) {
-                        onNext.accept(hex);
-                    } else {
-                        log.warn("Illegal notification format: {}", hex);
+        try {
+            log.debug("Subscribing on port: " + port);
+            Socket subscriber = zmqContext.socket(ZMQ.SUB);
+            if (port != null) {
+                if (subscriber.connect(SOCKET_ADDRESS_BASE + port)) {
+                    subscriber.subscribe(topic);
+                    log.debug("Subscribed!");
+                    while (isActive) {
+                        String hex = extractMessage(subscriber);
+                        if (hexStringChecker.test(hex)) {
+                            onNext.accept(hex);
+                        } else {
+                            log.warn("Illegal notification format: {}", hex);
+                        }
                     }
+                    subscriber.close();
+                    onCompleted.accept(null);
+                } else {
+                    onError.accept(new BitcoinCoreException("Could not connect to port " + port));
                 }
-                subscriber.close();
-                onCompleted.accept(null);
-            } else {
-                onError.accept(new BitcoinCoreException("Could not connect to port " + port));
             }
+        } catch (Exception e) {
+            onError.accept(e);
         }
     }
 
