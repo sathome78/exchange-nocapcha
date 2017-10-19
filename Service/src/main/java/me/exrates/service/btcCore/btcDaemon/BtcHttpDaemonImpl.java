@@ -26,27 +26,6 @@ public class BtcHttpDaemonImpl implements BtcDaemon {
     public void init() {
         try {
             daemon = new BtcdDaemonImpl(btcdClient);
-            /*daemon.addBlockListener(new BlockListener() {
-                @Override
-                public void blockDetected(Block block) {
-                    log.debug(String.format("Block detected: hash %s, height %s ", block.getHash(), block.getHeight()));
-                    blockHandler.accept(block);
-                }
-            });
-            daemon.addWalletListener(new WalletListener() {
-                @Override
-                public void walletChanged(Transaction transaction) {
-                    log.debug(String.format("Wallet change: tx %s", transaction.getTxId()));
-                    walletHandler.accept(transaction);
-                }
-            });
-            daemon.addInstantSendListener(new InstantSendListener() {
-                @Override
-                public void transactionBlocked(Transaction transaction) {
-                    log.debug(String.format("Transaction blocked: tx %s", transaction.getTxId()));
-                    instantSendHandler.accept(transaction);
-                }
-            });*/
         } catch (Exception e) {
             log.error(e);
         }

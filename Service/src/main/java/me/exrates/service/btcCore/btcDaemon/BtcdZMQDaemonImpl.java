@@ -9,6 +9,7 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import javax.xml.bind.DatatypeConverter;
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
         if (!zmqContext.isTerminated()) {
             zmqContext.term();
         }
+       listenerThreadPool.shutdown();
     }
 
     @Override
@@ -113,10 +115,9 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
     }
 
     private <T> Flux<T> notificationFlux(String port, String topic, Function<String, T> mapper) {
-        Flux<String> source = Flux.push(emitter -> listenerThreadPool.submit(() -> initSubscriber(port, topic,
-                emitter::next, emitter::error, (v) -> emitter.complete())));
-        return source
-//            .map(hex -> new Random().nextInt(2) == 1 ? hex : "talala")
+        Flux<String> source = Flux.push(emitter -> initSubscriber(port, topic,
+                emitter::next, emitter::error, (v) -> emitter.complete()));
+        return source.subscribeOn(Schedulers.fromExecutorService(listenerThreadPool))
                 .flatMap(hex -> {
             try {
                 T resultItem = mapper.apply(hex);
