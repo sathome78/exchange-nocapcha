@@ -19,7 +19,7 @@ public class NotificationMessagesDaoImpl implements NotificationMessagesDao {
 
     @Override
     public String gerResourceString(NotificationMessageEventEnum event, NotificationTypeEnum typeEnum) {
-        String sql = "SELECT NM.message FROM NOTIFICATION_MESSAGES NM WHERE NM.event = :event AND NM.type = :type";
+        String sql = "SELECT NM.message FROM 2FA_NOTIFICATION_MESSAGES NM WHERE NM.event = :event AND NM.type = :type";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("event", event.name())
                 .addValue("type", typeEnum.name());

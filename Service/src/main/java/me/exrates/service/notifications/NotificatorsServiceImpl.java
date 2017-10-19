@@ -4,9 +4,10 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificatorPriceDao;
 import me.exrates.dao.NotificatorsDao;
 import me.exrates.model.dto.Notificator;
-import me.exrates.model.dto.NotificatorSettingAdminDto;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
+import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,8 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     Map<String, NotificatorService> notificatorsMap;
     @Autowired
     Map<String, Subscribable> subscribableMap;
+    @Autowired
+    private UserRoleService userRoleService;
 
     @Override
     public NotificatorService getNotificationService(Integer notificatorId) {
@@ -88,12 +91,22 @@ public class NotificatorsServiceImpl implements NotificatorsService {
     }
 
     @Override
-    public BigDecimal getLookUpPrice(int notificatorId, int roleId) {
-        return notificatorPriceDao.getLookUpPrice(notificatorId, roleId);
+    public List<Notificator> getNotificatorSettingsByRole(int roleId) {
+        return notificatorsDao.getAdminDtoByRole(roleId);
+    }
+
+    public List<Notificator> getAllNotificators() {
+        return notificatorsDao.getAllNotificators();
     }
 
     @Override
-    public List<NotificatorSettingAdminDto> getNotificatorSettingsByRole(String role) {
-        return ;
+    public void setEnable(int notificatorId, boolean enable) {
+        notificatorsDao.setEnable(notificatorId, enable);
+    }
+
+    @Override
+    public void updateNotificatorPrice(BigDecimal price, int roleId, int notificatorId) {
+        NotificationTypeEnum typeEnum = NotificationTypeEnum.convert(notificatorId);
+        notificatorPriceDao.updatePrice(price, roleId, notificatorId, typeEnum.getPriceColumn());
     }
 }

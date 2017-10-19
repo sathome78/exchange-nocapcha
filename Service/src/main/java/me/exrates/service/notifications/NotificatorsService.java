@@ -1,7 +1,6 @@
 package me.exrates.service.notifications;
 
 import me.exrates.model.dto.Notificator;
-import me.exrates.model.dto.NotificatorSettingAdminDto;
 import me.exrates.model.dto.NotificatorTotalPriceDto;
 
 import java.math.BigDecimal;
@@ -30,7 +29,12 @@ public interface NotificatorsService {
 
     BigDecimal getSubscriptionPrice(int notificatorId, int roleId);
 
-    BigDecimal getLookUpPrice(int code, int roleId);
+    List<Notificator> getNotificatorSettingsByRole(int roleId);
 
-    List<NotificatorSettingAdminDto> getNotificatorSettingsByRole(String role);
+    void setEnable(int notificatorId, boolean enable);
+
+    void updateNotificatorPrice(BigDecimal price, int roleId, int notificatorId);
+
+    List<Notificator> getAllNotificators();
+
 }

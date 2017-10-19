@@ -40,7 +40,7 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
 
     @Override
     public NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event) {
-        String sql = "SELECT UN.* FROM USER_NOTIFICATION_MESSAGE_SETTINGS UN " +
+        String sql = "SELECT UN.* FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS UN " +
                 "WHERE UN.user_id = :user_id AND event_name = :event ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("user_id", userId);
@@ -56,7 +56,7 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
 
     @Override
     public void update(NotificationsUserSetting setting) {
-        final String sql = " UPDATE USER_NOTIFICATION_MESSAGE_SETTINGS " +
+        final String sql = " UPDATE 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS " +
                 " SET notificator_id = :notificatorId " +
                 " WHERE id = :id ";
         Map<String, Object> params = new HashMap<>();
@@ -67,7 +67,7 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
 
     @Override
     public int create(NotificationsUserSetting setting) {
-        final String sql = " INSERT INTO USER_NOTIFICATION_MESSAGE_SETTINGS  " +
+        final String sql = " INSERT INTO 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS  " +
                 " (user_id, notificator_id, event_name) " +
                 " VALUES (:user_id, :notificator_id, :event_name) ";
         KeyHolder keyHolder = new GeneratedKeyHolder();

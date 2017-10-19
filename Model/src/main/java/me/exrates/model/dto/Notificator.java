@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import lombok.Data;
 import me.exrates.model.Notification;
 import me.exrates.model.enums.NotificationPayTypeEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
 
 import java.math.BigDecimal;
 
@@ -17,4 +18,7 @@ public class Notificator {
     private BigDecimal messagePrice;
     private BigDecimal subscribePrice;
     private NotificationPayTypeEnum payTypeEnum;
+    private boolean enabled;
+    private String name;
+    private boolean needSubscribe;
 }

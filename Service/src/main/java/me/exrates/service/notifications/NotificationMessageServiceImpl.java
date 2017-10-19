@@ -1,5 +1,6 @@
 package me.exrates.service.notifications;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationMessagesDao;
 import me.exrates.model.dto.NotificationResultDto;
@@ -33,7 +34,11 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
                                             final String message,
                                             final String subject,
                                             final NotificationsUserSetting setting) {
-        NotificatorService service = notificatorsService.getNotificationService(setting.getNotificatorId());
+        Notificator notificator = Preconditions.checkNotNull(notificatorsService.getById(setting.getId()));
+        if (!notificator.isEnabled()) {
+            notificator = notificatorsService.getById(NotificationTypeEnum.EMAIL.getCode());
+        }
+        NotificatorService service = notificatorsService.getNotificationServiceByBeanName(notificator.getBeanName());
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
         try {

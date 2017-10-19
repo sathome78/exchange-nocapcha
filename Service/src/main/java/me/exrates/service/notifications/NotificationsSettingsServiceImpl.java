@@ -45,7 +45,7 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     @Override
     public Map<String, Object> get2faOptionsForUser(int userId) {
         Map<String, Object> map = new HashMap<>();
-        map.put("notificators", Arrays.asList(NotificationTypeEnum.values()));
+        map.put("notificators", notificatorsService.getAllNotificators());
         map.put("events", Arrays.asList(NotificationMessageEventEnum.values()));
         map.put("settings", getSettingsMap(userId));
         map.put("subscriptions", notificatorsService.getSubscriptions(userId));

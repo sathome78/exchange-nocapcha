@@ -206,7 +206,7 @@ function SettingsClass() {
             url: '/settings/2FaOptions/getNotyPrice?id=3',
             type: 'GET',
             success: function (data) {
-                $telegramMessagePrice.text(data.messagePrice);
+                $telegramMessagePrice.text(data.messagePrice == null ? 0 : data.messagePrice);
                 $telegramSubscrPrice.text(data.subscriptionPrice);
                 if (data.code != undefined) {
                     $('.code').show();

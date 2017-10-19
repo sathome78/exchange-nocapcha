@@ -24,33 +24,32 @@ public class NotificatorPriceDaoImpl implements NotificatorPriceDao {
 
     @Override
     public BigDecimal getFeeMessagePrice(int notificatorId, int roleId) {
-        final String sql = "SELECT message_price FROM NOTIFICATION_PRICE " +
+        final String sql = "SELECT message_price FROM 2FA_NOTIFICATION_PRICE " +
                 "WHERE notificator_id = :notificator_id AND role_id = :role_id";
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("notificator_id", notificatorId);
+        params.addValue( "notificator_id", notificatorId);
         params.addValue("role_id", roleId);
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
     @Override
     public NotificatorTotalPriceDto getPrices(int notificatorId, int roleId) {
-        final String sql = "SELECT * FROM NOTIFICATION_PRICE " +
+        final String sql = "SELECT * FROM 2FA_NOTIFICATION_PRICE " +
                 " WHERE notificator_id = :notificator_id AND role_id = :role_id ";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("notificator_id", notificatorId);
         params.addValue("role_id", roleId);
         return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
             NotificatorTotalPriceDto notificatorTotalPriceDto = new NotificatorTotalPriceDto();
-            notificatorTotalPriceDto.setLookupPrice(rs.getBigDecimal("lookup_price").toPlainString());
-            notificatorTotalPriceDto.setMessagePrice(rs.getBigDecimal("message_price").toPlainString());
-            notificatorTotalPriceDto.setSubscriptionPrice(rs.getBigDecimal("subscribe_price").toPlainString());
+            notificatorTotalPriceDto.setMessagePrice(rs.getString("message_price"));
+            notificatorTotalPriceDto.setSubscriptionPrice(rs.getString("subscribe_price"));
             return notificatorTotalPriceDto;
         });
     }
 
     @Override
     public BigDecimal getSubscriptionPrice(int notificatorId, int roleId) {
-        final String sql = "SELECT subscribe_price FROM NOTIFICATION_PRICE " +
+        final String sql = "SELECT subscribe_price FROM 2FA_NOTIFICATION_PRICE " +
                 "WHERE notificator_id = :notificator_id AND role_id = :role_id";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("notificator_id", notificatorId);
@@ -58,13 +57,15 @@ public class NotificatorPriceDaoImpl implements NotificatorPriceDao {
         return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
+
     @Override
-    public BigDecimal getLookUpPrice(int notificatorId, int roleId) {
-        final String sql = "SELECT lookup_price FROM NOTIFICATION_PRICE " +
-                "WHERE notificator_id = :notificator_id AND role_id = :role_id";
+    public int updatePrice(BigDecimal price, int roleId, int notificatorId, String priceColumn) {
+        final String sql = String.format("UPDATE 2FA_NOTIFICATION_PRICE SET %s = :price " +
+                "WHERE notificator_id = :notificator_id AND role_id = :role_id", priceColumn);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("notificator_id", notificatorId);
         params.addValue("role_id", roleId);
-        return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        params.addValue("price", price);
+        return jdbcTemplate.update(sql, params);
     }
 }

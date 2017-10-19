@@ -15,5 +15,5 @@ public interface NotificatorPriceDao {
 
     BigDecimal getSubscriptionPrice(int notificatorId, int roleId);
 
-    BigDecimal getLookUpPrice(int notificatorId, int roleId);
+    int updatePrice(BigDecimal price, int roleId, int notificatorId, String priceColumn);
 }

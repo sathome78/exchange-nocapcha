@@ -38,7 +38,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
-  <script type="text/javascript" src="<c:url value='/client/js/userSettings.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/2faSettings.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
@@ -297,7 +297,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/settings-center-2fa.jsp" %>
+              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
             </div>
           </div>
         </div>

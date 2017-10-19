@@ -1,6 +1,7 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
+import lombok.experimental.Tolerate;
 
 import java.math.BigDecimal;
 
@@ -12,6 +13,5 @@ public class NotificatorTotalPriceDto {
 
     private String messagePrice;
     private String subscriptionPrice;
-    private String lookupPrice;
     private String code;
 }

@@ -23,8 +23,8 @@
                 <div id="panel1" class="tab-pane active">
                     <div class="col-sm-6">
                         <select id="roleName" class="input-block-wrapper__input admin-form-input">
-                            <c:forEach items="${roleNames}" var="roleName">
-                                <option value="${roleName}">${roleName}</option>
+                            <c:forEach items="${roles}" var="role">
+                                <option value="${role.role}">${role}</option>
                             </c:forEach>
                         </select>
                         <p><loc:message code="admin.smsAbout"/></p>
@@ -49,13 +49,13 @@
 
         </div>
 </main>
-<div id="editCommissionModal" class="modal fade">
+<div id="editSettings" class="modal fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="admin.editCommission"/></h4>
+                <h4 class="modal-title"><loc:message code="admin.editPrice"/></h4>
             </div>
             <div class="modal-body">
                 <form id="edit-commission-form" class="form_full_width form_auto_height">
@@ -69,80 +69,22 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="operationType" class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
+                            <label for="notificatorName" class="input-block-wrapper__label"><loc:message code="admin.notificatorName"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="operationType" name="operationType" class="input-block-wrapper__input" readonly type="text">
+                            <input id="notificatorName" name="operationType" class="input-block-wrapper__input" readonly type="text">
                         </div>
+                        <div id="notificator_id" hidden></div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="commissionValue" class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                            <label for="commissionValue" class="input-block-wrapper__label"><loc:message code="notificator.price.value"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="commissionValue" name="commissionValue" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <button id="submitCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="editMerchantCommissionModal" class="modal fade">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="admin.editCommission"/></h4>
-            </div>
-            <div class="modal-body">
-                <form id="edit-merchantCommission-form" class="form_full_width form_auto_height">
-                    <input type="hidden" name="merchantId" >
-                    <input type="hidden" name="currencyId" >
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="merchantName" class="input-block-wrapper__label"><loc:message code="withdrawal.merchant"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="merchantName" class="input-block-wrapper__input" readonly type="text">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="currencyName" class="input-block-wrapper__label"><loc:message code="withdrawal.currency"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="currencyName" class="input-block-wrapper__input" readonly type="text">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.input"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="inputValue" class="input-block-wrapper__input" type="number">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.output"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="outputValue" class="input-block-wrapper__input" type="number">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.minFixed"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="minFixedAmount" class="input-block-wrapper__input" type="number">
-                        </div>
-                    </div>
-                    <button id="submitMerchantCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
                 </form>
             </div>
         </div>

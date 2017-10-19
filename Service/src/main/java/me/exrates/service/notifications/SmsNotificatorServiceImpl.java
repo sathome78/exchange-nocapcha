@@ -3,6 +3,7 @@ package me.exrates.service.notifications;
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.SmsSubscriptionDao;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Email;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
@@ -52,6 +53,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     private SendMailService sendMailService;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private CompanyWalletService companyWalletService;
 
     private static final String CURRENCY_NAME = "USD";
     private static final String SENDER = "Exrates";
@@ -62,6 +65,21 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         return subscriptionDao.getByUserId(userId);
     }
 
+    private String sendRegistrationMessageToUser(String userEmail, String message) {
+        int userId = userService.getIdByEmail(userEmail);
+        int roleId = userService.getUserRoleFromDB(userId).getRole();
+        BigDecimal messagePrice = notificatorsService.getMessagePrice(getNotificationType().getCode(), roleId);
+        SmsSubscriptionDto subscriptionDto = subscriptionDao.getByUserId(userService.getIdByEmail(userEmail));
+        pay(
+                messagePrice,
+                subscriptionDto.getNewPrice(),
+                userId,
+                getNotificationType().name().concat(":").concat(NotificationPayEventEnum.BUY_ONE.name())
+        );
+        send(subscriptionDto.getNewContact(), message);
+        return String.valueOf(subscriptionDto.getContact());
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
@@ -69,14 +87,20 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         int roleId = userService.getUserRoleFromDB(userId).getRole();
         BigDecimal messagePrice = notificatorsService.getMessagePrice(getNotificationType().getCode(), roleId);
         SmsSubscriptionDto subscriptionDto = subscriptionDao.getByUserId(userService.getIdByEmail(userEmail));
-        BigDecimal totalAmount = doAction(messagePrice, subscriptionDto.getPriceForContact(), ActionType.ADD);
         pay(
-                totalAmount,
+                messagePrice,
+                subscriptionDto.getPrice(),
                 userId,
                 getNotificationType().name().concat(":").concat(NotificationPayEventEnum.BUY_ONE.name())
         );
+        send(subscriptionDto.getContact(), message);
+        return String.valueOf(subscriptionDto.getContact());
+    }
+
+    @Transactional
+    private void send(String contact, String message) {
         String xml = smsService.sendSms(SENDER, message,
-                new ArrayList<Phones>(){{add(new Phones("id1","", subscriptionDto.getContact()));}});
+                new ArrayList<Phones>(){{add(new Phones("id1","", contact));}});
         log.debug("send sms status {}", xml);
         String status;
         try {
@@ -85,7 +109,6 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
             throw new MessageUndeliweredException();
         }
         Preconditions.checkState(!status.equals("-1"));
-        return String.valueOf(subscriptionDto.getContact());
     }
 
     /*return sms cost for user and phone number*/
@@ -129,9 +152,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         subscriptionDto.setCode(generateCode());
         createOrUpdate(subscriptionDto);
         Locale locale = userService.getUserLocaleForMobile(email);
-        sendMessageToUser(email,
-                messageSource.getMessage("message.sms.codeForSubscribe", new String[]{subscriptionDto.getCode()}, locale),
-                null);
+        sendRegistrationMessageToUser(email,
+                messageSource.getMessage("message.sms.codeForSubscribe", new String[]{subscriptionDto.getCode()}, locale));
         return subscriptionDto;
     }
 
@@ -174,20 +196,23 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     }
 
     @Transactional
-    private BigDecimal pay(BigDecimal amount, int userId, String description) {
+    private BigDecimal pay(BigDecimal feeAmount, BigDecimal deliveryAmount, int userId, String description) {
+        BigDecimal totalAmount = doAction(feeAmount, deliveryAmount, ActionType.ADD);
         WalletOperationData walletOperationData = new WalletOperationData();
-        walletOperationData.setOperationType(OperationType.PAY_FOR_SMS);
+        walletOperationData.setOperationType(OperationType.OUTPUT);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currencyService.findByName(CURRENCY_NAME).getId()));
         walletOperationData.setBalanceType(ACTIVE);
-        walletOperationData.setCommissionAmount(BigDecimal.ZERO);
-        walletOperationData.setAmount(amount.negate());
+        walletOperationData.setCommissionAmount(feeAmount);
+        walletOperationData.setAmount(totalAmount);
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if(!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
             throw new PaymentException(walletTransferStatus);
         }
-        return amount;
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.findByName(CURRENCY_NAME));
+        companyWalletService.deposit(companyWallet, new BigDecimal(0), feeAmount);
+        return totalAmount;
     }
 
     private void sendAlertMessage() {

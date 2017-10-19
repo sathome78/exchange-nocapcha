@@ -98,9 +98,8 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
                 .subscriptionState(NotificatorSubscriptionStateEnum.getBeginState())
                 .code(code).build());
         payForSubscribe(
-                BigDecimal.ZERO,
                 userEmail,
-                OperationType.BUY_NOTIFICATION_SUBSCRIPTION,
+                OperationType.OUTPUT,
                 getNotificationType().name().concat(":").concat(NotificationPayEventEnum.SUBSCRIBE.name())
         );
         return code;
@@ -149,24 +148,23 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     }
 
     @Transactional
-    private BigDecimal payForSubscribe(BigDecimal amount, String userEmail, OperationType operationType,
+    private BigDecimal payForSubscribe(String userEmail, OperationType operationType,
                                  String description) {
         int userId = userService.getIdByEmail(userEmail);
         UserRole role = userService.getUserRoleFromDB(userEmail);
         BigDecimal fee = notificatorsService.getSubscriptionPrice(getNotificationType().getCode(), role.getRole());
-        BigDecimal totalAmount = doAction(amount, fee, ActionType.ADD);
         WalletOperationData walletOperationData = new WalletOperationData();
-        walletOperationData.setCommissionAmount(BigDecimal.ZERO);
+        walletOperationData.setCommissionAmount(fee);
         walletOperationData.setOperationType(operationType);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currency.getId()));
         walletOperationData.setBalanceType(ACTIVE);
-        walletOperationData.setAmount(totalAmount.negate());
+        walletOperationData.setAmount(fee);
         walletOperationData.setSourceType(TransactionSourceType.NOTIFICATIONS);
         walletOperationData.setDescription(description);
         WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
         if(!walletTransferStatus.equals(WalletTransferStatus.SUCCESS)) {
             throw new PaymentException(walletTransferStatus);
         }
-        return totalAmount;
+        return fee;
     }
 }

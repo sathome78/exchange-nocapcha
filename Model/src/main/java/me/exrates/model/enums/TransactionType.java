@@ -4,6 +4,7 @@ package me.exrates.model.enums;
  * Created by OLEG on 20.09.2016.
  */
 
+import me.exrates.model.Notification;
 import me.exrates.model.exceptions.TransactionLabelTypeAmountParamNeededException;
 import me.exrates.model.exceptions.TransactionLabelTypeMoreThenOneResultException;
 import me.exrates.model.exceptions.TransactionLabelTypeNotResolvedException;
@@ -26,7 +27,8 @@ public enum TransactionType {
   REFERRAL(TransactionSourceType.REFERRAL, null),
   MANUAL(TransactionSourceType.MANUAL, null),
   USER_TRANSFER_IN(USER_TRANSFER, OperationType.INPUT),
-  USER_TRANSFER_OUT(USER_TRANSFER, OperationType.OUTPUT);
+  USER_TRANSFER_OUT(USER_TRANSFER, OperationType.OUTPUT),
+  NOTIFICATIONS(TransactionSourceType.NOTIFICATIONS, null);
 
   private TransactionSourceType sourceType;
   private OperationType operationType;
