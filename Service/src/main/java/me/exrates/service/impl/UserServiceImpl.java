@@ -714,4 +714,9 @@ public class UserServiceImpl implements UserService {
     return res;
   }
 
+  @Override
+  public List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds) {
+    return userDao.getUserIpReportByRoleList(roleIds);
+  }
+
 }

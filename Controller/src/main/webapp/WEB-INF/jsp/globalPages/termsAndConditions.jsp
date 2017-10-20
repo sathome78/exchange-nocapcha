@@ -48,7 +48,10 @@
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
-            <loc:message code="dashboard.termsContent"/>
+            <div id="termsContent">
+                <loc:message code="dashboard.termsContent"/>
+            </div>
+
         </div>
 
     </div>

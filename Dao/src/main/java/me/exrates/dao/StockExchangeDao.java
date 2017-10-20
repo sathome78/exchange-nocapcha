@@ -18,5 +18,7 @@ public interface StockExchangeDao {
 
     List<StockExchange> findAll();
 
+    List<StockExchange> findAllActive();
+
     List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId);
 }

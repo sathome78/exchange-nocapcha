@@ -12,7 +12,7 @@ function uploadUserWallets(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
-        includeEmptyChecker: true,
+        includeEmptyChecker: true
     });
 }
 
@@ -23,7 +23,7 @@ function uploadUserWalletsInOut(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
-        includeEmptyChecker: false,
+        includeEmptyChecker: false
     });
 }
 
@@ -34,7 +34,7 @@ function uploadUserWalletsOrders(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
-        includeEmptyChecker: false,
+        includeEmptyChecker: false
     });
 }
 
@@ -45,7 +45,7 @@ function uploadUserWalletsOrdersByCurrencyPairs(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
-        includeEmptyChecker: false,
+        includeEmptyChecker: false
     });
 }
 
@@ -54,13 +54,19 @@ function uploadInputOutputSummaryReport(role) {
     currentId = 'downloadInputOutputSummaryReport';
     showDialog({
         currencyPairPicker: false,
-        includeEmptyChecker: false,
+        includeEmptyChecker: false
     });
 }
 
 function uploadUserTransactionsReport(paramsString) {
     currentId = 'upload-users-transactions';
     makeReportByParams(paramsString);
+}
+
+function uploadUserIps(role) {
+    currentRole = role;
+    currentId = 'upload-users-ips';
+    makeReportByParams('role=' + role)
 }
 
 
@@ -161,20 +167,7 @@ function makeReportWithPeriodDialog() {
                     },
                 }
             );
-        } else if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/userSummaryOrdersByCurrencyPairs',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        saveToDisk(data);
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        } else if (currentId == 'upload-users-transactions') {
+        }  else if (currentId == 'upload-users-transactions') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/downloadTransactions',
                     type: 'GET',
@@ -200,6 +193,18 @@ function makeReportByParams(params) {
                 type: 'GET',
                 success: function (data) {
                     saveToDisk(data);
+                }
+            }
+        );
+    } else if (currentId == 'upload-users-ips') {
+        $.ajax({
+                url: '/2a8fy7b07dxe44/report/downloadUserIpInfo' +"?"+params,
+                type: 'GET',
+                success: function (data) {
+                    saveToDisk(data);
+                },
+                complete: function () {
+                    $loadingDialog.modal("hide");
                 }
             }
         );

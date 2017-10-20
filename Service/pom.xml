@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
-    <btcd-cli4j.version>0.5.8.1</btcd-cli4j.version>
+    <btcd-cli4j.version>0.5.8.4</btcd-cli4j.version>
   </properties>
   <dependencies>
     <dependency>
@@ -139,7 +139,7 @@
     <dependency>
       <groupId>iota</groupId>
       <artifactId>jota</artifactId>
-      <version>0.9.2</version>
+      <version>0.9.3</version>
     </dependency>
     <dependency>
       <groupId>monero</groupId>

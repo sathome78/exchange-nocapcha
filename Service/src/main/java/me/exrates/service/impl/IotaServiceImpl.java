@@ -166,7 +166,7 @@ public class IotaServiceImpl implements IotaService {
             for (Bundle bundle : bundles){
                 for (Transaction transaction : bundle.getTransactions()){
                     try {
-                        log.info(transaction.toString());
+//                        log.info(transaction.toString());
                         String addressWithChecksum = Checksum.addChecksum(transaction.getAddress());
                         if ((transaction.getValue() <= 0) || (!transaction.getPersistence())
                                 || refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(addressWithChecksum,merchant.getId(),currency.getId()

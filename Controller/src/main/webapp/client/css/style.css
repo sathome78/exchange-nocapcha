@@ -435,6 +435,14 @@ th, td {
     width: 100%;
 }
 
+.mywallets_table td:first-child span {
+    font-size: 0.9rem;
+}
+.mywallets_table td:last-child {
+    vertical-align: middle;
+}
+
+
 .currency_table td:first-child {
     cursor: pointer;
 }
@@ -455,6 +463,14 @@ th, td {
 .currency_table tr td:nth-child(2) {
     width: 122px;
 }
+
+#mywallets_table_wrapper {
+    height: 500px;
+    overflow: hidden;
+    display: block;
+}
+
+
 #currency_table_wrapper {
     height: 310px;
     overflow: hidden;
@@ -678,7 +694,7 @@ tr.active td {
 td.blue-white {
     background-color: #969fb0;
     color: #fff;
-    padding: 8px 12px;
+    padding: 8px;
     text-align: center;
 }
 
@@ -1941,7 +1957,7 @@ form span.repass,  form span.repass-error{
 
 input[type=email], .dropdown-menu__form,
 .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv,
-#merchantList, #amcharts-stock_chart_div, .graphInfo {
+#merchantList, #amcharts-stock_chart_div, .graphInfo, #termsContent {
     direction: ltr !important;
 }
 
@@ -2309,6 +2325,10 @@ textarea#remark {
     
 }
 
-input.wallet-number:hover{
+input.copyable:hover{
     cursor:pointer;
+}
+
+#generate-address, #copy-address, #refill-address {
+    margin: 10px 0;
 }

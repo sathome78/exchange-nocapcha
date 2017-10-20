@@ -162,4 +162,12 @@ public class ReportController {
     return value;
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadUserIpInfo", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUserIpInfo(@RequestParam(required = false) String role) {
+    List<UserIpReportDto> result = reportService.getUserIpReport(role);
+    return result.stream().map(UserIpReportDto::toString)
+            .collect(Collectors.joining("", UserIpReportDto.getTitle(), ""));
+  }
+
 }

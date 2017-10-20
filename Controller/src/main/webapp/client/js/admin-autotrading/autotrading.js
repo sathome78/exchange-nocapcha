@@ -58,10 +58,8 @@ $(document).ready(function () {
         e.preventDefault();
         var row = $(this).parents('tr');
         var rowData = launchSettingsDataTable.row(row).data();
-        var orderType = $(this).data('order-type');
         $('#trade-title-pair').text(rowData['currencyPairName']);
-        $('#trade-title-order-type').text(orderType);
-        getTraderSettingsForCurrencyAndOrderType(rowData['id'], orderType);
+        getTradingSettingsForCurrency(rowData['id']);
         $('#editTradeSettingsModal').modal();
     });
 
@@ -89,15 +87,27 @@ $(document).ready(function () {
 
 });
 
-function getTraderSettingsForCurrencyAndOrderType(launchSettingsId, orderType) {
-    var url = '/2a8fy7b07dxe44/autoTrading/bot/tradingSettings?launchSettingsId=' + launchSettingsId + "&orderType=" + orderType;
+function getTradingSettingsForCurrency(launchSettingsId) {
+    var url = '/2a8fy7b07dxe44/autoTrading/bot/tradingSettings?launchSettingsId=' + launchSettingsId;
     $.get(url, function (data) {
-        $('#trade-settings-id').val(data['id']);
-        $('#minAmount').val(data['minAmount']);
-        $('#maxAmount').val(data['maxAmount']);
-        $('#minPrice').val(data['minPrice']);
-        $('#maxPrice').val(data['maxPrice']);
-        $('#priceStep').val(data['priceStep']);
+        var sellData = data['SELL'];
+        var buyData = data['BUY'];
+
+        $('#trade-settings-id-sell').val(sellData['id']);
+        $('#trade-settings-id-buy').val(buyData['id']);
+
+        $('#minAmountSell').val(sellData['minAmount']);
+        $('#maxAmountSell').val(sellData['maxAmount']);
+        $('#minPriceSell').val(sellData['minPrice']);
+        $('#maxPriceSell').val(sellData['maxPrice']);
+        $('#priceStepSell').val(sellData['priceStep']);
+
+        $('#minAmountBuy').val(buyData['minAmount']);
+        $('#maxAmountBuy').val(buyData['maxAmount']);
+        $('#minPriceBuy').val(buyData['minPrice']);
+        $('#maxPriceBuy').val(buyData['maxPrice']);
+        $('#priceStepBuy').val(buyData['priceStep']);
+
     })
 }
 
@@ -157,8 +167,7 @@ function updateLaunchSettingsDataTable() {
     var $launchSettingsTable = $('#launch-settings-table');
     var launchUrl = '/2a8fy7b07dxe44/autoTrading/bot/launchSettings?botId=' + $('#bot-id').val();
     var launchSettingsLoc=$('#launch-settings-loc').text();
-    var buySettingsLoc=$('#buy-settings-loc').text();
-    var sellSettingsLoc=$('#sell-settings-loc').text();
+    var tradingSettingsLoc=$('#trading-settings-loc').text();
     if ($.fn.dataTable.isDataTable('#launch-settings-table')) {
         launchSettingsDataTable = $($launchSettingsTable).DataTable();
         launchSettingsDataTable.ajax.url(launchUrl).load();
@@ -209,14 +218,7 @@ function updateLaunchSettingsDataTable() {
                     "data": null,
                     "orderable": false,
                     "render": function () {
-                        return '<button data-order-type="BUY" class="trade-settings-change-btn btn btn-sm btn-primary">' + buySettingsLoc +'</button>';
-                    }
-                },
-                {
-                    "data": null,
-                    "orderable": false,
-                    "render": function () {
-                        return '<button data-order-type="SELL" class="trade-settings-change-btn btn btn-sm btn-primary">' + sellSettingsLoc +'</button>';
+                        return '<button class="trade-settings-change-btn btn btn-sm btn-primary">' + tradingSettingsLoc +'</button>';
                     }
                 }
             ]
@@ -241,18 +243,31 @@ function submitLaunchSettings() {
 }
 
 function submitTradingSettings() {
-    var formData = $('#trade-settings-form').serialize();
+    var formDataSell = $('#trade-settings-form-sell').serializeArray();
+    var formDataBuy = $('#trade-settings-form-buy').serializeArray();
+    var formData = [];
+    formData.push(serializedArrayToJsonObject(formDataSell));
+    formData.push(serializedArrayToJsonObject(formDataBuy));
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
         url: '/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update',
         type: 'POST',
-        data: formData,
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
         success: function () {
             $('#editTradeSettingsModal').modal('hide');
         }
     });
+}
+
+function serializedArrayToJsonObject(array) {
+    var result = {};
+    array.forEach(function (t) {
+        result[t['name']] = t['value'];
+    });
+    return result;
 }
 
 function toggleBotLaunchStatus(currencyPairId, status) {

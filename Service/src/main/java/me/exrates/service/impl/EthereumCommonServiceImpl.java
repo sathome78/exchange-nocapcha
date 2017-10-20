@@ -1,24 +1,46 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.EthereumNodeDao;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.*;
+import me.exrates.service.ethTokensWrappers.Eos;
+import me.exrates.service.ethTokensWrappers.Rep;
+import me.exrates.service.events.EthPendingTransactionsEvent;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.web3j.abi.EventEncoder;
+import org.web3j.abi.EventValues;
+import org.web3j.abi.FunctionReturnDecoder;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Event;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.Transaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -38,6 +60,9 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.web3j.tx.Contract.GAS_LIMIT;
+import static org.web3j.tx.ManagedTransaction.GAS_PRICE;
 
 /**
  * Created by ajet
@@ -66,6 +91,24 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private RefillService refillService;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private MerchantSpecParamsDao specParamsDao;
+
+    @Qualifier(value = "eosServiceImpl")
+    @Autowired
+    private EthTokenService eosServiceImpl;
+
+    @Qualifier(value = "repServiceImpl")
+    @Autowired
+    private EthTokenService repServiceImpl;
+
+    @Qualifier(value = "golemServiceImpl")
+    @Autowired
+    private EthTokenService golemServiceImpl;
+
     private String url;
 
     private String destinationDir;
@@ -84,7 +127,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Subscription subscription;
 
-    private boolean subscribeCreated;
+    private boolean subscribeCreated = false;
 
     private BigInteger currentBlockNumber;
 
@@ -95,6 +138,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private Integer minConfirmations;
 
     @Override
+    public Web3j getWeb3j() {
+        return web3j;
+    }
+
+    @Override
+    public List<String> getAccounts() {
+        return accounts;
+    }
+
+    @Override
     public Integer minConfirmationsRefill() {
         return minConfirmations;
     }
@@ -102,6 +155,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private final Logger LOG = LogManager.getLogger("node_ethereum");
+
+    private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
         Properties props = new Properties();
@@ -128,7 +183,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 0, 1, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
         try {
             createSubscribe();
         } catch (EthereumException e) {
@@ -153,17 +208,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             Merchant merchant = merchantService.findByName(merchantName);
             Currency currency = currencyService.findByName(currencyName);
 
-
             refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
-            observable = web3j.transactionObservable();
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
             subscription = observable.subscribe(ethBlock -> {
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
-                    System.out.println(merchantName + " Current block number: " + ethBlock.getBlockNumber());
                     LOG.debug(merchantName + " Current block number: " + ethBlock.getBlockNumber());
 
                     List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
@@ -176,6 +229,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                     BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
                                     if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
                                         provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
+                                        saveLastBlock(ethBlock.getBlockNumber().toString());
                                         LOG.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
                                         LOG.debug(merchantName + " Confirmations count: " + ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue());
                                         providedTransactions.add(transaction);
@@ -185,7 +239,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                                     LOG.error(merchantName + " " + e);
                                 }
 
-                                System.out.println(merchantName + " Pending transaction: " + transaction);
                             }
 
                     );
@@ -195,7 +248,25 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentBlockNumber = ethBlock.getBlockNumber();
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
+//  --------------EOS token
+                if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    eosServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+//  --------------REP token
+                if (ethBlock.getTo() != null && repServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                   repServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+//  --------------Golem token
+                if (ethBlock.getTo() != null && golemServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    golemServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
                 String recipient = ethBlock.getTo();
+
                 if (accounts.contains(recipient)){
                     if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(recipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
                         BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
@@ -317,7 +388,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             LOG.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
             Transfer.sendFunds(
                     web3j, credentials, mainAddress, refillRequest.getAmount()
-                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(Transfer.GAS_PRICE).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
+                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
             LOG.debug(merchantName + " Funds " + refillRequest.getAmount() + " sent to main account!!!");
         } catch (Exception e) {
             subscribeCreated = false;
@@ -332,4 +403,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         subscription.unsubscribe();
         LOG.debug(merchantName + " destroyed");
     }
+
+    public void saveLastBlock(String block) {
+        specParamsDao.updateParam(merchantName, LAST_BLOCK_PARAM, block);
+    }
+
+    public String loadLastBlock() {
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(merchantName, LAST_BLOCK_PARAM);
+        return specParamsDto == null ? null : specParamsDto.getParamValue();
+    }
+
 }

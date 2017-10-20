@@ -41,10 +41,13 @@
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="btcWallet.history.title"/>
                 </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="btcWallet.send.title"/> ${currency}
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="btcWallet.receive.title"/> ${currency}
+                </button>
 
-                    <button class="adminForm-toggler blue-box">
-                        <loc:message code="btcWallet.send.title"/> ${currency}
-                    </button>
             </div>
             </sec:authorize>
 
@@ -136,6 +139,18 @@
                         <form id="tx-fee-form">
                             <input name="fee" type="number" step="any" class="input-block-wrapper__input admin-form-input"/>
                         </form>
+                    </div>
+                    <div id="panel3" class="tab-pane">
+                        <div class="text-center"><h4><loc:message code="btcWallet.receive.title"/> ${currency}</h4></div>
+                        <div class="col-md-offset-2 col-md-2">
+                            <button id="generate-address"><loc:message code="refill.generate"/> </button>
+                            <button id="copy-address"><loc:message code="refill.copy"/> </button>
+                        </div>
+                        <div class="well text-center col-md-5">
+                            <span id="refill-address"></span>
+                            <div id = address-qr></div>
+                        </div>
+
                     </div>
                 </sec:authorize>
             </div>

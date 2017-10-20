@@ -11,7 +11,7 @@
     <table id="balance-table" class="balance__table">
         <tbody>
         <tr>
-            <th class="left blue-white"><loc:message code="mywallets.currency"/></th>
+            <th colspan="2" class="left blue-white"><loc:message code="mywallets.currency"/></th>
             <th class="right blue-white"><loc:message code="mywallets.balance"/></th>
             <th class="right blue-white"><loc:message code="mywallets.onconfirmation"/></th>
             <th class="right blue-white"><loc:message code="mywallets.rbalance"/></th>
@@ -22,6 +22,7 @@
         <script type="text/template" id="balance-table_row">
             <tr class="balance-table__row">
                 <td class="left blue-white"><@=currencyName@></td>
+                <td class="left blue-white"><@=currencyDescription@></td>
                 <td class="right"><@=activeBalance@></td>
                 <td class="right"><@=onConfirmation@><div class="on-confirmation-detail">
                     <@=

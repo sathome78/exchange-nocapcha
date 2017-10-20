@@ -324,5 +324,9 @@ public class BigDecimalProcessing {
     return value != null && value.signum() >= 0;
   }
 
+  public static BigDecimal parseNonePoint(String bigDecimal) {
+    return parseLocale(bigDecimal, Locale.ENGLISH, false);
+  }
+
 
 }

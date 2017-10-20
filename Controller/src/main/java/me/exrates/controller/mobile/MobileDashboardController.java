@@ -446,8 +446,6 @@ public class MobileDashboardController {
         List<CandleChartItemReducedDto> result = orderService.getDataForCandleChart(currencyPair, interval).stream()
                 .map(CandleChartItemReducedDto::new)
                 .collect(Collectors.toList());
-        logger.debug(result.size());
-
         return result;
 
 
@@ -1116,7 +1114,6 @@ public class MobileDashboardController {
         List<MyInputOutputHistoryApiDto> data = inputOutputService.getMyInputOutputHistory(getAuthenticatedUserEmail(),
                 offsetValue, limitValue, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new MyInputOutputHistoryApiDto(dto, messageSource, localeResolver.resolveLocale(request))).collect(Collectors.toList());
-        logger.debug(data);
         return data;
 
 

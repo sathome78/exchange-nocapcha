@@ -150,7 +150,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   private void onPayment(BtcTransactionDto transactionDto) {
-    log.debug("on payment {}", transactionDto);
+    log.debug("on payment {} - {}", currencyName, transactionDto);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
@@ -227,7 +227,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   
   private void onIncomingBlock(String blockHash) {
-    log.debug("incoming block {}", blockHash);
+    log.debug("incoming block {} - {}", currencyName, blockHash);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
@@ -344,6 +344,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
       });
     });
+  }
+
+  @Override
+  public String getNewAddressForAdmin() {
+    return bitcoinWalletService.getNewAddress(walletPassword);
   }
   
 

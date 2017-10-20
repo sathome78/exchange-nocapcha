@@ -1291,6 +1291,12 @@ public class AdminController {
     LOG.debug(params);
     getBitcoinServiceByMerchantName(merchantName).processPayment(params);
   }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/newAddress", method = RequestMethod.GET)
+  @ResponseBody
+  public String getNewAddress(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).getNewAddressForAdmin();
+  }
   
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
@@ -1380,8 +1386,8 @@ public class AdminController {
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public BotTradingSettingsShortDto getTradingSettings(@RequestParam Integer launchSettingsId, @RequestParam OrderType orderType) {
-    return botService.retrieveTradingSettingsShort(launchSettingsId, orderType.getType());
+  public Map<String, BotTradingSettingsShortDto> getTradingSettings(@RequestParam Integer launchSettingsId) {
+    return botService.retrieveTradingSettingsShort(launchSettingsId);
   }
 
   @AdminLoggable
@@ -1408,12 +1414,16 @@ public class AdminController {
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/autoTrading/bot/tradingSettings/update", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings, Locale locale) {
-    if (tradingSettings.getMinAmount().compareTo(tradingSettings.getMaxAmount()) > 0 ||
-            tradingSettings.getMinPrice().compareTo(tradingSettings.getMaxPrice()) > 0) {
-      throw new InvalidNumberParamException(messageSource.getMessage("admin.autoTrading.settings.minGreater", null, locale));
-    }
-    botService.updateTradingSettings(tradingSettings);
+  public void updateTradingSettings(@RequestBody List<BotTradingSettingsShortDto> tradingSettingsList, Locale locale) {
+
+    log.debug(tradingSettingsList);
+    tradingSettingsList.forEach(tradingSettings -> {
+      if (tradingSettings.getMinAmount().compareTo(tradingSettings.getMaxAmount()) > 0 ||
+              tradingSettings.getMinPrice().compareTo(tradingSettings.getMaxPrice()) > 0) {
+        throw new InvalidNumberParamException(messageSource.getMessage("admin.autoTrading.settings.minGreater", null, locale));
+      }
+      botService.updateTradingSettings(tradingSettings);
+    });
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/notificatorsSettings")
