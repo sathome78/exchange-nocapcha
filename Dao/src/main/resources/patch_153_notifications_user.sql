@@ -104,6 +104,8 @@ CALL fillNotificationPrice();
 
 drop procedure if exists fillNotificationPrice;
 
+ALTER TABLE TRANSACTION MODIFY source_type ENUM('ORDER', 'REFERRAL', 'ACCRUAL', 'MANUAL', 'USER_TRANSFER', 'WITHDRAW', 'REFILL', 'STOP_ORDER', 'NOTIFICATIONS');
+
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('LOGIN', 'EMAIL', 'response.login.pin.email');
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('WITHDRAW', 'EMAIL', 'response.withdraw.pin.email');
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER', 'EMAIL', 'response.transfer.pin.email');
@@ -113,3 +115,5 @@ INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('LOGIN', 'SMS', 'response.login.pin.sms');
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('WITHDRAW', 'SMS', 'response.withdraw.pin.sms');
 INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER', 'SMS', 'response.transfer.pin.sms');
+
+INSERT INTO `TRANSACTION_SOURCE_TYPE` (`name`) VALUES ('NOTIFICATIONS');

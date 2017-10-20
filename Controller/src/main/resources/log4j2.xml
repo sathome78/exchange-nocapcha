@@ -312,6 +312,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="message_notify" fileName="${sys:catalina.home}/logs/message_notify/notify.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/notify_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ws_stomp_log" fileName="${sys:catalina.home}/logs/ws/ws_stomp_log.log"
                      filePattern="${sys:catalina.home}/logs/ws/ws_stomp_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -494,6 +503,12 @@
         </logger>
         <logger name="tracker" level="ALL" additivity="false">
             <AppenderRef ref="tracker_log"/>
+        </logger>
+        <logger name="org.telegram.telegrambots.exceptions.TelegramApiRequestException" additivity="false" level="ALL">
+            <AppenderRef ref="message_notify"/>
+        </logger>
+        <logger name="message_notify" additivity="false" level="ALL">
+            <AppenderRef ref="message_notify"/>
         </logger>
 
 

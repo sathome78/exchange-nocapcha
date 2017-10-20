@@ -5,10 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.NotificationTypeEnum;
-import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.*;
 import me.exrates.service.exception.IncorrectSmsPinException;
@@ -208,7 +205,14 @@ public class EntryController {
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
                 }
-                if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
+                if (v == null) {
+                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
+                            .userId(userId)
+                            .notificatorId(notificatorId)
+                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
+                            .build();
+                    settingsService.createOrUpdate(setting);
+                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
                     v.setNotificatorId(notificatorId);
                     settingsService.createOrUpdate(v);
                 }
