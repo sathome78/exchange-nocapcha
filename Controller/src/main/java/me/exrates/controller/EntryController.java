@@ -54,7 +54,7 @@ import static me.exrates.model.util.BigDecimalProcessing.doAction;
  */
 @Log4j2
 @Controller
-@PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties"})
+@PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties", "classpath:/telegram_bot.properties"})
 public class EntryController {
     private static final Logger LOGGER = LogManager.getLogger(EntryController.class);
 
@@ -62,6 +62,10 @@ public class EntryController {
     MessageSource messageSource;
     @Value("${captcha.type}")
     String CAPTCHA_TYPE;
+    @Value("${telegram.bot.url}")
+    String TBOT_URL;
+    @Value("${telegram_bot_name}")
+    String TBOT_NAME;
     private
     @Value("${news.locationDir}")
     String newsLocationDir;
@@ -147,6 +151,8 @@ public class EntryController {
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
+        mav.addObject("tBotName", TBOT_NAME);
+        mav.addObject("tBotUrl", TBOT_URL);
         return mav;
     }
 

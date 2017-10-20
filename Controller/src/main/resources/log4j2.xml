@@ -444,9 +444,11 @@
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="exceptions_log"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="exceptions_ext_log"/>
         </logger>
 

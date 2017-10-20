@@ -59,7 +59,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     @Override
     public SessionParams getByEmailOrDefault(String email) {
         SessionParams params = this.getByUserEmail(email);
-        log.error("params in service {}", params);
+        log.info("params in service {}", params);
         return params == null ? getDefaultSessionPararms() : params;
     }
 
@@ -81,7 +81,6 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     @Override
     public SessionParams determineSessionParams() {
         Principal principal = SecurityContextHolder.getContext().getAuthentication();
-        log.warn("authentication ", principal);
         if (principal != null) {
             return this.getByEmailOrDefault(principal.getName());
         } else {

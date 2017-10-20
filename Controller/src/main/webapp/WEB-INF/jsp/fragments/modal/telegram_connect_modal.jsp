@@ -1,3 +1,4 @@
+
 <div id="telegram_connect_modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -7,10 +8,10 @@
                 </div>
                 <hr>
                 <h5 id="telegram_reconnect_block" hidden>
-                    <loc:message code="message.telegram.reconnectInstr"/>
+                    <loc:message code="message.telegram.reconnectInstr" arguments="${tBotName}, ${tBotUrl}"/>
                 </h5>
                 <div id="telegram_connect_block">
-                    <h5><loc:message code="message.telegram.connectInstr"/></h5>
+                    <h5><loc:message code="message.telegram.connectInstr" arguments="${tBotName}, ${tBotUrl}"/></h5>
                     <div><loc:message code="message.telegram.subscriptionPrice"/>:<span id="telegram_subscr_price"></span> USD</div>
                     <div><loc:message code="message.telegram.messagePrice"/>:<span id="telegram_mssg_price"></span> USD</div>
                 </div>

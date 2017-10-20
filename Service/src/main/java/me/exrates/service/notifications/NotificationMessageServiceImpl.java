@@ -34,7 +34,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
                                             final String message,
                                             final String subject,
                                             final NotificationsUserSetting setting) {
-        Notificator notificator = Preconditions.checkNotNull(notificatorsService.getById(setting.getId()));
+        Notificator notificator = Preconditions.checkNotNull(notificatorsService.getById(setting.getNotificatorId()));
         if (!notificator.isEnabled()) {
             notificator = notificatorsService.getById(NotificationTypeEnum.EMAIL.getCode());
         }
