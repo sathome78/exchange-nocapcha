@@ -48,6 +48,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
             if (notificationTypeEnum.getCode() != NotificationTypeEnum.EMAIL.getCode()) {
                 NotificatorService emailService = notificatorsService.getNotificationService(NotificationTypeEnum.EMAIL.getCode());
                 contactToNotify = emailService.sendMessageToUser(userEmail, message, subject);
+                notificationTypeEnum = emailService.getNotificationType();
             } else {
                 throw new MessageUndeliweredException();
             }

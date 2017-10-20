@@ -128,7 +128,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public String sendMessageToUser(String userEmail, String message, String subject) throws MessageUndeliweredException {
+    public String sendMessageToUser(String userEmail, String message, String subject) {
         Optional<TelegramSubscription> subscriptionOptional = Optional.ofNullable(subscribtionDao.getSubscribtionByUserId(userService.getIdByEmail(userEmail)));
         TelegramSubscription subscription = subscriptionOptional.orElseThrow(MessageUndeliweredException::new);
         if (!subscription.getSubscriptionState().isFinalState()) {

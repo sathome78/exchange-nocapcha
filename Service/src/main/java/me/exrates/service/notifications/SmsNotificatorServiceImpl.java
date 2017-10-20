@@ -15,6 +15,7 @@ import me.exrates.service.notifications.sms.epochta.EpochtaApi;
 import me.exrates.service.notifications.sms.epochta.Phones;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +66,7 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         return subscriptionDao.getByUserId(userId);
     }
 
+    @Transactional
     private String sendRegistrationMessageToUser(String userEmail, String message) {
         int userId = userService.getIdByEmail(userEmail);
         int roleId = userService.getUserRoleFromDB(userId).getRole();
@@ -93,22 +95,35 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
                 userId,
                 getNotificationType().name().concat(":").concat(NotificationPayEventEnum.BUY_ONE.name())
         );
-        send(subscriptionDto.getContact(), message);
+        String xml = send(subscriptionDto.getContact(), message);
+        try {
+            BigDecimal cost = new BigDecimal(smsService.getValueFromXml(xml, "amount"));
+            log.debug("last cost for number {} is {}", subscriptionDto.getContact(),cost);
+            if (cost.compareTo(subscriptionDto.getPriceForContact()) != 0 && cost.compareTo(BigDecimal.ZERO) > 0) {
+                subscriptionDao.updateDeliveryPrice(userId, cost);
+            }
+        } catch (Exception e) {
+            log.error("can't get new price", e);
+        }
         return String.valueOf(subscriptionDto.getContact());
     }
 
     @Transactional
-    private void send(String contact, String message) {
+    private String send(String contact, String message) {
+        log.debug("send sms to {}, message {}", contact, message);
         String xml = smsService.sendSms(SENDER, message,
                 new ArrayList<Phones>(){{add(new Phones("id1","", contact));}});
         log.debug("send sms status {}", xml);
         String status;
         try {
             status = smsService.getValueFromXml(xml, "status");
+            if (Integer.parseInt(status) < 1) {
+                throw new MessageUndeliweredException();
+            }
         } catch (Exception e) {
             throw new MessageUndeliweredException();
         }
-        Preconditions.checkState(!status.equals("-1"));
+        return xml;
     }
 
     /*return sms cost for user and phone number*/
@@ -119,11 +134,11 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         Preconditions.checkArgument(!StringUtils.isEmpty(subscriptionDto.getNewContact()));
         phones.put("id1", subscriptionDto.getNewContact());
         log.debug("contact {}", subscriptionDto.getNewContact());
-        String xml = smsService.getPrice("text", phones);
-        log.debug("response {}", xml);
         BigDecimal cost;
         String status;
         try {
+            String xml = smsService.getPrice("text", phones);
+            log.debug("response {}", xml);
             status = smsService.getValueFromXml(xml, "status");
             Preconditions.checkArgument(!status.equals("-1"));
             cost = new BigDecimal(smsService.getValueFromXml(xml, "amount"));
@@ -152,8 +167,16 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         subscriptionDto.setCode(generateCode());
         createOrUpdate(subscriptionDto);
         Locale locale = userService.getUserLocaleForMobile(email);
-        sendRegistrationMessageToUser(email,
-                messageSource.getMessage("message.sms.codeForSubscribe", new String[]{subscriptionDto.getCode()}, locale));
+        try {
+            sendRegistrationMessageToUser(email,
+                    messageSource.getMessage("message.sms.codeForSubscribe", new String[]{subscriptionDto.getCode()}, locale));
+        } catch (MessageUndeliweredException e) {
+            log.error(e);
+            throw new UnoperableNumberException();
+        } catch (Exception e) {
+            log.error(e);
+            throw new ServiceUnavailableException();
+        }
         return subscriptionDto;
     }
 

@@ -382,28 +382,28 @@ public class EntryController {
     @ExceptionHandler(ServiceUnavailableException.class)
     @ResponseBody
     public ErrorInfo SmsSubscribeExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, "service is unavilable now");
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.service.unavialble", null, localeResolver.resolveLocale(req)));
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(IncorrectSmsPinException.class)
     @ResponseBody
     public ErrorInfo IncorrectSmsPinExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, "incorrect pin-code");
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.connectCode.wrong", null, localeResolver.resolveLocale(req)));
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(UnoperableNumberException.class)
     @ResponseBody
     public ErrorInfo SmsSubscribeUnoperableNumberExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, "this number is unoperable");
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.numberUnoperable", null, localeResolver.resolveLocale(req)));
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(PaymentException.class)
     @ResponseBody
     public ErrorInfo msSubscribeMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, "not enought money");
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.notEnoughtUsd", null, localeResolver.resolveLocale(req)));
     }
 
 }

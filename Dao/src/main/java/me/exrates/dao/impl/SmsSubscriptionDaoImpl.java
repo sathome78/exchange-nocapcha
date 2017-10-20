@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,5 +83,16 @@ public class SmsSubscriptionDaoImpl implements SmsSubscriptionDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public void updateDeliveryPrice(int userId, BigDecimal cost) {
+        final String sql = " UPDATE SMS_SUBSCRIPTION " +
+                " SET delivery_price = :delivery_price " +
+                " WHERE user_id = :user_id ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("delivery_price", cost);
+        params.put("user_id", userId);
+        jdbcTemplate.update(sql, params);
     }
 }

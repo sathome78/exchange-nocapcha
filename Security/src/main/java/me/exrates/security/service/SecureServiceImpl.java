@@ -36,7 +36,7 @@ import java.util.Locale;
 public class SecureServiceImpl implements SecureService {
 
     private @Value("${session.checkPinParam}") String checkPinParam;
-    private String authenticationParamName = "authentication";
+    private @Value("${session.authenticationParamName}") String authenticationParamName;
     private @Value("${session.passwordParam}") String passwordParam;
 
     @Autowired
