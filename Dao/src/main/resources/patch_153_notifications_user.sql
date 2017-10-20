@@ -103,3 +103,13 @@ CREATE PROCEDURE fillNotificationPrice()
 CALL fillNotificationPrice();
 
 drop procedure if exists fillNotificationPrice;
+
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('LOGIN', 'EMAIL', 'response.login.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('WITHDRAW', 'EMAIL', 'response.withdraw.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER', 'EMAIL', 'response.transfer.pin.email');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('LOGIN', 'TELEGRAM', 'response.login.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('WITHDRAW', 'TELEGRAM', 'response.withdraw.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER', 'TELEGRAM', 'response.transfer.pin.telegram');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('LOGIN', 'SMS', 'response.login.pin.sms');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('WITHDRAW', 'SMS', 'response.withdraw.pin.sms');
+INSERT INTO `2FA_NOTIFICATION_MESSAGES` (event, type, message) VALUES ('TRANSFER', 'SMS', 'response.transfer.pin.sms');
