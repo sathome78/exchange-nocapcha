@@ -44,6 +44,8 @@
                         <loc:message code="admin.refill.accepted"/></button>
                     <button id="refill-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.refill.declined"/></button>
+                    <a id="create_refill_request" class="myorders__button blue-box margin-box active">
+                        <loc:message code="message.create.refill.request"/></a>
                 </div>
             </div>
 
@@ -252,6 +254,7 @@
     <loc:message code="admin.promptSendMessageRequestAccept"/>
 </div>
 
+<%@include file='fragments/modal/dialogCreateRefill_modal.jsp' %>
 <%@include file='fragments/modal/dialogRefillAccept_modal.jsp' %>
 <%@include file='fragments/modal/dialogRefill_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
