@@ -1,10 +1,11 @@
 package me.exrates.controller.merchants;
 
+import com.google.common.base.Preconditions;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.Payment;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -15,6 +16,8 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.service.*;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -25,17 +28,18 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * created by ValkSam
@@ -47,21 +51,20 @@ public class RefillRequestAdminController {
 
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
-  RefillService refillService;
-
+  private LocaleResolver localeResolver;
   @Autowired
-  UserService userService;
-
+  private RefillService refillService;
   @Autowired
-  MerchantService merchantService;
-
+  private UserService userService;
+  @Autowired
+  private MerchantService merchantService;
   @Autowired
   private CommissionService commissionService;
-
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private InputOutputService inputOutputService;
 
   @RequestMapping(value = "/2a8fy7b07dxe44/refill")
   public ModelAndView refillRequests(Principal principal) {
@@ -80,6 +83,8 @@ public class RefillRequestAdminController {
           .collect(Collectors.toList());
       params.put("merchants", merchants);
     }
+    List<Integer> ids = merchantService.getIdsByProcessType(Collections.singletonList("CRYPTO"));
+    params.put("cryptoCurrencies", permittedCurrencies.stream().filter(p-> ids.contains(p.getCurrencyId()) && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE)));
     return new ModelAndView("refillRequests", params);
   }
 
@@ -105,6 +110,44 @@ public class RefillRequestAdminController {
       Principal principal) {
     String requesterAdmin = principal.getName();
     return refillService.getRefillRequestById(id, requesterAdmin);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
+  @ResponseBody
+  public Map<String, Object> creteRefillRequestForCrypto(
+          @RequestBody RefillRequestParamsDto requestParamsDto, Principal principal, HttpServletRequest servletRequest) {
+    Locale locale = localeResolver.resolveLocale(servletRequest);
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
+            .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+    Preconditions.checkArgument(permittedCurrencies.stream().anyMatch(p->p.getCurrencyId().equals(requestParamsDto.getCurrency())
+            && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE)), "Access decline");
+    if (requestParamsDto.getOperationType() != INPUT) {
+      throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+    }
+    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+    }
+    Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
+            requestParamsDto.getMerchant(),
+            requestParamsDto.getCurrency(),
+            userService.getIdByEmail(principal.getName())
+      );
+      if (address.isPresent()) {
+        String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
+        return new HashMap<String, Object>() {{
+          put("address", address.get());
+          put("message", message);
+          put("qr", address.get());
+        }};
+      }
+    Payment payment = new Payment(INPUT);
+    payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
+    payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
+            .orElseThrow(InvalidAmountException::new);
+    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, RefillStatusEnum.ON_PENDING, locale);
+    return refillService.createRefillRequest(request);
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

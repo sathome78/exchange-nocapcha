@@ -233,6 +233,15 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
+  public List<Integer> findCurrenciesIdsByType(List<String> processTypes) {
+    final String sql = "SELECT MC.currency_id FROM MERCHANT_CURRENCY MC " +
+            " JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            " WHERE M.process_type IN (:process_type) ";
+    return namedParameterJdbcTemplate.queryForList(sql,
+            Collections.singletonMap("process_type", processTypes), Integer.class);
+  }
+
+  @Override
   public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
     final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
         " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +

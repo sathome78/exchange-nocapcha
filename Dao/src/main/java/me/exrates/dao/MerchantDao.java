@@ -39,7 +39,9 @@ public interface MerchantDao {
 
   List<TransferMerchantApiDto> findTransferMerchants();
 
-  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
+    List<Integer> findCurrenciesIdsByType(List<String> processTypes);
+
+    List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
     void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
 
