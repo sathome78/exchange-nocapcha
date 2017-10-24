@@ -430,15 +430,18 @@
         </Logger>
         <Logger name="refill" level="DEBUG" additivity="false">
             <AppenderRef ref="refill_log"/>
+            <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="transfer" level="DEBUG" additivity="false">
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
             <AppenderRef ref="exceptions_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
             <AppenderRef ref="exceptions_ext_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <logger name="withdraw_log" level="ALL" additivity="false">

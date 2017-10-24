@@ -189,6 +189,12 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId) {
+    return refillRequestDao.findMerchantIdByAddressAndCurrencyAndUser(address, currencyId, userId);
+  }
+
+  @Override
   @Transactional
   public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
     Integer userId = userService.getIdByEmail(userEmail);
@@ -892,7 +898,9 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.create(request);
   }
 
-  private Optional<Integer> createRefillByFact(RefillRequestCreateDto request) {
+  @Transactional
+  @Override
+  public Optional<Integer> createRefillByFact(RefillRequestCreateDto request) {
     return refillRequestDao.create(request);
   }
 

@@ -213,6 +213,42 @@ $(function () {
         $modal.modal();
     });
 
+    $('#create_refill_request').on('click', function () {
+        $('#dialog-refill-create').modal();
+    });
+
+
+    $('#refill_create_button').on('click', function (e) {
+        e.preventDefault();
+        var $modal = $('#dialog-refill-create');
+
+            var amount = $modal.find("#rc_amount").val();
+            var merchantTxId = $modal.find("#rc_merchant_transaction_id").val();
+            var email = $modal.find("#rc_email").val();
+            var address = $modal.find("#rc_address").val();
+            var currency = $modal.find("#rc_currency_select option:selected:selected").val();
+            var data = {
+                "currency" : currency,
+                "email": email,
+                "address": address,
+                "amount": amount,
+                "txHash": merchantTxId
+            };
+            $.ajax({
+                url: '/2a8fy7b07dxe44/refill/crypto_create',
+                async: false,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                complete: function () {
+                    $modal.modal('hide');
+                }
+            });
+    });
+
 
 });
 

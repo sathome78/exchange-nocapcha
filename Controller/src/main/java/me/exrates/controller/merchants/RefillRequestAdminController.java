@@ -1,10 +1,10 @@
 package me.exrates.controller.merchants;
 
 import com.google.common.base.Preconditions;
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
+import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -84,7 +84,9 @@ public class RefillRequestAdminController {
       params.put("merchants", merchants);
     }
     List<Integer> ids = merchantService.getIdsByProcessType(Collections.singletonList("CRYPTO"));
-    params.put("cryptoCurrencies", permittedCurrencies.stream().filter(p-> ids.contains(p.getCurrencyId()) && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE)));
+    params.put("cryptoCurrencies", permittedCurrencies.stream()
+            .filter(p-> ids.contains(p.getCurrencyId()) && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE))
+            .collect(Collectors.toList()));
     return new ModelAndView("refillRequests", params);
   }
 
@@ -112,42 +114,43 @@ public class RefillRequestAdminController {
     return refillService.getRefillRequestById(id, requesterAdmin);
   }
 
+  @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
   @ResponseBody
-  public Map<String, Object> creteRefillRequestForCrypto(
-          @RequestBody RefillRequestParamsDto requestParamsDto, Principal principal, HttpServletRequest servletRequest) {
+  public Integer creteRefillRequestForCrypto(
+          @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
     Locale locale = localeResolver.resolveLocale(servletRequest);
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
-            .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
-    Preconditions.checkArgument(permittedCurrencies.stream().anyMatch(p->p.getCurrencyId().equals(requestParamsDto.getCurrency())
-            && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE)), "Access decline");
-    if (requestParamsDto.getOperationType() != INPUT) {
-      throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
-    }
-    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+            .stream()
+            .filter(dto -> dto.getInvoiceOperationPermission() == InvoiceOperationPermission.ACCEPT_DECLINE)
+            .collect(Collectors.toList());
+    Preconditions.checkArgument(
+            permittedCurrencies.stream().anyMatch(p->p.getCurrencyId().equals(refillDto.getCurrency())),
+            "Access decline");
+    User user = Preconditions.checkNotNull(userService.findByEmail(refillDto.getEmail()), "user not found");
+    if (!refillService.checkInputRequestsLimit(refillDto.getCurrency(), refillDto.getEmail())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
     }
-    Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
-            requestParamsDto.getMerchant(),
-            requestParamsDto.getCurrency(),
-            userService.getIdByEmail(principal.getName())
-      );
-      if (address.isPresent()) {
-        String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-        return new HashMap<String, Object>() {{
-          put("address", address.get());
-          put("message", message);
-          put("qr", address.get());
-        }};
-      }
+    Integer merchantId = Preconditions.checkNotNull(refillService.getMerchantIdByAddressAndCurrencyAndUser(
+            refillDto.getAddress(),
+            refillDto.getCurrency(),
+            user.getId()), "address not found");
+    Merchant merchant = merchantService.findById(merchantId);
     Payment payment = new Payment(INPUT);
-    payment.setCurrency(requestParamsDto.getCurrency());
-    payment.setMerchant(requestParamsDto.getMerchant());
-    payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
+    payment.setCurrency(refillDto.getCurrency());
+    payment.setMerchant(merchant.getId());
+    payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
             .orElseThrow(InvalidAmountException::new);
-    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, RefillStatusEnum.ON_PENDING, locale);
-    return refillService.createRefillRequest(request);
+    RefillRequestCreateDto request = new RefillRequestCreateDto(
+            new RefillRequestParamsDto(refillDto),
+            creditsOperation,
+            RefillStatusEnum.ON_PENDING,
+            locale);
+    request.setTxHash(refillDto.getTxHash());
+    request.setNeedToCreateRefillRequestRecord(true);
+    Optional<Integer> id = refillService.createRefillByFact(request);
+    return id.orElseThrow(()-> new RuntimeException("error"));
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

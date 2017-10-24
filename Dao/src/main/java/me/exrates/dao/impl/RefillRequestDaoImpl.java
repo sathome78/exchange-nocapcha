@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -1095,6 +1096,21 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     } catch (EmptyResultDataAccessException e){
       Map<String,Integer> map = new HashMap<>();
       return new ArrayList((Collection) map);
+    }
+  }
+
+  @Override
+  public Integer findMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId) {
+    final String sql = "SELECT merchant_id FROM REFILL_REQUEST_ADDRESS RRA " +
+            " WHERE RRA.address = :address AND currency_id = :currency_id AND user_id = :user_id ";
+    Map<String, Object> map = new HashMap<>();
+    map.put("address", address);
+    map.put("currency_id", currencyId);
+    map.put("user_id", userId);
+    try {
+      return namedParameterJdbcTemplate.queryForObject(sql, map, Integer.class);
+    } catch (Exception e) {
+      return null;
     }
   }
 

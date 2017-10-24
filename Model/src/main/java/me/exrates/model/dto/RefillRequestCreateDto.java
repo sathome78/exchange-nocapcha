@@ -41,6 +41,8 @@ public class RefillRequestCreateDto {
   private Boolean needToCreateRefillRequestRecord;
   private Locale locale;
   private RefillRequestParam refillRequestParam = new RefillRequestParam();
+  private String txHash;
+
 
   public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
     this.currencyId = paramsDto.getCurrency();

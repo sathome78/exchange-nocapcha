@@ -112,4 +112,6 @@ public interface RefillRequestDao {
   boolean isToken(Integer merchantId);
 
   List<Map<String,Integer>> getTokenMerchants(Integer merchantId);
+
+    Integer findMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
 }

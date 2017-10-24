@@ -8,6 +8,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,7 +25,10 @@ public interface RefillService {
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-  List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
+    @Transactional(readOnly = true)
+    Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
+
+    List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
@@ -96,6 +100,9 @@ public interface RefillService {
   Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+
+  @Transactional
+  Optional<Integer> createRefillByFact(RefillRequestCreateDto request);
 
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
                                                                                        String merchantTransactionId,
