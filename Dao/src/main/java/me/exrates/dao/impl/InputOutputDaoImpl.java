@@ -183,7 +183,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     NULL" +
             "   FROM TRANSACTION TR " +
             "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
-            "     JOIN WALLET W ON W.id = TR.user_wallet_id AND w.currency_id = CUR.id " +
+            "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
             "     JOIN USER U ON U.id=W.user_id " +
             "   WHERE U.email=:email " +
             "  )  " +

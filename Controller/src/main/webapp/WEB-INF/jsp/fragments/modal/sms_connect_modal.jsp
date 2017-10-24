@@ -16,8 +16,8 @@
                     <br>
                     <div id="sms_instruction" hidden><loc:message code="message.sms.afterCheckInstruction"/></div>
                     <button id='sms_connect_button' disabled class="btn btn-default"><loc:message code="message.sms.connect"/></button>
-                    <button class="btn btn-default" type="button" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
                     <button id='sms_enter_code_button' class="btn btn-default"><loc:message code="message.sms.enterCode"/></button>
+                    <button class="btn btn-default" type="button" style="float:right" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
                 </div>
 
                 <div id="sms_code_block" hidden>
@@ -29,7 +29,7 @@
                     <input id="sms_code_input"/>
                     <br>
                     <button id='sms_send_code_button' disabled class="btn btn-default"><loc:message code="orderinfo.ok"/></button>
-                    <button class="btn btn-default" type="button" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
+                    <button class="btn btn-default" type="button" style="float:right" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
                 </div>
 
                 <div id="sms_info_block" hidden>

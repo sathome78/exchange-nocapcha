@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Locale;
 
 
@@ -81,7 +83,7 @@ public class SecureServiceImpl implements SecureService {
                 setting.setNotificatorId(NotificationTypeEnum.EMAIL.getCode());
             }
             log.debug("noty_setting {}", setting.toString());
-            return sendPinMessage(userEmail, setting, request, null);
+            return sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)});
         }
         return null;
     }
@@ -103,17 +105,17 @@ public class SecureServiceImpl implements SecureService {
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
         if (setting != null && setting.getNotificatorId() != null) {
-            return sendPinMessage(email, setting, request, amountCurrency);
+            return sendPinMessage(email, setting, request, new String[]{amountCurrency});
         }
         return null;
     }
 
-    private String sendPinMessage(String email, NotificationsUserSetting setting, HttpServletRequest request, String amountCurrency) {
+    private String sendPinMessage(String email, NotificationsUserSetting setting, HttpServletRequest request, String[] args) {
         Locale locale = localeResolver.resolveLocale(request);
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
-        String pin = userService.updatePinForUserForEvent(email, setting.getNotificationMessageEventEnum());
+        String[] pin = new String[]{userService.updatePinForUserForEvent(email, setting.getNotificationMessageEventEnum())};
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
-                new String[]{pin, amountCurrency}, locale);
+                ObjectArrays.concat(pin, args, String.class), locale);
         NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, setting);
         return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
     }
