@@ -357,8 +357,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0
             && currencyPairName != undefined) {
             var currencies = currencyPairName.split('\/');
+            console.log(currencies);
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
+            console.log(currentBaseBalance + ' ' + currentConvertBalance);
             $('#currentBaseBalance').text(currentBaseBalance);
             $('#currentConvertBalance').text(currentConvertBalance);
             $('.currentConvertBalance').text(currentConvertBalance);
@@ -366,9 +368,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     function getCurrentBalanceByCurrency(currencyName) {
-        return $('#mywallets_table').find("tr td:contains('" + currencyName + "')").filter(function (index) {
-            return $(this).text().trim() === currencyName;
-        }).next().text().trim();
+        return $('.balance_'+currencyName).text();
     }
 
     function getLastExrate($selector, currencyPairName) {

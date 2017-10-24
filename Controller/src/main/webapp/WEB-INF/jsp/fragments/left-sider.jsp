@@ -32,10 +32,10 @@
                 </tr>
                 <script type="text/template" id="mywallets_table_row">
                     <tr>
-                        <td><@=currencyName@> <br/>
+                        <td><@=currencyName@><br/>
                             <span class="text-muted"><@=description@></span>
                         </td>
-                        <td class="right"><@=activeBalance@></td>
+                        <td class="right balance_<@=currencyName@>"><@=activeBalance@></td>
                     </tr>
                 </script>
                 </tbody>
