@@ -219,22 +219,24 @@ $(function () {
 
 
     $('#refill_create_button').on('click', function (e) {
+        if (!checkManualRefillFrom()){
+            return;
+        }
         e.preventDefault();
         var $modal = $('#dialog-refill-create');
-
-            var amount = $modal.find("#rc_amount").val();
-            var merchantTxId = $modal.find("#rc_merchant_transaction_id").val();
-            var email = $modal.find("#rc_email").val();
-            var address = $modal.find("#rc_address").val();
-            var currency = $modal.find("#rc_currency_select option:selected:selected").val();
-            var data = {
+        var amount = $modal.find("#rc_amount").val();
+        var merchantTxId = $modal.find("#rc_merchant_transaction_id").val();
+        var email = $modal.find("#rc_email").val();
+        var address = $modal.find("#rc_address").val();
+        var currency = $modal.find("#rc_currency_select option:selected:selected").val();
+        var data = {
                 "currency" : currency,
                 "email": email,
                 "address": address,
                 "amount": amount,
                 "txHash": merchantTxId
-            };
-            $.ajax({
+        };
+        $.ajax({
                 url: '/2a8fy7b07dxe44/refill/crypto_create',
                 async: false,
                 headers: {
@@ -243,14 +245,26 @@ $(function () {
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data),
-                complete: function () {
+                complete: function (data) {
                     $modal.modal('hide');
+                    clearManualRefillForm();
+                    successNoty(data)
                 }
-            });
+        });
     });
-
-
 });
+
+function checkManualRefillFrom() {
+
+}
+
+function clearManualRefillForm() {
+    var $modal = $('#dialog-refill-create');
+    $modal.find("#rc_amount").val("");
+    $modal.find("#rc_merchant_transaction_id").val("");
+    $modal.find("#rc_email").val("");
+    $modal.find("#rc_address").val("");
+}
 
 function getRowId($elem) {
     var rowData = retrieveRowDataForElement($elem);

@@ -7,7 +7,6 @@
                 <h4 class="modal-title"><loc:message code="message.create.refill.request"/></h4>
             </div>
             <div class="modal-body">
-                <%--CURRENCY--%>
                 <div class="input-block-wrapper">
                     <div class="col-md-6 input-block-wrapper__label-wrapper">
                         <label class="control-label" for="rc_currency_select">

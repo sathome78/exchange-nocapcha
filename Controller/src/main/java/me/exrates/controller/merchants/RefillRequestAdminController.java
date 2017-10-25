@@ -23,6 +23,7 @@ import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -117,7 +118,7 @@ public class RefillRequestAdminController {
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
   @ResponseBody
-  public Integer creteRefillRequestForCrypto(
+  public String creteRefillRequestForCrypto(
           @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
     Locale locale = localeResolver.resolveLocale(servletRequest);
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
@@ -135,11 +136,11 @@ public class RefillRequestAdminController {
             refillDto.getAddress(),
             refillDto.getCurrency(),
             user.getId()), "address not found");
-    Merchant merchant = merchantService.findById(merchantId);
     Payment payment = new Payment(INPUT);
     payment.setCurrency(refillDto.getCurrency());
-    payment.setMerchant(merchant.getId());
+    payment.setMerchant(merchantId);
     payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
+    refillDto.setMerchantId(merchantId);
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
             .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(
@@ -150,7 +151,8 @@ public class RefillRequestAdminController {
     request.setTxHash(refillDto.getTxHash());
     request.setNeedToCreateRefillRequestRecord(true);
     Optional<Integer> id = refillService.createRefillByFact(request);
-    return id.orElseThrow(()-> new RuntimeException("error"));
+    return new JSONObject().put("message.refill.manual.created", messageSource.getMessage("message",
+            new String[]{id.orElseThrow(()->new RuntimeException("refiil not created")).toString()}, locale)).toString();
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
