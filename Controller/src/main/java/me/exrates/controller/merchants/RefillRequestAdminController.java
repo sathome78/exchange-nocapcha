@@ -33,6 +33,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -119,7 +120,7 @@ public class RefillRequestAdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
   @ResponseBody
   public String creteRefillRequestForCrypto(
-          @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
+          @Valid @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
     Locale locale = localeResolver.resolveLocale(servletRequest);
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
             .stream()
@@ -151,7 +152,7 @@ public class RefillRequestAdminController {
     request.setTxHash(refillDto.getTxHash());
     request.setNeedToCreateRefillRequestRecord(true);
     Optional<Integer> id = refillService.createRefillByFact(request);
-    return new JSONObject().put("message.refill.manual.created", messageSource.getMessage("message",
+    return new JSONObject().put("message", messageSource.getMessage("message.refill.manual.created",
             new String[]{id.orElseThrow(()->new RuntimeException("refiil not created")).toString()}, locale)).toString();
   }
 

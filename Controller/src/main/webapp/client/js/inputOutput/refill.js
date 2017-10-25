@@ -216,10 +216,18 @@ $(function () {
     $('#create_refill_request').on('click', function () {
         $('#dialog-refill-create').modal();
     });
+    
+    $('.rc_item').on('input', function () {
+       if (checkManualRefillFrom()) {
+           $('#refill_create_button').prop("disabled", false)
+       } else {
+           $('#refill_create_button').prop("disabled", true)
+       }
+    });
 
 
     $('#refill_create_button').on('click', function (e) {
-        if (!checkManualRefillFrom()){
+       if (!checkManualRefillFrom()){
             return;
         }
         e.preventDefault();
@@ -245,16 +253,21 @@ $(function () {
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(data),
-                complete: function (data) {
+                success: function (data) {
                     $modal.modal('hide');
                     clearManualRefillForm();
-                    successNoty(data)
+                    successNoty(JSON.parse(data).message)
                 }
         });
     });
 });
 
 function checkManualRefillFrom() {
+    var $modal = $('#dialog-refill-create');
+    var amount = $modal.find("#rc_amount").val().trim();
+    var email = $modal.find("#rc_email").val().trim();
+    var address = $modal.find("#rc_address").val().trim();
+    return address !== null && address !== '' && email !== null && email !== '' && amount !== null && amount !== '' && !isNaN(amount);
 
 }
 

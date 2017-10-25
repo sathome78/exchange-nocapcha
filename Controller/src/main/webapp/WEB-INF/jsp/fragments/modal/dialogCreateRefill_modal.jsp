@@ -26,7 +26,7 @@
                         </label>
                     </div>
                     <input id="rc_email"
-                           class="form-control credits-operation-enter__item"
+                           class="form-control rc_item credits-operation-enter__item"
                            autofocus
                            type="text">
                 </div>
@@ -37,7 +37,7 @@
                         </label>
                     </div>
                     <input id="rc_amount"
-                           class="form-control credits-operation-enter__item"
+                           class="form-control rc_item credits-operation-enter__item"
                            autofocus
                            type="text">
                 </div>
@@ -48,7 +48,7 @@
                         </label>
                     </div>
                     <input id="rc_address"
-                           class="form-control credits-operation-enter__item"
+                           class="form-control rc_item credits-operation-enter__item"
                            autofocus
                            type="text">
                 </div>
@@ -68,7 +68,7 @@
             <div class="modal-footer">
                 <div id='request-money-operation-btns-wrapper'
                      class="add__money__btns">
-                    <button id="refill_create_button"
+                    <button disabled id="refill_create_button"
                             class="btn btn-primary btn-md" type="button">
                         <loc:message code="merchants.continue"/>
                     </button>
