@@ -173,6 +173,9 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         } catch (MessageUndeliweredException e) {
             log.error(e);
             throw new UnoperableNumberException();
+        } catch (PaymentException e) {
+            log.error(e);
+            throw e;
         } catch (Exception e) {
             log.error(e);
             throw new ServiceUnavailableException();
