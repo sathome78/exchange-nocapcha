@@ -6,6 +6,7 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title"><loc:message code="message.create.refill.request"/></h4>
             </div>
+            <h6 class="modal-title"><loc:message code="message.create.refill.addressAttention"/></h6>
             <div class="modal-body">
                 <div class="input-block-wrapper">
                     <div class="col-md-6 input-block-wrapper__label-wrapper">
