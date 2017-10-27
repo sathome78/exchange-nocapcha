@@ -136,20 +136,24 @@ public class IotaServiceImpl implements IotaService {
 
         if (MODE.equals("main")){
             log.info("Iota starting...");
-            iotaClient = new IotaAPI.Builder()
-                    .protocol(PROTOCOL)
-                    .host(HOST)
-                    .port(PORT)
-                    .build();
-            log.info("Iota started");
-            GetNodeInfoResponse response = iotaClient.getNodeInfo();
-            System.out.println(response.toString());
+            try {
+                iotaClient = new IotaAPI.Builder()
+                        .protocol(PROTOCOL)
+                        .host(HOST)
+                        .port(PORT)
+                        .build();
+                log.info("Iota started");
+                GetNodeInfoResponse response = iotaClient.getNodeInfo();
+                System.out.println(response.toString());
 
-            scheduler.scheduleAtFixedRate(new Runnable() {
-                public void run() {
-                    checkIncomingTransactions();
-                }
-            }, 0, 30, TimeUnit.MINUTES);
+                scheduler.scheduleAtFixedRate(new Runnable() {
+                    public void run() {
+                        checkIncomingTransactions();
+                    }
+                }, 0, 30, TimeUnit.MINUTES);
+            }catch (Exception e){
+                log.error(e);
+            }
         }else {
             log.info("Iota test mode...");
         }
