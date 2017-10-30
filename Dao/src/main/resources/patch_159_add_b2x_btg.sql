@@ -109,3 +109,12 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'B2X'));
 
 
+INSERT INTO BOT_LAUNCH_SETTINGS(bot_trader_id, currency_pair_id)
+  SELECT BT.id, CP.id FROM BOT_TRADER BT
+    JOIN CURRENCY_PAIR CP WHERE CP.name IN ('BTG/USD', 'BTG/BTC', 'B2X/USD', 'B2X/BTC');
+
+INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
+  SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
+    JOIN ORDER_TYPE OT
+  WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('BTG/USD', 'BTG/BTC', 'B2X/USD', 'B2X/BTC'));
+
