@@ -1,17 +1,18 @@
-package me.exrates.service;
+package me.exrates.service.btcCore;
 
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import org.springframework.scheduling.annotation.Scheduled;
+import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * Created by OLEG on 14.03.2017.
@@ -19,7 +20,7 @@ import java.util.function.Consumer;
 public interface CoreWalletService {
   void initCoreClient(String nodePropertySource);
   
-  void initBtcdDaemon(Consumer<String> blockHandler, Consumer<BtcTransactionDto> walletHandler, Consumer<BtcTransactionDto> instantSendHandler);
+  void initBtcdDaemon(boolean zmqEnabled);
   
   String getNewAddress(String walletPassword);
   
@@ -49,4 +50,10 @@ public interface CoreWalletService {
   String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
   
   String sendToMany(Map<String, BigDecimal> payments);
+
+    Flux<BtcBlockDto> blockFlux();
+
+    Flux<BtcTransactionDto> walletFlux();
+
+  Flux<BtcTransactionDto> instantSendFlux();
 }

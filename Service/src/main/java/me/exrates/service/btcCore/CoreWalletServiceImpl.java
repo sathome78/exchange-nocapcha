@@ -1,37 +1,37 @@
-package me.exrates.service.impl;
+package me.exrates.service.btcCore;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.Address;
-import com.neemre.btcdcli4j.core.domain.Block;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import com.neemre.btcdcli4j.core.domain.WalletInfo;
-import com.neemre.btcdcli4j.daemon.BtcdDaemon;
-import com.neemre.btcdcli4j.daemon.BtcdDaemonImpl;
-import com.neemre.btcdcli4j.daemon.event.BlockListener;
-import com.neemre.btcdcli4j.daemon.event.InstantSendListener;
-import com.neemre.btcdcli4j.daemon.event.WalletListener;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTxPaymentDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.CoreWalletService;
+import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
+import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
 import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.zeromq.ZMQ;
+import reactor.core.publisher.Flux;
 
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -53,10 +53,15 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
+
+  @Autowired
+  private ZMQ.Context zmqContext;
+
   
   private BtcdClient btcdClient;
-  private BtcdDaemon daemon;
-  
+
+  private BtcDaemon btcDaemon;
+
   
   @Override
   public void initCoreClient(String nodePropertySource) {
@@ -76,34 +81,18 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   @Override
-  public void initBtcdDaemon(Consumer<String> blockHandler, Consumer<BtcTransactionDto> walletHandler, Consumer<BtcTransactionDto> instantSendHandler)  {
+  public void initBtcdDaemon(boolean zmqEnabled)  {
+    if (zmqEnabled) {
+      btcDaemon = new BtcdZMQDaemonImpl(btcdClient, zmqContext);
+    } else {
+      btcDaemon = new BtcHttpDaemonImpl(btcdClient);
+    }
+
     try {
-      daemon = new BtcdDaemonImpl(btcdClient);
-      daemon.addBlockListener(new BlockListener() {
-        @Override
-        public void blockDetected(Block block) {
-          log.debug(String.format("Block detected: hash %s, height %s ", block.getHash(), block.getHeight()));
-          blockHandler.accept(block.getHash());
-        }
-      });
-      daemon.addWalletListener(new WalletListener() {
-        @Override
-        public void walletChanged(Transaction transaction) {
-          log.debug(String.format("Wallet change: tx %s", transaction.getTxId()));
-          walletHandler.accept(convert(transaction));
-        }
-      });
-      daemon.addInstantSendListener(new InstantSendListener() {
-        @Override
-        public void transactionBlocked(Transaction transaction) {
-          log.debug(String.format("Transaction blocked: tx %s", transaction.getTxId()));
-          instantSendHandler.accept(convert(transaction));
-        }
-      });
+      btcDaemon.init();
     } catch (Exception e) {
       log.error(e);
     }
-    
   }
   
   
@@ -142,10 +131,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   @PreDestroy
   public void shutdownDaemon() {
-    daemon.removeAlertListeners();
-    daemon.removeBlockListeners();
-    daemon.removeWalletListeners();
-    daemon.shutdown();
+    btcDaemon.destroy();
   }
   
   
@@ -171,6 +157,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   @Override
   public Optional<BtcTransactionDto> handleTransactionConflicts(String txId) {
     try {
+      log.debug(this);
       return handleConflicts(btcdClient.getTransaction(txId)).map(this::convert);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
@@ -363,6 +350,32 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
- 
+
+  @Override
+  public Flux<BtcBlockDto> blockFlux() {
+    return notificationFlux("node.bitcoind.notification.block.port", btcDaemon::blockFlux, block ->
+            new BtcBlockDto(block.getHash(), block.getHeight(), block.getTime()));
+  }
+
+  @Override
+  public Flux<BtcTransactionDto> walletFlux() {
+    return notificationFlux("node.bitcoind.notification.wallet.port", btcDaemon::walletFlux, this::convert);
+  }
+
+  @Override
+  public Flux<BtcTransactionDto> instantSendFlux() {
+    return notificationFlux("node.bitcoind.notification.instantsend.port", btcDaemon::instantSendFlux, this::convert);
+  }
+
+  private <S, T> Flux<T> notificationFlux(String portProperty, Function<String, Flux<S>> source, Function<S, T> mapper) {
+    if (btcdClient != null) {
+      String port = btcdClient.getNodeConfig().getProperty(portProperty);
+      return source.apply(port).map(mapper);
+    } else {
+      log.error("Client not initialized!");
+      return Flux.empty();
+    }
+  }
+
+
 }
