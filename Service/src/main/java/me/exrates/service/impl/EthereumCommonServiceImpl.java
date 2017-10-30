@@ -6,9 +6,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.*;
-import me.exrates.service.ethTokensWrappers.Eos;
-import me.exrates.service.ethTokensWrappers.Rep;
-import me.exrates.service.events.EthPendingTransactionsEvent;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -16,21 +13,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.web3j.abi.EventEncoder;
-import org.web3j.abi.EventValues;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -38,9 +24,7 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.core.methods.response.Log;
-import org.web3j.protocol.core.methods.response.Transaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionTimeoutException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -57,6 +41,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -137,6 +122,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private Integer minConfirmations;
 
+    private Credentials credentialsMain;
+
+    private String transferAccPrivateKey;
+
+    private String transferAccPublicKey;
+
+    private BigDecimal minBalanceForTransfer = new BigDecimal("0.01");
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -145,6 +138,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Override
     public List<String> getAccounts() {
         return accounts;
+    }
+
+    @Override
+    public String getMainAddress() {
+        return mainAddress;
+    }
+
+    @Override
+    public Credentials getCredentialsMain() {
+        return credentialsMain;
     }
 
     @Override
@@ -169,6 +172,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
+            if (merchantName.equals("Ethereum")){
+                this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
+                this.transferAccPublicKey = props.getProperty("ethereum.transferAccPublicKey");
+            }
         } catch (IOException e) {
             LOG.error(e);
         }
@@ -184,11 +191,28 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 checkSession();
             }
         }, 0, 5, TimeUnit.MINUTES);
-        try {
-            createSubscribe();
-        } catch (EthereumException e) {
-            LOG.error(e);
-        }
+
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+                try {
+                    transferFundsToMainAccount();
+                }catch (Exception e){
+                    LOG.error(e);
+                }
+            }
+        }, 60, 120, TimeUnit.MINUTES);
+
+        scheduler.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+                try {
+                    if (subscribeCreated == true) {
+                       saveLastBlock(currentBlockNumber.toString());
+                    }
+                }catch (Exception e){
+                    LOG.error(e);
+                }
+            }
+        }, 1, 24, TimeUnit.HOURS);
     }
 
     @Override
@@ -207,6 +231,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
             Merchant merchant = merchantService.findByName(merchantName);
             Currency currency = currencyService.findByName(currencyName);
+            if (merchantName.equals("Ethereum")) {
+                credentialsMain = Credentials.create(new ECKeyPair(new BigInteger(transferAccPrivateKey),
+                        new BigInteger(transferAccPublicKey)));
+            }
 
             refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
@@ -215,6 +243,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
             observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
             subscription = observable.subscribe(ethBlock -> {
+                if (merchantName.equals("Ethereum")) {
+                    if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
+                        return;
+                    }
+                }
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
                     LOG.debug(merchantName + " Current block number: " + ethBlock.getBlockNumber());
@@ -372,27 +405,38 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
                 LOG.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
-                transferFundsToMainAccount(refillService.getRefillRequestById(requestAcceptDto.getRequestId(), "ajet5911@gmail.com"));
-//        } catch (RefillRequestAppropriateNotFoundException e) {
+                refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
+
         } catch (Exception e) {
             LOG.error(e);
         }
 
     }
 
-    private void transferFundsToMainAccount(RefillRequestsAdminTableDto refillRequest){
-        try {
-            LOG.info("Start method transferFundsToMainAccount...");
-            Credentials credentials = Credentials.create(new ECKeyPair(new BigInteger(refillRequest.getPrivKey()),
-                    new BigInteger(refillRequest.getPubKey())));
-            LOG.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
-            Transfer.sendFunds(
-                    web3j, credentials, mainAddress, refillRequest.getAmount()
-                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
-            LOG.debug(merchantName + " Funds " + refillRequest.getAmount() + " sent to main account!!!");
-        } catch (Exception e) {
-            subscribeCreated = false;
-            LOG.error(merchantName + " " + e);
+    private void transferFundsToMainAccount(){
+        List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId());
+        for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto) {
+            try {
+                LOG.info("Start method transferFundsToMainAccount...");
+                BigDecimal ethBalance = Convert.fromWei(String.valueOf(web3j.ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+
+                if ( ethBalance.compareTo(minBalanceForTransfer) <= 0){
+                    refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchantService.findByName(merchantName).getId(),
+                            currencyService.findByName(currencyName).getId(), false);
+                    continue;
+                }
+
+                Credentials credentials = Credentials.create(new ECKeyPair(new BigInteger(refillRequestAddressDto.getPrivKey()),
+                        new BigInteger(refillRequestAddressDto.getPubKey())));
+                LOG.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
+                Transfer.sendFunds(
+                        web3j, credentials, mainAddress, ethBalance
+                                .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER);
+                LOG.debug(merchantName + " Funds " + ethBalance + " sent to main account!!!");
+            } catch (Exception e) {
+                subscribeCreated = false;
+                LOG.error(merchantName + " " + e);
+            }
         }
     }
 

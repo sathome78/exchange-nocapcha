@@ -115,4 +115,8 @@ public interface RefillService {
     int getTxOffsetForAddress(String address);
 
     void updateTxOffsetForAddress(String address, Integer offset);
+
+  void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded);
+
+  List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
 }

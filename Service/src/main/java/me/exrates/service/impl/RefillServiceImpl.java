@@ -991,4 +991,14 @@ public class RefillServiceImpl implements RefillService {
   public void updateTxOffsetForAddress(String address, Integer offset) {
     refillRequestDao.updateTxOffsetForAddress(address, offset);
   }
+
+  @Override
+  public void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded) {
+    refillRequestDao.updateAddressNeedTransfer(address, merchantId, currencyId, isNeeded);
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAllAddressesNeededToTransfer(merchantId, currencyId);
+  }
 }

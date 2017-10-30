@@ -93,6 +93,22 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return bank;
   };
 
+  private static RowMapper<RefillRequestAddressDto> refillRequestAddressRowMapper = (rs, rowNum) -> {
+    RefillRequestAddressDto refillRequestAddressDto = new RefillRequestAddressDto();
+    refillRequestAddressDto.setId(rs.getInt("id"));
+    refillRequestAddressDto.setCurrencyId(rs.getInt("currency_id"));
+    refillRequestAddressDto.setMerchantId(rs.getInt("merchant_id"));
+    refillRequestAddressDto.setAddress(rs.getString("address"));
+    refillRequestAddressDto.setUserId(rs.getInt("user_id"));
+    refillRequestAddressDto.setPrivKey(rs.getString("priv_key"));
+    refillRequestAddressDto.setPubKey(rs.getString("pub_key"));
+    refillRequestAddressDto.setBrainPrivKey(rs.getString("brain_priv_key"));
+    refillRequestAddressDto.setDateGeneration(rs.getTimestamp("date_generation").toLocalDateTime());
+    refillRequestAddressDto.setConfirmedTxOffset(rs.getInt("confirmed_tx_offset"));
+    refillRequestAddressDto.setNeedTransfer(rs.getBoolean("need_transfer"));
+    return refillRequestAddressDto;
+  };
+
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
@@ -1096,6 +1112,29 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Map<String,Integer> map = new HashMap<>();
       return new ArrayList((Collection) map);
     }
+  }
+
+  @Override
+  public void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded) {
+    String sql = "UPDATE REFILL_REQUEST_ADDRESS SET need_transfer = :isNeeded where address = :address" +
+            " AND merchant_id = :merchant_id AND currency_id = :currency_id";
+    namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
+      put("isNeeded", (isNeeded)? 1: 0);
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }});
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId) {
+    String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where currency_id = :currency_id " +
+            "AND merchant_id = :merchant_id AND need_transfer = 1" ;
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("currency_id", currencyId);
+      put("merchant_id", merchantId);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
   }
 
 }

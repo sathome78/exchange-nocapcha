@@ -62,8 +62,6 @@ import org.springframework.web.servlet.view.JstlView;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @EnableAsync
@@ -411,7 +409,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "EOS",
-                "EOS");
+                "EOS", true);
     }
 
     @Bean(name = "repServiceImpl")
@@ -422,7 +420,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP");
+                "REP", true);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -433,7 +431,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
-                "GNT");
+                "GNT", false);
     }
 
     @Bean
