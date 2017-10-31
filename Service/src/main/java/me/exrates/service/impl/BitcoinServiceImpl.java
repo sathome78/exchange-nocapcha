@@ -4,22 +4,22 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
 import me.exrates.service.*;
+import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-@Service
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
@@ -53,6 +52,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   private String backupFolder;
 
   private String nodePropertySource;
+
+  private Boolean zmqEnabled;
   
   private String merchantName;
   
@@ -72,6 +73,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.walletPassword = props.getProperty("wallet.password");
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
+      this.zmqEnabled = Boolean.valueOf(props.getProperty("node.zmqEnabled"));
       this.merchantName = merchantName;
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
@@ -84,7 +86,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     bitcoinWalletService.initCoreClient(nodePropertySource);
-    bitcoinWalletService.initBtcdDaemon(this::onIncomingBlock, this::onPayment, this::onPayment);
+    bitcoinWalletService.initBtcdDaemon(zmqEnabled);
+    bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
+    bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+    bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
     examineMissingPaymentsOnStartup();
   }
 
@@ -148,8 +153,9 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
     return address;
   }
-  
-  private void onPayment(BtcTransactionDto transactionDto) {
+
+  @Override
+  public void onPayment(BtcTransactionDto transactionDto) {
     log.debug("on payment {} - {}", currencyName, transactionDto);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
@@ -225,8 +231,9 @@ public class BitcoinServiceImpl implements BitcoinService {
     return refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(address, merchantId, currencyId, hash).isPresent();
   }
   
-  
-  private void onIncomingBlock(String blockHash) {
+  @Override
+  public void onIncomingBlock(BtcBlockDto blockDto) {
+    String blockHash = blockDto.getHash();
     log.debug("incoming block {} - {}", currencyName, blockHash);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
