@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 
 import java.util.List;
@@ -54,4 +55,8 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     void saveLastBlock(String block);
 
     String loadLastBlock();
+
+    String getMainAddress();
+
+    Credentials getCredentialsMain();
 }
