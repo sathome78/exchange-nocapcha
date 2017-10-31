@@ -1,0 +1,8 @@
+CREATE TRIGGER `TRANSACTION_BEFORE_UPD_TR`
+BEFORE UPDATE ON `TRANSACTION`
+FOR EACH ROW
+  BEGIN
+    IF (NEW.status_id <> OLD.status_id) THEN
+      SET new.status_modification_date = CURRENT_TIMESTAMP;
+    END IF;
+  END
