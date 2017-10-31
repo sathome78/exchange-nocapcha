@@ -58,10 +58,11 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                                 Consumer<Void> onCompleted) {
         try {
             String host = btcdClient.getNodeConfig().getProperty("node.bitcoind.rpc.host");
-            log.debug("Subscribing {} listener on host {} port {} ", topic, host, port);
+            String address = String.join( "","tcp://", host, ":", port);
+            log.debug("Subscribing {} listener on address {} ", topic, address);
             Socket subscriber = zmqContext.socket(ZMQ.SUB);
             if (port != null) {
-                if (subscriber.connect(String.join("tcp://", host, ":", port))) {
+                if (subscriber.connect(address)) {
                     subscriber.subscribe(topic);
                     log.debug("Successfully subscribed {} listener on port {} ", topic, port);
                     while (isActive) {
