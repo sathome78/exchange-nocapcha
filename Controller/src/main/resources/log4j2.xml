@@ -356,7 +356,7 @@
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="bitcoin_core" level="DEBUG" additivity="false">
+        <logger name="bitcoin_core" level="INFO" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
