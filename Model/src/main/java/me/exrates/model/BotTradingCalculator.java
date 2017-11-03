@@ -3,7 +3,6 @@ package me.exrates.model;
 import lombok.Getter;
 import lombok.ToString;
 import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.math3.random.RandomDataGenerator;
@@ -17,28 +16,30 @@ import static me.exrates.model.enums.PriceGrowthDirection.*;
 @Getter
 @ToString
 public class BotTradingCalculator {
-    private final Integer id;
-    private final BotLaunchSettings botLaunchSettings;
-    private final OrderType orderType;
+    private final boolean isUserOrderPriceConsidered;
     private final BigDecimal minAmount;
     private final BigDecimal maxAmount;
+    private final BigDecimal maxPrice;
+    private final BigDecimal minPrice;
+    private final BigDecimal maxUserPrice;
+    private final BigDecimal minUserPrice;
     private final BigDecimal lowerPriceBound;
     private final BigDecimal upperPriceBound;
     private final BigDecimal priceStep;
     private PriceGrowthDirection direction;
 
-    public BotTradingCalculator(Integer id, BotLaunchSettings botLaunchSettings, OrderType orderType, BigDecimal minAmount, BigDecimal maxAmount,
-                                BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minUserPrice, BigDecimal maxUserPrice, BigDecimal priceStep,
-                                PriceGrowthDirection direction) {
-        this.id = id;
-        this.botLaunchSettings = botLaunchSettings;
-        this.orderType = orderType;
-        this.minAmount = minAmount;
-        this.maxAmount = maxAmount;
-        this.priceStep = priceStep;
-        this.direction = direction;
+    public BotTradingCalculator(BotTradingSettings botTradingSettings) {
+        isUserOrderPriceConsidered = botTradingSettings.getBotLaunchSettings().isUserOrderPriceConsidered();
+        minAmount = botTradingSettings.getMinAmount();
+        maxAmount = botTradingSettings.getMaxAmount();
+        priceStep = botTradingSettings.getPriceStep();
+        direction = botTradingSettings.getDirection();
+        maxPrice = botTradingSettings.getMaxPrice();
+        minPrice = botTradingSettings.getMinPrice();
+        maxUserPrice = botTradingSettings.getMaxUserPrice();
+        minUserPrice = botTradingSettings.getMinUserPrice();
 
-        if (botLaunchSettings.isUserOrderPriceConsidered()) {
+        if (isUserOrderPriceConsidered) {
             if (minUserPrice == null || !checkPriceWithinRange(minUserPrice, minPrice, maxPrice)) {
                 lowerPriceBound = minPrice;
             } else {
@@ -70,6 +71,11 @@ public class BotTradingCalculator {
 
 
     public BigDecimal nextPrice(final BigDecimal previousPrice) {
+        if (previousPrice.equals(lowerPriceBound)) {
+            direction = UP;
+        } else if (previousPrice.equals(upperPriceBound)) {
+            direction = DOWN;
+        }
         BigDecimal result = calculateNextPrice(previousPrice);
         if (result.compareTo(lowerPriceBound) < 0) {
             result = lowerPriceBound;

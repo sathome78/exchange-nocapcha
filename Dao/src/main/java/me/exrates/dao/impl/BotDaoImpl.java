@@ -4,6 +4,7 @@ import me.exrates.dao.BotDao;
 import me.exrates.model.BotLaunchSettings;
 import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
+import me.exrates.model.BotTradingSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -103,7 +104,7 @@ public class BotDaoImpl implements BotDao {
     }
 
     @Override
-    public Optional<BotTradingCalculator> retrieveBotCalculatorForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType) {
+    public Optional<BotTradingSettings> retrieveBotTradingSettingsForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType) {
         String sql = "SELECT BTS.id AS trading_id, BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, " +
                 "  BTS.order_type_id, BLCH.is_enabled, BLCH.consider_user_orders, " +
                 "  BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, " +
@@ -124,17 +125,18 @@ public class BotDaoImpl implements BotDao {
         try {
             return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
                 BotLaunchSettings launchSettings = botLaunchSettingsRowMapper.mapRow(rs, rowNum);
-                Integer id = rs.getInt("trading_id");
-                BigDecimal maxAmount = rs.getBigDecimal("max_amount");
-                BigDecimal minAmount = rs.getBigDecimal("min_amount");
-                BigDecimal maxPrice = rs.getBigDecimal("max_price");
-                BigDecimal minPrice = rs.getBigDecimal("min_price");
-                BigDecimal maxUserPrice = rs.getBigDecimal("max_user_price");
-                BigDecimal minUserPrice = rs.getBigDecimal("min_user_price");
-                BigDecimal priceStep = rs.getBigDecimal("price_step");
-                PriceGrowthDirection direction = PriceGrowthDirection.valueOf(rs.getString("price_growth_direction"));
-                return new BotTradingCalculator(id, launchSettings, orderType, minAmount, maxAmount, minPrice, maxPrice,
-                        minUserPrice, maxUserPrice, priceStep, direction);
+                BotTradingSettings tradingSettings = new BotTradingSettings();
+                tradingSettings.setId(rs.getInt("trading_id"));
+                tradingSettings.setBotLaunchSettings(launchSettings);
+                tradingSettings.setMaxAmount(rs.getBigDecimal("max_amount"));
+                tradingSettings.setMinAmount(rs.getBigDecimal("min_amount"));
+                tradingSettings.setMaxPrice(rs.getBigDecimal("max_price"));
+                tradingSettings.setMinPrice(rs.getBigDecimal("min_price"));
+                tradingSettings.setMaxUserPrice(rs.getBigDecimal("max_user_price"));
+                tradingSettings.setMinUserPrice(rs.getBigDecimal("min_user_price"));
+                tradingSettings.setPriceStep(rs.getBigDecimal("price_step"));
+                tradingSettings.setDirection(PriceGrowthDirection.valueOf(rs.getString("price_growth_direction")));
+                return tradingSettings;
             }));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();

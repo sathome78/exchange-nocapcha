@@ -7,14 +7,15 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -30,8 +31,6 @@ import java.util.*;
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
-
-  private final Logger LOG = LogManager.getLogger("merchant");
 
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
@@ -78,11 +77,20 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
     } catch (IOException e) {
-      LOG.error(e);
+      log.error(e);
     }
-
   }
-  
+
+  public BitcoinServiceImpl(String walletPassword, Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
+    this.walletPassword = walletPassword;
+    this.zmqEnabled = zmqEnabled;
+    this.merchantName = merchantName;
+    this.currencyName = currencyName;
+    this.minConfirmations = minConfirmations;
+  }
+
+
+
   @PostConstruct
   void startBitcoin() {
     bitcoinWalletService.initCoreClient(nodePropertySource);
@@ -184,7 +192,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
   }
   
-  private void processBtcPayment(BtcPaymentFlatDto btcPaymentFlatDto) {
+  void processBtcPayment(BtcPaymentFlatDto btcPaymentFlatDto) {
     if (!checkTransactionAlreadyOnBchExam(btcPaymentFlatDto.getAddress(), btcPaymentFlatDto.getMerchantId(),
             btcPaymentFlatDto.getCurrencyId(), btcPaymentFlatDto.getTxId())) {
       Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
@@ -277,7 +285,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   
-  private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
+  void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
     try {
       refillService.setConfirmationCollectedNumber(dto);
       if (dto.getConfirmations() >= minConfirmations) {
