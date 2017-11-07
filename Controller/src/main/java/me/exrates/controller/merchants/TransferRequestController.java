@@ -1,9 +1,14 @@
 package me.exrates.controller.merchants;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.service.exception.InvalidNicknameException;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
+import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
@@ -31,8 +36,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -74,6 +77,10 @@ public class TransferRequestController {
   private RateLimitService rateLimitService;
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private SecureService secureServiceImpl;
+
+  private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
 
   @RequestMapping(value = "/transfer/request/create", method = POST)
@@ -98,8 +105,36 @@ public class TransferRequestController {
     payment.setRecipient(requestParamsDto.getRecipient());
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    TransferRequestCreateDto request = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    return transferService.createTransferRequest(request);
+    TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+    try {
+      secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
+              NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+    } catch (PinCodeCheckNeedException e) {
+      servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
+      throw e;
+    }
+    return transferService.createTransferRequest(transferRequest);
+  }
+
+  private String getAmountWithCurrency(TransferRequestCreateDto dto) {
+    return new StringJoiner(" ", dto.getAmount().toString(), dto.getCurrencyName()).toString();
+  }
+
+  @RequestMapping(value = "/transfer/request/pin", method = POST)
+  @ResponseBody
+  public Map<String, Object> withdrawRequestCheckPin(
+          @RequestParam String pin, Locale locale, HttpServletRequest request, Principal principal) {
+    Object object = request.getSession().getAttribute(transferRequestCreateDto);
+    Preconditions.checkNotNull(object);
+    Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
+    if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.TRANSFER)) {
+      request.getSession().removeAttribute(transferRequestCreateDto);
+      return transferService.createTransferRequest((TransferRequestCreateDto)object);
+    } else {
+      String res = secureServiceImpl.resendEventPin(request, principal.getName(),
+              NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency((TransferRequestCreateDto)object));
+      throw new IncorrectPinException(res);
+    }
   }
 
   @ResponseBody
@@ -242,6 +277,20 @@ public class TransferRequestController {
     log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception, messageSource
             .getMessage("merchants.notEnoughWalletMoney", null,  localeResolver.resolveLocale(req)));
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({IncorrectPinException.class})
+  @ResponseBody
+  public ErrorInfo incorrectPinExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @ExceptionHandler({PinCodeCheckNeedException.class})
+  @ResponseBody
+  public ErrorInfo pinCodeCheckNeedExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

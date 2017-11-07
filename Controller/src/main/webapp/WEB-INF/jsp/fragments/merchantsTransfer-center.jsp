@@ -90,6 +90,7 @@
   </c:choose>
 
   <%@include file="modal/loading_modal.jsp" %>
+  <%@include file="modal/pin_modal.jsp" %>
   <%@include file="modal/check_fin_pass_modal.jsp" %>
   <%@include file="modal/dialogTransferCreation_modal.jsp" %>
 

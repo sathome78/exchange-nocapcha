@@ -7,7 +7,13 @@ import org.springframework.security.core.AuthenticationException;
  */
 public class IncorrectPinException extends AuthenticationException {
 
+    private final String REASON_CODE = "message.pin_code.incorrect";
+
     public IncorrectPinException(String message) {
         super(message);
+    }
+
+    public String getReason() {
+        return REASON_CODE;
     }
 }

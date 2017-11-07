@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -177,16 +178,12 @@ public interface UserService {
 
   UserRole getUserRoleFromDB(Integer userId);
 
-    @Transactional
-    void createSendAndSaveNewPinForUser(String userEmail, HttpServletRequest request);
+  @Transactional
+  String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event);
 
-    String getUserPin(String email);
+  boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
 
-    boolean getUse2Fa(String email);
-
-    boolean setUse2Fa(String email, boolean newValue);
-
-    boolean checkPin(String email, String pin);
+    boolean isLogin2faUsed(String email);
 
     boolean checkIsNotifyUserAbout2fa(String email);
 

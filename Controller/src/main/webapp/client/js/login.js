@@ -27,7 +27,8 @@ $(function () {
             type: 'POST',
             data: $('#pin_code').serialize()
         }).success(function (response) {
-            $resultBlock.text(response);
+            $('#res').text(response);
+            $resultBlock.text('ok');
         }).fail(function (error, jqXHR, textStatus) {
            $resultBlock.text(error.responseText).css('color', 'red');
         });

@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
@@ -26,9 +27,13 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.notifications.NotificatorsService;
+import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -42,6 +47,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -78,6 +84,7 @@ import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -112,8 +119,6 @@ public class AdminController {
   @Autowired
   private ReferralService referralService;
   @Autowired
-  private InvoiceService invoiceService;
-  @Autowired
   private Map<String, BitcoinService> bitcoinLikeServices;
   @Autowired
   private NotificationService notificationService;
@@ -131,12 +136,14 @@ public class AdminController {
   StopOrderService stopOrderService;
   @Autowired
   RefillService refillService;
-
   @Autowired
   BotService botService;
-
   @Autowired
   private MerchantServiceContext serviceContext;
+  @Autowired
+  private NotificatorsService notificatorsService;
+  @Autowired
+  private NotificationsSettingsService notificationsSettingsService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -486,25 +493,60 @@ public class AdminController {
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
-    model.addObject("enable_2fa", userService.getUse2Fa(user.getEmail()));
+    model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
     return model;
   }
 
   @AdminLoggable
-  @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/editUser/submit2faOptions", method = POST)
-  public String submitNotificationOptions(@RequestParam String email,
-                                          HttpServletRequest request, HttpServletResponse response) {
-    boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
+  @RequestMapping("/2a8fy7b07dxe44/editUser/submit2faOptions")
+  public RedirectView submitNotificationOptions(@RequestParam int userId, RedirectAttributes redirectAttributes,
+                                                HttpServletRequest request) {
+    RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=".concat(String.valueOf(userId)));
     try {
-      userService.setUse2Fa(email, use2fa);
+      Map<Integer, NotificationsUserSetting> settingsMap = notificationsSettingsService.getSettingsMap(userId);
+      settingsMap.forEach((k,v) -> {
+        Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
+        if (notificatorId.equals(0)) {
+          notificatorId = null;
+        }
+        if (v == null) {
+          NotificationsUserSetting setting = NotificationsUserSetting.builder()
+                  .userId(userId)
+                  .notificatorId(notificatorId)
+                  .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
+                  .build();
+          notificationsSettingsService.createOrUpdate(setting);
+        } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
+          v.setNotificatorId(notificatorId);
+          notificationsSettingsService.createOrUpdate(v);
+        }
+      });
+      redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
+              localeResolver.resolveLocale(request)));
     } catch (Exception e) {
       log.error(e);
-      response.setStatus(400);
-      return "error";
+      redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
+              localeResolver.resolveLocale(request)));
+      throw e;
     }
-    return "ok";
+    return redirectView;
+  }
+
+  @AdminLoggable
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/2FaOptions/contact_info")
+  public String setGlobal2fa(@RequestParam int userId, @RequestParam int notificatorId) {
+    Subscribable subscribable = notificatorsService.getByNotificatorId(notificatorId);
+    Preconditions.checkNotNull(subscribable);
+    NotificatorSubscription subscription = subscribable.getSubscription(userId);
+    Preconditions.checkState(subscription.isConnected());
+    String contact = Preconditions.checkNotNull(subscription.getContactStr());
+    int roleId = userService.getUserRoleFromDB(userId).getRole();
+    BigDecimal fee = notificatorsService.getMessagePrice(notificatorId, roleId);
+    BigDecimal price = doAction(fee, subscription.getPrice(), ActionType.ADD);
+    return new JSONObject(){{put("contact", contact);
+      put("price", price);}}.toString();
   }
 
   @AdminLoggable
@@ -1384,6 +1426,36 @@ public class AdminController {
     });
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/notificatorsSettings")
+  public String notificatorsSettings(Model model) {
+    model.addAttribute("roles", UserRole.values());
+    return "admin/notificatorsSettings";
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/getNotificatorsSettings")
+  public List<Notificator> getNotificatorsSettings(@RequestParam int roleId) {
+    return notificatorsService.getNotificatorSettingsByRole(roleId);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/setNotificatorsSetting", method = POST)
+  public ResponseEntity<Void> setNotificatorsSetting(@RequestParam BigDecimal price,
+                                                     @RequestParam int roleId,
+                                                     @RequestParam int notificatorId) {
+    Notificator notificator = notificatorsService.getById(notificatorId);
+    Preconditions.checkArgument(!notificator.getPayTypeEnum().equals(NotificationPayTypeEnum.FREE));
+    notificatorsService.updateNotificatorPrice(price, roleId, notificatorId);
+    return new ResponseEntity<Void>(HttpStatus.OK);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/notificatorSettings/enable", method = RequestMethod.POST)
+  public ResponseEntity<Void> enableNotificators(@RequestParam(name = "notificatorId") int notificatorId,
+                                                 @RequestParam(name = "enable") boolean enable) {
+    notificatorsService.setEnable(notificatorId, enable);
+    return new ResponseEntity<Void>(HttpStatus.OK);
+  }
 
 
 

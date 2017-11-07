@@ -13,7 +13,7 @@
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <%@include file='links_scripts.jsp' %>
-    <script type="text/javascript" src="<c:url value='/client/js/userSettings.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/2faSettings.js'/>"></script>
 </head>
 
 <body id="main-admin">
@@ -51,7 +51,27 @@
                     </div>
                     <br>
                     <div id="post_url" hidden>${post_url}</div>
-                    <%@include file="../fragments/settings-center-2fa.jsp" %>
+                    <section id="2fa-options">
+                        <h4 class="h4_green">
+                            <loc:message code="message.2fa.title"/>
+                        </h4>
+                        <h4 class="under_h4_margin"></h4>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-sm-6 content">
+                                    <form method="post" id="2faSettings_form">
+                                        <input type="hidden" name="_csrf" value="62217712-a688-4689-9f52-e8f47b288e0b">
+                                        <label for="login2fa"><loc:message code="admin.2falogin.allSite"/></label>
+                                        <input type="checkbox" id="login2fa" name="enable_2fa"
+                                               <c:if test="${enable_2fa}">checked</c:if>>
+                                        <div id="result" hidden="" style="display: block;"></div>
+                                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                                            <loc:message code="button.update"/></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </sec:authorize>
 
             </div>

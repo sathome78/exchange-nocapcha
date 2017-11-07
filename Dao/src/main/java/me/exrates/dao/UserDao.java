@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -154,17 +155,13 @@ public interface UserDao {
 
   boolean checkPollIsDoneByUser(String email);
 
-    String getPinByEmail(String email);
-
-  boolean getUse2FaByEmail(String email);
-
-    boolean setUse2FaByEmail(String email, boolean use2fa);
-
-    boolean updatePinByUserEmail(String email, String pin);
-
-    boolean updateLast2faNotifyDate(String email);
+  boolean updateLast2faNotifyDate(String email);
 
   LocalDate getLast2faNotifyDate(String email);
 
   List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
+
+  String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
+
+  void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 }

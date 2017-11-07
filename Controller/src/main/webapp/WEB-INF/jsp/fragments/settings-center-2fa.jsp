@@ -11,28 +11,69 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-6 content">
-                <c:if test="${enable_2fa != null}">
+
                     <form method="post" action="/settings/2FaOptions/submit" id="2faSettings_form">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <table id="notification-options-table" class="table">
-                            <tbody>
-                            <tr id="2fa_cell">
-                                <td><loc:message code="message.2fa.via_email"/>:<c:if test="${global_use_2fa == false}">  \disabled!\</disabled></c:if></td>
-                                <td><input type="checkbox" id="enable_2fa"
-                                                name="enable_2fa"
-                                        <c:if test="${global_use_2fa == false}">disabled</c:if>
-                                        <c:if test="${enable_2fa}">checked</c:if> /><br>
-                                </td>
+                        <table id="2fa-options-table" class="table">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
+                                <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
+                                    <th>
+                                        <c:if test="${notificatorHead.needSubscribe}">
+                                            <c:choose>
+                                                <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null
+                                                or not subscriptions.get(notificatorHead.id).isConnected()}">
+                                                    <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
+                                                    <loc:message code="notificator.conect"/></a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:if test="${subscriptions.get(notificatorHead.id).getContactStr() != null}">
+                                                        <a class="btn btn-default contact_info" data-id="${notificatorHead.id}"
+                                                           data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
+                                                        <loc:message code="message.info"/></a>
+                                                    </c:if>
+                                                    <c:if test="${notificatorHead.enabled}">
+                                                    <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
+                                                        <loc:message code="notificator.reconnect"/></a>
+                                                    </c:if>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:if><br>${notificatorHead.name}<br>
+                                        <c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>
+                                    </th>
+                                </c:forEach>
+                                <th>Disable</th>
                             </tr>
+                            </thead>
+                            <tbody>
+                            <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
+                            <c:forEach items="${user2faOptions.get('events')}" var="event">
+                                    <tr>
+                                        <td>${event}</td>
+                                        <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
+                                            <td><input type="radio" name="${event.code}" value="${notificator.id}"
+                                                    <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null
+                                                    or not subscriptions.get(notificator.id).isConnected())}">
+                                                        disabled
+                                                    </c:if>
+                                                       <c:if test="${!notificator.enabled}">disabled</c:if>
+                                                    <c:if test="${settings.get(event.code) != null
+                                                    and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
+                                            </td>
+                                        </c:forEach>
+                                            <td><input type="radio" name="${event.code}" value="0"
+                                                    <c:if test="${settings.get(event.code) == null or settings.get(event.code).notificatorId == null}"> CHECKED</c:if>
+                                                />
+                                            </td>
+                                    </tr>
+                                </c:forEach>
                             </tbody>
                         </table>
-                        <div id="result" hidden></div>
-                        <button id="submitSessionOptionsButton" type="submit"
-                                <c:if test="${global_use_2fa == false}">disabled</c:if> class="blue-box">
+                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
                             <loc:message code="button.update"/></button>
                     </form>
-                </c:if>
-
             </div>
         </div>
     </div>

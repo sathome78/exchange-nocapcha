@@ -78,7 +78,7 @@ public class TransferRequestDaoImpl implements TransferRequestDao {
     final String sql = "INSERT INTO TRANSFER_REQUEST " +
         "(amount, commission, status_id," +
         " date_creation, status_modification_date, currency_id, merchant_id, user_id, recipient_user_id, commission_id, hash) " +
-        "VALUES (:amount, :commission, :status_id, " +
+        " VALUES (:amount, :commission, :status_id, " +
         " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :recipient_user_id, :commission_id, :hash)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()

@@ -7,6 +7,8 @@ import org.springframework.security.core.AuthenticationException;
  */
 public class PinCodeCheckNeedException extends AuthenticationException {
 
+
+
     public PinCodeCheckNeedException(String msg, Throwable t) {
         super(msg, t);
     }

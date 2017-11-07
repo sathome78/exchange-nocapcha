@@ -1198,7 +1198,6 @@ public class OrderServiceImpl implements OrderService {
                                                                          OperationType operationType) {
     UserRole userRole = null;
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    logger.debug("auth22 " + authentication);
     if (authentication == null) {
       userRole = userService.getUserRoleFromDB(email);
     } else {

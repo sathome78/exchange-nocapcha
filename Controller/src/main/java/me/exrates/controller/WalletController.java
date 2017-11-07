@@ -66,28 +66,6 @@ public class WalletController {
         return walletService.getWalletConfirmationDetail(walletId, localeResolver.resolveLocale(request));
     }
 
-    /**@param checkOnly - used to verify payment, without fin pass, but not perform transfer
-     * *//*
-    @FinPassCheck(notCheckPassIfCheckOnlyParamTrue = true)
-    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> submitTransfer(@RequestParam Integer walletId,
-                                                              @RequestParam String nickname,
-                                                              @RequestParam BigDecimal amount,
-                                                              @RequestParam(value = "checkOnly", defaultValue = "false")
-                                                                          boolean checkOnly,
-                                                              Principal principal,
-                                                              HttpServletRequest request) {
-        if (!nickname.matches("^\\D+[\\w\\d\\-_]+")) {
-            throw new InvalidNicknameException(messageSource.getMessage("transfer.invalidNickname", null, localeResolver.resolveLocale(request)));
-        }
-        String principalNickname = userService.findByEmail(principal.getName()).getNickname();
-        if (nickname.equals(principalNickname)) {
-            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
-        }
-        String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
-        return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
-    }*/
     
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({AbsentFinPasswordException.class, NotConfirmedFinPasswordException.class, WrongFinPasswordException.class, CheckFinPassException.class})
