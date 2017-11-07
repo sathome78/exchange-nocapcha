@@ -153,6 +153,9 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         int userId = userService.getIdByEmail(userEmail);
         UserRole role = userService.getUserRoleFromDB(userEmail);
         BigDecimal fee = notificatorsService.getSubscriptionPrice(getNotificationType().getCode(), role.getRole());
+        if (fee.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setCommissionAmount(fee);
         walletOperationData.setOperationType(operationType);

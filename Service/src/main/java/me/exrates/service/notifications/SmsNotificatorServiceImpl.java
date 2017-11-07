@@ -224,6 +224,9 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     @Transactional
     private BigDecimal pay(BigDecimal feeAmount, BigDecimal deliveryAmount, int userId, String description) {
         BigDecimal totalAmount = doAction(feeAmount, deliveryAmount, ActionType.ADD);
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setOperationType(OperationType.OUTPUT);
         walletOperationData.setWalletId(walletService.getWalletId(userId, currencyService.findByName(CURRENCY_NAME).getId()));
