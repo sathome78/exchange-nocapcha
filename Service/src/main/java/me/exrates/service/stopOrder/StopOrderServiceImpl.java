@@ -214,7 +214,7 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     /*check stop orders on order accepted and rates changed*/
     private void checkOrders(ExOrder exOrder, OperationType operationType) {
-        log.error("limit order accepted {} {}", exOrder.getId(), exOrder.getCurrencyPairId());
+        log.debug("limit order accepted {} {}", exOrder.getId(), exOrder.getCurrencyPairId());
         try {
             NavigableSet<StopOrderSummaryDto> result;
             switch (operationType) {

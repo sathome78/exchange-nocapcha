@@ -116,7 +116,7 @@ public interface OrderService {
    * @param orderId is ID of order that must be accepted
    * @param locale  is current locale. Used to generate messages
    */
-  void acceptOrder(int userId, int orderId, Locale locale);
+  /*void acceptOrder(int userId, int orderId, Locale locale);*/
   
   void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
   

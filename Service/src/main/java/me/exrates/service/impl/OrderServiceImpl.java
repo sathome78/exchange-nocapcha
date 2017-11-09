@@ -594,8 +594,7 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Transactional(rollbackFor = {Exception.class})
-  @Override
-  public void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
+  private void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
     acceptOrder(userAcceptorId, orderId, locale, true);
 
   }
@@ -604,7 +603,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(rollbackFor = {Exception.class})
   public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
     Integer userId = userService.getIdByEmail(acceptorEmail);
-    acceptOrder(userId, orderId, locale);
+    acceptOrdersList(userId, Collections.singletonList(orderId), locale);
   }
 
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
