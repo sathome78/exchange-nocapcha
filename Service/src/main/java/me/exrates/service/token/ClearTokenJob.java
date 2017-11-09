@@ -26,7 +26,7 @@ public class ClearTokenJob implements Job {
                 + " : " + jobParams.get("tokenDateCreation");
 
         try {
-            if (TokenScheduler.getTokenScheduler().deleteExpiredToken(jobParams.getString("tokenValue"))) {
+            if (false/*TokenScheduler.getTokenScheduler().deleteExpiredToken(jobParams.getString("tokenValue"))*/ /*todo repair fk constrins for users delete job*/) {
                 message = String.format("the expired token was deleted: %s" + "\n" + "  in queue now %s jobs remain",
                         tokenString, jobExecutionContext.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(TokenScheduler.TRIGGER_GROUP)).size() - 1);
             } else {
