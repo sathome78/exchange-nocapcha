@@ -1,5 +1,6 @@
 package me.exrates.model.vo;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.Commission;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
  * Created by Valk on 24.05.2016.
  */
 @Getter @Setter
+@EqualsAndHashCode
 public class WalletOperationData {
 
     private OperationType operationType;
