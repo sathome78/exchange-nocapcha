@@ -150,7 +150,7 @@ public class IotaServiceImpl implements IotaService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 0, 30, TimeUnit.MINUTES);
+                }, 0, 120, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }
