@@ -212,6 +212,7 @@
                 <table id="order-info-table">
                     <thead>
                     <tr>
+                        <th></th>
                         <th><loc:message code="orderinfo.id"/></th>
                         <th><loc:message code="orderinfo.createdate"/></th>
                         <th><loc:message code="orderinfo.currencypair"/></th>

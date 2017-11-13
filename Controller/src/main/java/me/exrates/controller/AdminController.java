@@ -1457,6 +1457,21 @@ public class AdminController {
     return new ResponseEntity<Void>(HttpStatus.OK);
   }
 
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/order/acceptMany", method = POST)
+  public void acceptManyOrders(@RequestParam List<Integer> orderIds, Principal principal, Locale locale) {
+    log.info(orderIds);
+
+    orderService.acceptManyOrdersByAdmin(principal.getName(), orderIds, locale);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/order/deleteMany", method = POST)
+  public void deleteManyOrders(@RequestParam List<Integer> orderIds) {
+
+    orderService.deleteManyOrdersByAdmin(orderIds);
+  }
+
 
 
 

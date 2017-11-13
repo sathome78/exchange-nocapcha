@@ -170,6 +170,44 @@ function validateErrorForm() {
     return isError;
 }
 
+function acceptSelected(orderIds) {
+    var data = 'orderIds=' + orderIds.join(',');
+    if (confirm('Are you sure?')) {
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/acceptMany',
+                type: 'POST',
+                data: data,
+                success: function (/*data*/) {
+                    /*successNoty(data['result'], 'successOrder');*/
+                    updateOrderTable()
+                }
+            }
+        );
+    }
+}
+
+function deleteSelected(orderIds) {
+    var data = 'orderIds=' + orderIds.join(',');
+    if (confirm('Are you sure?')) {
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/deleteMany',
+                type: 'POST',
+                data: data,
+                success: function (/*data*/) {
+                    /*successNoty(data['result'], 'successOrder');*/
+                    updateOrderTable()
+                }
+            }
+        );
+    }
+}
+
 function updateOrderTable() {
     var isError = validateErrorForm();
     if (isError) {
@@ -191,7 +229,18 @@ function updateOrderTable() {
             "paging": true,
             "info": true,
             "bFilter": false,
+            "columnDefs": [ {
+                "orderable": false,
+                "className": 'select-checkbox',
+                "targets":   0
+            } ],
             "columns": [
+                {
+                    "data": null,
+                    "render": function (data, type, row) {
+                        return "";
+                    }
+                },
                 {
                     "data": "id",
                     "name": "EXORDERS.id"
@@ -237,11 +286,50 @@ function updateOrderTable() {
 
 
             ],
+            "select": {
+                "style":    'multi+shift',
+                "selector": 'td:first-child'
+            },
+            dom: "B<'row pull-right' l>frtip",
+
+            buttons: [
+                'selectAll',
+                'selectNone',
+                {
+                    text: 'Accept selected',
+                    action: function (e, dt, node, config) {
+                        var selectedRows = orderDataTable.rows( { selected: true } );
+                        var orderIds = selectedRows.data().map(function (elem) {
+                            return elem.id;
+                        });
+                        console.log(orderIds)
+                        acceptSelected(orderIds)
+                    }
+                },
+                {
+                    text: 'Delete selected',
+                    action: function (e, dt, node, config) {
+                        var selectedRows = orderDataTable.rows( { selected: true } );
+                        var orderIds = selectedRows.data().map(function (elem) {
+                            return elem.id;
+                        });
+                        console.log(orderIds)
+                        deleteSelected(orderIds)
+
+                    }
+                }
+            ],
+            language: {
+                buttons: {
+                    selectAll: "Select all items",
+                    selectNone: "Select none"
+                }
+            },
             "order": [
-                [0, 'desc']
+                [1, 'desc']
             ]
         });
-        $('#order-info-table tbody').on('click', 'tr', function () {
+        $('#order-info-table').find('tbody').on('click', 'tr td:not(:first-child)', function () {
             var currentRow = orderDataTable.row( this );
             getOrderDetailedInfo(currentRow.data().id, true);
         } );

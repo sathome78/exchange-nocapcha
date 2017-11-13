@@ -74,7 +74,9 @@ public class BotServiceImpl implements BotService {
     @PostConstruct
     private void initBot() {
         retrieveBotFromDB().ifPresent(botTrader -> {
-            scheduleJobsForActiveCurrencyPairs(botTrader.getId());
+            if (botTrader.isEnabled()) {
+                scheduleJobsForActiveCurrencyPairs(botTrader.getId());
+            }
         });
     }
 

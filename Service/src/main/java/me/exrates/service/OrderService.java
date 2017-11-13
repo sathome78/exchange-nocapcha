@@ -119,8 +119,10 @@ public interface OrderService {
   /*void acceptOrder(int userId, int orderId, Locale locale);*/
   
   void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
-  
-  /**
+
+    void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale);
+
+    /**
    * Cancels the order and set status "CANCELLED"
    * Only order with status "OPENED" can be cancelled
    * This method for cancel order by creator-user
@@ -163,6 +165,8 @@ public interface OrderService {
 
     @Transactional
     AdminOrderInfoDto getAdminOrderInfo(int orderId, Locale locale);
+
+    void deleteManyOrdersByAdmin(List<Integer> orderIds);
 
     Object deleteOrderByAdmin(int orderId);
 
