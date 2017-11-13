@@ -389,7 +389,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Dogecoin", "DOGE", 4);
     }
 
-    @Bean(name = "bitcoinGoldServiceImpl")
+    @Bean(name = "btgServiceImpl")
     public BitcoinService btgService() {
         return new BitcoinServiceImpl("merchants/bitcoin_gold_wallet.properties",
                 "BTG", "BTG", 4);
