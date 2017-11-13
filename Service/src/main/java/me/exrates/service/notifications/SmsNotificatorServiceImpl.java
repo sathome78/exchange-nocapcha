@@ -155,9 +155,9 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         }
         subscriptionDto.setNewPrice(cost);
         UserRole role = userService.getUserRoleFromDB(subscriptionDto.getUserId());
-        BigDecimal totalAmount = notificatorsService.getMessagePrice(getNotificationType().getCode(), role.getRole());
+        BigDecimal feePercent = notificatorsService.getMessagePrice(getNotificationType().getCode(), role.getRole());
         createOrUpdate(subscriptionDto);
-        return doAction(cost, totalAmount, ActionType.ADD);
+        return doAction(cost, doAction(cost, feePercent, ActionType.MULTIPLY_PERCENT), ActionType.ADD);
     }
 
     @Override
