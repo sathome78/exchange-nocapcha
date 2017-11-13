@@ -41,11 +41,13 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     @PostConstruct
     private void init() {
-        TelegramBotsApi botsApi = new TelegramBotsApi();
-        try {
-            botsApi.registerBot(this);
-        } catch (TelegramApiException e) {
-            log.error("error while initialize bot {}", e);
+        if (!botName.equals("exrates_local_test_bot")) {
+            TelegramBotsApi botsApi = new TelegramBotsApi();
+            try {
+                botsApi.registerBot(this);
+            } catch (TelegramApiException e) {
+                log.error("error while initialize bot {}", e);
+            }
         }
     }
 
