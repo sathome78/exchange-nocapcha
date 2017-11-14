@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 @RunWith(MockitoJUnitRunner.class)
 public class BlockchainControllerTest {
 
-    @Mock
+   /* @Mock
     private MerchantService merchantService;
 
     @Mock
@@ -49,5 +49,5 @@ public class BlockchainControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("text/plain; charset=utf-8"))
                 .andExpect(content().string("No invoice id_presented"));
-    }
+    }*/
 }
