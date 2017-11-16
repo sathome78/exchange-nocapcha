@@ -170,9 +170,9 @@ function validateErrorForm() {
     return isError;
 }
 
-function acceptSelected(orderIds) {
+function acceptSelected(orderIds, orderDataTable) {
     var data = 'orderIds=' + orderIds.join(',');
-    if (confirm('Are you sure?')) {
+    if (confirm($('#promptAcceptLoc').text() + orderIds.join(', ') + '?')) {
         $.ajax({
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -182,16 +182,18 @@ function acceptSelected(orderIds) {
                 data: data,
                 success: function (/*data*/) {
                     /*successNoty(data['result'], 'successOrder');*/
-                    updateOrderTable()
+                    updateOrderTable();
+                    orderDataTable.button(2).enable(false);
+                    orderDataTable.button(3).enable(false);
                 }
             }
         );
     }
 }
 
-function deleteSelected(orderIds) {
+function deleteSelected(orderIds, orderDataTable) {
     var data = 'orderIds=' + orderIds.join(',');
-    if (confirm('Are you sure?')) {
+    if (confirm($('#promptDeleteLoc').text() + orderIds.join(', ') + '?')) {
         $.ajax({
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -201,7 +203,9 @@ function deleteSelected(orderIds) {
                 data: data,
                 success: function (/*data*/) {
                     /*successNoty(data['result'], 'successOrder');*/
-                    updateOrderTable()
+                    updateOrderTable();
+                    orderDataTable.button(2).enable(false);
+                    orderDataTable.button(3).enable(false);
                 }
             }
         );
@@ -296,39 +300,50 @@ function updateOrderTable() {
                 'selectAll',
                 'selectNone',
                 {
-                    text: 'Accept selected',
+                    text: $('#acceptSelectedButtonLoc').text(),
                     action: function (e, dt, node, config) {
                         var selectedRows = orderDataTable.rows( { selected: true } );
                         var orderIds = selectedRows.data().map(function (elem) {
                             return elem.id;
                         });
-                        console.log(orderIds)
-                        acceptSelected(orderIds)
-                    }
+                        acceptSelected(orderIds, orderDataTable)
+                    },
+                    enabled: false
                 },
                 {
-                    text: 'Delete selected',
+                    text: $('#deleteSelectedButtonLoc').text(),
                     action: function (e, dt, node, config) {
                         var selectedRows = orderDataTable.rows( { selected: true } );
                         var orderIds = selectedRows.data().map(function (elem) {
                             return elem.id;
                         });
-                        console.log(orderIds)
-                        deleteSelected(orderIds)
+                        deleteSelected(orderIds, orderDataTable)
 
-                    }
+                    },
+                    enabled: false
                 }
             ],
             language: {
                 buttons: {
-                    selectAll: "Select all items",
-                    selectNone: "Select none"
+                    selectAll: $('#selectAllButtonLoc').text(),
+                    selectNone: $('#selectNoneButtonLoc').text()
                 }
             },
             "order": [
                 [1, 'desc']
             ]
         });
+        orderDataTable.on( 'select', function ( e, dt, type, indexes ) {
+
+            updateAcceptDeleteButtons(orderDataTable);
+
+
+        } )
+            .on( 'deselect', function ( e, dt, type, indexes ) {
+                updateAcceptDeleteButtons(orderDataTable);
+
+            } );
+
         $('#order-info-table').find('tbody').on('click', 'tr td:not(:first-child)', function () {
             var currentRow = orderDataTable.row( this );
             getOrderDetailedInfo(currentRow.data().id, true);
@@ -339,6 +354,24 @@ function updateOrderTable() {
     }
 
 }
+function updateAcceptDeleteButtons(orderDataTable) {
+    debugger;
+    var rowData = orderDataTable.rows({ selected: true }).data().toArray();
+    var statuses = rowData.map(function (elem) {
+        return elem.status.toUpperCase();
+    });
+    var notEmpty = statuses.length > 0;
+    var acceptable = notEmpty && statuses.every(function (t) {
+        return t === 'OPENED';
+    });
+    var deletable = notEmpty && !statuses.some(function (t) {
+        return t === 'DELETED' || t === 'SPLIT_CLOSED'
+    });
+    orderDataTable.button(2).enable(acceptable);
+    orderDataTable.button(3).enable(deletable);
+}
+
+
 $(function () {
     $('#order-info-table').toggle(false);
     $.datetimepicker.setDateFormatter({
