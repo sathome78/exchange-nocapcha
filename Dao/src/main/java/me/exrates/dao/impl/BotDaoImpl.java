@@ -108,6 +108,7 @@ public class BotDaoImpl implements BotDao {
                 "  BTS.order_type_id, BLCH.is_enabled, BLCH.consider_user_orders, " +
                 "  BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, " +
                 "  BTS.max_amount, BTS.min_amount, BTS.max_price, BTS.min_price, BTS.price_step, BTS.price_growth_direction, " +
+                "  BTS.min_price_deviation, BTS.max_price_deviation, BTS.randomize_price_step, BTS.price_step_deviation, " +
                 "  MIN(EX.exrate) AS min_user_price, MAX(EX.exrate) AS max_user_price " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
                 "  JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
@@ -132,9 +133,14 @@ public class BotDaoImpl implements BotDao {
                 BigDecimal maxUserPrice = rs.getBigDecimal("max_user_price");
                 BigDecimal minUserPrice = rs.getBigDecimal("min_user_price");
                 BigDecimal priceStep = rs.getBigDecimal("price_step");
+                int minDeviationPercent = rs.getInt("min_price_deviation");
+                int maxDeviationPercent = rs.getInt("max_price_deviation");
+                boolean isPriceStepRandom = rs.getBoolean("randomize_price_step");
+                int priceStepDeviationPercent = rs.getInt("price_step_deviation");
                 PriceGrowthDirection direction = PriceGrowthDirection.valueOf(rs.getString("price_growth_direction"));
+
                 return new BotTradingCalculator(id, launchSettings, orderType, minAmount, maxAmount, minPrice, maxPrice,
-                        minUserPrice, maxUserPrice, priceStep, direction);
+                        minUserPrice, maxUserPrice, priceStep, minDeviationPercent, maxDeviationPercent, isPriceStepRandom, priceStepDeviationPercent, direction);
             }));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();

@@ -25,10 +25,15 @@ public class BotTradingCalculator {
     private final BigDecimal lowerPriceBound;
     private final BigDecimal upperPriceBound;
     private final BigDecimal priceStep;
+    private final BigDecimal minDeviationPercent;
+    private final BigDecimal maxDeviationPercent;
+    private final boolean isPriceStepRandom;
+    private final BigDecimal priceStepDeviationPercent;
     private PriceGrowthDirection direction;
 
     public BotTradingCalculator(Integer id, BotLaunchSettings botLaunchSettings, OrderType orderType, BigDecimal minAmount, BigDecimal maxAmount,
                                 BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minUserPrice, BigDecimal maxUserPrice, BigDecimal priceStep,
+                                int minDeviationPercent, int maxDeviationPercent, boolean isPriceStepRandom, int priceStepDeviationPercent,
                                 PriceGrowthDirection direction) {
         this.id = id;
         this.botLaunchSettings = botLaunchSettings;
@@ -37,6 +42,10 @@ public class BotTradingCalculator {
         this.maxAmount = maxAmount;
         this.priceStep = priceStep;
         this.direction = direction;
+        this.minDeviationPercent = new BigDecimal(minDeviationPercent);
+        this.maxDeviationPercent = new BigDecimal(maxDeviationPercent);
+        this.isPriceStepRandom = isPriceStepRandom;
+        this.priceStepDeviationPercent = new BigDecimal(priceStepDeviationPercent);
 
         if (botLaunchSettings.isUserOrderPriceConsidered()) {
             if (minUserPrice == null || !checkPriceWithinRange(minUserPrice, minPrice, maxPrice)) {
@@ -65,17 +74,21 @@ public class BotTradingCalculator {
     }
 
     public BigDecimal getRandomizedAmount() {
-        return new BigDecimal(new RandomDataGenerator().nextUniform(minAmount.doubleValue(), maxAmount.doubleValue())).setScale(5, RoundingMode.DOWN);
+        return getRandomNumberForRange(minAmount, maxAmount, 5);
+    }
+
+    private BigDecimal getRandomNumberForRange(BigDecimal min, BigDecimal max, int scale) {
+        return new BigDecimal(new RandomDataGenerator().nextUniform(min.doubleValue(), max.doubleValue())).setScale(scale, RoundingMode.DOWN);
     }
 
 
     public BigDecimal nextPrice(final BigDecimal previousPrice) {
         BigDecimal result = calculateNextPrice(previousPrice);
         if (result.compareTo(lowerPriceBound) < 0) {
-            result = lowerPriceBound;
+            result = BigDecimalProcessing.doAction(lowerPriceBound, calculatePriceDeviationByPercent(priceStep, minDeviationPercent), ActionType.SUBTRACT);
             direction = UP;
         } else if(result.compareTo(upperPriceBound) > 0) {
-            result = upperPriceBound;
+            result = BigDecimalProcessing.doAction(upperPriceBound, calculatePriceDeviationByPercent(priceStep, maxDeviationPercent), ActionType.SUBTRACT);;
             direction = DOWN;
         }
         return result;
@@ -83,7 +96,20 @@ public class BotTradingCalculator {
 
     private BigDecimal calculateNextPrice(BigDecimal previousPrice) {
         ActionType actionType = direction == UP ? ADD : SUBTRACT;
-        return BigDecimalProcessing.doAction(previousPrice, priceStep, actionType);
+        BigDecimal actualPriceStep;
+        if (isPriceStepRandom) {
+            actualPriceStep = BigDecimalProcessing.doAction(priceStep, calculatePriceDeviationByPercent(priceStep, priceStepDeviationPercent), ActionType.SUBTRACT);
+        } else {
+            actualPriceStep = priceStep;
+        }
+
+
+        return BigDecimalProcessing.doAction(previousPrice, actualPriceStep, actionType);
+    }
+
+    private BigDecimal calculatePriceDeviationByPercent(BigDecimal deviationBase, BigDecimal deviationPercent) {
+        BigDecimal maxDeviation = BigDecimalProcessing.doAction(deviationBase, deviationPercent, ActionType.MULTIPLY_PERCENT);
+        return getRandomNumberForRange(BigDecimal.ZERO, maxDeviation, 5);
     }
 
     public void setDirection(PriceGrowthDirection direction) {
