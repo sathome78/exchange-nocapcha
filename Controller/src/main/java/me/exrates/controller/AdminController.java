@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.config.WebAppConfig;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.exception.NoRequestedBeansFoundException;
@@ -33,12 +34,15 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.waves.WavesRestClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -1525,7 +1529,15 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
-  
+
+  public static void main(String[] args) {
+    ApplicationContext context = new AnnotationConfigApplicationContext(WebAppConfig.class);
+
+    WavesRestClient restClient = (WavesRestClient) context.getBean("wavesRestClientImpl");
+    System.out.println(restClient.generateNewAddress());
+
+
+  }
   
 
 
