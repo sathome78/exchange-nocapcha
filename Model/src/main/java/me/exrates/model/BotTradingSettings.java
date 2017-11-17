@@ -19,5 +19,9 @@ public class BotTradingSettings {
     private BigDecimal maxUserPrice;
     private BigDecimal minUserPrice;
     private BigDecimal priceStep;
+    private int minDeviationPercent;
+    private int maxDeviationPercent;
+    private boolean isPriceStepRandom;
+    private int priceStepDeviationPercent;
     private PriceGrowthDirection direction;
 }

@@ -113,6 +113,44 @@ public class BotTradingCalculatorTest {
         assertEquals(PriceGrowthDirection.UP, calculator.getDirection());
     }
 
+    @Test
+    public void nextPrice_randomizedPriceStep() {
+        settings.setPriceStepRandom(true);
+        settings.setPriceStepDeviationPercent(50);
+        calculator = new BotTradingCalculator(settings);
+        for (int i = 0; i < 10000; i++) {
+            BigDecimal result = calculator.nextPrice(new BigDecimal(1300));
+            assertTrue(result.compareTo(new BigDecimal(1305)) > 0 && result.compareTo(new BigDecimal(1310)) < 0 );
+        }
+
+    }
+
+    @Test
+    public void nextPrice_NextHigherRandomizedTest() {
+        settings.setMaxDeviationPercent(50);
+        calculator = new BotTradingCalculator(settings);
+        for (int i = 0; i < 10000; i++) {
+            BigDecimal result = calculator.nextPrice(new BigDecimal(1442));
+            assertTrue(result.compareTo(new BigDecimal(1445)) > 0 && result.compareTo(new BigDecimal(1450)) < 0 );
+            assertEquals(PriceGrowthDirection.DOWN, calculator.getDirection());
+            calculator.setDirection(PriceGrowthDirection.UP);
+        }
+    }
+
+    @Test
+    public void nextPrice_NextLowerRandomizedTest() {
+        settings.setMinDeviationPercent(50);
+        settings.setDirection(PriceGrowthDirection.DOWN);
+        calculator = new BotTradingCalculator(settings);
+        for (int i = 0; i < 10000; i++) {
+            BigDecimal result = calculator.nextPrice(new BigDecimal(1258));
+            assertTrue(result.compareTo(new BigDecimal(1250)) > 0 && result.compareTo(new BigDecimal(1255)) < 0 );
+            assertEquals(PriceGrowthDirection.UP, calculator.getDirection());
+            calculator.setDirection(PriceGrowthDirection.DOWN);
+        }
+    }
+
+
 
 
 

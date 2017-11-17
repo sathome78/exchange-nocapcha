@@ -42,10 +42,10 @@ public class BotTradingCalculator {
         minPrice = botTradingSettings.getMinPrice();
         maxUserPrice = botTradingSettings.getMaxUserPrice();
         minUserPrice = botTradingSettings.getMinUserPrice();
-    //    this.minDeviationPercent = new BigDecimal(minDeviationPercent);
-    //    this.maxDeviationPercent = new BigDecimal(maxDeviationPercent);
-   //     this.isPriceStepRandom = isPriceStepRandom;
-    //    this.priceStepDeviationPercent = new BigDecimal(priceStepDeviationPercent);
+        this.minDeviationPercent = new BigDecimal(botTradingSettings.getMinDeviationPercent());
+        this.maxDeviationPercent = new BigDecimal(botTradingSettings.getMaxDeviationPercent());
+        this.isPriceStepRandom = botTradingSettings.isPriceStepRandom();
+        this.priceStepDeviationPercent = new BigDecimal(botTradingSettings.getPriceStepDeviationPercent());
 
         if (isUserOrderPriceConsidered) {
             if (minUserPrice == null || !checkPriceWithinRange(minUserPrice, minPrice, maxPrice)) {
@@ -90,7 +90,7 @@ public class BotTradingCalculator {
         }
         BigDecimal result = calculateNextPrice(previousPrice);
         if (result.compareTo(lowerPriceBound) < 0) {
-            result = BigDecimalProcessing.doAction(lowerPriceBound, calculatePriceDeviationByPercent(priceStep, minDeviationPercent), ActionType.SUBTRACT);
+            result = BigDecimalProcessing.doAction(lowerPriceBound, calculatePriceDeviationByPercent(priceStep, minDeviationPercent), ActionType.ADD);
             direction = UP;
         } else if(result.compareTo(upperPriceBound) > 0) {
             result = BigDecimalProcessing.doAction(upperPriceBound, calculatePriceDeviationByPercent(priceStep, maxDeviationPercent), ActionType.SUBTRACT);;
@@ -114,6 +114,9 @@ public class BotTradingCalculator {
 
     private BigDecimal calculatePriceDeviationByPercent(BigDecimal deviationBase, BigDecimal deviationPercent) {
         BigDecimal maxDeviation = BigDecimalProcessing.doAction(deviationBase, deviationPercent, ActionType.MULTIPLY_PERCENT);
+        if (BigDecimal.ZERO.equals(maxDeviation)) {
+            return BigDecimal.ZERO;
+        }
         return getRandomNumberForRange(BigDecimal.ZERO, maxDeviation, 5);
     }
 

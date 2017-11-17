@@ -136,12 +136,11 @@ public class BotDaoImpl implements BotDao {
                 tradingSettings.setMaxUserPrice(rs.getBigDecimal("max_user_price"));
                 tradingSettings.setMinUserPrice(rs.getBigDecimal("min_user_price"));
                 tradingSettings.setPriceStep(rs.getBigDecimal("price_step"));
-                int minDeviationPercent = rs.getInt("min_price_deviation");
-                int maxDeviationPercent = rs.getInt("max_price_deviation");
-                boolean isPriceStepRandom = rs.getBoolean("randomize_price_step");
-                int priceStepDeviationPercent = rs.getInt("price_step_deviation");
+                tradingSettings.setMinDeviationPercent(rs.getInt("min_price_deviation"));
+                tradingSettings.setMaxDeviationPercent(rs.getInt("max_price_deviation"));
+                tradingSettings.setPriceStepRandom(rs.getBoolean("randomize_price_step"));
+                tradingSettings.setPriceStepDeviationPercent(rs.getInt("price_step_deviation"));
                 tradingSettings.setDirection(PriceGrowthDirection.valueOf(rs.getString("price_growth_direction")));
-
 
                 return tradingSettings;
             }));
