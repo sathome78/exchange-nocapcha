@@ -1445,6 +1445,10 @@ public class AdminController {
                                                      @RequestParam int notificatorId) {
     Notificator notificator = notificatorsService.getById(notificatorId);
     Preconditions.checkArgument(!notificator.getPayTypeEnum().equals(NotificationPayTypeEnum.FREE));
+    if (notificator.getPayTypeEnum().equals(NotificationPayTypeEnum.PAY_FOR_EACH)) {
+      Preconditions.checkState(price.compareTo(BigDecimal.ZERO) >= 0
+              && price.compareTo(BigDecimal.valueOf(10000)) < 0);
+    }
     notificatorsService.updateNotificatorPrice(price, roleId, notificatorId);
     return new ResponseEntity<Void>(HttpStatus.OK);
   }

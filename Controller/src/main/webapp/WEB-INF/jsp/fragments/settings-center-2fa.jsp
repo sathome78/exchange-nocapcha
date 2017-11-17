@@ -51,7 +51,7 @@
                             <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
                             <c:forEach items="${user2faOptions.get('events')}" var="event">
                                     <tr>
-                                        <td>${event}</td>
+                                        <td><loc:message code="settings.message.event.${event}"/></td>
                                         <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
                                             <td><input type="radio" name="${event.code}" value="${notificator.id}"
                                                     <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null

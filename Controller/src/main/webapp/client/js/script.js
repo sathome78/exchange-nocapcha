@@ -34,8 +34,12 @@ $(function () {
     /*Activates submit button if all field filled correct and capcha is passed
      * */
     if (document.getElementById("register_button")) {
-        document.getElementById("register_button").disabled = true;
+        checkFill();
+        /*document.getElementById("register_button").disabled = true;*/
     }
+
+
+
     $("#repass").keyup(function () {
         var pass = $('#pass').val();
         var repass = $('#repass').val();
