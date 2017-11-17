@@ -49,6 +49,7 @@ public class TelegramBotService  extends TelegramLongPollingBot {
                 log.error("error while initialize bot {}", e);
             }
         }
+    }
 
     public void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage()
