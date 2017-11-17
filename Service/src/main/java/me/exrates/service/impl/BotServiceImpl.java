@@ -195,14 +195,16 @@ public class BotServiceImpl implements BotService {
     }
 
     private void runOrderCreationSequence(CurrencyPair currencyPair, OrderType orderType, BotTrader botTrader) {
-        botDao.retrieveBotCalculatorForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType).ifPresent(calculator -> {
+        botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType).ifPresent(settings -> {
+            BotTradingCalculator calculator = new BotTradingCalculator(settings);
             String userEmail = userService.getEmailById(botTrader.getUserId());
             OperationType operationType = OperationType.valueOf(orderType.name());
             PriceGrowthDirection initialDirection = calculator.getDirection();
-            BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType).orElse(calculator.getLowerPriceBound());
-            for(int i = 0; i < calculator.getBotLaunchSettings().getQuantityPerSequence(); i++) {
+            BigDecimal lastPrice = orderService.getLastOrderPriceByCurrencyPairAndOperationType(currencyPair, operationType)
+                    .orElse(calculator.getLowerPriceBound());
+            for(int i = 0; i < settings.getBotLaunchSettings().getQuantityPerSequence(); i++) {
                 try {
-                    int timeout = (int) new RandomDataGenerator().nextUniform(100, calculator.getBotLaunchSettings()
+                    int timeout = (int) new RandomDataGenerator().nextUniform(100, settings.getBotLaunchSettings()
                             .getCreateTimeoutInSeconds() * 1000);
                     Thread.sleep(timeout);
                     BigDecimal newPrice = calculator.nextPrice(lastPrice);
@@ -213,7 +215,7 @@ public class BotServiceImpl implements BotService {
                 }
             }
             if (calculator.getDirection() != initialDirection) {
-                botDao.updatePriceGrowthDirection(calculator.getId(), calculator.getDirection());
+                botDao.updatePriceGrowthDirection(settings.getId(), calculator.getDirection());
             }
         });
     }
