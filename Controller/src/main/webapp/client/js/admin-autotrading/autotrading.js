@@ -85,6 +85,18 @@ $(document).ready(function () {
         toggleConsiderUserOrders(rowData['id'], !rowData['userOrderPriceConsidered']);
     });
 
+    $('#isPriceStepRandomSell').on('change', function () {
+        var isChecked = $(this).prop('checked');
+        $('#isPriceStepRandomSellInput').val(isChecked);
+        $('#priceStepDeviationSell').prop('readonly', !isChecked);
+    });
+
+    $('#isPriceStepRandomBuy').on('change', function () {
+        var isChecked = $(this).prop('checked');
+        $('#isPriceStepRandomBuyInput').val(isChecked);
+        $('#priceStepDeviationBuy').prop('readonly', !isChecked);
+    });
+
 });
 
 function getTradingSettingsForCurrency(launchSettingsId) {
@@ -101,13 +113,23 @@ function getTradingSettingsForCurrency(launchSettingsId) {
         $('#minPriceSell').val(sellData['minPrice']);
         $('#maxPriceSell').val(sellData['maxPrice']);
         $('#priceStepSell').val(sellData['priceStep']);
-
+        $('#minPriceDeviationSell').val(sellData['minDeviationPercent']);
+        $('#maxPriceDeviationSell').val(sellData['maxDeviationPercent']);
+        $('#isPriceStepRandomSellInput').val(sellData['priceStepRandom']);
+        $('#isPriceStepRandomSell').prop('checked', sellData['priceStepRandom']);
+        $('#priceStepDeviationSell').val(sellData['priceStepDeviationPercent']);
+        $('#priceStepDeviationSell').prop('readonly', !sellData['priceStepRandom']);
         $('#minAmountBuy').val(buyData['minAmount']);
         $('#maxAmountBuy').val(buyData['maxAmount']);
         $('#minPriceBuy').val(buyData['minPrice']);
         $('#maxPriceBuy').val(buyData['maxPrice']);
         $('#priceStepBuy').val(buyData['priceStep']);
-
+        $('#minPriceDeviationBuy').val(buyData['minDeviationPercent']);
+        $('#maxPriceDeviationBuy').val(buyData['maxDeviationPercent']);
+        $('#isPriceStepRandomBuyInput').val(buyData['priceStepRandom']);
+        $('#isPriceStepRandomBuy').prop('checked', buyData['priceStepRandom']);
+        $('#priceStepDeviationBuy').val(buyData['priceStepDeviationPercent']);
+        $('#priceStepDeviationBuy').prop('readonly', !buyData['priceStepRandom']);
     })
 }
 
@@ -248,6 +270,7 @@ function submitTradingSettings() {
     var formData = [];
     formData.push(serializedArrayToJsonObject(formDataSell));
     formData.push(serializedArrayToJsonObject(formDataBuy));
+    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()

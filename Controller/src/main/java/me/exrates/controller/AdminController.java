@@ -1416,7 +1416,7 @@ public class AdminController {
   @ResponseBody
   public void updateTradingSettings(@RequestBody List<BotTradingSettingsShortDto> tradingSettingsList, Locale locale) {
 
-    log.debug(tradingSettingsList);
+    log.info(tradingSettingsList);
     tradingSettingsList.forEach(tradingSettings -> {
       if (tradingSettings.getMinAmount().compareTo(tradingSettings.getMaxAmount()) > 0 ||
               tradingSettings.getMinPrice().compareTo(tradingSettings.getMaxPrice()) > 0) {
