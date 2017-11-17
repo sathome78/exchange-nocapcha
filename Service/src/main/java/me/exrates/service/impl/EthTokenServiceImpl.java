@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Log4j2
 @Service
-public class EthTokenServiceImpl implements EthTokenService{
+public class EthTokenServiceImpl implements EthTokenService {
 
     private Merchant merchant;
     private Currency currency;

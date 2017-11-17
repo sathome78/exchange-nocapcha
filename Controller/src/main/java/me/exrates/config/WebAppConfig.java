@@ -441,6 +441,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GNT", false);
     }
 
+    @Bean(name = "omisegoServiceImpl")
+    public EthTokenService OmgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd26114cd6EE289AccF82350c8d8487fedB8A0C07");
+
+        return new EthTokenServiceImpl(
+                tokensList,
+                "OmiseGo",
+                "OMG", true);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
