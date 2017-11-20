@@ -141,7 +141,7 @@
                 <%--... BUY FORM--%>
             </div>
             <!-- end buyBTC -->
-            <span class="green marginTop-25"><loc:message code="dashboard.sellOrders"/></span>
+            <span class="red marginTop-25"><loc:message code="dashboard.sellOrders"/></span>
             <div id="orders-sell-table-wrapper">
             <table class="table_middle table_middle2">
                 <table id="dashboard-orders-sell-table" class="dashboard-order__table table_middle">
