@@ -412,7 +412,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService EosService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
-
         return new EthTokenServiceImpl(
                 tokensList,
                 "EOS",
@@ -423,7 +422,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
-
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
@@ -434,18 +432,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService GolemService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa74476443119a942de498590fe1f2454d7d4ac0d");
-
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
                 "GNT", false);
     }
 
-    @Bean(name = "omisegoServiceImpl")
+    @Bean(name = "omgServiceImpl")
     public EthTokenService OmgService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xd26114cd6EE289AccF82350c8d8487fedB8A0C07");
-
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
