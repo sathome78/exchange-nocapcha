@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,12 +34,13 @@ public class CurrencyStatisticsHandler {
     private final Semaphore semaphoreMain = new Semaphore(1, true);
     private static final long DELAY = 700;
     private ReentrantLock lock = new ReentrantLock();
+    private final CountDownLatch cdl  = new CountDownLatch(1);
 
     @Async
     public void onEvent(int pairId) {
         try {
             if (lock.isLocked()) {
-                lock.newCondition().await(10, TimeUnit.SECONDS);
+                cdl.await(5, TimeUnit.SECONDS);
             }
             log.debug("add pair {}", pairId);
             currenciesSet.add(pairId);
@@ -49,7 +51,7 @@ public class CurrencyStatisticsHandler {
                 List<Integer> forUpdate = Lists.newArrayList(currenciesSet);
                 currenciesSet.clear();
                 semaphoreMain.release();
-                lock.newCondition().signalAll();
+                cdl.countDown();
                 lock.unlock();
                 if(!forUpdate.isEmpty()) {
                     log.debug("currencies list {}", forUpdate.size());
@@ -59,9 +61,9 @@ public class CurrencyStatisticsHandler {
         } catch (Exception e) {
             log.error(e);
             semaphoreMain.release();
-            /*if(lock.isLocked()) {
+            if(lock.isLocked()) {
                 lock.unlock();
-            }*/
+            }
         }
     }
 
