@@ -10,6 +10,7 @@ import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.exception.LiskRestException;
+import me.exrates.service.util.RestApiUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -172,7 +173,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
 
     private String absoluteURI(String relativeURI) {
-        return String.join("", host, ":", port, relativeURI);
+        return RestApiUtils.constructAbsoluteURI(host, port, relativeURI);
     }
 
 
