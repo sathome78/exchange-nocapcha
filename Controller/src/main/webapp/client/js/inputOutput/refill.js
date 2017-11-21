@@ -213,8 +213,71 @@ $(function () {
         $modal.modal();
     });
 
+    $('#create_refill_request').on('click', function () {
+        $('#dialog-refill-create').modal();
+    });
+    
+    $('.rc_item').on('input', function () {
+       if (checkManualRefillFrom()) {
+           $('#refill_create_button').prop("disabled", false)
+       } else {
+           $('#refill_create_button').prop("disabled", true)
+       }
+    });
 
+
+    $('#refill_create_button').on('click', function (e) {
+       if (!checkManualRefillFrom()){
+            return;
+        }
+        e.preventDefault();
+        var $modal = $('#dialog-refill-create');
+        var amount = $modal.find("#rc_amount").val();
+        var merchantTxId = $modal.find("#rc_merchant_transaction_id").val();
+        var email = $modal.find("#rc_email").val();
+        var address = $modal.find("#rc_address").val();
+        var currency = $modal.find("#rc_currency_select option:selected:selected").val();
+        var data = {
+                "currency" : currency,
+                "email": email,
+                "address": address,
+                "amount": amount,
+                "txHash": merchantTxId
+        };
+        $.ajax({
+                url: '/2a8fy7b07dxe44/refill/crypto_create',
+                async: false,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (data) {
+                    $modal.modal('hide');
+                    clearManualRefillForm();
+                    successNoty(JSON.parse(data).message)
+                }
+        });
+    });
 });
+
+function checkManualRefillFrom() {
+    var $modal = $('#dialog-refill-create');
+    var amount = $modal.find("#rc_amount").val().trim();
+    var email = $modal.find("#rc_email").val().trim();
+    var address = $modal.find("#rc_address").val().trim();
+    return address !== null && address !== '' && email !== null && email !== '' && amount !== null && amount !== '' && !isNaN(amount);
+
+}
+
+function clearManualRefillForm() {
+    var $modal = $('#dialog-refill-create');
+    $modal.find("#rc_amount").val("");
+    $modal.find("#rc_merchant_transaction_id").val("");
+    $modal.find("#rc_email").val("");
+    $modal.find("#rc_address").val("");
+}
 
 function getRowId($elem) {
     var rowData = retrieveRowDataForElement($elem);

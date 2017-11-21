@@ -26,4 +26,16 @@ public class RefillRequestParamsDto {
     private String merchantRequestSign;
     private String address;
     private Boolean generateNewAddress;
+
+    public RefillRequestParamsDto(RefillRequestManualDto refillDto) {
+        this.operationType = refillDto.getOperationType();
+        this.merchant = refillDto.getMerchantId();
+        this.currency = refillDto.getCurrency();
+        this.sum = refillDto.getAmount();
+        this.address = refillDto.getAddress();
+        this.generateNewAddress = false;
+    }
+
+    public RefillRequestParamsDto() {
+    }
 }
