@@ -109,7 +109,7 @@ public class IotaServiceImpl implements IotaService {
             address = iotaClient.getNewAddress(SEED, 2, 0, true, 0, false).getAddresses().get(0);
             List<Transfer> transfers = new ArrayList<>();
             transfers.add(new jota.model.Transfer(address, 0, MESSAGE, TAG));
-            iotaClient.sendTransfer(SEED, 2, 9, 15, transfers, null, null);
+            iotaClient.sendTransfer(SEED, 2, 9, 15, transfers, null, null, true);
             ADDRESSES.add(address);
 
         } catch (Exception e) {
