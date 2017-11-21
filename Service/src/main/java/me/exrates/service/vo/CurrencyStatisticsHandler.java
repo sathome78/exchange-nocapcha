@@ -51,12 +51,17 @@ public class CurrencyStatisticsHandler {
                 semaphoreMain.release();
                 lock.newCondition().signalAll();
                 lock.unlock();
-                stompMessenger.sendStatisticMessage(forUpdate);
+                if(!forUpdate.isEmpty()) {
+                    log.debug("currencies list {}", forUpdate.size());
+                    stompMessenger.sendStatisticMessage(forUpdate);
+                }
             }
         } catch (Exception e) {
             log.error(e);
             semaphoreMain.release();
-            lock.unlock();
+            /*if(lock.isLocked()) {
+                lock.unlock();
+            }*/
         }
     }
 
