@@ -6,7 +6,10 @@ import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.media.sse.EventSource;
+import org.glassfish.jersey.media.sse.InboundEvent;
+import org.glassfish.jersey.media.sse.SseFeature;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,15 +19,22 @@ import org.springframework.stereotype.Component;
 import org.stellar.sdk.*;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
+import org.stellar.sdk.requests.RequestBuilder;
 import org.stellar.sdk.requests.TransactionsRequestBuilder;
+import org.stellar.sdk.responses.GsonSingleton;
 import org.stellar.sdk.responses.TransactionResponse;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,8 +51,11 @@ public class StellarReceivePaymentsService {
     private StellarTransactionService stellarTransactionService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-    @Autowired
-    private RefillService refillService;
+
+
+    protected URIBuilder uriBuilder;
+
+    private ArrayList<String> segments = new ArrayList<>();
 
 
     private @Value("${stellar.horizon.url}")String SEVER_URL;
@@ -60,11 +73,14 @@ public class StellarReceivePaymentsService {
 
     @PostConstruct
     public void init() {
+        URI uri  = URI.create(SEVER_URL);
+        this.uriBuilder = new URIBuilder(uri);
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
+        checkIncomePayment();
     }
 
-    @Scheduled(initialDelay = 15000, fixedDelay = 1000 * 30 * 5)
+    /*@Scheduled(initialDelay = 15000, fixedDelay = 1000 * 30 * 5)*/
     private void checkIncomePayment() {
         log.debug("starting check xlm income payments");
         paymentsRequest = server.payments().forAccount(account);
@@ -74,13 +90,13 @@ public class StellarReceivePaymentsService {
             paymentsRequest.cursor(lastToken);
         }
         eventSource = paymentsRequest.stream(payment -> {
-            log.debug("stellar income payment for {}, id {}", payment.getSourceAccount().getAccountId(), payment.getId());
+            savePagingToken(payment.getPagingToken());
             // The payments stream includes both sent and received payments. We only
             // want to process received payments here.
             if (payment instanceof PaymentOperationResponse) {
                 log.debug("its payment response");
-                log.debug(((PaymentOperationResponse) payment).getTo().getAccountId());
-                log.debug(((PaymentOperationResponse) payment).getFrom().getAccountId());
+                log.debug("to {}", ((PaymentOperationResponse) payment).getTo().getAccountId());
+                log.debug("from {}", ((PaymentOperationResponse) payment).getFrom().getAccountId());
                 if (((PaymentOperationResponse) payment).getTo().getAccountId().equals(ACCOUNT_NAME)) {
                     PaymentOperationResponse response = ((PaymentOperationResponse) payment);
                     log.debug(response.getAsset().getType());
@@ -94,17 +110,25 @@ public class StellarReceivePaymentsService {
                         log.debug("process transaction");
                         stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
                         // Record the paging token so we can start from here next time.
-                        savePagingToken(payment.getPagingToken());
                         log.debug("transaction xlm {} saved ", transactionResponse.getHash());
                     }
                 } else {
-                    savePagingToken(payment.getPagingToken());
                     log.debug("payment not for us");
                 }
             } else {
                 log.debug("its not !! payment response");
             }
         });
+    }
+
+   @Scheduled(initialDelay = 30000, fixedRate = 1000 * 60 * 3)
+    public void checkEventSource() {
+       log.debug("check eventsource state");
+        if (eventSource.isOpen()) {
+            eventSource.close(20, TimeUnit.SECONDS);
+        } else {
+            checkIncomePayment();
+        }
     }
 
 

@@ -493,6 +493,7 @@
         </logger>
         <logger name="stellar_log" level="ALL" additivity="false">
             <AppenderRef ref="stellar_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="ripple_log" level="ALL" additivity="false">
             <AppenderRef ref="ripple_log"/>
