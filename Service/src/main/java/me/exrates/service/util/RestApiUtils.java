@@ -30,4 +30,8 @@ public class RestApiUtils {
         }
         return paramValue;
     }
+
+    public static String constructAbsoluteURI(String host, String port, String endpoint) {
+        return String.join("", host, ":", port, endpoint);
+    }
 }

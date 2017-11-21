@@ -19,6 +19,7 @@ import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.lisk.LiskService;
+import me.exrates.service.neo.NeoService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1058,43 +1059,16 @@ public class MobileEntryController {
     }
 
     @Autowired
-    private LiskService liskService;
+    private NeoService neoService;
 
 
-    @RequestMapping(value = "/test/lisk", method = RequestMethod.GET)
+    @RequestMapping(value = "/test/neo", method = RequestMethod.GET)
     @ResponseBody
-    public Object testLisk(@RequestParam String txId) {
-        return liskService.getTransactionsByRecipient(txId);
-
+    public void testNeo() {
+        neoService.scanLastBlocks();
     }
 
-    @RequestMapping(value = "/test/lisk/payments", method = RequestMethod.GET)
-    @ResponseBody
-    public void testLiskPayments() {
-        liskService.processTransactionsForKnownAddresses();
 
-    }
-
-    @RequestMapping(value = "/test/lisk/getAccount", method = RequestMethod.GET)
-    @ResponseBody
-    public Object testLiskAcc(@RequestParam String address) {
-        return liskService.getAccountByAddress(address);
-
-    }
-
-    @RequestMapping(value = "/test/lisk/send", method = RequestMethod.POST)
-    @ResponseBody
-    public String testLisk(@RequestParam String secret, @RequestParam Long amount, @RequestParam String recipientId) {
-        return liskService.sendTransaction(secret, amount, recipientId);
-
-    }
-
-    @RequestMapping(value = "/test/lisk/account/new", method = RequestMethod.POST)
-    @ResponseBody
-    public Object testLiskAccNew(@RequestParam String secret) {
-        return liskService.createNewLiskAccount(secret);
-
-    }
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
