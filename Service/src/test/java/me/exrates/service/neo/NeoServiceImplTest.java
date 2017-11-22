@@ -276,16 +276,17 @@ public class NeoServiceImplTest {
         neoService.scanBlocks();
         verify(refillService, times(4)).putOnBchExamRefillRequest(requestArgumentCaptor.capture());
         List<RefillRequestPutOnBchExamDto> actualResults = requestArgumentCaptor.getAllValues();
-        assertEquals(new BigDecimal(0.05).setScale(2, BigDecimal.ROUND_HALF_DOWN), actualResults.get(0).getAmount());
-        assertEquals(new BigDecimal(3), actualResults.get(1).getAmount());
-        assertEquals(new BigDecimal(5), actualResults.get(2).getAmount());
-        assertEquals(new BigDecimal(2), actualResults.get(3).getAmount());
+        actualResults.sort(Comparator.comparing(RefillRequestPutOnBchExamDto::getBlockhash));
+        assertEquals(new BigDecimal(3), actualResults.get(0).getAmount());
+        assertEquals(new BigDecimal(5), actualResults.get(1).getAmount());
+        assertEquals(new BigDecimal(2), actualResults.get(2).getAmount());
+        assertEquals(new BigDecimal(0.05).setScale(2, BigDecimal.ROUND_HALF_DOWN), actualResults.get(3).getAmount());
 
-        assertEquals(Integer.valueOf(currencyNeo.getId()), actualResults.get(3).getCurrencyId());
+        assertEquals(Integer.valueOf(currencyNeo.getId()), actualResults.get(2).getCurrencyId());
         assertEquals(Integer.valueOf(currencyGas.getId()), actualResults.get(0).getCurrencyId());
 
         assertEquals(actualResults.get(0).getAddress(), TEST_ADDRESS_1);
-        assertEquals(actualResults.get(3).getAddress(), TEST_ADDRESS_2);
+        assertEquals(actualResults.get(2).getAddress(), TEST_ADDRESS_2);
     }
 
     @Test

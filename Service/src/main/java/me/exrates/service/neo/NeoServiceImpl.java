@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Log4j2(topic = "neo_log")
-@Service
+@Service("neoServiceImpl")
 @PropertySource("classpath:/merchants/neo.properties")
 public class NeoServiceImpl implements NeoService {
     @Autowired
