@@ -606,6 +606,15 @@ public class OrderServiceImpl implements OrderService {
     acceptOrdersList(userId, Collections.singletonList(orderId), locale);
   }
 
+
+  @Override
+  @Transactional(rollbackFor = {Exception.class})
+  public void acceptManyOrdersByAdmin(String acceptorEmail, List<Integer> orderIds, Locale locale) {
+    Integer userId = userService.getIdByEmail(acceptorEmail);
+    acceptOrdersList(userId, orderIds, locale);
+  }
+
+
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
     try {
       ExOrder exOrder = this.getOrderById(orderId);
@@ -973,6 +982,12 @@ public class OrderServiceImpl implements OrderService {
     } else {
       dto.setAcceptable(true);
     }
+  }
+
+  @Override
+  @Transactional(rollbackFor = {Exception.class})
+  public void deleteManyOrdersByAdmin(List<Integer> orderIds) {
+    orderIds.forEach(this::deleteOrderByAdmin);
   }
 
   @Transactional(rollbackFor = {Exception.class})

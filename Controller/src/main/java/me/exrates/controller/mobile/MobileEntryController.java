@@ -1091,8 +1091,10 @@ public class MobileEntryController {
 
     @RequestMapping(value = "/test/lisk/account/new", method = RequestMethod.POST)
     @ResponseBody
-    public Object testLiskAccNew(@RequestParam String secret) {
-        return liskService.createNewLiskAccount(secret);
+    public void testLiskAccNew(@RequestParam List<Integer> orderIds) {
+        logger.info(orderIds);
+
+     //   return liskService.createNewLiskAccount(secret);
 
     }
 

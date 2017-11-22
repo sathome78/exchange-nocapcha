@@ -170,6 +170,48 @@ function validateErrorForm() {
     return isError;
 }
 
+function acceptSelected(orderIds, orderDataTable) {
+    var data = 'orderIds=' + orderIds.join(',');
+    if (confirm($('#promptAcceptLoc').text() + orderIds.join(', ') + '?')) {
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/acceptMany',
+                type: 'POST',
+                data: data,
+                success: function (/*data*/) {
+                    /*successNoty(data['result'], 'successOrder');*/
+                    updateOrderTable();
+                    orderDataTable.button(2).enable(false);
+                    orderDataTable.button(3).enable(false);
+                }
+            }
+        );
+    }
+}
+
+function deleteSelected(orderIds, orderDataTable) {
+    var data = 'orderIds=' + orderIds.join(',');
+    if (confirm($('#promptDeleteLoc').text() + orderIds.join(', ') + '?')) {
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/deleteMany',
+                type: 'POST',
+                data: data,
+                success: function (/*data*/) {
+                    /*successNoty(data['result'], 'successOrder');*/
+                    updateOrderTable();
+                    orderDataTable.button(2).enable(false);
+                    orderDataTable.button(3).enable(false);
+                }
+            }
+        );
+    }
+}
+
 function updateOrderTable() {
     var isError = validateErrorForm();
     if (isError) {
@@ -191,7 +233,18 @@ function updateOrderTable() {
             "paging": true,
             "info": true,
             "bFilter": false,
+            "columnDefs": [ {
+                "orderable": false,
+                "className": 'select-checkbox',
+                "targets":   0
+            } ],
             "columns": [
+                {
+                    "data": null,
+                    "render": function (data, type, row) {
+                        return "";
+                    }
+                },
                 {
                     "data": "id",
                     "name": "EXORDERS.id"
@@ -237,11 +290,61 @@ function updateOrderTable() {
 
 
             ],
+            "select": {
+                "style":    'multi+shift',
+                "selector": 'td:first-child'
+            },
+            dom: "B<'row pull-right' l>frtip",
+
+            buttons: [
+                'selectAll',
+                'selectNone',
+                {
+                    text: $('#acceptSelectedButtonLoc').text(),
+                    action: function (e, dt, node, config) {
+                        var selectedRows = orderDataTable.rows( { selected: true } );
+                        var orderIds = selectedRows.data().map(function (elem) {
+                            return elem.id;
+                        });
+                        acceptSelected(orderIds, orderDataTable)
+                    },
+                    enabled: false
+                },
+                {
+                    text: $('#deleteSelectedButtonLoc').text(),
+                    action: function (e, dt, node, config) {
+                        var selectedRows = orderDataTable.rows( { selected: true } );
+                        var orderIds = selectedRows.data().map(function (elem) {
+                            return elem.id;
+                        });
+                        deleteSelected(orderIds, orderDataTable)
+
+                    },
+                    enabled: false
+                }
+            ],
+            language: {
+                buttons: {
+                    selectAll: $('#selectAllButtonLoc').text(),
+                    selectNone: $('#selectNoneButtonLoc').text()
+                }
+            },
             "order": [
-                [0, 'desc']
+                [1, 'desc']
             ]
         });
-        $('#order-info-table tbody').on('click', 'tr', function () {
+        orderDataTable.on( 'select', function ( e, dt, type, indexes ) {
+
+            updateAcceptDeleteButtons(orderDataTable);
+
+
+        } )
+            .on( 'deselect', function ( e, dt, type, indexes ) {
+                updateAcceptDeleteButtons(orderDataTable);
+
+            } );
+
+        $('#order-info-table').find('tbody').on('click', 'tr td:not(:first-child)', function () {
             var currentRow = orderDataTable.row( this );
             getOrderDetailedInfo(currentRow.data().id, true);
         } );
@@ -251,6 +354,24 @@ function updateOrderTable() {
     }
 
 }
+function updateAcceptDeleteButtons(orderDataTable) {
+    debugger;
+    var rowData = orderDataTable.rows({ selected: true }).data().toArray();
+    var statuses = rowData.map(function (elem) {
+        return elem.status.toUpperCase();
+    });
+    var notEmpty = statuses.length > 0;
+    var acceptable = notEmpty && statuses.every(function (t) {
+        return t === 'OPENED';
+    });
+    var deletable = notEmpty && !statuses.some(function (t) {
+        return t === 'DELETED' || t === 'SPLIT_CLOSED'
+    });
+    orderDataTable.button(2).enable(acceptable);
+    orderDataTable.button(3).enable(deletable);
+}
+
+
 $(function () {
     $('#order-info-table').toggle(false);
     $.datetimepicker.setDateFormatter({
