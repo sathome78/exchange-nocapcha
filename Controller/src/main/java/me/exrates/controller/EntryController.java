@@ -234,7 +234,7 @@ public class EntryController {
         return redirectView;
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/getNotyPrice")
     public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
         Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
@@ -248,7 +248,7 @@ public class EntryController {
             dto.setCode(((TelegramSubscription)subscription).getCode());
         }
         return dto;
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/preconnect_sms")
@@ -309,8 +309,8 @@ public class EntryController {
         Preconditions.checkState(subscription.isConnected());
         String contact = Preconditions.checkNotNull(subscription.getContactStr());
         int roleId = userService.getUserRoleFromSecurityContext().getRole();
-        BigDecimal fee = notificatorService.getMessagePrice(id, roleId);
-        BigDecimal price = doAction(fee, subscription.getPrice(), ActionType.ADD);
+        BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
+        BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
         return new JSONObject(){{put("contact", contact);
                                  put("price", price);}}.toString();
     }

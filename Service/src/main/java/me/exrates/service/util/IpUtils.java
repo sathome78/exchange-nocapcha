@@ -1,5 +1,7 @@
 package me.exrates.service.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -27,19 +29,19 @@ public class IpUtils {
         for (String header : HEADERS_TO_TRY) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
-                return ip.length() > 100 ? ip.substring(0, 99) : ip;
+                return ip;
             }
         }
-        return request.getRemoteAddr().length() > 99 ? request.getRemoteAddr().substring(0, 99) :  request.getRemoteAddr();
+        return request.getRemoteAddr();
     }
 
     public static String getClientIpAddress(HttpServletRequest request, int maxLength) {
         for (String header : HEADERS_TO_TRY) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
-                return ip.length() > 100 ? ip.substring(0, 99) : ip;
+                return StringUtils.abbreviate(ip, maxLength);
             }
         }
-        return request.getRemoteAddr().length() > maxLength ? request.getRemoteAddr().substring(0, maxLength) :  request.getRemoteAddr();
+        return StringUtils.abbreviate(request.getRemoteAddr(), maxLength);
     }
 }

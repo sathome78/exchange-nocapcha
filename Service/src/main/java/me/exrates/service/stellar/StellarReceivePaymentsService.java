@@ -96,10 +96,9 @@ public class StellarReceivePaymentsService {
                         // Record the paging token so we can start from here next time.
                         savePagingToken(payment.getPagingToken());
                         log.debug("transaction xlm {} saved ", transactionResponse.getHash());
-                    } else {
-                        return;
                     }
                 } else {
+                    savePagingToken(payment.getPagingToken());
                     log.debug("payment not for us");
                 }
             } else {

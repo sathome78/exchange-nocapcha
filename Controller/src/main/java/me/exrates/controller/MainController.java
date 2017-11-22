@@ -18,6 +18,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,7 +185,7 @@ public class MainController {
         } else {
             user = (User) result.getModel().get("user");
             try {
-                String ip = request.getHeader("X-FORWARDED-FOR");
+                String ip = IpUtils.getClientIpAddress(request, 100);
                 if (ip == null) {
                     ip = request.getRemoteHost();
                 }

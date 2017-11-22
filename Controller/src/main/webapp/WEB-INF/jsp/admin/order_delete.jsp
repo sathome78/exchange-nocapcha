@@ -212,6 +212,7 @@
                 <table id="order-info-table">
                     <thead>
                     <tr>
+                        <th></th>
                         <th><loc:message code="orderinfo.id"/></th>
                         <th><loc:message code="orderinfo.createdate"/></th>
                         <th><loc:message code="orderinfo.currencypair"/></th>
@@ -232,9 +233,12 @@
     </div>
 </main>
 
-
-
-
+<span hidden id="selectAllButtonLoc"><loc:message code="admin.orders.selectAllButton" /></span>
+<span hidden id="selectNoneButtonLoc"><loc:message code="admin.orders.selectNoneButton" /></span>
+<span hidden id="acceptSelectedButtonLoc"><loc:message code="admin.orders.acceptSelectedButton" /></span>
+<span hidden id="deleteSelectedButtonLoc"><loc:message code="admin.orders.deleteSelectedButton" /></span>
+<span hidden id="promptAcceptLoc"><loc:message code="admin.orders.promptAccept" /></span>
+<span hidden id="promptDeleteLoc"><loc:message code="admin.orders.promptDelete" /></span>
 
 <%@include file='order-modals.jsp' %>
 <%@include file='../fragments/footer.jsp' %>

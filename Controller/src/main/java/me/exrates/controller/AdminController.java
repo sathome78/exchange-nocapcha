@@ -1445,6 +1445,10 @@ public class AdminController {
                                                      @RequestParam int notificatorId) {
     Notificator notificator = notificatorsService.getById(notificatorId);
     Preconditions.checkArgument(!notificator.getPayTypeEnum().equals(NotificationPayTypeEnum.FREE));
+    if (notificator.getPayTypeEnum().equals(NotificationPayTypeEnum.PAY_FOR_EACH)) {
+      Preconditions.checkState(price.compareTo(BigDecimal.ZERO) >= 0
+              && price.compareTo(BigDecimal.valueOf(10000)) < 0);
+    }
     notificatorsService.updateNotificatorPrice(price, roleId, notificatorId);
     return new ResponseEntity<Void>(HttpStatus.OK);
   }
@@ -1455,6 +1459,21 @@ public class AdminController {
                                                  @RequestParam(name = "enable") boolean enable) {
     notificatorsService.setEnable(notificatorId, enable);
     return new ResponseEntity<Void>(HttpStatus.OK);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/order/acceptMany", method = POST)
+  public void acceptManyOrders(@RequestParam List<Integer> orderIds, Principal principal, Locale locale) {
+    log.info(orderIds);
+
+    orderService.acceptManyOrdersByAdmin(principal.getName(), orderIds, locale);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/order/deleteMany", method = POST)
+  public void deleteManyOrders(@RequestParam List<Integer> orderIds) {
+
+    orderService.deleteManyOrdersByAdmin(orderIds);
   }
 
 

@@ -412,4 +412,9 @@ public class MerchantServiceImpl implements MerchantService {
     return resultLocalized;
   }
 
+  @Override
+  public List<Integer> getIdsByProcessType(List<String> processType) {
+    return merchantDao.findCurrenciesIdsByType(processType);
+  }
+
 }

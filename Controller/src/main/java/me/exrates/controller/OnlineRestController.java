@@ -398,7 +398,8 @@ public class OnlineRestController {
       currencyPair = currencyPairs
           .stream()
           .filter(e -> e.getName().equals(currencyPairName))
-          .collect(Collectors.toList()).get(0);
+              .findFirst()
+              .orElse(currencyService.getCurrencyPairByName("BTC/USD"));
     }
     request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         /**/

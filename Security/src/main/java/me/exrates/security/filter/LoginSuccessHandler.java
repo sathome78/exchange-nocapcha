@@ -5,6 +5,7 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
+import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -58,10 +59,9 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             String email = authentication.getName();
             String ip = request.getHeader("X-FORWARDED-FOR");
             if (ip == null) {
-                ip = request.getRemoteHost();
+                ip = IpUtils.getClientIpAddress(request, 100);
             }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
-
             if (userIpDto.getUserIpState() == UserIpState.NEW) {
                 userService.insertIp(email, ip);
                 me.exrates.model.User u = new me.exrates.model.User();

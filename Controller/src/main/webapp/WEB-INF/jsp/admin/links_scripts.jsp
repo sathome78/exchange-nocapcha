@@ -19,6 +19,8 @@
 <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+<link rel="stylesheet" href="<c:url value="/client/css/select.dataTables.min.css"/>">
+<link rel="stylesheet" href="<c:url value="/client/css/buttons.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
@@ -33,6 +35,8 @@
 
 
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.select.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.buttons.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 

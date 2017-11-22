@@ -1,10 +1,11 @@
 package me.exrates.controller.merchants;
 
+import com.google.common.base.Preconditions;
+import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.*;
+import me.exrates.model.Currency;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -15,27 +16,32 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.service.*;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * created by ValkSam
@@ -47,21 +53,20 @@ public class RefillRequestAdminController {
 
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
-  RefillService refillService;
-
+  private LocaleResolver localeResolver;
   @Autowired
-  UserService userService;
-
+  private RefillService refillService;
   @Autowired
-  MerchantService merchantService;
-
+  private UserService userService;
+  @Autowired
+  private MerchantService merchantService;
   @Autowired
   private CommissionService commissionService;
-
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private InputOutputService inputOutputService;
 
   @RequestMapping(value = "/2a8fy7b07dxe44/refill")
   public ModelAndView refillRequests(Principal principal) {
@@ -80,6 +85,10 @@ public class RefillRequestAdminController {
           .collect(Collectors.toList());
       params.put("merchants", merchants);
     }
+    List<Integer> ids = merchantService.getIdsByProcessType(Collections.singletonList("CRYPTO"));
+    params.put("cryptoCurrencies", permittedCurrencies.stream()
+            .filter(p-> ids.contains(p.getCurrencyId()) && p.getInvoiceOperationPermission().equals(InvoiceOperationPermission.ACCEPT_DECLINE))
+            .collect(Collectors.toList()));
     return new ModelAndView("refillRequests", params);
   }
 
@@ -105,6 +114,46 @@ public class RefillRequestAdminController {
       Principal principal) {
     String requesterAdmin = principal.getName();
     return refillService.getRefillRequestById(id, requesterAdmin);
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
+  @ResponseBody
+  public String creteRefillRequestForCrypto(
+          @Valid @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
+    Locale locale = localeResolver.resolveLocale(servletRequest);
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
+            .stream()
+            .filter(dto -> dto.getInvoiceOperationPermission() == InvoiceOperationPermission.ACCEPT_DECLINE)
+            .collect(Collectors.toList());
+    Preconditions.checkArgument(
+            permittedCurrencies.stream().anyMatch(p->p.getCurrencyId().equals(refillDto.getCurrency())),
+            "Access decline");
+    User user = Preconditions.checkNotNull(userService.findByEmail(refillDto.getEmail()), "user not found");
+    if (!refillService.checkInputRequestsLimit(refillDto.getCurrency(), refillDto.getEmail())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+    }
+    Integer merchantId = Preconditions.checkNotNull(refillService.getMerchantIdByAddressAndCurrencyAndUser(
+            refillDto.getAddress(),
+            refillDto.getCurrency(),
+            user.getId()), "address not found");
+    Payment payment = new Payment(INPUT);
+    payment.setCurrency(refillDto.getCurrency());
+    payment.setMerchant(merchantId);
+    payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
+    refillDto.setMerchantId(merchantId);
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
+            .orElseThrow(InvalidAmountException::new);
+    RefillRequestCreateDto request = new RefillRequestCreateDto(
+            new RefillRequestParamsDto(refillDto),
+            creditsOperation,
+            RefillStatusEnum.ON_PENDING,
+            locale);
+    request.setTxHash(refillDto.getTxHash());
+    request.setNeedToCreateRefillRequestRecord(true);
+    Optional<Integer> id = refillService.createRefillByFact(request);
+    return new JSONObject().put("message", messageSource.getMessage("message.refill.manual.created",
+            new String[]{id.orElseThrow(()->new RuntimeException("refiil not created")).toString()}, locale)).toString();
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

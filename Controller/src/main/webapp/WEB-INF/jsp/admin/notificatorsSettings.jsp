@@ -34,7 +34,7 @@
                             <thead>
                             <tr>
                                 <th><loc:message code="admin.notificatorName"/></th>
-                                <th><loc:message code="admin.messagePrice"/></th>
+                                <th><loc:message code="admin.messageFeePercents"/></th>
                                 <th><loc:message code="admin.subscribePrice"/></th>
                                 <th><loc:message code="admin.enabled"/></th>
                             </tr>

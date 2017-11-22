@@ -155,9 +155,9 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
         }
         subscriptionDto.setNewPrice(cost);
         UserRole role = userService.getUserRoleFromDB(subscriptionDto.getUserId());
-        BigDecimal totalAmount = notificatorsService.getMessagePrice(getNotificationType().getCode(), role.getRole());
+        BigDecimal feePercent = notificatorsService.getMessagePrice(getNotificationType().getCode(), role.getRole());
         createOrUpdate(subscriptionDto);
-        return doAction(cost, totalAmount, ActionType.ADD);
+        return doAction(cost, doAction(cost, feePercent, ActionType.MULTIPLY_PERCENT), ActionType.ADD);
     }
 
     @Override
@@ -222,7 +222,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
     }
 
     @Transactional
-    private BigDecimal pay(BigDecimal feeAmount, BigDecimal deliveryAmount, int userId, String description) {
+    private BigDecimal pay(BigDecimal feePercent, BigDecimal deliveryAmount, int userId, String description) {
+        BigDecimal feeAmount = doAction(deliveryAmount, feePercent, ActionType.MULTIPLY_PERCENT);
         BigDecimal totalAmount = doAction(feeAmount, deliveryAmount, ActionType.ADD);
         if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
