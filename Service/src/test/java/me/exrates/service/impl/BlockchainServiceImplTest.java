@@ -6,7 +6,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+//@RunWith(MockitoJUnitRunner.class)
 public class BlockchainServiceImplTest  {
 /*
     @Mock
