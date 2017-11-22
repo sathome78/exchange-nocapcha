@@ -826,7 +826,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         that.ordersListForAccept = [];
         that.updateAndShowAll();
         leftSider.getStatisticsForMyWallets();
-        leftSider.getStatisticsForAllCurrencies();
         successNoty(data.result, 'successOrder');
     }
 
