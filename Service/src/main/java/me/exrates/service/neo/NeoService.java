@@ -41,5 +41,5 @@ public interface NeoService extends IRefillable, IWithdrawable {
         return null;
     }
 
-    void scanLastBlocks();
+    void scanLastBlocksAndUpdatePayments();
 }
