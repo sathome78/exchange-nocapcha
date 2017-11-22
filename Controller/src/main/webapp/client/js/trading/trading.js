@@ -787,7 +787,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         that.getAndShowSellOrders();
         that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
-        leftSider.getStatisticsForAllCurrencies();
         that.fillOrderCreationFormFields();
         /*that.clearOrdersCreationForm();*/
         successNoty(data.result, 'successOrder');
