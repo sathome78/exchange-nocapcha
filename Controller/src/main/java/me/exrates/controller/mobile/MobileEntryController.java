@@ -18,7 +18,6 @@ import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.lisk.LiskService;
 import me.exrates.service.neo.NeoService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -45,7 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
@@ -1057,18 +1055,6 @@ public class MobileEntryController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @Autowired
-    private NeoService neoService;
-
-
-    @RequestMapping(value = "/test/neo", method = RequestMethod.GET)
-    @ResponseBody
-    public void testNeo() {
-        neoService.scanLastBlocks();
-    }
-
-
 
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

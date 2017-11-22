@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Log4j2(topic = "neo_log")
@@ -44,13 +45,23 @@ public class NeoNodeServiceImpl implements NeoNodeService {
     }
 
     @Override
-    public Block getBlock(Integer height) {
-        return invokeJsonRpcMethod("getblock", Arrays.asList(height, 1), new TypeReference<NeoJsonRpcResponse<Block>>() {});
+    public Optional<Block> getBlock(Integer height) {
+        try {
+            return Optional.of(invokeJsonRpcMethod("getblock", Arrays.asList(height, 1), new TypeReference<NeoJsonRpcResponse<Block>>() {}));
+        } catch (Exception e) {
+            log.error(e);
+            return Optional.empty();
+        }
     }
 
     @Override
-    public NeoTransaction getTransactionById(String txId) {
-        return invokeJsonRpcMethod("getrawtransaction", Arrays.asList(txId, 1), new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {});
+    public Optional<NeoTransaction> getTransactionById(String txId) {
+        try {
+            return Optional.of(invokeJsonRpcMethod("getrawtransaction", Arrays.asList(txId, 1), new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {}));
+        } catch (Exception e) {
+            log.error(e);
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -69,7 +80,6 @@ public class NeoNodeServiceImpl implements NeoNodeService {
         return getNeoJsonRpcResponse(request, typeReference);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T getNeoJsonRpcResponse(NeoJsonRpcRequest request, TypeReference<NeoJsonRpcResponse<T>> typeReference) {
         String responseString = restTemplate.postForObject(endpoint, request, String.class);
         try {
@@ -85,83 +95,9 @@ public class NeoNodeServiceImpl implements NeoNodeService {
         } catch (IOException e) {
             throw new NeoApiException(e);
         }
-
-
     }
 
-    public static void main(String[] args) throws IOException {
 
-
-
-       /* RestTemplate restTemplate = new RestTemplate();
-        ObjectMapper objectMapper = new ObjectMapper();
-        NeoJsonRpcRequest request = new NeoJsonRpcRequest();
-        *//*request.setMethod("getnewaddress");
-        request.setParams(Collections.emptyList());
-        String response = restTemplate.postForObject("http://127.0.0.1:20332", request, String.class);
-        System.out.println(response);
-
-        System.out.println(objectMapper.readValue(response, NeoJsonRpcResponse.class));*//*
-
-        request.setMethod("getblock");
-        request.setParams(Arrays.asList(798134, 1));
-        System.out.println(getNeoJsonRpcResponse(restTemplate, objectMapper, "http://127.0.0.1:20332", request, new TypeReference<NeoJsonRpcResponse<Block>>() {}));
-*/
-        /*String responseString = restTemplate.postForObject("http://127.0.0.1:20332", request, String.class);
-        System.out.println(responseString);
-        NeoJsonRpcResponse<Block> response = objectMapper.readValue(responseString, new TypeReference<NeoJsonRpcResponse<Block>>() {});
-        System.out.println(response);*/
-
-        /*request.setMethod("getrawtransaction");
-        request.setParams(Arrays.asList("0c41d4278a2f1ee537db3647f3a61f6b07b224f185d979692a33a8ee7ecf465d", 1));
-
-        String responseString = restTemplate.postForObject("http://127.0.0.1:20332", request, String.class);
-        System.out.println(responseString);
-        NeoJsonRpcResponse<Block> response = objectMapper.readValue(responseString, new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {});
-        System.out.println(response);
-*/
-       /* request.setMethod("sendtoaddress");
-        request.setParams(Arrays.asList("602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7", "AJgnT4KVw5VMt2bbwqJ3cawFrjpCLb64PQ", new BigDecimal(0.001)));
-
-        String responseString = restTemplate.postForObject("http://127.0.0.1:20332", request, String.class);
-        System.out.println(responseString);
-        NeoJsonRpcResponse<Block> response = objectMapper.readValue(responseString, new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {});
-        System.out.println(response);*/
-        /*request.setMethod("getblockcount");
-        request.setParams(Collections.emptyList());
-        String responseString = restTemplate.postForObject("http://127.0.0.1:20332", request, String.class);
-        System.out.println(responseString);
-        NeoJsonRpcResponse<Integer> response = objectMapper.readValue(responseString, new TypeReference<NeoJsonRpcResponse<Integer>>() {});
-        System.out.println(response);*/
-
-
-
-    }
-
-   /* private static <T> T invokeJsonRpcMethod(String methodName, List<Object> args, Class<T> resultType) {
-
-        return getNeoJsonRpcResponse(request, resultType);
-    }*/
-
-  /*  @SuppressWarnings("unchecked")
-    private static <T> T getNeoJsonRpcResponse(RestTemplate restTemplate, ObjectMapper objectMapper,
-                                               String endpoint, NeoJsonRpcRequest request, TypeReference<NeoJsonRpcResponse<T>> typeReference) {
-        String responseString = restTemplate.postForObject(endpoint, request, String.class);
-        try {
-            NeoJsonRpcResponse<T> response = objectMapper.readValue(responseString, typeReference);
-            if (response.getError() != null) {
-                throw new NeoApiException(response.getError().getMessage());
-            }
-            if (response.getResult() == null) {
-                throw new NeoApiException("No result found in response");
-            }
-            return response.getResult();
-        } catch (IOException e) {
-            throw new NeoApiException("Could not parse response");
-        }
-
-
-    }*/
 
 
 }
