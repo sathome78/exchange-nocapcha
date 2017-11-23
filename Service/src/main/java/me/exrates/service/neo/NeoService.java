@@ -38,7 +38,7 @@ public interface NeoService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean withdrawTransferringConfirmNeeded() {
-        return null;
+        return false;
     }
 
     void scanLastBlocksAndUpdatePayments();
