@@ -234,7 +234,7 @@ public class EntryController {
         return redirectView;
     }
 
-    /*@ResponseBody
+    @ResponseBody
     @RequestMapping("/settings/2FaOptions/getNotyPrice")
     public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
         Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
@@ -246,9 +246,10 @@ public class EntryController {
                 throw new IllegalStateException();
             }
             dto.setCode(((TelegramSubscription)subscription).getCode());
+            return dto;
         }
-        return dto;
-    }*/
+        return null;
+    }
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/preconnect_sms")
