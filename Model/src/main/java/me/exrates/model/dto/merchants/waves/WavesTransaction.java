@@ -5,10 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+
 @Getter @Setter
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WavesTransaction {
+
+
     private Integer type;
     private String id;
     private String sender;
@@ -19,6 +23,6 @@ public class WavesTransaction {
     private String recipient;
     private Long amount;
     private String attachment;
-
+    private Integer height;
 
 }

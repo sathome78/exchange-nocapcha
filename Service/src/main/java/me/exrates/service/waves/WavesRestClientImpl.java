@@ -2,25 +2,32 @@ package me.exrates.service.waves;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.merchants.waves.WavesAddress;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.exception.WavesRestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+@Log4j2(topic = "waves_log")
 @Component
 @PropertySource("classpath:/merchants/waves.properties")
 public class WavesRestClientImpl implements WavesRestClient {
@@ -52,43 +59,107 @@ public class WavesRestClientImpl implements WavesRestClient {
         return restTemplate.postForObject(generateBaseUrl() + newAddressEndpoint, entity, WavesAddress.class).getAddress();
     }
 
+    @Override
+    public Integer getCurrentBlockHeight() {
+        Integer height = restTemplate.exchange(generateBaseUrl() + "/blocks/height", HttpMethod.GET,
+                new HttpEntity<>(""), new ParameterizedTypeReference<Map<String, Integer>>() {}).getBody().get("height");
+        if (height == null) {
+            throw new WavesRestException("Cannot obtain block height");
+        }
+        return height;
+    }
+
 
     @Override
     public String transferCosts(WavesPayment payment) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(API_KEY_HEADER_NAME, apiKey);
         HttpEntity<WavesPayment> entity = new HttpEntity<>(payment, headers);
-        return restTemplate.postForObject(generateBaseUrl() + transferCostsEndpoint, entity, WavesTransaction.class).getId();
+        try {
+            return restTemplate.postForObject(generateBaseUrl() + transferCostsEndpoint, entity, WavesTransaction.class).getId();
+        } catch (HttpClientErrorException e) {
+            try {
+                JsonNode error = objectMapper.readTree(e.getResponseBodyAsString()).get("error");
+                if (error == null) {
+                    throw new WavesRestException(e);
+                }
+                throw new WavesRestException(e, error.asInt());
+            } catch (IOException e1) {
+                throw new WavesRestException(e1);
+            }
+        }
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<WavesTransaction> getTransactionsForAddress(String address) {
         Map<String, Object> params = new HashMap<>();
         params.put("address", address);
         params.put("limit", MAX_TRANSACTION_QUERY_LIMIT);
-        return restTemplate.getForObject(generateBaseUrl() + accountTransactionsEndpoint, List.class, params);
+        ResponseEntity<List<List<WavesTransaction>>> transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
+                HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+        return transactionsResult.getBody().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
 
     @Override
-    public WavesTransaction getTransactionById(String id) {
+    public Optional<WavesTransaction> getTransactionById(String id) {
         Map<String, Object> params = new HashMap<>();
         params.put("id", id);
-        return restTemplate.getForObject(generateBaseUrl() + transactionByIdEndpoint, WavesTransaction.class, params);
+        try {
+            return Optional.of(restTemplate.getForObject(generateBaseUrl() + transactionByIdEndpoint, WavesTransaction.class, params));
+        } catch (Exception e) {
+            log.error(e);
+            return Optional.empty();
+        }
     }
 
 
+   /* public static void main(String[] args) throws IOException {
+        RestTemplate restTemplate = new RestTemplate();
+        String apiKey = "ridethewaves!";
+        String baseUrl = "http://127.0.0.1:6869";
+        String address = "3MrhJ3a5E1ATKxU15nKW59vfGdyqC2Rt5Xb";
+        String txHistoryEP = "/transactions/address/{address}/limit/{limit}";
+        String transferEP = "/assets/transfer";
+        String txByIdEP = "/transactions/info/{id}";
+        Map<String, Object> params = new HashMap<>();
+        *//*params.put("address", address);
+        params.put("limit", 50);
+        ResponseEntity<List<List<WavesTransaction>>> transactionsResult = restTemplate.exchange(baseUrl + txHistoryEP, HttpMethod.GET,
+                new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+        List<List<WavesTransaction>> transactions = transactionsResult.getBody();
+        transactions.stream().flatMap(List::stream).forEach(System.out::println);*//*
+       WavesPayment wavesPayment = new WavesPayment();
+       wavesPayment.setAmount(1839600000L);
+       wavesPayment.setFee(100000L);
+       wavesPayment.setSender("ЫЫ3MrhJ3a5E1ATKxU15nKW59vfGdyqC2Rt5Xb");
+       wavesPayment.setRecipient("3N8DRLQKAc9arr6q5G9AagYUExXLhDJeGH3");
+       wavesPayment.setAttachment("");
 
-
-
-    /*private <T> T extractObjectFromResponse(String responseBody, String targetFieldName, Class<T> targetType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("api_key", apiKey);
+        HttpEntity<WavesPayment> entity = new HttpEntity<>(wavesPayment, headers);
+        ResponseEntity<String> response = null;
         try {
-            JsonNode root = objectMapper.readTree(responseBody);
+            response = restTemplate.exchange(baseUrl + transferEP, HttpMethod.POST, entity, String.class);
+        } catch (HttpClientErrorException e) {
+            String body = e.getResponseBodyAsString();
+            System.out.println(body);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode error = objectMapper.readTree(body).get("error");
+            System.out.println(error.asInt());
 
-        } catch (IOException e) {
-            throw new WavesRestException(e);
+
         }
+
+    //    System.out.println(response.getBody());
+        *//*params.put("id", "64PmAooyNtDswN6cCjLXhu5mLfYSNVkqWG4dqVYXxBkv");
+        System.out.println(restTemplate.getForObject(baseUrl+txByIdEP, WavesTransaction.class, params));*//*
+        ;
+        *//*System.out.println(restTemplate.exchange(baseUrl + "/blocks/height", HttpMethod.GET,
+                new HttpEntity<>(""), new ParameterizedTypeReference<Map<String, Integer>>() {}).getBody().get("height"));
+*//*
+
     }
 */
 

@@ -12,6 +12,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.exception.LiskCreateAddressException;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.ParamMapUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
@@ -49,7 +50,6 @@ public class LiskServiceImpl implements LiskService {
     private final String currencyName = "LSK";
     private @Value("${lisk.main.address}") String mainAddress;
     private @Value("${lisk.main.secret}") String mainSecret;
-
     private @Value("${lisk.min.confirmations}") Integer minConfirmations;
 
 
@@ -139,18 +139,10 @@ public class LiskServiceImpl implements LiskService {
             refillService.setConfirmationCollectedNumber(dto);
             if (dto.getConfirmations() >= minConfirmations) {
                 log.debug("Providing transaction!");
-                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                        .requestId(dto.getRequestId())
-                        .address(dto.getAddress())
-                        .amount(dto.getAmount())
-                        .currencyId(dto.getCurrencyId())
-                        .merchantId(dto.getMerchantId())
-                        .merchantTransactionId(dto.getHash())
-                        .build();
+                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
                 RefillRequestFlatDto flatDto = refillService.getFlatById(dto.getRequestId());
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
-
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);
@@ -206,6 +198,9 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        if (!"LSK".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+            throw new WithdrawRequestPostException("Currency not supported by merchant");
+        }
         String txId = sendTransaction(mainSecret, new BigDecimal(withdrawMerchantOperationDto.getAmount()), withdrawMerchantOperationDto.getAccountTo());
         return Collections.singletonMap("hash", txId);
     }

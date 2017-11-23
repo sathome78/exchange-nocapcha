@@ -25,4 +25,16 @@ public class RefillRequestAcceptDto {
   private String remark;
   private boolean toMainAccountTransferringConfirmNeeded;
   private Predicate<RefillRequestFlatDto> predicate;
+
+  public static RefillRequestAcceptDto of(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) {
+    return new RefillRequestAcceptDto(
+            confirmationsNumberDto.getRequestId(),
+            confirmationsNumberDto.getMerchantId(),
+            confirmationsNumberDto.getCurrencyId(),
+            confirmationsNumberDto.getAmount(),
+            confirmationsNumberDto.getAddress(),
+            confirmationsNumberDto.getHash(),
+            null, null, false, null
+    );
+  }
 }
