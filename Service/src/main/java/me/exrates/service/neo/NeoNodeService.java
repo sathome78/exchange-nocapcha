@@ -16,5 +16,5 @@ public interface NeoNodeService {
 
     Optional<NeoTransaction> getTransactionById(String txId);
 
-    NeoTransaction sendToAddress(NeoAsset asset, String address, BigDecimal amount);
+    NeoTransaction sendToAddress(NeoAsset asset, String address, BigDecimal amount, String changeAddress);
 }

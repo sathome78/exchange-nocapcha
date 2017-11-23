@@ -65,8 +65,8 @@ public class NeoNodeServiceImpl implements NeoNodeService {
     }
 
     @Override
-    public NeoTransaction sendToAddress(NeoAsset asset, String address, BigDecimal amount) {
-        return invokeJsonRpcMethod("sendtoaddress", Arrays.asList(asset.getId(), address, amount), new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {});
+    public NeoTransaction sendToAddress(NeoAsset asset, String address, BigDecimal amount, String changeAddress) {
+        return invokeJsonRpcMethod("sendtoaddress", Arrays.asList(asset.getId(), address, amount, 0, changeAddress), new TypeReference<NeoJsonRpcResponse<NeoTransaction>>() {});
     }
 
 

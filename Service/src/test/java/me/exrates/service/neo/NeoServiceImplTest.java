@@ -207,7 +207,7 @@ public class NeoServiceImplTest {
         neoService.changeConfirmationsOrProvide(dto, "");
         verify(refillService).setConfirmationCollectedNumber(dto);
         verify(refillService, never()).autoAcceptRefillRequest(any());
-        verify(neoNodeService, never()).sendToAddress(any(NeoAsset.class), anyString(), any());
+        verify(neoNodeService, never()).sendToAddress(any(NeoAsset.class), anyString(), any(), anyString());
     }
 
     @Test
@@ -222,7 +222,7 @@ public class NeoServiceImplTest {
 
         verify(refillService).setConfirmationCollectedNumber(dto);
         verify(refillService).autoAcceptRefillRequest(any());
-        verify(neoNodeService).sendToAddress(eq(NeoAsset.NEO), eq(TEST_ADDRESS_MAIN), eq(new BigDecimal(25)));
+        verify(neoNodeService).sendToAddress(eq(NeoAsset.NEO), eq(TEST_ADDRESS_MAIN), eq(new BigDecimal(25)), eq(TEST_ADDRESS_MAIN));
     }
 
     @Test
