@@ -4,6 +4,7 @@ import me.exrates.dao.BotDao;
 import me.exrates.model.BotLaunchSettings;
 import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
+import me.exrates.model.BotTradingSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -103,11 +104,12 @@ public class BotDaoImpl implements BotDao {
     }
 
     @Override
-    public Optional<BotTradingCalculator> retrieveBotCalculatorForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType) {
+    public Optional<BotTradingSettings> retrieveBotTradingSettingsForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType) {
         String sql = "SELECT BTS.id AS trading_id, BLCH.id AS launch_id, BLCH.bot_trader_id, BLCH.currency_pair_id, CP.name AS currency_pair_name, " +
                 "  BTS.order_type_id, BLCH.is_enabled, BLCH.consider_user_orders, " +
                 "  BLCH.launch_interval_minutes, BLCH.create_timeout_seconds, BLCH.quantity_per_sequence, " +
                 "  BTS.max_amount, BTS.min_amount, BTS.max_price, BTS.min_price, BTS.price_step, BTS.price_growth_direction, " +
+                "  BTS.min_price_deviation, BTS.max_price_deviation, BTS.randomize_price_step, BTS.price_step_deviation, " +
                 "  MIN(EX.exrate) AS min_user_price, MAX(EX.exrate) AS max_user_price " +
                 "FROM BOT_LAUNCH_SETTINGS BLCH " +
                 "  JOIN CURRENCY_PAIR CP ON CP.id = BLCH.currency_pair_id " +
@@ -124,17 +126,23 @@ public class BotDaoImpl implements BotDao {
         try {
             return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
                 BotLaunchSettings launchSettings = botLaunchSettingsRowMapper.mapRow(rs, rowNum);
-                Integer id = rs.getInt("trading_id");
-                BigDecimal maxAmount = rs.getBigDecimal("max_amount");
-                BigDecimal minAmount = rs.getBigDecimal("min_amount");
-                BigDecimal maxPrice = rs.getBigDecimal("max_price");
-                BigDecimal minPrice = rs.getBigDecimal("min_price");
-                BigDecimal maxUserPrice = rs.getBigDecimal("max_user_price");
-                BigDecimal minUserPrice = rs.getBigDecimal("min_user_price");
-                BigDecimal priceStep = rs.getBigDecimal("price_step");
-                PriceGrowthDirection direction = PriceGrowthDirection.valueOf(rs.getString("price_growth_direction"));
-                return new BotTradingCalculator(id, launchSettings, orderType, minAmount, maxAmount, minPrice, maxPrice,
-                        minUserPrice, maxUserPrice, priceStep, direction);
+                BotTradingSettings tradingSettings = new BotTradingSettings();
+                tradingSettings.setId(rs.getInt("trading_id"));
+                tradingSettings.setBotLaunchSettings(launchSettings);
+                tradingSettings.setMaxAmount(rs.getBigDecimal("max_amount"));
+                tradingSettings.setMinAmount(rs.getBigDecimal("min_amount"));
+                tradingSettings.setMaxPrice(rs.getBigDecimal("max_price"));
+                tradingSettings.setMinPrice(rs.getBigDecimal("min_price"));
+                tradingSettings.setMaxUserPrice(rs.getBigDecimal("max_user_price"));
+                tradingSettings.setMinUserPrice(rs.getBigDecimal("min_user_price"));
+                tradingSettings.setPriceStep(rs.getBigDecimal("price_step"));
+                tradingSettings.setMinDeviationPercent(rs.getInt("min_price_deviation"));
+                tradingSettings.setMaxDeviationPercent(rs.getInt("max_price_deviation"));
+                tradingSettings.setPriceStepRandom(rs.getBoolean("randomize_price_step"));
+                tradingSettings.setPriceStepDeviationPercent(rs.getInt("price_step_deviation"));
+                tradingSettings.setDirection(PriceGrowthDirection.valueOf(rs.getString("price_growth_direction")));
+
+                return tradingSettings;
             }));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -195,7 +203,8 @@ public class BotDaoImpl implements BotDao {
 
     @Override
     public BotTradingSettingsShortDto retrieveTradingSettingsShort(int botLaunchSettingsId, int orderTypeId) {
-        String sql = "SELECT id, order_type_id, max_amount, min_amount, max_price, min_price, price_step " +
+        String sql = "SELECT id, order_type_id, max_amount, min_amount, max_price, min_price, price_step," +
+                "min_price_deviation, max_price_deviation, randomize_price_step, price_step_deviation " +
                 "FROM BOT_TRADING_SETTINGS " +
                 "WHERE bot_launch_settings_id = :bot_launch_settings_id AND order_type_id = :order_type_id";
         Map<String, Integer> params = new HashMap<>();
@@ -210,6 +219,10 @@ public class BotDaoImpl implements BotDao {
             tradingSettings.setMaxPrice(rs.getBigDecimal("max_price"));
             tradingSettings.setMinPrice(rs.getBigDecimal("min_price"));
             tradingSettings.setPriceStep(rs.getBigDecimal("price_step"));
+            tradingSettings.setMinDeviationPercent(rs.getInt("min_price_deviation"));
+            tradingSettings.setMaxDeviationPercent(rs.getInt("max_price_deviation"));
+            tradingSettings.setPriceStepRandom(rs.getBoolean("randomize_price_step"));
+            tradingSettings.setPriceStepDeviationPercent(rs.getInt("price_step_deviation"));
             return tradingSettings;
         });
     }
@@ -229,7 +242,10 @@ public class BotDaoImpl implements BotDao {
     @Override
     public void updateTradingSettings(BotTradingSettingsShortDto tradingSettings) {
         String sql = "UPDATE BOT_TRADING_SETTINGS SET min_amount = :min_amount, max_amount = :max_amount, min_price = :min_price, " +
-                "max_price = :max_price, price_step = :price_step WHERE id = :id";
+                " max_price = :max_price, price_step = :price_step, " +
+                " min_price_deviation = :min_price_deviation, max_price_deviation = :max_price_deviation, randomize_price_step = :randomize_price_step, " +
+                "price_step_deviation = :price_step_deviation WHERE id = :id";
+
         Map<String, Object> params = new HashMap<>();
         params.put("id", tradingSettings.getId());
         params.put("min_amount", tradingSettings.getMinAmount());
@@ -237,6 +253,10 @@ public class BotDaoImpl implements BotDao {
         params.put("min_price", tradingSettings.getMinPrice());
         params.put("max_price", tradingSettings.getMaxPrice());
         params.put("price_step", tradingSettings.getPriceStep());
+        params.put("min_price_deviation", tradingSettings.getMinDeviationPercent());
+        params.put("max_price_deviation", tradingSettings.getMaxDeviationPercent());
+        params.put("randomize_price_step", tradingSettings.isPriceStepRandom());
+        params.put("price_step_deviation", tradingSettings.getPriceStepDeviationPercent());
         namedParameterJdbcTemplate.update(sql, params);
     }
 

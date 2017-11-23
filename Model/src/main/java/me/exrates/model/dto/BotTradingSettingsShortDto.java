@@ -7,6 +7,7 @@ import lombok.ToString;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -36,4 +37,20 @@ public class BotTradingSettingsShortDto {
     @NotNull(message = "{bot.notnull}")
     @JsonSerialize(using = BigDecimalToDoubleSerializer.class)
     private BigDecimal priceStep;
+    @NotNull(message = "{bot.notnull}")
+    @Max(value = 100, message = "{bot.deviation.minPrice}")
+    @Min(value = 0, message = "{bot.deviation.minPrice}")
+    private int minDeviationPercent;
+    @NotNull(message = "{bot.notnull}")
+    @Max(value = 100, message = "{bot.deviation.maxPrice}")
+    @Min(value = 0, message = "{bot.deviation.maxPrice}")
+    private int maxDeviationPercent;
+    @NotNull(message = "{bot.notnull}")
+    private boolean isPriceStepRandom;
+    @NotNull(message = "{bot.notnull}")
+    @Max(value = 100, message = "{bot.deviation.priceStep}")
+    @Min(value = 0, message = "{bot.deviation.priceStep}")
+    private int priceStepDeviationPercent;
+
+
 }

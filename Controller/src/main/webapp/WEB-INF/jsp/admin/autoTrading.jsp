@@ -227,7 +227,7 @@
 </div>
 
 <div id="editTradeSettingsModal" class="modal fade">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg" style="width: 1200px">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span>&times;</span></button>
@@ -277,15 +277,52 @@
                             <input id="minPriceSell" name="minPrice" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-2 input-block-wrapper__label-wrapper">
-                            <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
+                            <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceDeviation"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label for="maxPriceDeviationSell" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxPriceDeviationSell" name="maxDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label for="minPriceDeviationSell" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minPriceDeviationSell" name="minDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="isPriceStepRandomSell" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.randomStep"/></label>
+                        </div>
+                        <div class="col-md-1 col-md-offset-1 input-block-wrapper__input-wrapper pull-left">
+                            <input id="isPriceStepRandomSellInput" name="priceStepRandom" type="hidden">
+                            <input id="isPriceStepRandomSell" class="input-block-wrapper__input" type="checkbox">
+                        </div>
+                        <div class="col-md-3 col-md-offset-1 input-block-wrapper__label-wrapper">
+                            <label for="priceStepDeviationSell" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.stepDeviation"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="priceStepDeviationSell" name="priceStepDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="priceStepSell" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
                         </div>
                         <div class="col-md-4 col-md-offset-1 input-block-wrapper__input-wrapper">
                             <input id="priceStepSell" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">
                         </div>
                     </div>
+
+
                 </form>
+                <hr/>
                 <form id="trade-settings-form-buy" class="form_full_width form_auto_height">
                     <div class="input-block-wrapper">
                         <div class="col-md-12 input-block-wrapper__label-wrapper text-center">
@@ -329,7 +366,40 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-2 input-block-wrapper__label-wrapper">
-                            <label for="quantityPerSeq" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
+                            <label for="createTimeout" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceDeviation"/></label>
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.max"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="maxPriceDeviationBuy" name="maxDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                        <div class="col-md-1 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.min"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="minPriceDeviationBuy" name="minDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="isPriceStepRandomBuy" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.randomStep"/></label>
+                        </div>
+                        <div class="col-md-1 col-md-offset-1 input-block-wrapper__input-wrapper pull-left">
+                            <input id="isPriceStepRandomBuyInput" name="priceStepRandom" type="hidden">
+                            <input id="isPriceStepRandomBuy" class="input-block-wrapper__input" type="checkbox">
+                        </div>
+                        <div class="col-md-3 col-md-offset-1 input-block-wrapper__label-wrapper">
+                            <label for="priceStepDeviationBuy" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.stepDeviation"/></label>
+                        </div>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <input id="priceStepDeviationBuy" name="priceStepDeviationPercent" class="input-block-wrapper__input admin-form-input" type="number">
+                        </div>
+                    </div>
+
+                    <div class="input-block-wrapper">
+                        <div class="col-md-2 input-block-wrapper__label-wrapper">
+                            <label for="priceStepBuy" class="input-block-wrapper__label"><loc:message code="admin.autoTrading.settings.priceStep"/></label>
                         </div>
                         <div class="col-md-4 col-md-offset-1 input-block-wrapper__input-wrapper">
                             <input id="priceStepBuy" name="priceStep" class="input-block-wrapper__input admin-form-input" type="number">

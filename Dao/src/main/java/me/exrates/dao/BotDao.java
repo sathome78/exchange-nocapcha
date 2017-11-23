@@ -1,8 +1,8 @@
 package me.exrates.dao;
 
 import me.exrates.model.BotLaunchSettings;
-import me.exrates.model.BotTradingCalculator;
 import me.exrates.model.BotTrader;
+import me.exrates.model.BotTradingSettings;
 import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PriceGrowthDirection;
@@ -19,7 +19,7 @@ public interface BotDao {
 
     void updateBot(BotTrader botTrader);
 
-    Optional<BotTradingCalculator> retrieveBotCalculatorForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType);
+    Optional<BotTradingSettings> retrieveBotTradingSettingsForCurrencyPairAndOrderType(int botId, int currencyPairId, OrderType orderType);
 
     BotLaunchSettings retrieveBotLaunchSettingsForCurrencyPair(int botId, int currencyPairId);
 
