@@ -128,8 +128,11 @@ public class NeoServiceImpl implements NeoService {
         BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
         NeoAsset asset = NeoAsset.valueOf(withdrawMerchantOperationDto.getCurrency());
         try {
-            String txId = neoNodeService.sendToAddress(asset, withdrawMerchantOperationDto.getAccountTo(), withdrawAmount).getTxid();
-            return Collections.singletonMap("hash", txId);
+            NeoTransaction neoTransaction = neoNodeService.sendToAddress(asset, withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
+            //sending change back to main account
+            neoTransaction.getVout().stream().filter(vout -> !withdrawMerchantOperationDto.getAccountTo().equals(vout.getAddress()))
+                    .forEach(vout -> transferCostsToMainAccount(vout.getAsset(), new BigDecimal(vout.getValue())));
+            return Collections.singletonMap("hash", neoTransaction.getTxid());
         } catch (NeoApiException e) {
            if (e.getCode() == -300) {
                throw new InsufficientCostsInWalletException();
