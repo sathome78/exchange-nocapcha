@@ -237,18 +237,18 @@ public class EntryController {
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/getNotyPrice")
     public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
+        Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());
         Subscribable subscribable = Preconditions.checkNotNull(notificatorService.getByNotificatorId(id));
         Object subscription = subscribable.getSubscription(userService.getIdByEmail(principal.getName()));
         UserRole role = userService.getUserRoleFromDB(principal.getName());
-        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());;
+        NotificatorTotalPriceDto dto = notificatorService.getPrices(id, role.getRole());
         if (subscription != null && subscription instanceof TelegramSubscription) {
             if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
                 throw new IllegalStateException();
             }
             dto.setCode(((TelegramSubscription)subscription).getCode());
-            return dto;
         }
-        return null;
+        return dto;
     }
 
     @ResponseBody
