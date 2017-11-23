@@ -78,7 +78,7 @@ public class WavesServiceImpl implements WavesService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 30L, 60L, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 30L, 120L, TimeUnit.SECONDS);
     }
 
     @Override
@@ -135,14 +135,18 @@ public class WavesServiceImpl implements WavesService {
                         .hash(transaction.getId()).build());
             }
         } else {
-            changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
-                    .requestId(refillRequestResult.get().getId())
-                    .address(transaction.getRecipient())
-                    .amount(requestAmount)
-                    .confirmations(confirmations)
-                    .currencyId(currencyId)
-                    .merchantId(merchantId)
-                    .hash(transaction.getId()).build());
+            RefillRequestFlatDto flatDto = refillRequestResult.get();
+            if (!flatDto.getStatus().isSuccessEndStatus()) {
+                changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
+                        .requestId(refillRequestResult.get().getId())
+                        .address(transaction.getRecipient())
+                        .amount(requestAmount)
+                        .confirmations(confirmations)
+                        .currencyId(currencyId)
+                        .merchantId(merchantId)
+                        .hash(transaction.getId()).build());
+            }
+
         }
     }
 
@@ -174,7 +178,7 @@ public class WavesServiceImpl implements WavesService {
         Merchant merchant = merchantService.findByName(merchantName);
         int blockHeight = restClient.getCurrentBlockHeight();
 
-        refillService.findAllAddresses(merchant.getId(), currency.getId()).stream()
+        refillService.findAllAddresses(merchant.getId(), currency.getId()).parallelStream()
                 .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
                         .filter(transaction -> address.equals(transaction.getRecipient())))
                 .map(transaction -> restClient.getTransactionById(transaction.getId()))
