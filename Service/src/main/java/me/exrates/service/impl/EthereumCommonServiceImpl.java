@@ -304,7 +304,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 // ------------------------
 
 //  --------------OMG token
-                if (ethBlock.getTo() != null && golemServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                if (ethBlock.getTo() != null && omgServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     omgServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------

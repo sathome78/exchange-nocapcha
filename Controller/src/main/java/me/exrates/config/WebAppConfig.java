@@ -441,7 +441,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "omgServiceImpl")
     public EthTokenService OmgService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xd26114cd6EE289AccF82350c8d8487fedB8A0C07");
+        tokensList.add("0xd26114cd6ee289accf82350c8d8487fedb8a0c07");
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
