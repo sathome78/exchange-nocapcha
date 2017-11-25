@@ -1153,5 +1153,16 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
   }
 
+  @Override
+  public List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
+    String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where address = :address AND currency_id = :currency_id " +
+            "AND merchant_id = :merchant_id" ;
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("currency_id", currencyId);
+      put("merchant_id", merchantId);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+  }
 }
 
