@@ -53,11 +53,6 @@ public class StellarReceivePaymentsService {
     private MerchantSpecParamsDao specParamsDao;
 
 
-    protected URIBuilder uriBuilder;
-
-    private ArrayList<String> segments = new ArrayList<>();
-
-
     private @Value("${stellar.horizon.url}")String SEVER_URL;
     private @Value("${stellar.account.name}")String ACCOUNT_NAME;
     private @Value("${stellar.account.seed}")String ACCOUNT_SECRET;
@@ -73,14 +68,10 @@ public class StellarReceivePaymentsService {
 
     @PostConstruct
     public void init() {
-        URI uri  = URI.create(SEVER_URL);
-        this.uriBuilder = new URIBuilder(uri);
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
-        checkIncomePayment();
     }
 
-    /*@Scheduled(initialDelay = 15000, fixedDelay = 1000 * 30 * 5)*/
     private void checkIncomePayment() {
         log.debug("starting check xlm income payments");
         paymentsRequest = server.payments().forAccount(account);
