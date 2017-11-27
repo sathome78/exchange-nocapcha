@@ -3,7 +3,7 @@ VALUES ('NEO', 'NEO', 2, 'neoServiceImpl', 'CRYPTO');
 INSERT INTO MERCHANT (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('GAS', 'GAS', 2, 'neoServiceImpl', 'CRYPTO',
         -- IMPORTANT!! CHECK NEO MERCHANT ID BEFORE INSERT
-        47);
+        46);
 
 INSERT INTO CURRENCY (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('NEO', 'NEO', 0, 0, 0, 0);
@@ -130,6 +130,6 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
 -- IMPORTANT CHECK LAST BLOCK BEFORE EXECUTING STATEMENT!!
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'NEO'), 'LastRecievedBlock', 799145);
+  ((SELECT id FROM MERCHANT WHERE name = 'NEO'), 'LastRecievedBlock', 1635407);
 
 ALTER TABLE REFILL_REQUEST_CONFIRMATION MODIFY blockhash VARCHAR(96);
