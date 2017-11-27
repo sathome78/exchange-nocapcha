@@ -20,8 +20,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
 
@@ -52,15 +56,23 @@ public class withdrawRequestJob {
   @Autowired
   MessageSource messageSource;
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
-  private void setInPostingStatus() throws Exception {
+  private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+
+  @PostConstruct
+  private void initSchedule() {
+    scheduler.scheduleAtFixedRate(this::setInPostingStatus, 1, 60, TimeUnit.SECONDS);
+    scheduler.scheduleAtFixedRate(this::postWithdraw, 1, 60, TimeUnit.SECONDS);
+  }
+
+ // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
+  private void setInPostingStatus() {
     log.info("before setInPostingStatus()");
     withdrawService.setAllAvailableInPostingStatus();
     log.info("after setInPostingStatus()");
 
   }
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
+ // @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void postWithdraw() {
     try {
       log.info("start postWithdraw()");

@@ -312,6 +312,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="neo_log" fileName="${sys:catalina.home}/logs/crypto/neo_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/neo_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="message_notify" fileName="${sys:catalina.home}/logs/message_notify/notify.log"
                      filePattern="${sys:catalina.home}/logs/crypto/notify_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -501,6 +510,10 @@
         <logger name="nem_log" level="ALL" additivity="false">
             <AppenderRef ref="nem_log"/>
         </logger>
+        <logger name="neo_log" level="ALL" additivity="false">
+            <AppenderRef ref="neo_log"/>
+            <AppenderRef ref="Console"/>
+        </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
         </logger>
@@ -523,7 +536,7 @@
             <AppenderRef ref="test_log"/>
         </logger>
 
-        <Root level="INFO">
+        <Root level="DEBUG">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>
