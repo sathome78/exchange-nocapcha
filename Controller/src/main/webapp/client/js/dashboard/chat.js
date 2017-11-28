@@ -37,7 +37,7 @@ function toJson(a) {
 
 function formatNewMessage(o) {
     var deletionButton = '';
-    if ($("a[href='/2a8fy7b07dxe44']").length > 0) {
+    if ($("a[href='/2a8fy7b07dxe44']").length > 0 || $("a[href='/2a8fy7b07dxe44/removeOrder']").length > 0) {
         deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
             '<span class="glyphicon glyphicon-remove"></span></button>';
     }
