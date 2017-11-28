@@ -360,20 +360,20 @@ header li {
     }
 
     .blue_area {
-        width: 40%;
+        width: 35%;
     }
 
     .dark_blue_area {
-        width: 15%;
+        width: 20%;
     }
 
     .buyBTC__input {
-        width: 40%;
+        width: 35%;
     }
 
     input.item_input,
     .item__input {
-        width: 40%;
+        width: 35%;
     }
 
 
@@ -400,20 +400,20 @@ header li {
         font-size: 1.1rem;
     }
     .blue_area {
-        width: 45%;
+        width: 40%;
     }
 
     .dark_blue_area {
-        width: 12%;
+        width: 15%;
     }
 
     .buyBTC__input {
-        width: 45%;
+        width: 40%;
     }
 
     input.item_input,
     .item__input {
-        width: 45%;
+        width: 40%;
     }
 
 }
@@ -2240,6 +2240,7 @@ textarea#remark {
     background-color: #525f74;
     float: right;
     text-align: center;
+    font-size: 0.9rem;
 }
 
 #btc-wallet-buttons {
