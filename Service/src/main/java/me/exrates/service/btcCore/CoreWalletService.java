@@ -3,9 +3,9 @@ package me.exrates.service.btcCore;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcBlockDto;
+import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import org.springframework.scheduling.annotation.Scheduled;
 import reactor.core.publisher.Flux;
 

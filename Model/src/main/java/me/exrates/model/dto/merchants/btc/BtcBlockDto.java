@@ -1,4 +1,4 @@
-package me.exrates.model.dto.merchants.btcTransactionFacade;
+package me.exrates.model.dto.merchants.btc;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
