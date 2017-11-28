@@ -185,7 +185,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
             "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
             "     JOIN USER U ON U.id=W.user_id " +
-            "   WHERE U.email=:email " +
+            "   WHERE U.email=:email AND TR.source_type='NOTIFICATIONS'" +
             "  )  " +
         "  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);

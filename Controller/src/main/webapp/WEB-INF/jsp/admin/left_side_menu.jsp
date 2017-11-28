@@ -119,6 +119,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/ATB'/>"><loc:message code="atbWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Dogecoin'/>"><loc:message code="dogeWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BTG'/>"><loc:message code="btgWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/zcash'/>"><loc:message code="zecWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>

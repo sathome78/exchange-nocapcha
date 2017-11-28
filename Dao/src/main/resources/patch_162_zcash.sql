@@ -1,5 +1,5 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('Zcash', 'Zcash', 2, 'zcashServiceImpl', 'CRYPTO', 16);
+VALUES ('Zcash', 'Zcash', 2, 'zcashServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('ZEC', 'Zcash', '0', 8, 8, 8);
 
