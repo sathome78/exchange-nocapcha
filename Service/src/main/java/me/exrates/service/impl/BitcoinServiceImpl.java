@@ -4,10 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.merchants.btc.BtcBlockDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.model.dto.merchants.btc.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -345,8 +343,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   @Override
-  public List<String> sendToMany(List<BtcWalletPaymentItemDto> payments) {
-    List<Map<String, BigDecimal>> paymentGroups = Arrays.asList(new HashMap<>());
+  public List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments) {
+    List<Map<String, BigDecimal>> paymentGroups = new ArrayList<>();
+    paymentGroups.add(new LinkedHashMap<>());
     for (BtcWalletPaymentItemDto payment : payments) {
 
       ListIterator<Map<String, BigDecimal>> paymentGroupIterator = paymentGroups.listIterator();
@@ -359,13 +358,18 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
       }
       if (!isProcessed) {
-        Map<String, BigDecimal> newPaymentGroup = new HashMap<>();
+        Map<String, BigDecimal> newPaymentGroup = new LinkedHashMap<>();
         newPaymentGroup.put(payment.getAddress(), payment.getAmount());
         paymentGroupIterator.add(newPaymentGroup);
       }
     }
 
-    return paymentGroups.stream().map(bitcoinWalletService::sendToMany).collect(Collectors.toList());
+    return paymentGroups.stream()
+            .flatMap(group -> {
+              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group);
+              return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
+                      entry.getValue(), result));
+                    }).collect(Collectors.toList());
   }
   
   private void examineMissingPaymentsOnStartup() {

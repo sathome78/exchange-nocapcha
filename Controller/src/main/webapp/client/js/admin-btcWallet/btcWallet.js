@@ -29,7 +29,7 @@ $(function () {
     });
 
 
-    $('.input-amount, .input-address').on('input', function () {
+    $('#payments').on('input', '.input-amount, .input-address', function () {
         checkSendBtcFormFields();
     });
 
@@ -71,10 +71,12 @@ $(function () {
     $('#confirm-btc-submit').click(function () {
         var confirmButton = this;
         $(confirmButton).prop('disabled', true);
-        var data = {};
+        var data = [];
         $('.btcWalletPayment').each(function () {
-            var address = $(this).find('input[name="address"]').val();
-            data[address] = parseFloat($(this).find('input[name="amount"]').val());
+            data.push({
+                address: $(this).find('input[name="address"]').val(),
+                amount: parseFloat($(this).find('input[name="amount"]').val())
+            });
         });
         console.log(data);
         $loadingDialog.modal({
@@ -92,7 +94,17 @@ $(function () {
                 $($paymentConfirmModal).modal('hide');
                 resetForm();
                 $('#current-btc-balance').text(data.newBalance);
-                successNoty(data.message)
+                var $btcSendResultModal = $('#btc-send-result-modal');
+                var $btcResultInfoTable = $($btcSendResultModal).find('#btcResultInfoTable').find('tbody');
+
+                var $tmpl = $('#results-table_row').html().replace(/@/g, '%');
+                clearTable($btcResultInfoTable);
+                data['results'].forEach(function (e) {
+                    $btcResultInfoTable.append(tmpl($tmpl, e));
+                });
+
+                $($btcSendResultModal).modal();
+
             },
             complete: function () {
                 $loadingDialog.modal('hide');
@@ -128,6 +140,8 @@ function checkSendBtcFormFields() {
     $('.btcWalletPayment').each(function () {
         var amount =  $(this).find('input[name="amount"]').val();
         var address = $(this).find('input[name="address"]').val();
+        console.log(amount.length)
+        console.log(address.length)
         if (amount.length === 0 || address.length === 0) {
             $('#submit-btc').prop('disabled', true);
             isFormValid = false;

@@ -2,9 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
-import me.exrates.model.dto.merchants.btc.BtcBlockDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.service.events.BtcBlockEvent;
 import me.exrates.service.events.BtcWalletEvent;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -40,7 +38,7 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   
   void submitWalletPassword(String password);
   
-  List<String> sendToMany(List<BtcWalletPaymentItemDto> payments);
+  List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

@@ -11,10 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcBlockDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcTxPaymentDto;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
@@ -342,12 +339,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   @Override
-  public String sendToMany(Map<String, BigDecimal> payments) {
+  public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments) {
     try {
-      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
-    } catch (BitcoindException | CommunicationException e) {
+      String txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      return new BtcPaymentResultDto(txId);
+    } catch (Exception e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      return new BtcPaymentResultDto(e);
     }
   }
 

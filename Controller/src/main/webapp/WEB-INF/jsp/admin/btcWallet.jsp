@@ -17,6 +17,7 @@
     <title>${title}</title>
     <%@include file='links_scripts.jsp' %>
     <script type="text/javascript" src="<c:url value='/client/js/admin-btcWallet/btcWallet.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
@@ -205,6 +206,51 @@
         </div>
     </div>
 </div>
+
+    <div id="btc-send-result-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="well">
+                        <table id="btcResultInfoTable" class="table">
+                            <tbody>
+                            <script type="text/template" id="results-table_row">
+                                <@var c = error === null ? "green" : "red";@>
+                                <tr class="results-table__row <@=c@>">
+                                    <td><@=address@></td>
+                                    <td><@=amount@></td>
+                                    <td>
+                                        <@=
+                                        (function(){
+                                        if (txId !== null) {
+                                            return txId;
+                                        } else if (error !== null) {
+                                            return error;
+                                        }
+                                        return '';
+                                        })()
+                                        @>
+                                    </td>
+                                </tr>
+                            </script>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="order-info__button-wrapper">
+                            <button class="order-info__button" data-dismiss="modal">
+                                <loc:message code="orderinfo.ok"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </sec:authorize>
 
