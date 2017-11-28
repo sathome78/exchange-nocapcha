@@ -65,3 +65,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('WAVES/BTC', 'WAVES/USD'));
+
+INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('input.warning.WAVES', 3);
