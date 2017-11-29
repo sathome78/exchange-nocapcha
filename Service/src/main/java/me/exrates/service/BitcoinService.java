@@ -2,8 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.service.events.BtcBlockEvent;
 import me.exrates.service.events.BtcWalletEvent;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -13,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 public interface BitcoinService extends IRefillable, IWithdrawable {
 
@@ -40,7 +38,7 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   
   void submitWalletPassword(String password);
   
-  String sendToMany(Map<String, BigDecimal> payments);
+  List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments);
 
   @Override
   default Boolean createdRefillRequestRecordNeeded() {

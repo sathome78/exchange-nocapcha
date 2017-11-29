@@ -5,22 +5,21 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTxPaymentDto;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
+import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.impl.BitcoinServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -46,8 +45,14 @@ public class BitcoinServiceImplTest {
     @Mock
     private CoreWalletService bitcoinWalletService;
 
+    @Captor
+    private ArgumentCaptor<Map<String, BigDecimal>> paymentCaptor;
+
+
+
     private final String TEST_ADDRESS_1 = "mkF9CpKJYwSaeeW3AZGQefKmW3EBpSjn3y";
     private final String TEST_ADDRESS_2 = "mfsnh7prA1m94RGKjM7n6i2wLD8aTsAckQ";
+    private final String TEST_ADDRESS_3 = "mqydecE4zaEw8Qy4iL5Bk8ZiEdBbRQ1Zmh";
 
     private final String TEST_TX_ID_1 = "a5cce5ae8252f61af4fe17e104acc0f3c820023d9a5704134e91da6af4c52d84";
     private final String TEST_TX_ID_2 = "d8302f411bf29e9ab7ad2223e65e99321dee6a923f78973f381bfee77bbe70c5";
@@ -91,6 +96,7 @@ public class BitcoinServiceImplTest {
         when(bitcoinWalletService.getNewAddress(anyString()))
                 .thenReturn(TEST_ADDRESS_1)
                 .thenReturn(TEST_ADDRESS_2);
+
         btcTransactionDto1 = new BtcTransactionDto();
         btcTransactionDto1.setTxId(TEST_TX_ID_1);
         btcTransactionDto1.setAmount(new BigDecimal(0.5));
@@ -358,5 +364,114 @@ public class BitcoinServiceImplTest {
         verify(refillService, times(requests.size() - 1)).setConfirmationCollectedNumber(any());
     }
 
+    @Test
+    public void sendManyTest_AllDifferentAddresses() {
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+                .thenReturn(new BtcPaymentResultDto("111"))
+                .thenReturn(new BtcPaymentResultDto("222"));
+        List<BtcPaymentResultDetailedDto> response = bitcoinService.sendToMany(Arrays.asList(
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.5)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.7)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_3, new BigDecimal(0.9))
+        ));
+        assertEquals(response, Arrays.asList(
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.5), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.7), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_3, new BigDecimal(0.9), new BtcPaymentResultDto("111"))
+        ));
+
+
+    }
+
+    @Test
+    public void sendManyTest_AllSameAddresses() {
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+                .thenReturn(new BtcPaymentResultDto("111"))
+                .thenReturn(new BtcPaymentResultDto("222"))
+                .thenReturn(new BtcPaymentResultDto("333"));
+
+        List<BtcPaymentResultDetailedDto> response = bitcoinService.sendToMany(Arrays.asList(
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.5)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.7)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.9))
+        ));
+        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture());
+        List<Map<String, BigDecimal>> capturedValues = paymentCaptor.getAllValues();
+        assertEquals(Collections.singletonMap(TEST_ADDRESS_1, new BigDecimal(0.5)), capturedValues.get(0));
+        assertEquals(Collections.singletonMap(TEST_ADDRESS_1, new BigDecimal(0.7)), capturedValues.get(1));
+        assertEquals(Collections.singletonMap(TEST_ADDRESS_1, new BigDecimal(0.9)), capturedValues.get(2));
+        assertEquals(response, Arrays.asList(
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.5), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.7), new BtcPaymentResultDto("222")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.9), new BtcPaymentResultDto("333"))
+        ));
+
+    }
+
+    @Test
+    public void sendManyTest_SameAndDifferentAddresses() {
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+                .thenReturn(new BtcPaymentResultDto("111"))
+                .thenReturn(new BtcPaymentResultDto("222"))
+                .thenReturn(new BtcPaymentResultDto("333"));
+
+        List<BtcPaymentResultDetailedDto> response = bitcoinService.sendToMany(Arrays.asList(
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.1)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.2)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.3)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_3, new BigDecimal(0.4)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.5)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.6))
+        ));
+        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture());
+        List<Map<String, BigDecimal>> capturedValues = paymentCaptor.getAllValues();
+        assertEquals(new HashMap<String, BigDecimal>(){{
+            put(TEST_ADDRESS_1, new BigDecimal(0.1));
+            put(TEST_ADDRESS_2, new BigDecimal(0.2));
+            put(TEST_ADDRESS_3, new BigDecimal(0.4));
+        }}, capturedValues.get(0));
+        assertEquals(new HashMap<String, BigDecimal>(){{
+            put(TEST_ADDRESS_1, new BigDecimal(0.3));
+            put(TEST_ADDRESS_2, new BigDecimal(0.5));
+        }}, capturedValues.get(1));
+        assertEquals(Collections.singletonMap(TEST_ADDRESS_2, new BigDecimal(0.6)), capturedValues.get(2));
+        assertEquals(response, Arrays.asList(
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.1), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.2), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_3, new BigDecimal(0.4), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.3), new BtcPaymentResultDto("222")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.5), new BtcPaymentResultDto("222")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.6), new BtcPaymentResultDto("333"))
+        ));
+
+
+
+    }
+
+    @Test
+    public void sendManyTest_SameAndDifferentAddressesAndExceptionThrown() {
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+                .thenReturn(new BtcPaymentResultDto("111"))
+                .thenReturn(new BtcPaymentResultDto(new BitcoinCoreException("ERROR!")))
+                .thenReturn(new BtcPaymentResultDto("333"));
+        List<BtcPaymentResultDetailedDto> response = bitcoinService.sendToMany(Arrays.asList(
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.1)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.2)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.3)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_3, new BigDecimal(0.4)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.5)),
+                new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.6))
+        ));
+        assertEquals(response, Arrays.asList(
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.1), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.2), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_3, new BigDecimal(0.4), new BtcPaymentResultDto("111")),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_1, new BigDecimal(0.3), new BtcPaymentResultDto(new BitcoinCoreException("ERROR!"))),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.5), new BtcPaymentResultDto(new BitcoinCoreException("ERROR!"))),
+                new BtcPaymentResultDetailedDto(TEST_ADDRESS_2, new BigDecimal(0.6), new BtcPaymentResultDto("333"))
+        ));
+
+
+    }
 
 }

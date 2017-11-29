@@ -282,12 +282,11 @@ public class WalletDaoImpl implements WalletDao {
             " WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
             " 0 AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
             " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
-            " SUM(TRANSACTION.amount), SUM(TRANSACTION.commission_amount), SUM(TRANSACTION.confirmation), COUNT(TRANSACTION.id) " +
+            " SUM(RR.amount), 0, 0, COUNT(RR.id) " +
             " FROM USER " +
             " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
             " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
-            " JOIN PENDING_PAYMENT ON PENDING_PAYMENT.invoice_id = TRANSACTION.id AND PENDING_PAYMENT.pending_payment_status_id = 6 " +
+            " JOIN REFILL_REQUEST RR ON RR.user_id = USER.id AND RR.currency_id = CURRENCY.id AND RR.status_id = 6 " +
             " WHERE USER.email =  :email  AND CURRENCY.hidden != 1" + currencyFilterClause +
             " GROUP BY wallet_id, user_id, currency_id, currency_name,  active_balance, reserved_balance, " +
             "          amount_base, amount_convert, commission_fixed_amount, " +

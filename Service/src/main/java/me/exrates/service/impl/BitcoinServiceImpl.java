@@ -4,9 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -27,6 +26,7 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
 @PropertySource(value = {"classpath:/job.properties"})
@@ -343,8 +343,33 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   @Override
-  public String sendToMany(Map<String, BigDecimal> payments) {
-    return bitcoinWalletService.sendToMany(payments);
+  public List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments) {
+    List<Map<String, BigDecimal>> paymentGroups = new ArrayList<>();
+    paymentGroups.add(new LinkedHashMap<>());
+    for (BtcWalletPaymentItemDto payment : payments) {
+
+      ListIterator<Map<String, BigDecimal>> paymentGroupIterator = paymentGroups.listIterator();
+      boolean isProcessed = false;
+      while (paymentGroupIterator.hasNext() && !isProcessed) {
+        Map<String, BigDecimal> group = paymentGroupIterator.next();
+        if (!group.containsKey(payment.getAddress())) {
+          group.put(payment.getAddress(), payment.getAmount());
+          isProcessed = true;
+        }
+      }
+      if (!isProcessed) {
+        Map<String, BigDecimal> newPaymentGroup = new LinkedHashMap<>();
+        newPaymentGroup.put(payment.getAddress(), payment.getAmount());
+        paymentGroupIterator.add(newPaymentGroup);
+      }
+    }
+
+    return paymentGroups.stream()
+            .flatMap(group -> {
+              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group);
+              return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
+                      entry.getValue(), result));
+                    }).collect(Collectors.toList());
   }
   
   private void examineMissingPaymentsOnStartup() {

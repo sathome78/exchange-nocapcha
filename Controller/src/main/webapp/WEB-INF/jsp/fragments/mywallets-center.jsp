@@ -24,7 +24,7 @@
                 <td class="left blue-white"><@=currencyName@></td>
                 <td class="left blue-white"><@=currencyDescription@></td>
                 <td class="right"><@=activeBalance@></td>
-                <td class="right"><@=onConfirmation@><div class="on-confirmation-detail">
+                <td class="right"><@=onConfirmation@><%--<div class="on-confirmation-detail">
                     <@=
                     (function(){
                     if((+onConfirmationCount)==1){
@@ -33,7 +33,7 @@
                         return '<span class="glyphicon glyphicon-search mywallet-item-detail" data-walletid='+id+'></span>';
                     }
                     })()
-                    @></div></td>
+                    @></div>--%></td>
                 <td class="right"><@=reservedBalance@></td>
                 <td class="right"><@=reservedByOrders@></td>
                 <td class="right"><@=reservedByMerchant@></td>
