@@ -94,6 +94,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService golemServiceImpl;
 
+    @Qualifier(value = "omgServiceImpl")
+    @Autowired
+    private EthTokenService omgServiceImpl;
+
     private String url;
 
     private String destinationDir;
@@ -298,6 +302,14 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     golemServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
+
+//  --------------OMG token
+                if (ethBlock.getTo() != null && omgServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    omgServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+
                 String recipient = ethBlock.getTo();
 
                 if (accounts.contains(recipient)){
