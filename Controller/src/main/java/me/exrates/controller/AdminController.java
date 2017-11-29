@@ -15,6 +15,8 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -1261,15 +1263,14 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public Map<String, String> sendToMany(@PathVariable String merchantName,
-                                        @RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
-    LOG.debug(addresses);
+  public BtcAdminPaymentResponseDto sendToMany(@PathVariable String merchantName,
+                                               @RequestBody List<BtcWalletPaymentItemDto> payments, HttpServletRequest request) {
+    LOG.debug(payments);
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
-    String txId = walletService.sendToMany(addresses);
-    Map<String, String> result = new HashMap<>();
-    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", walletService.getWalletInfo().getBalance());
-    return result;
+    BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
+    responseDto.setResults(walletService.sendToMany(payments));
+    responseDto.setNewBalance(walletService.getWalletInfo().getBalance());
+    return responseDto;
   }
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transaction/details", method = RequestMethod.GET,

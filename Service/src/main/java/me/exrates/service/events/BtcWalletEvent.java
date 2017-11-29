@@ -1,6 +1,6 @@
 package me.exrates.service.events;
 
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 
 public class BtcWalletEvent extends BtcCoreEvent {
     /**

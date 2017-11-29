@@ -1,6 +1,6 @@
 package me.exrates.service.events;
 
-import me.exrates.model.dto.merchants.btcTransactionFacade.BtcBlockDto;
+import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 
 public class BtcBlockEvent extends BtcCoreEvent {
     /**
