@@ -4,6 +4,7 @@ import me.exrates.dao.InputOutputDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.CommissionDataDto;
+import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -214,6 +216,12 @@ public class InputOutputServiceImpl implements InputOutputService {
         .recipientWallet(recipientWallet)
         .build();
     return Optional.of(creditsOperation);
+  }
+
+  @Override
+  public List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime,
+                                                                   List<Integer> userRoleIdList) {
+    return inputOutputDao.getInputOutputSummary(startTime, endTime, userRoleIdList);
   }
 
 }

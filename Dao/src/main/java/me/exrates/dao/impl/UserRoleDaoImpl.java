@@ -103,4 +103,10 @@ public class UserRoleDaoImpl implements UserRoleDao {
     return jdbcTemplate.queryForList(sql, Integer.class).stream().map(UserRole::convert).collect(Collectors.toList());
   }
 
+  @Override
+  public List<UserRole> getRolesUsingRealMoney() {
+    String sql = "SELECT user_role_id FROM USER_ROLE_SETTINGS WHERE use_real_money = 1";
+    return jdbcTemplate.queryForList(sql, Integer.class).stream().map(UserRole::convert).collect(Collectors.toList());
+  }
+
 }

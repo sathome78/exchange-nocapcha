@@ -328,4 +328,7 @@ public interface OrderService {
   String getAllCurrenciesStatForRefresh();
 
   String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+
+    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                         List<Integer> userRoleIdList);
 }

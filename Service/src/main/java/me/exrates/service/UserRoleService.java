@@ -34,4 +34,6 @@ public interface UserRoleService {
     void updateSettingsForRole(UserRoleSettings settings);
 
     List<UserRole> getRolesConsideredForPriceRangeComputation();
+
+  List<UserRole> getRolesUsingRealMoney();
 }

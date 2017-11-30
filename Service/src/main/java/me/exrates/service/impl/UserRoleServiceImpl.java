@@ -112,4 +112,11 @@ public class UserRoleServiceImpl implements UserRoleService {
     return userRoleDao.getRolesConsideredForPriceRangeComputation();
   }
 
+  @Override
+  public List<UserRole> getRolesUsingRealMoney() {
+    return userRoleDao.getRolesUsingRealMoney();
+  }
+
+
+
 }
