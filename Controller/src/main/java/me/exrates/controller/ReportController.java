@@ -18,12 +18,14 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
 @Log4j2
@@ -197,5 +199,55 @@ public class ReportController {
     return result.stream().map(CurrencyInputOutputSummaryDto::toString)
             .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
   }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/time", method = GET)
+  public String getMailingTime() {
+    return reportService.retrieveReportMailingTime();
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/status", method = GET)
+  public Boolean getMailingStatus() {
+    return reportService.isReportMailingEnabled();
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/emails", method = GET)
+  public List<List<String>> getReportSubscriberEmails() {
+    return reportService.retrieveReportSubscribersList().stream().map(Collections::singletonList).collect(Collectors.toList());
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/time/update", method = POST)
+  public void updateMailingTime(@RequestParam String newTime) {
+    reportService.updateReportMailingTime(newTime);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/status/update", method = POST)
+  public void updateMailingStatus(@RequestParam Boolean newStatus) {
+    reportService.setReportMailingStatus(newStatus);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/emails/add", method = POST)
+  public void addSubscriber(@RequestParam String email) {
+    reportService.addReportSubscriber(email);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/emails/delete", method = POST)
+  public void deleteSubscriber(@RequestParam String email) {
+    reportService.deleteReportSubscriber(email);
+  }
+
+
+
+
+
+
+
+
 
 }

@@ -27,4 +27,18 @@ public interface ReportService {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
 
     List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
+
+    boolean isReportMailingEnabled();
+
+    List<String> retrieveReportSubscribersList();
+
+  String retrieveReportMailingTime();
+
+  void setReportMailingStatus(boolean newStatus);
+
+  void addReportSubscriber(String email);
+
+  void deleteReportSubscriber(String email);
+
+  void updateReportMailingTime(String newMailTimeString);
 }

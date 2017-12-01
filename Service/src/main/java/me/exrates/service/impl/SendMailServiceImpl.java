@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
@@ -91,6 +92,10 @@ public class SendMailServiceImpl implements SendMailService{
 			message.setTo(email.getTo());
 			message.setSubject(email.getSubject());
 			message.setText(email.getMessage(), true);
+			if (email.getAttachments() != null) {
+				for (File attachment : email.getAttachments())
+					message.addAttachment(attachment.getName(), attachment);
+			}
 		});
 	}
 

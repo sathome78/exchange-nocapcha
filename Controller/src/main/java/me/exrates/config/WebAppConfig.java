@@ -19,7 +19,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.EthTokenService;
 import me.exrates.service.impl.EthTokenServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
-import me.exrates.service.job.bot.QuartzJobFactory;
+import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -472,25 +472,39 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
 
-        QuartzJobFactory sampleJobFactory = new QuartzJobFactory();
-        sampleJobFactory.setApplicationContext(applicationContext);
-        return sampleJobFactory;
+        QuartzJobFactory jobFactory = new QuartzJobFactory();
+        jobFactory.setApplicationContext(applicationContext);
+        return jobFactory;
     }
 
     @Bean
-    public SchedulerFactoryBean schedulerFactoryBean(ApplicationContext applicationContext) {
+    public SchedulerFactoryBean botSchedulerFactoryBean(ApplicationContext applicationContext) {
+        return createSchedulerFactory(applicationContext, "botScheduler");
+    }
 
+    @Bean
+    public SchedulerFactoryBean reportSchedulerFactoryBean(ApplicationContext applicationContext) {
+        return createSchedulerFactory(applicationContext, "reportScheduler");
+    }
+
+    private SchedulerFactoryBean createSchedulerFactory(ApplicationContext applicationContext, String schedulerName) {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
-
         factory.setOverwriteExistingJobs(true);
         factory.setJobFactory(jobFactory(applicationContext));
+        factory.setSchedulerName(schedulerName);
         return factory;
     }
 
     @Bean
     public Scheduler botOrderCreationScheduler(ApplicationContext applicationContext) {
-        return schedulerFactoryBean(applicationContext).getScheduler();
+        return botSchedulerFactoryBean(applicationContext).getScheduler();
     }
+
+    @Bean
+    public Scheduler reportScheduler(ApplicationContext applicationContext) {
+        return reportSchedulerFactoryBean(applicationContext).getScheduler();
+    }
+
 
     @Bean
     public ObjectMapper objectMapper() {
