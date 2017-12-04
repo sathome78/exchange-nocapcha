@@ -114,12 +114,8 @@ public class StellarReceivePaymentsService {
 
    @Scheduled(initialDelay = 30000, fixedRate = 1000 * 60 * 3)
     public void checkEventSource() {
-       log.debug("check eventsource state");
-        if (eventSource.isOpen()) {
-            eventSource.close(20, TimeUnit.SECONDS);
-        } else {
-            checkIncomePayment();
-        }
+       log.debug("start check");
+       checkIncomePayment();
     }
 
 
