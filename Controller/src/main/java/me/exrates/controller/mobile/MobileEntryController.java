@@ -34,6 +34,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -86,6 +87,8 @@ public class MobileEntryController {
     @Autowired
     private StoreSessionListener storeSessionListener;
 
+   /* private Map<String, > creationUnconfirmedOrders = new ConcurrentReferenceHashMap<>();
+*/
 
 
 
