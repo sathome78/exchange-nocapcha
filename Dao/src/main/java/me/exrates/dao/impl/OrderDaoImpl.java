@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -38,6 +39,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -327,7 +329,7 @@ public class OrderDaoImpl implements OrderDao {
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
-            throw e;
+            throw new OrderDaoException(e);
         } finally {
             long after = System.currentTimeMillis();
             LOGGER.debug("query completed ... ms: " + (after - before));
@@ -959,6 +961,33 @@ public class OrderDaoImpl implements OrderDao {
             }
         });
         return result;
+    }
+
+    @Override
+    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+        String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, OT.name AS operation_type_name, COUNT(EO.id) AS quantity, " +
+                "  SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert FROM EXORDERS EO " +
+                "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
+                "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
+                "  WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+                "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s')" +
+                "  GROUP BY CP.name, OT.name ORDER BY CP.name ASC, OT.name DESC";
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        params.put("user_roles", userRoleIdList);
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            CurrencyPairTurnoverReportDto dto = new CurrencyPairTurnoverReportDto();
+            dto.setOrderNum(row + 1);
+            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            dto.setAmountBase(rs.getBigDecimal("amount_base"));
+            dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+            dto.setQuantity(rs.getInt("quantity"));
+            return dto;
+        });
     }
 
 }

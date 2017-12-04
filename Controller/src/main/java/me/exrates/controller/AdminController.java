@@ -1481,6 +1481,23 @@ public class AdminController {
     orderService.deleteManyOrdersByAdmin(orderIds);
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats", method = GET)
+  public ModelAndView generalStats() {
+    return new ModelAndView("admin/generalStats");
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/newUsers", method = GET)
+  public Integer getNewUsersNumber(@RequestParam("startTime") String startTimeString,
+                                   @RequestParam("endTime") String endTimeString) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    return userService.getNewRegisteredUserNumber(startTime, endTime);
+  }
+
+
+
 
 
 

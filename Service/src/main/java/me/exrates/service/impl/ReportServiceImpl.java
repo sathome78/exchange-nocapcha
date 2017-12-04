@@ -5,6 +5,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
 import org.apache.commons.lang3.StringUtils;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +50,9 @@ public class ReportServiceImpl implements ReportService {
 
   @Autowired
   OrderService orderService;
+
+  @Autowired
+  InputOutputService inputOutputService;
 
   @Override
   @Transactional
@@ -233,4 +238,19 @@ public class ReportServiceImpl implements ReportService {
 
     return userService.getUserIpReportForRoles(realUserRoleIds);
   }
+
+  @Override
+  public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
+      List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
+      return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, realMoneyUsengRoles.stream()
+              .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
+    @Override
+    public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
+        List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
+        return inputOutputService.getInputOutputSummary(startTime, endTime, realMoneyUsengRoles.stream()
+                .map(UserRole::getRole).collect(Collectors.toList()));
+    }
+
 }

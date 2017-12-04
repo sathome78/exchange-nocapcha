@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -188,4 +189,6 @@ public interface UserService {
     boolean checkIsNotifyUserAbout2fa(String email);
 
     List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
+
+  Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 }

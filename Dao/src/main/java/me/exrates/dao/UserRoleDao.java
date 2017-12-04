@@ -22,4 +22,6 @@ public interface UserRoleDao {
 
 
   List<UserRole> getRolesConsideredForPriceRangeComputation();
+
+    List<UserRole> getRolesUsingRealMoney();
 }

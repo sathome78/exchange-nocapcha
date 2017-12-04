@@ -211,10 +211,12 @@ function makeReportByParams(params) {
     }
 }
 
-function saveToDisk(data) {
+function saveToDisk(data, name) {
+    var filename = name ? name : "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
+
     var link = document.createElement('a');
     link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-    link.download = "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
+    link.download = filename;
     var e = document.createEvent('MouseEvents');
     e.initEvent('click', true, true);
     link.dispatchEvent(e);
