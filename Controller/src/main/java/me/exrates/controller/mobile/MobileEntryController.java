@@ -34,6 +34,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -84,13 +85,10 @@ public class MobileEntryController {
     private ApiService apiService;
 
     @Autowired
-    private BotService botService;
-
-    @Autowired
     private StoreSessionListener storeSessionListener;
 
-    @Autowired
-    private CurrencyService currencyService;
+   /* private Map<String, > creationUnconfirmedOrders = new ConcurrentReferenceHashMap<>();
+*/
 
 
 
@@ -653,7 +651,12 @@ public class MobileEntryController {
             checkAppKey(appKey, userAgentHeader);
         }
 
-        Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
+        Optional<AuthTokenDto> authTokenResult = null;
+        try {
+            authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
+        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
+            throw new WrongUsernameOrPasswordException("Wrong credentials");
+        }
         AuthTokenDto authTokenDto = authTokenResult.get();
         User user = userService.findByEmail(authenticationDto.getEmail());
 
@@ -1094,16 +1097,9 @@ public class MobileEntryController {
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(IncorrectPasswordException.class)
+    @ExceptionHandler(WrongUsernameOrPasswordException.class)
     public ApiError incorrectPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ApiError(INCORRECT_PASSWORD, req.getRequestURL(), exception);
-    }
-
-
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ApiError usernameNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ApiError(EMAIL_NOT_EXISTS, req.getRequestURL(), exception);
+        return new ApiError(INCORRECT_LOGIN_OR_PASSWORD, req.getRequestURL(), exception);
     }
 
 
