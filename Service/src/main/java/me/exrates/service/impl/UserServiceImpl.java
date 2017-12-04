@@ -719,4 +719,9 @@ public class UserServiceImpl implements UserService {
     return userDao.getUserIpReportByRoleList(roleIds);
   }
 
+  @Override
+  public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
+    return userDao.getNewRegisteredUserNumber(startTime, endTime);
+  }
+
 }

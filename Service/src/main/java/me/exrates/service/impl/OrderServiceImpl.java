@@ -1550,6 +1550,14 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
+  @Override
+  public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                              List<Integer> userRoleIdList) {
+    return orderDao.getCurrencyPairTurnoverForPeriod(startTime, endTime, userRoleIdList);
+  }
+
+
+
 }
 
 

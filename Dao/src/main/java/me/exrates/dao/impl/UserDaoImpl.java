@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1015,4 +1016,17 @@ public class UserDaoImpl implements UserDao {
     }};
     namedParameterJdbcTemplate.update(sql, namedParameters);
   }
+
+  @Override
+  public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
+    String sql = "SELECT COUNT(*) FROM USER WHERE regdate BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "   AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') ";
+    Map<String, Timestamp> params = new HashMap<>();
+    params.put("start_time", Timestamp.valueOf(startTime));
+    params.put("end_time", Timestamp.valueOf(endTime));
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
+
+
+
 }

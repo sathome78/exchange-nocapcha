@@ -16,10 +16,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 @Log4j2
@@ -168,6 +172,30 @@ public class ReportController {
     List<UserIpReportDto> result = reportService.getUserIpReport(role);
     return result.stream().map(UserIpReportDto::toString)
             .collect(Collectors.joining("", UserIpReportDto.getTitle(), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyPairTurnover", method = GET)
+  public String getCurrenciesTurnover(@RequestParam("startTime") String startTimeString,
+                                       @RequestParam("endTime") String endTimeString) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<CurrencyPairTurnoverReportDto> result = reportService.getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
+    return result.stream().map(CurrencyPairTurnoverReportDto::toString)
+            .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
+  public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
+                                          @RequestParam("endTime") String endTimeString) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
+    return result.stream().map(CurrencyInputOutputSummaryDto::toString)
+            .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
   }
 
 }

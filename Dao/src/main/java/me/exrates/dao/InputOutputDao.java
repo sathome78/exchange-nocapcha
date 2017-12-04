@@ -1,7 +1,9 @@
 package me.exrates.dao;
 
+import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,4 +19,5 @@ public interface InputOutputDao {
       List<Integer> operationTypeIdList,
       Locale locale);
 
+    List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 }

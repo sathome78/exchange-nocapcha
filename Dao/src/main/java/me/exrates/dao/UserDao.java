@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public interface UserDao {
@@ -164,4 +165,6 @@ public interface UserDao {
   String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
 
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
+
+    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 }

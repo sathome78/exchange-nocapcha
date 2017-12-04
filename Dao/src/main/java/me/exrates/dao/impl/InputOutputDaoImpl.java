@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
+import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -219,6 +221,43 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
       return myInputOutputHistoryDto;
+    });
+  }
+
+  @Override
+  public List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+    String sql = "SELECT CUR.name AS currency_name, SUM(refill) AS input, SUM(withdraw) AS output FROM " +
+            "  (SELECT TX.currency_id, TX.amount AS refill, 0 AS withdraw FROM TRANSACTION TX " +
+            "    JOIN WALLET W ON TX.user_wallet_id = W.id " +
+            "    JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "  WHERE TX.operation_type_id = 1 AND TX.source_type = 'REFILL' " +
+            "  AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+
+            "   UNION" +
+
+            "   SELECT TX.currency_id, 0 AS refill, TX.amount AS withdraw FROM TRANSACTION TX " +
+            "     JOIN WALLET W ON TX.user_wallet_id = W.id " +
+            "     JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "   WHERE TX.operation_type_id = 2 AND TX.source_type = 'WITHDRAW' " +
+            "   AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "   AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+            "  ) AGGR " +
+            "JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
+            "GROUP BY currency_name ORDER BY currency_name ASC";
+    Map<String, Object> params = new HashMap<>();
+    params.put("start_time", Timestamp.valueOf(startTime));
+    params.put("end_time", Timestamp.valueOf(endTime));
+    params.put("user_roles", userRoleIdList);
+
+    return jdbcTemplate.query(sql, params, (rs, row) -> {
+      CurrencyInputOutputSummaryDto dto = new CurrencyInputOutputSummaryDto();
+      dto.setOrderNum(row + 1);
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setInput(rs.getBigDecimal("input"));
+      dto.setOutput(rs.getBigDecimal("output"));
+      dto.calculateAndSetDiff();
+      return dto;
     });
   }
 }
