@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.*;
@@ -102,7 +103,7 @@ public interface RefillService {
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
 
   @Transactional
-  Optional<Integer> createRefillByFact(RefillRequestCreateDto request);
+  Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 
   Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
                                                                                        String merchantTransactionId,

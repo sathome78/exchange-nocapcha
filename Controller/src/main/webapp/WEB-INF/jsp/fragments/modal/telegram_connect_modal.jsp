@@ -17,7 +17,8 @@
                 </div>
                 <div class="code" style="font-size: 14px" hidden><loc:message code="action.button.SHOW_CODE_BUTTON"/>: <span id="telegram_code"></span></div>
                 <button id='telegram_pay_button' class="btn btn-default"><loc:message code="telegram.payAndGetTheSubscriptionCode"/></button>
-                <button class="btn btn-default" type="button" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
+                <button id='telegram_cancel_button' class="btn btn-default" type="button" data-dismiss="modal"><loc:message code="admin.cancel"/></button>
+                <button id='telegram_back_button' style="display: none" class="btn btn-default" type="button" data-dismiss="modal"><loc:message code="admin.toSettings"/></button>
             </div>
         </div>
     </div>

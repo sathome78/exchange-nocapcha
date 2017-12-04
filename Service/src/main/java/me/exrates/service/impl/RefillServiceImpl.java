@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.common.base.Preconditions;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
@@ -900,7 +901,36 @@ public class RefillServiceImpl implements RefillService {
 
   @Transactional
   @Override
-  public Optional<Integer> createRefillByFact(RefillRequestCreateDto request) {
+  public Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
+    User user = Preconditions.checkNotNull(userService.findByEmail(refillDto.getEmail()), "user not found");
+    if (!this.checkInputRequestsLimit(refillDto.getCurrency(), refillDto.getEmail())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+    }
+    Integer merchantId = Preconditions.checkNotNull(this.getMerchantIdByAddressAndCurrencyAndUser(
+            refillDto.getAddress(),
+            refillDto.getCurrency(),
+            user.getId()), "address not found");
+    Payment payment = new Payment(INPUT);
+    payment.setCurrency(refillDto.getCurrency());
+    payment.setMerchant(merchantId);
+    payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
+    refillDto.setMerchantId(merchantId);
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
+            .orElseThrow(InvalidAmountException::new);
+    RefillRequestCreateDto request = new RefillRequestCreateDto(
+            new RefillRequestParamsDto(refillDto),
+            creditsOperation,
+            RefillStatusEnum.ON_PENDING,
+            locale);
+    request.setNeedToCreateRefillRequestRecord(true);
+    Integer reqId = this.createRefillByFact(request).orElseThrow(()->new RuntimeException("refiil not created"));;
+    if (!StringUtils.isEmpty(refillDto.getTxHash())) {
+      refillRequestDao.setMerchantTransactionIdById(reqId, refillDto.getTxHash());
+    }
+    return reqId;
+  }
+
+  private Optional<Integer> createRefillByFact(RefillRequestCreateDto request) {
     return refillRequestDao.create(request);
   }
 

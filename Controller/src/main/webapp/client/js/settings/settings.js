@@ -212,6 +212,8 @@ function SettingsClass() {
                     $('.code').show();
                     $telegramCode.text(data.code);
                     $('#telegram_pay_button').hide();
+                    $('#telegram_cancel_button').hide();
+                    $('#telegram_back_button').show();
                 }
                 $telegramModal.modal();
             }
@@ -227,6 +229,8 @@ function SettingsClass() {
                 $('.code').show();
                 $telegramCode.text(data);
                 $('#telegram_pay_button').hide();
+                $('#telegram_cancel_button').hide();
+                $('#telegram_back_button').show();
             }, error: function (data) {
                 console.log(data);
             }
@@ -241,6 +245,8 @@ function SettingsClass() {
                 $('#telegram_reconnect_block').show();
                 $('#telegram_connect_block').hide();
                 $('#telegram_pay_button').hide();
+                $('#telegram_cancel_button').hide();
+                $('#telegram_back_button').show();
                 $('.code').show();
                 $telegramModal.modal();
                 $telegramCode.text(data);
@@ -248,6 +254,5 @@ function SettingsClass() {
             }
         });
     });
-
 
 }

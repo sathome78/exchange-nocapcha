@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import com.google.common.base.Preconditions;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
@@ -120,7 +121,8 @@ public class RefillRequestAdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
   @ResponseBody
   public String creteRefillRequestForCrypto(
-          @Valid @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) {
+          @Valid @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
+    log.debug("refiil dto {}", refillDto);
     Locale locale = localeResolver.resolveLocale(servletRequest);
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForRefill(principal.getName())
             .stream()
@@ -129,31 +131,9 @@ public class RefillRequestAdminController {
     Preconditions.checkArgument(
             permittedCurrencies.stream().anyMatch(p->p.getCurrencyId().equals(refillDto.getCurrency())),
             "Access decline");
-    User user = Preconditions.checkNotNull(userService.findByEmail(refillDto.getEmail()), "user not found");
-    if (!refillService.checkInputRequestsLimit(refillDto.getCurrency(), refillDto.getEmail())) {
-      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-    }
-    Integer merchantId = Preconditions.checkNotNull(refillService.getMerchantIdByAddressAndCurrencyAndUser(
-            refillDto.getAddress(),
-            refillDto.getCurrency(),
-            user.getId()), "address not found");
-    Payment payment = new Payment(INPUT);
-    payment.setCurrency(refillDto.getCurrency());
-    payment.setMerchant(merchantId);
-    payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
-    refillDto.setMerchantId(merchantId);
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
-            .orElseThrow(InvalidAmountException::new);
-    RefillRequestCreateDto request = new RefillRequestCreateDto(
-            new RefillRequestParamsDto(refillDto),
-            creditsOperation,
-            RefillStatusEnum.ON_PENDING,
-            locale);
-    request.setTxHash(refillDto.getTxHash());
-    request.setNeedToCreateRefillRequestRecord(true);
-    Optional<Integer> id = refillService.createRefillByFact(request);
+    Integer id = refillService.manualCreateRefillRequestCrypto(refillDto, locale);
     return new JSONObject().put("message", messageSource.getMessage("message.refill.manual.created",
-            new String[]{id.orElseThrow(()->new RuntimeException("refiil not created")).toString()}, locale)).toString();
+            new String[]{id.toString()}, locale)).toString();
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
