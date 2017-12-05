@@ -39,6 +39,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by maks on 06.06.2017.
@@ -127,12 +129,14 @@ public class StellarServiceImpl implements StellarService {
     }
 
     private String defineAndGetMemo(Memo memo) {
+        String parsedMemo = null;
         if (memo instanceof MemoText) {
-            return ((MemoText) memo).getText();
+            parsedMemo = ((MemoText) memo).getText();
         } else if (memo instanceof MemoId) {
             Long memoL = ((MemoId) memo).getId();
-            return memoL.toString();
-        } else return null;
+            parsedMemo = memoL.toString();
+        }
+        return parsedMemo == null ? null : parsedMemo.replaceAll(" ", "").replaceAll("\\,", "");
     }
 
     @Transactional

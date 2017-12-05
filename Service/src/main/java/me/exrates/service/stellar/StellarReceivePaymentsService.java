@@ -35,6 +35,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,9 +62,8 @@ public class StellarReceivePaymentsService {
     private KeyPair account;
     private static final String LAST_PAGING_TOKEN_PARAM = "LastPagingToken";
     private static final String MERCHANT_NAME = "Stellar";
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    // Create an API call to query payments involving the account.
-    private PaymentsRequestBuilder paymentsRequest;
     private EventSource eventSource;
 
 
@@ -70,11 +71,12 @@ public class StellarReceivePaymentsService {
     public void init() {
         server = new Server(SEVER_URL);
         account = KeyPair.fromAccountId(ACCOUNT_NAME);
+        scheduler.scheduleAtFixedRate(this::checkEventSource, 20, 120, TimeUnit.SECONDS);
     }
 
     private void checkIncomePayment() {
         log.debug("starting check xlm income payments");
-        paymentsRequest = server.payments().forAccount(account);
+        PaymentsRequestBuilder paymentsRequest = server.payments().forAccount(account);
         String lastToken = loadLastPagingToken();
         log.debug("lastToken {}", lastToken);
         if (lastToken != null) {
@@ -112,10 +114,22 @@ public class StellarReceivePaymentsService {
         });
     }
 
-   @Scheduled(initialDelay = 30000, fixedRate = 1000 * 60 * 3)
-    public void checkEventSource() {
-       log.debug("start check");
-       checkIncomePayment();
+    private void checkEventSource() {
+        log.debug("start check");
+        if (eventSource == null) {
+            log.debug("es == null");
+            checkIncomePayment();
+            return;
+        }
+        log.debug("isopen {}", eventSource.isOpen());
+        if (eventSource.isOpen()) {
+            return;
+        }
+        if (!eventSource.isOpen()) {
+            eventSource.close();
+            eventSource = null;
+            checkIncomePayment();
+        }
     }
 
 
