@@ -252,11 +252,12 @@ $(function () {
                 },
                 type: 'POST',
                 contentType: 'application/json',
+                dataType: 'json',
                 data: JSON.stringify(data),
                 success: function (data) {
                     $modal.modal('hide');
                     clearManualRefillForm();
-                    successNoty(JSON.parse(data).message)
+                    successNoty(data.message);
                 }
         });
     });

@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -59,15 +60,10 @@ public class RefillRequestAdminController {
   @Autowired
   private RefillService refillService;
   @Autowired
-  private UserService userService;
-  @Autowired
   private MerchantService merchantService;
   @Autowired
-  private CommissionService commissionService;
-  @Autowired
   private CurrencyService currencyService;
-  @Autowired
-  private InputOutputService inputOutputService;
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/refill")
   public ModelAndView refillRequests(Principal principal) {
@@ -118,7 +114,7 @@ public class RefillRequestAdminController {
   }
 
   @AdminLoggable
-  @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/crypto_create", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public String creteRefillRequestForCrypto(
           @Valid @RequestBody RefillRequestManualDto refillDto, Principal principal, HttpServletRequest servletRequest) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
