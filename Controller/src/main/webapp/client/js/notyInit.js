@@ -29,13 +29,12 @@ const ERROR_NOTY_TYPE = {
 
 $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
-            if (jqXHR.status > 299) {
-                failNoty(jqXHR);
-            } else if (jqXHR.status == 419) {
+            if (jqXHR.status == 419 || jqXHR.status == '419') {
                 /*session end*/
-                console.log(jqXHR);
                 var resp = JSON.parse(jqXHR.responseText);
                 window.location.replace(resp.url + '?errorNoty=' + resp.msg);
+            } else {
+                failNoty(jqXHR);
             }
         });
 

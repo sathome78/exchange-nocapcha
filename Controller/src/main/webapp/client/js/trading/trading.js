@@ -76,7 +76,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.updateAndShowBuyOrders = function (orders, refreshIfNeeded) {
-        console.log("socketBuyOrders");
         if (refreshIfNeeded) {
             var $ordersBuyTable = $('#dashboard-orders-buy-table').find('tbody');
             var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
@@ -89,7 +88,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.updateAndShowSellOrders = function (orders, refreshIfNeeded) {
-        console.log("socketSellOrders");
         if (refreshIfNeeded) {
             var $ordersSellTable = $('#dashboard-orders-sell-table').find('tbody');
             var $tmpl = $('#dashboard-orders-sell-table_row').html().replace(/@/g, '%');
@@ -357,10 +355,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0
             && currencyPairName != undefined) {
             var currencies = currencyPairName.split('\/');
-            console.log(currencies);
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
-            console.log(currentBaseBalance + ' ' + currentConvertBalance);
             $('#currentBaseBalance').text(currentBaseBalance);
             $('#currentConvertBalance').text(currentConvertBalance);
             $('.currentConvertBalance').text(currentConvertBalance);
@@ -678,7 +674,6 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     }
 
     function stopOrder(event) {
-        console.log('sending stop order');
         event.preventDefault();
         var data = {operationType: $(this).data('action')};
         $.map($('#dashboard-stop-order-form').serializeArray(), function (e) {
