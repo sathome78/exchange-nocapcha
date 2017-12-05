@@ -5,7 +5,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -60,12 +59,14 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private Integer minConfirmations;
 
+  private Integer blockTargetForFee;
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
   }
 
-  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -76,6 +77,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.merchantName = merchantName;
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
+      this.blockTargetForFee = blockTargetForFee;
     } catch (IOException e) {
       log.error(e);
     }
@@ -323,8 +325,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   @Override
-  public BigDecimal estimateFee(int blockCount) {
-    return bitcoinWalletService.estimateFee(blockCount);
+  public BigDecimal estimateFee() {
+    return bitcoinWalletService.estimateFee(40);
   }
   
   @Override

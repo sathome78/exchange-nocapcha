@@ -30,7 +30,7 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   
   List<BtcTransactionHistoryDto> listAllTransactions();
   
-  BigDecimal estimateFee(int blockCount);
+  BigDecimal estimateFee();
   
   BigDecimal getActualFee();
   

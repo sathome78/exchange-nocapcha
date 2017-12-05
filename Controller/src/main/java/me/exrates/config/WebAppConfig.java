@@ -357,48 +357,48 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
-                "Bitcoin", "BTC", 4);
+                "Bitcoin", "BTC", 4, 40);
     }
 
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
-                "Litecoin", "LTC", 4);
+                "Litecoin", "LTC", 4, 20);
     }
     
     @Bean(name = "dashServiceImpl")
     public BitcoinService dashService() {
         return new BitcoinServiceImpl("merchants/dash_wallet.properties",
-                "Dash", "DASH", 4);
+                "Dash", "DASH", 4, 20);
     }
 
     @Bean(name = "atbServiceImpl")
     public BitcoinService atbService() {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
-                "ATB", "ATB", 10);
+                "ATB", "ATB", 10, 20);
     }
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 4);
+                "Bitcoin Cash", "BCH", 4, 20);
     }
 
     @Bean(name = "dogecoinServiceImpl")
     public BitcoinService dogeService() {
         return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
-                "Dogecoin", "DOGE", 4);
+                "Dogecoin", "DOGE", 4, 20);
     }
 
     @Bean(name = "btgServiceImpl")
     public BitcoinService btgService() {
         return new BitcoinServiceImpl("merchants/bitcoin_gold_wallet.properties",
-                "BTG", "BTG", 4);
+                "BTG", "BTG", 4, 20);
     }
 
     @Bean(name = "zcashServiceImpl")
     public BitcoinService zecService() {
         return new BitcoinServiceImpl("merchants/zec_wallet.properties",
-                "Zcash", "ZEC", 4);
+                "Zcash", "ZEC", 4, 20);
     }
 
 
