@@ -3,10 +3,13 @@ package me.exrates.security.filter;
 import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.UserService;
+import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -43,6 +46,9 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     private SecureService secureServiceImpl;
 
+    @Autowired
+    private IpBlockingService ipBlockingService;
+
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
     private @Value("${session.passwordParam}") String passwordParam;
@@ -52,6 +58,25 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         HttpSession session = request.getSession(false);
         /*----------------------------*/
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        try {
+            ipBlockingService.checkIp(ipAddress);
+        } catch (BannedIpException e) {
+            long banDuration = e.getBanDurationSeconds();
+            String durationMessage;
+            if (banDuration < 60 * 60) {
+                String durationMinutes = String.valueOf(banDuration / 60);
+                durationMessage = messageSource.getMessage("ip.ban.time.minutes", new Object[]{durationMinutes}, localeResolver.resolveLocale(request));
+            } else {
+                String durationHours = String.valueOf(banDuration / (60 * 60));
+                durationMessage = messageSource.getMessage("ip.ban.time.hours", new Object[]{durationHours},
+                        localeResolver.resolveLocale(request));
+            }
+
+            // rethrow to add localization message
+            throw new BannedIpException(messageSource.getMessage("ip.ban.message", new Object[]{durationMessage},
+                    localeResolver.resolveLocale(request)), banDuration);
+        }
 
         if (session.getAttribute(checkPinParam) != null && request.getParameter(pinParam) != null
                          && request.getParameter(super.getUsernameParameter()) == null

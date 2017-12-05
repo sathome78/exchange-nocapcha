@@ -75,13 +75,13 @@ public class LoggingAspect {
           "&& !execution(* me.exrates.controller.validator..*(..))" +
           "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..))", throwing = "ex")
   public void logException(JoinPoint joinPoint, Exception ex) {
-    log.debug(String.format("error in method %s with args: \n%s",
+    /*log.debug(String.format("error in method %s with args: \n%s",
             String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
             String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
                     .map(Object::toString).collect(Collectors.toList()))) );
     log.debug(String.format("exception: %s : %s ", ex.getClass().getSimpleName(), ex.getMessage()));
     log.debug("Root cause: " + ExceptionUtils.getRootCauseMessage(ex));
-    logExtended.debug(ExceptionUtils.getStackTrace(ex));
+    logExtended.debug(ExceptionUtils.getStackTrace(ex));*/
   }
 
   @AfterThrowing(pointcut = "(execution(* me.exrates.controller.merchants.WithdrawRequestController..*(..)) " +
