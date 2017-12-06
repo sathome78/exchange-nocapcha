@@ -8,11 +8,9 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
-import me.exrates.service.job.bot.BotCreateOrderJob;
 import me.exrates.service.job.report.ReportMailingJob;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +20,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -77,6 +76,15 @@ public class ReportServiceImpl implements ReportService {
 
   private final String MAIL_JOB_NAME = "REPORT_MAIL_JOB";
   private final String MAIL_TRIGGER_NAME = "REPORT_MAIL_TRIGGER";
+
+  @PostConstruct
+  private void initMailing() {
+    try {
+      scheduleMailingJob();
+    } catch (SchedulerException e) {
+      log.error(e);
+    }
+  }
 
   @Override
   @Transactional
@@ -328,10 +336,7 @@ public class ReportServiceImpl implements ReportService {
     if (newStatus != oldStatus) {
       try {
         if (newStatus) {
-          LocalTime triggerFireTime = parseTime(retrieveReportMailingTime());
-          JobDetail jobDetail = createJob();
-          Trigger trigger = createTrigger(triggerFireTime.getHour(), triggerFireTime.getMinute());
-          reportScheduler.scheduleJob(jobDetail, trigger);
+          scheduleMailingJob();
         } else {
           reportScheduler.deleteJob(JobKey.jobKey(MAIL_JOB_NAME));
         }
@@ -340,6 +345,13 @@ public class ReportServiceImpl implements ReportService {
         log.error(e);
       }
     }
+  }
+
+  private void scheduleMailingJob() throws SchedulerException {
+    LocalTime triggerFireTime = parseTime(retrieveReportMailingTime());
+    JobDetail jobDetail = createJob();
+    Trigger trigger = createTrigger(triggerFireTime.getHour(), triggerFireTime.getMinute());
+    reportScheduler.scheduleJob(jobDetail, trigger);
   }
 
   @Override
@@ -365,19 +377,24 @@ public class ReportServiceImpl implements ReportService {
       List<CurrencyPairTurnoverReportDto> currencyPairTurnoverList = getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
       List<CurrencyInputOutputSummaryDto> currencyIOSummaryList = getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
 
-      Email email = new Email();
-      email.setSubject(title);
-      email.setMessage(message);
+
       String currencyPairReportContent = currencyPairTurnoverList.stream().map(CurrencyPairTurnoverReportDto::toString)
               .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
       String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-      email.addAttachment(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
-      email.addAttachment(new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
+    List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
+            "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
 
-      retrieveReportSubscribersList().forEach(emailAddress -> {
+      List<String> subscribers = retrieveReportSubscribersList();
+
+
+      subscribers.forEach(emailAddress -> {
         try {
+          Email email = new Email();
+          email.setSubject(title);
+          email.setMessage(message);
           email.setTo(emailAddress);
+          email.setAttachments(attachments);
           sendMailService.sendInfoMail(email);
         } catch (Exception e) {
           log.error(e);

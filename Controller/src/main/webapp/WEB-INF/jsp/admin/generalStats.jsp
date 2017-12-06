@@ -126,10 +126,10 @@
                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
                                     <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.mailing.time"/></label>
                                 </div>
-                                <div class="col-md-6 input-block-wrapper__input-wrapper">
+                                <div class="col-md-5 input-block-wrapper__input-wrapper">
                                     <input id="timepicker_mailtime" type="text" class="input-block-wrapper__input admin-form-input">
                                 </div>
-                                <div class="col-md-2 input-block-wrapper__input-wrapper">
+                                <div class="col-md-3 input-block-wrapper__input-wrapper">
                                     <button id="mail-time-submit" class="btn btn-primary btn-sm"><loc:message code="admin.submit"/></button>
                                 </div>
                             </div>
