@@ -14,9 +14,11 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
 import me.exrates.service.job.bot.BotCreateOrderJob;
 import me.exrates.service.job.report.ReportMailingJob;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +65,9 @@ public class ReportServiceImpl implements ReportService {
 
   @Autowired
   InputOutputService inputOutputService;
+
+  @Autowired
+  SendMailService sendMailService;
 
   @Autowired
   ReportDao reportDao;
@@ -261,16 +266,34 @@ public class ReportServiceImpl implements ReportService {
   @Override
   public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
       List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
-      return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, realMoneyUsengRoles.stream()
-              .map(UserRole::getRole).collect(Collectors.toList()));
+      return getCurrencyPairTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
   }
 
     @Override
     public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
         List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
-        return inputOutputService.getInputOutputSummary(startTime, endTime, realMoneyUsengRoles.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
+        return getCurrencyTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
     }
+
+  @Override
+  public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+                                                                                List<UserRole> roleList) {
+    if (roleList.isEmpty()) {
+      throw new IllegalArgumentException("At least one role must be specified");
+    }
+    return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+                                                                            List<UserRole> roleList) {
+    if (roleList.isEmpty()) {
+      throw new IllegalArgumentException("At least one role must be specified");
+    }
+    return inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
 
 
   @Override
@@ -330,6 +353,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
 
+  @Override
   public void sendReportMail() {
       LocalDateTime endTime = LocalDateTime.now();
       LocalDateTime startTime = endTime.minusHours(24L);
@@ -341,16 +365,24 @@ public class ReportServiceImpl implements ReportService {
       List<CurrencyPairTurnoverReportDto> currencyPairTurnoverList = getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
       List<CurrencyInputOutputSummaryDto> currencyIOSummaryList = getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
 
-
-
       Email email = new Email();
       email.setSubject(title);
       email.setMessage(message);
+      String currencyPairReportContent = currencyPairTurnoverList.stream().map(CurrencyPairTurnoverReportDto::toString)
+              .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
+      String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
+              .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
+      email.addAttachment(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
+      email.addAttachment(new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
 
-
-     /* retrieveReportSubscribersList().forEach(email -> {
-
-      });*/
+      retrieveReportSubscribersList().forEach(emailAddress -> {
+        try {
+          email.setTo(emailAddress);
+          sendMailService.sendInfoMail(email);
+        } catch (Exception e) {
+          log.error(e);
+        }
+      });
 
   }
 

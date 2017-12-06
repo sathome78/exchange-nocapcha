@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.UserRole;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +29,12 @@ public interface ReportService {
 
     List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime);
 
+    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+                                                                           List<UserRole> roleList);
+
+    List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
+                                                                       List<UserRole> roleList);
+
     boolean isReportMailingEnabled();
 
     List<String> retrieveReportSubscribersList();
@@ -41,4 +48,6 @@ public interface ReportService {
   void deleteReportSubscriber(String email);
 
   void updateReportMailingTime(String newMailTimeString);
+
+    void sendReportMail();
 }

@@ -3,6 +3,7 @@ package me.exrates.controller;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -179,11 +180,12 @@ public class ReportController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyPairTurnover", method = GET)
   public String getCurrenciesTurnover(@RequestParam("startTime") String startTimeString,
-                                       @RequestParam("endTime") String endTimeString) {
+                                       @RequestParam("endTime") String endTimeString,
+                                      @RequestParam("roles") List<UserRole> userRoles) {
     String dateTimePattern = "yyyy-MM-dd_HH:mm";
     LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
     LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-    List<CurrencyPairTurnoverReportDto> result = reportService.getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
+    List<CurrencyPairTurnoverReportDto> result = reportService.getCurrencyPairTurnoverForRoleList(startTime, endTime, userRoles);
     return result.stream().map(CurrencyPairTurnoverReportDto::toString)
             .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
   }
@@ -191,11 +193,12 @@ public class ReportController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
   public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
-                                          @RequestParam("endTime") String endTimeString) {
+                                         @RequestParam("endTime") String endTimeString,
+                                         @RequestParam("roles") List<UserRole> userRoles) {
     String dateTimePattern = "yyyy-MM-dd_HH:mm";
     LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
     LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-    List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
+    List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRoleList(startTime, endTime, userRoles);
     return result.stream().map(CurrencyInputOutputSummaryDto::toString)
             .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
   }

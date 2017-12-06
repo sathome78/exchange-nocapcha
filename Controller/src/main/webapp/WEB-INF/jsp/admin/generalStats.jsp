@@ -40,27 +40,36 @@
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
                     <div class="row text-center" style="margin: 20px">
+                        <div class="form_full_height_width">
+                            <div class="input-block-wrapper" >
+                                <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="userwallets.startDate"/></label>
+                                </div>
+                                <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                    <input id="datetimepicker_start" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                                </div>
+                                <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="userwallets.endDate"/></label>
+                                </div>
+                                <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                    <input id="datetimepicker_end" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                                </div>
+                            </div>
 
-                        <div class="input-block-wrapper" >
-                            <div class="col-md-2 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message code="userwallets.startDate"/></label>
-                            </div>
-                            <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                <input id="datetimepicker_start" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
-                            </div>
-                            <div class="col-md-2 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message code="userwallets.endDate"/></label>
-                            </div>
-                            <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                <input id="datetimepicker_end" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                            <div class="input-block-wrapper" <%--style="margin-top: 50px"--%>>
+                                <c:forEach items="${defaultRoleFilter}" var="role">
+                                    <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                        <label class="input-block-wrapper__label">${role.key}</label>
+                                    </div>
+                                    <div class="col-md-1 input-block-wrapper__input-wrapper">
+                                        <input class="roleFilter" type="checkbox" <c:out value="${role.value ? 'checked' : ''}" /> name="<c:out value="${role.key}" />" >
+                                    </div>
+                                </c:forEach>
                             </div>
                         </div>
 
-                        <%--<input type="checkbox">--%>
+
                     </div>
-
-                    <hr/>
-
                     <div class="form_full_height_width col-md-8 col-md-offset-2">
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
@@ -117,8 +126,11 @@
                                 <div class="col-md-4 input-block-wrapper__label-wrapper">
                                     <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.mailing.time"/></label>
                                 </div>
-                                <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <div class="col-md-6 input-block-wrapper__input-wrapper">
                                     <input id="timepicker_mailtime" type="text" class="input-block-wrapper__input admin-form-input">
+                                </div>
+                                <div class="col-md-2 input-block-wrapper__input-wrapper">
+                                    <button id="mail-time-submit" class="btn btn-primary btn-sm"><loc:message code="admin.submit"/></button>
                                 </div>
                             </div>
                         </div>

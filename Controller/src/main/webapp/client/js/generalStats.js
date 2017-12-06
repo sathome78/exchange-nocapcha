@@ -45,10 +45,7 @@ $(function () {
         format: timeFormat,
         formatTime: timeFormat,
         lang:'ru',
-        defaultTime: '00:00',
-        onSelectTime: function () {
-            updateMailingTime()
-        }
+        defaultTime: '00:00'
     });
 
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
@@ -64,6 +61,7 @@ $(function () {
     $('#download-currencies-report').click(getCurrenciesTurnover);
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
+    $('#mail-time-submit').click(updateMailingTime);
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -100,7 +98,7 @@ $(function () {
             ],
             buttons: [
                 {
-                    text: /*$('#acceptSelectedButtonLoc').text()*/'<i class="fa fa-plus" aria-hidden="true"></i>',
+                    text: '<i class="fa fa-plus" aria-hidden="true"></i>',
                     action: function (e, dt, node, config) {
                         $($addEmailModal).modal();
                     }
@@ -119,14 +117,14 @@ function refreshUsersNumber() {
 }
 
 function getCurrencyPairsTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencyPairs.csv')
     })
 }
 
 function getCurrenciesTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencies.csv')
     })
@@ -137,6 +135,14 @@ function getTimeParams() {
     return 'startTime=' +
         $('#datetimepicker_start').val().replace(' ', '_') + '&endTime=' +
         $('#datetimepicker_end').val().replace(' ', '_');
+}
+
+function getRoleParams() {
+   return '&roles=' + $('.roleFilter').filter(function (i, elem) {
+        return $(elem).prop('checked')
+    }).map(function (i, elem) {
+        return $(elem).attr('name')
+    }).toArray().join(',')
 }
 
 function refreshMailingTime() {

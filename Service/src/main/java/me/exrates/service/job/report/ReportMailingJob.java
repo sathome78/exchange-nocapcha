@@ -15,6 +15,6 @@ public class ReportMailingJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) {
-        reportService.retrieveReportSubscribersList().forEach(System.out::println);
+        reportService.sendReportMail();
     }
 }
