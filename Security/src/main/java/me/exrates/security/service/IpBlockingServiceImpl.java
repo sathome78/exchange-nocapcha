@@ -36,27 +36,32 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     @Value("${ban.long.time}")
     private Long longBanTime;
 
+    private final Object lock = new Object();
+
 
     private ConcurrentMap<String, LoginAttemptDto> failedAttemptIps = new ConcurrentReferenceHashMap<>();
 
     @Override
-    @Synchronized
     public void checkIp(String ipAddress) {
-        if (failedAttemptIps.containsKey(ipAddress)) {
-            LocalDateTime currentTime = LocalDateTime.now();
-            LoginAttemptDto attempt = failedAttemptIps.get(ipAddress);
-            if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime)) ) {
-                throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
-            } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
-                throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
-            }
-            if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
-                failedAttemptIps.remove(ipAddress);
-            } else {
-                attempt.setStatus(IpBanStatus.ALLOW);
-            }
+        synchronized (lock) {
+            if (failedAttemptIps.containsKey(ipAddress)) {
+                LocalDateTime currentTime = LocalDateTime.now();
+                LoginAttemptDto attempt = failedAttemptIps.get(ipAddress);
+                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime)) ) {
+                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
+                } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
+                    throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
+                }
+                if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
+                    failedAttemptIps.remove(ipAddress);
+                } else {
+                    attempt.setStatus(IpBanStatus.ALLOW);
+                }
 
+            }
         }
+
+
     }
 
     private boolean checkBanPending(LoginAttemptDto attempt, long banTimeSeconds, LocalDateTime currentTime) {
@@ -64,20 +69,22 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     }
 
     @Override
-    @Synchronized
     public void processLoginFailure(String ipAddress) {
-        if (!failedAttemptIps.containsKey(ipAddress)) {
-            failedAttemptIps.put(ipAddress, new LoginAttemptDto(ipAddress));
-        } else {
-            LoginAttemptDto attemptDto = failedAttemptIps.get(ipAddress);
-            attemptDto.addNewAttempt();
-            if (checkNeedToBan(attemptDto, attemptsBeforeLongBan, periodAttemptsBeforeLongBan) && attemptDto.isWasInShortBan()) {
-                attemptDto.setStatus(IpBanStatus.BAN_LONG);
-            } else if (checkNeedToBan(attemptDto, attemptsBeforeShortBan, periodAttemptsBeforeShortBan)) {
-                attemptDto.setStatus(IpBanStatus.BAN_SHORT);
-                attemptDto.setWasInShortBan(true);
+        synchronized (lock) {
+            if (!failedAttemptIps.containsKey(ipAddress)) {
+                failedAttemptIps.put(ipAddress, new LoginAttemptDto(ipAddress));
+            } else {
+                LoginAttemptDto attemptDto = failedAttemptIps.get(ipAddress);
+                attemptDto.addNewAttempt();
+                if (checkNeedToBan(attemptDto, attemptsBeforeLongBan, periodAttemptsBeforeLongBan) && attemptDto.isWasInShortBan()) {
+                    attemptDto.setStatus(IpBanStatus.BAN_LONG);
+                } else if (checkNeedToBan(attemptDto, attemptsBeforeShortBan, periodAttemptsBeforeShortBan)) {
+                    attemptDto.setStatus(IpBanStatus.BAN_SHORT);
+                    attemptDto.setWasInShortBan(true);
+                }
             }
         }
+
     }
 
     private boolean checkNeedToBan(LoginAttemptDto attemptDto, int attemptsBeforeBan, long periodBeforeBan) {
