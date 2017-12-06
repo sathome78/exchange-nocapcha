@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +45,7 @@ public class NemJobs {
     private Merchant merchant;
 
 
-    private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(5);
+    private final static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @PostConstruct
     public void init() {
@@ -57,7 +58,7 @@ public class NemJobs {
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),
                 Collections.singletonList(WithdrawStatusEnum.ON_BCH_EXAM.getCode()));
         if (dtos != null && !dtos.isEmpty()) {
-            dtos.forEach(p-> ordersExecutors.execute(() -> checkWithdraw(p.getId(), p.getTransactionHash(), p.getAdditionalParams())));
+            dtos.forEach(p-> executor.execute(() -> checkWithdraw(p.getId(), p.getTransactionHash(), p.getAdditionalParams())));
         }
     }
 
@@ -81,7 +82,7 @@ public class NemJobs {
         List<RefillRequestFlatDto> dtos = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         if (dtos != null && !dtos.isEmpty()) {
             dtos.forEach((RefillRequestFlatDto p) -> {
-                ordersExecutors.execute(() -> {
+                executor.execute(() -> {
                     checkRefill(p);
                 });
             });
@@ -94,6 +95,11 @@ public class NemJobs {
         } catch (Exception e) {
             log.error("error checking nem tx confirmations {}", dto);
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
     }
 
 }

@@ -27,6 +27,7 @@ import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -140,5 +141,13 @@ public class StellarReceivePaymentsService {
     private String loadLastPagingToken() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(MERCHANT_NAME, LAST_PAGING_TOKEN_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (eventSource != null && eventSource.isOpen()) {
+            eventSource.close();
+        }
+        scheduler.shutdown();
     }
 }

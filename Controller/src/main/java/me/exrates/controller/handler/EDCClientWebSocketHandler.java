@@ -26,7 +26,7 @@ import static java.util.regex.Pattern.compile;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Service
+/*@Service
 @ClientEndpoint
 public class EDCClientWebSocketHandler {
 
@@ -165,4 +165,4 @@ public class EDCClientWebSocketHandler {
     public void close(final Session session, final CloseReason reason) {
         LOG.error("Connection lost. Session closed : {}. Reason : {}", session, reason);
     }
-}
+}*/
