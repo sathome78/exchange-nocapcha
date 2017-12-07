@@ -653,8 +653,6 @@ public class MobileEntryController {
             throw new WrongUsernameOrPasswordException("Wrong credentials");
         }
         AuthTokenDto authTokenDto = authTokenResult.get();
-        logger.debug(authenticationDto.getEmail());
-        logger.debug(authenticationDto.getAppKey());
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);

@@ -366,6 +366,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="ip_log" fileName="${sys:catalina.home}/logs/ip/ip_log.log"
+                     filePattern="${sys:catalina.home}/logs/ip/ip_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -465,12 +474,10 @@
         <logger name="exceptions_log" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_ext_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
 
         <logger name="withdraw_log" level="ALL" additivity="false">
@@ -521,7 +528,6 @@
         </logger>
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
@@ -543,7 +549,9 @@
             <AppenderRef ref="waves_log"/>
         </logger>
 
-
+        <logger name="ip_log" level="ALL" additivity="false">
+            <AppenderRef ref="ip_log"/>
+        </logger>
         <logger name="test" level="ALL" additivity="false">
             <AppenderRef ref="test_log"/>
         </logger>

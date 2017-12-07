@@ -1,6 +1,5 @@
 package me.exrates.security.service;
 
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.LoginAttemptDto;
 import me.exrates.model.enums.IpBanStatus;
@@ -13,7 +12,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
 import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentMap;
 
-@Log4j2
+@Log4j2(topic = "ip_log")
 @Service
 @PropertySource(value = {"classpath:/ip_ban.properties"})
 public class IpBlockingServiceImpl implements IpBlockingService {
