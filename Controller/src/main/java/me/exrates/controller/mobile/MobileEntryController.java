@@ -724,8 +724,9 @@ public class MobileEntryController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body) {
-
+    public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(ipAddress);
         if (!(body.containsKey("email") && body.containsKey("password"))) {
             throw new MissingCredentialException("Credentials missing");
         }
@@ -742,6 +743,7 @@ public class MobileEntryController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("Could not find user with email " + email);
+            ipBlockingService.processLoginFailure(ipAddress);
             throw new UsernameNotFoundException("Email not found");
         }
 
