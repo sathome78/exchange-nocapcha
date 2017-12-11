@@ -90,10 +90,10 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
 
     private String extractMessage(Socket subscriber) {
         List<byte[]> multipartMessage = new ArrayList<>();
-        byte[] message = subscriber.recv(1);
+        byte[] message = subscriber.recv();
         multipartMessage.add(message);
         while (subscriber.hasReceiveMore()) {
-            multipartMessage.add(subscriber.recv(1));
+            multipartMessage.add(subscriber.recv());
         }
         if (multipartMessage.size() >= 2) {
             return DatatypeConverter.printHexBinary(multipartMessage.get(1)).toLowerCase();
