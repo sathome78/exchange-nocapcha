@@ -57,24 +57,23 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                                 Consumer<String> onCompleted) {
         String host = btcdClient.getNodeConfig().getProperty("node.bitcoind.rpc.host");
         String address = String.join( "","tcp://", host, ":", port);
-        log.debug("Subscribing {} listener on address {} ", topic, address);
+        log.info("Subscribing {} listener on address {} ", topic, address);
 
         try (Socket subscriber = zmqContext.socket(ZMQ.SUB)) {
             if (port != null) {
                 if (subscriber.connect(address)) {
                     subscriber.subscribe(topic);
-                    log.debug("Successfully subscribed {} listener on port {} ", topic, port);
-                    ZMQ.Poller poller = zmqContext.poller(1);
-                    poller.register(subscriber, ZMQ.Poller.POLLIN);
+                    log.info("Successfully subscribed {} listener on port {} ", topic, port);
                     while (isActive) {
-                        poller.poll(5000);
-                        if (poller.pollin(0)) {
+                        try {
                             String hex = extractMessage(subscriber);
                             if (hexStringChecker.test(hex)) {
                                 onNext.accept(hex);
                             } else {
                                 log.warn("Illegal notification format: {}", hex);
                             }
+                        } catch (Exception e) {
+                            log.error(e);
                         }
                     }
                     onCompleted.accept("");
@@ -96,7 +95,11 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
         while (subscriber.hasReceiveMore()) {
             multipartMessage.add(subscriber.recv(1));
         }
-        return DatatypeConverter.printHexBinary(multipartMessage.get(1)).toLowerCase();
+        if (multipartMessage.size() >= 2) {
+            return DatatypeConverter.printHexBinary(multipartMessage.get(1)).toLowerCase();
+        } else {
+            return "";
+        }
     }
 
     @Override

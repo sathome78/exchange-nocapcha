@@ -112,15 +112,6 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoin/bitcoinj_log.log"
-                     filePattern="${sys:catalina.home}/logs/bitcoin/bitcoinj_log_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
         <RollingFile name="profile_log" fileName="${sys:catalina.home}/logs/profile/profile_log.log"
                      filePattern="${sys:catalina.home}/logs/profile/profile_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -395,10 +386,7 @@
         <logger name="bitcoin_core" level="INFO" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
-        <logger name="org.bitcoinj" level="INFO" additivity="false">
-            <AppenderRef ref="bitcoinj_log"/>
-        </logger>
-        <logger name="com.neemre.btcdcli4j" level="DEBUG" additivity="false">
+        <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.apache.http" level="ERROR" additivity="false">
