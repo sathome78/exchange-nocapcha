@@ -149,9 +149,9 @@ public class CommonMerchantsController {
       List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
       transferService.retrieveAdditionalParamsForWithdrawForMerchantCurrencies(merchantCurrencyData);
       modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
-      List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
-      modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);
-      List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), TRANSFER_CURRENCY_WARNING);
+     /* List<String> initialWarningCodeList = currencyService.getWarningForCurrency(currency.getId(), INITIAL_TRANSFER_CURRENCY_WARNING);
+      modelAndView.addObject("initialWarningCodeList", initialWarningCodeList);*/
+      List<String> warningCodeList = currencyService.getWarningsByTopic(TRANSFER_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
       return modelAndView;
     } catch (Exception e) {

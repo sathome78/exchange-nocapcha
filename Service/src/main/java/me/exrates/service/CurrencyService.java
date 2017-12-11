@@ -65,6 +65,8 @@ public interface CurrencyService {
   
   List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
+    List<String> getWarningsByTopic(UserCommentTopicEnum currencyWarningTopicEnum);
+
     List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum);
 
     Currency getById(int id);

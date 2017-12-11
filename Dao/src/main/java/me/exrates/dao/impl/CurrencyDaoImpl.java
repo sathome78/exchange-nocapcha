@@ -291,6 +291,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
+  public List<String> getWarningsByTopic(UserCommentTopicEnum currencyWarningTopicEnum) {
+    String sql = "SELECT PHT.template " +
+            " FROM PHRASE_TEMPLATE PHT " +
+            " JOIN USER_COMMENT_TOPIC UCT ON (UCT.id = PHT.topic_id) AND (UCT.topic = :topic)  ";
+    Map<String, Object> params = new HashMap<>();
+    params.put("topic", currencyWarningTopicEnum.name());
+    return jdbcTemplate.queryForList(sql, params, String.class);
+  }
+
+  @Override
   public List<String> getWarningForMerchant(Integer merchantId, UserCommentTopicEnum currencyWarningTopicEnum) {
     String sql = "SELECT PHT.template " +
             " FROM PHRASE_TEMPLATE PHT " +
