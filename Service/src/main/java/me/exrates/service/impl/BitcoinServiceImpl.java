@@ -5,10 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
+import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -366,10 +363,11 @@ public class BitcoinServiceImpl implements BitcoinService {
         paymentGroupIterator.add(newPaymentGroup);
       }
     }
+    boolean subtractFeeFromAmount = false;
 
     return paymentGroups.stream()
             .flatMap(group -> {
-              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group);
+              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group, subtractFeeFromAmount);
               return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
                       entry.getValue(), result));
                     }).collect(Collectors.toList());

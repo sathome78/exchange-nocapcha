@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Flux;
 
-import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -339,9 +338,14 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   @Override
-  public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments) {
+  public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount) {
     try {
-      String txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      List<String> subtractFeeAddresses = new ArrayList<>();
+      if (subtractFeeFromAmount) {
+        subtractFeeAddresses = new ArrayList<>(payments.keySet());
+      }
+      String txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+              "", subtractFeeAddresses);
       return new BtcPaymentResultDto(txId);
     } catch (Exception e) {
       log.error(e);

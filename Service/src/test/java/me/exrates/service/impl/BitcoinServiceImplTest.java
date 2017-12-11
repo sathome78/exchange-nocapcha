@@ -366,7 +366,7 @@ public class BitcoinServiceImplTest {
 
     @Test
     public void sendManyTest_AllDifferentAddresses() {
-        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class), eq(false)))
                 .thenReturn(new BtcPaymentResultDto("111"))
                 .thenReturn(new BtcPaymentResultDto("222"));
         List<BtcPaymentResultDetailedDto> response = bitcoinService.sendToMany(Arrays.asList(
@@ -385,7 +385,7 @@ public class BitcoinServiceImplTest {
 
     @Test
     public void sendManyTest_AllSameAddresses() {
-        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class), eq(false)))
                 .thenReturn(new BtcPaymentResultDto("111"))
                 .thenReturn(new BtcPaymentResultDto("222"))
                 .thenReturn(new BtcPaymentResultDto("333"));
@@ -395,7 +395,7 @@ public class BitcoinServiceImplTest {
                 new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.7)),
                 new BtcWalletPaymentItemDto(TEST_ADDRESS_1, new BigDecimal(0.9))
         ));
-        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture());
+        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture(), eq(false));
         List<Map<String, BigDecimal>> capturedValues = paymentCaptor.getAllValues();
         assertEquals(Collections.singletonMap(TEST_ADDRESS_1, new BigDecimal(0.5)), capturedValues.get(0));
         assertEquals(Collections.singletonMap(TEST_ADDRESS_1, new BigDecimal(0.7)), capturedValues.get(1));
@@ -410,7 +410,7 @@ public class BitcoinServiceImplTest {
 
     @Test
     public void sendManyTest_SameAndDifferentAddresses() {
-        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class), eq(false)))
                 .thenReturn(new BtcPaymentResultDto("111"))
                 .thenReturn(new BtcPaymentResultDto("222"))
                 .thenReturn(new BtcPaymentResultDto("333"));
@@ -423,7 +423,7 @@ public class BitcoinServiceImplTest {
                 new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.5)),
                 new BtcWalletPaymentItemDto(TEST_ADDRESS_2, new BigDecimal(0.6))
         ));
-        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture());
+        verify(bitcoinWalletService, times(3)).sendToMany(paymentCaptor.capture(), eq(false));
         List<Map<String, BigDecimal>> capturedValues = paymentCaptor.getAllValues();
         assertEquals(new HashMap<String, BigDecimal>(){{
             put(TEST_ADDRESS_1, new BigDecimal(0.1));
@@ -450,7 +450,7 @@ public class BitcoinServiceImplTest {
 
     @Test
     public void sendManyTest_SameAndDifferentAddressesAndExceptionThrown() {
-        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class)))
+        when(bitcoinWalletService.sendToMany(anyMapOf(String.class, BigDecimal.class), eq(false)))
                 .thenReturn(new BtcPaymentResultDto("111"))
                 .thenReturn(new BtcPaymentResultDto(new BitcoinCoreException("ERROR!")))
                 .thenReturn(new BtcPaymentResultDto("333"));

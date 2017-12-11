@@ -121,6 +121,15 @@
                                             <button id="submitChangeFee" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
                                         </div>
                                     </div>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                            <label for="subtract-fee-from-amount" class="input-block-wrapper__label">
+                                                <loc:message code="btcWallet.subtractFeeFromAmount"/></label>
+                                        </div>
+                                        <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                            <span id="subtract-fee-from-amount"></span>
+                                        </div>
+                                    </div>
 
                                 </div>
 
