@@ -297,7 +297,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       String address,
       Integer merchantId,
       Integer currencyId,
-      List<InvoiceStatus> statusList) {
+      List<Integer> statusList) {
     String sql = "SELECT COUNT(*)  " +
         " FROM REFILL_REQUEST RR" +
         " JOIN REFILL_REQUEST_ADDRESS RRA ON RRA.id = RR.refill_request_address_id" +

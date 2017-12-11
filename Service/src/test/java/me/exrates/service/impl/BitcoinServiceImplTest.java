@@ -173,7 +173,7 @@ public class BitcoinServiceImplTest {
     @Test
     public void refillNewAddressTest() {
         RefillRequestCreateDto dto = new RefillRequestCreateDto();
-        when(refillService.existsUnclosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(false);
+        when(refillService.existsClosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(false);
         assertEquals(new HashMap<String, String>() {{
             put("address", TEST_ADDRESS_1);
             put("message", " ");
@@ -184,7 +184,7 @@ public class BitcoinServiceImplTest {
     @Test
     public void refillExistingAddressTest() {
         RefillRequestCreateDto dto = new RefillRequestCreateDto();
-        when(refillService.existsUnclosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(true).thenReturn(false);
+        when(refillService.existsClosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(true).thenReturn(false);
         assertEquals(new HashMap<String, String>() {{
             put("address", TEST_ADDRESS_2);
             put("message", " ");
@@ -195,7 +195,7 @@ public class BitcoinServiceImplTest {
     @Test(expected = IllegalStateException.class)
     public void refillExistingAddressOverLimitTest() {
         RefillRequestCreateDto dto = new RefillRequestCreateDto();
-        when(refillService.existsUnclosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(true);
+        when(refillService.existsClosedRefillRequestForAddress(anyString(), anyInt(), anyInt())).thenReturn(true);
         bitcoinService.refill(dto);
     }
 

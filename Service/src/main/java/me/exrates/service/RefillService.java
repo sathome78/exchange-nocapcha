@@ -98,7 +98,7 @@ public interface RefillService {
 
   void declineRefillRequest(int requestId, Integer requesterAdminId, String comment);
 
-  Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
+  Boolean existsClosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
   RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
 

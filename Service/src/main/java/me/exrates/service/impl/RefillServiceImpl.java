@@ -868,9 +868,10 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId) {
+  public Boolean existsClosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId) {
     List<InvoiceStatus> statusList = new ArrayList<>(RefillStatusEnum.getEndStatesSet());
-    return refillRequestDao.getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(address, merchantId, currencyId, statusList) > 0;
+    return refillRequestDao.getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(address, merchantId, currencyId,
+            statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList())) > 0;
   }
 
   @Override

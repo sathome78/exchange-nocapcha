@@ -151,17 +151,17 @@ public class BitcoinServiceImpl implements BitcoinService {
     String address = bitcoinWalletService.getNewAddress(walletPassword);
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
-    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
-      final int LIMIT = 2000;
-      int i = 0;
-      while (!isFreshAddress && i++ < LIMIT) {
-        address = bitcoinWalletService.getNewAddress(walletPassword);
-        isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
-      }
-      if (i >= LIMIT) {
-        throw new IllegalStateException("Can`t generate fresh address");
-      }
-    }
+//    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
+//      final int LIMIT = 2000;
+//      int i = 0;
+//      while (!isFreshAddress && i++ < LIMIT) {
+//        address = bitcoinWalletService.getNewAddress(walletPassword);
+//        isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
+//      }
+//      if (i >= LIMIT) {
+//        throw new IllegalStateException("Can`t generate fresh address");
+//      }
+//    }
     return address;
   }
 
