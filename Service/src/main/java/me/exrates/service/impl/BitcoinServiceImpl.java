@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -392,6 +393,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   public String getNewAddressForAdmin() {
     return bitcoinWalletService.getNewAddress(walletPassword);
   }
-  
+
+  @PreDestroy
+  public void shutdown() {
+    bitcoinWalletService.shutdown();
+  }
 
 }

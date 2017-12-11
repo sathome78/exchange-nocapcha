@@ -4,6 +4,10 @@
          version="3.0">
     <display-name>Controller</display-name>
 
+    <listener>
+        <listener-class>se.jiderhamn.classloader.leak.prevention.ClassLoaderLeakPreventorListener</listener-class>
+    </listener>
+
     <servlet>
         <servlet-name>BotDetect Captcha</servlet-name>
         <servlet-class>com.captcha.botdetect.web.servlet.CaptchaServlet</servlet-class>

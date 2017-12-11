@@ -62,7 +62,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   @Override
   public void initCoreClient(String nodePropertySource) {
-    
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -126,8 +125,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
   }
   
-  @PreDestroy
-  public void shutdownDaemon() {
+  @Override
+  public void shutdown() {
+    btcdClient.close();
     btcDaemon.destroy();
   }
   

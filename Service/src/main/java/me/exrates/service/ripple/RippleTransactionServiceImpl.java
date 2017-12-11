@@ -30,8 +30,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     @Autowired
     private RippledNodeService rippledNodeService;
-    @Autowired
-    private TransactionService transactionService;
 
 
     private @Value("${ripple.account.address}") String address;
@@ -48,7 +46,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         RippleAccount account = RippleAccount.builder().name(address).secret(secret).build();
         BigDecimal accountFromBalance = getAccountBalance(address);
-        log.debug("main acc balance {}", accountFromBalance);
         if (accountFromBalance.compareTo(XRP_MIN_BALANCE) < 0) {
             throw new InsufficientCostsInWalletException("XRP BALANCE LOW");
         }
@@ -64,7 +61,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     @Transactional
     private RippleTransaction sendMoney(RippleAccount account, BigDecimal amount, String destinationAccount, Integer destinationTag) {
         RippleTransaction transaction = prepareTransaction(amount, account, destinationAccount, destinationTag);
-        log.debug("prepared transaction {}", transaction);
         rippledNodeService.signTransaction(transaction);
         rippledNodeService.submitTransaction(transaction);
         return transaction;

@@ -361,7 +361,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StoreSessionListenerImpl();
     }
 
-    
+
     @Bean
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();

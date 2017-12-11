@@ -60,9 +60,7 @@ public class Sms1s2uService {
                 .queryParam("mt", 1)
                 .queryParam("ipcl", "127.0.0.1")
                 .build().toUri();
-        log.debug("uri {}", uri.toString());
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, null, String.class);
-        log.debug("response {}", response.toString());
         if (isError(response)) {
             throw new MessageUndeliweredException();
         }

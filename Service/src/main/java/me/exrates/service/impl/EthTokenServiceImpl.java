@@ -37,6 +37,7 @@ import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -331,5 +332,12 @@ public class EthTokenServiceImpl implements EthTokenService {
         public Address to;
 
         public Uint256 value;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        LOG.debug("Destroying " + merchantName);
+        scheduler.shutdown();
+        LOG.debug(merchantName + " destroyed");
     }
 }

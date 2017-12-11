@@ -48,15 +48,10 @@ public class NotificatorsServiceImpl implements NotificatorsService {
 
     @Override
     public Map<Integer, Object> getSubscriptions(int userId) {
-        log.debug("map size {}", notificatorsMap.size() );
-        notificatorsMap.forEach((k,v)-> {
-            log.debug("key {}, val {}", k, v);
-        });
         Map<Integer, Object> subscrMap = new HashMap<>();
         Arrays.asList(NotificationTypeEnum.values()).forEach(p->{
             if (p.isNeedSubscribe()) {
                 NotificatorService service = this.getNotificationService(p.getCode());
-                log.debug("service {}, notificator {}", service, p);
                 subscrMap.put(p.getCode(), service.getSubscriptionByUserId(userId));
             }
         });

@@ -32,6 +32,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -214,7 +216,6 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     /*check stop orders on order accepted and rates changed*/
     private void checkOrders(ExOrder exOrder, OperationType operationType) {
-        log.debug("limit order accepted {} {}", exOrder.getId(), exOrder.getCurrencyPairId());
         try {
             NavigableSet<StopOrderSummaryDto> result;
             switch (operationType) {
@@ -342,5 +343,11 @@ public class StopOrderServiceImpl implements StopOrderService {
         OrderCreateDto orderCreateDto = this.getOrderById(id, true);
         log.debug("order {}", orderCreateDto);
         return this.cancelOrder(new ExOrder(orderCreateDto), locale);
+    }
+
+    @PreDestroy
+    private void shutdown() {
+        checkExecutors.shutdown();
+        ordersExecutors.shutdown();
     }
 }

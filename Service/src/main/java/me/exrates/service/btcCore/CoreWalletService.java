@@ -7,7 +7,6 @@ import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import org.springframework.scheduling.annotation.Scheduled;
 import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
@@ -25,9 +24,10 @@ public interface CoreWalletService {
   
   String getNewAddress(String walletPassword);
   
-  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
   void backupWallet(String backupFolder);
-  
+
+  void shutdown();
+
   Optional<BtcTransactionDto> handleTransactionConflicts(String txId);
   
   BtcTransactionDto getTransaction(String txId);

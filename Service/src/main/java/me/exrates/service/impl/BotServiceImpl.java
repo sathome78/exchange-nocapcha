@@ -94,6 +94,8 @@ public class BotServiceImpl implements BotService {
             } catch (SchedulerException e) {
                 log.error(e);
             }
+            botAcceptExecutors.shutdown();
+
 
         });
     }
@@ -387,7 +389,6 @@ public class BotServiceImpl implements BotService {
     public void setConsiderUserOrders(int launchSettingsId, boolean considerUserOrders) {
         botDao.setConsiderUserOrders(launchSettingsId, considerUserOrders);
     }
-
 
 
 

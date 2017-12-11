@@ -454,7 +454,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @PreDestroy
     public void destroy() {
-        LOG.debug("Destroing " + merchantName);
+        LOG.debug("Destroying " + merchantName);
         scheduler.shutdown();
         subscription.unsubscribe();
         LOG.debug(merchantName + " destroyed");

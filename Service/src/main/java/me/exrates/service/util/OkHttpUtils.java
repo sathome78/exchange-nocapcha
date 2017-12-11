@@ -1,10 +1,8 @@
 package me.exrates.service.util;
 
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+
 import me.exrates.service.exception.RestRetrievalException;
+import okhttp3.*;
 import okio.Buffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,34 +22,28 @@ public class OkHttpUtils {
 
     }
 
-    public static String stringifyBody(final Request request) {
-        try {
-            final Request copy = request.newBuilder().build();
-            final Buffer buffer = new Buffer();
-            copy.body().writeTo(buffer);
-            return buffer.readUtf8();
-        } catch (final IOException ignore) {
-            return null; // it will never happen
-        }
-    }
 
     public static String sendGetRequest(String url, Map<String, String> params) {
         OkHttpClient client = new OkHttpClient();
-        HttpUrl.Builder httpUrlBuilder = HttpUrl.parse(url).newBuilder();
+        HttpUrl httpUrl = HttpUrl.parse(url);
+        if (httpUrl == null) {
+            throw new RestRetrievalException("Could not parse URL");
+        }
+        HttpUrl.Builder httpUrlBuilder = httpUrl.newBuilder();
         params.forEach(httpUrlBuilder::addEncodedQueryParameter);
 
         Request request = new Request.Builder()
                 .url(httpUrlBuilder.build())
                 .get()
                 .build();
-        try {
-            Response response = client.newCall(request).execute();
+        try (Response response = client.newCall(request).execute();
+             ResponseBody responseBody = response.body()) {
+            String body = responseBody == null ? "" : responseBody.string();
             if (!response.isSuccessful()) {
-                String errorMessage = response.body().string();
-                logger.error(errorMessage);
-                throw new RestRetrievalException(errorMessage);
+                logger.error(body);
+                throw new RestRetrievalException(body);
             }
-            return response.body().string();
+            return body;
         } catch (IOException e) {
             logger.error(e.getMessage());
             throw new RestRetrievalException(e.getMessage());

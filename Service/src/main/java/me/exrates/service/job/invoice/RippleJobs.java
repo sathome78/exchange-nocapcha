@@ -38,7 +38,7 @@ public class RippleJobs {
     private RippleService rippleService;
     private static final String XRP_MERCHANT = "Ripple";
 
-    private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(5);
+    private final static ExecutorService ordersExecutors = Executors.newSingleThreadExecutor();
 
     @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
     private void checkWithdrawals() {

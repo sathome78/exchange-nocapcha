@@ -11,6 +11,8 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -146,5 +148,16 @@ public class TokenScheduler {
 
     protected boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException {
         return userService.deleteExpiredToken(token);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        if (scheduler != null) {
+            try {
+                scheduler.shutdown();
+            } catch (SchedulerException e) {
+                LOGGER.error(e);
+            }
+        }
     }
 }

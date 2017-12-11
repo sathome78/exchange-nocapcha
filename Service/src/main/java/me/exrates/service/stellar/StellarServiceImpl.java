@@ -93,7 +93,6 @@ public class StellarServiceImpl implements StellarService {
     @Transactional
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        log.debug("withdraw_XLM");
         if (!"XLM".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
         }

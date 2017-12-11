@@ -37,7 +37,6 @@ public class RippleWsServiceImpl {
     private Session session;
     private boolean access = false;
     private volatile RemoteEndpoint.Basic endpoint = null;
-    private AtomicInteger id = new AtomicInteger(1);
     private static final String SUBSCRIBE_COMAND_ID = "watch main account transactions";
     private volatile boolean shutdown = false;
     private Merchant merchant;

@@ -92,7 +92,6 @@ public class RippledNodeServiceImpl implements RippledNodeService {
         String requestBody = String.format(SIGN_RPC, transaction.getIssuerSecret(), transaction.getIssuerAddress(),
                 transaction.getSequence(), transaction.getLastValidatedLedger(),
                 transaction.getSendAmount(), transaction.getDestinationAddress(),  destinationTagParam);
-        log.debug("xrp_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("cant sign transaction");
@@ -106,7 +105,6 @@ public class RippledNodeServiceImpl implements RippledNodeService {
     @Override
     public void submitTransaction(RippleTransaction transaction) {
         String requestBody = String.format(SUBMIT_TRANSACTION_RPC, transaction.getBlob());
-        log.debug("xrp_request {}", requestBody);
         ResponseEntity<String> response = restTemplate.postForEntity(rpcUrl, requestBody, String.class);
         if (RestUtil.isError(response.getStatusCode())) {
             throw new RuntimeException("can't submit transaction");

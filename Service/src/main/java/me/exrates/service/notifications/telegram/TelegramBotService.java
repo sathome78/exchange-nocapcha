@@ -68,7 +68,6 @@ public class TelegramBotService  extends TelegramLongPollingBot {
             String sender = update.getMessage().getFrom().getUserName();
             Long chatId = update.getMessage().getChat().getId();
             String text = update.getMessage().getText();
-            log.debug("telegram recieve message {} {}", text, update.getMessage().getContact());
             SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
                     .setChatId(update.getMessage().getChatId());
             if (text.startsWith("/")) {

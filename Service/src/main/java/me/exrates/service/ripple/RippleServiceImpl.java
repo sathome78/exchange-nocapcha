@@ -85,7 +85,6 @@ public class RippleServiceImpl implements RippleService {
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    log.error("withdraw_XRP");
     if (!"XRP".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
       throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
@@ -145,7 +144,6 @@ public class RippleServiceImpl implements RippleService {
       id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
           currency.getId(), merchant.getId());
     } while (id.isPresent());
-    log.debug("tag is {}", destinationTag);
     return destinationTag;
   }
 

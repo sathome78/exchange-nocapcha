@@ -303,7 +303,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   }
 
   private String makeRpcCallDelayed(String rpc, Object... args) throws IOException {
-    final String rpcCall = String.format(rpc, args);
+   /* final String rpcCall = String.format(rpc, args);
     final Request request = new Request.Builder()
         .url(RPC_URL_DELAYED)
         .post(RequestBody.create(MEDIA_TYPE, rpcCall))
@@ -311,11 +311,12 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return HTTP_CLIENT.newCall(request)
         .execute()
         .body()
-        .string();
+        .string();*/
+   return "";
   }
 
   private String makeRpcCallFast(String rpc, Object... args) throws IOException {
-    final String rpcCall = String.format(rpc, args);
+   /* final String rpcCall = String.format(rpc, args);
     final Request request = new Request.Builder()
         .url(RPC_URL_FAST)
         .post(RequestBody.create(MEDIA_TYPE, rpcCall))
@@ -323,7 +324,8 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return HTTP_CLIENT.newCall(request)
         .execute()
         .body()
-        .string();
+        .string();*/
+   return "";
   }
 
   private enum KEY_TYPE {
@@ -368,6 +370,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return object.get("address").getAsString();
 
   }
+
 
 
 }

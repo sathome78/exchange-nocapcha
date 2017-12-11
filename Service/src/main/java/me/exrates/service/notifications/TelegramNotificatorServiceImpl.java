@@ -65,7 +65,6 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
         TelegramSubscription subscriptionDto = (TelegramSubscription)subscribeData;
         String[] data = (subscriptionDto.getRawText()).split(":");
         String email = data[0];
-        log.debug("code {}, email {}", subscriptionDto.getRawText(), email);
         Optional<TelegramSubscription> subscriptionOptional = subscribtionDao.getSubscribtionByCodeAndEmail(subscriptionDto.getRawText(), email);
         TelegramSubscription subscription = subscriptionOptional.orElseThrow(TelegramSubscriptionException::new);
         NotificatorSubscriptionStateEnum nextState = subscription.getSubscriptionState().getNextState();
@@ -93,7 +92,7 @@ public class TelegramNotificatorServiceImpl implements NotificatorService, Subsc
     @Transactional
     public String createSubscription(String userEmail) {
         String code = generateCode(userEmail);
-        int id = subscribtionDao.create(TelegramSubscription.builder()
+        subscribtionDao.create(TelegramSubscription.builder()
                 .userId(userService.getIdByEmail(userEmail))
                 .subscriptionState(NotificatorSubscriptionStateEnum.getBeginState())
                 .code(code).build());

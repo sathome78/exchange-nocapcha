@@ -83,23 +83,22 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
    @Override
-   public void sendMyTradesToUser(int userId, Integer currencyPair) {
+   public void sendMyTradesToUser(final int userId, final Integer currencyPair) {
        String userEmail = userService.getEmailById(userId);
        String destination = "/queue/personal/".concat(currencyPair.toString());
        String message = orderService.getTradesForRefresh(currencyPair, userEmail, RefreshObjectsEnum.MY_TRADES);
-       log.debug("send my trades to {}, {}", userEmail, destination);
        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
    }
 
     @Override
-    public void sendAllTrades(Integer currencyPair) {
+    public void sendAllTrades(final Integer currencyPair) {
         String destination = "/app/trades/".concat(currencyPair.toString());
         String message = orderService.getTradesForRefresh(currencyPair, null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination(destination, message);
     }
 
     @Override
-    public void sendChartData(Integer currencyPairId) {
+    public void sendChartData(final Integer currencyPairId) {
         intervals.forEach(p-> {
             String message = orderService.getChartData(currencyPairId, p);
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
@@ -114,39 +113,27 @@ public class StompMessengerImpl implements StompMessenger{
     }
 
     @Override
-    public void sendEventMessage(String sessionId, String message) {
+    public void sendEventMessage(final String sessionId, final String message) {
         sendMessageToDestination("/app/ev/".concat(sessionId), message);
     }
 
 
-    private Set<SimpSubscription> findSubscribersByDestination(String destination) {
+    private Set<SimpSubscription> findSubscribersByDestination(final String destination) {
        return registry.findSubscriptions(subscription -> subscription.getDestination().equals(destination));
    }
 
    private void sendMessageToDestination(String destination, String message) {
-       log.debug("send to {}, {}", destination, message);
        messagingTemplate.convertAndSend(destination, message);
    }
 
    private void sendMessageToSubscription(SimpSubscription subscription, String message, String dest) {
-       log.debug("suscr {}, dest {}", subscription.getSession().getUser().getName(), dest);
        sendMessageToDestinationAndUser(subscription.getSession().getUser().getName(), dest, message);
    }
 
-    private void sendMessageToDestinationAndUser(String user, String destination, String message) {
-       log.debug("send to {}, {}", user, destination);
+    private void sendMessageToDestinationAndUser(final String user, String destination, String message) {
        messagingTemplate.convertAndSendToUser(user,
                                                destination,
                                                message);
     }
-
-
-    private MessageHeaders createHeaders(String sessionId) {
-        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
-        headerAccessor.setSessionId(sessionId);
-        headerAccessor.setLeaveMutable(true);
-        return headerAccessor.getMessageHeaders();
-    }
-
 
 }

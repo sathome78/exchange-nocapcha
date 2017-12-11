@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
@@ -102,6 +103,13 @@ public class SendMailServiceImpl implements SendMailService{
 		email.setMessage(messageBody);
 		email.setSubject("Feedback from " + senderName + " -- " + senderMail);
 		sendMail(email);
+	}
+
+
+	@PreDestroy
+	public void destroy() {
+		executors.shutdown();
+		supportMailExecutors.shutdown();
 	}
 
 

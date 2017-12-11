@@ -147,7 +147,6 @@ public class NeoServiceImpl implements NeoService {
 
 
     @Override
- //   @Scheduled(initialDelay = 120000, fixedDelay = 120000)
     public void scanLastBlocksAndUpdatePayments() {
         log.debug("Start scanning blocks");
         ProfileData profileData = new ProfileData(500);

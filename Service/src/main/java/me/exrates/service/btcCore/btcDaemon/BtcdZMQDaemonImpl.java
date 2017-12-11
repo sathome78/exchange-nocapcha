@@ -28,7 +28,6 @@ import static org.zeromq.ZMQ.context;
 public class BtcdZMQDaemonImpl implements BtcDaemon{
 
 
-    private static final String SOCKET_ADDRESS_BASE = "tcp://127.0.0.1:";
     private volatile boolean isActive = false;
 
     private BtcdClient btcdClient;
@@ -55,26 +54,30 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
 
     private void initSubscriber(String port, String topic, Consumer<String> onNext,
                                 Consumer<Throwable> onError,
-                                Consumer<Void> onCompleted) {
-        try {
-            String host = btcdClient.getNodeConfig().getProperty("node.bitcoind.rpc.host");
-            String address = String.join( "","tcp://", host, ":", port);
-            log.debug("Subscribing {} listener on address {} ", topic, address);
-            Socket subscriber = zmqContext.socket(ZMQ.SUB);
+                                Consumer<String> onCompleted) {
+        String host = btcdClient.getNodeConfig().getProperty("node.bitcoind.rpc.host");
+        String address = String.join( "","tcp://", host, ":", port);
+        log.debug("Subscribing {} listener on address {} ", topic, address);
+
+        try (Socket subscriber = zmqContext.socket(ZMQ.SUB)) {
             if (port != null) {
                 if (subscriber.connect(address)) {
                     subscriber.subscribe(topic);
                     log.debug("Successfully subscribed {} listener on port {} ", topic, port);
+                    ZMQ.Poller poller = zmqContext.poller(1);
+                    poller.register(subscriber, ZMQ.Poller.POLLIN);
                     while (isActive) {
-                        String hex = extractMessage(subscriber);
-                        if (hexStringChecker.test(hex)) {
-                            onNext.accept(hex);
-                        } else {
-                            log.warn("Illegal notification format: {}", hex);
+                        poller.poll(5000);
+                        if (poller.pollin(0)) {
+                            String hex = extractMessage(subscriber);
+                            if (hexStringChecker.test(hex)) {
+                                onNext.accept(hex);
+                            } else {
+                                log.warn("Illegal notification format: {}", hex);
+                            }
                         }
                     }
-                    subscriber.close();
-                    onCompleted.accept(null);
+                    onCompleted.accept("");
                 } else {
                     onError.accept(new BitcoinCoreException("Could not connect to port " + port));
                 }
@@ -88,10 +91,10 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
 
     private String extractMessage(Socket subscriber) {
         List<byte[]> multipartMessage = new ArrayList<>();
-        byte[] message = subscriber.recv();
+        byte[] message = subscriber.recv(1);
         multipartMessage.add(message);
         while (subscriber.hasReceiveMore()) {
-            multipartMessage.add(subscriber.recv());
+            multipartMessage.add(subscriber.recv(1));
         }
         return DatatypeConverter.printHexBinary(multipartMessage.get(1)).toLowerCase();
     }
@@ -99,9 +102,8 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
     @Override
     public void destroy() {
         isActive = false;
-        if (!zmqContext.isTerminated()) {
-            zmqContext.term();
-        }
+        zmqContext.close();
+        zmqContext.term();
        listenerThreadPool.shutdown();
     }
 

@@ -76,7 +76,6 @@ public class StellarReceivePaymentsService {
     }
 
     private void checkIncomePayment() {
-        log.debug("starting check xlm income payments");
         PaymentsRequestBuilder paymentsRequest = server.payments().forAccount(account);
         String lastToken = loadLastPagingToken();
         log.debug("lastToken {}", lastToken);
@@ -88,9 +87,6 @@ public class StellarReceivePaymentsService {
             // The payments stream includes both sent and received payments. We only
             // want to process received payments here.
             if (payment instanceof PaymentOperationResponse) {
-                log.debug("its payment response");
-                log.debug("to {}", ((PaymentOperationResponse) payment).getTo().getAccountId());
-                log.debug("from {}", ((PaymentOperationResponse) payment).getFrom().getAccountId());
                 if (((PaymentOperationResponse) payment).getTo().getAccountId().equals(ACCOUNT_NAME)) {
                     PaymentOperationResponse response = ((PaymentOperationResponse) payment);
                     log.debug(response.getAsset().getType());
@@ -106,11 +102,7 @@ public class StellarReceivePaymentsService {
                         // Record the paging token so we can start from here next time.
                         log.debug("transaction xlm {} saved ", transactionResponse.getHash());
                     }
-                } else {
-                    log.debug("payment not for us");
                 }
-            } else {
-                log.debug("its not !! payment response");
             }
         });
     }

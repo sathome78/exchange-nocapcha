@@ -25,6 +25,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -222,6 +223,11 @@ public class WavesServiceImpl implements WavesService {
 
     private long unscaleToWavelets(BigDecimal scaledAmount) {
         return scaledAmount.scaleByPowerOfTen(WAVES_AMOUNT_SCALE).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        scheduler.shutdown();
     }
 
     /*

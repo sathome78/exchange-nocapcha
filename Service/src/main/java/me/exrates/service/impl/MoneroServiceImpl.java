@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import wallet.*;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -205,5 +206,12 @@ public class MoneroServiceImpl implements MoneroService {
         } catch (Exception e) {
             log.error(e);
         }
+    }
+
+    @PreDestroy
+    private void shutdown() {
+        log.debug("Destroying Monero");
+        scheduler.shutdown();
+        log.debug("Monero destroyed");
     }
 }

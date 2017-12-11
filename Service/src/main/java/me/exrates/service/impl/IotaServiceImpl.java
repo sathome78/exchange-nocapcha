@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -203,5 +204,12 @@ public class IotaServiceImpl implements IotaService {
         } catch (Exception e) {
             log.error(e);
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.debug("Destroying IOTA");
+        scheduler.shutdown();
+        log.debug("IOTA destroyed");
     }
 }

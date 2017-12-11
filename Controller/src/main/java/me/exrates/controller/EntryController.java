@@ -177,7 +177,6 @@ public class EntryController {
     public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {
         RedirectView redirectView = new RedirectView("/settings");
-        LOGGER.error("sessionParams " + sessionParams.toString());
         if (!sessionService.isSessionLifeTypeIdValid(sessionParams.getSessionLifeTypeId())) {
             sessionParams.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
         }

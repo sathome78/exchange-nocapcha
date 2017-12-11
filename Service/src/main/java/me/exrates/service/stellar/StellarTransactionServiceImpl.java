@@ -64,8 +64,6 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
             sourceAccount = server.accounts().account(source);
             String balance = Arrays.stream(sourceAccount.getBalances())
                     .filter(p -> p.getAsset().equals(new AssetTypeNative())).findFirst().get().getBalance();
-            log.debug("source account {}", sourceAccount);
-            log.debug("balances {}", balance);
             if (new BigDecimal(balance).compareTo(XLM_MIN_BALANCE) <= 0 ) {
                 throw new InsufficientCostsInWalletException("XLM BALANCE LOW");
             }
@@ -91,7 +89,6 @@ public class StellarTransactionServiceImpl implements StellarTransactionService 
             log.debug("response is success {}", response.isSuccess());
             if (response.isSuccess()) {
                 return new HashMap<String, String>() {{
-                    log.debug(response.getHash());
                     put("hash", response.getHash());
                 }};
             } else {
