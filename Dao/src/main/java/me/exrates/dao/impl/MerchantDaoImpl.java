@@ -472,5 +472,26 @@ public class MerchantDaoImpl implements MerchantDao {
       return result;
     });
   }
+
+  @Override
+  public boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId) {
+      String sql = "SELECT subtract_fee_from_amount FROM crypto_core_wallet WHERE merchant_id = :merchant_id " +
+              "AND currency_id = :currency_id ";
+      Map<String, Integer> params = new HashMap<>();
+      params.put("merchant_id", merchantId);
+      params.put("currency_id", currencyId);
+      return namedParameterJdbcTemplate.queryForObject(sql, params, Boolean.class);
+  }
+
+  @Override
+  public void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount) {
+      String sql = "UPDATE crypto_core_wallet SET  subtract_fee_from_amount = :subtract_fee WHERE merchant_id = :merchant_id " +
+              "AND currency_id = :currency_id ";
+      Map<String, Object> params = new HashMap<>();
+      params.put("merchant_id", merchantId);
+      params.put("currency_id", currencyId);
+      params.put("subtract_fee", subtractFeeFromAmount);
+      namedParameterJdbcTemplate.update(sql, params);
+  }
 }
 

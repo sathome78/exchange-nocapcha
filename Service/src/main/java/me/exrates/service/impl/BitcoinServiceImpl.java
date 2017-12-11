@@ -363,7 +363,9 @@ public class BitcoinServiceImpl implements BitcoinService {
         paymentGroupIterator.add(newPaymentGroup);
       }
     }
-    boolean subtractFeeFromAmount = false;
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    boolean subtractFeeFromAmount = merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
 
     return paymentGroups.stream()
             .flatMap(group -> {
@@ -390,6 +392,21 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String getNewAddressForAdmin() {
     return bitcoinWalletService.getNewAddress(walletPassword);
+  }
+
+  @Override
+  public void setSubtractFeeFromAmount(boolean subtractFeeFromAmount) {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    merchantService.setSubtractFeeFromAmount(merchant.getId(), currency.getId(), subtractFeeFromAmount);
+
+  }
+
+  @Override
+  public boolean getSubtractFeeFromAmount() {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    return merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
   }
 
   @PreDestroy

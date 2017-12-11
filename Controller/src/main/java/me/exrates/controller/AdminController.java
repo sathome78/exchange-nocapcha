@@ -1496,6 +1496,21 @@ public class AdminController {
     return userService.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/getSubtractFeeStatus", method = GET)
+  public Boolean getSubtractFeeFromAmount(@PathVariable String merchantName) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    return walletService.getSubtractFeeFromAmount();
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setSubtractFee", method = POST)
+  public void setSubtractFeeFromAmount(@PathVariable String merchantName,
+                                       @RequestParam Boolean subtractFee) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    walletService.setSubtractFeeFromAmount(subtractFee);
+  }
+
 
 
 

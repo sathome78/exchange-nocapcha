@@ -16,6 +16,7 @@ $(function () {
     updateTxHistoryTable();
     retrieveFee();
     checkSendBtcFormFields();
+    refreshSubtractFeeStatus();
 
     $('#addPayment').click(function (e) {
         e.preventDefault();
@@ -131,7 +132,8 @@ $(function () {
             }
         })
 
-    })
+    });
+    $('#subtract-fee-from-amount').on('click', 'i', setSubtractFeeStatus);
 
 });
 
@@ -140,8 +142,6 @@ function checkSendBtcFormFields() {
     $('.btcWalletPayment').each(function () {
         var amount =  $(this).find('input[name="amount"]').val();
         var address = $(this).find('input[name="address"]').val();
-        console.log(amount.length)
-        console.log(address.length)
         if (amount.length === 0 || address.length === 0) {
             $('#submit-btc').prop('disabled', true);
             isFormValid = false;
@@ -347,5 +347,27 @@ function retrieveAddress() {
     })
 }
 
+function refreshSubtractFeeStatus() {
+    $.get(urlBase + 'getSubtractFeeStatus', function (data) {
+        $('#subtract-fee-from-amount').html(data ? '<i class="fa fa-check green"></i>' :
+            '<i class="fa fa-close red"></i>');
+    })
+}
+
+function setSubtractFeeStatus() {
+    const $subtractFee = $('#subtract-fee-from-amount').find('i');
+    const subtractFeeNewValue = !$($subtractFee).hasClass('green') && $($subtractFee).hasClass('red');
+    console.log(subtractFeeNewValue)
+    $.ajax(urlBase + 'setSubtractFee', {
+        type: 'POST',
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        data: {subtractFee: subtractFeeNewValue},
+        success: function () {
+            refreshSubtractFeeStatus()
+        }
+    })
+}
 
 

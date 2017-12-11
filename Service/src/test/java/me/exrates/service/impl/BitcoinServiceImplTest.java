@@ -163,6 +163,8 @@ public class BitcoinServiceImplTest {
         refillRequestFlatDto2.setCurrencyId(currency.getId());
         refillRequestFlatDto2.setMerchantId(merchant.getId());
 
+        when(merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId())).thenReturn(false);
+
 
 
 
