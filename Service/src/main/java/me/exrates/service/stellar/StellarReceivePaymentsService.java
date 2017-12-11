@@ -119,7 +119,6 @@ public class StellarReceivePaymentsService {
             return;
         }
         if (!eventSource.isOpen()) {
-            eventSource.close();
             eventSource = null;
             checkIncomePayment();
         }
