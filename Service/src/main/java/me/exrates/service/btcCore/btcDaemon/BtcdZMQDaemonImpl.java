@@ -67,6 +67,7 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                     while (isActive) {
                         try {
                             String hex = extractMessage(subscriber);
+                            log.info("socket {} got notification {} ", port, hex);
                             if (hexStringChecker.test(hex)) {
                                 onNext.accept(hex);
                             } else {

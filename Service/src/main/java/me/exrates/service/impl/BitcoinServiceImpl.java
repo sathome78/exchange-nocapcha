@@ -167,7 +167,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   public void onPayment(BtcTransactionDto transactionDto) {
-    log.debug("on payment {} - {}", currencyName, transactionDto);
+    log.info("on payment {} - {}", currencyName, transactionDto);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
@@ -245,7 +245,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public void onIncomingBlock(BtcBlockDto blockDto) {
     String blockHash = blockDto.getHash();
-    log.debug("incoming block {} - {}", currencyName, blockHash);
+    log.info("incoming block {} - {}", currencyName, blockHash);
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
@@ -292,7 +292,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     try {
       refillService.setConfirmationCollectedNumber(dto);
       if (dto.getConfirmations() >= minConfirmations) {
-        log.debug("Providing transaction!");
+        log.info("Providing transaction {}", dto.getHash());
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(dto.getRequestId())
                 .address(dto.getAddress())
