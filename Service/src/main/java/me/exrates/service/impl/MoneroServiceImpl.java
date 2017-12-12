@@ -147,7 +147,7 @@ public class MoneroServiceImpl implements MoneroService {
                     public void run() {
                         checkIncomingTransactions();
                     }
-                }, 0, 30, TimeUnit.MINUTES);
+                }, 0, 120, TimeUnit.MINUTES);
             }catch (Exception e){
                 log.error(e);
             }
