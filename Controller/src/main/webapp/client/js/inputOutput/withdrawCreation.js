@@ -47,6 +47,7 @@ $(function withdrawCreation() {
     var commissionMerchantPercent;
     var commissionMerchantAmount;
     var totalAmount;
+    var totalCommissionAmount;
     var bankDataList;
     var additionalFieldName;
     var specComissionCount;
@@ -126,6 +127,9 @@ $(function withdrawCreation() {
                 .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
             newHTMLElements[3] = newHTMLElements[3]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
+            newHTMLElements[4] = newHTMLElements[4]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + totalCommissionAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
             var newHTML = '';
             $.each(newHTMLElements, function (index) {
@@ -310,6 +314,7 @@ $(function withdrawCreation() {
         $withdrawDetailedParamsDialog.find("#commission-amount").html(numbro(commissionAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find("#merchant-commission-amount").html(numbro(commissionMerchantAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find("#total-amount").html(numbro(totalAmount).format(numberFormat));
+        $withdrawDetailedParamsDialog.find("#total-commission-amount").html(numbro(totalCommissionAmount).format(numberFormat));
         $withdrawDetailedParamsDialog.find(".currency").html(currencyName);
         getBankDataList(function () {
             var $bankSelect = $withdrawDetailedParamsDialog.find("#bank-data-list");
@@ -371,6 +376,7 @@ $(function withdrawCreation() {
             commissionMerchantAmount = response['merchantCommissionAmount'];
             commissionMerchantPercent = response['merchantCommissionRate'];
             totalAmount = response['resultAmount'];
+            totalCommissionAmount = response['totalCommissionAmount'];
             var additional = response['addition'];
             $withdrawDetailedParamsDialog.find("#additional").html(additional);
             if (additional != 0) {

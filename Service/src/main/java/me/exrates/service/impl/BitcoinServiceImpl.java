@@ -259,7 +259,6 @@ public class BitcoinServiceImpl implements BitcoinService {
           BtcTransactionDto tx = txResult.get();
           log.debug("Target tx: " + tx.getTxId());
           tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
-                  .peek(log::debug)
                   .findFirst().ifPresent(paymentOverview -> {
                     log.debug("Adding payment to list: " + paymentOverview);
                     paymentsToUpdate.add(RefillRequestSetConfirmationsNumberDto.builder()
