@@ -8,17 +8,19 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.UserAgent;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.*;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.neo.NeoService;
+import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +36,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -87,9 +88,8 @@ public class MobileEntryController {
     @Autowired
     private StoreSessionListener storeSessionListener;
 
-   /* private Map<String, > creationUnconfirmedOrders = new ConcurrentReferenceHashMap<>();
-*/
-
+    @Autowired
+    private IpBlockingService ipBlockingService;
 
 
     /**
@@ -642,8 +642,17 @@ public class MobileEntryController {
     @RequestMapping(value = "/rest/user/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
-        logger.debug(authenticationDto.getEmail());
-        logger.debug(authenticationDto.getAppKey());
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(ipAddress);
+
+        Optional<AuthTokenDto> authTokenResult = null;
+        try {
+            authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
+        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
+            ipBlockingService.processLoginFailure(ipAddress);
+            throw new WrongUsernameOrPasswordException("Wrong credentials");
+        }
+        AuthTokenDto authTokenDto = authTokenResult.get();
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
@@ -651,13 +660,7 @@ public class MobileEntryController {
             checkAppKey(appKey, userAgentHeader);
         }
 
-        Optional<AuthTokenDto> authTokenResult = null;
-        try {
-            authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
-        } catch (UsernameNotFoundException | IncorrectPasswordException e) {
-            throw new WrongUsernameOrPasswordException("Wrong credentials");
-        }
-        AuthTokenDto authTokenDto = authTokenResult.get();
+
         User user = userService.findByEmail(authenticationDto.getEmail());
 
         if (user.getStatus() == UserStatus.REGISTERED) {
@@ -674,6 +677,7 @@ public class MobileEntryController {
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
+        ipBlockingService.processLoginSuccess(ipAddress);
         return new ResponseEntity<>(authTokenDto, HttpStatus.OK);
     }
 
@@ -692,6 +696,7 @@ public class MobileEntryController {
             }
         }
     }
+
 
 
     /**
@@ -719,8 +724,9 @@ public class MobileEntryController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body) {
-
+    public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.checkIp(ipAddress);
         if (!(body.containsKey("email") && body.containsKey("password"))) {
             throw new MissingCredentialException("Credentials missing");
         }
@@ -737,6 +743,7 @@ public class MobileEntryController {
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (EmptyResultDataAccessException e) {
             logger.warn("Could not find user with email " + email);
+            ipBlockingService.processLoginFailure(ipAddress);
             throw new UsernameNotFoundException("Email not found");
         }
 
@@ -1096,10 +1103,16 @@ public class MobileEntryController {
         return new ApiError(MISSING_CREDENTIALS, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(WrongUsernameOrPasswordException.class)
     public ApiError incorrectPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(INCORRECT_LOGIN_OR_PASSWORD, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(BannedIpException.class)
+    public ApiError bannedIpExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(BANNED_IP, req.getRequestURL(), exception);
     }
 
 

@@ -2,8 +2,11 @@ package me.exrates.security.filter;
 
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.IpBlockingService;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 
@@ -19,6 +22,9 @@ import java.io.IOException;
 public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     private static final Logger LOGGER = LogManager.getLogger(LoginFailureHandler.class);
 
+    @Autowired
+    private IpBlockingService ipBlockingService;
+
     private String redirectUrl;
 
     public LoginFailureHandler(String redirectUrl) {
@@ -29,6 +35,8 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         //it's nessary to "save" exception that was thrown. This exception will be used in MaimController @RequestMapping(value = "/login", method = RequestMethod.GET)
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
+        String ipAddress = IpUtils.getClientIpAddress(request);
+        ipBlockingService.processLoginFailure(ipAddress);
         HttpSession session = request.getSession(false);
         session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
         //

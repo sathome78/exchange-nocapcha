@@ -73,7 +73,8 @@ public class LoggingAspect {
           "|| execution(* me.exrates.service.newsExt..*(..))) " +
           "&& !execution(* me.exrates.controller.filter.XssRequestFilter.*(..))" +
           "&& !execution(* me.exrates.controller.validator..*(..))" +
-          "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..))", throwing = "ex")
+          "&& !execution(* me.exrates.security.service.UserDetailsServiceImpl.*(..)) " +
+          "&& !execution(* me.exrates.security.service.IpBlockingServiceImpl.*(..))", throwing = "ex")
   public void logException(JoinPoint joinPoint, Exception ex) {
     log.debug(String.format("error in method %s with args: \n%s",
             String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
