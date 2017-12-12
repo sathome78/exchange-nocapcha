@@ -144,7 +144,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
                 "              GROUP BY currency_pair_id, stock_exchange_id) AS stock_2 " +
                 "              ON stock_1.currency_pair_id = stock_2.currency_pair_id AND stock_1.stock_exchange_id = stock_2.stock_exchange_id " +
                 "              AND stock_1.date = stock_2.date " +
-                "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id " +
+                "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id AND STOCK_EXCHANGE.is_active = 1" +
                 "              JOIN CURRENCY_PAIR ON stock_1.currency_pair_id = CURRENCY_PAIR.id " +
                 "       WHERE stock_1.currency_pair_id = :currency_pair_id " +
                 "       ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
