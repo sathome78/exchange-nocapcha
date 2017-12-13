@@ -131,17 +131,21 @@
                                         </div>
                                     </div>
 
+                                    <div id="btc-wallet-buttons">
+                                        <div class="col-md-12">
+                                            <button id="submit-btc" class="delete-order-info__button blue-box"
+                                                    type="button"><loc:message code="admin.submit"/></button>
+                                            <button id="reset-btc" class="delete-order-info__button blue-box"
+                                                    type="button"><loc:message code="admin.reset"/></button>
+                                        </div>
+                                    </div>
+
                                 </div>
 
 
                             </div>
 
-                            <div id="btc-wallet-buttons">
-                                <button id="submit-btc" class="delete-order-info__button blue-box"
-                                        type="button"><loc:message code="admin.submit"/></button>
-                                <button id="reset-btc" class="delete-order-info__button blue-box"
-                                        type="button"><loc:message code="admin.reset"/></button>
-                            </div>
+
                         </form>
                     </div>
                 </div>
