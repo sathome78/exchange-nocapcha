@@ -29,76 +29,162 @@
         <div class="col-md-8 col-sm-offset-1 content admin-container">
             <div class="text-center"> <h4><loc:message code="admin.generalStats.title"/></h4></div>
 
-            <div class="row text-center" style="margin: 20px">
+            <div id="limitsMenu" class="buttons text-center">
+                <button class="active adminForm-toggler blue-box">
+                    <loc:message code="admin.generalStats.menu.stats"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="admin.generalStats.menu.mailing"/>
+                </button>
+            </div>
+            <div class="tab-content">
+                <div id="panel1" class="tab-pane active">
+                    <div class="row text-center" style="margin: 20px">
+                        <div class="form_full_height_width">
+                            <div class="input-block-wrapper" >
+                                <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="userwallets.startDate"/></label>
+                                </div>
+                                <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                    <input id="datetimepicker_start" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                                </div>
+                                <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="userwallets.endDate"/></label>
+                                </div>
+                                <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                    <input id="datetimepicker_end" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                                </div>
+                            </div>
 
-                <div class="input-block-wrapper" >
-                    <div class="col-md-2 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="userwallets.startDate"/></label>
+                            <div class="input-block-wrapper" <%--style="margin-top: 50px"--%>>
+                                <c:forEach items="${defaultRoleFilter}" var="role">
+                                    <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                        <label class="input-block-wrapper__label">${role.key}</label>
+                                    </div>
+                                    <div class="col-md-1 input-block-wrapper__input-wrapper">
+                                        <input class="roleFilter" type="checkbox" <c:out value="${role.value ? 'checked' : ''}" /> name="<c:out value="${role.key}" />" >
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </div>
+
+
                     </div>
-                    <div class="col-md-4 input-block-wrapper__input-wrapper">
-                        <input id="datetimepicker_start" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
+                    <div class="form_full_height_width col-md-8 col-md-offset-2">
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="admin.users.new"/></label>
+                            </div>
+                            <div class="col-md-5 input-block-wrapper__input-wrapper">
+                                <span id="new-users-quantity"></span>
+                            </div>
+                            <div class="col-md-2 input-block-wrapper__input-wrapper">
+                                <button id="refresh-users" class="btn btn-sm btn-default pull-right" style="margin-bottom: 10px">
+                                    <span class="glyphicon glyphicon-refresh"></span>
+                                </button>
+                            </div>
+                        </div>
+
+
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencies"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-currencies-report" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencyPairs"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-currency-pairs-report" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="col-md-2 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="userwallets.endDate"/></label>
-                    </div>
-                    <div class="col-md-4 input-block-wrapper__input-wrapper">
-                        <input id="datetimepicker_end" type="text" class="input-block-wrapper__input admin-form-input" name="startTime">
-                    </div>
+
                 </div>
 
+                <div id="panel2" class="tab-pane">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="form_full_height_width " style="margin: 50px 0">
 
+                            <div class="input-block-wrapper" >
+                                <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.mailing.status"/> </label>
+                                </div>
+                                <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <span id="mailing-status-indicator" style="font-size: 1.5rem"><i class="fa fa-close red"></i></span>
+                                </div>
+                            </div>
 
+                            <div class="input-block-wrapper" >
+                                <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.mailing.time"/></label>
+                                </div>
+                                <div class="col-md-5 input-block-wrapper__input-wrapper">
+                                    <input id="timepicker_mailtime" type="text" class="input-block-wrapper__input admin-form-input">
+                                </div>
+                                <div class="col-md-3 input-block-wrapper__input-wrapper">
+                                    <button id="mail-time-submit" class="btn btn-primary btn-sm"><loc:message code="admin.submit"/></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-
-
-                <%--<input type="checkbox">--%>
+                    <div class="col-md-4 col-md-offset-4">
+                        <table id="report-emails-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.generalStats.mailing.email"/></th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <hr/>
-
-            <div class="form_full_height_width col-md-8 col-md-offset-2">
-                <div class="input-block-wrapper">
-                    <div class="col-md-5 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="admin.users.new"/></label>
-                    </div>
-                    <div class="col-md-5 input-block-wrapper__input-wrapper">
-                        <span id="new-users-quantity">50</span>
-                    </div>
-                    <div class="col-md-2 input-block-wrapper__input-wrapper">
-                        <button id="refresh-users" class="btn btn-sm btn-default pull-right" style="margin-bottom: 10px">
-                            <span class="glyphicon glyphicon-refresh"></span>
-                        </button>
-                    </div>
-                </div>
-
-
-                <div class="input-block-wrapper">
-                    <div class="col-md-5 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencies"/></label>
-                    </div>
-                    <div class="col-md-7 input-block-wrapper__input-wrapper">
-                        <button id="download-currencies-report" class="blue-box">
-                            <loc:message code="admin.stats.download"/></button>
-                    </div>
-                </div>
-                <div class="input-block-wrapper">
-                    <div class="col-md-5 input-block-wrapper__label-wrapper">
-                        <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencyPairs"/></label>
-                    </div>
-                    <div class="col-md-7 input-block-wrapper__input-wrapper">
-                        <button id="download-currency-pairs-report" class="blue-box">
-                            <loc:message code="admin.stats.download"/></button>
-                    </div>
-                </div>
-
-            </div>
         </div>
 
 
-
-
-
 </main>
+
+<div id="add-email-modal" class="modal fade modal-form-dialog">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-email-form" class="form_full_height_width">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.mailing.email"/></label>
+                        </div>
+                        <div class="col-md-8 input-block-wrapper__input-wrapper">
+                            <input name="email" class="input-block-wrapper__input admin-form-input">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="delete-order-info__button-wrapper">
+                    <button id="submit-email" class="delete-order-info__button">
+                        <loc:message code="admin.submit"/></button>
+                    <button class="delete-order-info__button" data-dismiss="modal">
+                        <loc:message code="admin.cancel"/></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>

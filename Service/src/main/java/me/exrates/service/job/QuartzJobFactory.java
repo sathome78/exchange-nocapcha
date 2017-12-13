@@ -1,4 +1,4 @@
-package me.exrates.service.job.bot;
+package me.exrates.service.job;
 
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.BeansException;
