@@ -13,6 +13,7 @@
           <p><loc:message code="merchants.modalOutputCommission"/></p>
           <p><loc:message code="merchants.modalOutputCommissionMerchant"/></p>
           <p><loc:message code="merchants.modalOutputFinalSum"/></p>
+          <p><loc:message code="merchants.modalOutputSumCommission"/></p>
         </div>
         <div id="merchant-commission-warning">
           <hr>
