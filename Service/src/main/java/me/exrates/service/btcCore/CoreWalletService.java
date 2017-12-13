@@ -50,7 +50,7 @@ public interface CoreWalletService {
   
   String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
   
-  BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments);
+  BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount);
 
     Flux<BtcBlockDto> blockFlux();
 

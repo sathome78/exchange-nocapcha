@@ -417,4 +417,15 @@ public class MerchantServiceImpl implements MerchantService {
     return merchantDao.findCurrenciesIdsByType(processType);
   }
 
+  @Override
+  public boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId) {
+    return merchantDao.getSubtractFeeFromAmount(merchantId, currencyId);
+  }
+
+  @Override
+  public void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount) {
+    merchantDao.setSubtractFeeFromAmount(merchantId, currencyId, subtractFeeFromAmount);
+  }
+
+
 }
