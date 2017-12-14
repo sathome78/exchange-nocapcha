@@ -276,7 +276,10 @@ function updateTxHistoryTable() {
                     text: 'CSV',
                     fieldSeparator: ';',
                     bom:true,
-                    charset: 'UTF8'
+                    charset: 'UTF8',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6]
+                    }
 
                 }
             ]
