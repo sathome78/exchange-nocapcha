@@ -265,7 +265,7 @@ function updateTxHistoryTable() {
                 }
 
             ],
-            dom: "<'#btc-wlt-download-btn.col-md-12'B>lftip",
+            dom: "<'download-btn col-md-12'B>lftip",
             "order": [[
                 0,
                 "desc"

@@ -388,7 +388,11 @@ function updateWithdrawalTable() {
             ],
             "createdRow": function (row, data, index) {
             },
-            "order": [[0, 'desc']]
+            "order": [[0, 'desc']],
+            dom: "<'download-btn col-md-12'B>lftip",
+            buttons: [
+                'csv'
+            ]
         });
     }
 }

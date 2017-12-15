@@ -2356,6 +2356,6 @@ input.copyable:hover{
     font-size: 1.5rem;
 }
 
-#btc-wlt-download-btn {
+.download-btn {
     margin-bottom: 20px;
 }
