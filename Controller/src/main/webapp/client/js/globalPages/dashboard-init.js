@@ -17,6 +17,7 @@ var ordersSubscription;
 var tradesSubscription;
 var chartSubscription;
 var eventsSubscrition;
+var alertsSubscription;
 var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
@@ -48,6 +49,7 @@ var onConnect = function() {
 
 function subscribeAll() {
     if (connectedPS) {
+        subscribeForAlerts();
         subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
@@ -77,6 +79,23 @@ function connectAndReconnect() {
     var headers = {'X-CSRF-TOKEN' : csrf};
     client.connect(headers, onConnect, onConnectFail);
 }
+
+function subscribeForAlerts() {
+    if (alertsSubscription != undefined) {
+        alertsSubscription.unsubscribe();
+    }
+    var lang = $("#language").text().toUpperCase().trim();
+    console.log('lang ' + lang);
+    var headers = {'X-CSRF-TOKEN' : csrf};
+    alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function(message) {
+        var messageBody = JSON.parse(message.body);
+        messageBody.forEach(function(object){
+            console.log(object);
+            handleAlerts(object);
+        });
+    }, headers);
+}
+
 
 function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
@@ -164,6 +183,19 @@ function subscribeEvents() {
         eventsSubscrition = client.subscribe(path, function (message) {
             handleEventsMessage(message.body);
         }, headers);
+    }
+}
+
+function handleAlerts(object) {
+    switch (object.alertType){
+        case "TECHNICAL_WORKS" : {
+            console.log(object);
+            break;
+        }
+        case "UPDATE" : {
+            console.log(object);
+            break;
+        }
     }
 }
 

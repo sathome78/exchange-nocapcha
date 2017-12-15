@@ -9,6 +9,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.UsersAlertsService;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.QRLoginEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -46,8 +47,6 @@ public class StompMessengerImpl implements StompMessenger{
     private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
                                                     .map(ChartPeriodsEnum::getBackDealInterval)
                                                     .collect(Collectors.toList());
-
-
 
 
    @Override
@@ -115,6 +114,11 @@ public class StompMessengerImpl implements StompMessenger{
     @Override
     public void sendEventMessage(final String sessionId, final String message) {
         sendMessageToDestination("/app/ev/".concat(sessionId), message);
+    }
+
+    @Override
+    public void sendAlerts(final String message) {
+        sendMessageToDestination("/app/users_alerts", message);
     }
 
 

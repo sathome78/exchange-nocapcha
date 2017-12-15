@@ -41,7 +41,9 @@ public interface UserService {
 
   void setGlobal2FaActive(boolean global2FaActive);
 
-  boolean create(User user, Locale locale);
+    List<String> getLocalesList();
+
+    boolean create(User user, Locale locale);
 
   boolean ifNicknameIsUnique(String nickname);
 

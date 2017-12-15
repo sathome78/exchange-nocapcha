@@ -528,6 +528,7 @@
         </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="org.springframework.web.socket.messaging.StompSubProtocolHandler" additivity="false" level="ALL">
             <AppenderRef ref="ws_stomp_log"/>
@@ -556,7 +557,7 @@
             <AppenderRef ref="test_log"/>
         </logger>
 
-        <Root level="INFO">
+        <Root level="DEBUG">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>
