@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -304,14 +305,18 @@ public class UserDaoImpl implements UserDao {
   @Override
   public UserShortDto findShortByEmail(String email) {
     String sql =  "SELECT id, email, password, status FROM USER WHERE email = :email";
-    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
-      UserShortDto dto = new UserShortDto();
-      dto.setEmail(rs.getString("email"));
-      dto.setId(rs.getInt("id"));
-      dto.setPassword(rs.getString("password"));
-      dto.setStatus(UserStatus.convert(rs.getInt("status")));
-      return dto;
-    });
+      try {
+          return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
+            UserShortDto dto = new UserShortDto();
+            dto.setEmail(rs.getString("email"));
+            dto.setId(rs.getInt("id"));
+            dto.setPassword(rs.getString("password"));
+            dto.setStatus(UserStatus.convert(rs.getInt("status")));
+            return dto;
+          });
+      } catch (EmptyResultDataAccessException e) {
+          throw new UserNotFoundException(String.format("email: %s", email));
+      }
   }
 
   @Override
