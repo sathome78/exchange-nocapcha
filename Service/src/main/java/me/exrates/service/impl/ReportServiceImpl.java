@@ -304,6 +304,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
 
+
   @Override
   public boolean isReportMailingEnabled() {
     return reportDao.isReportMailingEnabled();

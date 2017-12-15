@@ -2,7 +2,9 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.WithdrawRequestTableReportDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -95,6 +97,23 @@ public class WithdrawRequestAdminController {
     withdrawFilterData.initFilterItems();
     return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
   }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests/report", method = GET)
+  @ResponseBody
+  public String getRequestsReportByStatus(
+          @RequestParam("viewType") String viewTypeName,
+          WithdrawFilterData withdrawFilterData,
+          Principal principal,
+          Locale locale) {
+    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
+    DataTableParams dataTableParams = DataTableParams.defaultParams();
+    withdrawFilterData.initFilterItems();
+    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale)
+            .getData().stream().map(dto -> new WithdrawRequestTableReportDto(dto).toString())
+            .collect(Collectors.joining("", WithdrawRequestTableReportDto.getTitle(), ""));
+  }
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
   @ResponseBody
