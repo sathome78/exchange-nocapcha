@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import me.exrates.model.User;
+import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.enums.UserRole;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 
 public interface UserSecureService {
 
-    User getUserByUsername(String email);
+    UserShortDto getUserByUsername(String email);
 
     public List<User> getAllUsers();
 

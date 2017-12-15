@@ -3,6 +3,7 @@ package me.exrates.security.service;
 import me.exrates.dao.UserDao;
 import me.exrates.model.PagingData;
 import me.exrates.model.User;
+import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.enums.UserRole;
 import org.apache.logging.log4j.LogManager;
@@ -24,8 +25,8 @@ public class UserSecureServiceImpl implements UserSecureService {
 
 
 	@Override
-	public User getUserByUsername(String email) {
-		return userDao.findByEmail(email);
+	public UserShortDto getUserByUsername(String email) {
+		return userDao.findShortByEmail(email);
 	}
 
 	public List<User> getAllUsers() {

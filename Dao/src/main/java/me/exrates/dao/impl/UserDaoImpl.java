@@ -48,6 +48,7 @@ public class UserDaoImpl implements UserDao {
           "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
           "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
           "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+
   private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
       "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
       "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
@@ -298,6 +299,19 @@ public class UserDaoImpl implements UserDao {
     } catch (EmptyResultDataAccessException e) {
       throw new UserNotFoundException(String.format("email: %s", email));
     }
+  }
+
+  @Override
+  public UserShortDto findShortByEmail(String email) {
+    String sql =  "SELECT id, email, password, status FROM USER WHERE email = :email";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
+      UserShortDto dto = new UserShortDto();
+      dto.setEmail(rs.getString("email"));
+      dto.setId(rs.getInt("id"));
+      dto.setPassword(rs.getString("password"));
+      dto.setStatus(UserStatus.convert(rs.getInt("status")));
+      return dto;
+    });
   }
 
   @Override

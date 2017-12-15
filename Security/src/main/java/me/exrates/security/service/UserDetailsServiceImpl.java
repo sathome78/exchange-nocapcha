@@ -2,6 +2,7 @@ package me.exrates.security.service;
 
 import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
+import me.exrates.model.dto.UserShortDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		logger.trace("Begin 'loadUserByUsername' method");
 		org.springframework.security.core.userdetails.User userSpring;
 		try {
-			User person = userSecureService.getUserByUsername(login);
+			UserShortDto person = userSecureService.getUserByUsername(login);
 			userSpring = new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), ifUserAllowed(person), true, true, true,
 					getAuthorities(person.getEmail()));
 			return userSpring;
@@ -47,7 +48,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		return authList;
 	}
     
-    private boolean ifUserAllowed(User user) {
+    private boolean ifUserAllowed(UserShortDto user) {
 		logger.trace("Begin 'ifUserAllowed' method");
 		int userStatus = user.getStatus().getStatus();
 		if(userStatus == 2 || userStatus == 4) {
