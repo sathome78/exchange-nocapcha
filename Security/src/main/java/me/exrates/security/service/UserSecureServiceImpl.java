@@ -23,6 +23,11 @@ public class UserSecureServiceImpl implements UserSecureService {
 	private static final Logger logger = LogManager.getLogger(UserSecureServiceImpl.class);
 
 
+	@Override
+	public User getUserByUsername(String email) {
+		return userDao.findByEmail(email);
+	}
+
 	public List<User> getAllUsers() {
 		logger.trace("Begin 'getAllUsers' method");
 		return userDao.getAllUsers();

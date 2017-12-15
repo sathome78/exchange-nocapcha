@@ -9,7 +9,9 @@ import java.util.Map;
 
 public interface UserSecureService {
 
-public List<User> getAllUsers();
+    User getUserByUsername(String email);
+
+    public List<User> getAllUsers();
 
 public List<User> getUsersByRoles(List<UserRole> listRoles);
 
