@@ -122,9 +122,10 @@ public class MerchantServiceImpl implements MerchantService {
     mail.setMessage(notification);
 
     try {
+      /* TODO temporary disable
       notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
           "merchants.depositNotification.header", depositNotification,
-          new Object[]{sumWithCurrency, toWallet});
+          new Object[]{sumWithCurrency, toWallet});*/
       sendMailService.sendInfoMail(mail);
     } catch (MailException e) {
       LOG.error(e);

@@ -158,9 +158,9 @@
                             <span class="glyphicon glyphicon-cog nav__link"></span>
                         </a>
                     </li>
-                    <li>
+                    <%--<li>
                         <%@include file="../fragments/notification-header.jsp" %>
-                    </li>
+                    </li>--%>
                 </sec:authorize>
                 <li class="home-menu-item">
                     <a href="/">

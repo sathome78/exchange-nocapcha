@@ -42,22 +42,24 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private MessageSource messageSource;
 
+    // TODO manage notifications in admin page
 
-    private long createNotification(Integer userId, String title, String message, NotificationEvent cause) {
+
+    /*private long createNotification(Integer userId, String title, String message, NotificationEvent cause) {
         Notification notification = new Notification();
         notification.setReceiverUserId(userId);
         notification.setTitle(title);
         notification.setMessage(message);
         notification.setCause(cause);
         return notificationDao.createNotification(notification);
-    }
+    }*/
 
     @Override
     public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
          Locale locale = new Locale(userService.getPreferedLang(userId));
-        return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause);
+        return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
+                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
 
     }
 
@@ -66,8 +68,8 @@ public class NotificationServiceImpl implements NotificationService {
                                             Object[] messageArgs) {
         Integer userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
-        return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
-                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause);
+        return 0L /*createNotification(userId, messageSource.getMessage(titleCode, null, locale),
+                messageSource.getMessage(messageCode, normalizeArgs(messageArgs), locale), cause)*/;
 
     }
 
@@ -108,13 +110,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
       User user = userService.getUserById(userId);
       NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);
-      if (option.isSendNotification()) {
+      /*if (option.isSendNotification()) {
         createNotification(
             userId,
             titleMessage,
             message,
             cause);
-      }
+      }*/
       if (option.isSendEmail()) {
         Email email = new Email();
         email.setSubject(titleMessage);
