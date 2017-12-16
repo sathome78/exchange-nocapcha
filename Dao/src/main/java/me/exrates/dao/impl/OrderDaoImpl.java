@@ -922,19 +922,19 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         String sql = "SELECT (select name from OPERATION_TYPE where id = EXORDERS.operation_type_id) as operation, date_acception, " +
-            "  (select email from USER where id = EXORDERS.user_id) as user_owner, \n" +
-            "  (select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname, \n" +
-            "  (select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor, \n" +
-            "  (select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname, \n" +
-            "  (select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate \n" +
-            "  from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) \n" +
-            "    WHERE status_id = 3    \n" +
+            "  (select email from USER where id = EXORDERS.user_id) as user_owner,  " +
+            "  (select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname,  " +
+            "  (select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor,  " +
+            "  (select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname,  " +
+            "  (select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate  " +
+            "  from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid)  " +
+            "    WHERE status_id = 3     " +
             condition +
-            "  AND (operation_type_id IN (3,4))  \n" +
-            "  AND  (EXORDERS.date_acception BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') \n" +
-            "  AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))\n" +
+            "  AND (operation_type_id IN (3,4))   " +
+            "  AND  (EXORDERS.date_acception BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s')  " +
+            "  AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) " +
             "  AND EXISTS (SELECT * " +
-            "                  FROM CURRENCY_PAIR CP\n" +
+            "                  FROM CURRENCY_PAIR CP " +
             "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP1  ON (IOP1.user_id = :requester_user_id) AND (IOP1.currency_id = CP.currency1_id) " +
             "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP2  ON (IOP2.user_id = :requester_user_id) AND (IOP2.currency_id = CP.currency2_id) " +
             "                  WHERE (CP.id=EXORDERS.currency_pair_id))" +
@@ -988,6 +988,41 @@ public class OrderDaoImpl implements OrderDao {
             dto.setAmountBase(rs.getBigDecimal("amount_base"));
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setQuantity(rs.getInt("quantity"));
+            return dto;
+        });
+    }
+
+
+    /*maybe add index
+    * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
+    * */
+
+    @Override
+    public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+        String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, " +
+                "       SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert, " +
+                "  SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' AND source_id = EO.id AND operation_type_id != 5 )) " +
+                "    AS commission " +
+                "FROM EXORDERS EO " +
+                "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
+                "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
+                "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
+                "WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+                "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+                "GROUP BY CP.name, OT.id ORDER BY CP.name ASC, OT.id ASC";
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        params.put("user_roles", userRoleIdList);
+
+        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+            OrdersCommissionSummaryDto dto = new OrdersCommissionSummaryDto();
+            dto.setOrderNum(row + 1);
+            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            dto.setAmountBase(rs.getBigDecimal("amount_base"));
+            dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+            dto.setCommissionAmount(rs.getBigDecimal("commission"));
             return dto;
         });
     }
