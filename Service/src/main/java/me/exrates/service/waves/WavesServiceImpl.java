@@ -79,7 +79,7 @@ public class WavesServiceImpl implements WavesService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 30L, 120L, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, 30L, TimeUnit.MINUTES);
     }
 
     @Override

@@ -72,7 +72,9 @@ public interface UserDao {
 
   boolean update(UpdateUserDto user);
 
-  User findByNickname(String nickname);
+    UserShortDto findShortByEmail(String email);
+
+    User findByNickname(String nickname);
 
   List<User> getAllUsers();
 

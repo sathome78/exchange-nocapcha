@@ -884,7 +884,7 @@ public class OnlineRestController {
                                                        @RequestParam(required = false) Integer page,
                                                        Principal principal,
                                                        HttpServletRequest request) {
-    long before = System.currentTimeMillis();
+    /*long before = System.currentTimeMillis();
     String attributeName = tableId + "Params";
     TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
     Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
@@ -895,7 +895,8 @@ public class OnlineRestController {
     List<NotificationDto> result = notificationService.findByUser(principal.getName(), cacheData, offset, tableParams.getPageSize());
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
-    return result;
+    return result;*/
+    return Collections.emptyList();
   }
 
   @RequestMapping(value = "/dashboard/myReferralStructure")

@@ -92,6 +92,10 @@ public class SendMailServiceImpl implements SendMailService{
 			message.setTo(email.getTo());
 			message.setSubject(email.getSubject());
 			message.setText(email.getMessage(), true);
+			if (email.getAttachments() != null) {
+				for (Email.Attachment attachment : email.getAttachments())
+					message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
+			}
 		});
 	}
 

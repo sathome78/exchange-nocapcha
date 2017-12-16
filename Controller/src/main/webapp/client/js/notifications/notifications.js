@@ -71,6 +71,7 @@ function NotificationsClass() {
         });
     };
 
+    /* TODO temporary disable
     (function init() {
 
         if ($('#notification-icon').length > 0) {
@@ -90,7 +91,7 @@ function NotificationsClass() {
                 that.getNotifications();
             });
         }
-    })();
+    })();*/
 
 
 

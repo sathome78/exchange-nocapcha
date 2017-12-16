@@ -1,5 +1,7 @@
 package me.exrates.model.enums;
 
+import java.util.stream.Stream;
+
 public enum UserStatus {
 
 	REGISTERED(1),
@@ -20,5 +22,10 @@ public enum UserStatus {
     @Override
     public String toString() {
         return this.name();
+    }
+
+    public static UserStatus convert(int status) {
+        return Stream.of(UserStatus.values()).filter(item -> item.getStatus() == status).findFirst()
+                .orElseThrow(IllegalArgumentException::new);
     }
 }

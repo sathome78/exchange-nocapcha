@@ -66,4 +66,8 @@ public interface MerchantDao {
   MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
   MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
+
+  boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
+
+  void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
 }

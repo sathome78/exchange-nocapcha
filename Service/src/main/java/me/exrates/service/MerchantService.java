@@ -77,4 +77,8 @@ public interface MerchantService {
     List<String> getWarningsForMerchant(OperationType operationType, Integer merchantId, Locale locale);
 
     List<Integer> getIdsByProcessType(List<String> processType);
+
+  boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
+
+  void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
 }

@@ -76,4 +76,8 @@ public interface BitcoinService extends IRefillable, IWithdrawable {
   }
 
   String getNewAddressForAdmin();
+
+    void setSubtractFeeFromAmount(boolean subtractFeeFromAmount);
+
+    boolean getSubtractFeeFromAmount();
 }

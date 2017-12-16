@@ -5,10 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
+import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -249,19 +246,17 @@ public class BitcoinServiceImpl implements BitcoinService {
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
     List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
-    btcRefillRequests.forEach(log::debug);
+    log.info("Refill requests ready for update: " +
+      btcRefillRequests.stream().map(RefillRequestFlatDto::getId).collect(Collectors.toList()));
+
     List<RefillRequestSetConfirmationsNumberDto> paymentsToUpdate = new ArrayList<>();
-    log.debug("Start retrieving TXs");
     btcRefillRequests.stream().filter(request -> StringUtils.isNotEmpty(request.getMerchantTransactionId())).forEach(request -> {
-      log.debug("Retrieving tx from blockchain!");
+      try {
         Optional<BtcTransactionDto> txResult = bitcoinWalletService.handleTransactionConflicts(request.getMerchantTransactionId());
         if (txResult.isPresent()) {
           BtcTransactionDto tx = txResult.get();
-          log.debug("Target tx: " + tx.getTxId());
           tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
-                  .peek(log::debug)
                   .findFirst().ifPresent(paymentOverview -> {
-                    log.debug("Adding payment to list: " + paymentOverview);
                     paymentsToUpdate.add(RefillRequestSetConfirmationsNumberDto.builder()
                             .address(paymentOverview.getAddress())
                             .amount(paymentOverview.getAmount())
@@ -273,14 +268,17 @@ public class BitcoinServiceImpl implements BitcoinService {
                             .hash(tx.getTxId()).build());
                   }
                   );
-          
+
         } else {
-          log.error("No valid transactions available!");
+          log.warn("No valid transactions available!");
         }
-      
+      } catch (Exception e) {
+        log.error(e);
+      }
+
     });
   
-    log.debug("Start updating payments in DB");
+    log.info("updating payments: " + paymentsToUpdate);
     paymentsToUpdate.forEach(payment -> {
       log.debug(String.format("Payment to update: %s", payment));
       changeConfirmationsOrProvide(payment);
@@ -366,10 +364,13 @@ public class BitcoinServiceImpl implements BitcoinService {
         paymentGroupIterator.add(newPaymentGroup);
       }
     }
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    boolean subtractFeeFromAmount = merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
 
     return paymentGroups.stream()
             .flatMap(group -> {
-              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group);
+              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group, subtractFeeFromAmount);
               return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
                       entry.getValue(), result));
                     }).collect(Collectors.toList());
@@ -392,6 +393,21 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String getNewAddressForAdmin() {
     return bitcoinWalletService.getNewAddress(walletPassword);
+  }
+
+  @Override
+  public void setSubtractFeeFromAmount(boolean subtractFeeFromAmount) {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    merchantService.setSubtractFeeFromAmount(merchant.getId(), currency.getId(), subtractFeeFromAmount);
+
+  }
+
+  @Override
+  public boolean getSubtractFeeFromAmount() {
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    return merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
   }
 
   @PreDestroy

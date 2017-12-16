@@ -1,5 +1,6 @@
 package me.exrates.security.filter;
 
+import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.IpBlockingService;
@@ -35,8 +36,10 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         //it's nessary to "save" exception that was thrown. This exception will be used in MaimController @RequestMapping(value = "/login", method = RequestMethod.GET)
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
-        String ipAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.processLoginFailure(ipAddress);
+        if (!(exception instanceof BannedIpException)) {
+            String ipAddress = IpUtils.getClientIpAddress(request);
+            ipBlockingService.processLoginFailure(ipAddress);
+        }
         HttpSession session = request.getSession(false);
         session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
         //

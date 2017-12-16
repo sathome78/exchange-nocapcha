@@ -80,6 +80,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -87,6 +88,7 @@ import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.ROLE_CHANGE_PASSWORD;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.TRANSFER_VOUCHER;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
@@ -1483,7 +1485,12 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats", method = GET)
   public ModelAndView generalStats() {
-    return new ModelAndView("admin/generalStats");
+    Map<UserRole, Boolean> defaultRoleFilter = new EnumMap<>(UserRole.class);
+    defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
+            .collect(Collectors.toMap(value -> value, value -> false)));
+    userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
+
+    return new ModelAndView("admin/generalStats", "defaultRoleFilter", defaultRoleFilter);
   }
 
   @ResponseBody
@@ -1494,6 +1501,21 @@ public class AdminController {
     LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
     LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
     return userService.getNewRegisteredUserNumber(startTime, endTime);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/getSubtractFeeStatus", method = GET)
+  public Boolean getSubtractFeeFromAmount(@PathVariable String merchantName) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    return walletService.getSubtractFeeFromAmount();
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setSubtractFee", method = POST)
+  public void setSubtractFeeFromAmount(@PathVariable String merchantName,
+                                       @RequestParam Boolean subtractFee) {
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    walletService.setSubtractFeeFromAmount(subtractFee);
   }
 
 

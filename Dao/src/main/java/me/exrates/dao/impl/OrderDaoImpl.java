@@ -788,6 +788,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public boolean lockOrdersListForAcception(List<Integer> ordersList) {
+        //TODO Why cycle?? not WHERE id IN (...) ?
+
         for (Integer orderId : ordersList) {
             String sql = "SELECT id " +
                     "  FROM EXORDERS " +

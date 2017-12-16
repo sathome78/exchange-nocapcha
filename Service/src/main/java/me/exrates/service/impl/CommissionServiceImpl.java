@@ -10,16 +10,14 @@ import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.CommissionService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserRoleService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +48,13 @@ public class CommissionServiceImpl implements CommissionService {
   MerchantService merchantService;
 
   @Autowired
+  CurrencyService currencyService;
+
+  @Autowired
   MerchantServiceContext merchantServiceContext;
+
+  @Autowired
+  private MessageSource messageSource;
 
   @Override
   public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
@@ -128,18 +132,21 @@ public class CommissionServiceImpl implements CommissionService {
     CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId, destinationTag);
     result.put("amount", commissionData.getAmount().toPlainString());
     if (!commissionData.getSpecificMerchantComissionCount()) {
-      result.put("merchantCommissionRate", "("
-              .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
-              .concat(commissionData.getMerchantCommissionUnit())
-              .concat(")"));
+
+      String merchantCommissionRate = messageSource.getMessage("merchant.commission.rateWithLimit",
+              new Object[]{BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false)
+                      + commissionData.getMerchantCommissionUnit(),
+                      String.join("", BigDecimalProcessing.formatLocale(commissionData.getMinMerchantCommissionAmount(), locale, false),
+                              " ", currencyService.getCurrencyName(currencyId))}, locale);
+
+      result.put("merchantCommissionRate", String.join("", "(", merchantCommissionRate, ")"));
+
     } else {
       result.put("merchantCommissionRate", "");
     }
     result.put("merchantCommissionAmount", commissionData.getMerchantCommissionAmount().toPlainString());
-    result.put("companyCommissionRate", "("
-              .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
-              .concat(commissionData.getCompanyCommissionUnit())
-              .concat(")"));
+    result.put("companyCommissionRate", String.join("", "(", BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false),
+            commissionData.getCompanyCommissionUnit(), ")"));
     result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
     result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
     result.put("resultAmount", commissionData.getResultAmount().toPlainString());
@@ -162,6 +169,7 @@ public class CommissionServiceImpl implements CommissionService {
     Merchant merchant = merchantService.findById(merchantId);
     if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
       BigDecimal merchantCommissionRate = getCommissionMerchant(merchantId, currencyId, type);
+      BigDecimal merchantMinFixedCommission  = getMinFixedCommission(currencyId, merchantId);
       BigDecimal merchantCommissionAmount;
       BigDecimal companyCommissionAmount;
       String merchantCommissionUnit = "%";
@@ -181,20 +189,16 @@ public class CommissionServiceImpl implements CommissionService {
         } else {
           merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         }
-        BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
-          merchantCommissionUnit = "";
         }
       } else if (type == USER_TRANSFER) {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
         amount = amount.setScale(currencyScale, ROUND_DOWN);
         companyCommissionAmount = BigDecimal.ZERO;
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
-        BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
-          merchantCommissionUnit = "";
         }
       } else {
         throw new IllegalOperationTypeException(type.name());
@@ -209,6 +213,7 @@ public class CommissionServiceImpl implements CommissionService {
       return new CommissionDataDto(
           amount,
           merchantCommissionRate,
+          merchantMinFixedCommission,
           merchantCommissionUnit,
           merchantCommissionAmount,
           companyCommission,
@@ -222,6 +227,7 @@ public class CommissionServiceImpl implements CommissionService {
       );
     } else {
       return new CommissionDataDto(
+          ZERO,
           ZERO,
           ZERO,
           "",

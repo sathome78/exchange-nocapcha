@@ -707,9 +707,6 @@ td.blue-white {
 				ORDER
 **********************************/
 
-.fa {
-    margin-left: 5px;
-}
 
 .blue-box,
 .red-box,
@@ -2332,4 +2329,30 @@ input.copyable:hover{
 
 #generate-address, #copy-address, #refill-address {
     margin: 10px 0;
+}
+
+#report-emails-table td {
+    font-size: 1.4rem;
+}
+
+.delete-email:hover, #mailing-status-indicator:hover {
+    cursor: pointer;
+
+}
+
+.fa.fa-caret-down {
+    margin-left: 5px;
+}
+
+#report-emails-table thead th, #report-emails-table thead td {
+    padding-top: 0;
+}
+
+#subtract-fee-from-amount:hover{
+    cursor:pointer;
+}
+
+#subtract-fee-from-amount {
+    font-size: 1.5rem;
+;
 }

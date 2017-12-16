@@ -1,6 +1,8 @@
 package me.exrates.security.service;
 
+import me.exrates.dao.exception.UserNotFoundException;
 import me.exrates.model.User;
+import me.exrates.model.dto.UserShortDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,41 +28,27 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
 		logger.trace("Begin 'loadUserByUsername' method");
 		org.springframework.security.core.userdetails.User userSpring;
-		List<User> listUser = userSecureService.getAllUsers(); 
-		User person = getUser(listUser, login);
-		if (person == null)
-		{
-			throw new UsernameNotFoundException("Несуществующий логин");
-		} else
-		{
+		try {
+			UserShortDto person = userSecureService.getUserByUsername(login);
 			userSpring = new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), ifUserAllowed(person), true, true, true,
 					getAuthorities(person.getEmail()));
+			return userSpring;
+		} catch (UserNotFoundException e) {
+			throw new UsernameNotFoundException("Несуществующий логин");
 		}
-		return userSpring;
+
    }
-    private User getUser(List<User> lp, String userName)
-	{
-		logger.trace("Begin 'getUser' method");
-		final String un = userName.toLowerCase();
-		return lp.stream()
-				.filter(e ->e.getEmail().toLowerCase().equals(un))
-				.findFirst()
-				.orElse(null);
-	}
-      
+
     private Collection<GrantedAuthority> getAuthorities(String login)
 	{
 		logger.trace("Begin 'getAuthorities' method");
-		/*UserRole role = userSecureService.getUserRoles(login);
-    	Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
-    	authList.add(new SimpleGrantedAuthority(role.name()));*/
         Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login).stream()
                 .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         logger.debug(authList);
 		return authList;
 	}
     
-    private boolean ifUserAllowed(User user) {
+    private boolean ifUserAllowed(UserShortDto user) {
 		logger.trace("Begin 'ifUserAllowed' method");
 		int userStatus = user.getStatus().getStatus();
 		if(userStatus == 2 || userStatus == 4) {

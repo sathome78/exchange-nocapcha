@@ -67,7 +67,7 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                     while (isActive) {
                         try {
                             String hex = extractMessage(subscriber);
-                            log.info("socket {} got notification {} ", port, hex);
+                            log.debug("socket {} got notification {} ", port, hex);
                             if (hexStringChecker.test(hex)) {
                                 onNext.accept(hex);
                             } else {
@@ -135,7 +135,6 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
                 T resultItem = mapper.apply(hex);
                 return Flux.just(resultItem);
             } catch (Exception e) {
-                log.error(e);
                 return Flux.empty();
             }
         });
@@ -153,8 +152,9 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
     private Transaction getTransaction(String txId) {
         try {
             return btcdClient.getTransaction(txId);
-        } catch (Exception e) {
-            log.error(e);
+        }
+
+        catch (Exception e) {
             throw new BitcoinCoreException(e.getMessage());
         }
     }
