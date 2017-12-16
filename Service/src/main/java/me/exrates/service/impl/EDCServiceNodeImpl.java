@@ -316,7 +316,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   }
 
   private String makeRpcCallFast(String rpc, Object... args) throws IOException {
-   /* final String rpcCall = String.format(rpc, args);
+    final String rpcCall = String.format(rpc, args);
     final Request request = new Request.Builder()
         .url(RPC_URL_FAST)
         .post(RequestBody.create(MEDIA_TYPE, rpcCall))
@@ -324,8 +324,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return HTTP_CLIENT.newCall(request)
         .execute()
         .body()
-        .string();*/
-   return "";
+        .string();
   }
 
   private enum KEY_TYPE {
