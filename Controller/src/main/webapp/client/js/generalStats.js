@@ -60,6 +60,8 @@ $(function () {
     $('#refresh-users').click(refreshUsersNumber);
     $('#download-currencies-report').click(getCurrenciesTurnover);
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
+    $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
+    $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
     $($addEmailModal).on('click', '#submit-email', function () {
@@ -123,10 +125,25 @@ function getCurrencyPairsTurnover() {
     })
 }
 
+function getCurrencyPairsComissions() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data, 'currencyPairsComissions.csv')
+    })
+}
+
 function getCurrenciesTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencies.csv')
+    })
+
+}
+
+function getInputOutputSummaryWithCommissions() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data, 'inputOutputSummaryWithCommissions.csv')
     })
 
 }
