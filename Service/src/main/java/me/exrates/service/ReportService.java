@@ -32,8 +32,14 @@ public interface ReportService {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                            List<UserRole> roleList);
 
+    List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                         List<UserRole> roleList);
+
     List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                        List<UserRole> roleList);
+
+    List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+                                                                               List<UserRole> roleList);
 
     boolean isReportMailingEnabled();
 

@@ -104,6 +104,25 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencyPairsComissions"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-currency-pairs-comissions" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="admin.generalStats.button.currencyPairsInOutComis"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-input-output-summary-with-commissions" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+
 
                     </div>
 

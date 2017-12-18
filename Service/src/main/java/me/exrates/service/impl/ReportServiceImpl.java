@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
@@ -286,24 +287,34 @@ public class ReportServiceImpl implements ReportService {
   @Override
   public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                                 List<UserRole> roleList) {
-    if (roleList.isEmpty()) {
-      throw new IllegalArgumentException("At least one role must be specified");
-    }
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
     return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                              List<UserRole> roleList) {
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+    return orderService.getOrderCommissionsByPairsForPeriod(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
   }
 
   @Override
   public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                             List<UserRole> roleList) {
-    if (roleList.isEmpty()) {
-      throw new IllegalArgumentException("At least one role must be specified");
-    }
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
     return inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
   }
 
-
+  @Override
+  public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+                                                                            List<UserRole> roleList) {
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+    return inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
 
   @Override
   public boolean isReportMailingEnabled() {
