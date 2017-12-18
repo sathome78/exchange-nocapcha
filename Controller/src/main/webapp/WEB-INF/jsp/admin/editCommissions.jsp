@@ -33,6 +33,9 @@
                 <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.merchantsCommissions"/>
                 </button>
+                <button class="adminForm-toggler blue-box">
+                    <loc:message code="admin.editTransferCommission"/>
+                </button>
             </div>
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
@@ -69,6 +72,21 @@
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.subtractForWithdraw"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+                <div id="panel3" class="tab-pane">
+                    <div class="col-sm-8">
+                        <div class="text-center"><h4><loc:message code="admin.merchantsCommissions"/></h4></div>
+                        <table id="transfer-commissions-table" style="cursor: pointer;">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="withdrawal.merchant"/> </th>
+                                <th><loc:message code="withdrawal.currency"/> </th>
+                                <th><loc:message code="admin.merchantsCommissions.transfer"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.minFixedForTransfer"/></th>
                             </tr>
                             </thead>
                         </table>
@@ -175,6 +193,57 @@
                         </div>
                     </div>
                     <button id="submitMerchantCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editTransferCommissionModal" class="modal fade">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="admin.editTransferCommission"/></h4>
+            </div>
+            <div class="modal-body">
+                <form id="edit-transferCommission-form" class="form_full_width form_auto_height">
+                    <input type="hidden" name="merchantId" >
+                    <input type="hidden" name="currencyId" >
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="merchantName" class="input-block-wrapper__label"><loc:message code="withdrawal.merchant"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="merchantName" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="currencyName" class="input-block-wrapper__label"><loc:message code="withdrawal.currency"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="currencyName" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.transfer"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="transferValue" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.minFixedForTransfer"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="minFixedAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <button id="submitTransferCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
                 </form>
             </div>
         </div>

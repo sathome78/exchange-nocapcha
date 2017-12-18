@@ -21,7 +21,7 @@ import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -80,6 +80,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -1093,7 +1094,18 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-    return merchantService.findMerchantCurrencyOptions(Collections.emptyList());
+    return merchantService.findMerchantCurrencyOptions(
+            Stream.of(MerchantProcessType.values())
+                    .filter(p -> !p.equals(MerchantProcessType.TRANSFER))
+                    .map(Enum::name)
+                    .collect(Collectors.toList()));
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantTransferCommissions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<MerchantCurrencyOptionsDto> retrieveMerchantTransactionCommissions() {
+    return merchantService.findMerchantCurrencyOptions(Collections.singletonList(MerchantProcessType.TRANSFER.name()));
 
   }
 
