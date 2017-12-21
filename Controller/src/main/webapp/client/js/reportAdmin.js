@@ -202,9 +202,6 @@ function makeReportByParams(params) {
                 type: 'GET',
                 success: function (data) {
                     saveToDisk(data);
-                },
-                complete: function () {
-                    $loadingDialog.modal("hide");
                 }
             }
         );

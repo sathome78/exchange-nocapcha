@@ -74,12 +74,6 @@
                     z-index: 99999;'/>
         <%@include file="right-sider-news-list.jsp" %>
     </div>
-    <div style="text-align: center; height: 250px; vertical-align: top">
-        <p></p>
-        <a href="/client/img/cert.jpg">
-            <img src="/client/img/cert.gif" style="width: 185px; height: 185px; "/>
-        </a>
-    </div>
 
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
