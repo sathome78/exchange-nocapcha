@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
   private final static List<String> LOCALES_LIST = new ArrayList<String>(){{
     add("EN");
     add("RU");
-    add("CH");
+    add("CN");
     add("ID");
     add("AR");
   }};

@@ -45,8 +45,9 @@ public class SystemEventsHandler {
     public void handleAlertUsers(AlertDto alertDto) {
         userService.getLocalesList().forEach(p->{
             try {
+                Locale locale = Locale.forLanguageTag(p);
                 stompMessenger.sendAlerts(objectMapper
-                        .writeValueAsString(usersAlertsService.getActiveAlerts(Locale.forLanguageTag(p))));
+                        .writeValueAsString(usersAlertsService.getAllAlerts(locale)), p.toUpperCase());
             } catch (Exception e) {
                 log.error(e);
             }

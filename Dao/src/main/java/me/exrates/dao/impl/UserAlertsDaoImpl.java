@@ -33,10 +33,10 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
                 .build();
         Optional.ofNullable(rs.getTimestamp("launch_date"))
                 .ifPresent(p->alertDto.setLaunchDateTime(p.toLocalDateTime()));
-        Optional.ofNullable(rs.getTimestamp("time_to_start"))
+        Optional.ofNullable(rs.getTimestamp("time_of_start"))
                 .ifPresent(p->alertDto.setEventStart(p.toLocalDateTime()));
-        Optional.ofNullable(rs.getTime("length"))
-                .ifPresent(p->alertDto.setLenghtOfWorks(p.toLocalTime()));
+        Optional.ofNullable(rs.getInt("length"))
+                .ifPresent(alertDto::setLenghtOfWorks);
         return alertDto;
     };
 
@@ -52,12 +52,12 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
     @Override
     public boolean updateAlert(AlertDto alertDto) {
         String sql = "UPDATE SERVICE_ALERTS SA SET SA.enable = :enable, " +
-                " SA.launch_date = :launch_date, SA.time_to_start = :time_to_start, SA.length = :length " +
+                " SA.launch_date = :launch_date, SA.time_of_start = :time_of_start, SA.length = :length " +
                 " WHERE SA.alert_type = :alert_type ";
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("enable", alertDto.isEnabled());
             put("launch_date", alertDto.getLaunchDateTime());
-            put("time_start", alertDto.getEventStart());
+            put("time_of_start", alertDto.getEventStart());
             put("length", alertDto.getLenghtOfWorks());
             put("alert_type", alertDto.getAlertType());
         }};
@@ -73,6 +73,15 @@ public class UserAlertsDaoImpl implements UserAlertsDao {
             put("alert_type", alertType);
         }};
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public AlertDto getAlert(String name) {
+        String sql = "SELECT * FROM SERVICE_ALERTS SA WHERE SA.alert_type = :name";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("name", name);
+        }};
+        return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper);
     }
 
 

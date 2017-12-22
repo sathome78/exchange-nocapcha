@@ -151,6 +151,8 @@ public class AdminController {
   private NotificatorsService notificatorsService;
   @Autowired
   private NotificationsSettingsService notificationsSettingsService;
+  @Autowired
+  private UsersAlertsService alertsService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -1482,7 +1484,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/order/acceptMany", method = POST)
   public void acceptManyOrders(@RequestParam List<Integer> orderIds, Principal principal, Locale locale) {
     log.info(orderIds);
-
     orderService.acceptManyOrdersByAdmin(principal.getName(), orderIds, locale);
   }
 
@@ -1508,9 +1509,20 @@ public class AdminController {
     return userService.getNewRegisteredUserNumber(startTime, endTime);
   }
 
+  @AdminLoggable
+  @GetMapping(value = "/2a8fy7b07dxe44/alerts")
+  public String alertsPage(Model model) {
+    model.addAttribute("update", alertsService.getAlert(AlertType.UPDATE));
+    model.addAttribute("tech", alertsService.getAlert(AlertType.TECHNICAL_WORKS));
+    return "admin/alertMessages";
+  }
 
-
-
+  @AdminLoggable
+  @PostMapping(value = "/2a8fy7b07dxe44/alerts/update")
+  public String alertsUpdatePage(@Valid AlertDto alertDto) {
+    alertsService.updateAction(alertDto);
+    return "redirect:/2a8fy7b07dxe44/alerts";
+  }
 
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

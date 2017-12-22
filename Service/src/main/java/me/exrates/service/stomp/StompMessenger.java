@@ -21,5 +21,5 @@ public interface StompMessenger {
 
     void sendEventMessage(String sessionId, String message);
 
-    void sendAlerts(String message);
+    void sendAlerts(String message, String lang);
 }

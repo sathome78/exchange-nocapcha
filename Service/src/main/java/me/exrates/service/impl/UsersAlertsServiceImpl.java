@@ -6,13 +6,14 @@ import me.exrates.model.dto.AlertDto;
 import me.exrates.model.enums.AlertType;
 import me.exrates.service.UsersAlertsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -27,8 +28,17 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
     private MessageSource messageSource;
     @Autowired
     private UserAlertsDao userAlertsDao;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
-    private static final int MINUTES_FOR_OUTDATE = 30;
+    @PostConstruct
+    private void init() {
+       /* AlertType alertType = AlertType.UPDATE;
+        AlertDto alertDto = getAlert(AlertType.UPDATE);
+        if (alertDto.isEnabled() && alertDto.getEventStart().isBefore(LocalDateTime.now())) {
+            disableAlert(alertType);
+        }*/ /*todo:uncomment*/
+    }
 
     @Override
     public List<AlertDto> getActiveAlerts(Locale locale) {
@@ -46,13 +56,18 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
 
     private void completeDtos(List<AlertDto> alertDtos, Locale locale) {
         alertDtos.forEach(p->{
-            if (p.isEnabled()) {
+            if(p.isEnabled()) {
                 AlertType alertType = AlertType.valueOf(p.getAlertType());
-                if (alertType.isNeedDateTime()) {
-                    LocalTime length = p.getLenghtOfWorks();
+                if (alertType.isNeedDateTime() && p.isEnabled()) {
+                    if (LocalDateTime.now().isBefore(p.getEventStart())) {
+                        Duration duration = Duration.between(LocalDateTime.now(), p.getEventStart());
+                        log.debug("now {}, launch {}, duration {}, seconds {}", LocalDateTime.now(), p.getEventStart(), duration, duration.getSeconds());
+                        p.setTimeRemainSeconds(duration.getSeconds());
+                    } else {
+                        p.setTimeRemainSeconds(0L);
+                    }
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(),
-                            new String[]{String.valueOf(length.getMinute())},
-                            locale));
+                            new String[]{p.getLenghtOfWorks().toString()}, locale));
                 } else {
                     p.setText(messageSource.getMessage(alertType.getMessageTmpl(), null, locale));
                 }
@@ -60,30 +75,40 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
         });
     }
 
-    private boolean checkForOutdate(AlertDto dto) {
-        LocalTime length = dto.getLenghtOfWorks();
-        return dto.getLaunchDateTime()
-                .plusHours(length.getHour())
-                .plusMinutes(length.getMinute())
-                .plusMinutes(MINUTES_FOR_OUTDATE)
-                .isBefore(LocalDateTime.now());
+    @Override
+    @Transactional
+    public AlertDto getAlert(AlertType alertType) {
+        return userAlertsDao.getAlert(alertType.name());
     }
 
     @Transactional
     @Override
-    public void enableAlert(AlertType alertType, Duration minutes) {
+    public void updateAction(AlertDto alertDto) {
+        eventPublisher.publishEvent(alertDto);
+        AlertType alertType = AlertType.valueOf(alertDto.getAlertType());
+        if (alertDto.isEnabled()) {
+            enableAlert(alertType, alertDto);
+        } else {
+            disableAlert(alertType);
+        }
+    }
+
+    private void enableAlert(AlertType alertType, AlertDto alertDto) {
+        LocalDateTime eventStart = null;
+        if (alertType.isNeedDateTime()) {
+            eventStart = LocalDateTime.now().plusMinutes(alertDto.getMinutes());
+        }
         userAlertsDao.updateAlert(AlertDto
                 .builder()
                 .alertType(alertType.name())
                 .launchDateTime(LocalDateTime.now())
                 .enabled(true)
-                .eventStart(LocalDateTime.now().plus(minutes))
+                .eventStart(eventStart)
+                .lenghtOfWorks(alertDto.getLenghtOfWorks())
                 .build());
     }
 
-    @Transactional
-    @Override
-    public void disableAlert(AlertType alertType) {
+    private void disableAlert(AlertType alertType) {
         userAlertsDao.updateAlert(AlertDto
                 .builder()
                 .alertType(alertType.name())

@@ -14,4 +14,6 @@ public interface UserAlertsDao {
     boolean updateAlert(AlertDto alertDto);
 
     boolean setEnable(String alertType, boolean enable);
+
+    AlertDto getAlert(String name);
 }

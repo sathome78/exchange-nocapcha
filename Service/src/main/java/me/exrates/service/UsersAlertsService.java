@@ -18,8 +18,8 @@ public interface UsersAlertsService {
     List<AlertDto> getAllAlerts(Locale locale);
 
     @Transactional
-    void enableAlert(AlertType alertType, Duration minutes);
+    AlertDto getAlert(AlertType alertType);
 
     @Transactional
-    void disableAlert(AlertType alertType);
+    void updateAction(AlertDto alertDto);
 }

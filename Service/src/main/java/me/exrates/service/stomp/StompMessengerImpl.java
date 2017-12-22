@@ -117,8 +117,9 @@ public class StompMessengerImpl implements StompMessenger{
     }
 
     @Override
-    public void sendAlerts(final String message) {
-        sendMessageToDestination("/app/users_alerts", message);
+    public void sendAlerts(final String message, final String lang) {
+       log.debug("lang to send {}", lang);
+        sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 
 
