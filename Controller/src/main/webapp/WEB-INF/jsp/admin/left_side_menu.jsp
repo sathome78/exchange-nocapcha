@@ -73,6 +73,13 @@
         </li>
 
         <li>
+            <%--withdraw--%>
+            <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message code="admin.transfers"/></a>
+            </sec:authorize>
+        </li>
+
+        <li>
             <%--refill--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/refill'/>"><loc:message code="admin.refillRequests"/></a>

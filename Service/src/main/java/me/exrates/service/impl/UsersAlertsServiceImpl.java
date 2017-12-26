@@ -33,11 +33,11 @@ public class UsersAlertsServiceImpl implements UsersAlertsService {
 
     @PostConstruct
     private void init() {
-       /* AlertType alertType = AlertType.UPDATE;
+        AlertType alertType = AlertType.UPDATE;
         AlertDto alertDto = getAlert(AlertType.UPDATE);
         if (alertDto.isEnabled() && alertDto.getEventStart().isBefore(LocalDateTime.now())) {
             disableAlert(alertType);
-        }*/ /*todo:uncomment*/
+        }
     }
 
     @Override

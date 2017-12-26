@@ -277,7 +277,6 @@
 
             if (timer.seconds > 59 ) {
                 if (60 - timer.minutes == 0 && 24 - timer.hours == 0 ) {
-                    console.log('clear interval');
                     clearInterval(interval);
                     if (callbackFunction !== undefined) {
                         callbackFunction.call(this); // brings the scope to the callback

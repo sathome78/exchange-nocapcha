@@ -73,8 +73,11 @@
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
+    <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
 
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
     <%--TOOLS ... --%>
     <!-- Google Analytics-->
@@ -94,60 +97,7 @@
 
 <main class="container">
 
-    <div id="alerts_container">
-        <div class="alert alert-warning" id="tech_alert" style="display: none">
-            <h4 id="tech_alert_text"></h4>
-        </div>
-
-        <div class="alert alert-warning" id="upd_alert" style="display: none; padding-bottom: 0">
-            <h4 id="upd_alert_text"></h4>
-
-            <div class="countdown countdown-container container" style="margin-left: 80%">
-
-                <div class="clock row">
-                    <h6 style="margin-left: 1%"><loc:message code="message.alert.timerTimeTo"/>:</h6>
-                    <!-- hours -->
-                    <div class="clock-item clock-hours countdown-time-value col-sm-6 col-md-3">
-                        <div class="wrap">
-                            <div class="inner">
-                                <div id="canvas_hours" class="clock-canvas"></div>
-                                <div class="text">
-                                    <p class="val">0</p>
-                                    <p class="type-hours type-time"><loc:message code="message.alert.hours"/></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- minutes -->
-                    <div class="clock-item clock-minutes countdown-time-value col-sm-6 col-md-3">
-                        <div class="wrap">
-                            <div class="inner">
-                                <div id="canvas_minutes" class="clock-canvas"></div>
-                                <div class="text">
-                                    <p class="val">0</p>
-                                    <p class="type-minutes type-time"><loc:message code="message.alert.minutes"/></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- seconds -->
-                    <div class="clock-item clock-seconds countdown-time-value col-sm-6 col-md-3">
-                        <div class="wrap">
-                            <div class="inner">
-                                <div id="canvas_seconds" class="clock-canvas"></div>
-                                <div class="text">
-                                    <p class="val">0</p>
-                                    <p class="type-seconds type-time"><loc:message code="message.alert.seconds"/></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-    </div>
+    <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -181,57 +131,3 @@
 </body>
 </html>
 
-<script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
-<style>
-    .countdown-container {
-        position: sticky;
-        top: 50%;
-        -webkit-transform: translateY(-50%);
-        -moz-transform: translateY(-50%);
-        transform: translateY(-50%);
-    }
-
-    .clock-item {
-        width: 5%; !important;
-    }
-    .clock-item .inner {
-        height: 0px;
-        padding-bottom: 100%;
-        position: relative;
-        width: 100%;
-    }
-    .clock-canvas {
-        background-color: rgba(255, 255, 255, .1);
-        border-radius: 50%;
-        height: 0px;
-        padding-bottom: 100%;
-    }
-    .text {
-        color: #fff;
-        font-size: 30px;
-        font-weight: bold;
-        margin-top: -30px;
-        position: absolute;
-      /*  top: 50%;*/
-        text-align: center;
-        text-shadow: 1px 1px 1px rgba(0, 0, 0, 1);
-        width: 100%;
-    }
-    .text .val {
-        font-size: 16px;
-    }
-    .text .type-time {
-        font-size: 8px;
-    }
-    @media (min-width: 768px) and (max-width: 991px) {
-        .clock-item {
-            margin-bottom: 30px;
-        }
-    }
-    @media (max-width: 767px) {
-        .clock-item {
-            margin: 0px 30px 30px 30px;
-        }
-    }
-</style>
