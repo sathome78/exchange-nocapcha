@@ -398,13 +398,8 @@ public class ReportServiceImpl implements ReportService {
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
       List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
             "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
-
       List<String> subscribers = retrieveReportSubscribersList();
-
-      Set<String> authSet = Collections.singleton(AdminAuthority.SEE_REPORTS.name());
       subscribers.forEach(emailAddress -> {
-        List<AdminAuthorityOption> options = userService.getAuthorityOptionsForUser(userService.getIdByEmail(emailAddress), authSet, null);
-        if (!options.isEmpty()) {
           try {
             Email email = new Email();
             email.setSubject(title);
@@ -415,9 +410,7 @@ public class ReportServiceImpl implements ReportService {
           } catch (Exception e) {
             log.error(e);
           }
-        }
       });
-
   }
 
   private void rescheduleMailJob(LocalTime newMailTime) {
