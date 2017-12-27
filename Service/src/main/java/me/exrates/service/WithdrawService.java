@@ -33,7 +33,7 @@ public interface WithdrawService {
   @Transactional
   void finalizePostWithdrawalRequest(Integer requestId);
 
-  void postWithdrawalRequest(int requestId, Integer requesterAdminId);
+  void postWithdrawalRequest(int requestId, Integer requesterAdminId, String txHash);
 
   List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 

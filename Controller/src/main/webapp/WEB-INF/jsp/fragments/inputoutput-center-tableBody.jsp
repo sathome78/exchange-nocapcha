@@ -7,8 +7,9 @@
   <th class="col-1 center blue-white"><loc:message code="inputoutput.merchant"/></th>
   <th class="col-1 right blue-white"><loc:message code="inputoutput.operationtype"/></th>
   <th class="col-2 center blue-white"><loc:message code="inputoutput.order"/></th>
-  <th class="col-2 center blue-white"><loc:message code="inputoutput.status"/></th>
-  <th class="col-3 center blue-white"></th>
+  <th class="col-2 center blue-white"><loc:message code="inputoutput.txHash"/></th>
+  <th class="col-1 center blue-white"><loc:message code="inputoutput.status"/></th>
+  <th class="col-2 center blue-white"></th>
 </tr>
 <script type="text/template" id="${table_row_id}">
   <tr>
@@ -19,6 +20,9 @@
     <td class="center"><@=merchantName@></td>
     <td class="right"><@=operationType@></td>
     <td class="center"><@=id@></td>
+    <td class="center">
+      <input readonly value=<@=transactionHash@>>
+    </td>
     <td class="center"><@=summaryStatus@></td>
     <td class="center table-button-block" style="text-align: right;">
       <form id="inputoutput-center-tableBody__form" class="table-button-block__form">

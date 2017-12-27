@@ -52,6 +52,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private Integer adminHolderId;
   private Integer authorisedUserId;
   private List<Map<String, Object>> buttons;
+  private String transactionHash;
 
 
   public MyInputOutputHistoryDto() {

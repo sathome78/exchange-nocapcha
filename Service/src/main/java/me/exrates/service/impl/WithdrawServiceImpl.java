@@ -505,8 +505,14 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
-  public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
+  public void postWithdrawalRequest(int requestId, Integer requesterAdminId, String txHash) {
     WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId, false);
+    Map<String, String> transactionParams = new HashMap<>();
+    transactionParams.put("id", String.valueOf(requestId));
+    transactionParams.put("hash", txHash);
+    transactionParams.put("params", "");
+    withdrawRequestDao.setHashAndParamsById(withdrawRequestResult.getId(), transactionParams);
+
     /**/
     Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
     String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{requestId}, locale);

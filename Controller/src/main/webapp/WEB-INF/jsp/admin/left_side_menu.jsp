@@ -72,6 +72,13 @@
             </sec:authorize>
         </li>
 
+        <%--<li>--%>
+            <%--&lt;%&ndash;withdraw&ndash;%&gt;--%>
+            <%--<sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">--%>
+                <%--<a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message code="admin.transfers"/></a>--%>
+            <%--</sec:authorize>--%>
+        <%--</li>--%>
+
         <li>
             <%--refill--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
@@ -93,13 +100,25 @@
                 <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="finMenu">
                     <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message code="admin.generalStats.title"/></a></li>
-                        <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/notificatorsSettings'/>"><loc:message code="admin.notificatorsMessagesSettings"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a></li>
+                    </ul>
+                </div>
+            </sec:authorize>
+        </li>
+
+        <li>
+            <%--Отчеты--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
+                <a href="#reportsMenu"  data-toggle="collapse"><loc:message code="admin.reports"/><i class="fa fa-caret-down"></i></a>
+                <div class="collapse" id="reportsMenu">
+                    <ul>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message code="admin.generalStats.title"/></a></li>
+                        <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                     </ul>
                 </div>
 
@@ -130,26 +149,17 @@
         <li>
             <%--auto trading settings--%>
             <sec:authorize access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>"><loc:message code="admin.autoTrading.title"/></a>
+                <a href="#autoTradingMenu"  data-toggle="collapse">
+                      <loc:message code="admin.autoTrading.menu"/><i class="fa fa-caret-down"></i></a>
+                <div class="collapse" id="autoTradingMenu">
+                    <ul>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/autoTrading'/>"><loc:message code="admin.autoTrading.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message code="admin.candleTable.title"/></a></li>
+                    </ul>
+                </div>
             </sec:authorize>
 
         </li>
-
-        <li>
-            <%--candle--%>
-            <sec:authorize access="hasAnyAuthority('${bot_traderEnum}', '${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message code="admin.candleTable.title"/></a>
-            </sec:authorize>
-
-        </li>
-
-        <li>
-            <%--referral--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a>
-            </sec:authorize>
-        </li>
-
 
         <li>
             <%--session control--%>
@@ -157,9 +167,6 @@
                 <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
             </sec:authorize>
         </li>
-
-
-
 
     </ul>
 </div>

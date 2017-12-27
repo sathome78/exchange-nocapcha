@@ -69,9 +69,9 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final BigInteger GAS_LIMIT = BigInteger.valueOf(430000);
 
-    private final BigDecimal feeAmount = new BigDecimal("0.01");
+    private final BigDecimal feeAmount = new BigDecimal("0.015");
 
-    private final BigDecimal minBalanceForTransfer = new BigDecimal("0.1");
+    private final BigDecimal minBalanceForTransfer = new BigDecimal("0.15");
 
     private final boolean isERC20;
 

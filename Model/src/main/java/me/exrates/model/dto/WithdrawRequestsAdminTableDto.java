@@ -37,6 +37,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private BigDecimal netAmountCorrectedForMerchantCommission;
   private String merchantName;
   private String wallet;
+  private String txHash;
   private String destinationTag;
   private Integer adminHolderId;
   private String adminHolderEmail;
@@ -71,6 +72,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     }
     this.merchantName = withdrawRequestFlatAdditionalDataDto.getMerchantName();
     this.wallet = withdrawRequestFlatDto.getWallet();
+    this.txHash = withdrawRequestFlatDto.getTransactionHash();
     this.destinationTag = withdrawRequestFlatDto.getDestinationTag();
     this.adminHolderId = withdrawRequestFlatDto.getAdminHolderId();
     this.adminHolderEmail = withdrawRequestFlatAdditionalDataDto.getAdminHolderEmail();

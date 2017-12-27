@@ -92,13 +92,19 @@ $(function () {
     $($withdrawalTable).on('click', 'button[data-source=WITHDRAW].post_holded_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
+        var txHash = $(this).closest("tr").find(".txHashClass").val();
+        if (txHash  == '') {
+            alert('Empty hash!');
+            throw new Error("Empty hash!");
+
+        }
         var $modal = $("#confirm-with-info-modal");
         $modal.find("label[for=info-field]").html($(this).html());
         $modal.find("#info-field").val(id);
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
             $.ajax({
-                url: '/2a8fy7b07dxe44/withdraw/post?id=' + id,
+                url: '/2a8fy7b07dxe44/withdraw/post?id=' + id + '&txHash=' + txHash,
                 async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
@@ -362,6 +368,18 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
+                    "data": "txHash",
+                    "name": "WITHDRAW_REQUEST.txHash",
+                    "type": "readonly",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            var hash = data == null ? '' : data;
+                            var isHashReadOnly = tableViewType == "FOR_MANUAL" || tableViewType == "FOR_WORK" ? '<input ' : '<input readonly';
+                            return isHashReadOnly + ' class="form-control txHashClass" value="' + hash + '">';
+                        }
+                        return data;
+                    }
+                },                {
                     "data": "destinationTag",
                     "name": "WITHDRAW_REQUEST.destinationTag",
                     "render": function (data, type, row) {

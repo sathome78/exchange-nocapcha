@@ -54,7 +54,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date," +
         "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
         "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
-        "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id" +
+        "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id, " +
+        "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash" +
         "  FROM TRANSACTION " +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
         "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
@@ -86,7 +87,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     RR.status_modification_date, " +
         "     RRP.user_full_name, " +
         "     RR.remark, " +
-        "     RR.admin_holder_id" +
+        "     RR.admin_holder_id, " +
+        "     RR.merchant_transaction_id" +
         "   FROM REFILL_REQUEST RR " +
         "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
         "     JOIN USER USER ON USER.id=RR.user_id " +
@@ -113,7 +115,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     WR.status_modification_date, " +
         "     WR.user_full_name, " +
         "     WR.remark, " +
-        "     WR.admin_holder_id" +
+        "     WR.admin_holder_id, " +
+        "     WR.transaction_hash" +
         "   FROM WITHDRAW_REQUEST WR " +
         "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
         "     JOIN USER USER ON USER.id=WR.user_id " +
@@ -135,6 +138,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     USER.id, " +
             "     TR.status_id, " +
             "     TR.status_modification_date, " +
+            "     NULL, " +
             "     NULL, " +
             "     NULL, " +
             "     NULL" +
@@ -159,6 +163,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     TR.status_modification_date, " +
             "     NULL, " +
             "     NULL, " +
+            "     NULL, " +
             "     NULL" +
             "   FROM TRANSFER_REQUEST TR " +
             "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
@@ -180,6 +185,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "     U.id, " +
             "     NULL, " +
             "     NULL," +
+            "     NULL, " +
             "     NULL, " +
             "     NULL, " +
             "     NULL" +
@@ -220,6 +226,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+      myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
       return myInputOutputHistoryDto;
     });
   }

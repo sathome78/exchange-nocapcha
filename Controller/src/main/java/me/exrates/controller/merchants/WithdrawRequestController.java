@@ -204,9 +204,10 @@ public class WithdrawRequestController {
   @ResponseBody
   public void postHolded(
       @RequestParam Integer id,
+      @RequestParam String txHash,
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    withdrawService.postWithdrawalRequest(id, requesterAdminId);
+    withdrawService.postWithdrawalRequest(id, requesterAdminId, txHash);
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
