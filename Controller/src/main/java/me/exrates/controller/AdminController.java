@@ -1523,13 +1523,14 @@ public class AdminController {
   @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses")
   public String refillAddressesPage(Model model) {
     model.addAttribute("currencies", currencyService.findAllCurrenciesWithHidden());
-    return "admin/refill_addresses";
+    return "admin/refillAddresses";
   }
 
   @ResponseBody
   @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses/table")
-  public PagingData<List<RefillRequestAddressShortDto>> getRefillAddressesTable(DataTableParams dataTableParams,
+  public PagingData<List<RefillRequestAddressShortDto>> getRefillAddressesTable(@RequestParam Map<String, String> params,
                                                                                 RefillAddressfilterData filterData) {
+    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     return refillService.getAdressesShortDto(dataTableParams, filterData);
   }
 
