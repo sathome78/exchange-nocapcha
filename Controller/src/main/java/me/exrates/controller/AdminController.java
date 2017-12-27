@@ -16,6 +16,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.dto.filterData.RefillAddressfilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -1519,7 +1520,18 @@ public class AdminController {
   }
 
 
+  @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses")
+  public String refillAddressesPage(Model model) {
+    model.addAttribute("currencies", currencyService.findAllCurrenciesWithHidden());
+    return "admin/refill_addresses";
+  }
 
+  @ResponseBody
+  @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses/table")
+  public PagingData<List<RefillRequestAddressShortDto>> getRefillAddressesTable(DataTableParams dataTableParams,
+                                                                                RefillAddressfilterData filterData) {
+    return refillService.getAdressesShortDto(dataTableParams, filterData);
+  }
 
 
 

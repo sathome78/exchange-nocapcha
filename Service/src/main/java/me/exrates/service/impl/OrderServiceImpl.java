@@ -192,7 +192,8 @@ public class OrderServiceImpl implements OrderService {
        e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
        e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
        BigDecimal percentChange = null;
-       if (predLastRate.equals(BigDecimal.ZERO)) {
+       log.debug("predLast {}", predLastRate);
+       if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
          percentChange = BigDecimal.ZERO;
        }  else {
          percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);

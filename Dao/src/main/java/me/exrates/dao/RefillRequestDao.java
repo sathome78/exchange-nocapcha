@@ -3,8 +3,10 @@ package me.exrates.dao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
+import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillAddressfilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
@@ -120,4 +122,6 @@ public interface RefillRequestDao {
   List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
 
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+
+    PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressfilterData data);
 }
