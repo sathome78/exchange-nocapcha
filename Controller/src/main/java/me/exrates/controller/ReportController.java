@@ -245,7 +245,7 @@ public class ReportController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/emails", method = GET)
   public List<List<String>> getReportSubscriberEmails() {
-    return reportService.retrieveReportSubscribersList().stream().map(Collections::singletonList).collect(Collectors.toList());
+    return reportService.retrieveReportSubscribersList(false).stream().map(Collections::singletonList).collect(Collectors.toList());
   }
 
   @ResponseBody

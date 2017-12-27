@@ -43,7 +43,7 @@ public interface ReportService {
 
     boolean isReportMailingEnabled();
 
-    List<String> retrieveReportSubscribersList();
+    List<String> retrieveReportSubscribersList(boolean selectWithPremissions);
 
   String retrieveReportMailingTime();
 

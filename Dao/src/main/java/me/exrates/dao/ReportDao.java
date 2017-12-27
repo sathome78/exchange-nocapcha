@@ -11,7 +11,7 @@ public interface ReportDao {
 
     void updateReportMailingEnableStatus(boolean newStatus);
 
-    List<String> retrieveReportSubscribersList();
+    List<String> retrieveReportSubscribersList(boolean selectWithPremissions);
 
     void addReportSubscriber(String email);
 

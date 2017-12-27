@@ -324,8 +324,8 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public List<String> retrieveReportSubscribersList() {
-    return reportDao.retrieveReportSubscribersList();
+  public List<String> retrieveReportSubscribersList(boolean selectWithPremissions) {
+    return reportDao.retrieveReportSubscribersList(selectWithPremissions);
   }
 
   @Override
@@ -398,7 +398,7 @@ public class ReportServiceImpl implements ReportService {
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
       List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
             "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
-      List<String> subscribers = retrieveReportSubscribersList();
+      List<String> subscribers = retrieveReportSubscribersList(true);
       subscribers.forEach(emailAddress -> {
           try {
             Email email = new Email();

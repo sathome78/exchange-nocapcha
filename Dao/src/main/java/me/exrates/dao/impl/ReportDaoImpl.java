@@ -50,12 +50,17 @@ public class ReportDaoImpl implements ReportDao {
 
 
     @Override
-    public List<String> retrieveReportSubscribersList() {
-        String sql = "SELECT RS.email FROM REPORT_SUBSCRIBERS RS" +
-                " JOIN USER U ON U.email = RS.email " +
-                " JOIN USER_ADMIN_AUTHORITY UAA ON UAA.user_id = U.id " +
-                " WHERE UAA.admin_authority_id = ? AND UAA.enabled = TRUE ";
-        return jdbcTemplate.queryForList(sql, new Object[]{AdminAuthority.SEE_REPORTS.getAuthority()}, String.class);
+    public List<String> retrieveReportSubscribersList(boolean selectWithPremissions) {
+        final String premissionsClause =  String.join(" ", " JOIN USER U ON U.email = RS.email ",
+                " JOIN USER_ADMIN_AUTHORITY UAA ON UAA.user_id = U.id ",
+                " WHERE UAA.admin_authority_id = ? AND UAA.enabled = TRUE ");
+        String sql = "SELECT RS.email FROM REPORT_SUBSCRIBERS RS ";
+        Object[] params = null;
+        if (selectWithPremissions) {
+            sql = sql.concat(premissionsClause);
+            params = new Object[]{AdminAuthority.SEE_REPORTS.getAuthority()};
+        }
+        return jdbcTemplate.queryForList(sql, params, String.class);
     }
 
     @Override
