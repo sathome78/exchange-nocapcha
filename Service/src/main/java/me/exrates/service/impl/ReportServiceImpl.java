@@ -4,11 +4,13 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
+import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Email;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
@@ -394,22 +396,25 @@ public class ReportServiceImpl implements ReportService {
               .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
       String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-    List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
+      List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
             "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
 
       List<String> subscribers = retrieveReportSubscribersList();
 
-
+      Set<String> authSet = Collections.singleton(AdminAuthority.SEE_REPORTS.name());
       subscribers.forEach(emailAddress -> {
-        try {
-          Email email = new Email();
-          email.setSubject(title);
-          email.setMessage(message);
-          email.setTo(emailAddress);
-          email.setAttachments(attachments);
-          sendMailService.sendInfoMail(email);
-        } catch (Exception e) {
-          log.error(e);
+        List<AdminAuthorityOption> options = userService.getAuthorityOptionsForUser(userService.getIdByEmail(emailAddress), authSet, null);
+        if (!options.isEmpty()) {
+          try {
+            Email email = new Email();
+            email.setSubject(title);
+            email.setMessage(message);
+            email.setTo(emailAddress);
+            email.setAttachments(attachments);
+            sendMailService.sendInfoMail(email);
+          } catch (Exception e) {
+            log.error(e);
+          }
         }
       });
 

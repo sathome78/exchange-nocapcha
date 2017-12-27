@@ -48,7 +48,10 @@ public class ReportDaoImpl implements ReportDao {
 
     @Override
     public List<String> retrieveReportSubscribersList() {
-        String sql = "SELECT email FROM REPORT_SUBSCRIBERS";
+        String sql = "SELECT RS.email FROM REPORT_SUBSCRIBERS RS" +
+                " JOIN USER U ON U.email = RS.email " +
+                " JOIN USER_ADMIN_AUTHORITY UAA ON UAA.user_id = U.id " +
+                " WHERE UAA.admin_authority_id = 11 AND UAA.enabled= 1 ";
         return jdbcTemplate.queryForList(sql, String.class);
     }
 

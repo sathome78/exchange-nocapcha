@@ -135,7 +135,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/addComment",
             "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
         .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-            .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+        .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+        .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**")
+            .hasAuthority(AdminAuthority.SEE_REPORTS.name())
+
         .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
             "/2a8fy7b07dxe44/editCmnRefRoot",
             "/2a8fy7b07dxe44/editLevel",
