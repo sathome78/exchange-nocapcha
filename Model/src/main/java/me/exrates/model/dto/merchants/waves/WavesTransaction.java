@@ -17,6 +17,7 @@ public class WavesTransaction {
     private String id;
     private String sender;
     private String senderPublicKey;
+    private String assetId;
     private Long fee;
     private Long timestamp;
     private String signature;

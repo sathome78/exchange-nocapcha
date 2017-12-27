@@ -181,7 +181,8 @@ public class WavesServiceImpl implements WavesService {
 
         refillService.findAllAddresses(merchant.getId(), currency.getId()).parallelStream()
                 .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
-                        .filter(transaction -> address.equals(transaction.getRecipient())))
+                        .filter(transaction -> address.equals(transaction.getRecipient()))
+                        .filter(transaction -> transaction.getAssetId() == null))
                 .map(transaction -> restClient.getTransactionById(transaction.getId()))
                 .filter(Optional::isPresent).map(Optional::get)
                 .forEach(transaction -> {
