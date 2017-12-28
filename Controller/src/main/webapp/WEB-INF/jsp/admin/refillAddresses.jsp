@@ -9,7 +9,7 @@
     <meta charset="utf-8"/>
     <!--[if lt IE 9]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-    <title><loc:message code="admin.withdrawRequests"/></title>
+    <title><loc:message code="admin.refillAdresses"/></title>
     <meta name="keywords" content=""/>
     <meta name="description" content=""/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>

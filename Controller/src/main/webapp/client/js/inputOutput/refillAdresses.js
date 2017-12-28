@@ -30,6 +30,10 @@ $(function () {
         updateAddressesTable();
     });
 
+    $($addressesTable).on('click', 'input.copyable', function (e) {
+        selectAndCopyInputValue(this);
+    });
+
 });
 
 
@@ -62,7 +66,14 @@ function updateAddressesTable() {
                 },
                 {
                     "data": "address",
-                    "name": "RRA.address"
+                    "name": "RRA.address",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            var address = data == null ? '' : data;
+                            return '<input class="form-control copyable" value="' + address + '">';
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "addressFieldName",

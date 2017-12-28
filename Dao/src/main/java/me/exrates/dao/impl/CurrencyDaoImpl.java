@@ -449,7 +449,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
             "JOIN MERCHANT M ON M.id = MC.merchant_id " +
             "WHERE M.process_type = :process_type ";
     return jdbcTemplate.query(sql, 
-            new HashMap<String, Object>() {{put("process_type", processType.name());}}, 
-            new BeanPropertyRowMapper<>(Currency.class));
+            new HashMap<String, Object>() {{put("process_type", processType.name());}},
+            (rs, i) -> {
+              Currency currency = new Currency();
+              currency.setId(rs.getInt("id"));
+              currency.setName(rs.getString("name"));
+              currency.setDescription(rs.getString("description"));
+              return currency;
+            });
   }
 }
