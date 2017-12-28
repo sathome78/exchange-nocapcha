@@ -9,6 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
@@ -1044,5 +1045,29 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId) {
     return refillRequestDao.findByAddressMerchantAndCurrency(address, merchantId, currencyId);
+  }
+
+  @Override
+  public DataTable<List<RefillRequestAddressShortDto>> getAdressesShortDto(DataTableParams dataTableParams, RefillAddressFilterData filterData) {
+    PagingData<List<RefillRequestAddressShortDto>> data = refillRequestDao.getAddresses(dataTableParams, filterData);
+    try {
+      fillAdressesDtos(data.getData());
+    } catch (Exception e) {
+      log.error(e);
+    }
+    DataTable<List<RefillRequestAddressShortDto>> output = new DataTable<>();
+    output.setData(data.getData());
+    output.setRecordsTotal(data.getTotal());
+    output.setRecordsFiltered(data.getFiltered());
+    return output;
+  }
+
+  private void fillAdressesDtos(List<RefillRequestAddressShortDto> dtos) {
+    dtos.forEach(p->{
+      IRefillable refillable = (IRefillable)(merchantServiceContext.getMerchantService(p.getMerchantId()));
+      if (refillable.additionalFieldForRefillIsUsed()) {
+        p.setAddressFieldName(refillable.additionalRefillFieldName());
+      }
+    });
   }
 }

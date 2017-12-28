@@ -4,8 +4,10 @@ import me.exrates.dao.RefillRequestDao;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
+import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -15,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -1163,6 +1164,49 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("merchant_id", merchantId);
     }};
     return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+  }
+
+  @Override
+  public PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressFilterData data) {
+    String filter = data.getSQLFilterClause();
+    String searchClause = dataTableParams.getSearchByEmailAndNickClause();
+    String sqlBase =
+            String.join(" ",  " FROM REFILL_REQUEST_ADDRESS RRA ",
+                    " JOIN CURRENCY CU ON CU.id = RRA.currency_id ",
+                    " JOIN MERCHANT_CURRENCY MC ON CU.id = MC.currency_id ",
+                    " JOIN MERCHANT M ON M.id = MC.merchant_id ",
+                    " JOIN USER ON USER.id = RRA.user_id  ",
+                    " WHERE M.process_type = 'CRYPTO' ");
+    String whereClauseFilter = String.join(" ",
+            StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter),
+            StringUtils.isEmpty(searchClause) ? "" : " AND ".concat(searchClause));
+    String orderClause = dataTableParams.getOrderByClause();
+    String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
+    String sqlMain = String.join(" ", "SELECT RRA.*, USER.email AS email, CU.name AS currency_name",
+            sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("offset", dataTableParams.getStart());
+      put("limit", dataTableParams.getLength());
+    }};
+    params.putAll(data.getNamedParams());
+    params.putAll(dataTableParams.getSearchNamedParams());
+    log.debug("sql {}", sqlCount);
+    List<RefillRequestAddressShortDto> addresses = namedParameterJdbcTemplate.query(sqlMain, params, (rs, i) -> {
+      RefillRequestAddressShortDto dto = new RefillRequestAddressShortDto();
+      dto.setUserEmail(rs.getString("email"));
+      dto.setAddress(rs.getString("address"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setGenerationDate(rs.getTimestamp("date_generation").toLocalDateTime());
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      return dto;
+    });
+    Integer totalQuantity = namedParameterJdbcTemplate.queryForObject(sqlCount, params, Integer.class);
+    PagingData<List<RefillRequestAddressShortDto>> result = new PagingData<>();
+    result.setData(addresses);
+    result.setFiltered(totalQuantity);
+    result.setTotal(totalQuantity);
+    return result;
   }
 }
 

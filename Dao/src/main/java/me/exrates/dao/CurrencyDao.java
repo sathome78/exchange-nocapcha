@@ -8,6 +8,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -69,4 +70,6 @@ public interface CurrencyDao {
   MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId);
 
   CurrencyPair findCurrencyPairByName(String pairName);
+
+    List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 }
