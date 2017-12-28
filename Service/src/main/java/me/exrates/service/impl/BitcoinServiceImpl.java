@@ -301,7 +301,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
       }
-    } catch (RefillRequestAppropriateNotFoundException e) {
+    } catch (Exception e) {
       log.error(e);
     }
     
