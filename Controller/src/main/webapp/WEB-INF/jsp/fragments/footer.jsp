@@ -3,10 +3,6 @@
 
 <footer>
     <div class="container">
-        <div class="socials-icon-wrapper ">
-            <a class="socials-icon-wrapper__icon" href="https://twitter.com/Exrates_Me" target="_blank"><img
-                    src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>
-        </div>
         <div class="row">
             <span class="footer_link"><loc:message code="dashboard.allRightsReserved"/></span>
             <span class="footer_link"><a href="<c:url value="/termsAndConditions"/>"><loc:message code="dashboard.terms"/></a></span>

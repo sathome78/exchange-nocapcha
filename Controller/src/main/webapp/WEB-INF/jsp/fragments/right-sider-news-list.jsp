@@ -5,13 +5,20 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
-    <a id="showAllNews" href="#"> <h4 class="h4_green"><loc:message code="news.title"/></h4></a>
-</sec:authorize>
+<%--Twitter--%>
+<div class="socials-icon-wrapper ">
+    <a class="socials-icon-wrapper__icon" href="https://twitter.com/Exrates_Me" target="_blank"><img
+            src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>
+    <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+        <a id="showAllNews" href="#"> <h4 class="h4_green"><loc:message code="news.title"/></h4></a>
+    </sec:authorize>
 
-<sec:authorize access="<%=AdminController.nonAdminAnyAuthority%>">
-    <h4 class="h4_green"><loc:message code="news.title"/></h4>
-</sec:authorize>
+    <sec:authorize access="<%=AdminController.nonAdminAnyAuthority%>">
+        <h4 class="h4_green"><loc:message code="news.title"/></h4>
+    </sec:authorize>
+</div>
+
+
 <hr class="under_h4">
 <div id="news_table_wrapper">
 <div id="news-table" class="news">
