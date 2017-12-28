@@ -44,8 +44,8 @@
                         <loc:message code="admin.refill.accepted"/></button>
                     <button id="refill-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.refill.declined"/></button>
-                    <a style="cursor: pointer; text-decoration: none" href="/2a8fy7b07dxe44/refill_adresses" class="myorders__button blue-box margin-box active">
-                        <loc:message code="message.refill_adresses"/></a>
+                    <a style="cursor: pointer; text-decoration: none" href="/2a8fy7b07dxe44/refillAddresses" class="myorders__button blue-box margin-box active">
+                        <loc:message code="admin.refillAdresses"/></a>
                     <a id="create_refill_request" style="cursor: pointer; text-decoration: none" class="myorders__button blue-box margin-box active">
                         <loc:message code="message.create.refill.request"/></a>
                 </div>

@@ -9,7 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.RefillAddressfilterData;
+import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
@@ -1048,10 +1048,18 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public PagingData<List<RefillRequestAddressShortDto>> getAdressesShortDto(DataTableParams dataTableParams, RefillAddressfilterData filterData) {
+  public DataTable<List<RefillRequestAddressShortDto>> getAdressesShortDto(DataTableParams dataTableParams, RefillAddressFilterData filterData) {
     PagingData<List<RefillRequestAddressShortDto>> data = refillRequestDao.getAddresses(dataTableParams, filterData);
-    fillAdressesDtos(data.getData());
-    return data;
+    try {
+      fillAdressesDtos(data.getData());
+    } catch (Exception e) {
+      log.error(e);
+    }
+    DataTable<List<RefillRequestAddressShortDto>> output = new DataTable<>();
+    output.setData(data.getData());
+    output.setRecordsTotal(data.getTotal());
+    output.setRecordsFiltered(data.getFiltered());
+    return output;
   }
 
   private void fillAdressesDtos(List<RefillRequestAddressShortDto> dtos) {

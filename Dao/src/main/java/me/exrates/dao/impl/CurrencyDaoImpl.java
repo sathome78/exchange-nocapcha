@@ -9,6 +9,7 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -441,4 +442,14 @@ public class CurrencyDaoImpl implements CurrencyDao {
     });
   }
 
+  @Override
+  public List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType) {
+    final String sql = "SELECT * FROM CURRENCY " +
+            "JOIN MERCHANT_CURRENCY MC ON MC.currency_id = CURRENCY.id " +
+            "JOIN MERCHANT M ON M.id = MC.merchant_id " +
+            "WHERE M.process_type = :process_type ";
+    return jdbcTemplate.query(sql, 
+            new HashMap<String, Object>() {{put("process_type", processType.name());}}, 
+            new BeanPropertyRowMapper<>(Currency.class));
+  }
 }

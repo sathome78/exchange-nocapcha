@@ -16,7 +16,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.dto.filterData.RefillAddressfilterData;
+import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -1522,15 +1522,16 @@ public class AdminController {
 
   @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses")
   public String refillAddressesPage(Model model) {
-    model.addAttribute("currencies", currencyService.findAllCurrenciesWithHidden());
+    model.addAttribute("currencies", currencyService.findAllCurrenciesByProcessType(MerchantProcessType.CRYPTO));
     return "admin/refillAddresses";
   }
 
   @ResponseBody
   @GetMapping(value = "/2a8fy7b07dxe44/refillAddresses/table")
-  public PagingData<List<RefillRequestAddressShortDto>> getRefillAddressesTable(@RequestParam Map<String, String> params,
-                                                                                RefillAddressfilterData filterData) {
+  public DataTable<List<RefillRequestAddressShortDto>> getRefillAddressesTable(RefillAddressFilterData filterData,
+                                                                                @RequestParam Map<String, String> params) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+    filterData.initFilterItems();
     return refillService.getAdressesShortDto(dataTableParams, filterData);
   }
 

@@ -49,7 +49,7 @@
                                 <ul class="checkbox-grid">
                                     <c:forEach items="${currencies}" var="currency">
                                         <li><input type="checkbox" name="currencyIds"
-                                                   value="${currency.currencyId}"><span>${currency.currencyName}</span></li>
+                                                   value="${currency.id}"><span>${currency.name}</span></li>
                                     </c:forEach>
                                 </ul>
                             </div>
@@ -59,7 +59,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="message.sender"/>
+                                    <loc:message code="login.email"/>
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">

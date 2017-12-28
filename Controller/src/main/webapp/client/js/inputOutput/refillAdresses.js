@@ -1,7 +1,7 @@
 
 var $withdrawalPage;
-var $voucherTable;
-var withdrawalDataTable;
+var $addressesTable;
+var addressesDataTable;
 var transferRequestsBaseUrl;
 var filterParams;
 
@@ -9,7 +9,7 @@ $(function () {
 
 
     $withdrawalPage = $('#addresses-admin');
-    $voucherTable = $('#addressesTable');
+    $addressesTable = $('#addressesTable');
     filterParams = '';
     transferRequestsBaseUrl = '/2a8fy7b07dxe44/refillAddresses/table?';
     $('#withdraw-requests-manual').addClass('active');
@@ -39,10 +39,10 @@ function updateAddressesTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
     var url = transferRequestsBaseUrl + filter;
     if ($.fn.dataTable.isDataTable('#addressesTable')) {
-        withdrawalDataTable = $voucherTable.DataTable();
-        withdrawalDataTable.ajax.url(url).load();
+        addressesDataTable = $addressesTable.DataTable();
+        addressesDataTable.ajax.url(url).load();
     } else {
-        withdrawalDataTable = $voucherTable.DataTable({
+        addressesDataTable = $addressesTable.DataTable({
             "ajax": {
                 "url": url,
                 "dataSrc": "data"
@@ -53,71 +53,24 @@ function updateAddressesTable() {
             "bFilter": true,
             "columns": [
                 {
-                    "data": "email",
-                    "name": "TRANSFER_REQUEST.email",
-                    "render": function (data) {
-                        return '<button class="request_id_button" onclick="viewRequestInfo(this)">' + data + '</button>';
-                    }
-                },
-                {
-                    "data": "dateCreation",
-                    "name": "TRANSFER_REQUEST.date_creation",
-                    "render": function (data) {
-                        return data.replace(' ', '<br/>');
-                    },
-                    "className": "text-center"
-                },
-                {
-                    "data": "userId",
-                    "name": "email",
-                    "render": function (data, type, row) {
-                        return '<a data-userEmail="' + row.creatorEmail + '" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.creatorEmail + '</a>'
-                    }
-                },
-                {
-                    "data": "netAmount",
-                    "name": "TRANSFER_REQUEST.amount"
+                    "data": "userEmail",
+                    "name": "USER.email"
                 },
                 {
                     "data": "currencyName",
-                    "name": "currency"
-                },
-
-                {
-                    "data": "commissionAmount",
-                    "name": "TRANSFER_REQUEST.commission"
+                    "name": "CU.name"
                 },
                 {
-                    "data": "merchantName",
-                    "name": "merchant_name",
-                    "render": function (data, type, row) {
-                        var merchantName = data;
-                        var merchantImageName = '';
-                        if (row.merchantImage && row.merchantImage.image_name != merchantName) {
-                            merchantImageName = ' ' + row.merchantImage.image_name;
-                        }
-                        return merchantName + merchantImageName;
-                    }
+                    "data": "address",
+                    "name": "RRA.address"
                 },
                 {
-                    "data": "status",
-                    "name": "TRANSFER_REQUEST.status_id"
+                    "data": "addressFieldName",
+                    "name": "CU.name"
                 },
                 {
-                    "data": "recipientEmail",
-                    "name": "recipient_email"
-                },
-                {
-                    "data": "",
-                    "name": "",
-                    "render": function (data, type, row) {
-                        if (data && row.isEndStatus) {
-                            return '';
-                        } else {
-                            return getButtonsSet(row.id, row.sourceType, row.merchantName,
-                                row.buttons, "voucherTable");
-                        }
-                    },
+                    "data": "generationDate",
+                    "name": "RRA.date_generation",
                     "className": "text-center"
                 }
             ],

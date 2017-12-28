@@ -6,7 +6,7 @@ import me.exrates.model.PagingData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.RefillAddressfilterData;
+import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
@@ -123,5 +123,5 @@ public interface RefillRequestDao {
 
   List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
-    PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressfilterData data);
+    PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressFilterData data);
 }

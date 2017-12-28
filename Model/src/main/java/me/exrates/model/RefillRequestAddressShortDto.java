@@ -1,6 +1,8 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
@@ -15,5 +17,6 @@ public class RefillRequestAddressShortDto {
     private String addressFieldName;
     private String currencyName;
     private int merchantId;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime generationDate;
 }
