@@ -1,13 +1,16 @@
 package me.exrates.service.impl;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
+import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Email;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
+import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
@@ -286,23 +289,34 @@ public class ReportServiceImpl implements ReportService {
   @Override
   public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                                 List<UserRole> roleList) {
-    if (roleList.isEmpty()) {
-      throw new IllegalArgumentException("At least one role must be specified");
-    }
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
     return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
+                                                                              List<UserRole> roleList) {
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+    return orderService.getOrderCommissionsByPairsForPeriod(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
   }
 
   @Override
   public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                             List<UserRole> roleList) {
-    if (roleList.isEmpty()) {
-      throw new IllegalArgumentException("At least one role must be specified");
-    }
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
     return inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
             .map(UserRole::getRole).collect(Collectors.toList()));
   }
 
+  @Override
+  public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+                                                                            List<UserRole> roleList) {
+    Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
+    return inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
+            .map(UserRole::getRole).collect(Collectors.toList()));
+  }
 
   @Override
   public boolean isReportMailingEnabled() {
@@ -310,8 +324,8 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  public List<String> retrieveReportSubscribersList() {
-    return reportDao.retrieveReportSubscribersList();
+  public List<String> retrieveReportSubscribersList(boolean selectWithPremissions) {
+    return reportDao.retrieveReportSubscribersList(selectWithPremissions);
   }
 
   @Override
@@ -382,25 +396,21 @@ public class ReportServiceImpl implements ReportService {
               .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
       String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-    List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
+      List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
             "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
-
-      List<String> subscribers = retrieveReportSubscribersList();
-
-
+      List<String> subscribers = retrieveReportSubscribersList(true);
       subscribers.forEach(emailAddress -> {
-        try {
-          Email email = new Email();
-          email.setSubject(title);
-          email.setMessage(message);
-          email.setTo(emailAddress);
-          email.setAttachments(attachments);
-          sendMailService.sendInfoMail(email);
-        } catch (Exception e) {
-          log.error(e);
-        }
+          try {
+            Email email = new Email();
+            email.setSubject(title);
+            email.setMessage(message);
+            email.setTo(emailAddress);
+            email.setAttachments(attachments);
+            sendMailService.sendInfoMail(email);
+          } catch (Exception e) {
+            log.error(e);
+          }
       });
-
   }
 
   private void rescheduleMailJob(LocalTime newMailTime) {

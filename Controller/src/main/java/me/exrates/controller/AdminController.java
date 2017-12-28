@@ -1569,15 +1569,4 @@ public class AdminController {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
-  public static void main(String[] args) {
-    ApplicationContext context = new AnnotationConfigApplicationContext(WebAppConfig.class);
-
-    WavesRestClient restClient = (WavesRestClient) context.getBean("wavesRestClientImpl");
-    System.out.println(restClient.generateNewAddress());
-
-
-  }
-  
-
-
 }

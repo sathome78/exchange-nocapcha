@@ -2354,5 +2354,8 @@ input.copyable:hover{
 
 #subtract-fee-from-amount {
     font-size: 1.5rem;
-;
+}
+
+.download-btn {
+    margin-bottom: 20px;
 }

@@ -19,7 +19,8 @@ public enum AdminAuthority {
     MANAGE_ACCESS(7),
     MANUAL_BALANCE_CHANGE(8),
     EDIT_USER(9),
-    MANAGE_BTC_CORE_WALLET(10);
+    MANAGE_BTC_CORE_WALLET(10),
+    SEE_REPORTS(11);
 
     private final int authority;
 

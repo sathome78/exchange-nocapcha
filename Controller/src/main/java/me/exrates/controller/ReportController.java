@@ -191,6 +191,33 @@ public class ReportController {
   }
 
   @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/ordersCommissions", method = GET)
+  public String getCurrencyPairComissions(@RequestParam("startTime") String startTimeString,
+                                      @RequestParam("endTime") String endTimeString,
+                                      @RequestParam("roles") List<UserRole> userRoles) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<OrdersCommissionSummaryDto> result = reportService.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoles);
+    return result.stream().map(OrdersCommissionSummaryDto::toString)
+            .collect(Collectors.joining("", OrdersCommissionSummaryDto.getTitle(), ""));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions", method = GET)
+  public String getInputOutputSummaryWithCommissions(@RequestParam("startTime") String startTimeString,
+                                          @RequestParam("endTime") String endTimeString,
+                                          @RequestParam("roles") List<UserRole> userRoles) {
+    String dateTimePattern = "yyyy-MM-dd_HH:mm";
+    LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+    LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+    List<InputOutputCommissionSummaryDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
+    return result.stream().map(InputOutputCommissionSummaryDto::toString)
+            .collect(Collectors.joining("", InputOutputCommissionSummaryDto.getTitle(), ""));
+  }
+
+
+  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
   public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
                                          @RequestParam("endTime") String endTimeString,
@@ -218,7 +245,7 @@ public class ReportController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/mail/emails", method = GET)
   public List<List<String>> getReportSubscriberEmails() {
-    return reportService.retrieveReportSubscribersList().stream().map(Collections::singletonList).collect(Collectors.toList());
+    return reportService.retrieveReportSubscribersList(false).stream().map(Collections::singletonList).collect(Collectors.toList());
   }
 
   @ResponseBody
@@ -244,13 +271,6 @@ public class ReportController {
   public void deleteSubscriber(@RequestParam String email) {
     reportService.deleteReportSubscriber(email);
   }
-
-
-
-
-
-
-
 
 
 }

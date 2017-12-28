@@ -37,6 +37,8 @@
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.select.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/dataTables.buttons.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/buttons.html5.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/buttons.flash.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 

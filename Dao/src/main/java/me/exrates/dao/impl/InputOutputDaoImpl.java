@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
+import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -264,6 +265,48 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setInput(rs.getBigDecimal("input"));
       dto.setOutput(rs.getBigDecimal("output"));
       dto.calculateAndSetDiff();
+      return dto;
+    });
+  }
+
+  @Override
+  public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+    String sql = "SELECT CUR.name AS currency_name, SUM(refill) AS input, SUM(withdraw) AS output, " +
+            "  SUM(commission_refill) AS commission_in, SUM(commission_withdraw) AS commission_out " +
+            "FROM " +
+            "              (SELECT TX.currency_id, TX.amount AS refill, TX.commission_amount AS commission_refill, " +
+            "                 0 AS withdraw, 0 AS commission_withdraw FROM TRANSACTION TX " +
+            "                JOIN WALLET W ON TX.user_wallet_id = W.id " +
+            "                JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "              WHERE TX.operation_type_id = 1 AND TX.source_type = 'REFILL' " +
+            "              AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "              AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+
+            "               UNION " +
+
+            "               SELECT TX.currency_id, 0 AS refill, 0 AS commission_refill, " +
+            "                 TX.amount AS withdraw, TX.commission_amount AS commission_withdraw FROM TRANSACTION TX " +
+            "                 JOIN WALLET W ON TX.user_wallet_id = W.id " +
+            "                 JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
+            "               WHERE TX.operation_type_id = 2 AND TX.source_type = 'WITHDRAW' " +
+            "               AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+            "               AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
+            "              ) AGGR " +
+            "            JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
+            "            GROUP BY currency_name ORDER BY currency_name ASC;";
+    Map<String, Object> params = new HashMap<>();
+    params.put("start_time", Timestamp.valueOf(startTime));
+    params.put("end_time", Timestamp.valueOf(endTime));
+    params.put("user_roles", userRoleIdList);
+
+    return jdbcTemplate.query(sql, params, (rs, row) -> {
+      InputOutputCommissionSummaryDto dto = new InputOutputCommissionSummaryDto();
+      dto.setOrderNum(row + 1);
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setInput(rs.getBigDecimal("input"));
+      dto.setOutput(rs.getBigDecimal("output"));
+      dto.setInputCommission(rs.getBigDecimal("commission_in"));
+      dto.setOutputCommission(rs.getBigDecimal("commission_out"));
       return dto;
     });
   }

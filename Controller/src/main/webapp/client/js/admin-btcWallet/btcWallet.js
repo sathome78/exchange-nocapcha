@@ -265,10 +265,24 @@ function updateTxHistoryTable() {
                 }
 
             ],
+            dom: "<'download-btn col-md-12'B>lftip",
             "order": [[
                 0,
                 "desc"
-            ]]
+            ]],
+            buttons: [
+                {
+                    extend: 'csv',
+                    text: 'CSV',
+                    fieldSeparator: ';',
+                    bom:true,
+                    charset: 'UTF8',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6]
+                    }
+
+                }
+            ]
         });}
 }
 

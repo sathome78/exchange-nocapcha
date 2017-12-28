@@ -406,7 +406,20 @@ function updateWithdrawalTable() {
             ],
             "createdRow": function (row, data, index) {
             },
-            "order": [[0, 'desc']]
+            "order": [[0, 'desc']],
+            dom: "<'download-btn col-md-12'B>lftip",
+            buttons: [
+                {
+                    text: 'CSV',
+                    action: function (e, dt, node, config) {
+                        var filter = filterParams.length > 0 ? '&' + filterParams : '';
+                        var url = '/2a8fy7b07dxe44/withdrawRequests/report?viewType=' + tableViewType + filter;
+                        $.get(url, function (data) {
+                            saveToDisk(data, 'withdrawals.csv');
+                        })
+                    }
+                }
+            ]
         });
     }
 }
