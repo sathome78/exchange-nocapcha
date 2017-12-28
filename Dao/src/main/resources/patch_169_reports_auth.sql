@@ -1,3 +1,5 @@
+CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
+
 INSERT INTO ADMIN_AUTHORITY (id, name, description, hidden)
 VALUES (11, 'SEE_REPORTS', NULL, 0);
 
