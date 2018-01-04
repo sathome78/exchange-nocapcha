@@ -15,6 +15,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.cache.ChartsCache;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -53,6 +54,8 @@ public class WsContorller {
     private ObjectMapper objectMapper;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ChartsCache chartsCache;
 
 
     @SubscribeMapping("/ev/{sessionId}")
@@ -86,7 +89,7 @@ public class WsContorller {
     public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
         log.debug("sbs chart {}, {}", currencyPairId, period);
         BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
-        return orderService.getChartData(currencyPairId, backDealInterval);
+        return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")

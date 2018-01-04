@@ -64,6 +64,10 @@ public class OrderServiceImpl implements OrderService {
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
+  private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
+          .map(ChartPeriodsEnum::getBackDealInterval)
+          .collect(Collectors.toList());
+
   @Autowired
   private OrderDao orderDao;
 
@@ -113,6 +117,11 @@ public class OrderServiceImpl implements OrderService {
   private ObjectMapper objectMapper;
   @Autowired
   private ApplicationEventPublisher eventPublisher;
+
+  @Override
+  public List<BackDealInterval> getIntervals() {
+    return intervals;
+  }
 
   @Transactional
   @Override
@@ -1523,7 +1532,6 @@ public class OrderServiceImpl implements OrderService {
       arrayList.add(candle.getBaseVolume());
       arrayListMain.add(arrayList);
     }
-
     try {
       return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain,
               backDealInterval.getInterval(), currencyPairId));

@@ -184,7 +184,9 @@ public interface OrderService {
    */
   Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
-  /**
+    List<BackDealInterval> getIntervals();
+
+    /**
    * Returns object that contains data with statistics of orders for currencyPair.
    * Statistics formed by data for certain period: from current moment to <i></>backDealInterval</i> back
    *
