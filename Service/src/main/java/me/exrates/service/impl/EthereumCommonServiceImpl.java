@@ -98,6 +98,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService omgServiceImpl;
 
+    @Qualifier(value = "bnbServiceImpl")
+    @Autowired
+    private EthTokenService bnbServiceImpl;
+
     private String url;
 
     private String destinationDir;
@@ -303,9 +307,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }
 // ------------------------
 
-//  --------------OMG token
+// --------------OMG token
                 if (ethBlock.getTo() != null && omgServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     omgServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+// --------------BNB token
+                if (ethBlock.getTo() != null && bnbServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    bnbServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
 

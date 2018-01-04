@@ -468,6 +468,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OMG", true);
     }
 
+    @Bean(name = "bnbServiceImpl")
+    public EthTokenService BnbService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb8c77482e45f1f44de1745f52c74426c631bdd52");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BinanceCoin",
+                "BNB", true);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
