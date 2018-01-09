@@ -415,6 +415,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Zcash", "ZEC", 4, 20);
     }
 
+    @Bean(name = "b2xServiceImpl")
+    public BitcoinService b2xService() {
+        return new BitcoinServiceImpl("merchants/b2x_wallet.properties",
+                "B2X", "B2X", 4, 20);
+    }
+
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {

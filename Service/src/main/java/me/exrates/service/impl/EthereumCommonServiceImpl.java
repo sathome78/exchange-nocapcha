@@ -412,7 +412,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     private void provideTransactionAndTransferFunds(String address, String merchantTransactionId){
-
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
             LOG.debug("Providing transaction!");
