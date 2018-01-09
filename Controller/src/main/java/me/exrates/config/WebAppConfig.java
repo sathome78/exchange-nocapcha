@@ -484,6 +484,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BNB", true);
     }
 
+    @Bean(name = "atlServiceImpl")
+    public EthTokenService ATLANTService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x78b7fada55a64dd895d8c8c35779dd8b67fa8a05");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ATLANT",
+                "ATL", true);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
