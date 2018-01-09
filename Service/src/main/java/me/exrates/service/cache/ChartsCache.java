@@ -6,6 +6,8 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -16,9 +18,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by Maks on 29.12.2017.
  */
+
+@PropertySource("classpath:cache.properties")
 @Log4j2
 @Component
 public class ChartsCache {
+
+    private @Value("${pairs_lazy_load}")boolean lazyLoad;
 
     @Autowired
     private CurrencyService currencyService;
@@ -32,12 +38,14 @@ public class ChartsCache {
 
     @PostConstruct
     public void init() {
-        List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs();
-        pairs.forEach(p-> {
-            log.debug("start initialize cache for {}", p.getName());
-            updateCache(p.getId());
-            log.debug("cache for {} initialized!", p.getName());
-        });
+        if (!lazyLoad) {
+            List<CurrencyPair> pairs = currencyService.getAllCurrencyPairs();
+            pairs.forEach(p -> {
+                log.debug("start initialize cache for {}", p.getName());
+                updateCache(p.getId());
+                log.debug("cache for {} initialized!", p.getName());
+            });
+        }
     }
 
     public String getDataForPeriod(Integer pairId, String interval) {
@@ -46,22 +54,22 @@ public class ChartsCache {
 
 
     public Map<String, String> getData(Integer currencyPairId) {
+        log.debug("get data for pair {}", currencyPairId);
         if (!cacheMap.containsKey(currencyPairId)) {
+            log.error("no key {}", currencyPairId );
             updateCache(currencyPairId);
         }
-        synchronized (locksMap.get(currencyPairId)) {
-            return cacheMap.get(currencyPairId);
-        }
+        return cacheMap.get(currencyPairId);
     }
 
     public void updateCache(Integer currencyPairId) {
-        synchronized (locksMap.computeIfAbsent(currencyPairId,
-                p -> locksMap.put(currencyPairId, new Object()))) {
+        synchronized (locksMap.computeIfAbsent(currencyPairId, p -> new Object())) {
+            log.debug("update {}", currencyPairId );
             Map<String, String> map = cacheMap.computeIfAbsent(currencyPairId,
-                    p -> cacheMap.put(currencyPairId, new ConcurrentHashMap<>()));
+                        p -> new ConcurrentHashMap<>());
             orderService.getIntervals().forEach(p -> {
-                map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
-            });
+                    map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
+                });
         }
     }
 
