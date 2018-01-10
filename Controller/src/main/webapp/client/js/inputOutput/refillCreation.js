@@ -45,6 +45,10 @@ $(function refillCreation() {
         selectAndCopyText($(event.currentTarget).siblings("#address-to-pay"));
     });
 
+    $('#merchants-input-center').on('click', '#add-address-copy', function (event) {
+        selectAndCopyText($(event.currentTarget).siblings("#add-address-to-pay"));
+    });
+
     function startRefill(button) {
         currency = $(button).data("currency-id");
         currencyName = $(button).data("currency-name");
