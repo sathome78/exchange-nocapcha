@@ -73,8 +73,11 @@
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
     <%----%>
+    <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
 
     <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
     <%--TOOLS ... --%>
     <!-- Google Analytics-->
@@ -93,6 +96,8 @@
 <%@include file="../fragments/header.jsp" %>
 
 <main class="container">
+
+    <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -125,3 +130,4 @@
 
 </body>
 </html>
+

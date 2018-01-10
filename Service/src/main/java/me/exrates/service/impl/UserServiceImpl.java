@@ -94,6 +94,19 @@ public class UserServiceImpl implements UserService {
 
   private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
+  private final static List<String> LOCALES_LIST = new ArrayList<String>(){{
+    add("EN");
+    add("RU");
+    add("CN");
+    add("ID");
+    add("AR");
+  }};
+
+  @Override
+  public List<String> getLocalesList() {
+    return LOCALES_LIST;
+  }
+
   @Transactional(rollbackFor = Exception.class)
   public boolean create(User user, Locale locale) {
     Boolean flag = false;
