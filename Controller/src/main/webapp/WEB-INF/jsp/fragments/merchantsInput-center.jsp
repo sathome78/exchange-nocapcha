@@ -66,7 +66,14 @@
                          style="width: 168px; height: 52px; margin-right: 35px"/>
                     <div style="float: left; height: 20px;  width: 208px; text-align: left; margin-right: 10px; padding-left: 10px">
                       <c:if test="${(merchantCurrency.minSum > 0) && (merchantCurrency.processType != \"INVOICE\")}">
-                        <span><loc:message code="merchants.input.minSum"/></span>
+                        <c:choose>
+                          <c:when test="${merchantCurrency.processType == \"CRYPTO\"}">
+                            <span><loc:message code="merchants.input.recommendedMinSum"/></span>
+                          </c:when>
+                          <c:otherwise>
+                            <span><loc:message code="merchants.input.minSum"/></span>
+                          </c:otherwise>
+                        </c:choose>
                         <span>${minRefillSum.max(merchantCurrency.minSum).stripTrailingZeros().toPlainString()}</span>
                       </c:if>
                       <br>
