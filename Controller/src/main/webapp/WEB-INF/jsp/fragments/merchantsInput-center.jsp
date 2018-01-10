@@ -92,23 +92,32 @@
                     <c:otherwise>
                       <div style="overflow:auto; ">
                         <div>
+                          <div class="alert alert-warning"><loc:message code="message.additional.deposit.warning" arguments="${currency.getName()}"/></div>
                           <c:choose>
                             <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
                               <div id="address-to-pay" <%--style="font-size:16px"--%>>
                                 <p class="pay_addr">${merchantCurrency.mainAddress}</p>
                               </div>
+                              <button id="address-copy" class="btn" style="padding: 0 20px"><loc:message
+                                      code="refill.copy"/></button>
                               <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
-                              ${merchantCurrency.additionalFieldName}:
-                              <div id="address-to-pay" style="font-size:14px; overflow:auto">
+                              <br>${merchantCurrency.additionalFieldName}:
+                              <div id="add-address-to-pay" style="font-size:14px; overflow:auto">
                                   ${merchantCurrency.address}
                               </div>
+
+                              <button id="add-address-copy" class="btn" style="padding: 0 20px"><loc:message
+                                      code="refill.copyAdd" arguments="${merchantCurrency.additionalFieldName}"/></button>
+                              <div class="alert alert-warning"><loc:message code="message.additional.address.warning.${currency.getName()}"/></div>
                             </c:when>
                             <c:otherwise>
                               <loc:message code="refill.messageAboutCurrentAddressSimple"/>
                               <div id="address-to-pay" style="font-size:14px; overflow:auto">
                                   ${merchantCurrency.address}
                               </div>
+                              <button id=address-copy class="btn" style="padding: 0 20px"><loc:message
+                                      code="refill.copy"/></button>
                             </c:otherwise>
                           </c:choose>
                           <div class="timeoutWarning">
@@ -119,8 +128,6 @@
                           <div>
                             <img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=<c:out value="${merchantCurrency.address}"/>'/>
                           </div>
-                          <button id=address-copy class="btn" style="padding: 0 20px"><loc:message
-                                  code="refill.copy"/></button>
                           <c:if test="${merchantCurrency.generateAdditionalRefillAddressAvailable}">
                             <button id=address-generate class="btn start-refill" style="padding: 0 20px"
                                     data-currency-id="${currency.getId()}"
