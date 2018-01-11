@@ -72,12 +72,12 @@
             </sec:authorize>
         </li>
 
-        <%--<li>--%>
-            <%--&lt;%&ndash;withdraw&ndash;%&gt;--%>
-            <%--<sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">--%>
-                <%--<a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message code="admin.transfers"/></a>--%>
-            <%--</sec:authorize>--%>
-        <%--</li>--%>
+        <li>
+            <%--withdraw--%>
+            <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/withdrawal/vouchers'/>"><loc:message code="admin.transfers"/></a>
+            </sec:authorize>
+        </li>
 
         <li>
             <%--refill--%>
@@ -166,6 +166,13 @@
             <%--session control--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
+            </sec:authorize>
+        </li>
+
+        <li>
+            <%--alert settings--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/alerts'/>"><loc:message code="admin.alertsForUsers"/></a>
             </sec:authorize>
         </li>
 

@@ -4,14 +4,34 @@
 var currentLocale;
 var commissionsDataTable;
 var merchantsCommissionsDataTable;
+var transfersDataTable;
 
 $(document).ready(function () {
     var $commissionTable = $('#commissions-table');
     var $merchantCommissionTable = $('#merchant-commissions-table');
+    var $transferCommissionTable = $('#transfer-commissions-table');
     var $commissionForm = $('#edit-commission-form');
+    var $editTransferForm = $('#edit-transferCommission-form');
     var $merchantCommissionForm = $('#edit-merchantCommission-form');
     var $roleNameSelect = $('#roleName');
     currentLocale = $('#language').text().trim().toLowerCase();
+
+    $($transferCommissionTable).on('click', 'tr', function () {
+        var rowData = transfersDataTable.row(this).data();
+        var merchantId = rowData.merchantId;
+        var currencyId = rowData.currencyId;
+        var merchantName = rowData.merchantName;
+        var currencyName = rowData.currencyName;
+        var transferCommissionValue = parseFloat(rowData.transferCommission);
+        var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
+        $($editTransferForm).find('input[name="merchantId"]').val(merchantId);
+        $($editTransferForm).find('input[name="currencyId"]').val(currencyId);
+        $($editTransferForm).find('input[name="merchantName"]').val(merchantName);
+        $($editTransferForm).find('input[name="currencyName"]').val(currencyName);
+        $($editTransferForm).find('input[name="transferValue"]').val(transferCommissionValue);
+        $($editTransferForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
+        $('#editTransferCommissionModal').modal();
+    });
 
     $($commissionTable).on('click', 'tr', function () {
         var currentRoleName = $($roleNameSelect).val();
@@ -59,6 +79,7 @@ $(document).ready(function () {
 
     updateCommissionsDataTable();
     updateMerchantCommissionsDataTable();
+    updateTransferCommissionTable();
     $($roleNameSelect).on("change", updateCommissionsDataTable);
 
 
@@ -66,6 +87,11 @@ $(document).ready(function () {
     $('#submitCommission').click(function(e) {
         e.preventDefault();
         submitCommission()
+    });
+
+    $('#submitTransferCommission').click(function(e) {
+        e.preventDefault();
+        submitTransferCommission();
     });
 
     $('#submitMerchantCommission').click(function(e) {
@@ -124,9 +150,44 @@ function updateMerchantCommissionsDataTable() {
     }
 }
 
+function updateTransferCommissionTable() {
+    var $transferCommissionTable = $('#transfer-commissions-table');
+    var transfersCommissionUrl = '/2a8fy7b07dxe44/getMerchantTransferCommissions';
+    if ($.fn.dataTable.isDataTable('#transfer-commissions-table')) {
+        transfersDataTable = $($transferCommissionTable).DataTable();
+        transfersDataTable.ajax.url(transfersCommissionUrl).load();
+    } else {
+        transfersDataTable = $($transferCommissionTable).DataTable({
+            "ajax": {
+                "url": transfersCommissionUrl,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "merchantName"
+                },
+                {
+                    "data": "currencyName"
+                },
+                {
+                    "data": "transferCommission"
+                },
+                {
+                    "data": "minFixedCommission"
+                }
+            ]
+        });
+    }
+}
+
 function updateCommissionsDataTable() {
     var $commissionTable = $('#commissions-table');
-
     var currentRoleName = $('#roleName').val();
     var commissionUrlBase = '/2a8fy7b07dxe44/getCommissionsForRole?role=';
     var commissionUrl = commissionUrlBase + currentRoleName;
@@ -198,6 +259,26 @@ function submitMerchantCommission() {
          $('#editCommissionModal').modal('hide');
          console.log(error);
          }
+    });
+}
+
+function submitTransferCommission() {
+    var formData =  $('#edit-transferCommission-form').serialize();
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/commissions/editMerchantCommission',
+        type: 'POST',
+        data: formData,
+        success: function () {
+            updateTransferCommissionTable();
+            $('#editTransferCommissionModal').modal('hide');
+        },
+        error: function (error) {
+            $('#editTransferCommissionModal').modal('hide');
+            console.log(error);
+        }
     });
 }
 

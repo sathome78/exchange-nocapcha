@@ -17,6 +17,7 @@ var ordersSubscription;
 var tradesSubscription;
 var chartSubscription;
 var eventsSubscrition;
+var alertsSubscription;
 var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
@@ -35,6 +36,8 @@ var email;
 var csrf;
 var reconnectsCounter = 0;
 
+var timer;
+
 
 var onConnectFail = function () {
     connectedPS = false;
@@ -48,6 +51,7 @@ var onConnect = function() {
 
 function subscribeAll() {
     if (connectedPS) {
+        subscribeForAlerts();
         subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
@@ -77,6 +81,22 @@ function connectAndReconnect() {
     var headers = {'X-CSRF-TOKEN' : csrf};
     client.connect(headers, onConnect, onConnectFail);
 }
+
+function subscribeForAlerts() {
+    if (alertsSubscription != undefined) {
+        alertsSubscription.unsubscribe();
+    }
+    var lang = $("#language").text().toUpperCase().trim();
+    console.log('lang ' + lang);
+    var headers = {'X-CSRF-TOKEN' : csrf};
+    alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function(message) {
+        var messageBody = JSON.parse(message.body);
+        messageBody.forEach(function(object){
+            handleAlerts(object);
+        });
+    }, headers);
+}
+
 
 function subscribeForMyTrades() {
     if (personalSubscription != undefined) {
@@ -164,6 +184,83 @@ function subscribeEvents() {
         eventsSubscrition = client.subscribe(path, function (message) {
             handleEventsMessage(message.body);
         }, headers);
+    }
+}
+
+function handleAlerts(object) {
+    switch (object.alertType){
+        case "TECHNICAL_WORKS" : {
+            drawTechAlert(object);
+            break;
+        }
+        case "UPDATE" : {
+            console.log(object);
+            showHideUpdAlert(object);
+            break;
+        }
+    }
+}
+
+function showHideUpdAlert(object) {
+    var $container = $('#upd_alert');
+    var $textContainer = $('#upd_alert_text');
+    $textContainer.text('');
+    if (object.enabled) {
+        $container.show();
+        $textContainer.text(object.text);
+        drawUpdateALert(object);
+    } else {
+        $('.countdown').final_countdown(null, null, true);
+        $container.hide();
+    }
+}
+
+function drawUpdateALert(object) {
+    console.log('draw alert');
+    var remain = object.timeRemainSeconds;
+        var timeNow = Date.now()/1000;
+        var endTime = timeNow + (remain);
+        console.log("now " + timeNow + " end " + endTime);
+        $('.countdown').final_countdown({
+            start: timeNow,
+            end: endTime,
+            now: timeNow,
+        selectors: {
+                value_seconds: '.clock-seconds .val',
+                canvas_seconds: 'canvas_seconds',
+                value_minutes: '.clock-minutes .val',
+                canvas_minutes: 'canvas_minutes',
+                value_hours: '.clock-hours .val',
+                canvas_hours: 'canvas_hours',
+                value_days: '.clock-days .val',
+                canvas_days: 'canvas_days'
+            },
+            seconds: {
+                borderColor: '#7995D5',
+                borderWidth: '6'
+            },
+            minutes: {
+                borderColor: '#ACC742',
+                borderWidth: '6'
+            },
+            hours: {
+                borderColor: '#ECEFCB',
+                borderWidth: '6'
+            }},
+        function() {
+            // Finish callback
+        });
+}
+
+function drawTechAlert(object) {
+    var $tech_block = $('#tech_alert');
+    var $tech_text = $('#tech_alert_text');
+    if(object.enabled) {
+        $tech_block.show();
+        $tech_text.text(object.text)
+    } else {
+        $tech_block.hide();
+        $tech_text.text('')
     }
 }
 
