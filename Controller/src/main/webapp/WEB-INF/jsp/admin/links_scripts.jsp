@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="<c:url value="/client/css/buttons.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+<script src="<c:url value='/client/js/jquery_1.11.3.min.js'/>" type="text/javascript"></script>
 <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
 
