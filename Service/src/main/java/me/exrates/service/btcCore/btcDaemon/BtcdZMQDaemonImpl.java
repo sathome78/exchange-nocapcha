@@ -63,18 +63,27 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
             if (port != null) {
                 if (subscriber.connect(address)) {
                     subscriber.subscribe(topic);
+                    ZMQ.Poller poller = zmqContext.poller(1);
+                    poller.register(subscriber, ZMQ.Poller.POLLIN);
                     log.info("Successfully subscribed {} listener on port {} ", topic, port);
                     while (isActive) {
-                        try {
-                            String hex = extractMessage(subscriber);
-                            log.debug("socket {} got notification {} ", port, hex);
-                            if (hexStringChecker.test(hex)) {
-                                onNext.accept(hex);
-                            } else {
-                                log.warn("Illegal notification format: {}", hex);
+                        poller.poll(5000);
+                        if (poller.pollin(0)) {
+                            try {
+                                String hex = extractMessage(subscriber);
+                                log.debug("socket {} got notification {} ", port, hex);
+                                if (hexStringChecker.test(hex)) {
+                                    onNext.accept(hex);
+                                } else {
+                                    log.warn("Illegal notification format: {}", hex);
+                                }
+                            } catch (Exception e) {
+                                System.out.println(e.getClass());
+                                log.error(e);
+                                if (!isActive) {
+                                    onError.accept(e);
+                                }
                             }
-                        } catch (Exception e) {
-                            log.error(e);
                         }
                     }
                     onCompleted.accept("");
@@ -91,10 +100,10 @@ public class BtcdZMQDaemonImpl implements BtcDaemon{
 
     private String extractMessage(Socket subscriber) {
         List<byte[]> multipartMessage = new ArrayList<>();
-        byte[] message = subscriber.recv();
+        byte[] message = subscriber.recv(1);
         multipartMessage.add(message);
         while (subscriber.hasReceiveMore()) {
-            multipartMessage.add(subscriber.recv());
+            multipartMessage.add(subscriber.recv(1));
         }
         if (multipartMessage.size() >= 2) {
             return DatatypeConverter.printHexBinary(multipartMessage.get(1)).toLowerCase();

@@ -844,15 +844,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
     final String sql = "UPDATE REFILL_REQUEST RR" +
-        "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.id <> RR.id) AND (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
-        "  SET RR.merchant_transaction_id = :merchant_transaction_id " +
-        "  WHERE RR.id = :id AND RRI.id IS NULL ";
+            "  LEFT JOIN REFILL_REQUEST RRI ON (RRI.id <> RR.id) " +
+            "  AND (RRI.merchant_id = RR.merchant_id) AND (RRI.merchant_transaction_id = :merchant_transaction_id) " +
+            "  AND (RR.refill_request_address_id IS NULL OR RRI.refill_request_address_id = RR.refill_request_address_id)"  +
+            "  SET RR.merchant_transaction_id = :merchant_transaction_id " +
+            "  WHERE RR.id = :id AND RRI.id IS NULL ";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("merchant_transaction_id", merchantTransactionId);
     int result = namedParameterJdbcTemplate.update(sql, params);
     if (result == 0) {
-      throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(merchantTransactionId.toString());
+      throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(merchantTransactionId);
     }
   }
 
