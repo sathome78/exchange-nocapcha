@@ -15,7 +15,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title><loc:message code="dashboard.terms"/></title>
+    <title><loc:message code="partners.title"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
@@ -51,7 +51,7 @@
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
-            <div style="margin-bottom: 30px" id="termsContent">
+            <div style="margin-bottom: 70px" id="termsContent">
                 <loc:message code="partners.content" arguments="${supportLink}"/>
             </div>
 
