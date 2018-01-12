@@ -51,7 +51,7 @@
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
-            <div id="termsContent">
+            <div style="margin-bottom: 30px" id="termsContent">
                 <loc:message code="partners.content" arguments="${supportLink}"/>
             </div>
 
