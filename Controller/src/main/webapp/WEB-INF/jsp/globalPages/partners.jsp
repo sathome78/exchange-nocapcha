@@ -47,7 +47,7 @@
                 <loc:message code="partners.title"/>
             </c:set>
             <c:set var="supportLink">
-                <a href="<c:url value="/contacts"/>"><loc:message code="dashboard.contactsAndSupport"/></a>
+                <a href="mailto:support@exrates.me?Subject=Add%20coin">support@exrates.me</a>
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
