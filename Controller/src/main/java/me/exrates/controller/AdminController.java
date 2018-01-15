@@ -1098,7 +1098,18 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
   @ResponseBody
   public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-    return merchantService.findMerchantCurrencyOptions(Collections.emptyList());
+    return merchantService.findMerchantCurrencyOptions(
+            Stream.of(MerchantProcessType.values())
+                    .filter(p -> !p.equals(MerchantProcessType.TRANSFER))
+                    .map(Enum::name)
+                    .collect(Collectors.toList()));
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantTransferCommissions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<MerchantCurrencyOptionsDto> retrieveMerchantTransactionCommissions() {
+    return merchantService.findMerchantCurrencyOptions(Collections.singletonList(MerchantProcessType.TRANSFER.name()));
 
   }
 
@@ -1481,7 +1492,6 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/order/deleteMany", method = POST)
   public void deleteManyOrders(@RequestParam List<Integer> orderIds) {
-
     orderService.deleteManyOrdersByAdmin(orderIds);
   }
 

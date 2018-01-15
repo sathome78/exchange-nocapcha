@@ -179,7 +179,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
     String destinationTag = payment.getDestinationTag();
-    if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO) || amount.compareTo(BigDecimal.ZERO) != 0) {
+    if (!(merchant.getProcessType() == MerchantProcessType.CRYPTO && operationType == OperationType.INPUT)) {
       try {
         merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
       } catch (EmptyResultDataAccessException e) {
