@@ -442,7 +442,7 @@
         <div id="panel3" class="tab-pane">
           <%--<div class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">--%>
           <%--<div class="row">--%>
-          <div class="col-md-8 content">
+          <div class="col-md-10 content">
             <%--СПИСОК СЧЕТОВ--%>
             <div class="text-center"><h4><loc:message code="admin.wallets"/></h4></div>
 
@@ -452,7 +452,13 @@
               <thead>
               <tr>
                 <%--RUB--%>
-                <th></th>
+                  <th></th>
+                  <th><loc:message code="userWallet.input"/></th>
+                  <th><loc:message code="userWallet.sell"/></th>
+                  <th><loc:message code="userWallet.buy"/></th>
+                  <th><loc:message code="userWallet.output"/></th>
+                  <th><loc:message code="mywallets.reservedonorders"/></th>
+                  <th><loc:message code="mywallets.reservedonwithdraw"/></th>
                 <%--Активный баланс>--%>
                 <th><loc:message code="mywallets.abalance"/></th>
                 <%--Резерв--%>

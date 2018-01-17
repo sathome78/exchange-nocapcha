@@ -23,15 +23,51 @@ $(function () {
                     "data": "name"
                 },
                 {
+                    "data": "totalInput",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "totalSell",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "totalBuy",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "totalOutput",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "reserveOrders",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "reserveWithdraw",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
                     "data": "activeBalance",
                     "render": function (data, type, row) {
-                        return row.activeBalanceFormatted;
+                        return formatDecimalValue(data);
                     }
                 },
                 {
                     "data": "reservedBalance",
                     "render": function (data, type, row) {
-                        return row.reservedBalanceFormatted;
+                        return formatDecimalValue(data);
                     }
                 }
             ]
@@ -43,3 +79,7 @@ $(function () {
         window.location = "/2a8fy7b07dxe44/userStatements/" + currentData.id;
     })
 });
+
+function formatDecimalValue(val) {
+    return numbro(val).format('0.00[000000]')
+}

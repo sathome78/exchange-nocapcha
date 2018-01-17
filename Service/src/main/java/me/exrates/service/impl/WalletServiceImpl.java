@@ -9,6 +9,7 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
@@ -70,6 +71,18 @@ public final class WalletServiceImpl implements WalletService {
     wallets.forEach(this::balanceRepresentation);
     return wallets;
   }
+
+  @Override
+  public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
+    return walletDao.getAllUserWalletsForAdminDetailed(userId,
+            WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()),
+            WithdrawStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()),
+            RefillStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
+
+
+
+
 
   @Transactional(readOnly = true)
   @Override
