@@ -314,7 +314,8 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
-    return walletService.getAllUserWalletsForAdminDetailed(id);
+    /*return walletService.getAllUserWalletsForAdminDetailed(id);*/
+    return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
   @AdminLoggable
