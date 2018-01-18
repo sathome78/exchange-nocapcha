@@ -445,7 +445,14 @@
           <div class="col-md-10 content">
             <%--СПИСОК СЧЕТОВ--%>
             <div class="text-center"><h4><loc:message code="admin.wallets"/></h4></div>
-
+              <div class='col-md-12' id="exclude-zero-balances-container">
+                <div class="col-md-1">
+                  <input type='checkbox' id='exclude-zero-balances'>
+                </div>
+                <div class="col-md-11">
+                  <label for="exclude-zero-balances"><loc:message code="userWallets.excludeZero"/></label>
+                </div>
+              </div>
             <table id="walletsTable"
                    class="admin-table table table-hover table-bordered table-striped"
                    style="width:100%">
