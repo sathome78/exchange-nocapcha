@@ -558,7 +558,7 @@
             <AppenderRef ref="test_log"/>
         </logger>
 
-        <Root level="DEBUG">
+        <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>
