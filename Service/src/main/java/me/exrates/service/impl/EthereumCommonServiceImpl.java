@@ -106,6 +106,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService atlServiceImpl;
 
+    @Qualifier(value = "bitRentServiceImpl")
+    @Autowired
+    private EthTokenService bitRentServiceImpl;
+
     private String url;
 
     private String destinationDir;
@@ -326,6 +330,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 // --------------ATL token
                 if (ethBlock.getTo() != null && atlServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     atlServiceImpl.tokenTransaction(ethBlock);
+                }
+// ------------------------
+
+                // --------------RNTB token
+                if (ethBlock.getTo() != null && bitRentServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    bitRentServiceImpl.tokenTransaction(ethBlock);
                 }
 // ------------------------
 
