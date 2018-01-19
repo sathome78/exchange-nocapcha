@@ -107,7 +107,7 @@
                               <div id="address-to-pay" <%--style="font-size:16px"--%>>
                                 <p class="pay_addr">${merchantCurrency.mainAddress}</p>
                               </div>
-                              <button id="address-copy" class="btn" style="padding: 0 20px"><loc:message
+                              <button id="address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
                                       code="refill.copy"/></button>
                           </div>
                               <%--<loc:message code="merchants.modalOutputAddressTag"/>--%>
@@ -117,7 +117,7 @@
                                   ${merchantCurrency.address}
                               </div>
 
-                              <button id="add-address-copy" class="btn" style="padding: 0 20px"><loc:message
+                              <button id="add-address-copy" class="btn btn-danger" style="padding: 0 20px"><loc:message
                                       code="refill.copyAdd" arguments="${merchantCurrency.additionalFieldName}"/></button>
                           </div>
                             <div class="alert alert-warning"><loc:message code="message.additional.address.warning.${currency.getName()}"/></div>
@@ -127,7 +127,7 @@
                               <div id="address-to-pay" style="font-size:14px; overflow:auto">
                                   ${merchantCurrency.address}
                               </div>
-                              <button id=address-copy class="btn" style="padding: 0 20px"><loc:message
+                              <button id=address-copy class="btn btn-danger" style="padding: 0 20px"><loc:message
                                       code="refill.copy"/></button>
                             </c:otherwise>
                           </c:choose>
