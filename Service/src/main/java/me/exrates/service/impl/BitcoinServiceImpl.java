@@ -17,17 +17,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQException;
-import reactor.core.publisher.Flux;
-import zmq.ZError;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -64,6 +59,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Integer blockTargetForFee;
 
+  private Boolean supportInstantSend;
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
@@ -77,6 +74,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
       this.zmqEnabled = Boolean.valueOf(props.getProperty("node.zmqEnabled"));
+      this.supportInstantSend = Boolean.valueOf(props.getProperty("node.supportInstantSend"));
       this.merchantName = merchantName;
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
@@ -98,11 +96,13 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initCoreClient(nodePropertySource);
+    bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend);
     bitcoinWalletService.initBtcdDaemon(zmqEnabled);
-    bitcoinWalletService.blockFlux().doOnNext(this::onIncomingBlock).subscribe();
-    bitcoinWalletService.walletFlux().doOnNext(this::onPayment).doOnError(log::error).retry().subscribe();
-    bitcoinWalletService.instantSendFlux().doOnNext(this::onPayment).doOnError(log::error).retry().subscribe();
+    bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
+    bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+    if (supportInstantSend) {
+      bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+    }
     examineMissingPaymentsOnStartup();
   }
 

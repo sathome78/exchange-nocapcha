@@ -18,7 +18,7 @@ import java.util.Optional;
  * Created by OLEG on 14.03.2017.
  */
 public interface CoreWalletService {
-  void initCoreClient(String nodePropertySource);
+  void initCoreClient(String nodePropertySource, boolean supportInstantSend);
   
   void initBtcdDaemon(boolean zmqEnabled);
   
