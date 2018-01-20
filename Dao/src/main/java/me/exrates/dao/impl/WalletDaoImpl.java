@@ -283,22 +283,36 @@ public class WalletDaoImpl implements WalletDao {
             "                 WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
-            "             /*SELL & BUY CLOSED ORDERS */ " +
+            "/*SELL CLOSED ORDERS */ " +
             "             UNION ALL " +
             "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
             "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
             "                    0, 0, 0, " +
             "                    0, 0, " +
-            "                    IFNULL(SELL_DEALS.amount_base, 0), IFNULL(BUY_DEALS.amount_convert, 0), 0, 0 " +
+            "                    IFNULL(SELL_DEALS.amount_base, 0), 0, 0, 0 " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+            "               JOIN EXORDERS SELL_DEALS ON (SELL_DEALS.currency_pair_id = CP1.id) AND (SELL_DEALS.status_id = 3) " +
+            "                                                AND (SELL_DEALS.operation_type_id=3) AND (SELL_DEALS.user_id=USER.id) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*BUY CLOSED ORDERS */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "               0, 0, 0, " +
+            "               0, 0, " +
+            "               0, IFNULL(BUY_DEALS.amount_convert, 0), 0, 0 " +
             "             FROM USER " +
             "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "               LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            "               LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-            "               LEFT JOIN EXORDERS SELL_DEALS ON (SELL_DEALS.operation_type_id=3) AND (SELL_DEALS.user_id=USER.id) " +
-            "                                                AND (SELL_DEALS.currency_pair_id = CP1.id) AND (SELL_DEALS.status_id = 3) " +
-            "               LEFT JOIN EXORDERS BUY_DEALS ON (BUY_DEALS.operation_type_id = 4) AND (BUY_DEALS.user_id = USER.id) " +
-            "                                               AND (BUY_DEALS.currency_pair_id = CP1.id) AND (BUY_DEALS.status_id = 3) " +
-            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+            "               LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+            "               LEFT JOIN EXORDERS BUY_DEALS ON (BUY_DEALS.currency_pair_id = CP2.id) AND (BUY_DEALS.status_id = 3) " +
+            "                                               AND (BUY_DEALS.operation_type_id = 4) AND (BUY_DEALS.user_id = USER.id) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1" +
 
 
             "             /*INPUT - CONFIRMED */ " +

@@ -36,7 +36,7 @@ $(function () {
                 {
                     "data": "name"
                 },
-                /*{
+                {
                     "data": "totalInput",
                     "render": function (data, type, row) {
                         return formatDecimalValue(data);
@@ -71,7 +71,7 @@ $(function () {
                     "render": function (data, type, row) {
                         return formatDecimalValue(data);
                     }
-                },*/
+                },
                 {
                     "data": "activeBalance",
                     "render": function (data, type, row) {

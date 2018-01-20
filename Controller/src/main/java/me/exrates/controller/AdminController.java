@@ -317,8 +317,8 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
-    /*return walletService.getAllUserWalletsForAdminDetailed(id);*/
-    return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
+    return walletService.getAllUserWalletsForAdminDetailed(id);
+   // return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
   @AdminLoggable
@@ -1671,6 +1671,10 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+
+    public static void main(String[] args) {
+        System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+    }
 
 
 }
