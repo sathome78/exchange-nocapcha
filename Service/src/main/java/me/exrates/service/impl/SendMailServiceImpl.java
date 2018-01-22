@@ -82,9 +82,6 @@ public class SendMailServiceImpl implements SendMailService{
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
 		email.setFrom(fromAddress);
-		logger.debug(email);
-
-
 		mailSender.send(mimeMessage -> {
 			MimeMessageHelper message;
 			message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -97,6 +94,8 @@ public class SendMailServiceImpl implements SendMailService{
 					message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
 			}
 		});
+		logger.info("Email sent: " + email);
+
 	}
 
 	@Override
