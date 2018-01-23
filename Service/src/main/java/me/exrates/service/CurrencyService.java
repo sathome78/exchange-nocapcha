@@ -38,6 +38,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairs();
 
+    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
+
     CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
