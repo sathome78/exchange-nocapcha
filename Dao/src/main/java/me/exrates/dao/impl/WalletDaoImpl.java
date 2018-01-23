@@ -283,35 +283,65 @@ public class WalletDaoImpl implements WalletDao {
             "                 WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
-            "/*SELL CLOSED ORDERS */ " +
+            " /*CLOSED ORDERS - BASE CURRENCY - CREATOR */ " +
             "             UNION ALL " +
             "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
             "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
             "                    0, 0, 0, " +
             "                    0, 0, " +
-            "                    IFNULL(SELL_DEALS.amount_base, 0), 0, 0, 0 " +
+            "                    IF(EO.operation_type_id = 3, EO.amount_base, 0), IF(EO.operation_type_id = 4, EO.amount_base, 0), 0, 0 " +
             "             FROM USER " +
             "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
             "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
-            "               JOIN EXORDERS SELL_DEALS ON (SELL_DEALS.currency_pair_id = CP1.id) AND (SELL_DEALS.status_id = 3) " +
-            "                                                AND (SELL_DEALS.operation_type_id=3) AND (SELL_DEALS.user_id=USER.id) " +
+            "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
             "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
 
 
-            "             /*BUY CLOSED ORDERS */ " +
+            "             /*CLOSED ORDERS - CONVERT CURRENCY - CREATOR */ " +
             "             UNION ALL " +
             "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
             "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
             "               0, 0, 0, " +
             "               0, 0, " +
-            "               0, IFNULL(BUY_DEALS.amount_convert, 0), 0, 0 " +
+            "               IF(EO.operation_type_id = 4, EO.amount_convert, 0), IF(EO.operation_type_id = 3, EO.amount_convert, 0), 0, 0 " +
             "             FROM USER " +
             "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
-            "               LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            "               LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
-            "               LEFT JOIN EXORDERS BUY_DEALS ON (BUY_DEALS.currency_pair_id = CP2.id) AND (BUY_DEALS.status_id = 3) " +
-            "                                               AND (BUY_DEALS.operation_type_id = 4) AND (BUY_DEALS.user_id = USER.id) " +
+            "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+            "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) AND (EO.user_id=USER.id) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*CLOSED ORDERS - BASE CURRENCY - ACCEPTOR */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "               0, 0, 0, " +
+            "               0, 0, " +
+            "               IF(EO.operation_type_id = 4, EO.amount_base, 0), IF(EO.operation_type_id = 3, EO.amount_base, 0), 0, 0 " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+            "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP1.id) AND (EO.status_id = 3) " +
+            "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*CLOSED ORDERS - CONVERT CURRENCY - ACCEPTOR */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "               0, 0, 0, " +
+            "               0, 0, " +
+            "               IF(EO.operation_type_id = 3, EO.amount_convert, 0), IF(EO.operation_type_id = 4, EO.amount_convert, 0), 0, 0 " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+            "               JOIN EXORDERS EO ON (EO.currency_pair_id = CP2.id) AND (EO.status_id = 3) " +
+            "                                   AND (EO.user_acceptor_id=USER.id) AND EO.counter_order_id IS NULL " +
             "             WHERE USER.id = :id AND CURRENCY.hidden != 1" +
 
 

@@ -3,7 +3,7 @@ var walletsDataTable;
 $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
         var excludeZeroes = $('#exclude-zero-balances').prop('checked');
-        var activeBalance = parseFloat(data[7]) || 0;
+        var activeBalance = parseFloat(data[1]) || 0;
         var reservedBalance = parseFloat(data[8]) || 0;
 
         if (excludeZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
@@ -37,6 +37,24 @@ $(function () {
                     "data": "name"
                 },
                 {
+                    "data": "activeBalance",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "reserveOrders",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
+                    "data": "reserveWithdraw",
+                    "render": function (data, type, row) {
+                        return formatDecimalValue(data);
+                    }
+                },
+                {
                     "data": "totalInput",
                     "render": function (data, type, row) {
                         return formatDecimalValue(data);
@@ -56,24 +74,6 @@ $(function () {
                 },
                 {
                     "data": "totalOutput",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "reserveOrders",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "reserveWithdraw",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "activeBalance",
                     "render": function (data, type, row) {
                         return formatDecimalValue(data);
                     }

@@ -460,15 +460,13 @@
               <tr>
                 <%--RUB--%>
                   <th></th>
+                  <th><loc:message code="mywallets.abalance"/></th>
+                  <th><loc:message code="mywallets.reservedonorders"/></th>
+                  <th><loc:message code="mywallets.reservedonwithdraw"/></th>
                   <th><loc:message code="userWallet.input"/></th>
                   <th><loc:message code="userWallet.sell"/></th>
                   <th><loc:message code="userWallet.buy"/></th>
                   <th><loc:message code="userWallet.output"/></th>
-                  <th><loc:message code="mywallets.reservedonorders"/></th>
-                  <th><loc:message code="mywallets.reservedonwithdraw"/></th>
-                <%--Активный баланс>--%>
-                <th><loc:message code="mywallets.abalance"/></th>
-                <%--Резерв--%>
                 <th><loc:message code="mywallets.rbalance"/></th>
               </tr>
               </thead>
