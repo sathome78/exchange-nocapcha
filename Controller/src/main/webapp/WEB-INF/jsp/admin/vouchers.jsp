@@ -9,7 +9,7 @@
   <meta charset="utf-8"/>
   <!--[if lt IE 9]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-  <title><loc:message code="admin.withdrawRequests"/></title>
+  <title><loc:message code="admin.transfers"/></title>
   <meta name="keywords" content=""/>
   <meta name="description" content=""/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -31,7 +31,7 @@
         <div class="col-md-8 col-sm-offset-1 content admin-container">
 
 
-      <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>
+      <div class="row text-center"><h4><loc:message code="admin.transfers"/></h4></div>
       <div class="col-md-11">
         <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;"
                 data-target="#withdrawal-request-filter">

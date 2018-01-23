@@ -20,4 +20,6 @@ public interface StompMessenger {
     void sendStatisticMessage(List<Integer> currenciesIds);
 
     void sendEventMessage(String sessionId, String message);
+
+    void sendAlerts(String message, String lang);
 }

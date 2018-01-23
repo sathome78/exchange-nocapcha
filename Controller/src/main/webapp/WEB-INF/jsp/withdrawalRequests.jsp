@@ -44,8 +44,6 @@
                         <loc:message code="admin.withdraw.accepted"/></button>
                     <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.withdraw.declined"/></button>
-                    <a id="withdraw-requests-vouchers" href="/2a8fy7b07dxe44/withdrawal/vouchers" class="myorders__button blue-box margin-box active">
-                    <loc:message code="voucher.vouchers"/></a>
                 </div>
             </div>
 

@@ -373,6 +373,11 @@ public class MainController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/partners", method = RequestMethod.GET)
+    public ModelAndView partners() {
+        return new ModelAndView("/globalPages/partners", "captchaType", CAPTCHA_TYPE);
+    }
+
     @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
     @ResponseBody
     public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,

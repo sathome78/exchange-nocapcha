@@ -190,6 +190,174 @@ public class WalletDaoImpl implements WalletDao {
   }
 
 
+  @Override
+  public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
+                                                                    List<Integer> withdrawSuccessStatusIds,
+                                                                    List<Integer> refillSuccessStatusIds) {
+    String sql = "SELECT wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance, " +
+            "               SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
+            "               SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
+            "               SUM(total_input) AS total_input, SUM(total_output) AS total_output, " +
+            "               SUM(total_sell) AS total_sell, SUM(total_buy) AS total_buy " +
+            "             FROM " +
+            "             ( " +
+
+
+            "              /*SELL - ORDERS - RESERVE */ " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "             IFNULL(SELL.amount_base,0) AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
+            "             0 AS withdraw_amount, 0 AS withdraw_commission, " +
+            "             0 AS total_sell, 0 AS total_buy, 0 AS total_input, 0 AS total_output " +
+            "             FROM USER " +
+            "             JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "             LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "             LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+            "             LEFT JOIN EXORDERS SELL ON (SELL.operation_type_id=3) AND (SELL.user_id=USER.id) AND (SELL.currency_pair_id = CP1.id) AND (SELL.status_id = 2) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*SELL - STOP ORDERS - RESERVE */ " +
+            "             UNION ALL " +
+            "                 SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, " +
+            "                 WALLET.reserved_balance, " +
+            "                 IFNULL(SOSELL.amount_base,0), 0, 0, " +
+            "                 0, 0, " +
+            "                 0, 0, 0, 0 " +
+            "                 FROM USER " +
+            "                 JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "                 LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "                 LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+            "                 LEFT JOIN STOP_ORDERS SOSELL ON (SOSELL.operation_type_id=3) AND (SOSELL.user_id=USER.id) AND (SOSELL.currency_pair_id = CP1.id) AND (SOSELL.status_id = 2) " +
+            "                 WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*BUY - STOP ORDERS - RESERVE */ " +
+            "             UNION ALL " +
+            "                 SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance, " +
+            "                 0, IFNULL(SOBUY.amount_convert,0), IFNULL(SOBUY.commission_fixed_amount,0), " +
+            "                 0, 0, " +
+            "                 0, 0, 0, 0 " +
+            "                 FROM USER " +
+            "                 JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "                 LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "                 LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+            "                 LEFT JOIN STOP_ORDERS SOBUY ON (SOBUY.operation_type_id=4) AND (SOBUY.user_id=USER.id) AND (SOBUY.currency_pair_id = CP2.id) AND (SOBUY.status_id = 2) " +
+            "                 WHERE USER.id = :id  AND CURRENCY.hidden != 1 " +
+
+
+            "             /*BUY - ORDERS - RESERVE */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name,  WALLET.active_balance, WALLET.reserved_balance, " +
+            "             0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0), " +
+            "             0, 0, " +
+            "             0, 0, 0, 0 " +
+            "             FROM USER " +
+            "             JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "             LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "             LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+            "             LEFT JOIN EXORDERS BUY ON (BUY.operation_type_id=4) AND (BUY.user_id=USER.id) AND (BUY.currency_pair_id = CP2.id) AND (BUY.status_id = 2) " +
+            "             WHERE USER.id = :id  AND CURRENCY.hidden != 1 " +
+
+
+            "             /*WITHDRAW - RESERVE */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name,  WALLET.active_balance, WALLET.reserved_balance, " +
+            "             0, 0, 0, " +
+            "             IFNULL(WITHDRAW_REQUEST.amount, 0), IFNULL(WITHDRAW_REQUEST.commission, 0), " +
+            "             0, 0, 0, 0 " +
+            "             FROM USER " +
+            "             JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "             LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "             JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.user_id = USER.id AND WITHDRAW_REQUEST.currency_id = WALLET.currency_id AND WITHDRAW_REQUEST.status_id NOT IN (:withdraw_status_id_list) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*TRANSFER - RESERVE */ " +
+            "             UNION ALL " +
+            "                 SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance, " +
+            "                 0, 0, 0, " +
+            "                 IFNULL(TRANSFER_REQUEST.amount, 0), IFNULL(TRANSFER_REQUEST.commission, 0), " +
+            "                 0, 0, 0, 0 " +
+            "                 FROM USER " +
+            "                 JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "                 LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "                 JOIN TRANSFER_REQUEST ON TRANSFER_REQUEST.user_id = USER.id AND TRANSFER_REQUEST.currency_id = WALLET.currency_id AND TRANSFER_REQUEST.status_id = 4 " +
+            "                 WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*SELL & BUY CLOSED ORDERS */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "                    0, 0, 0, " +
+            "                    0, 0, " +
+            "                    IFNULL(SELL_DEALS.amount_base, 0), IFNULL(BUY_DEALS.amount_convert, 0), 0, 0 " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+            "               LEFT JOIN EXORDERS SELL_DEALS ON (SELL_DEALS.operation_type_id=3) AND (SELL_DEALS.user_id=USER.id) " +
+            "                                                AND (SELL_DEALS.currency_pair_id = CP1.id) AND (SELL_DEALS.status_id = 3) " +
+            "               LEFT JOIN EXORDERS BUY_DEALS ON (BUY_DEALS.operation_type_id = 4) AND (BUY_DEALS.user_id = USER.id) " +
+            "                                               AND (BUY_DEALS.currency_pair_id = CP1.id) AND (BUY_DEALS.status_id = 3) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*INPUT - CONFIRMED */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
+            "                    WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance, " +
+            "                    0, 0, 0, " +
+            "                    0, 0, " +
+            "                    0, 0, IFNULL(RR.amount, 0), 0 " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               LEFT JOIN REFILL_REQUEST RR ON RR.user_id = USER.id AND RR.currency_id = CURRENCY.id AND RR.status_id IN (:refill_success_status_id_list) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+
+
+            "             /*OUTPUT - CONFIRMED */ " +
+            "             UNION ALL " +
+            "             SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name,  WALLET.active_balance, WALLET.reserved_balance, " +
+            "               0, 0, 0, " +
+            "               0, 0, " +
+            "               0, 0, 0, IFNULL(WITHDRAW_REQUEST.amount, 0) " +
+            "             FROM USER " +
+            "               JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "               LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+            "               JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.user_id = USER.id AND WITHDRAW_REQUEST.currency_id = WALLET.currency_id " +
+            "               AND WITHDRAW_REQUEST.status_id IN (:withdraw_success_status_id_list) " +
+            "             WHERE USER.id = :id AND CURRENCY.hidden != 1 " +
+            "             ) W " +
+            "             GROUP BY wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance " +
+            "                ORDER BY currency_name ASC; ";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", userId);
+    params.put("withdraw_status_id_list", withdrawEndStatusIds);
+    params.put("withdraw_success_status_id_list", withdrawSuccessStatusIds);
+    params.put("refill_success_status_id_list", refillSuccessStatusIds);
+
+    return jdbcTemplate.query(sql, params, (rs, row) -> {
+
+      WalletFormattedDto dto = new WalletFormattedDto();
+      dto.setId(rs.getInt("wallet_id"));
+      dto.setName(rs.getString("currency_name"));
+      dto.setActiveBalance(rs.getBigDecimal("active_balance"));
+      dto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      dto.setReserveOrders(rs.getBigDecimal("reserved_balance_by_orders"));
+      dto.setReserveWithdraw(rs.getBigDecimal("reserved_balance_by_withdraw"));
+      dto.setTotalInput(rs.getBigDecimal("total_input"));
+      dto.setTotalOutput(rs.getBigDecimal("total_output"));
+      dto.setTotalSell(rs.getBigDecimal("total_sell"));
+      dto.setTotalBuy(rs.getBigDecimal("total_buy"));
+
+      return dto;
+    });
+
+  }
+
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
     String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
     final String sql =

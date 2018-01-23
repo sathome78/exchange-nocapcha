@@ -47,6 +47,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.web3j.utils.Convert.Unit.ETHER;
+
 /**
  * Created by Maks on 19.09.2017.
  */
@@ -67,7 +69,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private final BigInteger GAS_LIMIT = BigInteger.valueOf(430000);
+    private final BigInteger GAS_LIMIT = BigInteger.valueOf(200000);/*was 4500000*/
 
     private final BigDecimal feeAmount = new BigDecimal("0.015");
 
@@ -175,7 +177,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                             merchant.getId(),
                             currency.getId(),
                             transaction.getHash()).isPresent()){
-                        BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), Convert.Unit.ETHER);
+                        BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), ETHER);
                         LOG.debug(merchant.getName() + " recipient: " + contractRecipient + ", amount: " + amount);
 
                         Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
@@ -270,15 +272,15 @@ public class EthTokenServiceImpl implements EthTokenService {
                     contractMain.transferFrom(new Address(credentials.getAddress()),
                             new Address(ethereumCommonService.getMainAddress()), new Uint256(balance)).get();
 
-                    LOG.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), Convert.Unit.ETHER) + " sent to main account!!!");
+                    LOG.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), ETHER) + " sent to main account!!!");
                 }else {
 
                     ethTokenNotERC20 contract = (ethTokenNotERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), credentials, GAS_PRICE, GAS_LIMIT);
 
                     BigInteger balance = contract.balanceOf(new Address(credentials.getAddress())).get().getValue();
-                    BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
+                    BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), ETHER);
 
-                    if (balance.compareTo(Convert.toWei(minBalanceForTransfer, Convert.Unit.ETHER).toBigInteger()) <= 0){
+                    if (balance.compareTo(Convert.toWei(minBalanceForTransfer, ETHER).toBigInteger()) <= 0){
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
                         continue;
@@ -287,12 +289,12 @@ public class EthTokenServiceImpl implements EthTokenService {
                     if (ethBalance.compareTo(feeAmount) < 0) {
                         Transfer.sendFunds(
                                 ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
-                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER);
+                                credentials.getAddress(), feeAmount, ETHER);
                     }
 
                     contract.transfer(new Address(ethereumCommonService.getMainAddress()), new Uint256(balance)).get();
 
-                    LOG.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), Convert.Unit.ETHER) + " sent to main account!!!");
+                    LOG.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), ETHER) + " sent to main account!!!");
                 }
             }catch (Exception e){
                 LOG.error(e);

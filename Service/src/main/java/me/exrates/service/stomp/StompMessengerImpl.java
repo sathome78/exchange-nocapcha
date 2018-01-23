@@ -9,6 +9,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.QRLoginEvent;
@@ -44,6 +45,13 @@ public class StompMessengerImpl implements StompMessenger{
     private UserService userService;
     @Autowired
     private ChartsCache chartsCache;
+
+
+
+    private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
+                                                    .map(ChartPeriodsEnum::getBackDealInterval)
+                                                    .collect(Collectors.toList());
+
 
    @Override
    public void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType){
@@ -111,6 +119,12 @@ public class StompMessengerImpl implements StompMessenger{
     @Override
     public void sendEventMessage(final String sessionId, final String message) {
         sendMessageToDestination("/app/ev/".concat(sessionId), message);
+    }
+
+    @Override
+    public void sendAlerts(final String message, final String lang) {
+       log.debug("lang to send {}", lang);
+        sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 
 
