@@ -23,6 +23,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -112,11 +113,12 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   private UserRoleService userRoleService;
   @Autowired
-  private BotService botService;
-  @Autowired
   private ObjectMapper objectMapper;
   @Autowired
   private ApplicationEventPublisher eventPublisher;
+  @Autowired
+  private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+
 
   @Override
   public List<BackDealInterval> getIntervals() {
@@ -191,7 +193,7 @@ public class OrderServiceImpl implements OrderService {
    @Override
    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
      Locale locale = Locale.ENGLISH;
-     List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+     List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
      result = result.stream()
              .map(ExOrderStatisticsShortByPairsDto::new)
              .collect(toList());
@@ -230,7 +232,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
-    List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+    List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
     result.forEach(e -> {
           BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
           BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
