@@ -14,13 +14,14 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Maks on 29.12.2017.
  */
 
 @PropertySource("classpath:cache.properties")
-@Log4j2
+@Log4j2(topic = "cache")
 @Component
 public class ChartsCache {
 
@@ -34,7 +35,7 @@ public class ChartsCache {
     /**Map <pairId, <interval, data>>
      * */
     private Map<Integer, Map<String, String>> cacheMap = new ConcurrentHashMap<>();
-    private Map<Integer, Object> locksMap = new ConcurrentHashMap<>();
+    private Map<Integer, Semaphore> locksMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -56,20 +57,22 @@ public class ChartsCache {
     public Map<String, String> getData(Integer currencyPairId) {
         log.debug("get data for pair {}", currencyPairId);
         if (!cacheMap.containsKey(currencyPairId)) {
-            log.error("no key {}", currencyPairId );
+            log.debug("no key {}", currencyPairId );
             updateCache(currencyPairId);
         }
         return cacheMap.get(currencyPairId);
     }
 
     public void updateCache(Integer currencyPairId) {
-        synchronized (locksMap.computeIfAbsent(currencyPairId, p -> new Object())) {
-            log.debug("update {}", currencyPairId );
+        Semaphore currentSemaphore = locksMap.computeIfAbsent(currencyPairId, p -> new Semaphore(1));
+        if (currentSemaphore.tryAcquire()) {
+            log.debug("update {}", currencyPairId);
             Map<String, String> map = cacheMap.computeIfAbsent(currencyPairId,
-                        p -> new ConcurrentHashMap<>());
+                    p -> new ConcurrentHashMap<>());
             orderService.getIntervals().forEach(p -> {
-                    map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
-                });
+                map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
+            });
+            currentSemaphore.release();
         }
     }
 
