@@ -453,23 +453,37 @@
                   <label for="exclude-zero-balances"><loc:message code="userWallets.excludeZero"/></label>
                 </div>
               </div>
+                <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
                    class="admin-table table table-hover table-bordered table-striped"
                    style="width:100%">
-              <thead>
-              <tr>
-                <%--RUB--%>
-                  <th></th>
-                  <th><loc:message code="mywallets.abalance"/></th>
-                  <th><loc:message code="mywallets.reservedonorders"/></th>
-                  <th><loc:message code="mywallets.reservedonwithdraw"/></th>
-                  <th><loc:message code="userWallet.input"/></th>
-                  <th><loc:message code="userWallet.sell"/></th>
-                  <th><loc:message code="userWallet.buy"/></th>
-                  <th><loc:message code="userWallet.output"/></th>
-                <th><loc:message code="mywallets.rbalance"/></th>
-              </tr>
-              </thead>
+              <c:choose>
+                <c:when test="${walletsExtendedInfoRequired}">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.reservedonorders"/></th>
+                        <th><loc:message code="mywallets.reservedonwithdraw"/></th>
+                        <th><loc:message code="userWallet.input"/></th>
+                        <th><loc:message code="userWallet.sell"/></th>
+                        <th><loc:message code="userWallet.buy"/></th>
+                        <th><loc:message code="userWallet.output"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:when>
+                <c:otherwise>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:otherwise>
+              </c:choose>
+
             </table>
 
             <sec:authorize access="(hasAuthority('${admin_manualBalanceChange}') && ${manualChangeAllowed})">

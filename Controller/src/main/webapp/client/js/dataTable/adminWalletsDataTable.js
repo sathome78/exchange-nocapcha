@@ -19,74 +19,107 @@ $(function () {
         walletsDataTable = $('#walletsTable').DataTable();
     } else {
         var id = $("#user-id").val();
-        walletsDataTable = $('#walletsTable').DataTable({
-            /*"bFilter": false,*/
-            "paging": false,
-            "order": [],
-            "bLengthChange": false,
-            "bPaginate": false,
-            "bInfo": false,
-            "ajax": {
-                "url": '/2a8fy7b07dxe44/wallets?id=' + id,
-                "dataSrc": ""
-            },
-            /*"paging": true,*/
-            "info": true,
-            "columns": [
-                {
-                    "data": "name"
+        if ($('#walletsExtendedInfoRequired').text() === 'true') {
+            walletsDataTable = $('#walletsTable').DataTable({
+                "paging": false,
+                "order": [],
+                "bLengthChange": false,
+                "bPaginate": false,
+                "bInfo": false,
+                "ajax": {
+                    "url": '/2a8fy7b07dxe44/wallets?id=' + id,
+                    "dataSrc": ""
                 },
-                {
-                    "data": "activeBalance",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
+                "info": true,
+                "columns": [
+                    {
+                        "data": "name"
+                    },
+                    {
+                        "data": "activeBalance",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "reserveOrders",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "reserveWithdraw",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "totalInput",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "totalSell",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "totalBuy",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "totalOutput",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "reservedBalance",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
                     }
+                ],
+                dom: "t"
+            });
+        } else {
+            walletsDataTable = $('#walletsTable').DataTable({
+                "paging": false,
+                "order": [],
+                "bLengthChange": false,
+                "bPaginate": false,
+                "bInfo": false,
+                "info": true,
+                "ajax": {
+                    "url": '/2a8fy7b07dxe44/wallets?id=' + id,
+                    "dataSrc": ""
                 },
-                {
-                    "data": "reserveOrders",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
+                "columns": [
+                    {
+                        "data": "name"
+                    },
+                    {
+                        "data": "activeBalance",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
+                    },
+                    {
+                        "data": "reservedBalance",
+                        "render": function (data, type, row) {
+                            return formatDecimalValue(data);
+                        }
                     }
-                },
-                {
-                    "data": "reserveWithdraw",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "totalInput",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "totalSell",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "totalBuy",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "totalOutput",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                },
-                {
-                    "data": "reservedBalance",
-                    "render": function (data, type, row) {
-                        return formatDecimalValue(data);
-                    }
-                }
-            ],
-            dom: "t"
-        });
+                ],
+                dom: "t"
+            });
+        }
+
+
     }
     $('#walletsTable').find('tbody').on('click', 'tr', function () {
         var currentRow = walletsDataTable.row( this );

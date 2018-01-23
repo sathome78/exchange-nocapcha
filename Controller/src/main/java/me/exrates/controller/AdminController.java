@@ -317,8 +317,9 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
-    return walletService.getAllUserWalletsForAdminDetailed(id);
-   // return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
+    boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
+    return getExtendedInfo ? walletService.getAllUserWalletsForAdminDetailed(id) :
+            walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
   @AdminLoggable
@@ -510,6 +511,7 @@ public class AdminController {
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
     model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
+    model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
     return model;
   }
 

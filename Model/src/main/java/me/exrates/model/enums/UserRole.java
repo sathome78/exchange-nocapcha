@@ -15,16 +15,27 @@ public enum UserRole {
   VIP_USER(7),
   TRADER(8),
   FIN_OPERATOR(9),
-  BOT_TRADER(10);
+  BOT_TRADER(10, false);
 
   private final int role;
 
-  UserRole(int role) {
+  private final boolean showExtendedOrderInfo;
+
+  UserRole(int role, boolean showExtendedOrderInfo) {
     this.role = role;
+    this.showExtendedOrderInfo = showExtendedOrderInfo;
+  }
+
+  UserRole(int role) {
+    this(role, true);
   }
 
   public int getRole() {
     return role;
+  }
+
+  public boolean showExtendedOrderInfo() {
+    return showExtendedOrderInfo;
   }
 
   public static UserRole convert(int id) {
