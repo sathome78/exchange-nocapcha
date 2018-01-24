@@ -311,48 +311,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentBlockNumber = ethBlock.getBlockNumber();
                 LOG.info(merchantName + " block: " + ethBlock.getBlockNumber());
 
-//  --------------EOS token
-                if (ethBlock.getTo() != null && eosServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    eosServiceImpl.tokenTransaction(ethBlock);
+/*-------------Tokens--------------*/
+                if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                    ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
                 }
-// ------------------------
-
-//  --------------REP token
-                if (ethBlock.getTo() != null && repServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                   repServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
-//  --------------Golem token
-                if (ethBlock.getTo() != null && golemServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    golemServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
-// --------------OMG token
-                if (ethBlock.getTo() != null && omgServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    omgServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
-// --------------BNB token
-                if (ethBlock.getTo() != null && bnbServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    bnbServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
-                // --------------ATL token
-                if (ethBlock.getTo() != null && atlServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    atlServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
-                // --------------RNTB token
-                if (ethBlock.getTo() != null && bitRentServiceImpl.getContractAddress().contains(ethBlock.getTo()) && merchantName.equals("Ethereum")){
-                    bitRentServiceImpl.tokenTransaction(ethBlock);
-                }
-// ------------------------
-
+/*---------------------------------*/
 
                 String recipient = ethBlock.getTo();
 
