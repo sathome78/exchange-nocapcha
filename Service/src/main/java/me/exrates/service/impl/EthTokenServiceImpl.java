@@ -4,7 +4,9 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
@@ -220,6 +222,9 @@ public class EthTokenServiceImpl implements EthTokenService {
 
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
+            if (!refillRequestInfoDto.get().getStatus().equalsIgnoreCase(RefillStatusEnum.ON_BCH_EXAM.name())) {
+                return;
+            }
             log.debug("Providing transaction!");
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(refillRequestInfoDto.get().getId())
