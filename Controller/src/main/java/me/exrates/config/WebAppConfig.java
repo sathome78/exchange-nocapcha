@@ -421,6 +421,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "B2X", "B2X", 4, 20);
     }
 
+    @Bean(name = "bcdServiceImpl")
+    public BitcoinService bcdService() {
+        return new BitcoinServiceImpl("merchants/bcd_wallet.properties",
+                "BCD", "BCD", 4, 20);
+    }
+
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
