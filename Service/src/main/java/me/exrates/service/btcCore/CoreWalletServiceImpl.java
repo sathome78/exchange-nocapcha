@@ -58,9 +58,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private BtcDaemon btcDaemon;
 
+  private Boolean supportInstantSend;
+
   
   @Override
-  public void initCoreClient(String nodePropertySource) {
+  public void initCoreClient(String nodePropertySource, boolean supportInstantSend) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -69,6 +71,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
       log.debug("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
+      this.supportInstantSend = supportInstantSend;
     } catch (Exception e) {
       log.error(e);
     }
@@ -344,8 +347,16 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       if (subtractFeeFromAmount) {
         subtractFeeAddresses = new ArrayList<>(payments.keySet());
       }
-      String txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
-              "", subtractFeeAddresses);
+      String txId;
+      if (supportInstantSend) {
+        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
+                "", subtractFeeAddresses);
+      } else {
+        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                "", subtractFeeAddresses);
+      }
+
+
       return new BtcPaymentResultDto(txId);
     } catch (Exception e) {
       log.error(e);

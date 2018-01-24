@@ -59,6 +59,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Integer blockTargetForFee;
 
+  private Boolean supportInstantSend;
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
@@ -72,6 +74,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
       this.zmqEnabled = Boolean.valueOf(props.getProperty("node.zmqEnabled"));
+      this.supportInstantSend = Boolean.valueOf(props.getProperty("node.supportInstantSend"));
       this.merchantName = merchantName;
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
@@ -93,11 +96,13 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initCoreClient(nodePropertySource);
+    bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend);
     bitcoinWalletService.initBtcdDaemon(zmqEnabled);
     bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
     bitcoinWalletService.walletFlux().subscribe(this::onPayment);
-    bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+    if (supportInstantSend) {
+      bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+    }
     examineMissingPaymentsOnStartup();
   }
 
@@ -165,30 +170,35 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public void onPayment(BtcTransactionDto transactionDto) {
     log.info("on payment {} - {}", currencyName, transactionDto);
-    Merchant merchant = merchantService.findByName(merchantName);
-    Currency currency = currencyService.findByName(currencyName);
-    Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
-    if (targetTxResult.isPresent()) {
-      BtcTransactionDto targetTx = targetTxResult.get();
-      targetTx.getDetails().stream().filter(payment -> "RECEIVE".equalsIgnoreCase( payment.getCategory()))
-              .forEach(payment -> {
-                log.debug("Payment " + payment);
-                BtcPaymentFlatDto btcPaymentFlatDto = BtcPaymentFlatDto.builder()
-                        .txId(targetTx.getTxId())
-                        .address(payment.getAddress())
-                        .amount(payment.getAmount())
-                        .confirmations(targetTx.getConfirmations())
-                        .blockhash(targetTx.getBlockhash())
-                        .merchantId(merchant.getId())
-                        .currencyId(currency.getId()).build();
-                try {
-                  processBtcPayment(btcPaymentFlatDto);
-                } catch (Exception e) {
-                  log.error(e);
-                }
-              });
-    } else {
-      log.error("Invalid transaction");
+
+    try {
+      Merchant merchant = merchantService.findByName(merchantName);
+      Currency currency = currencyService.findByName(currencyName);
+      Optional<BtcTransactionDto> targetTxResult = bitcoinWalletService.handleTransactionConflicts(transactionDto.getTxId());
+      if (targetTxResult.isPresent()) {
+        BtcTransactionDto targetTx = targetTxResult.get();
+        targetTx.getDetails().stream().filter(payment -> "RECEIVE".equalsIgnoreCase( payment.getCategory()))
+                .forEach(payment -> {
+                  log.debug("Payment " + payment);
+                  BtcPaymentFlatDto btcPaymentFlatDto = BtcPaymentFlatDto.builder()
+                          .txId(targetTx.getTxId())
+                          .address(payment.getAddress())
+                          .amount(payment.getAmount())
+                          .confirmations(targetTx.getConfirmations())
+                          .blockhash(targetTx.getBlockhash())
+                          .merchantId(merchant.getId())
+                          .currencyId(currency.getId()).build();
+                  try {
+                    processBtcPayment(btcPaymentFlatDto);
+                  } catch (Exception e) {
+                    log.error(e);
+                  }
+                });
+      } else {
+        log.error("Invalid transaction");
+      }
+    } catch (Exception e) {
+      log.error(e);
     }
   }
   
@@ -243,46 +253,52 @@ public class BitcoinServiceImpl implements BitcoinService {
   public void onIncomingBlock(BtcBlockDto blockDto) {
     String blockHash = blockDto.getHash();
     log.info("incoming block {} - {}", currencyName, blockHash);
-    Merchant merchant = merchantService.findByName(merchantName);
-    Currency currency = currencyService.findByName(currencyName);
-    List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
-    log.info("Refill requests ready for update: " +
-      btcRefillRequests.stream().map(RefillRequestFlatDto::getId).collect(Collectors.toList()));
+    try {
+      Merchant merchant = merchantService.findByName(merchantName);
+      Currency currency = currencyService.findByName(currencyName);
+      List<RefillRequestFlatDto> btcRefillRequests = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+      log.info("Refill requests ready for update: " +
+        btcRefillRequests.stream().map(RefillRequestFlatDto::getId).collect(Collectors.toList()));
 
-    List<RefillRequestSetConfirmationsNumberDto> paymentsToUpdate = new ArrayList<>();
-    btcRefillRequests.stream().filter(request -> StringUtils.isNotEmpty(request.getMerchantTransactionId())).forEach(request -> {
-      try {
-        Optional<BtcTransactionDto> txResult = bitcoinWalletService.handleTransactionConflicts(request.getMerchantTransactionId());
-        if (txResult.isPresent()) {
-          BtcTransactionDto tx = txResult.get();
-          tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
-                  .findFirst().ifPresent(paymentOverview -> {
-                    paymentsToUpdate.add(RefillRequestSetConfirmationsNumberDto.builder()
-                            .address(paymentOverview.getAddress())
-                            .amount(paymentOverview.getAmount())
-                            .currencyId(currency.getId())
-                            .merchantId(merchant.getId())
-                            .requestId(request.getId())
-                            .confirmations(tx.getConfirmations())
-                            .blockhash(blockHash)
-                            .hash(tx.getTxId()).build());
-                  }
-                  );
+      List<RefillRequestSetConfirmationsNumberDto> paymentsToUpdate = new ArrayList<>();
+      btcRefillRequests.stream().filter(request -> StringUtils.isNotEmpty(request.getMerchantTransactionId())).forEach(request -> {
+        try {
+          Optional<BtcTransactionDto> txResult = bitcoinWalletService.handleTransactionConflicts(request.getMerchantTransactionId());
+          if (txResult.isPresent()) {
+            BtcTransactionDto tx = txResult.get();
+            tx.getDetails().stream().filter(paymentOverview -> request.getAddress().equals(paymentOverview.getAddress()))
+                    .findFirst().ifPresent(paymentOverview -> {
+                      paymentsToUpdate.add(RefillRequestSetConfirmationsNumberDto.builder()
+                              .address(paymentOverview.getAddress())
+                              .amount(paymentOverview.getAmount())
+                              .currencyId(currency.getId())
+                              .merchantId(merchant.getId())
+                              .requestId(request.getId())
+                              .confirmations(tx.getConfirmations())
+                              .blockhash(blockHash)
+                              .hash(tx.getTxId()).build());
+                    }
+                    );
 
-        } else {
-          log.warn("No valid transactions available!");
+          } else {
+            log.warn("No valid transactions available!");
+          }
+        } catch (Exception e) {
+          log.error(e);
         }
-      } catch (Exception e) {
-        log.error(e);
-      }
 
-    });
-  
-    log.info("updating payments: " + paymentsToUpdate);
-    paymentsToUpdate.forEach(payment -> {
-      log.debug(String.format("Payment to update: %s", payment));
-      changeConfirmationsOrProvide(payment);
-    });
+      });
+
+      log.info("updating payments: " + paymentsToUpdate);
+      paymentsToUpdate.forEach(payment -> {
+        log.debug(String.format("Payment to update: %s", payment));
+        changeConfirmationsOrProvide(payment);
+      });
+    } catch (Exception e) {
+      log.error(e);
+    }
+
+
   }
   
   
