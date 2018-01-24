@@ -1,9 +1,12 @@
 package me.exrates.service.impl;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.EthereumCommonService;
 import me.exrates.service.MerchantService;
@@ -32,7 +35,6 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
-import org.web3j.tx.Contract;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
 
@@ -88,6 +90,10 @@ public class EthTokenServiceImpl implements EthTokenService {
     @Autowired
     private EthereumCommonService ethereumCommonService;
 
+    @Override
+    public Integer currencyId() {
+        return currency.getId();
+    }
 
     public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
                                String currencyName, boolean isERC20) {
@@ -125,36 +131,8 @@ public class EthTokenServiceImpl implements EthTokenService {
     @Override
     public void tokenTransaction(Transaction transaction){
         try {
-            if (!currentBlockNumber.equals(transaction.getBlockNumber())){
-                LOG.debug(merchant.getName() + " Current block number: " + transaction.getBlockNumber());
-
-                List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
-                pendingTransactions.forEach(pendingTransaction ->
-                        {
-                            try {
-                                if (ethereumCommonService.getWeb3j().ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult()==null){
-                                    return;
-                                }
-                                BigInteger transactionBlockNumber = ethereumCommonService.getWeb3j().ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
-                                if (transaction.getBlockNumber().subtract(transactionBlockNumber).intValue() > minConfirmations){
-
-                                    provideTransactionAndTransferFunds(pendingTransaction.getAddress(), pendingTransaction.getMerchantTransactionId());
-                                    ethereumCommonService.saveLastBlock(transaction.getBlockNumber().toString());
-                                    LOG.debug(merchant.getName() + " Transaction: " + pendingTransaction + " - PROVIDED!!!");
-                                    LOG.debug(merchant.getName() + " Confirmations count: " + transaction.getBlockNumber().subtract(transactionBlockNumber).intValue());
-                                    providedTransactions.add(pendingTransaction);
-                                }
-                            } catch (EthereumException | IOException e) {
-                                LOG.error(merchant.getName() + " " + e);
-                            }
-
-                        }
-
-                );
-                providedTransactions.forEach(pendingTransaction -> pendingTransactions.remove(pendingTransaction));
-            }
-
-            currentBlockNumber = transaction.getBlockNumber();
+            /*check unconfirmed transactions*/
+            checkTransaction(transaction.getBlockNumber());
 
             TransactionReceipt transactionReceipt = new TransactionReceipt();
             transactionReceipt = ethereumCommonService.getWeb3j().ethGetTransactionReceipt(transaction.getHash()).send().getResult();
@@ -207,10 +185,46 @@ public class EthTokenServiceImpl implements EthTokenService {
         }
     }
 
+    @Synchronized
+    @Override
+    public void checkTransaction(BigInteger txBlock) {
+        if (!currentBlockNumber.equals(txBlock)){
+            LOG.debug(merchant.getName() + " Current block number: " + txBlock.toString());
+
+            List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
+            pendingTransactions.forEach(pendingTransaction ->
+                    {
+                        try {
+                            if (ethereumCommonService.getWeb3j().ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult()==null){
+                                return;
+                            }
+                            BigInteger transactionBlockNumber = ethereumCommonService.getWeb3j().ethGetTransactionByHash(pendingTransaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
+                            if (txBlock.subtract(transactionBlockNumber).intValue() > minConfirmations){
+
+                                provideTransactionAndTransferFunds(pendingTransaction.getAddress(), pendingTransaction.getMerchantTransactionId());
+                                ethereumCommonService.saveLastBlock(txBlock.toString());
+                                LOG.debug(merchant.getName() + " Transaction: " + pendingTransaction + " - PROVIDED!!!");
+                                LOG.debug(merchant.getName() + " Confirmations count: " + txBlock.subtract(transactionBlockNumber).intValue());
+                                providedTransactions.add(pendingTransaction);
+                            }
+                        } catch (EthereumException | IOException e) {
+                            LOG.error(merchant.getName() + " " + e);
+                        }
+                    }
+
+            );
+            providedTransactions.forEach(pendingTransaction -> pendingTransactions.remove(pendingTransaction));
+        }
+        currentBlockNumber = txBlock;
+    }
+
     private void provideTransactionAndTransferFunds(String address, String merchantTransactionId){
 
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
+            if (!refillRequestInfoDto.get().getStatus().equalsIgnoreCase(RefillStatusEnum.ON_BCH_EXAM.name())) {
+                return;
+            }
             log.debug("Providing transaction!");
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(refillRequestInfoDto.get().getId())
