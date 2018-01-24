@@ -23,6 +23,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -63,6 +64,10 @@ public class OrderServiceImpl implements OrderService {
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
+
+  private final List<BackDealInterval> intervals = Arrays.stream(ChartPeriodsEnum.values())
+          .map(ChartPeriodsEnum::getBackDealInterval)
+          .collect(Collectors.toList());
 
   @Autowired
   private OrderDao orderDao;
@@ -108,11 +113,17 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   private UserRoleService userRoleService;
   @Autowired
-  private BotService botService;
-  @Autowired
   private ObjectMapper objectMapper;
   @Autowired
   private ApplicationEventPublisher eventPublisher;
+  @Autowired
+  private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+
+
+  @Override
+  public List<BackDealInterval> getIntervals() {
+    return intervals;
+  }
 
   @Transactional
   @Override
@@ -182,7 +193,7 @@ public class OrderServiceImpl implements OrderService {
    @Override
    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
      Locale locale = Locale.ENGLISH;
-     List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+     List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
      result = result.stream()
              .map(ExOrderStatisticsShortByPairsDto::new)
              .collect(toList());
@@ -220,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
-    List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
+    List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
     result.forEach(e -> {
           BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
           BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -1503,6 +1514,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
+    log.error("get new data for chart {} {}", currencyPairId, backDealInterval.getInterval());
     CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
     List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
     ArrayList<List> arrayListMain = new ArrayList<>();
@@ -1522,7 +1534,6 @@ public class OrderServiceImpl implements OrderService {
       arrayList.add(candle.getBaseVolume());
       arrayListMain.add(arrayList);
     }
-
     try {
       return objectMapper.writeValueAsString(new OrdersListWrapper(arrayListMain,
               backDealInterval.getInterval(), currencyPairId));
