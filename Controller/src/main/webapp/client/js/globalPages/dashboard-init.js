@@ -50,15 +50,13 @@ var onConnect = function() {
 };
 
 function subscribeAll() {
-    if (connectedPS) {
-        subscribeForAlerts();
-        subscribeEvents();
-    }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || f != enableF)) {
         subscribeTradeOrders();
     }
     if (connectedPS) {
         subscribeStatistics();
+        subscribeForAlerts();
+        subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
@@ -83,18 +81,17 @@ function connectAndReconnect() {
 }
 
 function subscribeForAlerts() {
-    if (alertsSubscription != undefined) {
-        alertsSubscription.unsubscribe();
+    if (alertsSubscription == undefined) {
+        var lang = $("#language").text().toUpperCase().trim();
+        console.log('lang ' + lang);
+        var headers = {'X-CSRF-TOKEN': csrf};
+        alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
+            var messageBody = JSON.parse(message.body);
+            messageBody.forEach(function (object) {
+                handleAlerts(object);
+            });
+        }, headers);
     }
-    var lang = $("#language").text().toUpperCase().trim();
-    console.log('lang ' + lang);
-    var headers = {'X-CSRF-TOKEN' : csrf};
-    alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function(message) {
-        var messageBody = JSON.parse(message.body);
-        messageBody.forEach(function(object){
-            handleAlerts(object);
-        });
-    }, headers);
 }
 
 
@@ -194,7 +191,6 @@ function handleAlerts(object) {
             break;
         }
         case "UPDATE" : {
-            console.log(object);
             showHideUpdAlert(object);
             break;
         }
@@ -216,11 +212,9 @@ function showHideUpdAlert(object) {
 }
 
 function drawUpdateALert(object) {
-    console.log('draw alert');
     var remain = object.timeRemainSeconds;
         var timeNow = Date.now()/1000;
         var endTime = timeNow + (remain);
-        console.log("now " + timeNow + " end " + endTime);
         $('.countdown').final_countdown({
             start: timeNow,
             end: endTime,

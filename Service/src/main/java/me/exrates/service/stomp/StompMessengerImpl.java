@@ -102,13 +102,12 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendChartData(final Integer currencyPairId) {
-       List<BackDealInterval> intervals = getSubscribedIntervalsForCurrencyPair(currencyPairId);
-       Map<String, String> data = chartsCache.getData(currencyPairId, intervals);
-       intervals.forEach(p-> {
+       Map<String, String> data = chartsCache.getData(currencyPairId);
+        orderService.getIntervals().forEach(p-> {
             String message = data.get(p.getInterval());
             String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
             sendMessageToDestination(destination, message);
-       });
+        });
     }
 
     private List<BackDealInterval> getSubscribedIntervalsForCurrencyPair(Integer pairId) {

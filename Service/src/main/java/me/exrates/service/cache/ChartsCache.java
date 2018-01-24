@@ -14,7 +14,10 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Maks on 29.12.2017.
@@ -36,6 +39,8 @@ public class ChartsCache {
      * */
     private Map<Integer, Map<String, String>> cacheMap = new ConcurrentHashMap<>();
     private Map<Integer, Semaphore> locksMap = new ConcurrentHashMap<>();
+    private Map<Integer, ReentrantLock> secondLocksMap = new ConcurrentHashMap<>();
+    private Map<Integer, CountDownLatch> countDownLocksMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -55,7 +60,7 @@ public class ChartsCache {
 
 
     public Map<String, String> getData(Integer currencyPairId) {
-        log.debug("get data for pair {}", currencyPairId);
+        log.error("get data for pair {}", currencyPairId);
         if (!cacheMap.containsKey(currencyPairId)) {
             log.debug("no key {}", currencyPairId );
             updateCache(currencyPairId);
@@ -63,7 +68,8 @@ public class ChartsCache {
         return cacheMap.get(currencyPairId);
     }
 
-    public Map<String, String> getData(Integer currencyPairId, List<BackDealInterval> intervals) {
+   /*todo: update only subscribed intervals
+   public Map<String, String> getData(Integer currencyPairId, List<BackDealInterval> intervals) {
 
         log.debug("get data for pair {}", currencyPairId);
         if (!cacheMap.containsKey(currencyPairId)) {
@@ -71,18 +77,32 @@ public class ChartsCache {
             updateCache(currencyPairId);
         }
         return cacheMap.get(currencyPairId);
-    }
+    }*/
 
     public void updateCache(Integer currencyPairId) {
         Semaphore currentSemaphore = locksMap.computeIfAbsent(currencyPairId, p -> new Semaphore(1));
+        ReentrantLock currentLock = secondLocksMap.computeIfAbsent(currencyPairId, p -> new ReentrantLock(true));
+        CountDownLatch currentCountDownLock = countDownLocksMap.computeIfAbsent(currencyPairId, p -> new CountDownLatch(1));
         if (currentSemaphore.tryAcquire()) {
+            currentLock.lock();
             log.debug("update {}", currencyPairId);
             Map<String, String> map = cacheMap.computeIfAbsent(currencyPairId,
                     p -> new ConcurrentHashMap<>());
             orderService.getIntervals().forEach(p -> {
                 map.put(p.getInterval(), orderService.getChartData(currencyPairId, p));
             });
+            log.debug("done update for {}", currencyPairId);
             currentSemaphore.release();
+            currentCountDownLock.countDown();
+            currentLock.unlock();
+        } else if(currentLock.isLocked()) {
+            try {
+                log.debug("wait for unlock {}", currencyPairId);
+                currentCountDownLock.await(10, TimeUnit.SECONDS);
+                log.debug("unlocked {}", currencyPairId);
+            } catch (InterruptedException e) {
+                log.error(e);
+            }
         }
     }
 

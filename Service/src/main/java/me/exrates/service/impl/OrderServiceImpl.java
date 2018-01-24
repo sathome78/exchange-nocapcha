@@ -1514,7 +1514,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public String getChartData(Integer currencyPairId, final BackDealInterval backDealInterval) {
-    log.error("get new data for chart {}", currencyPairId);
+    log.error("get new data for chart {} {}", currencyPairId, backDealInterval.getInterval());
     CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
     List<CandleChartItemDto> rows = this.getDataForCandleChart(cp, backDealInterval);
     ArrayList<List> arrayListMain = new ArrayList<>();
