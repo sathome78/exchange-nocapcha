@@ -63,6 +63,16 @@ public class ChartsCache {
         return cacheMap.get(currencyPairId);
     }
 
+    public Map<String, String> getData(Integer currencyPairId, List<BackDealInterval> intervals) {
+
+        log.debug("get data for pair {}", currencyPairId);
+        if (!cacheMap.containsKey(currencyPairId)) {
+            log.debug("no key {}", currencyPairId );
+            updateCache(currencyPairId);
+        }
+        return cacheMap.get(currencyPairId);
+    }
+
     public void updateCache(Integer currencyPairId) {
         Semaphore currentSemaphore = locksMap.computeIfAbsent(currencyPairId, p -> new Semaphore(1));
         if (currentSemaphore.tryAcquire()) {
