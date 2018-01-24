@@ -45,9 +45,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.web3j.tx.Contract.GAS_LIMIT;
-import static org.web3j.tx.ManagedTransaction.GAS_PRICE;
-
 /**
  * Created by ajet
  */
@@ -148,7 +145,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minBalanceForTransfer = new BigDecimal("0.015");
 
-    private int currencyId;
+    private int merchantId;
 
     private boolean needToCheckTokens = false;
 
@@ -208,7 +205,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @PostConstruct
     void start() {
-        currencyId = currencyService.findByName(currencyName).getId();
+        merchantId = merchantService.findByName(merchantName).getId();
 
         web3j = Web3j.build(new HttpService(url));
 
@@ -514,7 +511,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
 
     private void checkUnconfirmedTokensTransactions(BigInteger blockNumber) {
-        List<Integer> currencyNames = refillService.getUnconfirmedTxsCurrencyIdsForTokens(currencyId);
+        List<Integer> currencyNames = refillService.getUnconfirmedTxsCurrencyIdsForTokens(merchantId);
         currencyNames.forEach(p->{
             LOG.debug("unconfirmed for {}", p);
             getByCurrencyId(p).checkTransaction(blockNumber);
