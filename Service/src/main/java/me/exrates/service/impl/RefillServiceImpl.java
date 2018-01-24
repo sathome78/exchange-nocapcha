@@ -1070,4 +1070,9 @@ public class RefillServiceImpl implements RefillService {
       }
     });
   }
+
+  @Override
+  public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
+    return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
+  }
 }

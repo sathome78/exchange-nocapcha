@@ -9,6 +9,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.merchantStrategy.EthTokensContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.DefaultBlockParameterNumber;
-import org.web3j.protocol.exceptions.TransactionTimeoutException;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
@@ -41,7 +41,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -110,6 +109,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService bitRentServiceImpl;
 
+    @Autowired
+    private EthTokensContext ethTokensContext;
+
     private String url;
 
     private String destinationDir;
@@ -146,6 +148,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minBalanceForTransfer = new BigDecimal("0.015");
 
+    private int currencyId;
+
+    private boolean needToCheckTokens = false;
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
@@ -173,6 +179,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    private final ScheduledExecutorService checkerScheduler = Executors.newScheduledThreadPool(1);
+
     private final Logger LOG = LogManager.getLogger("node_ethereum");
 
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
@@ -191,6 +199,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             if (merchantName.equals("Ethereum")){
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
                 this.transferAccPublicKey = props.getProperty("ethereum.transferAccPublicKey");
+                this.needToCheckTokens = true;
             }
         } catch (IOException e) {
             LOG.error(e);
@@ -199,6 +208,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @PostConstruct
     void start() {
+        currencyId = currencyService.findByName(currencyName).getId();
 
         web3j = Web3j.build(new HttpService(url));
 
@@ -208,13 +218,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }
         }, 0, 5, TimeUnit.MINUTES);
 
-        scheduler.scheduleWithFixedDelay(new Runnable() {
-            public void run() {
-                try {
-                    transferFundsToMainAccount();
-                }catch (Exception e){
-                    LOG.error(e);
-                }
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                transferFundsToMainAccount();
+            }catch (Exception e){
+                LOG.error(e);
             }
         }, 60, 120, TimeUnit.MINUTES);
 
@@ -229,6 +237,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }
             }
         }, 1, 24, TimeUnit.HOURS);
+
+        checkerScheduler.scheduleWithFixedDelay(() -> {
+            if (needToCheckTokens) {
+                checkUnconfirmedTokensTransactions(currentBlockNumber);
+            }
+        }, 5, 5, TimeUnit.MINUTES);
     }
 
     @Override
@@ -496,6 +510,19 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     public String loadLastBlock() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(merchantName, LAST_BLOCK_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
+    }
+
+
+    private void checkUnconfirmedTokensTransactions(BigInteger blockNumber) {
+        List<Integer> currencyNames = refillService.getUnconfirmedTxsCurrencyIdsForTokens(currencyId);
+        currencyNames.forEach(p->{
+            LOG.debug("unconfirmed for {}", p);
+            getByCurrencyId(p).checkTransaction(blockNumber);
+        });
+    }
+
+    private EthTokenService getByCurrencyId(int currencyId) {
+        return ethTokensContext.getByCurrencyId(currencyId);
     }
 
 }

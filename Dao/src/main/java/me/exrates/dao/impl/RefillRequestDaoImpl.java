@@ -1210,5 +1210,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     result.setTotal(totalQuantity);
     return result;
   }
+
+  @Override
+  public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
+    String sql = "SELECT RR.currency_id FROM REFILL_REQUEST RR " +
+            " JOIN REFILL_REQUEST_CONFIRMATION RRC ON RR.id=RRC.refill_request_id " +
+            " JOIN MERCHANT M ON M.id=RR.merchant_id " +
+            " WHERE M.tokens_parrent_id = ? AND RR.status_id = 6";
+    return jdbcTemplate.queryForList(sql, Integer.class, parentTokenId);
+  }
+
 }
 
