@@ -87,7 +87,8 @@ import java.util.stream.Collectors;
   "classpath:/db.properties",
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
-    "classpath:/mail.properties"})
+    "classpath:/mail.properties",
+    "classpath:/angular.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -151,6 +152,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
+
+    @Value("${angular.allowed.origin}")
+    private String angularAllowedOrigin;
 
     @PostConstruct
     public void init() {
@@ -554,6 +558,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public ZMQ.Context zmqContext() {
         return ZMQ.context(1);
+    }
+
+    @Bean
+    public Map<String, String> angularProperties(){
+        Map<String, String> props = new HashMap<>();
+        props.put("angularAllowedOrigin", angularAllowedOrigin);
+        return props;
     }
 
 }
