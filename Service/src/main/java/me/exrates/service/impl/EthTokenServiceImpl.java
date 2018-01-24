@@ -88,6 +88,10 @@ public class EthTokenServiceImpl implements EthTokenService {
     @Autowired
     private EthereumCommonService ethereumCommonService;
 
+    @Override
+    public Integer currencyId() {
+        return currency.getId();
+    }
 
     public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
                                String currencyName, boolean isERC20) {

@@ -18,4 +18,8 @@ public interface EthTokenService {
     void checkTransaction(BigInteger txBlock);
 
     EthTokenServiceImpl.TransferEventResponse extractData(List<String> topics, String data);
+
+    default Integer currencyId(){
+        return null;
+    }
 }
