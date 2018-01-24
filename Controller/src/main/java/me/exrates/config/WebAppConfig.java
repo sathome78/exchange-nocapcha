@@ -494,6 +494,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "ATL", true);
     }
 
+    @Bean(name = "bitRentServiceImpl")
+    public EthTokenService BitRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1fe70be734e473e5721ea57c8b5b01e6caa52686");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BitRent",
+                "RNTB", true);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
