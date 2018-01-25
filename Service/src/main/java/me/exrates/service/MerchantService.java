@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -34,6 +35,8 @@ public interface MerchantService {
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findNonTransferMerchantCurrencies(Integer currencyId);
+
+  Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
 
   List<TransferMerchantApiDto> findTransferMerchants();
 

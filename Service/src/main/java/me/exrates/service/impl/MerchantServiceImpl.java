@@ -163,6 +163,11 @@ public class MerchantServiceImpl implements MerchantService {
     return findMerchantCurrenciesByCurrencyAndProcessTypes(currencyId, Arrays.stream(MerchantProcessType.values())
             .filter(item -> item != MerchantProcessType.TRANSFER).map(Enum::name).collect(Collectors.toList()));
   }
+
+  @Override
+  public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
+    return merchantDao.findByMerchantAndCurrency(merchantId, currencyId);
+  }
   
   @Override
   public List<TransferMerchantApiDto> findTransferMerchants() {
