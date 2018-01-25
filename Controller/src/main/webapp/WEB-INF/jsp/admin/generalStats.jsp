@@ -34,6 +34,9 @@
                     <loc:message code="admin.generalStats.menu.stats"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
+                    <loc:message code="reports.balances.buttonTitle"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.mailing"/>
                 </button>
             </div>
@@ -122,13 +125,45 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
-
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message code="reports.totalBalances"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-total-balances" class="blue-box">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
 
                     </div>
 
                 </div>
 
+
                 <div id="panel2" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="reports.totalBalances"/></h4>
+                    </div>
+
+
+                    <div class="col-md-8 col-md-offset-2">
+                        <table id="total-balances-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <c:forEach items="${roleGroups}" var="roleGroup">
+                                    <th>${roleGroup.name()}</th>
+                                </c:forEach>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <div id="panel3" class="tab-pane">
                     <div class="col-md-6 col-md-offset-3">
                         <div class="form_full_height_width " style="margin: 50px 0">
 
@@ -169,7 +204,7 @@
             </div>
 
         </div>
-
+    </div>
 
 </main>
 

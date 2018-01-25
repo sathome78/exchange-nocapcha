@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -25,9 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -36,7 +36,7 @@ import static java.math.BigDecimal.ZERO;
 @Log4j2
 @Service
 @Transactional
-public final class WalletServiceImpl implements WalletService {
+public class WalletServiceImpl implements WalletService {
 
   private static final int decimalPlaces = 9;
 
@@ -409,6 +409,32 @@ public final class WalletServiceImpl implements WalletService {
   @Transactional(readOnly = true)
   public boolean isUserAllowedToManuallyChangeWalletBalance(String adminEmail, int walletHolderUserId) {
     return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
+  }
+
+  @Override
+  public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
+    Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
+            .collect(Collectors.toMap(Enum::name, val -> BigDecimal.ZERO));
+
+
+    return walletDao.getWalletBalancesSummaryByGroups().stream()
+            .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurrency)).entrySet().stream()
+                            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey(), entry.getValue().stream()
+                                    .collect(Collectors.toMap(dto -> dto.getReportGroupUserRole().name(),
+                                            UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
+                                            balancesMapSupplier)), ReportGroupUserRole.class))
+            .collect(Collectors.toList());
+
+  }
+
+  @Override
+  public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
+    return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
+            .stream()
+            .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurrency)).entrySet().stream()
+            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey(), entry.getValue().stream()
+                    .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
+            .collect(Collectors.toList());
   }
 
 }

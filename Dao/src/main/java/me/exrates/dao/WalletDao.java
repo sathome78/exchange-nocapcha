@@ -80,4 +80,8 @@ public interface WalletDao {
     List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
 
     boolean isUserAllowedToManuallyChangeWalletBalance(int adminId, int walletHolderUserId);
+
+    List<UserGroupBalanceDto> getWalletBalancesSummaryByGroups();
+
+    List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList);
 }

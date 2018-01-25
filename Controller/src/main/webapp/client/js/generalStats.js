@@ -4,12 +4,16 @@ $(function () {
     const $timepickerMailing = $('#timepicker_mailtime');
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
+    const $balancesTable = $('#total-balances-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
     const timeFormat = 'HH:mm';
 
     var emailsDataTable;
     var emailsUrlGet = '/2a8fy7b07dxe44/generalStats/mail/emails';
+
+    var balancesDataTable;
+    var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
 
 
 
@@ -64,6 +68,7 @@ $(function () {
     $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
+    $('#download-total-balances').click(getTotalBalancesForRoles);
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -109,6 +114,50 @@ $(function () {
         });
     }
 
+    if ($.fn.dataTable.isDataTable('#total-balances-table')) {
+        balancesDataTable = $($balancesTable).DataTable();
+        balancesDataTable.ajax.reload();
+    } else {
+        var options = {
+            "ajax": {
+                "url": balancesUrl,
+                "dataSrc": ""
+            },
+            "paging": false,
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            dom: "<'row pull-left' B>t",
+            "order": [],
+            "columns": [
+                {
+                    data: 'currency'
+                }
+            ],
+            buttons: [{
+                extend: 'csv',
+                text: 'CSV',
+                fieldSeparator: ';',
+                bom:true,
+                charset: 'UTF8'
+            }]
+        };
+
+       $($balancesTable).find('th').filter(function (index) {
+            return index !== 0
+        }).map(function(){
+            return $.trim($(this).text());
+        }).get().forEach(function (item) {
+            options['columns'].push({
+                data: 'balances.' + item
+            });
+        });
+        balancesDataTable = $($balancesTable).DataTable(options);
+
+
+    }
+
+
 });
 
 function refreshUsersNumber() {
@@ -119,29 +168,36 @@ function refreshUsersNumber() {
 }
 
 function getCurrencyPairsTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencyPairs.csv')
     })
 }
 
 function getCurrencyPairsComissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencyPairsComissions.csv')
     })
 }
 
 function getCurrenciesTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'currencies.csv')
     })
 
 }
 
+function getTotalBalancesForRoles() {
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
+    $.get(fullUrl, function (data) {
+        saveToDisk(data, 'totalBalances.csv')
+    })
+}
+
 function getInputOutputSummaryWithCommissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + getRoleParams();
+    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
         saveToDisk(data, 'inputOutputSummaryWithCommissions.csv')
     })
@@ -155,7 +211,7 @@ function getTimeParams() {
 }
 
 function getRoleParams() {
-   return '&roles=' + $('.roleFilter').filter(function (i, elem) {
+   return 'roles=' + $('.roleFilter').filter(function (i, elem) {
         return $(elem).prop('checked')
     }).map(function (i, elem) {
         return $(elem).attr('name')

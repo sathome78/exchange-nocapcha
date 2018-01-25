@@ -8,10 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -1055,5 +1052,49 @@ public class WalletDaoImpl implements WalletDao {
       }};
       return jdbcTemplate.queryForList(sql, params, Integer.class).size() > 0;
     }
+
+
+    @Override
+    public List<UserGroupBalanceDto> getWalletBalancesSummaryByGroups() {
+      String sql = "SELECT CUR.name AS currency_name, AGR.feature_name, AGR.total_balance FROM ( " +
+              "  SELECT STRAIGHT_JOIN W.currency_id, URGF.name AS feature_name, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance " +
+              "  FROM WALLET W " +
+              "    JOIN USER U ON U.id = W.user_id " +
+              "    JOIN USER_ROLE UR ON U.roleid = UR.id " +
+              "    JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id " +
+              "  GROUP BY W.currency_id, URGF.name " +
+              "  ) AGR " +
+              "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id " +
+              "  ORDER BY CUR.name";
+      return jdbcTemplate.query(sql, Collections.emptyMap(), (rs, row) -> {
+        UserGroupBalanceDto dto = new UserGroupBalanceDto();
+        dto.setCurrency(rs.getString("currency_name"));
+        dto.setReportGroupUserRole(ReportGroupUserRole.valueOf(rs.getString("feature_name")));
+        dto.setTotalBalance(rs.getBigDecimal("total_balance"));
+        return dto;
+      });
+    }
+
+  @Override
+  public List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList) {
+    String sql = "SELECT CUR.name AS currency_name, UR.name AS role_name, AGR.total_balance FROM ( " +
+            "     SELECT STRAIGHT_JOIN W.currency_id, U.roleid AS role_id, " +
+            "     (SUM(W.active_balance) + SUM(W.reserved_balance)) AS total_balance " +
+            "      FROM WALLET W " +
+            "      JOIN USER U ON U.id = W.user_id " +
+            "     WHERE U.roleid IN (:role_list) " +
+            "      GROUP BY W.currency_id, U.roleid " +
+            "      ) AGR " +
+            "  JOIN CURRENCY CUR ON AGR.currency_id = CUR.id " +
+            "  JOIN USER_ROLE UR ON AGR.role_id = UR.id " +
+            "  ORDER BY CUR.name";
+    return jdbcTemplate.query(sql, Collections.singletonMap("role_list", roleIdsList), (rs, row) -> {
+      UserRoleBalanceDto dto = new UserRoleBalanceDto();
+      dto.setCurrency(rs.getString("currency_name"));
+      dto.setUserRole(UserRole.valueOf(rs.getString("role_name")));
+      dto.setTotalBalance(rs.getBigDecimal("total_balance"));
+      return dto;
+    });
+  }
 
 }

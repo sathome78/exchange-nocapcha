@@ -1502,8 +1502,12 @@ public class AdminController {
     defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
             .collect(Collectors.toMap(value -> value, value -> false)));
     userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
+    ModelAndView modelAndView = new ModelAndView("admin/generalStats");
+    modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
+    modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
 
-    return new ModelAndView("admin/generalStats", "defaultRoleFilter", defaultRoleFilter);
+
+    return modelAndView;
   }
 
   @ResponseBody
