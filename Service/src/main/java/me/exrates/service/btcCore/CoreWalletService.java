@@ -3,12 +3,10 @@ package me.exrates.service.btcCore;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcBlockDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.*;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -57,4 +55,12 @@ public interface CoreWalletService {
     Flux<BtcTransactionDto> walletFlux();
 
   Flux<BtcTransactionDto> instantSendFlux();
+
+    BtcPreparedTransactionDto prepareRawTransaction(Map<String, BigDecimal> payments);
+
+    BtcPreparedTransactionDto prepareRawTransaction(Map<String, BigDecimal> payments, @Nullable String oldTxHex);
+
+    BtcPaymentResultDto signAndSendRawTransaction(String hex);
+
+    String getTxIdByHex(String hex);
 }

@@ -59,6 +59,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Integer blockTargetForFee;
 
+  private Boolean rawTxEnabled;
+
   private Boolean supportInstantSend;
 
   @Override
@@ -66,7 +68,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     return minConfirmations;
   }
 
-  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee) {
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee, Boolean rawTxEnabled) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -79,9 +81,15 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.currencyName = currencyName;
       this.minConfirmations = minConfirmations;
       this.blockTargetForFee = blockTargetForFee;
+      this.rawTxEnabled = rawTxEnabled;
     } catch (IOException e) {
       log.error(e);
     }
+  }
+
+  @Override
+  public boolean isRawTxEnabled() {
+    return rawTxEnabled;
   }
 
   public BitcoinServiceImpl(String walletPassword, Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
@@ -361,6 +369,20 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Override
   public List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments) {
+    List<Map<String, BigDecimal>> paymentGroups = groupPaymentsForSeparateTransactions(payments);
+    Currency currency = currencyService.findByName(currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    boolean subtractFeeFromAmount = merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
+
+    return paymentGroups.stream()
+            .flatMap(group -> {
+              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group, subtractFeeFromAmount);
+              return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
+                      entry.getValue(), result));
+                    }).collect(Collectors.toList());
+  }
+
+  private List<Map<String, BigDecimal>> groupPaymentsForSeparateTransactions(List<BtcWalletPaymentItemDto> payments) {
     List<Map<String, BigDecimal>> paymentGroups = new ArrayList<>();
     paymentGroups.add(new LinkedHashMap<>());
     for (BtcWalletPaymentItemDto payment : payments) {
@@ -380,18 +402,35 @@ public class BitcoinServiceImpl implements BitcoinService {
         paymentGroupIterator.add(newPaymentGroup);
       }
     }
-    Currency currency = currencyService.findByName(currencyName);
-    Merchant merchant = merchantService.findByName(merchantName);
-    boolean subtractFeeFromAmount = merchantService.getSubtractFeeFromAmount(merchant.getId(), currency.getId());
-
-    return paymentGroups.stream()
-            .flatMap(group -> {
-              BtcPaymentResultDto result = bitcoinWalletService.sendToMany(group, subtractFeeFromAmount);
-              return group.entrySet().stream().map(entry -> new BtcPaymentResultDetailedDto(entry.getKey(),
-                      entry.getValue(), result));
-                    }).collect(Collectors.toList());
+    return paymentGroups;
   }
-  
+
+  @Override
+  public BtcAdminPreparedTxDto prepareRawTransactions(List<BtcWalletPaymentItemDto> payments) {
+    List<Map<String, BigDecimal>> paymentGroups = groupPaymentsForSeparateTransactions(payments);
+    BigDecimal feeRate = getActualFee();
+
+    return new BtcAdminPreparedTxDto(paymentGroups.stream().map(group -> bitcoinWalletService.prepareRawTransaction(group))
+            .collect(Collectors.toList()), feeRate) ;
+  }
+
+  @Override
+  public BtcAdminPreparedTxDto updateRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions) {
+    BigDecimal feeRate = getActualFee();
+    return new BtcAdminPreparedTxDto(preparedTransactions.stream()
+            .map(transactionDto -> bitcoinWalletService.prepareRawTransaction(transactionDto.getPayments(), transactionDto.getHex()))
+            .collect(Collectors.toList()), feeRate) ;
+  }
+
+  @Override
+  public List<BtcPaymentResultDetailedDto> sendRawTransactions(List<BtcPreparedTransactionDto> preparedTransactions) {
+    return preparedTransactions.stream().flatMap(preparedTx -> {
+      BtcPaymentResultDto resultDto = bitcoinWalletService.signAndSendRawTransaction(preparedTx.getHex());
+      return preparedTx.getPayments().entrySet().stream()
+              .map(payment -> new BtcPaymentResultDetailedDto(payment.getKey(), payment.getValue(), resultDto));
+    }).collect(Collectors.toList());
+  }
+
   private void examineMissingPaymentsOnStartup() {
     Merchant merchant = merchantService.findByName(merchantName);
     Currency currency = currencyService.findByName(currencyName);
