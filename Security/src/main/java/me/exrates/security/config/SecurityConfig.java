@@ -285,7 +285,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .logoutSuccessUrl("/")
         .invalidateHttpSession(true)
         .and()
-        .csrf()
+        .csrf().ignoringAntMatchers("/login")
         .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
                 "/public_socket/", "/public_socket/**",
             "/merchants/perfectmoney/payment/status",
