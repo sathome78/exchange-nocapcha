@@ -753,9 +753,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -764,7 +764,7 @@
                         <td class="left">
                             ${refillPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${none}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -772,7 +772,7 @@
                                  data-checked="${refillPermission.invoiceOperationPermission==none}"
                             <c:out value="${refillDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${view}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -780,7 +780,7 @@
                                  data-checked="${refillPermission.invoiceOperationPermission==view}"
                             <c:out value="${refillDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=refill"${refillPermission.currencyId}" value="${write}"
                                  data-userId="${refillPermission.userId}"
                                  data-id="${refillPermission.currencyId}"
@@ -807,9 +807,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -818,7 +818,7 @@
                         <td class="left">
                             ${withdrawPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${none}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -826,7 +826,7 @@
                                  data-checked="${withdrawPermission.invoiceOperationPermission==none}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${view}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -834,7 +834,7 @@
                                  data-checked="${withdrawPermission.invoiceOperationPermission==view}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${write}"
                                  data-userId="${withdrawPermission.userId}"
                                  data-id="${withdrawPermission.currencyId}"
@@ -861,9 +861,9 @@
                     <thead>
                     <tr>
                       <th class="left"><loc:message code="inputoutput.currency"/></th>
-                      <th class="center">${none}</th>
-                      <th class="center">${view}</th>
-                      <th class="center">${write}</th>
+                      <th class="center"><a class="sel_col" data-col="1" style="cursor: pointer">${none}</a></th>
+                      <th class="center"><a class="sel_col" data-col="2" style="cursor: pointer">${view}</a></th>
+                      <th class="center"><a class="sel_col" data-col="3" style="cursor: pointer">${write}</a></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -872,7 +872,7 @@
                         <td class="left">
                             ${transferPermission.currencyName}
                         </td>
-                        <td class="center">
+                        <td class="center col1">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${none}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"
@@ -880,7 +880,7 @@
                                  data-checked="${transferPermission.invoiceOperationPermission==none}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col2">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${view}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"
@@ -888,7 +888,7 @@
                                  data-checked="${transferPermission.invoiceOperationPermission==view}"
                             <c:out value="${withdrawDisabledAttrib}"/>>
                         </td>
-                        <td class="center">
+                        <td class="center col3">
                           <input type="radio" name=transfer"${transferPermission.currencyId}" value="${write}"
                                  data-userId="${transferPermission.userId}"
                                  data-id="${transferPermission.currencyId}"

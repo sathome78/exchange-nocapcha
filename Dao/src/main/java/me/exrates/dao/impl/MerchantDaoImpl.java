@@ -117,6 +117,45 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
+  public Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId) {
+    final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+            " MERCHANT_CURRENCY.min_sum, " +
+            " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
+            " MERCHANT_CURRENCY.merchant_fixed_commission " +
+            " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
+            " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+            " WHERE MERCHANT_CURRENCY.merchant_id = :merchant_id AND MERCHANT_CURRENCY.currency_id = :currency_id ";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, (resultSet, row) -> {
+        MerchantCurrency merchantCurrency = new MerchantCurrency();
+        merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+        merchantCurrency.setName(resultSet.getString("name"));
+        merchantCurrency.setDescription(resultSet.getString("description"));
+        merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+        merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+        merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+        merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+        merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+        merchantCurrency.setProcessType(resultSet.getString("process_type"));
+        final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                " AND currency_id = :currency_id;";
+        Map<String, Integer> innerParams = new HashMap<String, Integer>();
+        innerParams.put("merchant_id", resultSet.getInt("merchant_id"));
+        innerParams.put("currency_id", resultSet.getInt("currency_id"));
+        merchantCurrency.setListMerchantImage(namedParameterJdbcTemplate.query(sqlInner, innerParams, new BeanPropertyRowMapper<>(MerchantImage.class)));
+        return merchantCurrency;
+      }));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+
+  @Override
   public List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType) {
     String blockClause = "";
     if (operationType == OperationType.INPUT) {
