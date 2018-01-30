@@ -42,6 +42,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 
@@ -85,6 +86,8 @@ public class EntryController {
     private NotificationsSettingsService settingsService;
     @Autowired
     private NotificatorsService notificatorService;
+    @Autowired
+    private ReferralService referralService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -127,6 +130,10 @@ public class EntryController {
             int userStatus = user.getStatus().getStatus();
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
+            model.addObject("referalPercents", referralService.findAllReferralLevels()
+                                                .stream()
+                                                .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                                                .collect(Collectors.toList()));
         }
         return model;
     }
