@@ -85,7 +85,9 @@ public class ReportServiceImpl implements ReportService {
   @PostConstruct
   private void initMailing() {
     try {
-      scheduleMailingJob();
+      if (isReportMailingEnabled()) {
+        scheduleMailingJob();
+      }
     } catch (SchedulerException e) {
       log.error(e);
     }
@@ -364,10 +366,9 @@ public class ReportServiceImpl implements ReportService {
     boolean oldStatus = isReportMailingEnabled();
     if (newStatus != oldStatus) {
       try {
+        reportScheduler.deleteJob(JobKey.jobKey(MAIL_JOB_NAME));
         if (newStatus) {
           scheduleMailingJob();
-        } else {
-          reportScheduler.deleteJob(JobKey.jobKey(MAIL_JOB_NAME));
         }
         reportDao.updateReportMailingEnableStatus(newStatus);
       } catch (SchedulerException e) {
