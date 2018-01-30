@@ -33,7 +33,9 @@ public interface MerchantDao {
 
   BigDecimal getMinSum(int merchant, int currency);
 
-  List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
+    Optional<MerchantCurrency> findByMerchantAndCurrency(int merchantId, int currencyId);
+
+    List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
   List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole, List<String> merchantProcessTypes);
 
