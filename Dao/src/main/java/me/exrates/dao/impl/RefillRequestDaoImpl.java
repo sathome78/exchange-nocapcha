@@ -467,13 +467,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<String> findLastAddressByMerchantIdAndCurrencyIdAndUserId(
+  public Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(
       Integer merchantId,
       Integer currencyId,
       Integer userId) {
     final String sql = "SELECT RRA.address " +
         " FROM REFILL_REQUEST_ADDRESS RRA " +
-        " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND RRA.user_id = :user_id " +
+        " WHERE RRA.currency_id = :currency_id AND RRA.merchant_id = :merchant_id AND RRA.user_id = :user_id AND is_valid = 1" +
         " ORDER BY RRA.id DESC " +
         " LIMIT 1 ";
     MapSqlParameterSource params = new MapSqlParameterSource()

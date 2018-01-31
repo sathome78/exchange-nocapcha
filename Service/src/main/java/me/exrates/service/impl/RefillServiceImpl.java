@@ -147,7 +147,7 @@ public class RefillServiceImpl implements RefillService {
           throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
         }
         if (!merchantService.generatingAdditionalRefillAddressAvailable()) {
-          Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(
+          Boolean addressIsAlreadyGeneratedForUser = refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(
               request.getMerchantId(),
               request.getCurrencyId(),
               request.getUserId()
@@ -187,7 +187,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
-    return refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
+    return refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
   @Override
@@ -202,7 +202,7 @@ public class RefillServiceImpl implements RefillService {
     Integer userId = userService.getIdByEmail(userEmail);
     merchantCurrencies.forEach(e -> {
 
-      e.setAddress(refillRequestDao.findLastAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
+      e.setAddress(refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse(""));
       /**/
       //TODO: Temporary fix
       if (e.getMerchantId() == merchantService.findByName("EDC").getId()){
