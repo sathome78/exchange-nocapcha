@@ -417,7 +417,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
           synchronized (SENDING_LOCK) {
             if (oldTxHex != null && unlockingTasks.containsKey(oldTxHex)) {
 
-              unlockingTasks.get(oldTxHex).cancel(true);
+              unlockingTasks.remove(oldTxHex).cancel(true);
               // unlock previously locked UTXO
 
               lockUnspentFromHex(oldTxHex, true);
