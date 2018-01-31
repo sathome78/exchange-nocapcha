@@ -435,13 +435,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bcxServiceImpl")
     public BitcoinService bcxService() {
         return new BitcoinServiceImpl("merchants/bcx_wallet.properties",
-                "BCX", "BCX", 4, 20);
+                "BCX", "BCX", 4, 20, true);
     }
 
     @Bean(name = "occServiceImpl")
     public BitcoinService occService() {
         return new BitcoinServiceImpl("merchants/occ_wallet.properties",
-                "OCC", "OCC", 4, 20);
+                "OCC", "OCC", 4, 20, true);
     }
 
 

@@ -61,6 +61,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private Boolean supportInstantSend;
 
+  private Map<String, CompletableFuture<Void>> unlockingTasks = new ConcurrentHashMap<>();
+
   private ScheduledExecutorService outputUnlockingExecutor = Executors.newSingleThreadScheduledExecutor();
 
   private final Object SENDING_LOCK = new Object();
@@ -413,16 +415,39 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
           FundingResult fundingResult;
           synchronized (SENDING_LOCK) {
+            if (oldTxHex != null && unlockingTasks.containsKey(oldTxHex)) {
+
+              unlockingTasks.get(oldTxHex).cancel(true);
+              // unlock previously locked UTXO
+
+              lockUnspentFromHex(oldTxHex, true);
+
+            }
+
             String initialTxHex = btcdClient.createRawTransaction(new ArrayList<>(), payments);
             fundingResult = btcdClient.fundRawTransaction(initialTxHex);
             lockUnspentFromHex(fundingResult.getHex(), false);
           }
 
-          outputUnlockingExecutor.schedule(() -> {
+          unlockingTasks.put(fundingResult.getHex(),
+                  CompletableFuture.runAsync(() -> {
+                    try {
+                      Thread.sleep(120_000);
+                      lockUnspentFromHex(fundingResult.getHex(), true);
+                    } catch (InterruptedException e) {
+                      log.warn("output unlock interrupted for hex: " + fundingResult.getHex());
+                    }
+
+                  }, outputUnlockingExecutor)
+                          .thenRun(() -> unlockingTasks.remove(fundingResult.getHex())));
+
+
+
+          /*outputUnlockingExecutor.schedule(() -> {
                 // unlock UTXO after 2 minutes - in case of no action;
                 lockUnspentFromHex(fundingResult.getHex(), true);
             },
-                    2, TimeUnit.MINUTES);
+                    2, TimeUnit.MINUTES);*/
 
             return new BtcPreparedTransactionDto(payments, fundingResult.getFee(), fundingResult.getHex());
         } catch (BitcoindException | CommunicationException e) {
