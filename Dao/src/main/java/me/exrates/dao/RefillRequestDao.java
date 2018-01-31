@@ -48,7 +48,7 @@ public interface RefillRequestDao {
 
   Optional<Integer> create(RefillRequestCreateDto request);
 
-  Optional<String> findLastAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+  Optional<String> findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
