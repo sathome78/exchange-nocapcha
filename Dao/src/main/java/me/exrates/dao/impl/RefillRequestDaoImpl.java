@@ -1039,7 +1039,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId) {
     final String sql = "SELECT REFILL_REQUEST_ADDRESS.address FROM REFILL_REQUEST_ADDRESS " +
-            "where merchant_id = :merchant_id AND currency_id = :currency_id";
+            "where merchant_id = :merchant_id AND currency_id = :currency_id AND is_valid = 1";
 
     final Map<String, Integer> params = new HashMap<>();
     params.put("merchant_id", merchantId);
