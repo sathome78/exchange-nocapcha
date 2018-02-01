@@ -61,7 +61,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private Boolean supportInstantSend;
 
-  private Map<String, CompletableFuture<Void>> unlockingTasks = new ConcurrentHashMap<>();
+  private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
   private ScheduledExecutorService outputUnlockingExecutor = Executors.newSingleThreadScheduledExecutor();
 
@@ -429,25 +429,14 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             lockUnspentFromHex(fundingResult.getHex(), false);
           }
 
-          unlockingTasks.put(fundingResult.getHex(),
-                  CompletableFuture.runAsync(() -> {
-                    try {
-                      Thread.sleep(120_000);
-                      lockUnspentFromHex(fundingResult.getHex(), true);
-                    } catch (InterruptedException e) {
-                      log.warn("output unlock interrupted for hex: " + fundingResult.getHex());
-                    }
-
-                  }, outputUnlockingExecutor)
-                          .thenRun(() -> unlockingTasks.remove(fundingResult.getHex())));
-
-
-
-          /*outputUnlockingExecutor.schedule(() -> {
-                // unlock UTXO after 2 minutes - in case of no action;
-                lockUnspentFromHex(fundingResult.getHex(), true);
-            },
-                    2, TimeUnit.MINUTES);*/
+          unlockingTasks.put(fundingResult.getHex(), outputUnlockingExecutor.schedule(() -> {
+                    // unlock UTXO after 2 minutes - in case of no action;
+                    lockUnspentFromHex(fundingResult.getHex(), true);
+                    log.info("Outputs unlocked for hex " + fundingResult.getHex());
+                    unlockingTasks.remove(fundingResult.getHex());
+                  },
+                  2, TimeUnit.MINUTES));
+          ;
 
             return new BtcPreparedTransactionDto(payments, fundingResult.getFee(), fundingResult.getHex());
         } catch (BitcoindException | CommunicationException e) {
