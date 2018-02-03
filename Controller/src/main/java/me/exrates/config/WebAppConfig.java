@@ -59,6 +59,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.web3j.utils.Convert;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -463,7 +464,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "EOS",
-                "EOS", true);
+                "EOS", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "repServiceImpl")
@@ -473,7 +474,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true);
+                "REP", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -483,7 +484,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
-                "GNT", false);
+                "GNT", false, Convert.Unit.ETHER);
     }
 
     @Bean(name = "omgServiceImpl")
@@ -493,7 +494,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
-                "OMG", true);
+                "OMG", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "bnbServiceImpl")
@@ -503,7 +504,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BinanceCoin",
-                "BNB", true);
+                "BNB", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "atlServiceImpl")
@@ -513,7 +514,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "ATLANT",
-                "ATL", true);
+                "ATL", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "bitRentServiceImpl")
@@ -523,7 +524,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BitRent",
-                "RNTB", true);
+                "RNTB", true, Convert.Unit.ETHER);
+    }
+
+    @Bean(name = "nioServiceImpl")
+    public EthTokenService NioService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5554e04e76533e1d14c52f05beef6c9d329e1e30");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NIO",
+                "NIO", true, Convert.Unit.WEI);
     }
 
     @Bean

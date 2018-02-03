@@ -106,6 +106,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private EthTokenService bitRentServiceImpl;
 
+    @Qualifier(value = "nioServiceImpl")
+    @Autowired
+    private EthTokenService nioServiceImpl;
+
     @Autowired
     private EthTokensContext ethTokensContext;
 
