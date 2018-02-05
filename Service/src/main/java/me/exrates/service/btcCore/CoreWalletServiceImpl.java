@@ -19,6 +19,7 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -99,6 +100,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcDaemon.init();
     } catch (Exception e) {
       log.error(e);
+      log.error(ExceptionUtils.getStackTrace(e));
     }
   }
   
