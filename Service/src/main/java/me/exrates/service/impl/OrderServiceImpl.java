@@ -563,7 +563,7 @@ public class OrderServiceImpl implements OrderService {
                                                      String email, CurrencyPair currencyPair, OrderStatus status,
                                                      OperationType operationType,
                                                      String scope, Integer offset, Integer limit, Locale locale) {
-    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, scope, offset, limit, locale);
+    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<OrderWideListDto>() {{
         add(new OrderWideListDto(false));
@@ -1259,7 +1259,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                 OperationType operationType,
                                                                 Integer offset, Integer limit, Locale locale) {
-    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, null, offset, limit, locale);
+    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
 
     return result;
   }
@@ -1269,7 +1269,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                      OperationType operationType,
                                                      Integer offset, Integer limit, Locale locale) {
-    return orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, null, offset, limit, locale);
+    return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
   }
 
   @Override
@@ -1277,7 +1277,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                      OperationType operationType,
                                                      Integer offset, Integer limit, Locale locale) {
-    return orderDao.getMyOrdersWithState(email, currencyPair, statuses, operationType, null, offset, limit, locale);
+    return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
   }
 
 
