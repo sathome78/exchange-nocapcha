@@ -15,6 +15,8 @@ $.fn.dataTable.ext.search.push(
 
 
 $(function () {
+    $('#exclude-zero-balances').prop('checked', true);
+
     if ($.fn.dataTable.isDataTable('#walletsTable')) {
         walletsDataTable = $('#walletsTable').DataTable();
     } else {
@@ -126,7 +128,6 @@ $(function () {
         var currentData = currentRow.data();
         window.location = "/2a8fy7b07dxe44/userStatements/" + currentData.id;
     });
-
     $('#exclude-zero-balances').change(function() {
         walletsDataTable.draw();
     });
