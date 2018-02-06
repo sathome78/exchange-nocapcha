@@ -73,9 +73,6 @@
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="nickname" class="input-block-wrapper__input"/>
                     </div>
-                    <div class="col-md-11">
-                        <loc:message code="register.loginLabel"/>
-                    </div>
                 </div>
                 <%--email--%>
                 <div class="input-block-wrapper clearfix">
@@ -87,6 +84,9 @@
                     </div>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="email" class="input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11">
+                        <loc:message code="register.loginLabel"/>
                     </div>
                 </div>
                 <%--Password--%>
