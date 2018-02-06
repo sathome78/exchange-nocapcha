@@ -64,11 +64,11 @@ public interface OrderDao {
 
     CommissionsDto getAllCommissions(UserRole userRole);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
