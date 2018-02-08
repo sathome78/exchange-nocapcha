@@ -47,10 +47,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
     <%--TOOLS ... --%>
-    <!-- Google Analytics-->
-    <%--<%@include file="../tools/google.jsp"%>--%>
-    <!-- Yandex.Metrika counter -->
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
+    <%@include file="../tools/google_head.jsp"%>
     <%--ZOPIM CHAT--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
@@ -59,6 +56,10 @@
 
 </head>
 <body>
+
+    <%--TOOLS ... --%>
+    <%@include file="../tools/google_body.jsp"%>
+    <%-- ... TOOLS--%>
 
 <%@include file="../fragments/header-simple.jsp" %>
 
