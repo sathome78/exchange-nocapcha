@@ -49,16 +49,9 @@
             src="<c:url value='/client/js/admin-balance-change/adminBalanceChange.js'/>"></script>
   </sec:authorize>
 
-
-  <%----------%>
-  <%----------%>
-  <%@include file="../tools/alexa.jsp" %>
-  <%@include file="../tools/ga.jsp" %>
-
 </head>
 
 <body>
-
 <%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new admin side_menu">

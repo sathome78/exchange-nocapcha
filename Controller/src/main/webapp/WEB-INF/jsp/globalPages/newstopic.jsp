@@ -50,15 +50,10 @@
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/ga.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 
 </head>
 <body>
-
-    <%--TOOLS ... --%>
-    <%@include file="../tools/google_body.jsp"%>
-    <%-- ... TOOLS--%>
 
 <%@include file="../fragments/header-simple.jsp" %>
 

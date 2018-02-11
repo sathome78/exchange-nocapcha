@@ -1,3 +1,4 @@
+<%@include file="../tools/google_body.jsp"%>
 <%@ page import="me.exrates.controller.AdminController"%>
 <%@ page import="org.springframework.web.servlet.support.RequestContext" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
