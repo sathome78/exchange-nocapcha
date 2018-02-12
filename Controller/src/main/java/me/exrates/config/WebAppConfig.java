@@ -376,30 +376,30 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
-                "Bitcoin", "BTC", 4, 15, true);
+                "Bitcoin", "BTC", 4, 15, false);
     }
 
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
-                "Litecoin", "LTC", 4, 20, true);
+                "Litecoin", "LTC", 4, 20, false);
     }
     
     @Bean(name = "dashServiceImpl")
     public BitcoinService dashService() {
         return new BitcoinServiceImpl("merchants/dash_wallet.properties",
-                "Dash", "DASH", 4, 20, true);
+                "Dash", "DASH", 4, 20, false);
     }
 
     @Bean(name = "atbServiceImpl")
     public BitcoinService atbService() {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
-                "ATB", "ATB", 10, 20, true);
+                "ATB", "ATB", 10, 20, false);
     }
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 4, 20, true);
+                "Bitcoin Cash", "BCH", 4, 20, false);
     }
 
     @Bean(name = "dogecoinServiceImpl")
@@ -411,37 +411,37 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "btgServiceImpl")
     public BitcoinService btgService() {
         return new BitcoinServiceImpl("merchants/bitcoin_gold_wallet.properties",
-                "BTG", "BTG", 4, 20, true);
+                "BTG", "BTG", 4, 20, false);
     }
 
     @Bean(name = "zcashServiceImpl")
     public BitcoinService zecService() {
         return new BitcoinServiceImpl("merchants/zec_wallet.properties",
-                "Zcash", "ZEC", 4, 20, true);
+                "Zcash", "ZEC", 4, 20, false);
     }
 
     @Bean(name = "b2xServiceImpl")
     public BitcoinService b2xService() {
         return new BitcoinServiceImpl("merchants/b2x_wallet.properties",
-                "B2X", "B2X", 4, 20, true);
+                "B2X", "B2X", 4, 20, false);
     }
 
     @Bean(name = "bcdServiceImpl")
     public BitcoinService bcdService() {
         return new BitcoinServiceImpl("merchants/bcd_wallet.properties",
-                "BCD", "BCD", 4, 20, true);
+                "BCD", "BCD", 4, 20, false);
     }
 
     @Bean(name = "bcxServiceImpl")
     public BitcoinService bcxService() {
         return new BitcoinServiceImpl("merchants/bcx_wallet.properties",
-                "BCX", "BCX", 4, 20, true);
+                "BCX", "BCX", 4, 20, false);
     }
 
     @Bean(name = "occServiceImpl")
     public BitcoinService occService() {
         return new BitcoinServiceImpl("merchants/occ_wallet.properties",
-                "OCC", "OCC", 4, 20, true);
+                "OCC", "OCC", 4, 20, false);
     }
 
 
