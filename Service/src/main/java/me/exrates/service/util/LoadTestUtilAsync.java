@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 public class LoadTestUtilAsync {
 
     private static final String BASE_URL = "http://dev.exrates.tech";
+    private static final String URL_DASHBOARD = BASE_URL + "/dashboard";
     private static final String URL_AUTHENTICATE = BASE_URL + "/rest/user/authenticate";
     private static final String URL_SUBMIT_ORDER = BASE_URL + "/api/orders/submitOrderForCreation";
     private static final String URL_CONFIRM_ORDER = BASE_URL + "/api/orders/createOrder";
@@ -65,37 +66,44 @@ public class LoadTestUtilAsync {
 
     private static void runOrderCreationSequence() {
      //   System.out.println("Active threads " + Thread.activeCount());
-        retrieveToken()
-                .addCallback((result) -> {
-                    try {
-                        String token = objectMapper.readTree(result.getBody()).get("token").asText();
-                        System.out.println("TOKEN: " + token);
-                        submitOrder(token, submitResult -> {
-                            try {
-                                String orderKey = objectMapper.readTree(submitResult).get("key").asText();
-                                System.out.println("ORDER KEY: " + orderKey);
+        sendGetRequest(URL_DASHBOARD, Collections.emptyMap()).addCallback(result -> {
+            System.out.println("Got dashboard");
+            retrieveToken()
+                    .addCallback((tokenResult) -> {
+                        try {
+                            String token = objectMapper.readTree(tokenResult.getBody()).get("token").asText();
+                            System.out.println("TOKEN: " + token);
+                            submitOrder(token, submitResult -> {
+                                try {
+                                    String orderKey = objectMapper.readTree(submitResult).get("key").asText();
+                                    System.out.println("ORDER KEY: " + orderKey);
 
-                                createOrder(token, orderKey, createResult -> {
-                                    try {
-                                        Integer orderId = objectMapper.readTree(createResult).get("createdOrderId").asInt();
-                                        System.out.println("ORDER ID: " + orderId);
+                                    createOrder(token, orderKey, createResult -> {
+                                        try {
+                                            Integer orderId = objectMapper.readTree(createResult).get("createdOrderId").asInt();
+                                            System.out.println("ORDER ID: " + orderId);
 
-                                        acceptOrder(token, orderId, acceptResult -> {
-                                            System.out.println("ACCEPTED: " + orderId);
-                                        });
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                });
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        });
+                                            acceptOrder(token, orderId, acceptResult -> {
+                                                System.out.println("ACCEPTED: " + orderId);
+                                            });
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }, Throwable::printStackTrace);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }, Throwable::printStackTrace);
+        }, Throwable::printStackTrace);
+
+
+
+
 
     }
 
