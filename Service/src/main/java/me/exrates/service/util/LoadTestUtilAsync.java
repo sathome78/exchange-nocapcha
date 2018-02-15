@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.OperationType;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -35,10 +38,10 @@ public class LoadTestUtilAsync {
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static final UserAuthenticationDto AUTHENTICATION;
     private static final OrderCreationParamsDto ORDER_CREATION_PARAMS_DTO;
-    private static final int POOL_SIZE = 2000;
+    private static final int POOL_SIZE = 5000;
 
     static {
-        restTemplate = new AsyncRestTemplate();
+        restTemplate = new AsyncRestTemplate(requestFactory());
 
         AUTHENTICATION = new UserAuthenticationDto();
         AUTHENTICATION.setEmail("golvazin@gmail.com");
@@ -54,13 +57,14 @@ public class LoadTestUtilAsync {
 
     public static void main(String[] args) {
         ScheduledExecutorService pool = Executors.newScheduledThreadPool(POOL_SIZE);
-        pool.scheduleAtFixedRate(LoadTestUtilAsync::runOrderCreationSequence, 2L, 200L, TimeUnit.MILLISECONDS);
+        pool.scheduleAtFixedRate(LoadTestUtilAsync::runOrderCreationSequence, 2L, 100L, TimeUnit.MILLISECONDS);
     }
 
 
 
 
     private static void runOrderCreationSequence() {
+     //   System.out.println("Active threads " + Thread.activeCount());
         retrieveToken()
                 .addCallback((result) -> {
                     try {
@@ -229,6 +233,13 @@ public class LoadTestUtilAsync {
             String body = result.getBody();
             successCallback.accept(body);
         }
+    }
+
+    private static HttpComponentsAsyncClientHttpRequestFactory requestFactory() {
+        CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+        HttpComponentsAsyncClientHttpRequestFactory asyncRequestFactory = new HttpComponentsAsyncClientHttpRequestFactory();
+        asyncRequestFactory.setHttpAsyncClient(httpclient);
+        return asyncRequestFactory;
     }
 
 
