@@ -537,6 +537,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NIO", true, Convert.Unit.WEI);
     }
 
+    @Bean(name = "gosServiceImpl")
+    public EthTokenService GosService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5ce8e61f28f5948de4913bcaada90039481f1f53");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GOS",
+                "GOS", true, Convert.Unit.MWEI);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();

@@ -78,38 +78,6 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
 
-    @Qualifier(value = "eosServiceImpl")
-    @Autowired
-    private EthTokenService eosServiceImpl;
-
-    @Qualifier(value = "repServiceImpl")
-    @Autowired
-    private EthTokenService repServiceImpl;
-
-    @Qualifier(value = "golemServiceImpl")
-    @Autowired
-    private EthTokenService golemServiceImpl;
-
-    @Qualifier(value = "omgServiceImpl")
-    @Autowired
-    private EthTokenService omgServiceImpl;
-
-    @Qualifier(value = "bnbServiceImpl")
-    @Autowired
-    private EthTokenService bnbServiceImpl;
-
-    @Qualifier(value = "atlServiceImpl")
-    @Autowired
-    private EthTokenService atlServiceImpl;
-
-    @Qualifier(value = "bitRentServiceImpl")
-    @Autowired
-    private EthTokenService bitRentServiceImpl;
-
-    @Qualifier(value = "nioServiceImpl")
-    @Autowired
-    private EthTokenService nioServiceImpl;
-
     @Autowired
     private EthTokensContext ethTokensContext;
 
@@ -225,7 +193,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }catch (Exception e){
                 LOG.error(e);
             }
-        }, 60, 120, TimeUnit.MINUTES);
+        }, 15, 30, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
