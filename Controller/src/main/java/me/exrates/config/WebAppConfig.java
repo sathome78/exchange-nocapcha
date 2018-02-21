@@ -450,7 +450,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BTCZ", "BTCZ", 4, 20, false);
     }
 
-
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
