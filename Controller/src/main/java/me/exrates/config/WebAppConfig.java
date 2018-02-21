@@ -444,6 +444,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "OCC", "OCC", 4, 20, false);
     }
 
+    @Bean(name = "btczServiceImpl")
+    public BitcoinService btczService() {
+        return new BitcoinServiceImpl("merchants/btcz_wallet.properties",
+                "BTCZ", "BTCZ", 4, 20, false);
+    }
+
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
