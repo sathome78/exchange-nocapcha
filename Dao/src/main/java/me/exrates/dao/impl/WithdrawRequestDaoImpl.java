@@ -437,6 +437,30 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     });
   }
 
+  @Override
+  public List<Integer> getWithdrawalStatistic(String startDate, String endDate) {
+    final String sql = "SELECT (SELECT COUNT(*) FROM WITHDRAW_REQUEST WHERE status_modification_date \n" +
+            "BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')" +
+            " AND status_id IN (8,9)) as manual, \n" +
+            "(SELECT COUNT(*) FROM WITHDRAW_REQUEST WHERE status_modification_date " +
+            "BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')  \n" +
+            " AND status_id IN (10,12)) as auto;";
+
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+    }};
+
+    return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+      List<Integer> list = new LinkedList<>();
+      list.add(rs.getInt("manual"));
+      list.add(rs.getInt("auto"));
+
+      return list;
+    });
+
+  }
+
   private String getPermissionClause(Integer requesterUserId) {
     if (requesterUserId == null) {
       return " LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON (IOP.user_id = -1) ";

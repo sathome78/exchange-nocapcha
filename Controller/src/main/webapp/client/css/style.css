@@ -2360,6 +2360,14 @@ input.copyable:hover{
     margin-bottom: 20px;
 }
 
+#btc-prepare-raw-modal .modal-body {
+    font-size: 1.5rem;
+}
+
+#btc-prepare-raw-modal .modal-body div {
+    margin: 15px 5px;
+}
+
 #exclude-zero-balances-container {
     font-size: 1.3rem;
     margin: 10px 0;

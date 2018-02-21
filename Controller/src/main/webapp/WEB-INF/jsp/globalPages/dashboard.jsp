@@ -80,14 +80,9 @@
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
     <%--TOOLS ... --%>
-    <!-- Google Analytics-->
-    <%--<%@include file="../tools/google.jsp"%>--%>
-    <!-- Yandex.Metrika counter -->
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
+    <%@include file="../tools/google_head.jsp"%>
     <%--ZOPIM CHAT--%>
     <%@include file="../tools/alexa.jsp" %>
-    <%@include file="../tools/ga.jsp" %>
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
 </head>

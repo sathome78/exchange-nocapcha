@@ -45,6 +45,7 @@
                 async defer>
         </script>
     </c:if>
+    <%@include file="tools/google_head.jsp"%>
     <%@include file="tools/alexa.jsp" %>
    <%-- <%@include file="tools/yandex.jsp" %>--%>
 

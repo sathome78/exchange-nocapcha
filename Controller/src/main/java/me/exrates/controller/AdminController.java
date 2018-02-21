@@ -18,6 +18,8 @@ import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
+import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -64,6 +66,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -314,8 +317,9 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
-    /*return walletService.getAllUserWalletsForAdminDetailed(id);*/
-    return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
+    boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
+    return getExtendedInfo ? walletService.getAllUserWalletsForAdminDetailed(id) :
+            walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
   @AdminLoggable
@@ -507,6 +511,7 @@ public class AdminController {
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
     model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
+    model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
     return model;
   }
 
@@ -1244,7 +1249,9 @@ public class AdminController {
     String currency = merchantService.retrieveCoreWalletCurrencyNameByMerchant(merchantName);
     modelAndView.addObject("currency", currency);
     modelAndView.addObject("title", messageSource.getMessage(currency.toLowerCase() + "Wallet.title", null, locale));
-    modelAndView.addObject("walletInfo", getBitcoinServiceByMerchantName(merchantName).getWalletInfo());
+    BitcoinService bitcoinService = getBitcoinServiceByMerchantName(merchantName);
+    modelAndView.addObject("walletInfo", bitcoinService.getWalletInfo());
+    modelAndView.addObject("rawTxEnabled", bitcoinService.isRawTxEnabled());
     return modelAndView;
   }
   
@@ -1502,8 +1509,12 @@ public class AdminController {
     defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
             .collect(Collectors.toMap(value -> value, value -> false)));
     userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
+    ModelAndView modelAndView = new ModelAndView("admin/generalStats");
+    modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
+    modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
 
-    return new ModelAndView("admin/generalStats", "defaultRoleFilter", defaultRoleFilter);
+
+    return modelAndView;
   }
 
   @ResponseBody
@@ -1560,6 +1571,61 @@ public class AdminController {
     return refillService.getAdressesShortDto(dataTableParams, filterData);
   }
 
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/prepareRawTx", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public BtcAdminPreparedTxDto prepareRawTransactions(@PathVariable String merchantName,
+                                                      @RequestBody List<BtcWalletPaymentItemDto> payments,
+                                                      HttpServletRequest request) {
+    LOG.debug(payments);
+    /*long uniqueAddressesCount = payments.stream().map(BtcWalletPaymentItemDto::getAddress).distinct().count();
+    if (uniqueAddressesCount != payments.size()) {
+      throw new InvalidBtcPaymentDataException("Only unique addresses allowed in single payment!");
+    }*/
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+      HttpSession session = request.getSession();
+      List<BtcPreparedTransactionDto> preparedTransactions = (List<BtcPreparedTransactionDto>) session.getAttribute("PREPARED_RAW_TXES");
+      BtcAdminPreparedTxDto result;
+
+      if (preparedTransactions != null) {
+          result = walletService.updateRawTransactions(preparedTransactions);
+      } else {
+          result = walletService.prepareRawTransactions(payments);
+      }
+    final Object mutex = WebUtils.getSessionMutex(session);
+    synchronized (mutex) {
+      session.setAttribute("PREPARED_RAW_TXES", result.getPreparedTransactions());
+    }
+    return result;
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/sendRawTx", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public BtcAdminPaymentResponseDto sendRawTransactions(@PathVariable String merchantName,
+                                                        HttpServletRequest request) {
+    HttpSession session = request.getSession();
+    final Object mutex = WebUtils.getSessionMutex(session);
+    Optional<List<BtcPreparedTransactionDto>> preparedTransactionsOptional = Optional.empty();
+    synchronized (mutex) {
+      preparedTransactionsOptional = Optional.ofNullable(((List<BtcPreparedTransactionDto>) session.getAttribute("PREPARED_RAW_TXES")));
+      session.removeAttribute("PREPARED_RAW_TXES");
+    }
+    if (!preparedTransactionsOptional.isPresent()) {
+      throw new IllegalStateException("No prepared transactions stored in session!");
+    }
+    List<BtcPreparedTransactionDto> preparedTransactions = preparedTransactionsOptional.get();
+    BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
+    BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
+    responseDto.setResults(walletService.sendRawTransactions(preparedTransactions));
+    responseDto.setNewBalance(walletService.getWalletInfo().getBalance());
+    return responseDto;
+  }
+
+
+
 
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
@@ -1607,6 +1673,10 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+
+    public static void main(String[] args) {
+        System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+    }
 
 
 }

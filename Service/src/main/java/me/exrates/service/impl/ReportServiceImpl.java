@@ -4,13 +4,12 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
-import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Email;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.enums.AdminAuthority;
+import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
@@ -72,6 +71,9 @@ public class ReportServiceImpl implements ReportService {
   SendMailService sendMailService;
 
   @Autowired
+  WalletService walletService;
+
+  @Autowired
   ReportDao reportDao;
 
   @Autowired
@@ -83,7 +85,9 @@ public class ReportServiceImpl implements ReportService {
   @PostConstruct
   private void initMailing() {
     try {
-      scheduleMailingJob();
+      if (isReportMailingEnabled()) {
+        scheduleMailingJob();
+      }
     } catch (SchedulerException e) {
       log.error(e);
     }
@@ -319,6 +323,19 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
+  public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
+    Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
+    return walletService.getWalletBalancesSummaryByRoles(roles);
+  }
+
+  @Override
+  public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
+    return walletService.getWalletBalancesSummaryByGroups();
+  }
+
+
+
+  @Override
   public boolean isReportMailingEnabled() {
     return reportDao.isReportMailingEnabled();
   }
@@ -349,10 +366,9 @@ public class ReportServiceImpl implements ReportService {
     boolean oldStatus = isReportMailingEnabled();
     if (newStatus != oldStatus) {
       try {
+        reportScheduler.deleteJob(JobKey.jobKey(MAIL_JOB_NAME));
         if (newStatus) {
           scheduleMailingJob();
-        } else {
-          reportScheduler.deleteJob(JobKey.jobKey(MAIL_JOB_NAME));
         }
         reportDao.updateReportMailingEnableStatus(newStatus);
       } catch (SchedulerException e) {
@@ -390,14 +406,27 @@ public class ReportServiceImpl implements ReportService {
 
       List<CurrencyPairTurnoverReportDto> currencyPairTurnoverList = getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
       List<CurrencyInputOutputSummaryDto> currencyIOSummaryList = getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
+      List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> balancesList = getWalletBalancesSummaryByGroups();
 
 
       String currencyPairReportContent = currencyPairTurnoverList.stream().map(CurrencyPairTurnoverReportDto::toString)
               .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
       String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
               .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-      List<Email.Attachment> attachments = Arrays.asList(new Email.Attachment("currency_pairs.csv", new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),
-            "text/csv"), new Email.Attachment("currencies.csv", new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"));
+      String balancesReportContent = balancesList.stream().map(UserRoleTotalBalancesReportDto::toString)
+              .collect(Collectors.joining("", UserRoleTotalBalancesReportDto.getTitle(ReportGroupUserRole.class), ""));
+
+      List<Email.Attachment> attachments = Arrays.asList(
+              new Email.Attachment("currency_pairs.csv",
+                      new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)),"text/csv"),
+              new Email.Attachment("currencies.csv",
+                      new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"),
+              new Email.Attachment("balances.csv",
+                      new ByteArrayResource(balancesReportContent.getBytes(Charsets.UTF_8)), "text/csv")
+
+      );
+
+
       List<String> subscribers = retrieveReportSubscribersList(true);
       subscribers.forEach(emailAddress -> {
           try {

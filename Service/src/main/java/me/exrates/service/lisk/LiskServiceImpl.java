@@ -32,6 +32,8 @@ import java.util.*;
 @PropertySource("classpath:/merchants/lisk.properties")
 public class LiskServiceImpl implements LiskService {
 
+    private final BigDecimal DEFAULT_LSK_TX_FEE = BigDecimal.valueOf(0.1);
+
     @Autowired
     private RefillService refillService;
 
@@ -86,11 +88,13 @@ public class LiskServiceImpl implements LiskService {
         String address = ParamMapUtils.getIfNotNull(params, "address");
         String txId = ParamMapUtils.getIfNotNull(params, "txId");
         LiskTransaction transaction = getTransactionById(txId);
+        long txFee = liskRestClient.getFee();
+        BigDecimal scaledAmount = LiskTransaction.scaleAmount(transaction.getAmount() - txFee);
 
         if (!refillRequestIdResult.isPresent()) {
             Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
                     .address(address)
-                    .amount(transaction.getScaledAmount())
+                    .amount(scaledAmount)
                     .merchantId(merchantId)
                     .currencyId(currencyId)
                     .merchantTransactionId(txId).build());
@@ -102,7 +106,7 @@ public class LiskServiceImpl implements LiskService {
                             .merchantId(merchantId)
                             .currencyId(currencyId)
                             .address(address)
-                            .amount(transaction.getScaledAmount())
+                            .amount(scaledAmount)
                             .hash(txId)
                             .blockhash(transaction.getBlockId()).build());
                 } catch (RefillRequestAppropriateNotFoundException e) {
@@ -112,7 +116,7 @@ public class LiskServiceImpl implements LiskService {
                 changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
                         .requestId(requestId)
                         .address(address)
-                        .amount(transaction.getScaledAmount())
+                        .amount(scaledAmount)
                         .confirmations(transaction.getConfirmations())
                         .currencyId(currencyId)
                         .merchantId(merchantId)
@@ -124,7 +128,7 @@ public class LiskServiceImpl implements LiskService {
             changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
                     .requestId(requestId)
                     .address(address)
-                    .amount(transaction.getScaledAmount())
+                    .amount(scaledAmount)
                     .confirmations(transaction.getConfirmations())
                     .currencyId(currencyId)
                     .merchantId(merchantId)
@@ -201,7 +205,9 @@ public class LiskServiceImpl implements LiskService {
         if (!"LSK".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
         }
-        String txId = sendTransaction(mainSecret, new BigDecimal(withdrawMerchantOperationDto.getAmount()), withdrawMerchantOperationDto.getAccountTo());
+        BigDecimal txFee = LiskTransaction.scaleAmount(liskRestClient.getFee());
+        String txId = sendTransaction(mainSecret, new BigDecimal(withdrawMerchantOperationDto.getAmount()).subtract(txFee),
+                withdrawMerchantOperationDto.getAccountTo());
         return Collections.singletonMap("hash", txId);
     }
 
@@ -217,11 +223,9 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
-        long fee = liskRestClient.getFee();
-        long amountToSend = amount - fee;
         LiskSendTxDto dto = new LiskSendTxDto();
         dto.setSecret(secret);
-        dto.setAmount(amountToSend);
+        dto.setAmount(amount);
         dto.setRecipientId(recipientId);
         return liskRestClient.sendTransaction(dto);
     }

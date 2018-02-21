@@ -49,16 +49,9 @@
             src="<c:url value='/client/js/admin-balance-change/adminBalanceChange.js'/>"></script>
   </sec:authorize>
 
-
-  <%----------%>
-  <%----------%>
-  <%@include file="../tools/alexa.jsp" %>
-  <%@include file="../tools/ga.jsp" %>
-
 </head>
 
 <body>
-
 <%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new admin side_menu">
@@ -442,36 +435,48 @@
         <div id="panel3" class="tab-pane">
           <%--<div class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">--%>
           <%--<div class="row">--%>
-          <div class="col-md-8 content">
+          <div class="col-md-10 content">
             <%--СПИСОК СЧЕТОВ--%>
             <div class="text-center"><h4><loc:message code="admin.wallets"/></h4></div>
-              <%--<div class='col-md-12' id="exclude-zero-balances-container">
+              <div class='col-md-12' id="exclude-zero-balances-container">
                 <div class="col-md-1">
                   <input type='checkbox' id='exclude-zero-balances'>
                 </div>
                 <div class="col-md-11">
                   <label for="exclude-zero-balances"><loc:message code="userWallets.excludeZero"/></label>
                 </div>
-              </div>--%>
+              </div>
+                <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
                    class="admin-table table table-hover table-bordered table-striped"
                    style="width:100%">
-              <thead>
-              <tr>
-                <%--RUB--%>
-                  <th></th>
-                  <%--<th><loc:message code="userWallet.input"/></th>
-                  <th><loc:message code="userWallet.sell"/></th>
-                  <th><loc:message code="userWallet.buy"/></th>
-                  <th><loc:message code="userWallet.output"/></th>
-                  <th><loc:message code="mywallets.reservedonorders"/></th>
-                  <th><loc:message code="mywallets.reservedonwithdraw"/></th>--%>
-                <%--Активный баланс>--%>
-                <th><loc:message code="mywallets.abalance"/></th>
-                <%--Резерв--%>
-                <th><loc:message code="mywallets.rbalance"/></th>
-              </tr>
-              </thead>
+              <c:choose>
+                <c:when test="${walletsExtendedInfoRequired}">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.reservedonorders"/></th>
+                        <th><loc:message code="mywallets.reservedonwithdraw"/></th>
+                        <th><loc:message code="userWallet.input"/></th>
+                        <th><loc:message code="userWallet.sell"/></th>
+                        <th><loc:message code="userWallet.buy"/></th>
+                        <th><loc:message code="userWallet.output"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:when>
+                <c:otherwise>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
+                    </tr>
+                    </thead>
+                </c:otherwise>
+              </c:choose>
+
             </table>
 
             <sec:authorize access="(hasAuthority('${admin_manualBalanceChange}') && ${manualChangeAllowed})">

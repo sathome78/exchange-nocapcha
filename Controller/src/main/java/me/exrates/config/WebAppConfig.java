@@ -59,6 +59,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.web3j.utils.Convert;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -375,72 +376,72 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
-                "Bitcoin", "BTC", 4, 40);
+                "Bitcoin", "BTC", 4, 15, false);
     }
 
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",
-                "Litecoin", "LTC", 4, 20);
+                "Litecoin", "LTC", 4, 20, false);
     }
     
     @Bean(name = "dashServiceImpl")
     public BitcoinService dashService() {
         return new BitcoinServiceImpl("merchants/dash_wallet.properties",
-                "Dash", "DASH", 4, 20);
+                "Dash", "DASH", 4, 20, false);
     }
 
     @Bean(name = "atbServiceImpl")
     public BitcoinService atbService() {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
-                "ATB", "ATB", 10, 20);
+                "ATB", "ATB", 10, 20, false);
     }
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 4, 20);
+                "Bitcoin Cash", "BCH", 4, 20, false);
     }
 
     @Bean(name = "dogecoinServiceImpl")
     public BitcoinService dogeService() {
         return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
-                "Dogecoin", "DOGE", 4, 20);
+                "Dogecoin", "DOGE", 4, 20, false);
     }
 
     @Bean(name = "btgServiceImpl")
     public BitcoinService btgService() {
         return new BitcoinServiceImpl("merchants/bitcoin_gold_wallet.properties",
-                "BTG", "BTG", 4, 20);
+                "BTG", "BTG", 4, 20, false);
     }
 
     @Bean(name = "zcashServiceImpl")
     public BitcoinService zecService() {
         return new BitcoinServiceImpl("merchants/zec_wallet.properties",
-                "Zcash", "ZEC", 4, 20);
+                "Zcash", "ZEC", 4, 20, false);
     }
 
     @Bean(name = "b2xServiceImpl")
     public BitcoinService b2xService() {
         return new BitcoinServiceImpl("merchants/b2x_wallet.properties",
-                "B2X", "B2X", 4, 20);
+                "B2X", "B2X", 4, 20, false);
     }
 
     @Bean(name = "bcdServiceImpl")
     public BitcoinService bcdService() {
         return new BitcoinServiceImpl("merchants/bcd_wallet.properties",
-                "BCD", "BCD", 4, 20);
+                "BCD", "BCD", 4, 20, false);
     }
 
     @Bean(name = "bcxServiceImpl")
     public BitcoinService bcxService() {
         return new BitcoinServiceImpl("merchants/bcx_wallet.properties",
-                "BCX", "BCX", 4, 20);
+                "BCX", "BCX", 4, 20, false);
     }
 
     @Bean(name = "occServiceImpl")
     public BitcoinService occService() {
         return new BitcoinServiceImpl("merchants/occ_wallet.properties",
-                "OCC", "OCC", 4, 20);
+                "OCC", "OCC", 4, 20, false);
     }
 
 
@@ -463,7 +464,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "EOS",
-                "EOS", true);
+                "EOS", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "repServiceImpl")
@@ -473,7 +474,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true);
+                "REP", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -483,7 +484,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
-                "GNT", false);
+                "GNT", false, Convert.Unit.ETHER);
     }
 
     @Bean(name = "omgServiceImpl")
@@ -493,7 +494,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
-                "OMG", true);
+                "OMG", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "bnbServiceImpl")
@@ -503,7 +504,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BinanceCoin",
-                "BNB", true);
+                "BNB", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "atlServiceImpl")
@@ -513,7 +514,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "ATLANT",
-                "ATL", true);
+                "ATL", true, Convert.Unit.ETHER);
     }
 
     @Bean(name = "bitRentServiceImpl")
@@ -523,7 +524,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BitRent",
-                "RNTB", true);
+                "RNTB", true, Convert.Unit.ETHER);
+    }
+
+    @Bean(name = "nioServiceImpl")
+    public EthTokenService NioService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5554e04e76533e1d14c52f05beef6c9d329e1e30");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NIO",
+                "NIO", true, Convert.Unit.WEI);
+    }
+
+    @Bean(name = "gosServiceImpl")
+    public EthTokenService GosService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5ce8e61f28f5948de4913bcaada90039481f1f53");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GOS",
+                "GOS", true, Convert.Unit.MWEI);
     }
 
     @Bean

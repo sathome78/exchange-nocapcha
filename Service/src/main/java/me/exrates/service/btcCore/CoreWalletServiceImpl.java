@@ -4,9 +4,7 @@ import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
-import com.neemre.btcdcli4j.core.domain.Address;
-import com.neemre.btcdcli4j.core.domain.Transaction;
-import com.neemre.btcdcli4j.core.domain.WalletInfo;
+import com.neemre.btcdcli4j.core.domain.*;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
@@ -21,6 +19,7 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -30,12 +29,15 @@ import org.springframework.stereotype.Component;
 import org.zeromq.ZMQ;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nullable;
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,15 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
   private Boolean supportInstantSend;
 
-  
+  private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
+
+  private ScheduledExecutorService outputUnlockingExecutor = Executors.newSingleThreadScheduledExecutor();
+
+  private final Object SENDING_LOCK = new Object();
+
+
+
+
   @Override
   public void initCoreClient(String nodePropertySource, boolean supportInstantSend) {
     try {
@@ -90,6 +100,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcDaemon.init();
     } catch (Exception e) {
       log.error(e);
+      log.error(ExceptionUtils.getStackTrace(e));
     }
   }
   
@@ -316,7 +327,11 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       unlockWallet(walletPassword, 1);
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
-      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      String result;
+      synchronized (SENDING_LOCK) {
+        result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      }
+      return result;
     } catch (BitcoindException e) {
       log.error(e);
       if (e.getCode() == -5) {
@@ -348,15 +363,15 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         subtractFeeAddresses = new ArrayList<>(payments.keySet());
       }
       String txId;
-      if (supportInstantSend) {
-        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
-                "", subtractFeeAddresses);
-      } else {
-        txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
-                "", subtractFeeAddresses);
+      synchronized (SENDING_LOCK) {
+          if (supportInstantSend) {
+              txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
+                      "", subtractFeeAddresses);
+          } else {
+              txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                      "", subtractFeeAddresses);
+          }
       }
-
-
       return new BtcPaymentResultDto(txId);
     } catch (Exception e) {
       log.error(e);
@@ -389,6 +404,108 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       return Flux.empty();
     }
   }
+
+
+    @Override
+    public BtcPreparedTransactionDto prepareRawTransaction(Map<String, BigDecimal> payments) {
+        return prepareRawTransaction(payments, null);
+    }
+
+    @Override
+    public BtcPreparedTransactionDto prepareRawTransaction(Map<String, BigDecimal> payments, @Nullable String oldTxHex) {
+        try {
+
+          FundingResult fundingResult;
+          synchronized (SENDING_LOCK) {
+            if (oldTxHex != null && unlockingTasks.containsKey(oldTxHex)) {
+
+              unlockingTasks.remove(oldTxHex).cancel(true);
+              // unlock previously locked UTXO
+
+              lockUnspentFromHex(oldTxHex, true);
+
+            }
+
+            String initialTxHex = btcdClient.createRawTransaction(new ArrayList<>(), payments);
+            fundingResult = btcdClient.fundRawTransaction(initialTxHex);
+            lockUnspentFromHex(fundingResult.getHex(), false);
+          }
+
+          unlockingTasks.put(fundingResult.getHex(), outputUnlockingExecutor.schedule(() -> {
+                    // unlock UTXO after 2 minutes - in case of no action;
+                    lockUnspentFromHex(fundingResult.getHex(), true);
+                    log.info("Outputs unlocked for hex " + fundingResult.getHex());
+                    unlockingTasks.remove(fundingResult.getHex());
+                  },
+                  2, TimeUnit.MINUTES));
+          ;
+
+            return new BtcPreparedTransactionDto(payments, fundingResult.getFee(), fundingResult.getHex());
+        } catch (BitcoindException | CommunicationException e) {
+            throw new BitcoinCoreException(e);
+        }
+    }
+
+
+    private void lockUnspentFromHex(String hex, boolean unlock)  {
+        try {
+            RawTransactionOverview txOverview = btcdClient.decodeRawTransaction(hex);
+            btcdClient.lockUnspent(unlock, txOverview.getVIn().stream()
+                    .map(vin -> new OutputOverview(vin.getTxId(), vin.getVOut())).collect(Collectors.toList()));
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+        }
+    }
+
+    @Override
+  public BtcPaymentResultDto signAndSendRawTransaction(String hex) {
+      try {
+          checkLockStateForRawTx(hex);
+          SignatureResult signatureResult = btcdClient.signRawTransaction(hex);
+          if (!signatureResult.getComplete()) {
+              throw new BitcoinCoreException("Signature failed!");
+          }
+          String txId = btcdClient.sendRawTransaction(signatureResult.getHex(), false);
+          return new BtcPaymentResultDto(txId);
+      } catch (Exception e) {
+          log.error(e);
+          return new BtcPaymentResultDto(e);
+      }
+  }
+
+
+  private void checkLockStateForRawTx(String hex) {
+      try {
+          Set<BtcTxOutputDto> lockedOutputSet = btcdClient.listLockUnspent().stream()
+                  .map(out -> new BtcTxOutputDto(out.getTxId(), out.getVOut())).collect(Collectors.toSet());
+
+           boolean txOutputsLocked = btcdClient.decodeRawTransaction(hex).getVIn().stream()
+                  .map(vin -> new BtcTxOutputDto(vin.getTxId(), vin.getVOut())).allMatch(lockedOutputSet::contains);
+
+           if (!txOutputsLocked) {
+               throw new IllegalStateException("Transaction outputs already unlocked!");
+           }
+
+      } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+      }
+  }
+
+  @Override
+  public String getTxIdByHex(String hex) {
+    try {
+      return btcdClient.decodeRawTransaction(hex).getTxId();
+    } catch (BitcoindException | CommunicationException e) {
+      throw new BitcoinCoreException("Cannot decode tx " + hex, e);
+    }
+  }
+
+  @PreDestroy
+  private void shutDown() {
+    outputUnlockingExecutor.shutdown();
+  }
+
+
 
 
 }

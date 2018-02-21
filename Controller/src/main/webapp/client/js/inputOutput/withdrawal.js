@@ -8,6 +8,46 @@ var filterParams;
 
 $(function () {
 
+    $('#withdrawal-request-filter_button').on('click', function (e) {
+        var element = document.getElementById("withdrawal-request-filter");
+        if (element.style.display === "none") {
+            element.style.display = "block";
+            document.getElementById("withdrawal-statistic").style.display = "none";
+        } else {
+            element.style.display = "none";
+        }
+    });
+
+    $('#withdrawal-statistic_button').on('click', function (e) {
+        var element = document.getElementById("withdrawal-statistic");
+        if (element.style.display === "none") {
+            element.style.display = "block";
+            document.getElementById("withdrawal-request-filter").style.display = "none";
+        } else {
+            element.style.display = "none";
+        }
+    });
+
+    $('#filter_statistic_button').on('click', function (e) {
+        var data = "startDate=" + $("#filter_statistic-datetimepicker_start").val() + ' 00:00:00' +
+            '&' + "endDate=" + $("#filter_statistic-datetimepicker_end").val() + ' 23:59:59';
+
+        $.ajax({
+            url: '/2a8fy7b07dxe44/withdraw/statistic',
+            async: false,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val(),
+            },
+            type: 'POST',
+            data: data,
+            success: function (data) {
+                $("#manual_withdrawals").val(data[0]);
+                $("#auto_withdrawals").val(data[1]);
+            }
+        });
+    });
+
+
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
@@ -36,6 +76,38 @@ $(function () {
         defaultTime: '00:00'
     });
 
+    $('#filter_statistic-datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD',
+        formatDate: 'YYYY-MM-DD',
+        lang: 'ru',
+        defaultDate: new Date(),
+        timepicker: false,
+    });
+
+    $('#filter_statistic-datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD',
+        formatDate: 'YYYY-MM-DD',
+        lang: 'ru',
+        defaultDate: new Date(),
+        timepicker: false,
+    });
+
+    $('#filter-dateProcessing-datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $('#filter-dateProcessing-datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
 
     $withdrawalPage = $('#withdraw-requests-admin');
     $withdrawalTable = $('#withdrawalTable');

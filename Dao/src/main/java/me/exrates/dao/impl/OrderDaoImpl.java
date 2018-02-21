@@ -628,35 +628,29 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
-        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
+        return getMyOrdersWithState(userId, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
     }
 
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+    public List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
-        String userJoinClause;
         if(scope == null || scope.isEmpty()) {
-            userFilterClause = " AND CREATOR.email = :email ";
-            userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
+            userFilterClause = " AND EXORDERS.user_id = :user_id ";
         } else {
             switch (scope) {
                 case "ALL":
-                    userFilterClause = " AND (CREATOR.email = :email OR ACCEPTOR.email = :email) ";
-                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id " +
-                            "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
+                    userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
                     break;
                 case "ACCEPTED":
-                    userFilterClause = " AND ACCEPTOR.email = :email ";
-                    userJoinClause = "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
+                    userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
                     break;
                 default:
-                    userFilterClause = " AND CREATOR.email = :email ";
-                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
+                    userFilterClause = " AND EXORDERS.user_id = :user_id ";
                     break;
             }
         }
@@ -668,16 +662,15 @@ public class OrderDaoImpl implements OrderDao {
         }
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
-                userJoinClause +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "  WHERE (status_id IN (:status_ids))" +
                 "    AND (operation_type_id = :operation_type_id)" +
-                userFilterClause +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
-                 orderClause +
+                userFilterClause +
+                orderClause +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("email", email);
+        namedParameters.put("user_id", userId);
         namedParameters.put("status_ids", statusIds);
         namedParameters.put("operation_type_id", operationType.getType());
         return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
