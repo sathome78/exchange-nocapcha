@@ -134,5 +134,5 @@ $(function () {
 });
 
 function formatDecimalValue(val) {
-    return numbro(val).format('0.00[000000]')
+    return numbro(val).format('0.00[0000000]')
 }
