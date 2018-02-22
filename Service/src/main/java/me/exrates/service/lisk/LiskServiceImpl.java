@@ -1,5 +1,6 @@
 package me.exrates.service.lisk;
 
+import com.mysql.jdbc.StringUtils;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -14,6 +15,7 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.ParamMapUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +25,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.*;
 
-@Log4j2
-@Service
-@PropertySource("classpath:/merchants/lisk.properties")
+@Log4j2(topic = "lisk_log")
 public class LiskServiceImpl implements LiskService {
 
     private final BigDecimal DEFAULT_LSK_TX_FEE = BigDecimal.valueOf(0.1);
@@ -48,12 +50,34 @@ public class LiskServiceImpl implements LiskService {
     @Autowired
     private MessageSource messageSource;
 
-    private final String merchantName = "Lisk";
-    private final String currencyName = "LSK";
-    private @Value("${lisk.main.address}") String mainAddress;
-    private @Value("${lisk.main.secret}") String mainSecret;
-    private @Value("${lisk.min.confirmations}") Integer minConfirmations;
+    private final String merchantName;
+    private final String currencyName;
+    private String propertySource;
+    private String mainAddress;
+    private String mainSecret;
+    private Integer minConfirmations;
 
+
+    public LiskServiceImpl(String merchantName, String currencyName, String propertySource) {
+        this.merchantName = merchantName;
+        this.currencyName = currencyName;
+        this.propertySource = propertySource;
+        Properties props = new Properties();
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.mainAddress = props.getProperty("lisk.main.address");
+            this.mainSecret = props.getProperty("lisk.main.secret");
+            this.minConfirmations = Integer.parseInt(props.getProperty("lisk.min.confirmations"));
+
+        } catch (IOException e) {
+            log.error(e);
+        }
+    }
+
+    @PostConstruct
+    private void init() {
+        liskRestClient.initClient(propertySource);
+    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -158,43 +182,47 @@ public class LiskServiceImpl implements LiskService {
     @Override
     @Scheduled(initialDelay = 1000, fixedDelay = 10 * 60 * 1000)
     public void processTransactionsForKnownAddresses() {
-        log.debug("Start checking Lisk transactions");
+        log.info("Start checking {} transactions", currencyName);
         Currency currency = currencyService.findByName(currencyName);
         Merchant merchant = merchantService.findByName(merchantName);
         refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> {
-            int offset = refillService.getTxOffsetForAddress(address);
-            List<LiskTransaction> userTransactions = liskRestClient.getAllTransactionsByRecipient(address, offset);
-            log.debug("Address {}, Transactions found: {}", address, userTransactions);
-            boolean containsUnconfirmedTransactions = false;
-            int newOffset = offset;
-            for (LiskTransaction transaction : userTransactions) {
-                Optional<RefillRequestFlatDto> refillRequestResult = refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipientId(),
-                        merchant.getId(), currency.getId(), transaction.getId());
-                if ((refillRequestResult.isPresent() && refillRequestResult.get().getStatus().isSuccessEndStatus())) {
-                    if (!containsUnconfirmedTransactions) {
-                        newOffset++;
-                    }
-                } else {
-                    if (!containsUnconfirmedTransactions) {
-                        containsUnconfirmedTransactions = true;
-                    }
-                    Map<String, String> params = new HashMap<String, String>() {{
-                        put("merchantId", String.valueOf(merchant.getId()));
-                        put("currencyId", String.valueOf(currency.getId()));
-                        put("address", transaction.getRecipientId());
-                        put("txId", transaction.getId());
-                    }};
-                    refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
+            try {
+                int offset = refillService.getTxOffsetForAddress(address);
+                List<LiskTransaction> userTransactions = liskRestClient.getAllTransactionsByRecipient(address, offset);
+                log.debug("Address {}, Transactions found: {}", address, userTransactions);
+                boolean containsUnconfirmedTransactions = false;
+                int newOffset = offset;
+                for (LiskTransaction transaction : userTransactions) {
+                    Optional<RefillRequestFlatDto> refillRequestResult = refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipientId(),
+                            merchant.getId(), currency.getId(), transaction.getId());
+                    if ((refillRequestResult.isPresent() && refillRequestResult.get().getStatus().isSuccessEndStatus())) {
+                        if (!containsUnconfirmedTransactions) {
+                            newOffset++;
+                        }
+                    } else {
+                        if (!containsUnconfirmedTransactions) {
+                            containsUnconfirmedTransactions = true;
+                        }
+                        Map<String, String> params = new HashMap<String, String>() {{
+                            put("merchantId", String.valueOf(merchant.getId()));
+                            put("currencyId", String.valueOf(currency.getId()));
+                            put("address", transaction.getRecipientId());
+                            put("txId", transaction.getId());
+                        }};
+                        refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
 
-                    try {
-                        processPayment(params);
-                    } catch (RefillRequestAppropriateNotFoundException e) {
-                        log.error(e);
+                        try {
+                            processPayment(params);
+                        } catch (RefillRequestAppropriateNotFoundException e) {
+                            log.error(e);
+                        }
                     }
                 }
-            }
-            if (newOffset != offset) {
-                refillService.updateTxOffsetForAddress(address, newOffset);
+                if (newOffset != offset) {
+                    refillService.updateTxOffsetForAddress(address, newOffset);
+                }
+            } catch (Exception e) {
+                log.error("Exception for currency {} merchant {}: {}", currencyName, merchantName, ExceptionUtils.getStackTrace(e));
             }
         });
     }
@@ -206,6 +234,9 @@ public class LiskServiceImpl implements LiskService {
             throw new WithdrawRequestPostException("Currency not supported by merchant");
         }
         BigDecimal txFee = LiskTransaction.scaleAmount(liskRestClient.getFee());
+        if (StringUtils.isEmptyOrWhitespaceOnly(mainSecret)) {
+            throw new WithdrawRequestPostException("Main secret not defined");
+        }
         String txId = sendTransaction(mainSecret, new BigDecimal(withdrawMerchantOperationDto.getAmount()).subtract(txFee),
                 withdrawMerchantOperationDto.getAccountTo());
         return Collections.singletonMap("hash", txId);

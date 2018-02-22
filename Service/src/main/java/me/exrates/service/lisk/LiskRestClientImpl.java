@@ -5,15 +5,17 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.exception.LiskRestException;
 import me.exrates.service.util.RestApiUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -26,15 +28,20 @@ import java.net.URI;
 import java.util.*;
 import java.util.function.Predicate;
 
+@Log4j2(topic = "lisk_log")
 @Service
-@PropertySource("classpath:/merchants/lisk.properties")
+@Scope("prototype")
 public class LiskRestClientImpl implements LiskRestClient {
 
     @Autowired
     private RestTemplate restTemplate;
 
-    private @Value("${lisk.node.host}") String host;
-    private @Value("${lisk.node.port}") String port;
+    private String host;
+    private String port;
+    private String sortingPrefix;
+    private int maxTransactionQueryLimit;
+    private JsonNodeType countNodeType;
+
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -45,7 +52,23 @@ public class LiskRestClientImpl implements LiskRestClient {
     private final String sendTransactionEndpoint = "/api/transactions";
     private final String getFeeEndpoint = "/api/blocks/getFee";
 
-    private final int MAX_LIMIT_OF_TRANSACTIONS = 1000;
+
+
+    @Override
+    public void initClient(String propertySource) {
+        Properties props = new Properties();
+        try {
+            props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+            this.host = props.getProperty("lisk.node.host");
+            this.port = props.getProperty("lisk.node.port");
+            this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
+            this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
+            this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
+
+        } catch (IOException e) {
+            log.error(e);
+        }
+    }
 
     @Override
     public LiskTransaction getTransactionById(String txId) {
@@ -59,7 +82,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public List<LiskTransaction> getTransactionsByRecipient(String recipientAddress) {
             Map<String, String> params = new HashMap<String, String>() {{
                put("recipientId", recipientAddress);
-               put("orderBy", "timestamp:asc");
+               put("orderBy", sortingPrefix + "timestamp:asc");
             }};
             String response = restTemplate.getForObject(getURIWithParams(getTransactionsEndpoint, params),
                     String.class);
@@ -69,12 +92,13 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public List<LiskTransaction> getAllTransactionsByRecipient(String recipientAddress, int offset) {
+        log.info("Retrieving transactions: address {} offset {}", recipientAddress, offset);
         List<LiskTransaction> result = new ArrayList<>();
         int newOffset = offset;
         int count;
         do {
             String response = sendGetTransactionsRequest(recipientAddress, newOffset);
-            count = Integer.parseInt(extractTargetNodeFromLiskResponse(response, "count", JsonNodeType.STRING).textValue());
+            count = Integer.parseInt(extractTargetNodeFromLiskResponse(response, "count", countNodeType).asText());
             result.addAll(extractListFromResponse(response, "transactions", LiskTransaction.class));
             newOffset += result.size();
         } while (newOffset < count);
@@ -84,12 +108,12 @@ public class LiskRestClientImpl implements LiskRestClient {
     private String sendGetTransactionsRequest(String recipientAddress, int offset) {
         Map<String, String> params = new HashMap<String, String>() {{
             put("recipientId", recipientAddress);
-            put("limit", String.valueOf(MAX_LIMIT_OF_TRANSACTIONS));
+            put("limit", String.valueOf(maxTransactionQueryLimit));
             put("offset", String.valueOf(offset));
-            put("orderBy", "timestamp:asc");
+            put("orderBy", sortingPrefix + "timestamp:asc");
         }};
-        return restTemplate.getForObject(getURIWithParams(getTransactionsEndpoint, params),
-                String.class);
+        URI targetURI = getURIWithParams(getTransactionsEndpoint, params);
+        return restTemplate.getForObject(targetURI, String.class);
     }
 
     @Override
