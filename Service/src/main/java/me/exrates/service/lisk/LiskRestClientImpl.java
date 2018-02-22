@@ -37,7 +37,6 @@ public class LiskRestClientImpl implements LiskRestClient {
     private RestTemplate restTemplate;
 
     private String host;
-    private String port;
     private String sortingPrefix;
     private int maxTransactionQueryLimit;
     private JsonNodeType countNodeType;
@@ -60,7 +59,6 @@ public class LiskRestClientImpl implements LiskRestClient {
         try {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
             this.host = props.getProperty("lisk.node.host");
-            this.port = props.getProperty("lisk.node.port");
             this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
             this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
@@ -197,7 +195,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
 
     private String absoluteURI(String relativeURI) {
-        return RestApiUtils.constructAbsoluteURI(host, port, relativeURI);
+        return String.join("", host, relativeURI);
     }
 
 
