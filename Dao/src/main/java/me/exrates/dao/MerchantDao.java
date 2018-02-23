@@ -2,12 +2,8 @@ package me.exrates.dao;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -72,4 +68,6 @@ public interface MerchantDao {
   boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+
+    List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }

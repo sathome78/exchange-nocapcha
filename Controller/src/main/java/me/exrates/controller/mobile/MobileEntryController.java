@@ -20,8 +20,8 @@ import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.lisk.LiskService;
 import me.exrates.service.util.IpUtils;
+import me.exrates.service.waves.WavesService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1205,14 +1205,15 @@ public class MobileEntryController {
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
 
-    /*@Autowired
-    Map<String, LiskService> liskServices;
+    @Autowired
+    private WavesService wavesService;
 
-    @RequestMapping(value = "/test/lisk/tx", method = RequestMethod.GET)
+    @RequestMapping(value = "/test/waves", method = RequestMethod.GET)
     @ResponseBody
-    public void testLiskTx() {
-        liskServices.forEach((key, value) -> value.processTransactionsForKnownAddresses());
-    }*/
+    public void testWaves() {
+        wavesService.processWavesTransactionsForKnownAddresses();
+
+    }
 
 
 }

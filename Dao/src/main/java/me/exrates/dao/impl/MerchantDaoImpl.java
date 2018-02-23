@@ -5,10 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
@@ -531,6 +528,24 @@ public class MerchantDaoImpl implements MerchantDao {
       params.put("currency_id", currencyId);
       params.put("subtract_fee", subtractFeeFromAmount);
       namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
+    final String sql = "SELECT M.name AS merchant_name, M.id AS merchant_id, CUR.name AS currency_name, CUR.id AS currency_id " +
+            " FROM MERCHANT M " +
+            " JOIN MERCHANT_CURRENCY MC ON M.id = MC.merchant_id" +
+            " JOIN CURRENCY CUR ON MC.currency_id = CUR.id" +
+            " WHERE M.tokens_parrent_id = :parent_id";
+    final Map<String, Integer> params = Collections.singletonMap("parent_id", parentId);
+    return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+      MerchantCurrencyBasicInfoDto dto = new MerchantCurrencyBasicInfoDto();
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setMerchantName(rs.getString("merchant_name"));
+      return dto;
+    });
   }
 }
 

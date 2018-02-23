@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -84,4 +85,6 @@ public interface MerchantService {
   boolean getSubtractFeeFromAmount(Integer merchantId, Integer currencyId);
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
+
+    List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }

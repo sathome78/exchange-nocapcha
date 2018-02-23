@@ -4,6 +4,7 @@ import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -431,6 +432,11 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount) {
     merchantDao.setSubtractFeeFromAmount(merchantId, currencyId, subtractFeeFromAmount);
+  }
+
+  @Override
+  public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
+    return merchantDao.findTokenMerchantsByParentId(parentId);
   }
 
 

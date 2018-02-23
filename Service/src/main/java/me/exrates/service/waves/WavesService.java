@@ -40,4 +40,5 @@ public interface WavesService extends IRefillable, IWithdrawable {
         return false;
     }
 
+    void processWavesTransactionsForKnownAddresses();
 }
