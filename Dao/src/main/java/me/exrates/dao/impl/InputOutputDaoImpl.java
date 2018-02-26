@@ -242,7 +242,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "  AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
             "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
 
-            "   UNION" +
+            "   UNION ALL" +
 
             "   SELECT TX.currency_id, 0 AS refill, TX.amount AS withdraw FROM TRANSACTION TX " +
             "     JOIN WALLET W ON TX.user_wallet_id = W.id " +
@@ -282,7 +282,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "              AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
             "              AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
 
-            "               UNION " +
+            "               UNION ALL" +
 
             "               SELECT TX.currency_id, 0 AS refill, 0 AS commission_refill, " +
             "                 TX.amount AS withdraw, TX.commission_amount AS commission_withdraw FROM TRANSACTION TX " +
