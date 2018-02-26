@@ -11,4 +11,7 @@ public class MerchantCurrencyBasicInfoDto {
     private String merchantName;
     private String currencyName;
     private Integer currencyId;
+    private Integer refillScale;
+    private Integer withdrawScale;
+    private Integer transferScale;
 }

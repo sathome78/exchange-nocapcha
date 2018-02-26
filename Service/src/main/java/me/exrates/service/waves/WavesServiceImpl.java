@@ -2,6 +2,7 @@ package me.exrates.service.waves;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
+import me.exrates.model.Email;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
@@ -9,26 +10,22 @@ import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.ParamMapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Log4j2(topic = "waves_log")
 @Service("wavesServiceImpl")
@@ -50,11 +47,19 @@ public class WavesServiceImpl implements WavesService {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private SendMailService sendMailService;
+
     private Integer minConfirmations;
     private String mainAccount;
+    private String feeAccount;
+    private String notifyEmail;
+    private  final Locale notifyEmailLocale = new Locale("RU");
 
     private final int WAVES_AMOUNT_SCALE = 8;
     private final long WAVES_DEFAULT_FEE = 100000L;
+    private final long TRANSIT_FEE_RESERVE = WAVES_DEFAULT_FEE * 10L;
+
 
     private Map<String, MerchantCurrencyBasicInfoDto> tokenMerchantCurrencyMap;
 
@@ -63,6 +68,7 @@ public class WavesServiceImpl implements WavesService {
     private Merchant merchantBase;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private ExecutorService sendFeePool = Executors.newSingleThreadExecutor();
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -83,6 +89,8 @@ public class WavesServiceImpl implements WavesService {
             props.load(getClass().getClassLoader().getResourceAsStream("merchants/waves.properties"));
             this.minConfirmations = Integer.parseInt(props.getProperty("waves.min.confirmations"));
             this.mainAccount = props.getProperty("waves.main.account");
+            this.feeAccount = props.getProperty("waves.fee.account");
+            this.notifyEmail = props.getProperty("waves.notify.email");
             initAssets(props);
 
             scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, 30L, TimeUnit.MINUTES);
@@ -109,10 +117,12 @@ public class WavesServiceImpl implements WavesService {
         log.debug("Processing tx: " + transaction);
         int merchantId;
         int currencyId;
+        BigDecimal requestAmount;
         String assetId = transaction.getAssetId();
         if (assetId == null) {
             merchantId = merchantBase.getId();
             currencyId = currencyBase.getId();
+            requestAmount = scaleFromLong(transaction.getAmount() - WAVES_DEFAULT_FEE, WAVES_AMOUNT_SCALE);
         } else {
             MerchantCurrencyBasicInfoDto assetInfo = tokenMerchantCurrencyMap.get(assetId);
             if (assetInfo == null) {
@@ -120,12 +130,12 @@ public class WavesServiceImpl implements WavesService {
             }
             merchantId = assetInfo.getMerchantId();
             currencyId = assetInfo.getCurrencyId();
+            requestAmount = scaleFromLong(transaction.getAmount(), assetInfo.getRefillScale());
         }
         Optional<RefillRequestFlatDto> refillRequestResult =
                 refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipient(),
                         merchantId, currencyId, transaction.getId());
         int confirmations = lastBlockHeight - transaction.getHeight();
-        BigDecimal requestAmount = scaleFromWavelets(transaction.getAmount() - WAVES_DEFAULT_FEE);
 
         if (!refillRequestResult.isPresent()) {
             Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
@@ -207,7 +217,7 @@ public class WavesServiceImpl implements WavesService {
 
         refillService.findAllAddresses(merchantBase.getId(), currencyBase.getId()).parallelStream()
                 .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
-                        .filter(transaction -> address.equals(transaction.getRecipient())))
+                        .filter(transaction -> address.equals(transaction.getRecipient()) && !feeAccount.equals(transaction.getSender())))
                 .map(transaction -> restClient.getTransactionById(transaction.getId()))
                 .filter(Optional::isPresent).map(Optional::get)
                 .forEach(transaction -> {
@@ -223,39 +233,84 @@ public class WavesServiceImpl implements WavesService {
         try {
             refillService.setConfirmationCollectedNumber(dto);
             if (dto.getConfirmations() >= minConfirmations) {
-                log.debug("Providing transaction!");
-                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
-                refillService.autoAcceptRefillRequest(requestAcceptDto);
-                String assetId = tokenMerchantCurrencyMap.entrySet().stream()
-                        .filter(entry -> entry.getValue().getCurrencyId().equals(dto.getCurrencyId()) &&
-                        entry.getValue().getMerchantId().equals(dto.getMerchantId()))
-                        .map(Map.Entry::getKey).findFirst().orElse(null);
+                CompletableFuture.runAsync(() -> {
+                    sendCommissionAddressAndWaitUntilConfirmed(dto.getAddress());
+                }).thenRun(() -> {
+                    String assetId = tokenMerchantCurrencyMap.entrySet().stream()
+                            .filter(entry -> entry.getValue().getCurrencyId().equals(dto.getCurrencyId()) &&
+                                    entry.getValue().getMerchantId().equals(dto.getMerchantId()))
+                            .map(Map.Entry::getKey).findFirst().orElse(null);
 
-                sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
-
+                    sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
+                    log.debug("Providing transaction!");
+                    try {
+                        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+                        refillService.autoAcceptRefillRequest(requestAcceptDto);
+                    } catch (RefillRequestAppropriateNotFoundException e) {
+                        log.error(e);
+                    }
+                });
             }
-        } catch (RefillRequestAppropriateNotFoundException e) {
+        } catch (Exception e) {
             log.error(e);
         }
     }
 
+
+    private void sendCommissionAddressAndWaitUntilConfirmed(String transitAddress) {
+        try {
+            String refillFeeTxId = refillUserAccountCommissionBalance(transitAddress);
+            Optional<WavesTransaction> refillFeeTx;
+            int numOfAttempts = 0;
+            do {
+                Thread.sleep(20_000);
+                refillFeeTx = restClient.getTransactionById(refillFeeTxId);
+                numOfAttempts++;
+            } while (!refillFeeTx.isPresent() && numOfAttempts < 30);
+        } catch (InsufficientCostsInWalletException e) {
+            Email email = new Email();
+            email.setTo(notifyEmail);
+            email.setSubject(messageSource.getMessage("fee.wallet.insufficientCosts.title", null,
+                    notifyEmailLocale));
+            email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[] {currencyBase.getName(),
+                    feeAccount}, notifyEmailLocale));
+
+            sendMailService.sendInfoMail(email);
+
+        }  catch (InterruptedException e) {
+            log.error(e);
+        }
+    }
+
+
     private String sendTransaction(String senderAddress, String recipientAddress, BigDecimal amount, @Nullable String assetId) {
+        int scale;
+        if (assetId == null) {
+            scale = WAVES_AMOUNT_SCALE;
+        } else {
+            MerchantCurrencyBasicInfoDto assetInfo = tokenMerchantCurrencyMap.get(assetId);
+            if (assetInfo == null) {
+                throw new UnknownAssetIdException("Unknown asset: " + assetId);
+            }
+            scale = assetInfo.getRefillScale();
+        }
+
         WavesPayment payment = new WavesPayment();
         payment.setAssetId(assetId);
         payment.setSender(senderAddress);
         payment.setRecipient(recipientAddress);
-        payment.setAmount(unscaleToWavelets(amount));
+        payment.setAmount(unscaleToLong(amount, scale));
         payment.setFee(WAVES_DEFAULT_FEE);
-        payment.setFeeAssetId(assetId);
+  //      payment.setFeeAssetId(assetId);
         return restClient.transferCosts(payment);
     }
 
-    private BigDecimal scaleFromWavelets(Long unscaled) {
-        return BigDecimal.valueOf(unscaled, WAVES_AMOUNT_SCALE);
+    private BigDecimal scaleFromLong(Long unscaled, int scale) {
+        return BigDecimal.valueOf(unscaled, scale);
     }
 
-    private long unscaleToWavelets(BigDecimal scaledAmount) {
-        return scaledAmount.scaleByPowerOfTen(WAVES_AMOUNT_SCALE).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
+    private long unscaleToLong(BigDecimal scaledAmount, int scale) {
+        return scaledAmount.scaleByPowerOfTen(scale).setScale(0, BigDecimal.ROUND_HALF_UP).longValueExact();
     }
 
     @PreDestroy
@@ -275,6 +330,30 @@ public class WavesServiceImpl implements WavesService {
             }
         }
         this.tokenMerchantCurrencyMap = Collections.unmodifiableMap(tokenMap);
+    }
+
+    private String refillUserAccountCommissionBalance(String account) {
+        try {
+            WavesPayment payment = new WavesPayment();
+            payment.setSender(feeAccount);
+            payment.setRecipient(account);
+            payment.setAmount(WAVES_DEFAULT_FEE);
+            payment.setFee(WAVES_DEFAULT_FEE);
+
+            String txId = restClient.transferCosts(payment);
+            log.debug("Fee costs transferred, tx id: " + txId);
+            return txId;
+        } catch (WavesRestException e) {
+            if (e.getCode() == 112) {
+                throw new InsufficientCostsInWalletException(e);
+            }
+            if (e.getCode() == 102) {
+                throw new InvalidAccountException(e);
+            }
+            throw new MerchantException(e);
+        } catch (Exception e) {
+            throw new MerchantException(e);
+        }
     }
 
     /*

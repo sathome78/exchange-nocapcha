@@ -532,7 +532,8 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Override
   public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
-    final String sql = "SELECT M.name AS merchant_name, M.id AS merchant_id, CUR.name AS currency_name, CUR.id AS currency_id " +
+    final String sql = "SELECT M.name AS merchant_name, M.id AS merchant_id, CUR.name AS currency_name, CUR.id AS currency_id," +
+            "CUR.max_scale_for_refill, CUR.max_scale_for_withdraw, CUR.max_scale_for_transfer " +
             " FROM MERCHANT M " +
             " JOIN MERCHANT_CURRENCY MC ON M.id = MC.merchant_id" +
             " JOIN CURRENCY CUR ON MC.currency_id = CUR.id" +
@@ -544,6 +545,9 @@ public class MerchantDaoImpl implements MerchantDao {
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setMerchantName(rs.getString("merchant_name"));
+      dto.setRefillScale(rs.getInt("max_scale_for_refill"));
+      dto.setWithdrawScale(rs.getInt("max_scale_for_withdraw"));
+      dto.setTransferScale(rs.getInt("max_scale_for_transfer"));
       return dto;
     });
   }
