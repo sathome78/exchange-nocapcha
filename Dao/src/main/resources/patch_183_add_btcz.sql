@@ -36,7 +36,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BTCZ/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BTCZ'), (select id from CURRENCY where name = 'ETH'), 'BTCZ/ETH', 50, 0, 'FIAT', 'BTCZ/ETH');
+VALUES((select id from CURRENCY where name = 'BTCZ'), (select id from CURRENCY where name = 'ETH'), 'BTCZ/ETH', 50, 0, 'ETH', 'BTCZ/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
