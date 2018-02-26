@@ -95,12 +95,12 @@ public interface WalletService {
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     @Transactional(rollbackFor = Exception.class)
-    TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount,
+    TransferDto transferCostsToUser(Integer fromUserWalletId, Integer userId, BigDecimal amount, BigDecimal comission,
                                     Locale locale, int sourceId);
 
     @Transactional(rollbackFor = Exception.class)
     String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                               Locale locale, int sourceId);
+                               BigDecimal comission, Locale locale, int sourceId);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 
@@ -112,4 +112,6 @@ public interface WalletService {
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
     List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
+
+    int getWalletIdAndBlock(Integer userId, Integer currencyId);
 }

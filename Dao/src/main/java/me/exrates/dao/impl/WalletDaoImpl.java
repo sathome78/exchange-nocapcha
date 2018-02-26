@@ -113,6 +113,18 @@ public class WalletDaoImpl implements WalletDao {
     }
   }
 
+  @Override
+  public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
+    String sql = "SELECT id FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId FOR UPDATE";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("userId", String.valueOf(userId));
+    namedParameters.put("currencyId", String.valueOf(currencyId));
+    try {
+      return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+    } catch (EmptyResultDataAccessException e) {
+      return 0;
+    }
+  }
 
   public int createNewWallet(Wallet wallet) {
     String sql = "INSERT INTO WALLET (currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";

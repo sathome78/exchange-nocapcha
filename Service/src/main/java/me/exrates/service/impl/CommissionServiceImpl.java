@@ -196,6 +196,7 @@ public class CommissionServiceImpl implements CommissionService {
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForTransfer();
         amount = amount.setScale(currencyScale, ROUND_DOWN);
         companyCommissionAmount = BigDecimal.ZERO;
+        merchantCommissionRate = BigDecimalProcessing.doAction(merchantCommissionRate, companyCommissionRate, ADD);
         merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;

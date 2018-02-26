@@ -294,36 +294,30 @@ public class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public TransferDto transferCostsToUser(Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
-                                         Locale locale, int sourceId) {
+                                         BigDecimal commissionAmount, Locale locale, int sourceId) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
-    Commission commission = commissionService
-            .findCommissionByTypeAndRole(OperationType.USER_TRANSFER,
-                    userService.getUserRoleFromDB(fromUserWallet.getUser().getId()));
-    BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
-    BigDecimal totalAmount = amount.add(commissionAmount);
-    log.debug(commission.getValue());
+    BigDecimal inputAmount = BigDecimalProcessing.doAction(amount, commissionAmount, ActionType.SUBTRACT);
     log.debug(commissionAmount.toString());
-    log.debug(totalAmount.toString());
-    if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
+    log.debug(inputAmount.toString());
+    if (inputAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
     }
     Wallet toUserWallet = walletDao.findByUserAndCurrency(toUserId, currencyId);
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+      changeWalletActiveBalance(amount, fromUserWallet, OperationType.OUTPUT,
               TransactionSourceType.USER_TRANSFER, commissionAmount, sourceId);
-      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+      changeWalletActiveBalance(inputAmount, toUserWallet, OperationType.INPUT,
               TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, sourceId);
     CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyService.getById(currencyId));
     companyWalletService.deposit(companyWallet, new BigDecimal(0), commissionAmount);
-    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+    String notyAmount = inputAmount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     return TransferDto.builder()
-            .commission(commission)
             .comissionAmount(commissionAmount)
             .notyAmount(notyAmount)
             .walletUserFrom(fromUserWallet)
@@ -340,20 +334,20 @@ public class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public String transferCostsToUser(Integer userId, Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
-                                    Locale locale, int sourceId) {
+                                    BigDecimal comission, Locale locale, int sourceId) {
     Integer toUserId = userService.getIdByNickname(toUserNickname);
     if (toUserId == 0) {
       throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
     }
-    TransferDto dto = transferCostsToUser(fromUserWalletId, toUserId, amount, locale, sourceId);
+    TransferDto dto = transferCostsToUser(fromUserWalletId, toUserId, amount, comission, locale, sourceId);
     String currencyName = currencyService.getCurrencyName(dto.getCurrencyId());
     String result = messageSource.getMessage("transfer.successful", new Object[]{dto.getNotyAmount(), currencyName, toUserNickname}, locale);
-    sendNotificationsAboutTrnasfer(userId, dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);
+    sendNotificationsAboutTransfer(userId, dto.getNotyAmount(), currencyName, dto.getUserToId(), toUserNickname);
     return result;
   }
 
 
-  private void sendNotificationsAboutTrnasfer(int fromUserId, String notyAmount, String currencyName, int toUserId, String toNickName) {
+  private void sendNotificationsAboutTransfer(int fromUserId, String notyAmount, String currencyName, int toUserId, String toNickName) {
     log.debug("from {} to {}", fromUserId, toUserId);
     notificationService.notifyUser(fromUserId, NotificationEvent.IN_OUT, "wallets.transferTitle",
             "transfer.successful", new Object[]{notyAmount, currencyName, toNickName});
@@ -437,4 +431,8 @@ public class WalletServiceImpl implements WalletService {
             .collect(Collectors.toList());
   }
 
+  @Override
+  public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
+    return walletDao.getWalletIdAndBlock(userId, currencyId);
+  }
 }
