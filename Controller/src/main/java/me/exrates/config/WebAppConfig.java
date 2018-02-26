@@ -552,6 +552,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GOS", true, Convert.Unit.MWEI);
     }
 
+    @Bean(name = "bptnServiceImpl")
+    public EthTokenService BptnRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6c22b815904165f3599f0a4a092d458966bd8024");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BPTN",
+                "BPTN", true, Convert.Unit.ETHER);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
