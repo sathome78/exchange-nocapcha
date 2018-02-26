@@ -21,6 +21,8 @@ import me.exrates.service.impl.EthTokenService;
 import me.exrates.service.impl.EthTokenServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
+import me.exrates.service.lisk.LiskService;
+import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -550,6 +552,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "GOS",
                 "GOS", true, Convert.Unit.MWEI);
+    }
+
+    @Bean(name = "liskServiceImpl")
+    public LiskService liskService() {
+        return new LiskServiceImpl("Lisk", "LSK", "merchants/lisk.properties");
+    }
+
+    @Bean(name = "btwServiceImpl")
+    public LiskService btwService() {
+        return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
     @Bean

@@ -20,6 +20,7 @@ import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.*;
+import me.exrates.service.lisk.LiskService;
 import me.exrates.service.util.IpUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -1035,6 +1036,7 @@ public class MobileEntryController {
     }
 
 
+
     /**
      * @api {post} /api/user/authenticateQR Authenticate via QR
      * @apiName authenticateQR
@@ -1202,6 +1204,15 @@ public class MobileEntryController {
         exception.printStackTrace();
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
+
+    /*@Autowired
+    Map<String, LiskService> liskServices;
+
+    @RequestMapping(value = "/test/lisk/tx", method = RequestMethod.GET)
+    @ResponseBody
+    public void testLiskTx() {
+        liskServices.forEach((key, value) -> value.processTransactionsForKnownAddresses());
+    }*/
 
 
 }

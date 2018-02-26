@@ -8,7 +8,7 @@ VALUES ((SELECT id from MERCHANT WHERE name='BTCZ'),
         (SELECT id from CURRENCY WHERE name='BTCZ'),
         0.00000001, TRUE, TRUE);
 
-INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='Octoin')
+INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='BTCZ')
   , '/client/img/merchants/btc_z.png', 'BTCZ', (SELECT id from CURRENCY WHERE name='BTCZ'));
 
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='BTCZ') from USER;
