@@ -21,6 +21,8 @@ import me.exrates.service.impl.EthTokenService;
 import me.exrates.service.impl.EthTokenServiceImpl;
 import me.exrates.service.impl.EthereumCommonServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -550,6 +552,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "GOS",
                 "GOS", true, Convert.Unit.MWEI);
+    }
+
+
+    /***tokens based on xem mosaic)****/
+    @Bean(name = "dimCoinServiceImpl")
+    public XemMosaicService dimCoinService() {
+        return new XemMosaicServiceImpl("DIMCOIN", "DIM", "dim:coin", 1000000);
     }
 
     @Bean
