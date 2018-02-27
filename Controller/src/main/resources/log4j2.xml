@@ -312,6 +312,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="qtum_log" fileName="${sys:catalina.home}/logs/crypto/qtum_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/qtum_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="message_notify" fileName="${sys:catalina.home}/logs/message_notify/notify.log"
                      filePattern="${sys:catalina.home}/logs/crypto/notify_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -541,6 +550,9 @@
         </logger>
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
+        </logger>
+        <logger name="qtum_log" level="ALL" additivity="false">
+            <AppenderRef ref="qtum_log"/>
         </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
