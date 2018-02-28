@@ -3,7 +3,7 @@ SET @WAVES_MERCHANT_ID = (SELECT id FROM MERCHANT WHERE name = 'Waves');
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('GameX', 'GameX', 2, 'wavesServiceImpl', 'CRYPTO', @WAVES_MERCHANT_ID);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('GX', 'GameX', '0', 8, 8, 8);
+VALUES ('GX', 'GameX', '0', 2, 2, 2);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='GameX'),
