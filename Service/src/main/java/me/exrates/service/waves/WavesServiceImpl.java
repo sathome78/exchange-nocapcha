@@ -259,7 +259,7 @@ public class WavesServiceImpl implements WavesService {
 
     private void sendCommissionAddressAndWaitUntilConfirmed(String transitAddress) {
         try {
-            log.debug("Refill transit address {} with commission");
+            log.debug("Refill transit address {} with commission", transitAddress);
             String refillFeeTxId = refillUserAccountCommissionBalance(transitAddress);
             Optional<WavesTransaction> refillFeeTx;
             int numOfAttempts = 0;
