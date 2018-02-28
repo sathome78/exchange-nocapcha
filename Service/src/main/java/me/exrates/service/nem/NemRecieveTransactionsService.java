@@ -1,8 +1,10 @@
 package me.exrates.service.nem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -10,7 +12,6 @@ import org.json.JSONObject;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.Account;
 import org.nem.core.model.Address;
-import org.nem.core.model.TransferTransactionAttachment;
 import org.nem.core.serialization.DeserializationContext;
 import org.nem.core.serialization.JsonDeserializer;
 import org.nem.core.serialization.SimpleAccountLookup;
@@ -20,8 +21,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +43,10 @@ public class NemRecieveTransactionsService {
     private NemTransactionsService transactionsService;
     @Autowired
     private NemService nemService;
+    @Autowired
+    private NemMosaicStrategy mosaicStrategy;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private static final String LAST_HASH_PARAM = "LastRecievedTrHash";
     private static final String MERCHANT_NAME = "NEM";
@@ -69,10 +76,7 @@ public class NemRecieveTransactionsService {
         for (int i = 0; transactions.opt(i) != null; i++) {
             JSONObject transactionData = transactions.getJSONObject(i);
             Map<String, String> params = extractParams(transactionData);
-            /*check for mosaic transaction and*/
-            if (params.get("mosaics") != null) {
-                continue;
-            }
+
             String trHash = params.get("hash");
             if (trHash.equals(lastHash)) {
                 return null;
@@ -80,12 +84,16 @@ public class NemRecieveTransactionsService {
             if (i == 0 && pagingHash == null) {
                 saveLastHash(trHash);
             }
-            try {
-                nemService.processPayment(params);
-            } catch (RefillRequestAppropriateNotFoundException e) {
-                log.error("nem refill address not found {}", transactionData.toString());
-            } catch (Exception e) {
-                log.error("nem refill process error {} {}", e,transactionData.toString());
+            if (params.get("mosaics") != null) {
+                processMosaicPayment(params);
+            } else {
+                try {
+                    nemService.processPayment(params);
+                } catch (RefillRequestAppropriateNotFoundException e) {
+                    log.error("nem refill address not found {}", transactionData.toString());
+                } catch (Exception e) {
+                    log.error("nem refill process error {} {}", e, transactionData.toString());
+                }
             }
             if (i == 24) {
                 return trHash;
@@ -93,6 +101,25 @@ public class NemRecieveTransactionsService {
         }
         return null;
     }
+
+    private void processMosaicPayment(Map<String, String> params) {
+        JSONArray  mosaics = new JSONArray(params.get("mosaics"));
+        List<NemMosaicTransferDto> nemMosaicIdDtos = new ArrayList<>();
+        new ObjectMapper()
+                .readerFor(NemMosaicTransferDto.class)
+                .readValues(params.get("mosaics"));
+        mosaics.forEach(p-> {
+            JSONObject object = (JSONObject)p;
+            BigDecimal quantity = object.getBigDecimal("quantity");
+            JSONObject mosaicId = object.getJSONObject("mosaicId");
+            String namespaceId = mosaicId.getString("namespaceId");
+            String name = mosaicId.getString("name");
+
+            nemMosaicIdDtos.add(new NemMosaicTransferDto(namespaceId, name, quantity));
+        });
+        mosaicStrategy.getByCurrencyMosaic()
+    }
+
 
     private Map<String, String> extractParams(JSONObject transactionMetaPair) {
         JSONObject meta = transactionMetaPair.getJSONObject("meta");
@@ -112,7 +139,7 @@ public class NemRecieveTransactionsService {
         paramsMap.put("address", message);
         paramsMap.put("amount", transactionsService.transformToString(transaction.getLong("amount")));
         paramsMap.put("transaction", transactionMetaPair.toString());
-        paramsMap.put("mosaics", transaction.has("mosaics") ? "" : null);
+        paramsMap.put("mosaics", transaction.optString("mosaics", null));
         return paramsMap;
     }
 

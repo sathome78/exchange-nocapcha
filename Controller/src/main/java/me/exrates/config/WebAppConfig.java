@@ -10,6 +10,8 @@ import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
@@ -558,7 +560,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
     public XemMosaicService dimCoinService() {
-        return new XemMosaicServiceImpl("DIMCOIN", "DIM", "dim:coin", 1000000);
+        return new XemMosaicServiceImpl(
+                "DIMCOIN",
+                "DIM",
+                new MosaicIdDto("dim", "coin"), 1000000);
     }
 
     @Bean

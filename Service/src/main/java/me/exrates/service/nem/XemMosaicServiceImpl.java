@@ -2,6 +2,8 @@ package me.exrates.service.nem;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.MosaicIdDto;
 
 /**
  * Created by Maks on 27.02.2018.
@@ -10,20 +12,20 @@ public class XemMosaicServiceImpl implements XemMosaicService {
 
     private String merchantName;
     private String currencyName;
-    private String mosaicName;
+    private MosaicIdDto mosaicIdDto;
     private long decimals;
 
-    public XemMosaicServiceImpl(String merchantName, String currencyName, String mosaicName, long decimals) {
+    public XemMosaicServiceImpl(String merchantName, String currencyName, MosaicIdDto mosaicIdDto, long decimals) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
-        this.mosaicName = mosaicName;
+        this.mosaicIdDto = mosaicIdDto;
         this.decimals = decimals;
     }
 
 
     @Override
-    public String getMosaicName() {
-        return mosaicName;
+    public MosaicIdDto getMosaicId() {
+        return mosaicIdDto;
     }
 
     @Override
