@@ -282,7 +282,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       return btcdClient.estimateFee(blockCount);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      try {
+        SmartFee smartFee = btcdClient.estimateSmartFee(blockCount);
+        if (smartFee.getErrors() != null && !smartFee.getErrors().isEmpty()) {
+          return BigDecimal.valueOf(-1L);
+        } else {
+          return smartFee.getFeeRate();
+        }
+      } catch (BitcoindException | CommunicationException e1) {
+        log.error(e1);
+      }
+      throw new BitcoinCoreException(e);
     }
   }
   
@@ -290,10 +300,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   public BigDecimal getActualFee() {
     try {
       return btcdClient.getInfo().getPayTxFee();
+
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      try {
+        return btcdClient.getWalletInfo().getPayTxFee();
+      } catch (BitcoindException | CommunicationException e1) {
+        log.error(e1);
+      }
+      throw new BitcoinCoreException(e);
     }
+
   }
   
   @Override

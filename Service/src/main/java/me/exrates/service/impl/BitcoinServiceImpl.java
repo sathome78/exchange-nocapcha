@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
@@ -350,6 +351,15 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public BigDecimal estimateFee() {
     return bitcoinWalletService.estimateFee(40);
+  }
+
+  @Override
+  public String getEstimatedFeeString() {
+    BigDecimal feeRate = estimateFee();
+    if (feeRate.equals(BigDecimal.valueOf(-1L))) {
+      return "N/A";
+    }
+    return BigDecimalProcessing.formatNonePoint(feeRate, true);
   }
   
   @Override

@@ -111,7 +111,7 @@
                                             <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee" arguments="${currency}"/></label>
                                         </div>
                                         <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                            <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
+                                            <input id="input-fee" readonly disabled class="input-block-wrapper__input admin-form-input"/>
                                         </div>
                                     </div>
                                     <div class="input-block-wrapper">

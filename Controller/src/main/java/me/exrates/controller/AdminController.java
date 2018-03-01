@@ -1264,8 +1264,8 @@ public class AdminController {
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)
   @ResponseBody
-  public BigDecimal getEstimatedFee(@PathVariable String merchantName) {
-    return getBitcoinServiceByMerchantName(merchantName).estimateFee();
+  public String getEstimatedFee(@PathVariable String merchantName) {
+    return getBitcoinServiceByMerchantName(merchantName).getEstimatedFeeString();
   }
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/actualFee", method = RequestMethod.GET)
