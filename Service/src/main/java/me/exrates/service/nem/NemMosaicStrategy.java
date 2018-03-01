@@ -1,5 +1,6 @@
 package me.exrates.service.nem;
 
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.service.impl.EthTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,16 +18,16 @@ public class NemMosaicStrategy {
     @Autowired
     Map<String, XemMosaicService> mosaicMap;
 
-    Map<String, XemMosaicService> servicesByMosaicNameMap = new HashMap<>();
+    Map<MosaicIdDto, XemMosaicService> mosaicIdMap = new HashMap<>();
 
     @PostConstruct
     private void init() {
         mosaicMap.forEach((k,v)-> {
-            servicesByMosaicNameMap.put(v.getMosaicName(), v);
+            mosaicIdMap.put(v.getMosaicId(), v);
         });
     }
 
-    public XemMosaicService getByCurrencyMosaic(String mosaicName) {
-        return servicesByMosaicNameMap.get(mosaicName);
+    XemMosaicService getByIdDto(MosaicIdDto mosaicIdDto) {
+        return mosaicIdMap.get(mosaicIdDto);
     }
 }

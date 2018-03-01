@@ -376,6 +376,15 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
+  public List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
+    return refillRequestDao.findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+            merchantId,
+            currencyId,
+            statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
+
+  @Override
   @Transactional
   public Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(
       String address,

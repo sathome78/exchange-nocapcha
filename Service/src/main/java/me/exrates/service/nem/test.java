@@ -1,6 +1,10 @@
 package me.exrates.service.nem;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.NisNotReadyException;
@@ -33,9 +37,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 /**
  * Created by Maks on 22.07.2017.
@@ -62,7 +68,7 @@ public class test {
 
 
     public static void main(String[] args) {
-        KeyPair keyPair = new KeyPair(PublicKey
+      /*  KeyPair keyPair = new KeyPair(PublicKey
                 .fromHexString("fdb3bbba4d70fb483592c69a9dff6a52bc81499e2a7f6ff094344172a4c818ac"));
         Account account1 = new Account(keyPair);
             BigDecimal decimal = new BigDecimal("5.343");
@@ -80,8 +86,10 @@ public class test {
                 PrivateKey.fromHexString("765b9ef2829ee9c5810b3e59148a15779b059175dd920ab91f859b855afb0eee"));
         announce.serialize(serializer);
         System.out.println(serializer.getObject());
-        System.out.println(anounceTransaction(serializer.getObject().toJSONString()));
-
+        System.out.println(anounceTransaction(serializer.getObject().toJSONString()));*/
+        MosaicIdDto dto1 = new MosaicIdDto("dim", "coin");
+        MosaicIdDto dto2 = new MosaicIdDto("dim", "coin");
+        System.out.println(dto1.equals(dto2));
 
 
     }

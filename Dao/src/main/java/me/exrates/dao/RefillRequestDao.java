@@ -126,4 +126,6 @@ public interface RefillRequestDao {
     PagingData<List<RefillRequestAddressShortDto>> getAddresses(DataTableParams dataTableParams, RefillAddressFilterData data);
 
   List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
+
+    List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> collect);
 }

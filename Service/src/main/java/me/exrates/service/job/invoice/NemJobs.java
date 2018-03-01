@@ -79,7 +79,7 @@ public class NemJobs {
     @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 4)
     public void checkReffils() {
         log.debug("check reffils");
-        List<RefillRequestFlatDto> dtos = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         if (dtos != null && !dtos.isEmpty()) {
             dtos.forEach((RefillRequestFlatDto p) -> {
                 executor.execute(() -> {

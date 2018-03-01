@@ -1,6 +1,7 @@
 package me.exrates.service.nem;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
@@ -21,11 +22,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Created by maks on 21.07.2017.
@@ -85,7 +83,12 @@ public class NemRecieveTransactionsService {
                 saveLastHash(trHash);
             }
             if (params.get("mosaics") != null) {
-                processMosaicPayment(params);
+                try {
+                    List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
+                    nemService.processMosaicPayment(mosaics, params);
+                } catch (Exception e) {
+                    log.error("nem mosaic refill process error {} {}", e, transactionData.toString());
+                }
             } else {
                 try {
                     nemService.processPayment(params);
@@ -102,22 +105,20 @@ public class NemRecieveTransactionsService {
         return null;
     }
 
-    private void processMosaicPayment(Map<String, String> params) {
-        JSONArray  mosaics = new JSONArray(params.get("mosaics"));
-        List<NemMosaicTransferDto> nemMosaicIdDtos = new ArrayList<>();
-        new ObjectMapper()
-                .readerFor(NemMosaicTransferDto.class)
-                .readValues(params.get("mosaics"));
-        mosaics.forEach(p-> {
-            JSONObject object = (JSONObject)p;
-            BigDecimal quantity = object.getBigDecimal("quantity");
-            JSONObject mosaicId = object.getJSONObject("mosaicId");
-            String namespaceId = mosaicId.getString("namespaceId");
-            String name = mosaicId.getString("name");
-
-            nemMosaicIdDtos.add(new NemMosaicTransferDto(namespaceId, name, quantity));
-        });
-        mosaicStrategy.getByCurrencyMosaic()
+    private List<NemMosaicTransferDto> getMosaicPayments(Map<String, String> params) throws IOException {
+        List<NemMosaicTransferDto> dtos;
+            dtos = Lists.newArrayList(
+                    objectMapper.readValue(params.get("mosaics"), NemMosaicTransferDto[].class));
+            dtos.removeIf(p -> mosaicStrategy.getByIdDto(p.getMosaicIdDto()) == null);
+            dtos.forEach(p->{
+                XemMosaicService service = mosaicStrategy.getByIdDto(p.getMosaicIdDto());
+                if(service == null) {
+                    dtos.remove(p);
+                } else {
+                    p.setService(service);
+                }
+            });
+            return dtos;
     }
 
 

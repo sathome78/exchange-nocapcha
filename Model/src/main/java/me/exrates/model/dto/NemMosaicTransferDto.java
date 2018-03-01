@@ -16,6 +16,8 @@ public class NemMosaicTransferDto {
 
     private MosaicIdDto mosaicIdDto;
     private BigDecimal quantity;
+    private Object service;
+
 
     @SuppressWarnings("unchecked")
     @JsonProperty("mosaicId")

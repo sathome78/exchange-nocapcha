@@ -164,6 +164,50 @@ public class NemServiceImpl implements NemService {
         }
     }
 
+    @Synchronized
+    @Override
+    public void processMosaicPayment(List<NemMosaicTransferDto> mosaics, Map<String, String> params) {
+        mosaics.forEach(p -> {
+            String address = params.get("address");
+            String hash = params.get("hash");
+            XemMosaicService mosaicService = (XemMosaicService) p.getService();
+            BigDecimal amount = new BigDecimal(params.get("amount")).divide(BigDecimal.valueOf(mosaicService.getDecimals()));
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .address(address)
+                    .merchantId(merchantService.findByName(mosaicService.getMerchantName()).getId())
+                    .currencyId(currencyService.findByName(mosaicService.getCurrencyName()).getId())
+                    .amount(amount)
+                    .merchantTransactionId(hash)
+                    .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                    .build();
+            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+            if (!nemTransactionsService.checkIsConfirmed(new JSONObject(params.get("transaction")), CONFIRMATIONS_COUNT_REFILL)) {
+                try {
+                    refillService.putOnBchExamRefillRequest(
+                            RefillRequestPutOnBchExamDto.builder()
+                                    .requestId(requestId)
+                                    .merchantId(requestAcceptDto.getMerchantId())
+                                    .currencyId(requestAcceptDto.getCurrencyId())
+                                    .address(requestAcceptDto.getAddress())
+                                    .amount(requestAcceptDto.getAmount())
+                                    .hash(requestAcceptDto.getMerchantTransactionId())
+                                    .build());
+                } catch (RefillRequestAppropriateNotFoundException e) {
+                    log.error(e);
+                }
+            } else {
+                try {
+                    refillService.autoAcceptRefillRequest(requestAcceptDto);
+                } catch (RefillRequestAppropriateNotFoundException e) {
+                    log.error(e);
+                }
+            }
+        });
+
+
+    }
+
     private boolean isTransactionDuplicate(String hash) {
         return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
                 hash).isPresent();
@@ -177,8 +221,8 @@ public class NemServiceImpl implements NemService {
         if (nemTransactionsService.checkIsConfirmed(transaction, CONFIRMATIONS_COUNT_REFILL)) {
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .address(dto.getAddress())
-                    .merchantId(merchant.getId())
-                    .currencyId(currency.getId())
+                    .merchantId(dto.getMerchantId())
+                    .currencyId(dto.getCurrencyId())
                     .amount(dto.getAmount())
                     .merchantTransactionId(dto.getMerchantTransactionId())
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
