@@ -2,14 +2,20 @@ var walletsDataTable;
 
 $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
-        var excludeZeroes = $('#exclude-zero-balances').prop('checked');
-        var activeBalance = parseFloat(data[1]) || 0;
-        var reservedBalance = parseFloat(data[8]) || 0;
+        if (settings.nTable.id === 'walletsTable') {
+            var excludeZeroes = $('#exclude-zero-balances').prop('checked');
+            var activeBalance = parseFloat(data[1]) || 0;
+            var reservedBalance = parseFloat(data[8]) || 0;
 
-        if (excludeZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
-            return false;
+            if (excludeZeroes && activeBalance === 0.0 && reservedBalance === 0.0) {
+                return false;
+            }
+            return true;
+        } else {
+            return true;
         }
-        return true;
+
+
     }
 );
 

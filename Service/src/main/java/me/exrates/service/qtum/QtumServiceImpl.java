@@ -79,7 +79,7 @@ public class QtumServiceImpl implements QtumService {
                 log.error(e);
             }
 
-        }, 1L, 5L, TimeUnit.MINUTES);
+        }, 5L, 90L, TimeUnit.MINUTES);
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
@@ -88,7 +88,7 @@ public class QtumServiceImpl implements QtumService {
                 log.error(e);
             }
 
-        }, 20L, 20L, TimeUnit.MINUTES);
+        }, 90L, 120L, TimeUnit.MINUTES);
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
