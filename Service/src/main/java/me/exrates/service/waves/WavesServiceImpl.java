@@ -92,8 +92,9 @@ public class WavesServiceImpl implements WavesService {
             this.feeAccount = props.getProperty("waves.fee.account");
             this.notifyEmail = props.getProperty("waves.notify.email");
             initAssets(props);
+            long processFixedDelay = Long.parseLong(props.getProperty("waves.process.delay"));
 
-            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, 30L, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, processFixedDelay, TimeUnit.MINUTES);
 
         } catch (Exception e) {
             log.error(e);
