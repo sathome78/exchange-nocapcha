@@ -99,7 +99,6 @@ public class RefillRequestController {
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    log.error("request {}", request);
     return refillService.createRefillRequest(request);
   }
 

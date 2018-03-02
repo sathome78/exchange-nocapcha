@@ -19,15 +19,21 @@ public class NemMosaicStrategy {
     Map<String, XemMosaicService> mosaicMap;
 
     Map<MosaicIdDto, XemMosaicService> mosaicIdMap = new HashMap<>();
+    Map<String, XemMosaicService> byMerchantNameMap = new HashMap<>();
 
     @PostConstruct
     private void init() {
         mosaicMap.forEach((k,v)-> {
             mosaicIdMap.put(v.getMosaicId(), v);
+            byMerchantNameMap.put(v.getMerchantName(), v);
         });
     }
 
     XemMosaicService getByIdDto(MosaicIdDto mosaicIdDto) {
         return mosaicIdMap.get(mosaicIdDto);
+    }
+
+    XemMosaicService getByMerchantName(String merchantName) {
+        return byMerchantNameMap.get(merchantName);
     }
 }

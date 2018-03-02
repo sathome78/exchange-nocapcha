@@ -93,6 +93,7 @@ public class NemJobs {
         try {
             nemService.checkRecievedTransaction(dto);
         } catch (Exception e) {
+            log.error(e);
             log.error("error checking nem tx confirmations {}", dto);
         }
     }

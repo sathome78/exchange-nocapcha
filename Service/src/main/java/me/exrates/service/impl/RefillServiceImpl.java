@@ -124,6 +124,7 @@ public class RefillServiceImpl implements RefillService {
     try {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
+      request.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       if (merchantService.createdRefillRequestRecordNeeded()) {
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);

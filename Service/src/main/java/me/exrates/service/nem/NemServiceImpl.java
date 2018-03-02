@@ -28,6 +28,7 @@ import org.stellar.sdk.responses.TransactionResponse;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 /**
@@ -52,6 +53,9 @@ public class NemServiceImpl implements NemService {
     private CurrencyService currencyService;
     @Autowired
     private AlgorithmService algorithmService;
+    @Autowired
+    private NemMosaicStrategy mosaicStrategy;
+
 
     private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
@@ -245,8 +249,19 @@ public class NemServiceImpl implements NemService {
     }
 
     @Override
-    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag) {
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        log.error("comission merchant {}", merchantId);
+        if (!merchantId.equals(merchant.getId())) {
+            return countSpecComissionForMosaic(amount, destinationTag, merchantId);
+        }
         return nemTransactionsService.countTxFee(amount, destinationTag);
+    }
+
+    private BigDecimal countSpecComissionForMosaic(BigDecimal amount, String destinationTag, Integer merchantId) {
+        XemMosaicService service = mosaicStrategy.getByMerchantName(merchantService.findById(merchantId).getName());
+        log.error("serv {}", service);
+        BigDecimal baseFee = nemTransactionsService.countTxFee(amount, destinationTag);
+        return baseFee.divide(service.getNemExRate()).setScale(8, RoundingMode.HALF_UP);
     }
 
 

@@ -2,6 +2,7 @@ package me.exrates.service.nem;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.WithdrawRequestPostException;
@@ -10,9 +11,14 @@ import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
 import org.nem.core.model.Transaction;
+import org.nem.core.model.mosaic.Mosaic;
+import org.nem.core.model.mosaic.MosaicId;
+import org.nem.core.model.mosaic.MosaicTransferFeeCalculator;
+import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
+import org.nem.core.model.primitive.Quantity;
 import org.nem.core.serialization.DeserializationContext;
 import org.nem.core.serialization.JsonSerializer;
 import org.nem.core.serialization.SimpleAccountLookup;
@@ -132,6 +138,30 @@ public class NemTransactionsService {
                 .amount(amount.toPlainString())
                 .destinationTag(destinationTag)
                 .build());
+
+        return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
+    }
+
+    BigDecimal countMosaicTxFee(XemMosaicService mosaicService, BigDecimal amount, String destinationTag, long quantity) {
+
+
+        Account reipient = new Account(Address.fromEncoded(""));
+        TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
+        TransferTransactionAttachment attachment = null;
+        try {
+            attachment = new TransferTransactionAttachment(new PlainMessage(destinationTag.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            log.error("unsupported encoding {}", e);
+        }
+        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
+                nemService.getAccount(), reipient, transformToNemAmount(BigDecimal.ZERO.toPlainString()),  attachment);
+        transaction.setDeadline(currentTimeStamp.addHours(2));
+        transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
+
+        NamespaceId namespaceId = new NamespaceId(mosaicService.getMosaicId().getNamespaceId());
+        MosaicId mosaicId = new MosaicId(namespaceId, mosaicService.getMosaicId().getName());
+        Mosaic mosaic = new Mosaic(mosaicId, Quantity.fromValue(quantity));
+
 
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }

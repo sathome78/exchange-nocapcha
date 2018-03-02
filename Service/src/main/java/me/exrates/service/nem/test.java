@@ -25,9 +25,15 @@ import org.nem.core.crypto.PrivateKey;
 import org.nem.core.crypto.PublicKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
+import org.nem.core.model.mosaic.DefaultMosaicTransferFeeCalculator;
+import org.nem.core.model.mosaic.Mosaic;
+import org.nem.core.model.mosaic.MosaicId;
+import org.nem.core.model.mosaic.MosaicLevy;
+import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
+import org.nem.core.model.primitive.Quantity;
 import org.nem.core.serialization.*;
 import org.nem.core.time.TimeInstant;
 import org.springframework.http.HttpEntity;
@@ -50,6 +56,10 @@ public class test {
 
     static RestTemplate restTemplate = new RestTemplate();
     static SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+
+    static TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
+
+    static Account account = new Account(new KeyPair(PublicKey.fromHexString("242af20803f61142ea5df048898cb3b9e768a6619266ffb48f5b4a09779b9227")));;
 
     static {
         requestFactory.setOutputStreaming(false);
@@ -87,10 +97,37 @@ public class test {
         announce.serialize(serializer);
         System.out.println(serializer.getObject());
         System.out.println(anounceTransaction(serializer.getObject().toJSONString()));*/
-        MosaicIdDto dto1 = new MosaicIdDto("dim", "coin");
-        MosaicIdDto dto2 = new MosaicIdDto("dim", "coin");
-        System.out.println(dto1.equals(dto2));
 
+        countMosaicTxFee(new MosaicIdDto("dim", "coin"), new BigDecimal(1), "sdfsdfsdfsdf", 1000000);
+
+
+
+    }
+
+
+    static void countMosaicTxFee(MosaicIdDto idDto, BigDecimal amount, String destinationTag, long quantity) {
+        Account reipient = new Account(Address.fromEncoded(""));
+        TimeInstant currentTimeStamp = new TimeInstant(72469921);
+
+        NamespaceId namespaceId = new NamespaceId(idDto.getNamespaceId());
+        MosaicId mosaicId = new MosaicId(namespaceId, idDto.getName());
+        Mosaic mosaic = new Mosaic(mosaicId, Quantity.fromValue(quantity));
+        DefaultMosaicTransferFeeCalculator mosaicTransferFeeCalculator = new DefaultMosaicTransferFeeCalculator();
+        MosaicLevy levy = mosaicTransferFeeCalculator.calculateAbsoluteLevy(mosaic);
+        /*System.out.println(levy.getFee());*/
+        TransferTransactionAttachment attachment = null;
+        try {
+            attachment = new TransferTransactionAttachment(new PlainMessage(destinationTag.getBytes("UTF-8")));
+            attachment.addMosaic(mosaic);
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("unsupported encoding " +  e);
+        }
+        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
+                account, reipient, transformToNemAmount(amount.toString()),  attachment);
+        transaction.setDeadline(currentTimeStamp.addHours(2));
+
+        transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
+        System.out.println("fee " + transaction.getFee().getNumNem());
 
     }
 

@@ -71,6 +71,7 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -561,9 +562,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "dimCoinServiceImpl")
     public XemMosaicService dimCoinService() {
         return new XemMosaicServiceImpl(
-                "DIMCOIN",
+                "DimCoin",
                 "DIM",
-                new MosaicIdDto("dim", "coin"), 1000000);
+                new MosaicIdDto("dim", "coin"), 1000000, new BigDecimal(0.018));
     }
 
     @Bean
