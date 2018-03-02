@@ -233,24 +233,29 @@ public class WavesServiceImpl implements WavesService {
         try {
             refillService.setConfirmationCollectedNumber(dto);
             if (dto.getConfirmations() >= minConfirmations) {
-                CompletableFuture.runAsync(() -> {
-                    sendCommissionAddressAndWaitUntilConfirmed(dto.getAddress());
-                }).thenRun(() -> {
-                    String assetId = tokenMerchantCurrencyMap.entrySet().stream()
-                            .filter(entry -> entry.getValue().getCurrencyId().equals(dto.getCurrencyId()) &&
-                                    entry.getValue().getMerchantId().equals(dto.getMerchantId()))
-                            .map(Map.Entry::getKey).findFirst().orElse(null);
-
-                    sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
-                    log.debug("Providing transaction!");
-                    try {
-                        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
-                        refillService.autoAcceptRefillRequest(requestAcceptDto);
-                    } catch (RefillRequestAppropriateNotFoundException e) {
-                        log.error(e);
-                    }
-                });
+                String assetId = tokenMerchantCurrencyMap.entrySet().stream()
+                        .filter(entry -> entry.getValue().getCurrencyId().equals(dto.getCurrencyId()) &&
+                                entry.getValue().getMerchantId().equals(dto.getMerchantId()))
+                        .map(Map.Entry::getKey).findFirst().orElse(null);
+                if (assetId == null) {
+                    sendAndProvideTransaction(dto, assetId);
+                } else {
+                    CompletableFuture.runAsync(() -> {
+                        sendCommissionAddressAndWaitUntilConfirmed(dto.getAddress());
+                    }).thenRun(() -> sendAndProvideTransaction(dto, assetId));
+                }
             }
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
+
+    private void sendAndProvideTransaction(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
+        try {
+            sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
+            log.debug("Providing transaction!");
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (Exception e) {
             log.error(e);
         }
