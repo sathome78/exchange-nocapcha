@@ -59,6 +59,7 @@ public class WavesServiceImpl implements WavesService {
     private final int WAVES_AMOUNT_SCALE = 8;
     private final long WAVES_DEFAULT_FEE = 100000L;
     private final long TRANSIT_FEE_RESERVE = WAVES_DEFAULT_FEE * 10L;
+    private final String FEE_TRANSFER_ATTACHMENT = "INNER";
 
 
     private Map<String, MerchantCurrencyBasicInfoDto> tokenMerchantCurrencyMap;
@@ -218,7 +219,8 @@ public class WavesServiceImpl implements WavesService {
 
         refillService.findAllAddresses(merchantBase.getId(), currencyBase.getId()).parallelStream()
                 .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
-                        .filter(transaction -> address.equals(transaction.getRecipient()) && !feeAccount.equals(transaction.getSender())))
+                        .filter(transaction -> address.equals(transaction.getRecipient()) && !feeAccount.equals(transaction.getSender()))
+                        .filter(wavesTransaction -> !FEE_TRANSFER_ATTACHMENT.equals(wavesTransaction.getAttachment())))
                 .map(transaction -> restClient.getTransactionById(transaction.getId()))
                 .filter(Optional::isPresent).map(Optional::get)
                 .forEach(transaction -> {
@@ -346,6 +348,7 @@ public class WavesServiceImpl implements WavesService {
             payment.setRecipient(account);
             payment.setAmount(WAVES_DEFAULT_FEE);
             payment.setFee(WAVES_DEFAULT_FEE);
+            payment.setAttachment(FEE_TRANSFER_ATTACHMENT);
 
             String txId = restClient.transferCosts(payment);
             log.debug("Fee costs transferred, tx id: " + txId);
