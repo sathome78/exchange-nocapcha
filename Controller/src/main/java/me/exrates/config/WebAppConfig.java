@@ -169,7 +169,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 
 
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -450,6 +449,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public BitcoinService btczService() {
         return new BitcoinServiceImpl("merchants/btcz_wallet.properties",
                 "BTCZ", "BTCZ", 4, 20, false);
+    }
+
+    @Bean(name = "lccServiceImpl")
+    public BitcoinService lccService() {
+        return new BitcoinServiceImpl("merchants/lcc_wallet.properties",
+                "LCC", "LCC", 4, 20, true);
     }
 
     @Bean(name = "ethereumServiceImpl")

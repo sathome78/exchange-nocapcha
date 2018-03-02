@@ -83,7 +83,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
     } catch (Exception e) {
-      log.error(e);
+      log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
+      log.error(ExceptionUtils.getStackTrace(e));
     }
     
   }

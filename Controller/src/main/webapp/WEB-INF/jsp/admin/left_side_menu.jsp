@@ -145,6 +145,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BCX'/>"><loc:message code="bcxWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/OCC'/>"><loc:message code="occWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BTCZ'/>"><loc:message code="btczWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/LCC'/>"><loc:message code="lccWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>
