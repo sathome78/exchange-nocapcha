@@ -59,7 +59,9 @@ public class WavesServiceImpl implements WavesService {
     private final int WAVES_AMOUNT_SCALE = 8;
     private final long WAVES_DEFAULT_FEE = 100000L;
     private final long TRANSIT_FEE_RESERVE = WAVES_DEFAULT_FEE * 10L;
-    private final String FEE_TRANSFER_ATTACHMENT = "INNER";
+
+    //IMPORTANT!! WAVES does not accept capital letters in attachments. lower case only!!!
+    private final String FEE_TRANSFER_ATTACHMENT = "inner";
 
 
     private Map<String, MerchantCurrencyBasicInfoDto> tokenMerchantCurrencyMap;
@@ -213,23 +215,27 @@ public class WavesServiceImpl implements WavesService {
 
     @Override
     public void processWavesTransactionsForKnownAddresses() {
-        log.debug("Start checking WAVES transactions");
+        try {
+            log.debug("Start checking WAVES transactions");
 
-        int blockHeight = restClient.getCurrentBlockHeight();
+            int blockHeight = restClient.getCurrentBlockHeight();
 
-        refillService.findAllAddresses(merchantBase.getId(), currencyBase.getId()).parallelStream()
-                .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
-                        .filter(transaction -> address.equals(transaction.getRecipient()) && !feeAccount.equals(transaction.getSender()))
-                        .filter(wavesTransaction -> !FEE_TRANSFER_ATTACHMENT.equals(wavesTransaction.getAttachment())))
-                .map(transaction -> restClient.getTransactionById(transaction.getId()))
-                .filter(Optional::isPresent).map(Optional::get)
-                .forEach(transaction -> {
-                    try {
-                        processWavesPayment(transaction, blockHeight);
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
-                });
+            refillService.findAllAddresses(merchantBase.getId(), currencyBase.getId()).parallelStream()
+                    .flatMap(address -> restClient.getTransactionsForAddress(address).stream()
+                            .filter(transaction -> address.equals(transaction.getRecipient()) && !feeAccount.equals(transaction.getSender()))
+                            .filter(wavesTransaction -> !FEE_TRANSFER_ATTACHMENT.equals(wavesTransaction.getAttachment())))
+                    .map(transaction -> restClient.getTransactionById(transaction.getId()))
+                    .filter(Optional::isPresent).map(Optional::get)
+                    .forEach(transaction -> {
+                        try {
+                            processWavesPayment(transaction, blockHeight);
+                        } catch (Exception e) {
+                            log.error(e);
+                        }
+                    });
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
     private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
@@ -277,6 +283,7 @@ public class WavesServiceImpl implements WavesService {
                 numOfAttempts++;
             } while (!refillFeeTx.isPresent() && numOfAttempts < 30);
         } catch (InsufficientCostsInWalletException e) {
+
             Email email = new Email();
             email.setTo(notifyEmail);
             email.setSubject(messageSource.getMessage("fee.wallet.insufficientCosts.title", null,
@@ -286,7 +293,7 @@ public class WavesServiceImpl implements WavesService {
 
             sendMailService.sendInfoMail(email);
 
-        }  catch (InterruptedException e) {
+        }  catch (Exception e) {
             log.error(e);
         }
     }
