@@ -334,7 +334,7 @@ public class WavesServiceImpl implements WavesService {
         scheduler.shutdown();
     }
 
-    private void initAssets(Properties wavesProps) {
+    void initAssets(Properties wavesProps) {
         currencyBase = currencyService.findByName("WAVES");
         merchantBase = merchantService.findByName("Waves");
         List<MerchantCurrencyBasicInfoDto> tokenMerchants = merchantService.findTokenMerchantsByParentId(merchantBase.getId());
@@ -373,6 +373,22 @@ public class WavesServiceImpl implements WavesService {
         }
     }
 
+    void setMinConfirmations(Integer minConfirmations) {
+        this.minConfirmations = minConfirmations;
+    }
+
+    void setMainAccount(String mainAccount) {
+        this.mainAccount = mainAccount;
+    }
+
+    void setFeeAccount(String feeAccount) {
+        this.feeAccount = feeAccount;
+    }
+
+    void setNotifyEmail(String notifyEmail) {
+        this.notifyEmail = notifyEmail;
+    }
+
     /*
     Use to create encode wallet seed
 
@@ -380,5 +396,6 @@ public class WavesServiceImpl implements WavesService {
 
         System.out.println(Base58.encode("box armed repair shoot grid give slide eagle kite excess fruit earn hill one legal".getBytes(Charset.forName("UTF-8"))));
     }*/
+
 
 }
