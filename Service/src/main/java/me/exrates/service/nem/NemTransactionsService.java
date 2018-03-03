@@ -12,6 +12,7 @@ import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
 import org.nem.core.model.Transaction;
 import org.nem.core.model.mosaic.Mosaic;
+import org.nem.core.model.mosaic.MosaicFeeInformationLookup;
 import org.nem.core.model.mosaic.MosaicId;
 import org.nem.core.model.mosaic.MosaicTransferFeeCalculator;
 import org.nem.core.model.namespace.NamespaceId;
@@ -51,8 +52,10 @@ public class NemTransactionsService {
     private NemService nemService;
     @Autowired
     private NemNodeService nodeService;
+    @Autowired
+    private MosaicFeeInformationLookup mosaicFeeInformationLookup;
 
-    private TransactionFeeCalculatorAfterFork calculatorAfterFork = new TransactionFeeCalculatorAfterFork();
+    private TransactionFeeCalculatorAfterFork calculatorAfterFork;
 
     @PostConstruct
     public void init() {
@@ -66,12 +69,12 @@ public class NemTransactionsService {
                 break;
             }
         }
-
+        calculatorAfterFork = new TransactionFeeCalculatorAfterFork(mosaicFeeInformationLookup);
     }
 
     public HashMap<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto, String privateKey) {
         try {
-            TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto);
+            TransferTransaction transaction = prepareTransaction(withdrawMerchantOperationDto, null);
             JsonSerializer serializer = new JsonSerializer();
             RequestPrepareAnnounce announce = new RequestPrepareAnnounce(transaction, PrivateKey.fromHexString(privateKey));
             announce.serialize(serializer);
@@ -85,12 +88,13 @@ public class NemTransactionsService {
         }
     }
 
-    private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+    private TransferTransaction prepareTransaction(WithdrawMerchantOperationDto withdrawMerchantOperationDto, Mosaic mosaic) {
         Account reipient = new Account(Address.fromEncoded(withdrawMerchantOperationDto.getAccountTo().replaceAll("-", "").trim()));
         TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
         TransferTransactionAttachment attachment = null;
         try {
             attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes("UTF-8")));
+            attachment.addMosaic(mosaic);
         } catch (UnsupportedEncodingException e) {
             log.error("unsupported encoding {}", e);
         }
@@ -137,32 +141,17 @@ public class NemTransactionsService {
                         .accountTo("")
                 .amount(amount.toPlainString())
                 .destinationTag(destinationTag)
-                .build());
-
+                .build(), null);
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }
 
-    BigDecimal countMosaicTxFee(XemMosaicService mosaicService, BigDecimal amount, String destinationTag, long quantity) {
-
-
-        Account reipient = new Account(Address.fromEncoded(""));
-        TimeInstant currentTimeStamp = nodeService.getCurrentTimeStamp();
-        TransferTransactionAttachment attachment = null;
-        try {
-            attachment = new TransferTransactionAttachment(new PlainMessage(destinationTag.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            log.error("unsupported encoding {}", e);
-        }
-        TransferTransaction transaction = new  TransferTransaction(currentTimeStamp,
-                nemService.getAccount(), reipient, transformToNemAmount(BigDecimal.ZERO.toPlainString()),  attachment);
-        transaction.setDeadline(currentTimeStamp.addHours(2));
-        transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
-
-        NamespaceId namespaceId = new NamespaceId(mosaicService.getMosaicId().getNamespaceId());
-        MosaicId mosaicId = new MosaicId(namespaceId, mosaicService.getMosaicId().getName());
-        Mosaic mosaic = new Mosaic(mosaicId, Quantity.fromValue(quantity));
-
-
+    BigDecimal countMosaicTxFee(XemMosaicService mosaicService, String destinationTag, long quantity) {
+        Mosaic mosaic = new Mosaic(mosaicService.mosaicId(), Quantity.fromValue(quantity));
+        Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
+                .accountTo("")
+                .amount(BigDecimal.ZERO.toString())
+                .destinationTag(destinationTag)
+                .build(), null);
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }
 }

@@ -134,7 +134,7 @@ public class NemServiceImpl implements NemService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        if (isTransactionDuplicate(hash)) {
+        if (isTransactionDuplicate(hash, currency.getId())) {
             log.warn("nem tx duplicated {}", hash);
             return;
         }
@@ -175,11 +175,16 @@ public class NemServiceImpl implements NemService {
             String address = params.get("address");
             String hash = params.get("hash");
             XemMosaicService mosaicService = (XemMosaicService) p.getService();
-            BigDecimal amount = new BigDecimal(params.get("amount")).divide(BigDecimal.valueOf(mosaicService.getDecimals()));
+            Currency currency = currencyService.findByName(mosaicService.getCurrencyName());
+            if (isTransactionDuplicate(hash, currency.getId())) {
+                log.warn("{} tx duplicated {}", p.getMosaicIdDto().getNamespaceId(),hash);
+                return;
+            }
+            BigDecimal amount = p.getQuantity().divide(BigDecimal.valueOf(mosaicService.getDecimals()));
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .address(address)
                     .merchantId(merchantService.findByName(mosaicService.getMerchantName()).getId())
-                    .currencyId(currencyService.findByName(mosaicService.getCurrencyName()).getId())
+                    .currencyId(currency.getId())
                     .amount(amount)
                     .merchantTransactionId(hash)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
@@ -212,8 +217,8 @@ public class NemServiceImpl implements NemService {
 
     }
 
-    private boolean isTransactionDuplicate(String hash) {
-        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+    private boolean isTransactionDuplicate(String hash, int currencyId) {
+        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currencyId,
                 hash).isPresent();
     }
 
@@ -260,7 +265,8 @@ public class NemServiceImpl implements NemService {
     private BigDecimal countSpecComissionForMosaic(BigDecimal amount, String destinationTag, Integer merchantId) {
         XemMosaicService service = mosaicStrategy.getByMerchantName(merchantService.findById(merchantId).getName());
         log.error("serv {}", service);
-        BigDecimal baseFee = nemTransactionsService.countTxFee(amount, destinationTag);
+        long quantity = amount.multiply(BigDecimal.valueOf(service.getDecimals())).longValue();
+        BigDecimal baseFee = nemTransactionsService.countMosaicTxFee(service, destinationTag, quantity);
         return baseFee.divide(service.getNemExRate()).setScale(8, RoundingMode.HALF_UP);
     }
 

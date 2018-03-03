@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by maks on 20.07.2017.
  */
-@Log4j2
+@Log4j2(topic = "nem_log")
 @Service
 public class NemJobs {
 

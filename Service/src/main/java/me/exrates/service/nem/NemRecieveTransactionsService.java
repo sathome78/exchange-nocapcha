@@ -82,6 +82,7 @@ public class NemRecieveTransactionsService {
             if (i == 0 && pagingHash == null) {
                 saveLastHash(trHash);
             }
+            log.debug("mosaics {}", params.get("mosaics"));
             if (params.get("mosaics") != null) {
                 try {
                     List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
@@ -109,7 +110,9 @@ public class NemRecieveTransactionsService {
         List<NemMosaicTransferDto> dtos;
             dtos = Lists.newArrayList(
                     objectMapper.readValue(params.get("mosaics"), NemMosaicTransferDto[].class));
+            log.debug("dtos. before size {}", dtos.size());
             dtos.removeIf(p -> mosaicStrategy.getByIdDto(p.getMosaicIdDto()) == null);
+            log.debug("dtos. size {}", dtos.size());
             dtos.forEach(p->{
                 XemMosaicService service = mosaicStrategy.getByIdDto(p.getMosaicIdDto());
                 if(service == null) {

@@ -30,6 +30,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -564,7 +565,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new XemMosaicServiceImpl(
                 "DimCoin",
                 "DIM",
-                new MosaicIdDto("dim", "coin"), 1000000, new BigDecimal(0.018));
+                new MosaicIdDto("dim", "coin"),
+                1000000,
+                new BigDecimal(0.018),
+                6,
+                new Supply(9000000000L));
     }
 
     @Bean

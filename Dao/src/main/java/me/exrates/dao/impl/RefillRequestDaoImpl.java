@@ -295,7 +295,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> statusIdList) {
-      String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
+    statusIdList.forEach(log::debug);
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
               "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
               " FROM REFILL_REQUEST " +
               "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +

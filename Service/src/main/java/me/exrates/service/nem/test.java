@@ -25,15 +25,13 @@ import org.nem.core.crypto.PrivateKey;
 import org.nem.core.crypto.PublicKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
-import org.nem.core.model.mosaic.DefaultMosaicTransferFeeCalculator;
-import org.nem.core.model.mosaic.Mosaic;
-import org.nem.core.model.mosaic.MosaicId;
-import org.nem.core.model.mosaic.MosaicLevy;
+import org.nem.core.model.mosaic.*;
 import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
 import org.nem.core.model.primitive.BlockHeight;
 import org.nem.core.model.primitive.Quantity;
+import org.nem.core.model.primitive.Supply;
 import org.nem.core.serialization.*;
 import org.nem.core.time.TimeInstant;
 import org.springframework.http.HttpEntity;
@@ -98,7 +96,8 @@ public class test {
         System.out.println(serializer.getObject());
         System.out.println(anounceTransaction(serializer.getObject().toJSONString()));*/
 
-        countMosaicTxFee(new MosaicIdDto("dim", "coin"), new BigDecimal(1), "sdfsdfsdfsdf", 1000000);
+        countMosaicTxFee(new MosaicIdDto("dim", "coin"), new BigDecimal(0),
+                "fdgdfff", 99999L);
 
 
 
@@ -112,9 +111,7 @@ public class test {
         NamespaceId namespaceId = new NamespaceId(idDto.getNamespaceId());
         MosaicId mosaicId = new MosaicId(namespaceId, idDto.getName());
         Mosaic mosaic = new Mosaic(mosaicId, Quantity.fromValue(quantity));
-        DefaultMosaicTransferFeeCalculator mosaicTransferFeeCalculator = new DefaultMosaicTransferFeeCalculator();
-        MosaicLevy levy = mosaicTransferFeeCalculator.calculateAbsoluteLevy(mosaic);
-        /*System.out.println(levy.getFee());*/
+
         TransferTransactionAttachment attachment = null;
         try {
             attachment = new TransferTransactionAttachment(new PlainMessage(destinationTag.getBytes("UTF-8")));
@@ -126,8 +123,15 @@ public class test {
                 account, reipient, transformToNemAmount(amount.toString()),  attachment);
         transaction.setDeadline(currentTimeStamp.addHours(2));
 
+        calculatorAfterFork = new TransactionFeeCalculatorAfterFork(new MosaicFeeInformationLookup() {
+            @Override
+            public MosaicFeeInformation findById(MosaicId mosaicId) {
+                return new MosaicFeeInformation(new Supply(9000000000L), 6);
+            }
+        });
+
         transaction.setFee(calculatorAfterFork.calculateMinimumFee(transaction));
-        System.out.println("fee " + transaction.getFee().getNumNem());
+        System.out.println("fee " + new BigDecimal(transformToString(transaction.getFee().getNumMicroNem())));
 
     }
 
