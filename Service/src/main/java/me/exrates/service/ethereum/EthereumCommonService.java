@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.ethereum;
 
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -59,4 +59,9 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
     String getMainAddress();
 
     Credentials getCredentialsMain();
+
+    Integer minConfirmationsRefill();
+
+    String getTransferAccAddress();
+
 }

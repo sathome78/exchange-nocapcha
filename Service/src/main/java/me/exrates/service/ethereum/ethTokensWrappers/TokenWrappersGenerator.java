@@ -1,4 +1,4 @@
-package me.exrates.service.ethTokensWrappers;
+package me.exrates.service.ethereum.ethTokensWrappers;
 
 import org.web3j.codegen.SolidityFunctionWrapperGenerator;
 
@@ -13,8 +13,8 @@ public class TokenWrappersGenerator {
                 "d:/eth/TAXI.bin",
                 "d:/eth/TAXI.abi",
                 "-o",
-                "c:/Users/Maks/IdeaProjects/exrates/Service/src/main/java",
+                "c:/Users/Administrator/IdeaProjects/exrates/Service/src/main/java",
                 "-p",
-                "me.exrates.service.ethTokensWrappers"});
+                "me.exrates.service.ethereum.ethTokensWrappers"});
     }
 }

@@ -13,24 +13,6 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Merchants_edr" fileName="${sys:catalina.home}/logs/merchants/merchants_edr.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/merchants_edr_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
-        <RollingFile name="Node_ethereum" fileName="${sys:catalina.home}/logs/merchants/node_ethereum.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/node_ethereum_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
-                <SizeBasedTriggeringPolicy size="20 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="10"/>
-        </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
             filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -321,6 +303,51 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="ethereum_log" fileName="${sys:catalina.home}/logs/crypto/ethereum_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="eth_tokens_log" fileName="${sys:catalina.home}/logs/crypto/eth_tokens_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/eth_tokens_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="monero_log" fileName="${sys:catalina.home}/logs/crypto/monero_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/monero_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="iota_log" fileName="${sys:catalina.home}/logs/crypto/iota_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/iota_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="edc_log" fileName="${sys:catalina.home}/logs/crypto/edc_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/edc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="message_notify" fileName="${sys:catalina.home}/logs/message_notify/notify.log"
                      filePattern="${sys:catalina.home}/logs/crypto/notify_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -407,14 +434,6 @@
         <Logger name="merchant" level="DEBUG" additivity="false">
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
-        </Logger>
-        <Logger name="merchant_edr" level="TRACE" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
-            <AppenderRef ref="Merchants_edr"/>
-        </Logger>
-        <Logger name="node_ethereum" level="DEBUG" additivity="false">
-
-            <AppenderRef ref="Node_ethereum"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Logs"/>
@@ -553,6 +572,21 @@
         </logger>
         <logger name="qtum_log" level="ALL" additivity="false">
             <AppenderRef ref="qtum_log"/>
+        </logger>
+        <logger name="ethereum_log" level="ALL" additivity="false">
+            <AppenderRef ref="ethereum_log"/>
+        </logger>
+        <logger name="eth_tokens_log" level="DEBUG" additivity="false">
+            <AppenderRef ref="eth_tokens_log"/>
+        </logger>
+        <logger name="monero_log" level="ALL" additivity="false">
+            <AppenderRef ref="monero_log"/>
+        </logger>
+        <logger name="edc_log" level="ALL" additivity="false">
+            <AppenderRef ref="edc_log"/>
+        </logger>
+        <logger name="iota_log" level="ALL" additivity="false">
+            <AppenderRef ref="iota_log"/>
         </logger>
         <logger name="ws_stomp_log" level="ALL" additivity="false">
             <AppenderRef ref="ws_stomp_log"/>
