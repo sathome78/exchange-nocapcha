@@ -200,7 +200,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }catch (Exception e){
                 log.error(e);
             }
-        }, 1, 3, TimeUnit.MINUTES);
+        }, 1, 20, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
