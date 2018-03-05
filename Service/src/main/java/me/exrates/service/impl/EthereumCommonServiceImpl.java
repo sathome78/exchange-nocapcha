@@ -13,7 +13,6 @@ import me.exrates.service.merchantStrategy.EthTokensContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -440,7 +439,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     public String loadLastBlock() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(merchantName, LAST_BLOCK_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(merchantName, LAST_BLOCK_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 

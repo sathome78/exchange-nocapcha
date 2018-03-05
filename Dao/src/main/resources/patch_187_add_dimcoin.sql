@@ -1,7 +1,7 @@
 INSERT INTO MERCHANT (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('DimCoin', 'DimCoin', 2, 'nemServiceImpl', 'CRYPTO', 33);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('DIM', 'DimCoin', '0', 8, 8, 8);
+VALUES ('DIM', 'DimCoin', '0', 6, 6, 6);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
 VALUES ((SELECT id from MERCHANT WHERE name='DimCoin'),
@@ -60,6 +60,9 @@ INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VA
 
 INSERT INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), '/client/img/merchants/voucher_free.png', 'Free voucher', (select id from CURRENCY where name = 'DIM'));
+
+INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'DimCoin'), 'exrateToNem', 0.018);
 
 INSERT INTO BOT_LAUNCH_SETTINGS(bot_trader_id, currency_pair_id)
   SELECT BT.id, CP.id FROM BOT_TRADER BT

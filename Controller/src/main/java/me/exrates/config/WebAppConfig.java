@@ -73,6 +73,7 @@ import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -567,9 +568,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "DIM",
                 new MosaicIdDto("dim", "coin"),
                 1000000,
-                new BigDecimal(0.018),
                 6,
-                new Supply(9000000000L));
+                new Supply(9000000000L),
+                10);
     }
 
     @Bean

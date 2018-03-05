@@ -4,8 +4,11 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.*;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
@@ -94,7 +97,9 @@ public class NemTransactionsService {
         TransferTransactionAttachment attachment = null;
         try {
             attachment = new TransferTransactionAttachment(new PlainMessage(withdrawMerchantOperationDto.getDestinationTag().getBytes("UTF-8")));
-            attachment.addMosaic(mosaic);
+            if (mosaic != null) {
+                attachment.addMosaic(mosaic);
+            }
         } catch (UnsupportedEncodingException e) {
             log.error("unsupported encoding {}", e);
         }
@@ -145,13 +150,16 @@ public class NemTransactionsService {
         return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
     }
 
-    BigDecimal countMosaicTxFee(XemMosaicService mosaicService, String destinationTag, long quantity) {
-        Mosaic mosaic = new Mosaic(mosaicService.mosaicId(), Quantity.fromValue(quantity));
+    BigDecimal countMosaicTxFeeForTagInXem(XemMosaicService mosaicService, String destinationTag, long quantity) {
+        if (StringUtils.isEmpty(destinationTag)) {
+            return BigDecimal.ZERO;
+        }
         Transaction transaction = prepareTransaction(WithdrawMerchantOperationDto.builder()
                 .accountTo("")
                 .amount(BigDecimal.ZERO.toString())
                 .destinationTag(destinationTag)
                 .build(), null);
-        return new BigDecimal(transformToString(transaction.getFee().getNumMicroNem()));
+        return BigDecimalProcessing.doAction(new BigDecimal(transformToString(transaction.getFee().getNumMicroNem())),
+                new BigDecimal(1.95), ActionType.SUBTRACT);
     }
 }

@@ -2,9 +2,12 @@ package me.exrates.service.nem;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -23,12 +26,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.stellar.sdk.responses.TransactionResponse;
 
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 /**
@@ -55,6 +56,8 @@ public class NemServiceImpl implements NemService {
     private AlgorithmService algorithmService;
     @Autowired
     private NemMosaicStrategy mosaicStrategy;
+    @Autowired
+    private MerchantSpecParamsDao specParamsDao;
 
 
     private static final String NEM_MERCHANT = "NEM";
@@ -264,10 +267,33 @@ public class NemServiceImpl implements NemService {
 
     private BigDecimal countSpecComissionForMosaic(BigDecimal amount, String destinationTag, Integer merchantId) {
         XemMosaicService service = mosaicStrategy.getByMerchantName(merchantService.findById(merchantId).getName());
-        log.error("serv {}", service);
         long quantity = amount.multiply(BigDecimal.valueOf(service.getDecimals())).longValue();
-        BigDecimal baseFee = nemTransactionsService.countMosaicTxFee(service, destinationTag, quantity);
-        return baseFee.divide(service.getNemExRate()).setScale(8, RoundingMode.HALF_UP);
+        BigDecimal exrate = getExrateForMosaic(merchantId);
+
+        BigDecimal tokenLevy = countTokenLevy(quantity, service);
+
+        BigDecimal feeForTagInXem = nemTransactionsService.countMosaicTxFeeForTagInXem(service, destinationTag, quantity);
+
+        BigDecimal feeForAmountInXem = countFeeForAmountInXem(amount);
+
+        BigDecimal baseFeesInToken = BigDecimalProcessing.doAction(BigDecimalProcessing.doAction(feeForTagInXem, feeForAmountInXem, ActionType.ADD),
+                                                                    exrate, ActionType.DEVIDE);
+        log.debug("fees - levy {}, forTag in nem {}, for quantity in nem {} exrate {}, basefees in token {}",
+                tokenLevy, feeForTagInXem, feeForAmountInXem, exrate, baseFeesInToken);
+        return BigDecimalProcessing.doAction(tokenLevy, baseFeesInToken, ActionType.ADD);
+    }
+
+    private BigDecimal countTokenLevy(long quantity, XemMosaicService service) {
+        double feeFromMosaicInMosaicToken = (quantity * service.getLevyFee().getRaw() / 10000D)/service.getDecimals();
+        return BigDecimal.valueOf(feeFromMosaicInMosaicToken);
+    }
+
+    private BigDecimal countFeeForAmountInXem(BigDecimal amount) {
+        BigDecimal initFee = new BigDecimal(0.05);
+        int multiplier = amount.intValue() / 10000;
+        BigDecimal fee = BigDecimalProcessing.doAction(initFee, new BigDecimal(multiplier), ActionType.MULTIPLY);
+        return BigDecimalProcessing.doAction(initFee, fee, ActionType.ADD);
+
     }
 
 
@@ -286,5 +312,9 @@ public class NemServiceImpl implements NemService {
     @Override
     public String getMainAddress() {
         return address;
+    }
+
+    private BigDecimal getExrateForMosaic(int merchantId) {
+        return new BigDecimal(specParamsDao.getByMerchantIdAndParamName(merchantId, "exrateToNem").getParamValue());
     }
 }

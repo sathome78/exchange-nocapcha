@@ -21,26 +21,27 @@ public class XemMosaicServiceImpl implements XemMosaicService {
     private String currencyName;
     private MosaicIdDto mosaicIdDto;
     private long decimals;
-    private BigDecimal nemExRate;
     private int divisibility;
     private Supply supply;
     private MosaicId mosaicId;
+    private Quantity levyFee;
 
 
     public XemMosaicServiceImpl(String merchantName, String currencyName, MosaicIdDto mosaicIdDto, long decimals,
-                                BigDecimal nemExRate, int divisibility, Supply supply) {
+                                int divisibility, Supply supply, long levyFee) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.mosaicIdDto = mosaicIdDto;
         this.decimals = decimals;
-        this.nemExRate = nemExRate;
         this.divisibility = divisibility;
         this.supply = supply;
         this.mosaicId = new MosaicId(new NamespaceId(mosaicIdDto.getNamespaceId()), mosaicIdDto.getName());
+        this.levyFee = new Quantity(levyFee);
     }
 
-    public BigDecimal getNemExRate() {
-        return nemExRate;
+    @Override
+    public Quantity getLevyFee() {
+        return levyFee;
     }
 
     @Override

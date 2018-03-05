@@ -125,7 +125,7 @@
     <dependency>
       <groupId>nem</groupId>
       <artifactId>nem-core</artifactId>
-      <version>0.6.91-BETA</version>
+      <version>0.6.95-BETA</version>
     </dependency>
     <dependency>
       <groupId>iota</groupId>

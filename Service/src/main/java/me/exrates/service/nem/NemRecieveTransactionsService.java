@@ -152,7 +152,7 @@ public class NemRecieveTransactionsService {
     }
 
     private String loadLastHash() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(MERCHANT_NAME, LAST_HASH_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_HASH_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 }

@@ -2,6 +2,7 @@ package me.exrates.service.nem;
 
 import me.exrates.model.dto.MosaicIdDto;
 import org.nem.core.model.mosaic.MosaicId;
+import org.nem.core.model.primitive.Quantity;
 import org.nem.core.model.primitive.Supply;
 
 import java.math.BigDecimal;
@@ -19,7 +20,7 @@ public interface XemMosaicService {
 
     long getDecimals();
 
-    BigDecimal getNemExRate();
+    Quantity getLevyFee();
 
     MosaicId mosaicId();
 
