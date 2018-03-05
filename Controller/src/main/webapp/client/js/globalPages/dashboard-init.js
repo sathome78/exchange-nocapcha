@@ -651,4 +651,13 @@ function doPoll($pollDialog) {
             data: result,
         });
     }
+
+    function successRegister (event) {
+        if ($('#successRegister').text() != undefined ) {
+            gtag('event', 'sendregister', { 'event_category': 'register', 'event_action': 'sendregister', });
+            yaCounter47624182.reachGoal('sendregister');
+            console.log('it works!');
+            return true;
+        }
+    }
 }

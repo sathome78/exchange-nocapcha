@@ -215,6 +215,7 @@ public class MainController {
                     e.printStackTrace();
                 }
                 ModelAndView modelAndView = new ModelAndView("redirect:/dashboard?successNoty=" + successNoty);
+                modelAndView.addObject("successRegister");
                 return modelAndView;
             } else return new ModelAndView("DBError", "user", user);
         }
