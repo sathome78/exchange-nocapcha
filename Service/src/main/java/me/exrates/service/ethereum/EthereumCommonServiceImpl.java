@@ -117,8 +117,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private String transferAccPublicKey;
 
-//    private BigDecimal minBalanceForTransfer = new BigDecimal("0.015");
-    private BigDecimal minBalanceForTransfer = new BigDecimal("0.000015");
+    private BigDecimal minBalanceForTransfer = new BigDecimal("0.0031");
 
     private int merchantId;
 

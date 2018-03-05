@@ -69,8 +69,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final BigDecimal feeAmount = new BigDecimal("0.003");
 
-//    private final BigDecimal minBalanceForTransfer = new BigDecimal("0.15");
-    private final BigDecimal minBalanceForTransfer = new BigDecimal("0.00015");
+    private final BigDecimal minBalanceForTransfer = new BigDecimal("0.1");
 
     private final boolean isERC20;
 
