@@ -79,7 +79,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               .build();
       Properties nodeConfig = new Properties();
       nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
-      log.debug("Node config: " + nodeConfig);
+      log.info("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
     } catch (Exception e) {
