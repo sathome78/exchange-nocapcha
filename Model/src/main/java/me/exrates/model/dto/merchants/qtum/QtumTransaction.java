@@ -21,5 +21,6 @@ public class QtumTransaction {
     private Double amount;
     private String address;
     private boolean trusted = true;
+    private Integer vout;
 
 }

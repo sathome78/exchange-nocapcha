@@ -23,6 +23,8 @@ import me.exrates.service.ethereum.EthereumCommonServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.lisk.LiskService;
 import me.exrates.service.lisk.LiskServiceImpl;
+import me.exrates.service.qtum.QtumTokenService;
+import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -593,6 +595,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "TAXI",
                 "TAXI", true, Convert.Unit.ETHER);
+    }
+
+//    Qtum tokens:
+    @Bean(name = "inkServiceImpl")
+    public QtumTokenService InkService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
+
+        return new QtumTokenServiceImpl(tokensList, "INK", "INK");
     }
 
     @Bean

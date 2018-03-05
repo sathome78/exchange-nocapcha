@@ -861,7 +861,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public boolean checkInputRequests(int currencyId, String email) {
     String sql = "SELECT " +
-        " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
+        " (SELECT COUNT(*) FROM REFILL_REQUEST REQUEST " +
         " JOIN USER ON(USER.id = REQUEST.user_id) " +
         " WHERE USER.email = :email and REQUEST.currency_id = currency_id " +
         " and DATE(REQUEST.date_creation) = CURDATE()) <  " +

@@ -1,9 +1,9 @@
 package me.exrates.service.qtum;
 
-import me.exrates.model.dto.merchants.qtum.Block;
-import me.exrates.model.dto.merchants.qtum.QtumListTransactions;
+import me.exrates.model.dto.merchants.qtum.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface QtumNodeService {
@@ -19,7 +19,19 @@ public interface QtumNodeService {
 
     BigDecimal getBalance();
 
-    void transfer(String mainAddress, BigDecimal amount);
+    void transfer(String address, BigDecimal amount);
 
     void backupWallet();
+
+    List<QtumTokenTransaction> getTokenHistory(Integer blockStart, List<String> tokenAddressList);
+
+    String fromHexAddress(String address);
+
+    String getHexAddress(String address);
+
+    QtumTransaction getTransaction(String hash);
+
+    QtumTokenContract getTokenBalance(String tokenAddress, String data);
+
+    void sendToContract(String tokenAddress, String data, String addressFrom);
 }

@@ -16,10 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Log4j2(topic = "qtum_log")
@@ -80,8 +77,8 @@ public class QtumNodeServiceImpl implements QtumNodeService {
     }
 
     @Override
-    public void transfer(String mainAddress, BigDecimal amount) {
-        invokeJsonRpcMethod("sendtoaddress", Arrays.asList(mainAddress, amount), new TypeReference<QtumJsonRpcResponse<String>>() {});
+    public void transfer(String address, BigDecimal amount) {
+        invokeJsonRpcMethod("sendtoaddress", Arrays.asList(address, amount), new TypeReference<QtumJsonRpcResponse<String>>() {});
     }
 
     @Override
@@ -89,11 +86,57 @@ public class QtumNodeServiceImpl implements QtumNodeService {
         invokeJsonRpcMethod("backupwallet", Arrays.asList(backupDestination), new TypeReference<QtumJsonRpcResponse<String>>() {});
     }
 
+    @Override
+    public QtumTransaction getTransaction(String hash) {
+        return invokeJsonRpcMethod("gettransaction", Arrays.asList(hash), new TypeReference<QtumJsonRpcResponse<QtumTransaction>>() {});
+    }
+
+    @Override
+    public List<QtumTokenTransaction> getTokenHistory(Integer blockStart, List<String> tokenAddressList){
+
+        Map<String, List<String>> addressesMap = new HashMap<>();
+        addressesMap.put("addresses", tokenAddressList);
+
+        List<String> topicsList = new ArrayList();
+        topicsList.add("ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+        Map<String, List<String>> topicsMap = new HashMap<>();
+        topicsMap.put("topics", topicsList);
+
+        return invokeJsonRpcMethodList("searchlogs", Arrays.asList(blockStart, -1, addressesMap, topicsList), new TypeReference<QtumJsonRpcResponseList<QtumTokenTransaction>>() {});
+    }
+
+    @Override
+    public String fromHexAddress(String address) {
+        return invokeJsonRpcMethod("fromhexaddress", Arrays.asList(address), new TypeReference<QtumJsonRpcResponse<String>>() {});
+    }
+
+    @Override
+    public String getHexAddress(String address) {
+        return invokeJsonRpcMethod("gethexaddress", Arrays.asList(address), new TypeReference<QtumJsonRpcResponse<String>>() {});
+    }
+
+    @Override
+    public QtumTokenContract getTokenBalance(String tokenAddress, String data) {
+        return invokeJsonRpcMethod("callcontract", Arrays.asList(tokenAddress, data), new TypeReference<QtumJsonRpcResponse<QtumTokenContract>>() {});
+    }
+
+    @Override
+    public void sendToContract(String tokenAddress, String data, String addressFrom) {
+        invokeJsonRpcMethod("sendtocontract", Arrays.asList(tokenAddress, data, 0, 250000, 0.0000004, addressFrom), new TypeReference<QtumJsonRpcResponse<QtumTransaction>>() {});
+    }
+
     private <T> T invokeJsonRpcMethod(String methodName, List<Object> args, TypeReference<QtumJsonRpcResponse<T>> typeReference) {
         QtumJsonRpcRequest request = new QtumJsonRpcRequest();
         request.setMethod(methodName);
         request.setParams(args);
         return getQtumJsonRpcResponse(request, typeReference);
+    }
+
+    private <T> List<T> invokeJsonRpcMethodList(String methodName, List<Object> args, TypeReference<QtumJsonRpcResponseList<T>> typeReference) {
+        QtumJsonRpcRequest request = new QtumJsonRpcRequest();
+        request.setMethod(methodName);
+        request.setParams(args);
+        return getQtumJsonRpcResponseList(request, typeReference);
     }
 
     private <T> T getQtumJsonRpcResponse(QtumJsonRpcRequest request, TypeReference<QtumJsonRpcResponse<T>> typeReference) {
@@ -112,4 +155,22 @@ public class QtumNodeServiceImpl implements QtumNodeService {
             throw new QtumApiException(e);
         }
     }
+
+    private <T> List<T> getQtumJsonRpcResponseList(QtumJsonRpcRequest request, TypeReference<QtumJsonRpcResponseList<T>> typeReference) {
+        String responseString = restTemplate.postForObject(endpoint, request, String.class);
+        try {
+            QtumJsonRpcResponseList<T> response = objectMapper.readValue(responseString,  typeReference);
+            if (response.getError() != null) {
+                log.error(response.getError());
+                throw new QtumApiException(response.getError().getCode(), response.getError().getMessage());
+            }
+            if (response.getResult() == null && !request.getMethod().equals("walletpassphrase")) {
+                throw new QtumApiException("No result found in response");
+            }
+            return response.getResult();
+        } catch (IOException e) {
+            throw new QtumApiException(e);
+        }
+    }
+
 }

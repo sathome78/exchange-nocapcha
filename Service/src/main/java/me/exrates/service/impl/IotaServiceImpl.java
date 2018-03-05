@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by ajet
  */
-@Log4j2(topic = "merchant")
+@Log4j2(topic = "iota_log")
 @Service
 @PropertySource("classpath:/merchants/iota.properties")
 public class IotaServiceImpl implements IotaService {
