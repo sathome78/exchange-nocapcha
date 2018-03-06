@@ -107,7 +107,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
   @Override
   public List<Currency> findAllCurrencies() {
-    final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE ";
+    final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE order by name";
     return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
   }
 
