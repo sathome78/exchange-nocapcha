@@ -73,4 +73,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('INK/USD', 'INK/BTC', 'INK/ETH'));
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'Ink'), 'LastRecievedBlock', 93500);
+  ((SELECT id FROM MERCHANT WHERE name = 'Ink'), 'LastRecievedBlock', 112154);
