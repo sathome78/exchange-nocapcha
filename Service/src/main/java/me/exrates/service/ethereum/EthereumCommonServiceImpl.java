@@ -191,7 +191,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 1, 8, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(() -> {
             try {
@@ -199,7 +199,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             }catch (Exception e){
                 log.error(e);
             }
-        }, 1, 20, TimeUnit.MINUTES);
+        }, 4, 20, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(new Runnable() {
             public void run() {
