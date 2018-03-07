@@ -141,7 +141,7 @@ public class QtumServiceImpl implements QtumService {
         log.debug("Start scanning blocks");
         ProfileData profileData = new ProfileData(500);
 
-        final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantIdAndParamName(merchant.getName(),
+        final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(merchant.getName(),
                 qtumSpecParamName).getParamValue());
         Set<String> addresses = refillService.findAllAddresses(merchant.getId(), currency.getId()).stream().distinct().collect(Collectors.toSet());
 

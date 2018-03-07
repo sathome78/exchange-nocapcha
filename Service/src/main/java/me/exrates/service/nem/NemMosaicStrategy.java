@@ -1,7 +1,6 @@
 package me.exrates.service.nem;
 
 import me.exrates.model.dto.MosaicIdDto;
-import me.exrates.service.impl.EthTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
