@@ -471,6 +471,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bca_wallet.properties",
                 "BitcoinAtom", "BCA", 4, 20, false);
     }
+    @Bean(name = "btcpServiceImpl")
+    public BitcoinService btcpService() {
+        return new BitcoinServiceImpl("merchants/btcp_wallet.properties",
+                "BTCP", "BTCP", 4, 20, false);
+    }
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
