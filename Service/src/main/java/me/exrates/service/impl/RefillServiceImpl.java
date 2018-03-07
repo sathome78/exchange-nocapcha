@@ -124,6 +124,7 @@ public class RefillServiceImpl implements RefillService {
     try {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(request.getServiceBeanName());
       request.setNeedToCreateRefillRequestRecord(merchantService.needToCreateRefillRequestRecord());
+      request.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       if (merchantService.createdRefillRequestRecordNeeded()) {
         Integer requestId = createRefill(request).orElse(null);
         request.setId(requestId);
@@ -373,6 +374,15 @@ public class RefillServiceImpl implements RefillService {
         merchantId,
         currencyId,
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+  }
+
+  @Override
+  public List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
+    return refillRequestDao.findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+            merchantId,
+            currencyId,
+            statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
   @Override

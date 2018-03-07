@@ -10,6 +10,8 @@ import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
@@ -25,11 +27,14 @@ import me.exrates.service.lisk.LiskService;
 import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +76,8 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -604,6 +611,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
 
         return new QtumTokenServiceImpl(tokensList, "INK", "INK");
+    }
+
+
+    /***tokens based on xem mosaic)****/
+    @Bean(name = "dimCoinServiceImpl")
+    public XemMosaicService dimCoinService() {
+        return new XemMosaicServiceImpl(
+                "DimCoin",
+                "DIM",
+                new MosaicIdDto("dim", "coin"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                10);
     }
 
     @Bean

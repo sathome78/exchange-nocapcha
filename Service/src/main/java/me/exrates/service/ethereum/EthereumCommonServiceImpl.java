@@ -446,7 +446,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     public String loadLastBlock() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantIdAndParamName(merchantName, LAST_BLOCK_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(merchantName, LAST_BLOCK_PARAM);
         return specParamsDto == null ? null : specParamsDto.getParamValue();
     }
 

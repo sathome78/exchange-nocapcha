@@ -294,6 +294,27 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public List<RefillRequestFlatDto> findAllWithChildTokensWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(int merchantId, int currencyId, List<Integer> statusIdList) {
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
+              "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, INVOICE_BANK.bank_details " +
+              " FROM REFILL_REQUEST " +
+              "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
+              "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+              "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = RRP.recipient_bank_id) " +
+              "   LEFT JOIN MERCHANT M ON M.tokens_parrent_id = :merchant_id " +
+              " WHERE ((REFILL_REQUEST.merchant_id = :merchant_id  " +
+              "       AND REFILL_REQUEST.currency_id = :currency_id) OR M.id = REFILL_REQUEST.merchant_id) " +
+              "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
+              "       AND EXISTS(SELECT * FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) ";
+      Map<String, Object> params = new HashMap<String, Object>() {{
+        put("merchant_id", merchantId);
+        put("currency_id", currencyId);
+        put("status_id_list", statusIdList);
+      }};
+      return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+  }
+
+  @Override
   public Integer getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(
       String address,
       Integer merchantId,
@@ -381,7 +402,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           .addValue("refill_request_address_id", refillRequestAddressId)
           .addValue("remark", request.getRemark());
       namedParameterJdbcTemplate.update(setKeysSql, params);
-    } else if (isToken(request.getMerchantId())) {
+    } else if (request.getGenerateAdditionalRefillAddressAvailable() && isToken(request.getMerchantId())) {
       List<Map<String, Integer>> list = getTokenMerchants(request.getMerchantId());
       for (Map<String, Integer> record : list) {
         request.setMerchantId(record.get("merchantId"));
@@ -1087,7 +1108,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
     final String sql = "SELECT COUNT(id) FROM MERCHANT where (id = :merchant_id AND tokens_parrent_id is not null) " +
             "OR (tokens_parrent_id = :merchant_id)";
-
     try {
       return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("merchant_id", merchantId), Integer.class) > 0;
     } catch (EmptyResultDataAccessException e){

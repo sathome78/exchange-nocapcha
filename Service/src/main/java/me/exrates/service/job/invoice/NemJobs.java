@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by maks on 20.07.2017.
  */
-@Log4j2
+@Log4j2(topic = "nem_log")
 @Service
 public class NemJobs {
 
@@ -79,7 +79,7 @@ public class NemJobs {
     @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 4)
     public void checkReffils() {
         log.debug("check reffils");
-        List<RefillRequestFlatDto> dtos = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
+        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
         if (dtos != null && !dtos.isEmpty()) {
             dtos.forEach((RefillRequestFlatDto p) -> {
                 executor.execute(() -> {
@@ -93,6 +93,7 @@ public class NemJobs {
         try {
             nemService.checkRecievedTransaction(dto);
         } catch (Exception e) {
+            log.error(e);
             log.error("error checking nem tx confirmations {}", dto);
         }
     }
