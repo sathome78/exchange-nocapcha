@@ -604,6 +604,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TAXI", true, Convert.Unit.ETHER);
     }
 
+    @Bean(name = "nbtkServiceImpl")
+    public EthTokenService nbtkRentService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb0e6f83eba6a4ea20617e134b1aee30fcb0ac634");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NBTK",
+                "NBTK", true, Convert.Unit.WEI);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
