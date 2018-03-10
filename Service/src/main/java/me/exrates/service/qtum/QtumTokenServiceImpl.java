@@ -101,7 +101,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
                 log.error(e);
             }
 
-        }, 1L, 1L, TimeUnit.MINUTES);
+        }, 8L, 95L, TimeUnit.MINUTES);
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
@@ -110,14 +110,14 @@ public class QtumTokenServiceImpl implements QtumTokenService {
                 log.error(e);
             }
 
-        }, 1L, 1L, TimeUnit.MINUTES);
+        }, 16L, 125L, TimeUnit.MINUTES);
 
      }
 
     @Synchronized
     private void scanBlocks() {
 
-        log.debug("Start scanning blocks");
+        log.debug("Start scanning blocks QtumToken");
         ProfileData profileData = new ProfileData(500);
 
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(merchant.getName(),
@@ -189,7 +189,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
                     BigInteger balance = (BigInteger) FunctionReturnDecoder.decodeIndexedValue(hexBalance, new TypeReference<Uint256>() {}).getValue();
                     log.info("token balance: " + balance.toString());
 
-                    if (balance.compareTo(Convert.toWei(minTransferAmount, Convert.Unit.ETHER).toBigInteger()) > 0) {
+                    if (balance.compareTo(Convert.toWei(minTransferAmount, Convert.Unit.GWEI).toBigInteger()) > 0) {
                         try {
                             qtumNodeService.setWalletPassphrase();
                             qtumNodeService.transfer(t.getAddress(), amountForCommission);
@@ -241,7 +241,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         QtumTokenServiceImpl.TransferEventResponse typedResponse = new QtumTokenServiceImpl.TransferEventResponse();
         typedResponse.from = qtumNodeService.fromHexAddress(Numeric.cleanHexPrefix(eventValues.getIndexedValues().get(0).toString()));
         typedResponse.to = qtumNodeService.fromHexAddress(Numeric.cleanHexPrefix(eventValues.getIndexedValues().get(1).toString()));
-        typedResponse.amount = Convert.fromWei(String.valueOf(eventValues.getNonIndexedValues().get(0).getValue()), Convert.Unit.ETHER);
+        typedResponse.amount = Convert.fromWei(String.valueOf(eventValues.getNonIndexedValues().get(0).getValue()), Convert.Unit.GWEI);
 
         return typedResponse;
     }

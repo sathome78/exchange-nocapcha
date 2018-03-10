@@ -138,7 +138,7 @@ public class QtumServiceImpl implements QtumService {
     @Synchronized
     private void scanBlocks() {
 
-        log.debug("Start scanning blocks");
+        log.debug("Start scanning blocks Qtum");
         ProfileData profileData = new ProfileData(500);
 
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(merchant.getName(),
