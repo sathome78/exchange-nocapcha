@@ -16,12 +16,9 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.ethereum.EthereumCommonService;
+import me.exrates.service.ethereum.*;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
-import me.exrates.service.ethereum.EthTokenService;
-import me.exrates.service.ethereum.EthTokenServiceImpl;
-import me.exrates.service.ethereum.EthereumCommonServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.lisk.LiskService;
 import me.exrates.service.lisk.LiskServiceImpl;
@@ -472,6 +469,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BitcoinAtom", "BCA", 4, 20, false);
     }
 
+    @Bean(name = "liskServiceImpl")
+    public LiskService liskService() {
+        return new LiskServiceImpl("Lisk", "LSK", "merchants/lisk.properties");
+    }
+
+    @Bean(name = "btwServiceImpl")
+    public LiskService btwService() {
+        return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
+    }
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
@@ -491,7 +498,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "EOS",
-                "EOS", true, Convert.Unit.ETHER);
+                "EOS", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "repServiceImpl")
@@ -501,7 +508,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true, Convert.Unit.ETHER);
+                "REP", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -511,7 +518,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "Golem",
-                "GNT", false, Convert.Unit.ETHER);
+                "GNT", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "omgServiceImpl")
@@ -521,7 +528,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "OmiseGo",
-                "OMG", true, Convert.Unit.ETHER);
+                "OMG", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "bnbServiceImpl")
@@ -531,7 +538,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BinanceCoin",
-                "BNB", true, Convert.Unit.ETHER);
+                "BNB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "atlServiceImpl")
@@ -541,7 +548,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "ATLANT",
-                "ATL", true, Convert.Unit.ETHER);
+                "ATL", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "bitRentServiceImpl")
@@ -551,7 +558,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BitRent",
-                "RNTB", true, Convert.Unit.ETHER);
+                "RNTB", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "nioServiceImpl")
@@ -561,7 +568,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "NIO",
-                "NIO", true, Convert.Unit.WEI);
+                "NIO", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "gosServiceImpl")
@@ -571,18 +578,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "GOS",
-                "GOS", true, Convert.Unit.MWEI);
+                "GOS", true, ExConvert.Unit.MWEI);
     }
 
-    @Bean(name = "liskServiceImpl")
-    public LiskService liskService() {
-        return new LiskServiceImpl("Lisk", "LSK", "merchants/lisk.properties");
-    }
-
-    @Bean(name = "btwServiceImpl")
-    public LiskService btwService() {
-        return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
-    }
 
     @Bean(name = "bptnServiceImpl")
     public EthTokenService BptnRentService() {
@@ -591,7 +589,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "BPTN",
-                "BPTN", true, Convert.Unit.ETHER);
+                "BPTN", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "taxiServiceImpl")
@@ -601,7 +599,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "TAXI",
-                "TAXI", true, Convert.Unit.ETHER);
+                "TAXI", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "nbtkServiceImpl")
@@ -611,7 +609,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "NBTK",
-                "NBTK", false, Convert.Unit.WEI);
+                "NBTK", false, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "ucashServiceImpl")
+    public EthTokenService ucashService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x92e52a1a235d9a103d970901066ce910aacefd37");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UCASH",
+                "UCASH", false, ExConvert.Unit.WEI);
     }
 
 //    Qtum tokens:
