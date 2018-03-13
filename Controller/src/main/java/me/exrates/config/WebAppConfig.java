@@ -599,6 +599,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BPTN", true, Convert.Unit.ETHER);
     }
 
+    @Bean(name = "nbcServiceImpl")
+    public EthTokenService NbcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f195617fa8fbad9540c5d113a99a0a0172aaedc");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NBC",
+                "NBC", true, Convert.Unit.ETHER);
+    }
+
+
+
     @Bean(name = "taxiServiceImpl")
     public EthTokenService taxiRentService() {
         List<String> tokensList = new ArrayList<>();
