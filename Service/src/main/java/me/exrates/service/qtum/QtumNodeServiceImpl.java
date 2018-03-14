@@ -68,7 +68,7 @@ public class QtumNodeServiceImpl implements QtumNodeService {
 
     @Override
     public void setWalletPassphrase() {
-        invokeJsonRpcMethod("walletpassphrase", Arrays.asList(walletPassphrase, 1), new TypeReference<QtumJsonRpcResponse<String>>() {});
+        invokeJsonRpcMethod("walletpassphrase", Arrays.asList(walletPassphrase, 2), new TypeReference<QtumJsonRpcResponse<String>>() {});
     }
 
     @Override
