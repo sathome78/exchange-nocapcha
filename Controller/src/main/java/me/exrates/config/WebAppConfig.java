@@ -619,7 +619,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "UCASH",
-                "UCASH", false, ExConvert.Unit.WEI);
+                "UCASH", true, ExConvert.Unit.WEI);
     }
 
 //    Qtum tokens:
