@@ -39,4 +39,8 @@ public interface QtumService extends IRefillable, IWithdrawable{
         return false;
     }
 
+    @Override
+    default Boolean storeSameAddressForParentAndTokens() {
+        return true;
+    }
 }
