@@ -631,6 +631,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "NBTK", false, Convert.Unit.WEI);
     }
 
+    @Bean(name = "nacServiceImpl")
+    public EthTokenService nacService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8d80de8a78198396329dfa769ad54d24bf90e7aa");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NAC",
+                "NAC", true, Convert.Unit.ETHER);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
