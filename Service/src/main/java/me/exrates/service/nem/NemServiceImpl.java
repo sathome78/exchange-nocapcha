@@ -137,7 +137,7 @@ public class NemServiceImpl implements NemService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        if (isTransactionDuplicate(hash, currency.getId())) {
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
             log.warn("nem tx duplicated {}", hash);
             return;
         }
@@ -179,7 +179,8 @@ public class NemServiceImpl implements NemService {
             String hash = params.get("hash");
             XemMosaicService mosaicService = (XemMosaicService) p.getService();
             Currency currency = currencyService.findByName(mosaicService.getCurrencyName());
-            if (isTransactionDuplicate(hash, currency.getId())) {
+            Merchant merchant = merchantService.findByName(mosaicService.getMerchantName());
+            if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
                 log.warn("{} tx duplicated {}", p.getMosaicIdDto().getNamespaceId(),hash);
                 return;
             }
@@ -220,9 +221,9 @@ public class NemServiceImpl implements NemService {
 
     }
 
-    private boolean isTransactionDuplicate(String hash, int currencyId) {
-        return StringUtils.isEmpty(hash) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currencyId,
-                hash).isPresent();
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
 
