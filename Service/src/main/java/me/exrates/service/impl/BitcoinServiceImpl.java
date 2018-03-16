@@ -64,6 +64,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Boolean supportInstantSend;
 
+  private Boolean nodeEnabled;
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
@@ -76,6 +78,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.walletPassword = props.getProperty("wallet.password");
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
+      this.nodeEnabled = Boolean.valueOf(props.getProperty("node.isEnabled"));
       this.zmqEnabled = Boolean.valueOf(props.getProperty("node.zmqEnabled"));
       this.supportInstantSend = Boolean.valueOf(props.getProperty("node.supportInstantSend"));
       this.merchantName = merchantName;
@@ -105,14 +108,17 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend);
-    bitcoinWalletService.initBtcdDaemon(zmqEnabled);
-    bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
-    bitcoinWalletService.walletFlux().subscribe(this::onPayment);
-    if (supportInstantSend) {
-      bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+    if (nodeEnabled) {
+      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend);
+      bitcoinWalletService.initBtcdDaemon(zmqEnabled);
+      bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
+      bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+      if (supportInstantSend) {
+        bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+      }
+      examineMissingPaymentsOnStartup();
     }
-    examineMissingPaymentsOnStartup();
+
   }
 
 

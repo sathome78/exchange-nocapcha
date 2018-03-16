@@ -48,6 +48,11 @@ public interface EthereumCommonService extends IMerchantService, IRefillable, IW
         return false;
     }
 
+    @Override
+    default Boolean storeSameAddressForParentAndTokens() {
+        return true;
+    }
+
     Web3j getWeb3j();
 
     List<String> getAccounts();
