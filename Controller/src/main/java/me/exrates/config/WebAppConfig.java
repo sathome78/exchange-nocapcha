@@ -477,6 +477,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BTCP", "BTCP", 4, 20, false);
     }
 
+    @Bean(name = "plcServiceImpl")
+    public BitcoinService plcService() {
+        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
+                "PLC", "PLC", 4, 20, false);
+    }
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
