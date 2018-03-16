@@ -702,9 +702,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
             (roleIdList.isEmpty() ? "" :
                 " AND USER.roleid IN (:role_id_list)") +
-            " WHERE " +
-            "   USER.status = " + UserStatus.ACTIVE.getStatus() +
-            "   AND EXISTS (" +
+            " WHERE EXISTS (" +
             "       SELECT * " +
             "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
             "           WHERE (IOP.currency_id=CURRENCY.id " +
