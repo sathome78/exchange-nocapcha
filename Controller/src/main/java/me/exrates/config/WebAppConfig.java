@@ -484,6 +484,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
+    @Bean(name = "plcServiceImpl")
+    public BitcoinService plcService() {
+        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
+                "PLC", "PLC", 4, 20, false);
+    }
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
