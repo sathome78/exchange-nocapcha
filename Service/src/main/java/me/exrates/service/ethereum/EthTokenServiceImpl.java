@@ -73,7 +73,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final boolean isERC20;
 
-    private final Convert.Unit unit;
+    private final ExConvert.Unit unit;
 
     @Autowired
     private RefillService refillService;
@@ -92,7 +92,7 @@ public class EthTokenServiceImpl implements EthTokenService {
     }
 
     public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
-                               String currencyName, boolean isERC20, Convert.Unit unit) {
+                               String currencyName, boolean isERC20, ExConvert.Unit unit) {
         this.contractAddress = contractAddress;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
@@ -152,7 +152,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                             merchant.getId(),
                             currency.getId(),
                             transaction.getHash()).isPresent()){
-                        BigDecimal amount = Convert.fromWei(response.value.getValue().toString(), unit);
+                        BigDecimal amount = ExConvert.fromWei(response.value.getValue().toString(), unit);
                         log.debug(merchant.getName() + " recipient: " + contractRecipient + ", amount: " + amount);
 
                         Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
@@ -262,7 +262,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
                     BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
 
-                    if (balance.compareTo(Convert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
 
@@ -281,15 +281,15 @@ public class EthTokenServiceImpl implements EthTokenService {
                                 ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
                                 credentials.getAddress(), feeAmount, Convert.Unit.ETHER).send();
 
-                        contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), Convert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
+                        contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), ExConvert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
                     }else if (futureAllowance.compareTo(balance) < 0){
-                        contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), Convert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
+                        contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), ExConvert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
                     }
 
                     contractMain.transferFrom(credentials.getAddress(),
                             ethereumCommonService.getMainAddress(), balance).send();
 
-                    log.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
+                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
                 }else {
 
                     ethTokenNotERC20 contract = (ethTokenNotERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), credentials, GAS_PRICE, GAS_LIMIT);
@@ -297,7 +297,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
                     BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
 
-                    if (balance.compareTo(Convert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+                    if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
 
@@ -317,7 +317,7 @@ public class EthTokenServiceImpl implements EthTokenService {
 
                     contract.transfer(ethereumCommonService.getMainAddress(), balance).send();
 
-                    log.debug(merchantName + " Funds " + Convert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
+                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
                 }
 
                 }catch (Exception e){
