@@ -300,9 +300,12 @@
           <div class="col-md-12 content">
             <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
+              <button class="blue-box" id="transactions-table-init">
+                <loc:message code="admin.datatable.showData"/></button>
             <button data-toggle="collapse" class="blue-box" data-target="#transaction-filter">
               <loc:message code="admin.user.transactions.extendedFilter"/></button>
-              <button data-toggle="collapse" class="blue-box" id="download_trans_history" style="margin: 10px 0;">
+
+              <button class="blue-box" id="download_trans_history" style="margin: 10px 0;">
                 <loc:message code="admin.user.transactions.downloadHistory"/></button>
             <div id="transaction-filter" class="collapse">
               <form id="transaction-search-form" class="form_auto_height" method="get">
@@ -446,6 +449,10 @@
                   <label for="exclude-zero-balances"><loc:message code="userWallets.excludeZero"/></label>
                 </div>
               </div>
+                <div class="col-md-12">
+                    <button class="blue-box" id="wallets-table-init">
+                        <loc:message code="admin.datatable.showData"/></button>
+                </div>
                 <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
                    class="admin-table table table-hover table-bordered table-striped"
@@ -511,7 +518,11 @@
         <%--Orders list form--%>
         <div id="panel4" class="tab-pane">
           <div style="width: 98%">
-            <div style="float: left; display: inline-block">
+              <div class="col-md-12" style="margin-top: 20px">
+                  <button class="blue-box" id="orders-tables-init">
+                      <loc:message code="admin.datatable.showData"/></button>
+              </div>
+            <div class="col-md-12" style="float: left; display: inline-block">
               <button id="myorders-button-deal" class="myorders__button green-box margin-box">
                 <loc:message
                         code="myorders.deal"/></button>
@@ -637,6 +648,8 @@
             <div class="text-center"><h4><loc:message code="admin.comments"/></h4></div>
             <div style="width: 98%">
               <div style="float: left; display: inline-block">
+                  <button class="blue-box" id="comments-table-init">
+                      <loc:message code="admin.datatable.showData"/></button>
                 <button id="comments-button" class="comments__button green-box margin-box">
                   <loc:message
                           code="admin.createComment"/></button>

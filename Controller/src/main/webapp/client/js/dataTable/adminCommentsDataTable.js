@@ -1,8 +1,8 @@
 var commentsDataTable;
 
 $(function () {
-
-    update();
+    $('#commentsTable').hide();
+    $('#comments-table-init').click(update);
 
     function update() {
         $('#checkMessage').hide();
@@ -55,6 +55,8 @@ $(function () {
                 ]
             });
         }
+        $('#commentsTable').show();
+
     }
 
 

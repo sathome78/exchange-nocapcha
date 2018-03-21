@@ -81,6 +81,8 @@
 
 <%--buttons group--%>
 <div class="form-group" style="text-align: left">
+    <button class="blue-box" id="ref-table-init">
+        <loc:message code="admin.datatable.showData"/></button>
     <button id="refExtFilter" class="blue-box"><loc:message code="admin.user.transactions.extendedFilter"/></button>
     <button id="refSearchClearButton" class="blue-box"><loc:message code="admin.reset"/></button>
     <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
