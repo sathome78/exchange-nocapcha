@@ -652,7 +652,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "NAC",
-                "NAC", true, Convert.Unit.ETHER);
+                "NAC", true, ExConvert.Unit.ETHER);
     }
 
 //    Qtum tokens:
