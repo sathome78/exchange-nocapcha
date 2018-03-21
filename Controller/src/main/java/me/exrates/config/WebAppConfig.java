@@ -645,6 +645,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "UCASH", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "echtServiceImpl")
+    public EthTokenService echtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1a2277c83930b7a64c3e3d5544eaa8c4f946b1b7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ECHT",
+                "ECHT", true, ExConvert.Unit.ETHER);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
