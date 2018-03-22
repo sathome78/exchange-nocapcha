@@ -69,7 +69,7 @@ public class BotServiceImpl implements BotService {
     private Scheduler botOrderCreationScheduler;
 
 
-    private final static ExecutorService botAcceptExecutors = Executors.newCachedThreadPool();
+    private final static ExecutorService botAcceptExecutors = Executors.newFixedThreadPool(10);
 
     @PostConstruct
     private void initBot() {
