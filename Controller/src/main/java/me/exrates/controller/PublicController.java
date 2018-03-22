@@ -35,8 +35,6 @@ public class PublicController {
     private
     OrderService orderService;
 
-    private final Object synchronizer = new Object();
-
     private ConcurrentMap<String, CoinmarketApiJsonDto> cachedData = new ConcurrentHashMap<>();
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -45,10 +43,8 @@ public class PublicController {
     @PostConstruct
     public void init() {
         scheduler.scheduleAtFixedRate(()-> {
-            synchronized(synchronizer) {
                 Map<String, CoinmarketApiJsonDto> newData = getData(null);
                 cachedData = new ConcurrentHashMap<>(newData);
-            }
         }, 0, 30, TimeUnit.MINUTES);
     }
 
@@ -67,9 +63,7 @@ public class PublicController {
             }
             Map<String, CoinmarketApiJsonDto> result;
             if (StringUtils.isEmpty(currencyPair) && cachedData != null && !cachedData.isEmpty()) {
-                synchronized(synchronizer) {
                     result = cachedData;
-                }
             } else {
                 result = getData(currencyPair);
             }
