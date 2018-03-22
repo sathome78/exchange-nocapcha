@@ -117,11 +117,13 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private String transferAccPublicKey;
 
-    private BigDecimal minBalanceForTransfer = new BigDecimal("0.0031");
+    private BigDecimal minBalanceForTransfer;
 
     private int merchantId;
 
     private boolean needToCheckTokens = false;
+
+    private BigDecimal minSumOnAccount;
 
     @Override
     public Web3j getWeb3j() {
@@ -167,6 +169,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.destinationDir = props.getProperty("ethereum.destinationDir");
             this.password = props.getProperty("ethereum.password");
             this.mainAddress = props.getProperty("ethereum.mainAddress");
+            this.minSumOnAccount = new BigDecimal(props.getProperty("ethereum.minSumOnAccount"));
+            this.minBalanceForTransfer = new BigDecimal(props.getProperty("ethereum.minBalanceForTransfer"));
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
@@ -423,8 +427,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         new BigInteger(refillRequestAddressDto.getPubKey())));
                 log.info("Credentials pubKey: " + credentials.getEcKeyPair().getPublicKey());
                 Transfer.sendFunds(
-                        web3j, credentials, mainAddress, ethBalance
-                                .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).send();
+                        web3j, credentials, mainAddress, (ethBalance
+                                .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)))
+                                .subtract(minSumOnAccount), Convert.Unit.ETHER).send();
                 log.debug(merchantName + " Funds " + ethBalance + " sent to main account!!!");
             } catch (Exception e) {
                 subscribeCreated = false;

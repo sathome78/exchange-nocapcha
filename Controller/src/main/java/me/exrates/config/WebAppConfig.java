@@ -502,6 +502,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "Ethereum Classic", "ETC", 12);
     }
 
+    @Bean(name = "etzServiceImpl")
+    public EthereumCommonService etzService() {
+        return new EthereumCommonServiceImpl("merchants/etherzero.properties",
+                "EtherZero", "ETZ", 12);
+    }
+
     @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {
         List<String> tokensList = new ArrayList<>();
