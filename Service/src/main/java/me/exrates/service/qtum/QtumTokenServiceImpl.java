@@ -196,7 +196,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
 
                             String transferPrefix = "a9059cbb";
                             String hexAddressTo = TypeEncoder.encode(new Address(qtumNodeService.getHexAddress(mainAddressForTransfer)));
-                            String hexAmountForTransfer = TypeEncoder.encode(new Uint256(balance));
+                            String hexAmountForTransfer = TypeEncoder.encode(new Uint256(balance.subtract(new BigInteger("1"))));
                             String transferData = transferPrefix + hexAddressTo + hexAmountForTransfer;
                             qtumNodeService.setWalletPassphrase();
                             log.info("before token transfer");
