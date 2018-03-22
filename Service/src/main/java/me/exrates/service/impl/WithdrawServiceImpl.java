@@ -436,18 +436,21 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
+    log.debug("Posting withdrawal: " + withdrawRequest);
     IWithdrawable merchantService = (IWithdrawable) merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
-    BigDecimal amountForWithdraw = BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT);
     CommissionDataDto dto = commissionService
-        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), amountForWithdraw, OperationType.OUTPUT,
+        .normalizeAmountAndCalculateCommission(withdrawRequest.getUserId(), withdrawRequest.getAmount(), OperationType.OUTPUT,
                 withdrawRequest.getCurrencyId(), withdrawRequest.getMerchantId(), withdrawRequest.getDestinationTag());
-    BigDecimal finalAmount = BigDecimalProcessing.doAction(amountForWithdraw, dto.getMerchantCommissionAmount(), ActionType.SUBTRACT);
+    log.debug("Commission data: " + dto);
+    BigDecimal finalAmount = dto.getResultAmount();
+    log.debug("Final amount: " + BigDecimalProcessing.formatNoneComma(finalAmount, false));
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
         .amount(finalAmount.toString())
         .accountTo(withdrawRequest.getWallet())
         .destinationTag(withdrawRequest.getDestinationTag())
         .build();
+    log.debug("Withdraw merchant operation summary: " + withdrawMerchantOperation);
     try {
       log.debug("before post");
       WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null, merchantService.withdrawTransferringConfirmNeeded());
