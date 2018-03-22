@@ -269,7 +269,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                         if ( ethBalance.compareTo(new BigDecimal("0.001")) > 0) {
                             Transfer.sendFunds(
                                     ethereumCommonService.getWeb3j(), credentials, ethereumCommonService.getTransferAccAddress(), ethBalance
-                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).send();
+                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).sendAsync();
                         }
                         continue;
                     }
@@ -279,7 +279,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     if (futureAllowance.compareTo(balance) < 0 && ethBalance.compareTo(feeAmount) < 0) {
                         Transfer.sendFunds(
                                 ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
-                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).send();
+                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
 
                         contract.approve(ethereumCommonService.getCredentialsMain().getAddress(), ExConvert.toWei(new BigDecimal("500000000"), unit).toBigInteger()).send();
                     }else if (futureAllowance.compareTo(balance) < 0){
@@ -304,7 +304,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                         if ( ethBalance.compareTo(new BigDecimal("0.001")) > 0) {
                             Transfer.sendFunds(
                                     ethereumCommonService.getWeb3j(), credentials, ethereumCommonService.getTransferAccAddress(), ethBalance
-                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).send();
+                                            .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).sendAsync();
                         }
                         continue;
                     }
@@ -312,7 +312,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     if (ethBalance.compareTo(feeAmount) < 0) {
                         Transfer.sendFunds(
                                 ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
-                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).send();
+                                credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
                     }
 
                     contract.transfer(ethereumCommonService.getMainAddress(), balance).send();

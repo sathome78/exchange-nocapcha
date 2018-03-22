@@ -429,7 +429,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 Transfer.sendFunds(
                         web3j, credentials, mainAddress, (ethBalance
                                 .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(web3j.ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)))
-                                .subtract(minSumOnAccount), Convert.Unit.ETHER).send();
+                                .subtract(minSumOnAccount), Convert.Unit.ETHER).sendAsync();
                 log.debug(merchantName + " Funds " + ethBalance + " sent to main account!!!");
             } catch (Exception e) {
                 subscribeCreated = false;
