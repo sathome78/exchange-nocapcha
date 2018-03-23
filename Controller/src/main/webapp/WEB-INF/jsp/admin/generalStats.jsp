@@ -151,6 +151,7 @@
                             <thead>
                             <tr>
                                 <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="admin.stats.allRealUsers"/></th>
                                 <c:forEach items="${roleGroups}" var="roleGroup">
                                     <th>${roleGroup.name()}</th>
                                 </c:forEach>

@@ -132,6 +132,9 @@ $(function () {
             "columns": [
                 {
                     data: 'currency'
+                },
+                {
+                    data: 'totalReal'
                 }
             ],
             buttons: [{
@@ -144,7 +147,7 @@ $(function () {
         };
 
        $($balancesTable).find('th').filter(function (index) {
-            return index !== 0
+            return index > 1
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {
