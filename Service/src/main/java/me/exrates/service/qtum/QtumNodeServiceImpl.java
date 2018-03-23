@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
@@ -140,9 +141,9 @@ public class QtumNodeServiceImpl implements QtumNodeService {
     }
 
     private <T> T getQtumJsonRpcResponse(QtumJsonRpcRequest request, TypeReference<QtumJsonRpcResponse<T>> typeReference) {
-        String responseString = restTemplate.postForObject(endpoint, request, String.class);
         try {
-            QtumJsonRpcResponse<T> response = objectMapper.readValue(responseString,  typeReference);
+            String responseString = restTemplate.postForObject(endpoint, request, String.class);
+            QtumJsonRpcResponse<T> response = objectMapper.readValue(responseString, typeReference);
             if (response.getError() != null) {
                 log.error(response.getError());
                 throw new QtumApiException(response.getError().getCode(), response.getError().getMessage());
@@ -151,7 +152,10 @@ public class QtumNodeServiceImpl implements QtumNodeService {
                 throw new QtumApiException("No result found in response");
             }
             return response.getResult();
-        } catch (IOException e) {
+        } catch (HttpStatusCodeException e){
+            throw new QtumApiException(e.getResponseBodyAsString());
+        } catch (Exception e){
+            log.error(e);
             throw new QtumApiException(e);
         }
     }
