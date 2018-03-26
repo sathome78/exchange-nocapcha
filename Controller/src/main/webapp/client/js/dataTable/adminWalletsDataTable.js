@@ -142,7 +142,7 @@ $(function () {
     }
 
 
-    $('#walletsTable').find('tbody').on('click', 'tr', function () {
+    $('#walletsTable').on('click', 'tbody tr', function () {
         var currentRow = walletsDataTable.row( this );
         var currentData = currentRow.data();
         window.location = "/2a8fy7b07dxe44/userStatements/" + currentData.id;
