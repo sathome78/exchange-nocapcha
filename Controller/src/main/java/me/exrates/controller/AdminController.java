@@ -17,10 +17,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
-import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
-import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
-import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -1623,6 +1620,13 @@ public class AdminController {
     responseDto.setResults(walletService.sendRawTransactions(preparedTransactions));
     responseDto.setNewBalance(walletService.getWalletInfo().getBalance());
     return responseDto;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/listWallets", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public List<CoreWalletDto> listCoreWallets(HttpServletRequest request) {
+    Locale locale = localeResolver.resolveLocale(request);
+    return merchantService.retrieveCoreWallets(locale);
   }
 
 
