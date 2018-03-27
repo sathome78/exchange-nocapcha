@@ -149,6 +149,7 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BCD'/>"><loc:message code="bcdWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/zcash'/>"><loc:message code="zecWallet.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BTCP'/>"><loc:message code="btcpWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/SZC'/>"><loc:message code="szcWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>
