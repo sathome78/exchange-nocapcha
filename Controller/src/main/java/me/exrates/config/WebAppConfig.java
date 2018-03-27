@@ -511,6 +511,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BTX", "BTX", 4, 20, true, false);
     }
 
+    @Bean(name = "bitdollarServiceImpl")
+    public BitcoinService bitdollarService() {
+        return new BitcoinServiceImpl("merchants/xbd_wallet.properties",
+                "BitDollar", "XBD", 4, 20, false);
+    }
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
