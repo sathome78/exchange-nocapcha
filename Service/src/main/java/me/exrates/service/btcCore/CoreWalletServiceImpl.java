@@ -197,22 +197,24 @@ public class CoreWalletServiceImpl implements CoreWalletService {
  
   @Override
   public BtcWalletInfoDto getWalletInfo() {
-    try {
       BtcWalletInfoDto dto = new BtcWalletInfoDto();
-      WalletInfo walletInfo = btcdClient.getWalletInfo();
-      BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
-      BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
-      BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
-      
-      dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
-      dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
-      dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
-      dto.setTransactionCount(walletInfo.getTxCount());
-      return dto;
+
+      try {
+          BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
+          dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+
+          WalletInfo walletInfo = btcdClient.getWalletInfo();
+
+          BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
+          BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
+          dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
+          dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
+          dto.setTransactionCount(walletInfo.getTxCount());
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
     }
+      return dto;
+
   }
   
   @Override
