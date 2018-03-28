@@ -427,8 +427,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                       "", subtractFeeAddresses);
           } else {
-              txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
-                      "", subtractFeeAddresses);
+              try {
+                  txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
+                          "", subtractFeeAddresses);
+              } catch (Exception e) {
+                  log.error(e);
+                  txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,"");
+              }
           }
       }
       return new BtcPaymentResultDto(txId);
