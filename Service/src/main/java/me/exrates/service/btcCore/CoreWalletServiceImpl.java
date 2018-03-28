@@ -228,7 +228,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
           dto.setTransactionCount(walletInfo.getTxCount());
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-    }
+          try {
+              BigDecimal spendableBalance = btcdClient.getBalance();
+              dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+          } catch (BitcoindException | CommunicationException e1) {
+              log.error(e1);
+          }
+      }
       return dto;
 
   }
@@ -310,7 +316,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       } catch (BitcoindException | CommunicationException e1) {
         log.error(e1);
       }
-      throw new BitcoinCoreException(e);
+      return new BigDecimal(-1L);
     }
   }
   
