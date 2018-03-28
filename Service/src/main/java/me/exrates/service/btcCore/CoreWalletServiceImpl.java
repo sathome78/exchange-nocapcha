@@ -391,12 +391,29 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   }
   
   private void unlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
-    Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
-    if (unlockedUntil != null && unlockedUntil == 0) {
-      btcdClient.walletPassphrase(password, authTimeout);
-    }
+    unlockWallet(password, authTimeout, false);
   }
-  
+
+  private void forceUnlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
+      unlockWallet(password, authTimeout, true);
+  }
+
+    private void unlockWallet(String password, int authTimeout, boolean forceUnlock) throws BitcoindException, CommunicationException {
+        Long unlockedUntil = getUnlockedUntil();
+        if (unlockedUntil != null && (forceUnlock || unlockedUntil == 0) ) {
+            btcdClient.walletPassphrase(password, authTimeout);
+        }
+    }
+
+    private Long getUnlockedUntil() throws BitcoindException, CommunicationException {
+        try {
+            return btcdClient.getInfo().getUnlockedUntil();
+        } catch (Exception e) {
+            log.error(e);
+            return btcdClient.getWalletInfo().getUnlockedUntil();
+        }
+    }
+
   @Override
   public BtcPaymentResultDto sendToMany(Map<String, BigDecimal> payments, boolean subtractFeeFromAmount) {
     try {
