@@ -493,7 +493,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "szcServiceImpl")
     public BitcoinService szcService() {
         return new BitcoinServiceImpl("merchants/szc_wallet.properties",
-                "SZC", "SZC", 4, 20, false);
+                "SZC", "SZC", 4, 20, false, false);
     }
 
     @Bean(name = "btxServiceImpl")

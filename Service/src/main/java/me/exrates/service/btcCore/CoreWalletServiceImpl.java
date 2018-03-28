@@ -61,6 +61,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private BtcDaemon btcDaemon;
 
   private Boolean supportInstantSend;
+  private Boolean supportSubtractFee;
 
   private Map<String, ScheduledFuture<?>> unlockingTasks = new ConcurrentHashMap<>();
 
@@ -72,7 +73,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
 
 
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend) {
+  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
@@ -82,6 +83,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       log.info("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
+      this.supportSubtractFee = supportSubtractFee;
     } catch (Exception e) {
       log.error("Could not initialize BTCD client of config {}. Reason: {} ", nodePropertySource, e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
@@ -427,11 +429,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
               txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING, false,
                       "", subtractFeeAddresses);
           } else {
-              try {
+              if (supportSubtractFee) {
                   txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,
                           "", subtractFeeAddresses);
-              } catch (Exception e) {
-                  log.error(e);
+              } else {
                   txId = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING,"");
               }
           }
