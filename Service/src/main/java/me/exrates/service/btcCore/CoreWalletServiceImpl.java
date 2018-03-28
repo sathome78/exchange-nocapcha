@@ -108,10 +108,10 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   @Override
   public String getNewAddress(String walletPassword) {
+      Integer keyPoolSize = getKeypoolSize();
+
     try {
-      WalletInfo walletInfo = btcdClient.getWalletInfo();
-      Integer keyPoolSize = walletInfo.getKeypoolSize();
-      
+
       /*
       * If wallet is encrypted and locked, pool of private keys is not refilled
       * Keys are automatically refilled on unlocking
@@ -125,8 +125,24 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException("Cannot generate new address!");
     }
   }
-  
-  @Override
+
+    private Integer getKeypoolSize() {
+        Integer keyPoolSize;
+        try {
+            keyPoolSize = btcdClient.getInfo().getKeypoolSize();
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            try {
+                keyPoolSize = btcdClient.getWalletInfo().getKeypoolSize();
+            } catch (BitcoindException | CommunicationException e2) {
+                log.error(e2);
+                throw new BitcoinCoreException("Cannot generate new address!");
+            }
+        }
+        return keyPoolSize;
+    }
+
+    @Override
   public void backupWallet(String backupFolder) {
     try {
       String filename = new StringJoiner("").add(backupFolder).add("backup_")
