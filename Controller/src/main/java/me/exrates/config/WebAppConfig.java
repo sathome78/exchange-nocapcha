@@ -55,8 +55,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.social.twitter.api.Twitter;
-import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -100,8 +98,7 @@ import java.util.stream.Collectors;
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
     "classpath:/mail.properties",
-    "classpath:/angular.properties",
-    "classpath:/twitter.properties"})
+    "classpath:/angular.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -830,15 +827,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;
-    }
-
-    @Bean
-    public Twitter twitter() {
-        return new TwitterTemplate(
-                twitterConsumerKey,
-                twitterConsumerSecret,
-                twitterAccessToken,
-                twitterAccessTokenSecret);
     }
 
 }
