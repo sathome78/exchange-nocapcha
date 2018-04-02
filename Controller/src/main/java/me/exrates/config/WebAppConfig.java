@@ -166,14 +166,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${angular.allowed.origin}")
     private String angularAllowedOrigin;
 
-    @Value("${twitter.appId}")
-    private String twitterConsumerKey;
-    @Value("${twitter.appSecret}")
-    private String twitterConsumerSecret;
-    @Value("${twitter.accessToken}")
-    private String twitterAccessToken;
-    @Value("${twitter.accessTokenSecret}")
-    private String twitterAccessTokenSecret;
 
     @PostConstruct
     public void init() {
