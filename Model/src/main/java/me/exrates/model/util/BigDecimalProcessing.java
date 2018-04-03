@@ -192,11 +192,14 @@ public class BigDecimalProcessing {
   }
 
   public static String formatNonePoint(String value, Integer minDecimalPlace) {
-    return formatNonePoint(new BigDecimal(value), minDecimalPlace);
+    BigDecimal formatted = value == null ? BigDecimal.ZERO : new BigDecimal(value);
+
+    return formatNonePoint(formatted, minDecimalPlace);
   }
 
   public static String formatNonePoint(String value, boolean trailingZeros) {
-    return formatNonePoint(new BigDecimal(value), trailingZeros);
+    BigDecimal formatted = value == null ? BigDecimal.ZERO : new BigDecimal(value);
+    return formatNonePoint(formatted, trailingZeros);
   }
 
   /**
