@@ -11,7 +11,6 @@ import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
-import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
@@ -20,6 +19,8 @@ import me.exrates.service.ethereum.*;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
+import me.exrates.service.nem.XemMosaicService;
+import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.lisk.LiskService;
 import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.qtum.QtumTokenService;
@@ -164,6 +165,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Value("${angular.allowed.origin}")
     private String angularAllowedOrigin;
+
 
     @PostConstruct
     public void init() {
@@ -439,10 +441,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BCD", "BCD", 4, 20, false);
     }
 
+    @Bean(name = "plcServiceImpl")
+    public BitcoinService pbtcService() {
+        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
+                "PLC", "PLC", 4, 20, false);
+    }
+
     @Bean(name = "bcxServiceImpl")
     public BitcoinService bcxService() {
         return new BitcoinServiceImpl("merchants/bcx_wallet.properties",
                 "BCX", "BCX", 4, 20, false);
+    }
+
+    @Bean(name = "bciServiceImpl")
+    public BitcoinService bciService() {
+        return new BitcoinServiceImpl("merchants/bci_wallet.properties",
+                "BCI", "BCI", 4, 20, false);
     }
 
     @Bean(name = "occServiceImpl")
@@ -484,16 +498,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
-    @Bean(name = "plcServiceImpl")
-    public BitcoinService plcService() {
-        return new BitcoinServiceImpl("merchants/plc_wallet.properties",
-                "PLC", "PLC", 4, 20, false);
-    }
 
     @Bean(name = "szcServiceImpl")
     public BitcoinService szcService() {
         return new BitcoinServiceImpl("merchants/szc_wallet.properties",
-                "SZC", "SZC", 4, 20, false);
+                "SZC", "SZC", 4, 20, false, false);
     }
 
     @Bean(name = "btxServiceImpl")
@@ -505,7 +514,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
-                "Ethereum", "ETH", 12);
+//                "Ethereum", "ETH", 12);
+                "Ethereum", "ETH", 2);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
@@ -702,6 +712,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "COBC",
                 "COBC", true, ExConvert.Unit.ETHER);
     }
+
 
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
