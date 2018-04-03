@@ -49,12 +49,16 @@ public class BigDecimalProcessing {
    * and removed trailing zeros. Or "null" if at least one of operands is "null"
    */
   public static BigDecimal doAction(BigDecimal value1, BigDecimal value2, ActionType actionType) {
+    return doAction(value1, value2, actionType, ROUND_TYPE);
+  }
+
+  public static BigDecimal doAction(BigDecimal value1, BigDecimal value2, ActionType actionType, RoundingMode roundingMode) {
     if (value1 == null || value2 == null) {
       return null;
     }
     BigDecimal result = value1;
-    value1 = value1.setScale(SCALE, ROUND_TYPE);
-    value2 = value2.setScale(SCALE, ROUND_TYPE);
+    value1 = value1.setScale(SCALE, roundingMode);
+    value2 = value2.setScale(SCALE, roundingMode);
     switch (actionType) {
       case ADD: {
         result = value1.add(value2);
@@ -68,23 +72,23 @@ public class BigDecimalProcessing {
         result = value1.multiply(value2);
         break;
       }
-            /*calculate value2 percent from value1*/
+      /*calculate value2 percent from value1*/
       case MULTIPLY_PERCENT: {
-        result = value1.multiply(value2).divide(new BigDecimal(100), ROUND_TYPE);
+        result = value1.multiply(value2).divide(new BigDecimal(100), roundingMode);
         break;
       }
-            /*calculate the growth in percent value2 relative value1
-            * 50, 120 -> 120/50*100-100 -> 140*/
+      /*calculate the growth in percent value2 relative value1
+       * 50, 120 -> 120/50*100-100 -> 140*/
       case PERCENT_GROWTH: {
-        result = value2.divide(value1, ROUND_TYPE).multiply(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(100).negate());
+        result = value2.divide(value1, roundingMode).multiply(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(100).negate());
         break;
       }
       case DEVIDE: {
-        result = value1.divide(value2, ROUND_TYPE);
+        result = value1.divide(value2, roundingMode);
         break;
       }
     }
-    return normalize(result);
+    return normalize(result, roundingMode);
   }
 
   /**
@@ -94,10 +98,14 @@ public class BigDecimalProcessing {
    * @return BigDecimal value without trailing zeros
    */
   public static BigDecimal normalize(BigDecimal bigDecimal) {
+    return normalize(bigDecimal, ROUND_TYPE);
+  }
+
+  public static BigDecimal normalize(BigDecimal bigDecimal, RoundingMode roundingMode) {
     if (bigDecimal == null) {
       return null;
     }
-    return bigDecimal.setScale(SCALE, ROUND_TYPE).stripTrailingZeros().add(BigDecimal.ZERO);
+    return bigDecimal.setScale(SCALE, roundingMode).stripTrailingZeros().add(BigDecimal.ZERO);
   }
 
   /**
