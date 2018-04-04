@@ -80,6 +80,8 @@ public class StellarReceivePaymentsService {
                         stellarService.onTransactionReceive(transactionResponse, ((PaymentOperationResponse) payment).getAmount());
                         // Record the paging token so we can start from here next time.
                         log.debug("transaction xlm {} saved ", transactionResponse.getHash());
+                    } else {
+
                     }
                 }
             }
