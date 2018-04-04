@@ -38,6 +38,8 @@ var reconnectsCounter = 0;
 
 var timer;
 
+var preferedcurrencyPairName;
+
 
 var onConnectFail = function () {
     connectedPS = false;
@@ -545,6 +547,7 @@ function showSubPage(subPageId) {
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
+    currencyPairName = $("#preferedCurrencyPairName").val();
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');
