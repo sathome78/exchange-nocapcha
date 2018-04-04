@@ -27,6 +27,7 @@ import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -735,6 +736,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(9000000000L),
                 10);
+    }
+
+    /***stellarAssets****/
+    @Bean(name = "sltStellarService")
+    public StellarAsset sltStellarService() {
+        return new StellarAsset("SLT",
+                "SLT",
+                "SLT",
+        "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP");
     }
 
     @Bean

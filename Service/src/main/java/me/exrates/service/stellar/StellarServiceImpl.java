@@ -118,6 +118,7 @@ public class StellarServiceImpl implements StellarService {
             log.warn("memo is null");
             return;
         }
+        paramsMap.put("currency", "????????");
         paramsMap.put("address", memo);
         paramsMap.put("amount", amount);
         try {
@@ -182,7 +183,7 @@ public class StellarServiceImpl implements StellarService {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName("XLM");
+        Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(XLM_MERCHANT);
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
