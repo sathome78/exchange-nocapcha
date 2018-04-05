@@ -183,16 +183,12 @@ public class CommissionServiceImpl implements CommissionService {
         IWithdrawable wMerchant = (IWithdrawable)merchantServiceContext.getMerchantService(merchantId);
         int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
         amount = amount.setScale(currencyScale, ROUND_DOWN);
-        companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_DOWN);
+        companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         if (wMerchant.specificWithdrawMerchantCommissionCountNeeded()) {
           merchantCommissionAmount = wMerchant.countSpecCommission(amount, destinationTag, merchantId);
           specMerchantComissionCount = true;
         } else {
-          BigDecimal amountForMerchantCommission = BigDecimalProcessing.doAction(amount, companyCommissionAmount, SUBTRACT, RoundingMode.DOWN)
-                  .setScale(currencyScale, ROUND_DOWN);
-
-          merchantCommissionAmount = BigDecimalProcessing.doAction(amountForMerchantCommission, merchantCommissionRate, MULTIPLY_PERCENT, RoundingMode.DOWN)
-                  .setScale(currencyScale, ROUND_DOWN);
+          merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
         }
         if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
           merchantCommissionAmount = merchantMinFixedCommission;
