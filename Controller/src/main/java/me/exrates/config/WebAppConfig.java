@@ -99,7 +99,8 @@ import java.util.stream.Collectors;
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
     "classpath:/mail.properties",
-    "classpath:/angular.properties"})
+    "classpath:/angular.properties",
+    "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -739,12 +740,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
     @Bean(name = "sltStellarService")
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
                 "SLT",
                 "SLT",
-        "GCKA6K5PCQ6PNF5RQBF7PQDJWRHO6UOGFMRLK3DYHDOI244V47XKQ4GP");
+        SLT_EMMITER);
     }
 
     @Bean
