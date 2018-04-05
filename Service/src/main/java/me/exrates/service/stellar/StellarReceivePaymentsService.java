@@ -72,12 +72,12 @@ public class StellarReceivePaymentsService {
                     PaymentOperationResponse response = ((PaymentOperationResponse) payment);
                     log.debug(response.getAsset().getType());
                     if (response.getAsset().equals(new AssetTypeNative())) {
-                       processPayment(response, "XLM");
+                       processPayment(response, "XLM", MERCHANT_NAME);
                     } else {
                         log.debug("asset {}", response.getAsset().toString());
                         StellarAsset asset = asssetsContext.getStellarAssetByAssetObject(response.getAsset());
                         if (asset != null) {
-                            processPayment(response, asset.getCurrencyName());
+                            processPayment(response, asset.getCurrencyName(), asset.getMerchantName());
                         }
                     }
                 }
@@ -85,7 +85,7 @@ public class StellarReceivePaymentsService {
         });
     }
 
-    private void processPayment(PaymentOperationResponse response, String currencyName) {
+    private void processPayment(PaymentOperationResponse response, String currencyName, String merchant) {
         TransactionResponse transactionResponse = null;
         try {
             transactionResponse = stellarTransactionService.getTxByURI(SEVER_URL, response.getLinks().getTransaction().getUri());
@@ -93,7 +93,7 @@ public class StellarReceivePaymentsService {
             log.error("error getting transaction {}", e);
         }
         log.debug("process transaction");
-        stellarService.onTransactionReceive(transactionResponse, response.getAmount());
+        stellarService.onTransactionReceive(transactionResponse, response.getAmount(), currencyName, merchant);
         // Record the paging token so we can start from here next time.
         log.debug("transaction {} {} saved ", currencyName, transactionResponse.getHash());
     }
