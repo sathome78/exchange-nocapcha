@@ -495,6 +495,7 @@ public class AdminController {
     model.addObject("userFiles", userService.findUserDoc(id));
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
     List<Merchant> merchantList = merchantService.findAll();
+    merchantList.sort(Comparator.comparing(Merchant::getName));
     model.addObject("merchants", merchantList);
     Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
