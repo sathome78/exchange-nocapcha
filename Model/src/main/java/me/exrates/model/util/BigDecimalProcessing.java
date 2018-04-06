@@ -177,6 +177,31 @@ public class BigDecimalProcessing {
     return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
   }
 
+  public static String formatNonePoint(BigDecimal bigDecimal, Integer minDecimalPlace) {
+    minDecimalPlace = Math.min(minDecimalPlace, SCALE);
+    DecimalFormat df = new DecimalFormat("###,##0." +
+            new String(new char[minDecimalPlace]).replace("\0", "0") +
+            new String(new char[SCALE - minDecimalPlace]).replace("\0", "#"));
+    DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
+    df.setGroupingUsed(false);
+    df.setRoundingMode(ROUND_TYPE);
+    df.setGroupingUsed(false);
+    dfs.setDecimalSeparator('.');
+    df.setDecimalFormatSymbols(dfs);
+    return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+  }
+
+  public static String formatNonePoint(String value, Integer minDecimalPlace) {
+    BigDecimal formatted = value == null ? BigDecimal.ZERO : new BigDecimal(value);
+
+    return formatNonePoint(formatted, minDecimalPlace);
+  }
+
+  public static String formatNonePoint(String value, boolean trailingZeros) {
+    BigDecimal formatted = value == null ? BigDecimal.ZERO : new BigDecimal(value);
+    return formatNonePoint(formatted, trailingZeros);
+  }
+
   /**
    * Returns String converted from BigDecimal value by formatNonePoint method
    * but result is quoted
@@ -220,6 +245,8 @@ public class BigDecimalProcessing {
     return formatLocale(new BigDecimal(value), locale, minDecimalPlace);
   }
 
+
+
   /**
    * Returns String converted from BigDecimal value
    * with group and decimal separators according to locale
@@ -244,6 +271,7 @@ public class BigDecimalProcessing {
     df.setGroupingUsed(false);
     return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
   }
+
 
   public static String formatLocaleFixedDecimal(String value, Locale locale, Integer decimalDigits) {
     return formatLocaleFixedDecimal(new BigDecimal(value), locale, decimalDigits);
