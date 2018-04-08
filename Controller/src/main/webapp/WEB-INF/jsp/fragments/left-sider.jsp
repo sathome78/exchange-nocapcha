@@ -29,6 +29,7 @@
                 <tr>
                     <th><loc:message code="mywallets.currency"/></th>
                     <th><loc:message code="mywallets.amount"/></th>
+                    <th><loc:message code="mywallets.amount"/></th>
                 </tr>
                 <script type="text/template" id="mywallets_table_row">
                     <tr>
