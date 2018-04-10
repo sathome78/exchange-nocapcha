@@ -160,7 +160,7 @@ public class WalletDaoImpl implements WalletDao {
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
     final String sql =
-        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance " +
+        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
@@ -174,6 +174,7 @@ public class WalletDaoImpl implements WalletDao {
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
       myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
+      myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
       return myWalletsStatisticsDto;
     });
   }

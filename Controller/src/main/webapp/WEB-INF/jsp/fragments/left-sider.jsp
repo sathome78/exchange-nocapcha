@@ -36,6 +36,7 @@
                         <td><@=currencyName@><br/>
                             <span class="text-muted"><@=description@></span>
                         </td>
+                        <td class="right balance_<@=currencyName@>"><@=totalBalance@></td>
                         <td class="right balance_<@=currencyName@>"><@=activeBalance@></td>
                     </tr>
                 </script>
