@@ -71,4 +71,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('XBD/USD', 'XBD/BTC', 'XBD/ETH'));
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
-VALUES ((SELECT id from MERCHANT WHERE name='XBD'), (select id from CURRENCY where name='XBD'), 'XBDWallet.title');
+VALUES ((SELECT id from MERCHANT WHERE name='BitDollar'), (select id from CURRENCY where name='XBD'), 'xbdWallet.title');
