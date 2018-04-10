@@ -228,6 +228,6 @@ public class StellarServiceImpl implements StellarService {
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
-        return new BigDecimal(0.001);
+        return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
     }
 }
