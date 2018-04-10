@@ -55,6 +55,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -98,7 +100,8 @@ import java.util.stream.Collectors;
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
     "classpath:/mail.properties",
-    "classpath:/angular.properties"})
+    "classpath:/angular.properties",
+    "classpath:/twitter.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -165,6 +168,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Value("${angular.allowed.origin}")
     private String angularAllowedOrigin;
+
+    @Value("${twitter.appId}")
+    private String twitterConsumerKey;
+    @Value("${twitter.appSecret}")
+    private String twitterConsumerSecret;
+    @Value("${twitter.accessToken}")
+    private String twitterAccessToken;
+    @Value("${twitter.accessTokenSecret}")
+    private String twitterAccessTokenSecret;
 
 
     @PostConstruct
@@ -508,7 +520,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "btxServiceImpl")
     public BitcoinService btxService() {
         return new BitcoinServiceImpl("merchants/btx_wallet.properties",
-                "BTX", "BTX", 4, 20, true);
+                "BTX", "BTX", 4, 20, true, false);
+    }
+
+    @Bean(name = "bitdollarServiceImpl")
+    public BitcoinService bitdollarService() {
+        return new BitcoinServiceImpl("merchants/xbd_wallet.properties",
+                "BitDollar", "XBD", 4, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
@@ -814,6 +832,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;
+    }
+
+    @Bean
+    public Twitter twitter() {
+        return new TwitterTemplate(
+                twitterConsumerKey,
+                twitterConsumerSecret,
+                twitterAccessToken,
+                twitterAccessTokenSecret);
     }
 
 }
