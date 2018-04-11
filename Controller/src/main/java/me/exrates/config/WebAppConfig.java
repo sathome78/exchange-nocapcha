@@ -27,6 +27,7 @@ import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
+import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -101,7 +102,9 @@ import java.util.stream.Collectors;
     "classpath:/news.properties",
     "classpath:/mail.properties",
     "classpath:/angular.properties",
-    "classpath:/twitter.properties"})
+    "classpath:/twitter.properties",
+    "classpath:/angular.properties",
+    "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -763,6 +766,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(9000000000L),
                 10);
+    }
+
+    /***stellarAssets****/
+    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    @Bean(name = "sltStellarService")
+    public StellarAsset sltStellarService() {
+        return new StellarAsset("SLT",
+                "SLT",
+                "SLT",
+        SLT_EMMITER);
     }
 
     @Bean
