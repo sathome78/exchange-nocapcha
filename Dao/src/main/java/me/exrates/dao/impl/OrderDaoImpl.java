@@ -672,20 +672,23 @@ public class OrderDaoImpl implements OrderDao {
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
-        if(scope == null || scope.isEmpty()) {
-            userFilterClause = " AND EXORDERS.user_id = :user_id ";
-        } else {
-            switch (scope) {
-                case "ALL":
-                    userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
-                    break;
-                case "ACCEPTED":
-                    userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
-                    break;
-                default:
-                    userFilterClause = " AND EXORDERS.user_id = :user_id ";
-                    break;
-            }
+        String joinClause = "";
+
+        if (scope == null || scope.isEmpty()) {
+            scope = "OTHER";
+        }
+
+        switch (scope) {
+            case "ALL":
+                userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
+                joinClause = " LEFT JOIN EXORDERS EX2 ON EXORDERS.id = EX2.counter_order_id ";
+                break;
+            case "ACCEPTED":
+                userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
+                break;
+            default:
+                userFilterClause = " AND EXORDERS.user_id = :user_id ";
+                break;
         }
 
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());

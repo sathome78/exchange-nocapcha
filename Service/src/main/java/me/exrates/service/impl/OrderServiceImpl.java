@@ -57,6 +57,7 @@ import static me.exrates.model.enums.OrderActionEnum.*;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+  public static final String SCOPE = "ALL";
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
@@ -1270,7 +1271,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                 OperationType operationType,
                                                                 Integer offset, Integer limit, Locale locale) {
-    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
+    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
 
     return result;
   }
