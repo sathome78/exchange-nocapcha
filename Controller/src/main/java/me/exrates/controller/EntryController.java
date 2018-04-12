@@ -94,7 +94,7 @@ public class EntryController {
     private final List<String> preferedCurrencyPairs = new ArrayList<>();
 
     public EntryController() {
-        this.preferedCurrencyPairs.add("REP/BTC");
+        this.preferedCurrencyPairs.add("SLT/BTC");
     }
 
 
