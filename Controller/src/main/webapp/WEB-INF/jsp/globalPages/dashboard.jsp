@@ -101,7 +101,6 @@
                 <%--to keep panel when all pages are hidden--%>
                 <%--and to keep startup page ID--%>
                 ${startupPage}
-                <%--${preferedCurrencyPairName}--%>
             </div>
             <div id="startup-subPage-id" class="center-dummy" style="height: 1px; visibility: hidden">
                 <%--to keep panel when all pages are hidden--%>

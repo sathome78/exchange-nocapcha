@@ -38,7 +38,6 @@ var reconnectsCounter = 0;
 
 var timer;
 
-var preferedcurrencyPairName;
 
 
 var onConnectFail = function () {
