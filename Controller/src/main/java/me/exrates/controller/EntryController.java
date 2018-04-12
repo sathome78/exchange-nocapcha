@@ -90,13 +90,10 @@ public class EntryController {
     private NotificatorsService notificatorService;
     @Autowired
     private ReferralService referralService;
+    @Autowired
+    private CurrencyService currencyService;
 
     private final List<String> preferedCurrencyPairs = new ArrayList<>();
-
-    public EntryController() {
-        this.preferedCurrencyPairs.add("SLT/BTC");
-    }
-
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -145,8 +142,11 @@ public class EntryController {
                                                 .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                                                 .collect(Collectors.toList()));
         }
-        if (currencyPair != null && preferedCurrencyPairs.contains(currencyPair)){
-            model.addObject("preferedCurrencyPairName", currencyPair);
+        if (currencyPair != null){
+            currencyService.findPermitedCurrencyPairs().stream()
+                    .filter(p-> p.getName().equals(currencyPair))
+                    .limit(1)
+                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
