@@ -9,6 +9,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
+import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.QRLoginEvent;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -123,6 +124,9 @@ public class OnlineRestController {
   @Autowired
   StopOrderService stopOrderService;
 
+  @Autowired
+  private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
+
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
     UserRole userRole = userService.getUserRoleFromSecurityContext();
@@ -151,7 +155,18 @@ public class OnlineRestController {
     String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+    BigDecimal sumUSD = new BigDecimal(0);
     List<MyWalletsStatisticsDto> result = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+    List<ExOrderStatisticsShortByPairsDto> resultOrders = ordersStatisticByPairsCache.getCachedList();
+    result.stream().forEach(c -> {
+      System.out.println(c.toString());
+            resultOrders.stream().filter(o-> o.getCurrencyPairName().equals(c.getCurrencyName().concat("/USD"))).forEach(o-> {
+//                      sumUSD = sumUSD.add(new BigDecimal(o.getLastOrderRate()).multiply(new BigDecimal(c.getTotalBalance())));
+//                      System.out.println(sumUSD);
+                    }
+            );
+    });
+
     return result;
   }
 

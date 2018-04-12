@@ -24,11 +24,16 @@
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
         <hr class="under_h4">
         <div id="mywallets_table_wrapper">
+            <div>
+                <h5 class="h2_green"><loc:message code="mywallets.balanceTotal"/></h5>
+                1234
+
+            </div>
             <table id="mywallets_table" class="table mywallets_table">
                 <tbody>
                 <tr>
                     <th><loc:message code="mywallets.currency"/></th>
-                    <th><loc:message code="mywallets.amount"/></th>
+                    <th><loc:message code="mywallets.amountTotal"/></th>
                     <th><loc:message code="mywallets.amount"/></th>
                 </tr>
                 <script type="text/template" id="mywallets_table_row">
@@ -36,7 +41,7 @@
                         <td><@=currencyName@><br/>
                             <span class="text-muted"><@=description@></span>
                         </td>
-                        <td class="right balance_<@=currencyName@>"><@=totalBalance@></td>
+                        <td class="right balanceTotal_<@=currencyName@>"><@=totalBalance@></td>
                         <td class="right balance_<@=currencyName@>"><@=activeBalance@></td>
                     </tr>
                 </script>
