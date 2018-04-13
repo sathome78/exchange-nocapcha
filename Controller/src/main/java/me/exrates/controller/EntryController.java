@@ -93,8 +93,6 @@ public class EntryController {
     @Autowired
     private CurrencyService currencyService;
 
-    private final List<String> preferedCurrencyPairs = new ArrayList<>();
-
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
             @RequestParam(required = false) String errorNoty,
