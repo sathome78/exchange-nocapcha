@@ -23,12 +23,14 @@
         </div>
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
         <hr class="under_h4">
+        <div>
+            <h5><loc:message code="mywallets.balanceTotal"/>
+            </h5>
+            <h5>
+                <div id="total-sum-usd" class="total-sum-usd"></div>
+            </h5>
+        </div>
         <div id="mywallets_table_wrapper">
-            <div>
-                <h5 class="h2_green"><loc:message code="mywallets.balanceTotal"/></h5>
-                1234
-
-            </div>
             <table id="mywallets_table" class="table mywallets_table">
                 <tbody>
                 <tr>
@@ -41,8 +43,9 @@
                         <td><@=currencyName@><br/>
                             <span class="text-muted"><@=description@></span>
                         </td>
-                        <td class="right balanceTotal_<@=currencyName@>"><@=totalBalance@></td>
-                        <td class="right balance_<@=currencyName@>"><@=activeBalance@></td>
+                        <td class="right balanceTotal_<@=currencyName@>"><@=(Math.trunc(totalBalance * Math.pow(10, 5)) / Math.pow(10, 5)).toFixed(5)@></td>
+                        <td class="right balance_<@=currencyName@>" hidden><@=activeBalance@></td>
+                        <td class="right balanceCut_<@=currencyName@>"><@=(Math.trunc(activeBalance * Math.pow(10, 5)) / Math.pow(10, 5)).toFixed(5)@></td>
                     </tr>
                 </script>
                 </tbody>

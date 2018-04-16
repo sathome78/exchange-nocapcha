@@ -10,7 +10,6 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
-import me.exrates.service.events.QRLoginEvent;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -18,10 +17,8 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.event.EventPublicationInterceptor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -146,31 +143,70 @@ public class OnlineRestController {
 
   @OnlineMethod
   @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
-  public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+  public Map<String, Object> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                                              Principal principal, HttpServletRequest request) {
     if (principal == null) {
       return null;
     }
+
     String email = principal.getName();
     String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    BigDecimal sumUSD = new BigDecimal(0);
-    List<MyWalletsStatisticsDto> result = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
-    List<ExOrderStatisticsShortByPairsDto> resultOrders = ordersStatisticByPairsCache.getCachedList();
-    result.stream().forEach(c -> {
-      System.out.println(c.toString());
-            resultOrders.stream().filter(o-> o.getCurrencyPairName().equals(c.getCurrencyName().concat("/USD"))).forEach(o-> {
-//                      sumUSD = sumUSD.add(new BigDecimal(o.getLastOrderRate()).multiply(new BigDecimal(c.getTotalBalance())));
-//                      System.out.println(sumUSD);
-                    }
-            );
-    });
 
-    return result;
+    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+    HashMap<String, Object> map = new HashMap<String, Object>();
+    map.put("mapWallets", resultWallet);
+
+    if (resultWallet.size() > 1) {
+
+      List<ExOrderStatisticsShortByPairsDto> resultOrders = ordersStatisticByPairsCache.getCachedList();
+
+      final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
+      resultOrders.stream()
+              .filter(p -> p.getCurrencyPairName().contains("BTC/USD") || p.getCurrencyPairName().contains("ETH/USD"))
+              .forEach(p -> ratesBTC_ETH.put(p.getCurrencyPairName(), new BigDecimal(p.getLastOrderRate())));
+
+      final List<WalletTotalUsdDto> walletTotalUsdDtoList = new ArrayList<>();
+      for (MyWalletsStatisticsDto myWalletsStatisticsDto : resultWallet) {
+        WalletTotalUsdDto walletTotalUsdDto = new WalletTotalUsdDto(myWalletsStatisticsDto.getCurrencyName());
+        Map<String, BigDecimal> mapWalletTotalUsdDto = new HashMap<>();
+        resultOrders.stream()
+                .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
+                        || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
+                        || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
+                )
+                .forEach(o -> {
+                  mapWalletTotalUsdDto.put(o.getCurrencyPairName(), new BigDecimal(o.getLastOrderRate()));
+                });
+        if (!mapWalletTotalUsdDto.isEmpty()) {
+          walletTotalUsdDto.setTotalBalance(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+          walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+          walletTotalUsdDtoList.add(walletTotalUsdDto);
+        }
+      }
+
+      walletTotalUsdDtoList.stream().forEach(wallet -> {
+        if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
+        } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/BTC"))
+                  .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("BTC/USD")));
+        } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/ETH"))) {
+          wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/ETH"))
+                  .multiply(wallet.getTotalBalance()).multiply(ratesBTC_ETH.get("ETH/USD")));
+        }
+      });
+
+      map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getTotalBalance().doubleValue()).sum());
+    }
+
+    return map;
+
   }
 
-  /**
+
+   /**
    * this method do two function:
    * - one of online methods. Retrieves current statistics (states) for all currency pairs
    * - controls the session state and start new session when necessary
