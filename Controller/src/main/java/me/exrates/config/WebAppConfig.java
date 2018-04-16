@@ -513,6 +513,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
+    @Bean(name = "riseServiceImpl")
+    public LiskService riseService() {
+        return new LiskServiceImpl("RiseVision", "RISE", "merchants/rise_vision.properties");
+    }
+
 
     @Bean(name = "szcServiceImpl")
     public BitcoinService szcService() {
