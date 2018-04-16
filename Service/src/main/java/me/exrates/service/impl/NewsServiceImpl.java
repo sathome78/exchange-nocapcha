@@ -6,6 +6,7 @@ import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
+import me.exrates.service.TwitterService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.NewsCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
@@ -16,13 +17,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.social.twitter.api.Tweet;
-import org.springframework.social.twitter.api.Twitter;
-import org.springframework.social.twitter.api.UrlEntity;
+import org.springframework.social.twitter.api.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -45,8 +46,6 @@ public class NewsServiceImpl implements NewsService {
 
     private static final Logger LOG = LogManager.getLogger(NewsServiceImpl.class);
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
     @Autowired
     private NewsDao newsDao;
 
@@ -54,7 +53,7 @@ public class NewsServiceImpl implements NewsService {
     ServiceCacheableProxy serviceCacheableProxy;
 
     @Autowired
-    private Twitter twitter;
+    private TwitterService twitterService;
 
     @Override
     @Transactional(readOnly = true)
@@ -267,7 +266,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     public List<NewsDto> getTwitterNews(Integer amount) {
-        return twitter.timelineOperations().getUserTimeline(amount)
+        return twitterService.getTweets()
                 .stream()
                 .map(tweet -> {
                     NewsDto dto = new NewsDto();

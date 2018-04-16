@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -967,6 +968,13 @@ public class OnlineRestController {
   @RequestMapping(value = "/dashboard/newsTwitter", method = RequestMethod.GET)
   public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "30")int amount) {
     return newsService.getTwitterNews(amount);
+  }
+
+  @OnlineMethod
+  @RequestMapping(value = "/dashboard/updateNewsTwitter", method = RequestMethod.GET)
+  public ResponseEntity updateTwitterNewsList() {
+    twitterService.updateTweets();
+    return ResponseEntity.ok("Twitter timeline has been updated");
   }
 
   @OnlineMethod

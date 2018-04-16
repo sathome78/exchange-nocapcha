@@ -45,6 +45,7 @@
 </div>
 <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
     <button id="add-news-button" class="send_button"><loc:message code="news.addnews"/></button>
+    <button id="update_news" class="send_button">Update news</button>
     <%--MODAL--%>
     <%@include file='modal/news_add_modal.jsp' %>
     <%@include file='modal/news_delete_modal.jsp' %>
