@@ -531,6 +531,10 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
+
+        //TODO temporary close because of bruteforce
+        throw new RegistrationClosedException("Registration temporary closed");
+/*
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());
@@ -589,7 +593,7 @@ public class MobileEntryController {
         } catch (Exception e) {
             logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
             throw e;
-        }
+        }*/
 
     }
     
