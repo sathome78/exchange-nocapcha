@@ -25,10 +25,10 @@
         <hr class="under_h4">
         <div class="parent">
             <div class="total_usd_child">
-                <h5><loc:message code="mywallets.balanceTotal"/></h5>
+                <h6><loc:message code="mywallets.balanceTotal"/></h6>
             </div>
             <div class="total_usd_child">
-                <h5><div id="total-sum-usd" class="total-sum-usd" align="right"></div></h5>
+                <h6><div id="total-sum-usd" class="total-sum-usd" align="right"></div></h6>
             </div>
         </div>
         <hr class="under_h4">
