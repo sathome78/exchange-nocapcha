@@ -38,6 +38,8 @@ public interface OrderDao {
 
     List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
+    void postAcceptedOrderToDB(ExOrder exOrder);
+
     List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);

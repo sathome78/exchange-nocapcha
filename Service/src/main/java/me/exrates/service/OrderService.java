@@ -56,7 +56,9 @@ public interface OrderService {
    */
   int createOrder(OrderCreateDto order, OrderActionEnum action);
 
-  Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+    void postBotOrderToDb(OrderCreateDto orderCreateDto);
+
+    Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
   Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 

@@ -100,13 +100,6 @@ public class BotServiceImpl implements BotService {
         });
     }
 
-    @Override
-    @TransactionalEventListener
-    public void onOrderCreated(CreateOrderEvent event) {
-        ExOrder exOrder = (ExOrder) event.getSource();
-        acceptAfterDelay(exOrder);
-    }
-
 
     @Override
     @Transactional
@@ -229,7 +222,9 @@ public class BotServiceImpl implements BotService {
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         log.debug("Prepared order: {}", orderCreateDto);
-        orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+       // orderService.createOrder(orderCreateDto, OrderActionEnum.CREATE);
+        orderService.postBotOrderToDb(orderCreateDto);
+
     }
 
 

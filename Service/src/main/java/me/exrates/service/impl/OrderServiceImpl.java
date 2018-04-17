@@ -451,6 +451,14 @@ public class OrderServiceImpl implements OrderService {
     }
   }
 
+  @Override
+  public void postBotOrderToDb(OrderCreateDto orderCreateDto) {
+    ExOrder exOrder = new ExOrder(orderCreateDto);
+    exOrder.setUserAcceptorId(orderCreateDto.getUserId());
+    orderDao.postAcceptedOrderToDB(exOrder);
+    eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
+  }
+
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
