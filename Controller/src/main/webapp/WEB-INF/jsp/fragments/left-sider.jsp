@@ -23,13 +23,15 @@
         </div>
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
         <hr class="under_h4">
-        <div>
-            <h5><loc:message code="mywallets.balanceTotal"/>
-            </h5>
-            <h5>
-                <div id="total-sum-usd" class="total-sum-usd"></div>
-            </h5>
+        <div class="parent">
+            <div class="total_usd_child">
+                <h5><loc:message code="mywallets.balanceTotal"/></h5>
+            </div>
+            <div class="total_usd_child">
+                <h5><div id="total-sum-usd" class="total-sum-usd" align="right"></div></h5>
+            </div>
         </div>
+        <hr class="under_h4">
         <div id="mywallets_table_wrapper">
             <table id="mywallets_table" class="table mywallets_table">
                 <tbody>

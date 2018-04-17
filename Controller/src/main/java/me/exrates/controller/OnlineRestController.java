@@ -171,6 +171,11 @@ public class OnlineRestController {
       for (MyWalletsStatisticsDto myWalletsStatisticsDto : resultWallet) {
         WalletTotalUsdDto walletTotalUsdDto = new WalletTotalUsdDto(myWalletsStatisticsDto.getCurrencyName());
         Map<String, BigDecimal> mapWalletTotalUsdDto = new HashMap<>();
+        if (myWalletsStatisticsDto.getCurrencyName().equals("USD")){
+            walletTotalUsdDto.setSumUSD(new BigDecimal(myWalletsStatisticsDto.getTotalBalance()));
+            walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
+            walletTotalUsdDtoList.add(walletTotalUsdDto);
+        }
         resultOrders.stream()
                 .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
                         || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
@@ -198,7 +203,7 @@ public class OnlineRestController {
         }
       });
 
-      map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getTotalBalance().doubleValue()).sum());
+      map.put("sumTotalUSD", walletTotalUsdDtoList.stream().mapToDouble(w -> w.getSumUSD().doubleValue()).sum());
     }
 
     return map;
