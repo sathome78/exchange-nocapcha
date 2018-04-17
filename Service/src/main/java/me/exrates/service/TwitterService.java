@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TwitterService {
 
-    List<Tweet> getTweets();
+    List<Tweet> getTimeLine();
 
-    void updateTweets();
+    List<Tweet> getTimeLine(Integer size);
 }

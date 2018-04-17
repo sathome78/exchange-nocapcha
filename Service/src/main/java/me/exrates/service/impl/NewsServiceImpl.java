@@ -6,7 +6,6 @@ import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
-import me.exrates.service.TwitterService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.NewsCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
@@ -22,16 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,9 +46,6 @@ public class NewsServiceImpl implements NewsService {
 
     @Autowired
     ServiceCacheableProxy serviceCacheableProxy;
-
-    @Autowired
-    private TwitterService twitterService;
 
     @Override
     @Transactional(readOnly = true)
@@ -265,8 +257,9 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<NewsDto> getTwitterNews(Integer amount) {
-        return twitterService.getTweets()
+        return serviceCacheableProxy.getTwitterTimeLine()
                 .stream()
                 .map(tweet -> {
                     NewsDto dto = new NewsDto();

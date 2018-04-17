@@ -971,13 +971,6 @@ public class OnlineRestController {
   }
 
   @OnlineMethod
-  @RequestMapping(value = "/dashboard/updateNewsTwitter", method = RequestMethod.GET)
-  public ResponseEntity updateTwitterNewsList() {
-    twitterService.updateTweets();
-    return ResponseEntity.ok("Twitter timeline has been updated");
-  }
-
-  @OnlineMethod
   @RequestMapping(value = "/dashboard/notifications/{tableId}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public List<NotificationDto> findNotificationsByUser(@PathVariable("tableId") String tableId,
                                                        @RequestParam(required = false) Boolean refreshIfNeeded,

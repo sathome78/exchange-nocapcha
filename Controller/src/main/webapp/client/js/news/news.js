@@ -202,15 +202,6 @@ function NewsClass($loadingImg) {
             $('#news-archive-modal').modal();
         });
 
-        $('#update_news').click(function () {
-            $.ajax({
-                url: '/dashboard/updateNewsTwitter',
-                type: 'GET',
-                success: that.getNewsList
-            });
-        });
-
-
         $('#add-news-button').on('click', that.addNews);
         $('#variantEd').val($('#language').text().trim().toLowerCase());
         $('#variantEd').change(function () {
