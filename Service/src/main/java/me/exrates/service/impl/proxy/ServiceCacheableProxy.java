@@ -92,7 +92,7 @@ public class ServiceCacheableProxy {
     log.debug(String.format("\n%s backDealInterval: %s", currencyPair, backDealInterval));
     return orderDao.getDataForCandleChart(currencyPair, backDealInterval);
   }
-  
+
   @Cacheable(cacheNames = "twitterTimeLine")
   public List<Tweet> getTwitterTimeLine() {
     return twitterService.getTimeLine();
