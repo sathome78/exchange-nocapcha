@@ -1,5 +1,5 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('NuShares', 'NSR', 2, 'nsrServiceImpl', 'CRYPTO');
+VALUES ('NuShares', 'NuShares', 2, 'nsrServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('NSR', 'NuShares', '0', 8, 8, 8);
 
