@@ -127,13 +127,13 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public boolean createUserRest(User user, Locale locale) {
-    if (!ifEmailIsUnique(user.getEmail())) {
-      LOGGER.error("Email already exists!");
-      throw new UniqueEmailConstraintException("Email already exists!");
-    }
     if (!ifNicknameIsUnique(user.getNickname())) {
       LOGGER.error("Nickname already exists!");
       throw new UniqueNicknameConstraintException("Nickname already exists!");
+    }
+    if (!ifEmailIsUnique(user.getEmail())) {
+      LOGGER.error("Email already exists!");
+      throw new UniqueEmailConstraintException("Email already exists!");
     }
     Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp());
     if (result) {
