@@ -164,11 +164,6 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getDataForAreaChart(currencyPair, interval);
   }
 
-  @Transactional
-  @Override
-  public List<CandleChartItemDto> getDataForCandleChart(int pairId, BackDealInterval interval) {
-    return getDataForCandleChart(currencyService.findCurrencyPairById(pairId), interval);
-  }
 
   @Transactional
   @Override
@@ -192,25 +187,17 @@ public class OrderServiceImpl implements OrderService {
             resolution.getTimeValue(), resolution.getTimeUnit().name());
   }
 
-  @Transactional
-  @Override
-  public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
-                                                            LocalDateTime startTime, LocalDateTime endTime,ChartResolution resolution) {
-
-    return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(currencyPairId), startTime, endTime,
-            resolution.getTimeValue(), resolution.getTimeUnit().name());
-  }
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
     LocalDateTime endTime = LocalDateTime.now();
-    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
-            .plusMinutes(30 * (endTime.getMinute() / 30));
+//    LocalDateTime lastHalfHour = endTime.truncatedTo(ChronoUnit.HOURS)
+//            .plusMinutes(30 * (endTime.getMinute() / 30));
     LocalDateTime startTime = endTime.minus(timeFrame.getTimeValue(), timeFrame.getTimeUnit().getCorrespondingTimeUnit());
-    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
-            .plusMinutes(30 * (startTime.getMinute() / 30));
+//    LocalDateTime firstHalfHour = startTime.truncatedTo(ChronoUnit.HOURS)
+//            .plusMinutes(30 * (startTime.getMinute() / 30));
 
     return orderDao.getDataForCandleChart(currencyService.findCurrencyPairById(pairId),
-            firstHalfHour, lastHalfHour, timeFrame.getResolution().getTimeValue(),
+            startTime, endTime, timeFrame.getResolution().getTimeValue(),
             timeFrame.getResolution().getTimeUnit().name());
   }
 

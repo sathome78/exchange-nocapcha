@@ -460,8 +460,8 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart);
-            newChartResolution = data.period;
+            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
+            newChartPeriod = data.period;
             leftSider = new LeftSiderClass();
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
