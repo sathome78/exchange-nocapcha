@@ -218,7 +218,6 @@ public class BotServiceImpl implements BotService {
 
     @Override
     @Transactional
-    @Synchronized
     public void prepareAndSaveOrder(CurrencyPair currencyPair, OperationType operationType, String userEmail, BigDecimal amount, BigDecimal rate) {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(currencyPair, operationType, userEmail, amount, rate);
         log.debug("Prepared order: {}", orderCreateDto);
