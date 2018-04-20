@@ -1,11 +1,13 @@
-function ChartAmchartsClass(currencyPair) {
 
-    if (ChartAmchartsClass.__instance) {
-        return ChartAmchartsClass.__instance;
+
+function ChartAmchartsClass2(currencyPair) {
+
+    if (ChartAmchartsClass2.__instance) {
+        return ChartAmchartsClass2.__instance;
     } else if (this === window) {
-        return new ChartAmchartsClass();
+        return new ChartAmchartsClass2();
     }
-    ChartAmchartsClass.__instance = this;
+    ChartAmchartsClass2.__instance = this;
 
     var that = this;
 
@@ -47,9 +49,12 @@ function ChartAmchartsClass(currencyPair) {
             // debug: true, // uncomment this line to see Library errors and warnings in the console
             allow_symbol_change: true,
             autosize: true,
+            // height:'30%',
+            //     width:'100%',
             symbol: currencyPair,
-            timezone: 240,
+            // timezone: 'UTC',
             interval: '30',
+            height:'440px',
             container_id: "amcharts-stock_chart_div",
             //	BEWARE: no trailing slash is expected in feed URL
             datafeed: datafeed,
@@ -70,6 +75,7 @@ function ChartAmchartsClass(currencyPair) {
 
         widget.onChartReady(function () {
             stockChart = widget.activeChart();
+            // stockChart.activeChart().setTimezone("Etc/UTC")
         });
 
     }

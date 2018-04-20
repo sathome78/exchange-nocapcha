@@ -42,6 +42,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -253,13 +254,20 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
-        LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(30 * (startTime.getMinute() / 30));
-        LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
-                .plusMinutes(30 * (startTime.getMinute() / 30));
 
-        String startTimeString = start.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endTimeString = end.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        int resolution = resolutionValue;
+//        if (resolution == 240 || resolution == 720 || !"MINUTE".equals(resolutionType)) {
+//            startTime = startTime.with(LocalTime.MIN);
+//            endTime = endTime.with(LocalTime.MIN);
+//        }
+//
+//        LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
+//                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+//        LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
+//                .plusMinutes(resolution * (startTime.getMinute() / resolution));
+
+        String startTimeString = startTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endTimeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String sql = "{call GET_DATA_FOR_CANDLE_RANGE(" +
                 "STR_TO_DATE(:start_point, '%Y-%m-%d %H:%i:%s'), " +
                 "STR_TO_DATE(:end_point, '%Y-%m-%d %H:%i:%s'), " +
