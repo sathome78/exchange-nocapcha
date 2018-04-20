@@ -202,7 +202,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -441,9 +440,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BBX", "BBX", 4, 20, false, false, false);
     }
 
-
-
-
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
@@ -459,7 +455,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "etzServiceImpl")
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
-                "EtherZero", "ETZ", 12);
+                "ETZ", "ETZ", 12);
     }
 
     @Bean(name = "cloServiceImpl")
