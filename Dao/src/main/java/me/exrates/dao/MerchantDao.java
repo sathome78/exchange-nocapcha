@@ -46,7 +46,7 @@ public interface MerchantDao {
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  void setBlockForAll(OperationType operationType, boolean blockStatus);
+  void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus);
 
   void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
