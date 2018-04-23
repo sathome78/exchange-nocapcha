@@ -173,21 +173,24 @@ function refreshUsersNumber() {
 function getCurrencyPairsTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencyPairs.csv')
+        //wolper 23.04.18
+        saveToDisk(data, extendsReportName('currencyPairs.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getCurrencyPairsComissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencyPairsComissions.csv')
+        //wolper 23.04.18
+        saveToDisk(data, extendsReportName('currencyPairsComissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getCurrenciesTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'currencies.csv')
+        //wolper 23.04.18
+        saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
 }
@@ -195,14 +198,16 @@ function getCurrenciesTurnover() {
 function getTotalBalancesForRoles() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'totalBalances.csv')
+        //wolper 23.04.18
+        saveToDisk(data, extendsReportName('totalBalances.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
 
 function getInputOutputSummaryWithCommissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        saveToDisk(data, 'inputOutputSummaryWithCommissions.csv')
+        //wolper 23.04.18
+        saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
 }
@@ -309,3 +314,19 @@ function deleteSubscriberEmail(email, datatable) {
 }
 
 
+//wolper 23.04.18
+//get and transform the date
+function getStartDateFromPicker() {
+    var startDate = document.getElementById("datetimepicker_start").value;
+    //drop time out of a string which is received from the pickers
+    return startDate.substr(0, startDate.search(/\s\d\d:\d\d/) > -1 ? startDate.search(/\s\d\d:\d\d/) : startDate.length);
+}
+
+
+//wolper 23.04.18
+//get and transform the date
+function getEndDateFromPicker() {
+    var endDate = document.getElementById("datetimepicker_end").value;
+    //drop time out of a string which is received from the pickers
+    return endDate.substr(0, endDate.search(/\s\d\d:\d\d/) > -1 ? endDate.search(/\s\d\d:\d\d/) : endDate.length);
+}
