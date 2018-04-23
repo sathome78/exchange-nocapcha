@@ -92,7 +92,7 @@ public class withdrawRequestJob {
         }
         catch (InsufficientCostsInWalletException e) {
           log.error(ExceptionUtils.getStackTrace(e));
-          withdrawService.rejectError(withdrawRequest.getId(), REJECT_ERROR_TIMEOUT, e.getReason());
+          withdrawService.rejectToReview(withdrawRequest.getId());
           sendEmailsOnInsufficientCosts(withdrawRequest.getCurrencyName());
         }
         catch (InvalidAccountException e) {
