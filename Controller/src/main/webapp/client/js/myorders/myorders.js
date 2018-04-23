@@ -77,7 +77,8 @@ function MyOrdersClass(currentCurrencyPair) {
     this.updateAndShowAll = function (refreshIfNeeded, page, direction) {
         that.getAndShowMySellOrdersData(refreshIfNeeded, page, direction);
         that.getAndShowMyBuyOrdersData(refreshIfNeeded, page, direction);
-        that.getAndShowMyStopOrdersData(refreshIfNeeded, page, direction)
+        that.getAndShowMyStopOrdersData(refreshIfNeeded, page, direction);
+        that.getAndShowMySellAndBuyOrdersData();
     };
 
     this.getAndShowMyStopOrdersData = function (refreshIfNeeded, page, direction) {
@@ -132,6 +133,83 @@ function MyOrdersClass(currentCurrencyPair) {
         });
     };
 
+    this.getAndShowMySellAndBuyOrdersData = function () {
+        if ($.fn.dataTable.isDataTable('#myHistoryOrdersTable')) {
+            myHistoryOrdersTable.ajax.reload();
+        } else {
+            myHistoryOrdersTable = $('#myHistoryOrdersTable').DataTable({
+                "ajax": {
+                    "url": '/dashboard/myOrdersData',
+                    "type": "GET",
+                    "data": function(d){
+                        d.tableType = myordersStatusForShow;
+                        d.scope = myOrdersScope;
+                    },
+                    "dataSrc": ""
+                },
+                "deferRender": true,
+                "paging": true,
+                "info": true,
+                "columns": [
+                    {
+                        "data": "id"
+                    },
+                    {
+                        "data": "dateCreation"
+                    },
+                    {
+                        "data": "currencyPairName",
+                    },
+                    {
+                        "data": "operationType",
+                        "render": function (data, type, row) {
+                            if (data == "SELL" ) {
+                                return '<p style="color: red">'+data+'</p>';
+
+                            } else if (data == "BUY" ){
+                                return '<p style="color: green">'+data+'</p>';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "amountBase"
+                    },
+                    {
+                        "data": "exExchangeRate"
+                    },
+                    {
+                        "data": "amountConvert"
+                    },
+                    {
+                        "data": "commissionFixedAmount"
+                    },
+                    {
+                        "data": "amountWithCommission"
+                    },
+                    {
+                        "data": "dateAcception",
+                        "render": function (data, type, row){
+                            if (myordersStatusForShow == 'CLOSED') {
+                                return data;
+                            }else {
+                                return row.dateStatusModification;
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                "order": [
+                    [
+                        0,
+                        "asc"
+                    ]
+                ],
+                "destroy" : true
+            });
+
+        }
+    }
 
     this.getAndShowMySellOrdersData = function (refreshIfNeeded, page, direction) {
         if ($myordersContainer.hasClass('hidden') || !windowIsActive) {

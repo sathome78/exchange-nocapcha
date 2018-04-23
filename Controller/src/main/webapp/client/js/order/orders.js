@@ -44,8 +44,81 @@ function OrdersClass(currentCurrencyPair) {
         that.getAndShowSellOrdersData(refreshIfNeeded, page, direction);
         that.getAndShowBuyOrdersData(refreshIfNeeded, page, direction);
         that.getAndShowStopOrdersData(refreshIfNeeded, page, direction);
+        that.getAndShowMySellAndBuyOrdersData();
     };
 
+    this.getAndShowMySellAndBuyOrdersData = function () {
+        if ($.fn.dataTable.isDataTable('#myOrdersTable')) {
+            myOrdersTable.ajax.reload();
+        } else {
+            myOrdersTable = $('#myOrdersTable').DataTable({
+                "ajax": {
+                    "url": '/dashboard/myOrdersData',
+                    "type": "GET",
+                    "data": function(d){
+                        d.tableType = myordersStatusForShow;
+                    },
+                    "dataSrc": ""
+                },
+                "deferRender": true,
+                "paging": true,
+                "info": true,
+                "columns": [
+                    {
+                        "data": "id"
+                    },
+                    {
+                        "data": "dateCreation"
+                    },
+                    {
+                        "data": "currencyPairName"
+                    },
+                    {
+                        "data": "operationType",
+                        "render": function (data, type, row) {
+                            if (data == "SELL" ) {
+                                return '<p style="color: red">'+data+'</p>';
+
+                            } else if (data == "BUY" ){
+                                return '<p style="color: green">'+data+'</p>';
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "amountBase"
+                    },
+                    {
+                        "data": "exExchangeRate"
+                    },
+                    {
+                        "data": "amountConvert"
+                    },
+                    {
+                        "data": "commissionFixedAmount"
+                    },
+                    {
+                        "data": "amountWithCommission"
+                    },
+                    {
+                        "data": 'id',
+                        "render": function (data, type, row) {
+                            return '<button id="'+data+'" class="table-button-block__button btn btn-danger button_delete_order"'
+                                + '>' + 'Delete' + '</button>';
+                        }
+                    }
+                ],
+                "order": [
+                    [
+                        0,
+                        "asc"
+                    ]
+                ],
+                "destroy" : true
+            });
+
+        }
+    }
 
     this.getAndShowStopOrdersData = function (refreshIfNeeded, page, direction) {
         if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
@@ -258,8 +331,10 @@ function OrdersClass(currentCurrencyPair) {
         /**/
         $('#orders-sell-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#orders-buy-table').on('click', '.button_delete_order', submitOrderDeleting);
+        $('#myOrdersTable').on('click', '.button_delete_order', submitOrderDeleting);
         $('#stop-orders-table').on('click', '.button_delete_stop_order', submitOrderDeleting);
         $('#order-delete-confirm__submit').on('click', deletingOrder);
+
         /**/
         $('.orders-sell-table__backward').on('click', function (e) {
             e.preventDefault();

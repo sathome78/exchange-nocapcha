@@ -30,6 +30,8 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -779,7 +781,35 @@ public class OnlineRestController {
     return result;
   }
 
+  @RequestMapping(value = "/dashboard/myOrdersData", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public Future<List<OrderWideListDto>> getMyOrders(@RequestParam("tableType") String tableType,
+                                                    @RequestParam(required = false) String scope,
+                                                    Principal principal, HttpServletRequest request) {
 
+    CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+    Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
+    String email = principal != null ? principal.getName() : "";
+    return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, showAllPairs == null || !showAllPairs ? currencyPair : null, scope, email, localeResolver.resolveLocale(request)));
+  }
+
+  private List<OrderWideListDto> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, String scope, String email, Locale locale) {
+    List<OrderWideListDto> result = new ArrayList<>();
+    switch (tableType) {
+      case "CLOSED":
+        List<OrderWideListDto> ordersSellClosed = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CLOSED, null, scope,0, -1, locale);
+        result = ordersSellClosed;
+        break;
+      case "CANCELLED":
+        List<OrderWideListDto> ordersSellCancelled = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.CANCELLED, null, scope, 0, -1, locale);
+        result = ordersSellCancelled;
+        break;
+      case "OPENED":
+        List<OrderWideListDto> ordersSellOpened = orderService.getMyOrdersWithState(email, currencyPair, OrderStatus.OPENED, null, scope, 0, -1, locale);
+        result = ordersSellOpened;
+        break;
+    }
+    return result;
+  }
   /**
    * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
    * returns list the data of user's orders to show in pages "History"
