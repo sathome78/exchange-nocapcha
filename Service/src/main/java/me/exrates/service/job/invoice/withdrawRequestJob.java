@@ -119,15 +119,16 @@ public class withdrawRequestJob {
     log.info("EMAILS TO NOTIFY: " + Arrays.toString(notifyEmails));
     for (String emailAddress : notifyEmails) {
       String userLanguage = userService.getPreferedLangByEmail(emailAddress);
-      if (userLanguage != null) {
-        Email email = new Email();
-        email.setTo(emailAddress);
-        Locale locale = new Locale(userLanguage);
-        email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
-        email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
-        sendMailService.sendInfoMail(email);
+      if (userLanguage == null) {
+        userLanguage = "en";
       }
-      
+      Email email = new Email();
+      email.setTo(emailAddress);
+      Locale locale = new Locale(userLanguage);
+      email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
+      email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
+      sendMailService.sendInfoMail(email);
+
     }
   }
 
