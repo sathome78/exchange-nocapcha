@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -115,6 +116,7 @@ public class withdrawRequestJob {
   
   private void sendEmailsOnInsufficientCosts(String currencyName) {
     String[] notifyEmails = WALLET_NOTIFY_EMAILS.split(",");
+    log.info("EMAILS TO NOTIFY: " + Arrays.toString(notifyEmails));
     for (String emailAddress : notifyEmails) {
       String userLanguage = userService.getPreferedLangByEmail(emailAddress);
       if (userLanguage != null) {
