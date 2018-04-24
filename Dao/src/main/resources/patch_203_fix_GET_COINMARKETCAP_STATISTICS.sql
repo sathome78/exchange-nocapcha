@@ -29,7 +29,7 @@ READS SQL DATA
 
     DECLARE AGRIGATE CURSOR
     FOR SELECT
-          CP.name,
+          CP.ticker_name,
           EO.currency_pair_id,
           EO.status_id,
           MIN(EO.date_acception) AS first_date_acception,
@@ -63,7 +63,7 @@ READS SQL DATA
         WHERE
           (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) = "NULL" OR EO.currency_pair_id = (SELECT CURRENCY_PAIR.id
                                                                                                                   FROM CURRENCY_PAIR
-                                                                                                                  WHERE CURRENCY_PAIR.name = currency_pair)) AND
+                                                                                                                  WHERE CURRENCY_PAIR.ticker_name = currency_pair)) AND
           EO.status_id = 3 AND
           EO.date_acception >= now() - INTERVAL 24 HOUR
         GROUP BY CP.name, EO.currency_pair_id, EO.status_id;
@@ -107,22 +107,22 @@ READS SQL DATA
 
         DROP TEMPORARY TABLE IF EXISTS COINMARKETCAP_STATISTICS_TMP_TBL;
         CREATE TEMPORARY TABLE COINMARKETCAP_STATISTICS_TMP_TBL
-          SELECT
-            currency_pair_name,
-            currency_pair_id,
-            status_id,
-            first_date_acception,
-            last_date_acception,
-            predPoint,
-            baseVolume,
-            first,
-            last,
-            lowestAsk,
-            highestBid,
-            high24hr,
-            low24hr,
-            quoteVolume,
-            isFrozen;
+            SELECT
+              currency_pair_name,
+              currency_pair_id,
+              status_id,
+              first_date_acception,
+              last_date_acception,
+              predPoint,
+              baseVolume,
+              first,
+              last,
+              lowestAsk,
+              highestBid,
+              high24hr,
+              low24hr,
+              quoteVolume,
+              isFrozen;
 
         DELETE FROM COINMARKETCAP_STATISTICS_TMP_TBL;
 
