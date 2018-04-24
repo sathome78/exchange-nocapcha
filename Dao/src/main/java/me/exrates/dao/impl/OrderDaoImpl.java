@@ -656,6 +656,8 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
+        List<Integer> operationTypesIds = Arrays.asList(3,4);
+
         String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
         if (statusIds.size() > 1) {
             orderClause = "  ORDER BY status_modification_date DESC";
@@ -664,7 +666,7 @@ public class OrderDaoImpl implements OrderDao {
                 "  FROM EXORDERS " +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "  WHERE (status_id IN (:status_ids))" +
-                "    AND (operation_type_id = :operation_type_id)" +
+                "    AND (operation_type_id IN (:operation_type_id))" +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                 userFilterClause +
                 orderClause +
@@ -672,7 +674,12 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("user_id", userId);
         namedParameters.put("status_ids", statusIds);
+        if (operationType != null) {
         namedParameters.put("operation_type_id", operationType.getType());
+        } else {
+            namedParameters.put("operation_type_id", operationTypesIds);
+        }
+
         return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {

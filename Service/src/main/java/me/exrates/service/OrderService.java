@@ -299,7 +299,7 @@ public interface OrderService {
                                                          Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                              OperationType operationType,
+                                              OperationType operationType, String scope,
                                               Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
