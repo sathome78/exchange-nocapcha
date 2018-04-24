@@ -47,8 +47,10 @@
             <c:set value="stop-orders-table_row" var="table_row_id"/>
             <%@include file="stopOrders-center-tableBody.jsp" %>
         </table>
-
 </div>
+<script type="text/javascript">
+    var localDelete = '<loc:message code="myorders.delete"/>';
+</script>
 <%--MODAL--%>
 <%@include file="modal/order_delete_confirm_modal.jsp" %>
 <%--#order-delete-confirm__modal--%>

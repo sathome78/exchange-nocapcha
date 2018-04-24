@@ -104,7 +104,7 @@ function OrdersClass(currentCurrencyPair) {
                         "data": 'id',
                         "render": function (data, type, row) {
                             return '<button id="'+data+'" class="table-button-block__button btn btn-danger button_delete_order"'
-                                + '>' + 'Delete' + '</button>';
+                                + '>' + localDelete + '</button>';
                         }
                     }
                 ],
