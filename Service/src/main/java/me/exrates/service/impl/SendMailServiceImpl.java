@@ -82,19 +82,23 @@ public class SendMailServiceImpl implements SendMailService{
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
 		email.setFrom(fromAddress);
-		mailSender.send(mimeMessage -> {
-			MimeMessageHelper message;
-			message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-			message.setFrom(email.getFrom());
-			message.setTo(email.getTo());
-			message.setSubject(email.getSubject());
-			message.setText(email.getMessage(), true);
-			if (email.getAttachments() != null) {
-				for (Email.Attachment attachment : email.getAttachments())
-					message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
-			}
-		});
-		logger.info("Email sent: " + email);
+		try {
+			mailSender.send(mimeMessage -> {
+                MimeMessageHelper message;
+                message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+                message.setFrom(email.getFrom());
+                message.setTo(email.getTo());
+                message.setSubject(email.getSubject());
+                message.setText(email.getMessage(), true);
+                if (email.getAttachments() != null) {
+                    for (Email.Attachment attachment : email.getAttachments())
+                        message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
+                }
+            });
+			logger.info("Email sent: " + email);
+		} catch (Exception e) {
+			logger.error("Could not send email {}. Reason: {}", email, e.getMessage());
+		}
 
 	}
 
