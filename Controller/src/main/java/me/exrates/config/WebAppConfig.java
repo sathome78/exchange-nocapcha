@@ -755,6 +755,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "UQC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "inoServiceImpl")
+    public EthTokenService inoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc9859fccc876e6b4b3c749c5d29ea04f48acb74f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "INO",
+                "INO", true, ExConvert.Unit.WEI);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
