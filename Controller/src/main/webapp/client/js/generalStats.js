@@ -33,7 +33,7 @@ $(function () {
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
         lang:'ru',
-        defaultDate: new Date(),
+        defaultDate: moment().subtract(1, 'days').toDate(),
         defaultTime: '00:00'
     });
     $($datetimepickerEnd).datetimepicker({
@@ -53,7 +53,7 @@ $(function () {
     });
 
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
-    $($datetimepickerStart).val(moment($($datetimepickerEnd).datetimepicker('getValue')).subtract(1, 'days').format(datetimeFormat));
+    $($datetimepickerStart).val(moment($($datetimepickerStart).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
     refreshUsersNumber();
     refreshMailingTime();
@@ -173,7 +173,6 @@ function refreshUsersNumber() {
 function getCurrencyPairsTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        //wolper 23.04.18
         saveToDisk(data, extendsReportName('currencyPairs.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
@@ -181,7 +180,6 @@ function getCurrencyPairsTurnover() {
 function getCurrencyPairsComissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        //wolper 23.04.18
         saveToDisk(data, extendsReportName('currencyPairsComissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
@@ -189,7 +187,6 @@ function getCurrencyPairsComissions() {
 function getCurrenciesTurnover() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        //wolper 23.04.18
         saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
@@ -198,7 +195,6 @@ function getCurrenciesTurnover() {
 function getTotalBalancesForRoles() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
     $.get(fullUrl, function (data) {
-        //wolper 23.04.18
         saveToDisk(data, extendsReportName('totalBalances.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 }
@@ -206,7 +202,6 @@ function getTotalBalancesForRoles() {
 function getInputOutputSummaryWithCommissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
-        //wolper 23.04.18
         saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
     })
 
@@ -314,19 +309,17 @@ function deleteSubscriberEmail(email, datatable) {
 }
 
 
-//wolper 23.04.18
-//get and transform the date
+
 function getStartDateFromPicker() {
-    var startDate = document.getElementById("datetimepicker_start").value;
-    //drop time out of a string which is received from the pickers
-    return startDate.substr(0, startDate.search(/\s\d\d:\d\d/) > -1 ? startDate.search(/\s\d\d:\d\d/) : startDate.length);
+   return getDateFromPicker($('#datetimepicker_start'))
 }
 
 
-//wolper 23.04.18
-//get and transform the date
 function getEndDateFromPicker() {
-    var endDate = document.getElementById("datetimepicker_end").value;
-    //drop time out of a string which is received from the pickers
-    return endDate.substr(0, endDate.search(/\s\d\d:\d\d/) > -1 ? endDate.search(/\s\d\d:\d\d/) : endDate.length);
+    return getDateFromPicker($('#datetimepicker_end'))
+}
+
+function getDateFromPicker($datepicker) {
+    var date = $($datepicker).datetimepicker('getValue');
+    return moment(date).format('YYYY-MM-DD');
 }
