@@ -59,6 +59,8 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     WalletDao walletDao;
 
+
+    @Override
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
                 "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id)" +
@@ -82,6 +84,36 @@ public class OrderDaoImpl implements OrderDao {
             id = 0;
         }
         return id;
+    }
+
+
+    /*USE FOR BOT ONLY!!!*/
+    @Override
+    public void postAcceptedOrderToDB(ExOrder exOrder) {
+        String sql = "INSERT INTO EXORDERS" +
+                "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, " +
+                "   commission_fixed_amount, status_id, order_source_id, date_creation, date_acception, user_acceptor_id, status_modification_date)" +
+                "  VALUES " +
+                "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount," +
+                " :status_id, :order_source_id, :date_creation, :date_acception, :user_acceptor_id, :status_modification_date)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", exOrder.getUserId());
+            put("currency_pair_id", exOrder.getCurrencyPairId());
+            put("operation_type_id", exOrder.getOperationType().type);
+            put("exrate", exOrder.getExRate());
+            put("amount_base", exOrder.getAmountBase());
+            put("amount_convert", exOrder.getAmountConvert());
+            put("commission_id", exOrder.getComissionId());
+            put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
+            put("status_id", OrderStatus.CLOSED.getStatus());
+            put("order_source_id", exOrder.getSourceId());
+            put("user_acceptor_id", exOrder.getUserAcceptorId());
+            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
+            put("date_creation", currentDate);
+            put("date_acception", currentDate);
+            put("status_modification_date", currentDate);
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
