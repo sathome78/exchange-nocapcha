@@ -18,10 +18,7 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.BackDealInterval;
-import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.TransactionDescription;
-import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.*;
 import me.exrates.service.*;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
@@ -1019,6 +1016,12 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public Integer deleteOrderByAdmin(int orderId) {
     OrderCreateDto order = orderDao.getMyOrderById(orderId);
+    OrderRoleInfoForDelete orderRoleInfo = orderDao.getOrderRoleInfo(orderId);
+    if (orderRoleInfo.mayDeleteWithoutProcessingTransactions()) {
+      setStatus(orderId, OrderStatus.DELETED);
+      return 1;
+    }
+
     Object result = deleteOrder(orderId, OrderStatus.DELETED, DELETE);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {

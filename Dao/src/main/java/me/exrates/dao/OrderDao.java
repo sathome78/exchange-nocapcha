@@ -16,6 +16,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.OrderRoleInfoForDelete;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -90,4 +91,6 @@ public interface OrderDao {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
+
+    OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
 }

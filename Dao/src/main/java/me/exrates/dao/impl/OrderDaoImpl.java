@@ -20,6 +20,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.OrderRoleInfoForDelete;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1056,6 +1057,23 @@ public class OrderDaoImpl implements OrderDao {
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setCommissionAmount(rs.getBigDecimal("commission"));
             return dto;
+        });
+    }
+
+    @Override
+    public OrderRoleInfoForDelete getOrderRoleInfo(int orderId) {
+        String sql = "SELECT EO.status_id, CREATOR.roleid AS creator_role, ACCEPTOR.roleid AS acceptor_role, COUNT(TX.id) AS tx_count from EXORDERS EO " +
+                "  JOIN USER CREATOR ON EO.user_id = CREATOR.id " +
+                "  JOIN USER ACCEPTOR ON EO.user_acceptor_id = ACCEPTOR.id " +
+                // join on source type and source id to use index
+                "  LEFT JOIN TRANSACTION TX ON TX.source_type = 'ORDER' AND TX.source_id = EO.id " +
+                "WHERE EO.id = :order_id;";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
+            OrderStatus status = OrderStatus.convert(rs.getInt("status_id"));
+            UserRole creatorRole = UserRole.convert(rs.getInt("creator_role"));
+            UserRole acceptorRole = UserRole.convert(rs.getInt("acceptor_role"));
+            int txCount = rs.getInt("tx_count");
+            return new OrderRoleInfoForDelete(status, creatorRole, acceptorRole, txCount);
         });
     }
 
