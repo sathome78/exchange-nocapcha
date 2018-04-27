@@ -1064,17 +1064,28 @@ public class OrderDaoImpl implements OrderDao {
     public OrderRoleInfoForDelete getOrderRoleInfo(int orderId) {
         String sql = "SELECT EO.status_id, CREATOR.roleid AS creator_role, ACCEPTOR.roleid AS acceptor_role, COUNT(TX.id) AS tx_count from EXORDERS EO " +
                 "  JOIN USER CREATOR ON EO.user_id = CREATOR.id " +
-                "  JOIN USER ACCEPTOR ON EO.user_acceptor_id = ACCEPTOR.id " +
+                "  LEFT JOIN USER ACCEPTOR ON EO.user_acceptor_id = ACCEPTOR.id " +
                 // join on source type and source id to use index
                 "  LEFT JOIN TRANSACTION TX ON TX.source_type = 'ORDER' AND TX.source_id = EO.id " +
                 "WHERE EO.id = :order_id;";
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
-            OrderStatus status = OrderStatus.convert(rs.getInt("status_id"));
-            UserRole creatorRole = UserRole.convert(rs.getInt("creator_role"));
-            UserRole acceptorRole = UserRole.convert(rs.getInt("acceptor_role"));
+            Integer statusId = getInteger(rs, "status_id");
+            Integer creatorRoleId = getInteger(rs, "creator_role");
+            Integer acceptorRoleId = getInteger(rs, "acceptor_role");
+            OrderStatus status = statusId == null ? null : OrderStatus.convert(statusId);
+            UserRole creatorRole = creatorRoleId == null ? null : UserRole.convert(creatorRoleId);
+            UserRole acceptorRole = acceptorRoleId == null ? null : UserRole.convert(acceptorRoleId);
             int txCount = rs.getInt("tx_count");
             return new OrderRoleInfoForDelete(status, creatorRole, acceptorRole, txCount);
         });
+    }
+
+    private Integer getInteger(ResultSet rs, String fieldName) throws SQLException {
+        Integer result = rs.getInt(fieldName);
+        if (rs.wasNull()) {
+            result = null;
+        }
+        return result;
     }
 
 }
