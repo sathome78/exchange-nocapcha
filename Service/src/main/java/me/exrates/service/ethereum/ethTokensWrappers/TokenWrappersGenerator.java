@@ -10,8 +10,8 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "d:/eth/INO.bin",
-                "d:/eth/INO.abi",
+                "d:/eth/ORME.bin",
+                "d:/eth/ORME.abi",
                 "-o",
                 "c:/Users/Maks/IdeaProjects/exrates/Service/src/main/java",
                 "-p",

@@ -776,6 +776,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
+    @Bean(name = "ormeServiceImpl")
+    public EthTokenService ormeService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x516e5436bafdc11083654de7bb9b95382d08d5de");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ORME",
+                "ORME", true, ExConvert.Unit.AIWEI);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
