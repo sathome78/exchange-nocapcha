@@ -20,6 +20,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.OrderRoleInfoForDelete;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,6 +60,8 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     WalletDao walletDao;
 
+
+    @Override
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
                 "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id)" +
@@ -82,6 +85,36 @@ public class OrderDaoImpl implements OrderDao {
             id = 0;
         }
         return id;
+    }
+
+
+    /*USE FOR BOT ONLY!!!*/
+    @Override
+    public void postAcceptedOrderToDB(ExOrder exOrder) {
+        String sql = "INSERT INTO EXORDERS" +
+                "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, " +
+                "   commission_fixed_amount, status_id, order_source_id, date_creation, date_acception, user_acceptor_id, status_modification_date)" +
+                "  VALUES " +
+                "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount," +
+                " :status_id, :order_source_id, :date_creation, :date_acception, :user_acceptor_id, :status_modification_date)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("user_id", exOrder.getUserId());
+            put("currency_pair_id", exOrder.getCurrencyPairId());
+            put("operation_type_id", exOrder.getOperationType().type);
+            put("exrate", exOrder.getExRate());
+            put("amount_base", exOrder.getAmountBase());
+            put("amount_convert", exOrder.getAmountConvert());
+            put("commission_id", exOrder.getComissionId());
+            put("commission_fixed_amount", exOrder.getCommissionFixedAmount());
+            put("status_id", OrderStatus.CLOSED.getStatus());
+            put("order_source_id", exOrder.getSourceId());
+            put("user_acceptor_id", exOrder.getUserAcceptorId());
+            Timestamp currentDate = Timestamp.valueOf(LocalDateTime.now());
+            put("date_creation", currentDate);
+            put("date_acception", currentDate);
+            put("status_modification_date", currentDate);
+        }};
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -1024,6 +1057,23 @@ public class OrderDaoImpl implements OrderDao {
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setCommissionAmount(rs.getBigDecimal("commission"));
             return dto;
+        });
+    }
+
+    @Override
+    public OrderRoleInfoForDelete getOrderRoleInfo(int orderId) {
+        String sql = "SELECT EO.status_id, CREATOR.roleid AS creator_role, ACCEPTOR.roleid AS acceptor_role, COUNT(TX.id) AS tx_count from EXORDERS EO " +
+                "  JOIN USER CREATOR ON EO.user_id = CREATOR.id " +
+                "  JOIN USER ACCEPTOR ON EO.user_acceptor_id = ACCEPTOR.id " +
+                // join on source type and source id to use index
+                "  LEFT JOIN TRANSACTION TX ON TX.source_type = 'ORDER' AND TX.source_id = EO.id " +
+                "WHERE EO.id = :order_id;";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("order_id", orderId), (rs, rowNum) -> {
+            OrderStatus status = OrderStatus.convert(rs.getInt("status_id"));
+            UserRole creatorRole = UserRole.convert(rs.getInt("creator_role"));
+            UserRole acceptorRole = UserRole.convert(rs.getInt("acceptor_role"));
+            int txCount = rs.getInt("tx_count");
+            return new OrderRoleInfoForDelete(status, creatorRole, acceptorRole, txCount);
         });
     }
 

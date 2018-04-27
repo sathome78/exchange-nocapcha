@@ -765,6 +765,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "INO", true, ExConvert.Unit.WEI);
     }
 
+    @Bean(name = "profitServiceImpl")
+    public EthTokenService profitService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe540935cabf4c2bac547c8067cbbc2991d030122");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PROFIT",
+                "PROFIT", true, ExConvert.Unit.ETHER);
+    }
+
+
     @Bean(name = "ormeServiceImpl")
     public EthTokenService ormeService() {
         List<String> tokensList = new ArrayList<>();
