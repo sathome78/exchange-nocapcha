@@ -772,7 +772,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "PROFIT",
-                "PROFIT", true, ExConvert.Unit.ETHER);
+                "PROFIT", false, ExConvert.Unit.ETHER);
     }
 
 
