@@ -809,6 +809,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
+
+    @Bean(name = "npxsServiceImpl")
+    public XemMosaicService npxsService() {
+        return new XemMosaicServiceImpl(
+                "NPXSXEM",
+                "NPXSXEM",
+                new MosaicIdDto("pundix", "npxs"),
+                1000000,
+                6,
+                new Supply(9000000000L),
+                0);
+    }
+
     /***stellarAssets****/
     private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
     @Bean(name = "sltStellarService")
