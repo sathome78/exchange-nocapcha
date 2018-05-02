@@ -9,7 +9,7 @@ VALUES ((SELECT id from MERCHANT WHERE name='NSR'),
         0.00000001, TRUE, TRUE);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='NSR')
-  , '/client/img/merchants/btc_z.png', 'NSR', (SELECT id from CURRENCY WHERE name='NSR'));
+  , '/client/img/merchants/nsr.png', 'NSR', (SELECT id from CURRENCY WHERE name='NSR'));
 
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='NSR') from USER;
 
