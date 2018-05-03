@@ -321,5 +321,5 @@ function getEndDateFromPicker() {
 
 function getDateFromPicker($datepicker) {
     var date = $($datepicker).datetimepicker('getValue');
-    return moment(date).format('YYYY-MM-DD');
+    return moment(date).format('YYYY-MM-DD HH-mm');
 }

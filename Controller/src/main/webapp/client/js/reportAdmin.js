@@ -267,12 +267,13 @@ function isDatesValid($form) {
 // name is a filename to extend
 // start, end - optional arguments for reporting date interval
 function extendsReportName(name, start, end){
-    var baseName=name.slice(0,-4);
-    var dateNow= new Date().toLocaleDateString();
+    var baseName    = name.slice(0,-4);
+    var dateNow     = new Date().toLocaleDateString();
+    var dateTimeNow = new Date().toLocaleString();
 
     switch (name){
         case 'totalBalances.csv':
-            return baseName+'_as_of-'+dateNow+'.csv';
+            return baseName+'_as_of-'+dateTimeNow+ '.csv';
 
         case 'inputOutputSummaryWithCommissions.csv':
         case 'currencyPairsComissions.csv':
