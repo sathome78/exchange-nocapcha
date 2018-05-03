@@ -796,7 +796,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BEZ", true, ExConvert.Unit.ETHER);
     }
 
-//    Qtum tokens:
+    @Bean(name = "flotServiceImpl")
+    public EthTokenService flotService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x049399a6b048d52971f7d122ae21a1532722285f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FLOT",
+                "FLOT", true, ExConvert.Unit.ETHER);
+    }
+
+
+    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
