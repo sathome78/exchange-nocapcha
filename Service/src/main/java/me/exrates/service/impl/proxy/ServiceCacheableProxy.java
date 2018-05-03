@@ -12,11 +12,11 @@ import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.service.TwitterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +36,7 @@ public class ServiceCacheableProxy {
   private NewsDao newsDao;
 
   @Autowired
-  private TwitterService twitterService;
+  private Twitter twitter;
 
   @CacheEvict(cacheNames = "currencyPairStatistics", key = "#root.methodName", condition = "#evictCache", beforeInvocation = true)
   @Cacheable(cacheNames = "currencyPairStatistics", key = "#root.methodName")
@@ -93,9 +93,10 @@ public class ServiceCacheableProxy {
     return orderDao.getDataForCandleChart(currencyPair, backDealInterval);
   }
 
-  @Cacheable(cacheNames = "twitterTimeLine")
-  public List<Tweet> getTwitterTimeLine() {
-    return twitterService.getTimeLine();
+  @Transactional(propagation = Propagation.NEVER)
+  @Cacheable(cacheNames = "twitter", key = "#size")
+  public List<Tweet> getTwitterTimeline(Integer size) {
+    return twitter.timelineOperations().getUserTimeline(size);
   }
 
 }

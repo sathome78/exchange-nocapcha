@@ -966,7 +966,7 @@ public class OnlineRestController {
 
   @OnlineMethod
   @RequestMapping(value = "/dashboard/newsTwitter", method = RequestMethod.GET)
-  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "30")int amount) {
+  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "50") int amount) {
     return newsService.getTwitterNews(amount);
   }
 

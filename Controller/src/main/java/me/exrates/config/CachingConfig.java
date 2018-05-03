@@ -96,7 +96,7 @@ public class CachingConfig extends CachingConfigurerSupport {
     config.addCache(cacheConfiguration);
     /**/
     cacheConfiguration = new CacheConfiguration();
-    cacheConfiguration.setName("twitterTimeLine");
+    cacheConfiguration.setName("twitter");
     cacheConfiguration.setTimeToLiveSeconds(twitterTimeLineTimeToLiveSeconds);
     cacheConfiguration.setMemoryStoreEvictionPolicy("LRU");
     cacheConfiguration.setMaxEntriesLocalHeap(1000);

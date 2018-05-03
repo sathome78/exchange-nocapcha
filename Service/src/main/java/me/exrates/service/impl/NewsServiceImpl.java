@@ -257,9 +257,8 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<NewsDto> getTwitterNews(Integer amount) {
-        return serviceCacheableProxy.getTwitterTimeLine()
+        return serviceCacheableProxy.getTwitterTimeline(amount)
                 .stream()
                 .map(tweet -> {
                     NewsDto dto = new NewsDto();
