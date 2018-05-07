@@ -269,7 +269,7 @@ function isDatesValid($form) {
 function extendsReportName(name, start, end){
     var baseName    = name.slice(0,-4);
     var dateNow     = new Date().toLocaleDateString();
-    var dateTimeNow = new Date().toLocaleString();
+    var dateTimeNow = new Date().toUTCString();
 
     switch (name){
         case 'totalBalances.csv':
