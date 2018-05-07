@@ -50,6 +50,8 @@ public class LiskServiceImpl implements LiskService {
     @Autowired
     private MessageSource messageSource;
 
+    private LiskSendTxService liskSendTxService;
+
     private final String merchantName;
     private final String currencyName;
     private String propertySource;
@@ -58,7 +60,8 @@ public class LiskServiceImpl implements LiskService {
     private Integer minConfirmations;
 
 
-    public LiskServiceImpl(String merchantName, String currencyName, String propertySource) {
+    public LiskServiceImpl(LiskSendTxService liskSendTxService, String merchantName, String currencyName, String propertySource) {
+        this.liskSendTxService = liskSendTxService;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.propertySource = propertySource;
@@ -254,11 +257,7 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
-        LiskSendTxDto dto = new LiskSendTxDto();
-        dto.setSecret(secret);
-        dto.setAmount(amount);
-        dto.setRecipientId(recipientId);
-        return liskRestClient.sendTransaction(dto);
+        return liskSendTxService.sendTransaction(secret, amount, recipientId);
     }
 
     @Override
