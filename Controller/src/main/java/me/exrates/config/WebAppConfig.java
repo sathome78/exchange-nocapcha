@@ -806,6 +806,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "AMN", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "getServiceImpl")
+    public EthTokenService getService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8a854288a5976036a725879164ca3e91d30c6a1b");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GET",
+                "GET", true, ExConvert.Unit.ETHER);
+    }
+
 //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
