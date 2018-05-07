@@ -396,10 +396,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
-    @Bean(name = "riseServiceImpl")
-    public LiskService riseService() {
-        return new LiskServiceImpl("RiseVision", "RISE", "merchants/rise_vision.properties");
-    }
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {

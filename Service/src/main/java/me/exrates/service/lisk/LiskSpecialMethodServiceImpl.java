@@ -1,10 +1,11 @@
 package me.exrates.service.lisk;
 
+import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-public class LiskSendTxServiceImpl implements LiskSendTxService {
+public class LiskSpecialMethodServiceImpl implements LiskSpecialMethodService {
 
     @Autowired
     private LiskRestClient liskRestClient;
@@ -16,5 +17,10 @@ public class LiskSendTxServiceImpl implements LiskSendTxService {
         dto.setAmount(amount);
         dto.setRecipientId(recipientId);
         return liskRestClient.sendTransaction(dto);
+    }
+
+    @Override
+    public LiskAccount createAccount(String secret) {
+        return liskRestClient.createAccount(secret);
     }
 }

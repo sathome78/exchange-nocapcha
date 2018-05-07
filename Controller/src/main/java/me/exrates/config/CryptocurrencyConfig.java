@@ -147,19 +147,24 @@ public class CryptocurrencyConfig {
         return new LiskServiceImpl(liskSendTxService(),"BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
+    @Bean(name = "riseServiceImpl")
+    public LiskService riseService() {
+        return new LiskServiceImpl(liskSendTxService(),"RiseVision", "RISE", "merchants/rise_vision.properties");
+    }
+
     @Bean(name = "arkServiceImpl")
     public LiskService arkService() {
         return new LiskServiceImpl(arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
     }
 
     @Bean
-    public LiskSendTxService liskSendTxService() {
-        return new LiskSendTxServiceImpl();
+    public LiskSpecialMethodService liskSendTxService() {
+        return new LiskSpecialMethodServiceImpl();
     }
 
     @Bean
-    public LiskSendTxService arkSendTxService() {
-        return new ArkSendTxServiceImpl();
+    public LiskSpecialMethodService arkSendTxService() {
+        return new ArkSpecialMethodServiceImpl();
     }
 
 }

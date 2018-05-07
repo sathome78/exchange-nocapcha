@@ -6,7 +6,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
-import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -19,11 +18,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -50,7 +46,7 @@ public class LiskServiceImpl implements LiskService {
     @Autowired
     private MessageSource messageSource;
 
-    private LiskSendTxService liskSendTxService;
+    private LiskSpecialMethodService liskSpecialMethodService;
 
     private final String merchantName;
     private final String currencyName;
@@ -60,8 +56,8 @@ public class LiskServiceImpl implements LiskService {
     private Integer minConfirmations;
 
 
-    public LiskServiceImpl(LiskSendTxService liskSendTxService, String merchantName, String currencyName, String propertySource) {
-        this.liskSendTxService = liskSendTxService;
+    public LiskServiceImpl(LiskSpecialMethodService liskSpecialMethodService, String merchantName, String currencyName, String propertySource) {
+        this.liskSpecialMethodService = liskSpecialMethodService;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
         this.propertySource = propertySource;
@@ -257,7 +253,7 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
-        return liskSendTxService.sendTransaction(secret, amount, recipientId);
+        return liskSpecialMethodService.sendTransaction(secret, amount, recipientId);
     }
 
     @Override
@@ -269,7 +265,7 @@ public class LiskServiceImpl implements LiskService {
 
     @Override
     public LiskAccount createNewLiskAccount(String secret) {
-       return liskRestClient.createAccount(secret);
+       return liskSpecialMethodService.createAccount(secret);
     }
 
     @Override
