@@ -93,4 +93,6 @@ public interface OrderDao {
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
     OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
+
+    List<RatesUSDForReportDto> getRatesToUSDForReport();
 }

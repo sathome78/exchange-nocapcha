@@ -23,6 +23,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.*;
 
 @Log4j2
 @Service
@@ -408,13 +411,13 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
     Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
-            .collect(Collectors.toMap(Enum::name, val -> BigDecimal.ZERO));
+            .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
 
 
     return walletDao.getWalletBalancesSummaryByGroups().stream()
             .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurrency)).entrySet().stream()
                             .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey(), entry.getValue().stream()
-                                    .collect(Collectors.toMap(dto -> dto.getReportGroupUserRole().name(),
+                                    .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
                                             UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
                                             balancesMapSupplier)), ReportGroupUserRole.class))
             .collect(Collectors.toList());
@@ -425,9 +428,11 @@ public class WalletServiceImpl implements WalletService {
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
             .stream()
-            .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurrency)).entrySet().stream()
-            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey(), entry.getValue().stream()
+            //wolper 19.04.18
+            .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet().stream()
+            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
                     .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
+            .sorted(comparing(dto -> dto.getCurId()))
             .collect(Collectors.toList());
   }
 

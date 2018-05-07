@@ -1004,7 +1004,12 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
         String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, COUNT(EO.id) AS quantity, " +
-                "  SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert FROM EXORDERS EO " +
+                //wolper 19.04.18
+                // MIN is used for performance reason
+                // as an alternative to additional "group by CP.ID"
+                " MIN(CP.id) "+
+                "AS currency__pair_id, SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert " +
+                "FROM EXORDERS EO " +
                 "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
                 "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
@@ -1024,6 +1029,9 @@ public class OrderDaoImpl implements OrderDao {
             dto.setAmountBase(rs.getBigDecimal("amount_base"));
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setQuantity(rs.getInt("quantity"));
+            //wolper 19.04.2018
+            //currency id added
+            dto.setPairId(rs.getInt("currency__pair_id"));
             return dto;
         });
     }
@@ -1035,7 +1043,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, OT.id AS operation_type_id, " +
+        String sql = "SELECT CP.name AS currency_pair_name,"+
+                //wolper 19.04.18
+                // MIN is used for performance reason
+                // as an alternative to additional "group by CUR.ID"
+                " MIN(CP.ID)"+
+                " AS currency_pair_id, OT.id AS operation_type_id, " +
                 "       SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert, " +
                 "  SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' AND source_id = EO.id AND operation_type_id != 5 )) " +
                 "    AS commission " +
@@ -1059,6 +1072,9 @@ public class OrderDaoImpl implements OrderDao {
             dto.setAmountBase(rs.getBigDecimal("amount_base"));
             dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
             dto.setCommissionAmount(rs.getBigDecimal("commission"));
+            //wolper 19.04.2018
+            //added currency id
+            dto.setPairId(rs.getInt("currency_pair_id"));
             return dto;
         });
     }
@@ -1090,5 +1106,28 @@ public class OrderDaoImpl implements OrderDao {
         }
         return result;
     }
+
+    //wolper 24.04.18
+    //query to get the last rates to exchange to USD
+    @Override
+    public List<RatesUSDForReportDto> getRatesToUSDForReport(){
+        String sql ="SELECT RATES.id as id, name, (SELECT exrate FROM EXORDERS where date_acception=RATES.date AND currency_pair_id=RATES.cp_id  \n" +
+                "ORDER BY id DESC LIMIT 1) AS rate\n" +
+                "FROM\n" +
+                "(SELECT  CURRENCY_PAIR.currency1_id AS id, CURRENCY_PAIR.id AS cp_id, CURRENCY_PAIR.name AS name, MAX(date_acception) AS date FROM EXORDERS \n" +
+                "JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) \n" +
+                "AND (CURRENCY_PAIR.hidden != 1) \n" +
+                "AND CURRENCY_PAIR.name LIKE '%/USD'\n" +
+                "WHERE  status_id = 3  \n" +
+                "GROUP BY currency_pair_id) AS RATES;";
+        return namedParameterJdbcTemplate.query(sql, (rs, row) -> {
+            RatesUSDForReportDto dto = new RatesUSDForReportDto();
+            dto.setId(rs.getInt("id"));
+            dto.setCurrencyPairName(rs.getString("name"));
+            dto.setRate(rs.getBigDecimal("rate"));
+            return dto;
+        });
+    }
+
 
 }

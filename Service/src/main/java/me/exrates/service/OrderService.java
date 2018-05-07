@@ -339,4 +339,12 @@ public interface OrderService {
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
+
+  /**
+   * wolper 24.04.18
+   *  Returns the list of the latest exchange rates for each currency to USD
+   */
+  Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
+
+  Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
 }

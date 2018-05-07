@@ -48,6 +48,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -1588,6 +1589,23 @@ public class OrderServiceImpl implements OrderService {
   public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                               List<Integer> userRoleIdList) {
     return orderDao.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoleIdList);
+  }
+
+  //wolper 23.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
+  }
+
+
+  //wolper 24.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
   }
 }
 
