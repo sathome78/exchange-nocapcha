@@ -80,7 +80,7 @@ public class SummaryInOutReportDto {
         acceptanceDateOut + ";" +
         merchant + ";" +
         currency + ";" +
-            String.valueOf(rateToUSD)+ ";" +
+            BigDecimalProcessing.formatNoneComma(rateToUSD, false)+ ";" +
         BigDecimalProcessing.formatNoneComma(amount, false) + ";" +
         docId +
         "\r\n";

@@ -126,7 +126,7 @@ public class InvoiceReportDto {
   public String toString() {
     return docId + ";" +
         currency + ";" +
-            String.valueOf(rateToUSD) + ";" +
+            BigDecimalProcessing.formatNoneComma(rateToUSD, false) + ";" +
         creationDate + ";" +
         userEmail + ";" +
         recipientBank + ";" +
