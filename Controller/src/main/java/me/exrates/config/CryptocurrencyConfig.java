@@ -164,7 +164,7 @@ public class CryptocurrencyConfig {
 
     @Bean
     public LiskSpecialMethodService arkSendTxService() {
-        return new ArkSpecialMethodServiceImpl();
+        return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
     }
 
 }

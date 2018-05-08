@@ -22,10 +22,14 @@ import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "lisk_log")
 public class LiskServiceImpl implements LiskService {
@@ -55,6 +59,8 @@ public class LiskServiceImpl implements LiskService {
     private String mainSecret;
     private Integer minConfirmations;
 
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
 
     public LiskServiceImpl(LiskSpecialMethodService liskSpecialMethodService, String merchantName, String currencyName, String propertySource) {
         this.liskSpecialMethodService = liskSpecialMethodService;
@@ -76,6 +82,12 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 1L, 2L, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    private void shutdown() {
+        scheduler.shutdown();
     }
 
     @Override
@@ -179,7 +191,6 @@ public class LiskServiceImpl implements LiskService {
 
 
     @Override
-    @Scheduled(initialDelay = 1000, fixedDelay = 30 * 60 * 1000)
     public void processTransactionsForKnownAddresses() {
         log.info("Start checking {} transactions", currencyName);
         Currency currency = currencyService.findByName(currencyName);
