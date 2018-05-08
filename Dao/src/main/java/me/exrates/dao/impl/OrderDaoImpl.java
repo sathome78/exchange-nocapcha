@@ -1016,7 +1016,7 @@ public class OrderDaoImpl implements OrderDao {
                 "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
                 "  WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
                 "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s')" +
-                "  GROUP BY CP.name, OT.id ORDER BY CP.name ASC, OT.id ASC";
+                "  GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
@@ -1061,7 +1061,7 @@ public class OrderDaoImpl implements OrderDao {
                 "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
                 "WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
                 "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
-                "GROUP BY CP.name, OT.id ORDER BY CP.name ASC, OT.id ASC";
+                "GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
