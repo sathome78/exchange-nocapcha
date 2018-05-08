@@ -48,6 +48,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -57,6 +58,7 @@ import static me.exrates.model.enums.OrderActionEnum.*;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+  public static final String SCOPE = "ALL";
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
@@ -1270,7 +1272,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                 OperationType operationType,
                                                                 Integer offset, Integer limit, Locale locale) {
-    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
+    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
 
     return result;
   }
@@ -1587,6 +1589,23 @@ public class OrderServiceImpl implements OrderService {
   public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                               List<Integer> userRoleIdList) {
     return orderDao.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoleIdList);
+  }
+
+  //wolper 23.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
+  }
+
+
+  //wolper 24.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
   }
 }
 

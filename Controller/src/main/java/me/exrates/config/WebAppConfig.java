@@ -513,6 +513,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LiskServiceImpl("BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
+    @Bean(name = "riseServiceImpl")
+    public LiskService riseService() {
+        return new LiskServiceImpl("RiseVision", "RISE", "merchants/rise_vision.properties");
+    }
+
 
     @Bean(name = "szcServiceImpl")
     public BitcoinService szcService() {
@@ -796,6 +801,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BEZ", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "amnServiceImpl")
+    public EthTokenService amnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x737f98ac8ca59f2c68ad658e3c3d8c8963e40a4c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "AMN",
+                "AMN", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "getServiceImpl")
+    public EthTokenService getService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8a854288a5976036a725879164ca3e91d30c6a1b");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GET",
+                "GET", true, ExConvert.Unit.ETHER);
+    }
+
+//    Qtum tokens:
     @Bean(name = "flotServiceImpl")
     public EthTokenService flotService() {
         List<String> tokensList = new ArrayList<>();

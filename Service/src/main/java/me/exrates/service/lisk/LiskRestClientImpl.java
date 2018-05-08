@@ -11,9 +11,6 @@ import me.exrates.model.dto.merchants.lisk.LiskOpenAccountDto;
 import me.exrates.model.dto.merchants.lisk.LiskSendTxDto;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.exception.LiskRestException;
-import me.exrates.service.util.RestApiUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
@@ -36,7 +33,9 @@ public class LiskRestClientImpl implements LiskRestClient {
     @Autowired
     private RestTemplate restTemplate;
 
-    private String host;
+    private String baseUrl;
+    private String openAccountUrl;
+    private String sendTxUrl;
     private String sortingPrefix;
     private int maxTransactionQueryLimit;
     private JsonNodeType countNodeType;
@@ -58,7 +57,14 @@ public class LiskRestClientImpl implements LiskRestClient {
         Properties props = new Properties();
         try {
             props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
-            this.host = props.getProperty("lisk.node.host");
+            String host = props.getProperty("lisk.node.host");
+            String mainPort = props.getProperty("lisk.node.port");
+            String openAccountPort = props.getProperty("lisk.port.getAccount");
+            String sendTxPort = props.getProperty("lisk.port.sendTx");
+
+            this.baseUrl = String.join(":", host, mainPort);
+            this.openAccountUrl = String.join(":", host, openAccountPort);
+            this.sendTxUrl = String.join(":", host, sendTxPort);
             this.sortingPrefix = props.getProperty("lisk.tx.sort.prefix");
             this.maxTransactionQueryLimit = Integer.parseInt(props.getProperty("lisk.tx.queryLimit"));
             this.countNodeType = JsonNodeType.valueOf(props.getProperty("lisk.tx.count.nodeType"));
@@ -123,7 +129,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public String sendTransaction(LiskSendTxDto dto) {
-            ResponseEntity<String> response = restTemplate.exchange(absoluteURI(sendTransactionEndpoint), HttpMethod.PUT, new HttpEntity<>(dto), String.class);
+            ResponseEntity<String> response = restTemplate.exchange(sendTxUrl.concat(sendTransactionEndpoint), HttpMethod.PUT, new HttpEntity<>(dto), String.class);
             return extractTargetNodeFromLiskResponse(response.getBody(), "transactionId", JsonNodeType.STRING).textValue();
     }
 
@@ -131,7 +137,7 @@ public class LiskRestClientImpl implements LiskRestClient {
     public LiskAccount createAccount(String secret) {
         LiskOpenAccountDto dto = new LiskOpenAccountDto();
         dto.setSecret(secret);
-        ResponseEntity<String> response = restTemplate.exchange(absoluteURI(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(openAccountUrl.concat(newAccountEndpoint), HttpMethod.POST, new HttpEntity<>(dto), String.class);
         return extractObjectFromResponse(response.getBody(), "account", LiskAccount.class);
 
     }
@@ -195,7 +201,7 @@ public class LiskRestClientImpl implements LiskRestClient {
 
 
     private String absoluteURI(String relativeURI) {
-        return String.join("", host, relativeURI);
+        return String.join("", baseUrl, relativeURI);
     }
 
 

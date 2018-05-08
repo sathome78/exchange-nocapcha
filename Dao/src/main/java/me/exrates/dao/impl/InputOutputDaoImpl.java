@@ -234,7 +234,12 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
   @Override
   public List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-    String sql = "SELECT CUR.name AS currency_name, SUM(refill) AS input, SUM(withdraw) AS output FROM " +
+    String sql = "SELECT CUR.name AS currency_name, "+
+            //wolper 19.04.18
+            // MIN is used for performance reason
+            // as an alternative to additional "group by CUR.ID"
+            "MIN(CUR.ID)"+
+            " as currency_id, ifnull(SUM(refill), 0) AS input, ifnull(SUM(withdraw), 0) AS output FROM " +
             "  (SELECT TX.currency_id, TX.amount AS refill, 0 AS withdraw FROM TRANSACTION TX " +
             "    JOIN WALLET W ON TX.user_wallet_id = W.id " +
             "    JOIN USER U ON W.user_id = U.id AND U.roleid IN (:user_roles) " +
@@ -251,8 +256,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "   AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
             "   AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
             "  ) AGGR " +
-            "JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
-            "GROUP BY currency_name ORDER BY currency_name ASC";
+            "RIGHT JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
+            "GROUP BY currency_name ORDER BY currency_id ASC";
     Map<String, Object> params = new HashMap<>();
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));
@@ -261,6 +266,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
     return jdbcTemplate.query(sql, params, (rs, row) -> {
       CurrencyInputOutputSummaryDto dto = new CurrencyInputOutputSummaryDto();
       dto.setOrderNum(row + 1);
+      //wolper 19.04.18
+      //id added
+      dto.setCurId(rs.getInt("currency_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setInput(rs.getBigDecimal("input"));
       dto.setOutput(rs.getBigDecimal("output"));
@@ -271,7 +279,12 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
   @Override
   public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-    String sql = "SELECT CUR.name AS currency_name, SUM(refill) AS input, SUM(withdraw) AS output, " +
+    String sql = "SELECT CUR.name AS currency_name, "+
+            //wolper 19.04.18
+            // MIN is used for performance reason
+            // as an alternative to additional "group by CUR.ID"
+            "MIN(CUR.ID)"+
+            "  as currency_id,SUM(refill) AS input, SUM(withdraw) AS output, " +
             "  SUM(commission_refill) AS commission_in, SUM(commission_withdraw) AS commission_out " +
             "FROM " +
             "              (SELECT TX.currency_id, TX.amount AS refill, TX.commission_amount AS commission_refill, " +
@@ -292,8 +305,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "               AND TX.datetime BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
             "               AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
             "              ) AGGR " +
-            "            JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
-            "            GROUP BY currency_name ORDER BY currency_name ASC;";
+            "            RIGHT JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
+            "            GROUP BY currency_name ORDER BY currency_id ASC;";
     Map<String, Object> params = new HashMap<>();
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));
@@ -307,6 +320,9 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setOutput(rs.getBigDecimal("output"));
       dto.setInputCommission(rs.getBigDecimal("commission_in"));
       dto.setOutputCommission(rs.getBigDecimal("commission_out"));
+      //wolper 19.04.18
+      //currency id added
+      dto.setCurId(rs.getInt("currency_id"));
       return dto;
     });
   }
