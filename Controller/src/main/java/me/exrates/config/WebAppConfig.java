@@ -801,6 +801,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BEZ", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "simServiceImpl")
+    public EthTokenService simService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SIM",
+                "SIM", false, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "amnServiceImpl")
     public EthTokenService amnService() {
         List<String> tokensList = new ArrayList<>();
@@ -821,7 +831,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GET", true, ExConvert.Unit.ETHER);
     }
 
-//    Qtum tokens:
     @Bean(name = "flotServiceImpl")
     public EthTokenService flotService() {
         List<String> tokensList = new ArrayList<>();
