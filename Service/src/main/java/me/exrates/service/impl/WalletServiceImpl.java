@@ -415,11 +415,13 @@ public class WalletServiceImpl implements WalletService {
 
 
     return walletDao.getWalletBalancesSummaryByGroups().stream()
-            .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurrency)).entrySet().stream()
-                            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey(), entry.getValue().stream()
+            .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
+
+            .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
                                     .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
                                             UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
                                             balancesMapSupplier)), ReportGroupUserRole.class))
+            .sorted(comparing(dto -> dto.getCurId()))
             .collect(Collectors.toList());
 
   }

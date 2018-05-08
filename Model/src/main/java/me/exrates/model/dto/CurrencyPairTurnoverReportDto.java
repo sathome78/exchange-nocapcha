@@ -17,6 +17,7 @@ public class CurrencyPairTurnoverReportDto {
     //currency id added
     private int pairId;
     private String currencyPairName;
+    private String currencyAccountingName;
     private OperationType operationType;
     private Integer quantity;
     private BigDecimal amountBase;
@@ -24,7 +25,7 @@ public class CurrencyPairTurnoverReportDto {
 
 
     public static String getTitle() {
-        return Stream.of("No.", "pair_id", "currency_pair", "operation_type", "quantity",
+        return Stream.of("No.", "pair_id", "currency_pair", "currency_accounting", "operation_type", "quantity",
                 "amount_base", "amount_convert")
                 .collect(Collectors.joining(";", "", "\r\n"));
     }
@@ -32,7 +33,7 @@ public class CurrencyPairTurnoverReportDto {
 
     @Override
     public String toString() {
-        return Stream.of(String.valueOf(orderNum), String.valueOf(pairId), currencyPairName, operationType.name(), String.valueOf(quantity),
+        return Stream.of(String.valueOf(orderNum), String.valueOf(pairId), currencyPairName, currencyAccountingName, operationType.name(), String.valueOf(quantity),
                 BigDecimalProcessing.formatNoneComma(amountBase, false),
                 BigDecimalProcessing.formatNoneComma(amountConvert, false))
                 .collect(Collectors.joining(";", "", "\r\n"));
