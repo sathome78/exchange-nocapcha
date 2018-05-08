@@ -581,7 +581,7 @@ public class OnlineRestController {
     Locale locale = localeResolver.resolveLocale(request);
     List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
-    return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
+    return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }
 
 
