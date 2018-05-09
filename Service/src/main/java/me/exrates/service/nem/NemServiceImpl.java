@@ -226,7 +226,12 @@ public class NemServiceImpl implements NemService {
     }
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
-        return StringUtils.isEmpty(hash)
+        boolean txExistsInXem = false;
+        if (currencyId != currency.getId()) {
+            txExistsInXem = refillService
+                    .getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(), hash).isPresent();
+        }
+        return StringUtils.isEmpty(hash) || txExistsInXem
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
