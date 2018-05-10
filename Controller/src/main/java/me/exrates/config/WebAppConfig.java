@@ -489,13 +489,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "lccServiceImpl")
     public BitcoinService lccService() {
         return new BitcoinServiceImpl("merchants/lcc_wallet.properties",
-                "LCC", "LCC", 4, 20, true);
+                "LCC", "LCC", 4, 20, false);
     }
 
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
         return new BitcoinServiceImpl("merchants/aml_wallet.properties",
-                "AML", "ABTC", 4, 20, true);
+                "AML", "ABTC", 4, 20, false);
     }
 
     @Bean(name = "bitcoinAtomServiceImpl")
@@ -534,7 +534,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "btxServiceImpl")
     public BitcoinService btxService() {
         return new BitcoinServiceImpl("merchants/btx_wallet.properties",
-                "BTX", "BTX", 4, 20, true, false);
+                "BTX", "BTX", 4, 20, false, false);
     }
 
     @Bean(name = "bitdollarServiceImpl")
