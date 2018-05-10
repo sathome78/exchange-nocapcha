@@ -1,8 +1,8 @@
 <script>
   var bankId = -1;
-  var $dialog;
+  var $dialogConfirm;
   $(function () {
-    $dialog = $("#dialog-refill-confirmation-params-enter");
+    $dialogConfirm = $("#dialog-refill-confirmation-params-enter");
     $(".credits-operation-enter__item").on("change input", function (event) {
       var $elem = $(event.currentTarget);
       var checkResult = checkField($elem);
@@ -14,21 +14,21 @@
     });
   });
 
-  function resetForm() {
-    [].forEach.call($dialog.find(".credits-operation-enter__item"), function (item) {
+  function resetFormConfirm() {
+    [].forEach.call($dialogConfirm.find(".credits-operation-enter__item"), function (item) {
       $(item).val("");
     });
-    $dialog.find("#bank-data-list").val(-1);
+    $dialogConfirm.find("#bank-data-list").val(-1);
     checkAllFields();
   }
 
   function onSelectNewValue(select) {
     bankId = $('#bank-data-list').val();
     var $bankInfoOption = $(select).find("option[value=" + bankId + "]");
-    var $bankCode = $dialog.find("#bank-code");
+    var $bankCode = $dialogConfirm.find("#bank-code");
     $bankCode.val($bankInfoOption.data("bank-code"));
 
-    var $infoWrapper = $dialog.find("#credits-operation-info");
+    var $infoWrapper = $dialogConfirm.find("#credits-operation-info");
     var $otherBankWrapper = $("#other-bank-wrapper");
     if (bankId == -1) {
       $otherBankWrapper.hide();
@@ -42,7 +42,7 @@
 
   function checkAllFields() {
     result = true;
-    [].forEach.call($dialog.find(".credits-operation-enter__item"), function (item) {
+    [].forEach.call($dialogConfirm.find(".credits-operation-enter__item"), function (item) {
       result = checkField($(item)) && result;
     });
     if (result) {

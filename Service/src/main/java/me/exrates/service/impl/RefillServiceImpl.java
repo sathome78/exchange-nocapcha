@@ -179,6 +179,7 @@ public class RefillServiceImpl implements RefillService {
             ((Map<String, String>) result.get("params")).get("message"),
             request.getLocale());
         result.put("message", notification);
+        result.put("requestId", request.getId());
       } catch (MailException e) {
         log.error(e);
       }
