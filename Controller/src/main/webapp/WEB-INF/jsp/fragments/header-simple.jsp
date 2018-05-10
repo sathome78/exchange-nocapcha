@@ -173,6 +173,8 @@
     </div>
 </header>
 
+<%@include file="../fragments/alerts.jsp" %>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 <%--capcha--%>
 <c:if test="${showEntrance && !isAuth && captchaType==\"RECAPTCHA\"}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
