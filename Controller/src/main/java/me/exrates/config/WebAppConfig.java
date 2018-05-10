@@ -495,7 +495,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
         return new BitcoinServiceImpl("merchants/aml_wallet.properties",
-                "AML", "AML", 4, 20, true);
+                "AML", "ABTC", 4, 20, true);
     }
 
     @Bean(name = "bitcoinAtomServiceImpl")

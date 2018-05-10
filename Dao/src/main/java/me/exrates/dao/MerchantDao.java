@@ -58,7 +58,7 @@ public interface MerchantDao {
 
   List<String> retrieveBtcCoreBasedMerchantNames();
 
-  Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
+  Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName);
 
     List<CoreWalletDto> retrieveCoreWallets();
 
