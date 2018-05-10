@@ -368,12 +368,13 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   public String sendToAddressAuto(String address, BigDecimal amount, String walletPassword) {
     
     try {
-      unlockWallet(walletPassword, 1);
+        String result;
+      synchronized (SENDING_LOCK) {
+      unlockWallet(walletPassword, 10);
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
-      String result;
-      synchronized (SENDING_LOCK) {
-        result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+      btcdClient.walletLock();
       }
       return result;
     } catch (BitcoindException e) {
