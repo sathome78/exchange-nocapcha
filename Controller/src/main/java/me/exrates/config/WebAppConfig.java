@@ -857,6 +857,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "VDG", true, ExConvert.Unit.WEI);
     }
 
+    @Bean(name = "dgtxServiceImpl")
+    public EthTokenService dgtxService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1c83501478f1320977047008496dacbd60bb15ef");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DGTX",
+                "DGTX", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
