@@ -23,11 +23,10 @@ function InputOutputClass(currentCurrencyPair) {
     var tablePageSize = 20;
     /**/
     const numberFormat = '0,0.00[0000000]';
-    const $pageContainer = $('#myinputoutput');
-    const $refillDetailedParamsDialog = $pageContainer.find('#dialog-refill-confirmation-params-enter');
+    const $refillDetailedParamsDialog = $('#dialog-refill-confirmation-params-enter');
     const phrases = {
-        "bankNotSelected": $pageContainer.find("#bank-not-selected").html(),
-        "enterOtherBankPhrase": $pageContainer.find("#enter-other-bank-phrase").html(),
+        "bankNotSelected": $("#bank-not-selected").html(),
+        "enterOtherBankPhrase": $("#enter-other-bank-phrase").html()
     };
 
     function onCurrencyPairChange(currentCurrencyPair) {
@@ -91,8 +90,11 @@ function InputOutputClass(currentCurrencyPair) {
 
     /*=====================================================*/
     (function init(currentCurrencyPair) {
-        inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair);
-        inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
+        if (currentCurrencyPair) {
+            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair);
+            inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
+        }
+
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
             /*that.getAndShowInputOutputData();*/
@@ -154,15 +156,8 @@ function InputOutputClass(currentCurrencyPair) {
             $modal.find("#info-field").val(id);
             $modal.find("#confirm-button").off("click").one("click", function () {
                 $modal.modal('hide');
-                $.ajax({
-                    url: '/refill/request/revoke?id=' + id,
-                    headers: {
-                        'X-CSRF-Token': $("input[name='_csrf']").val(),
-                    },
-                    type: 'POST',
-                    success: function () {
-                        that.updateAndShowAll(false);
-                    }
+                revokeRefillRequest(id, function () {
+                    that.updateAndShowAll(false);
                 });
             });
             $modal.modal();
@@ -193,110 +188,145 @@ function InputOutputClass(currentCurrencyPair) {
         $('#inputoutput-table').on('click', 'button[data-source=REFILL].confirm_user_button', function (e) {
             e.preventDefault();
             var id = $(this).data("id");
-            $.ajax({
-                url: '/refill/request/info?id=' + id,
-                headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val(),
-                },
-                type: 'GET',
-                success: function (requestData) {
-                    var refillDetailedParamsDialogResult= false;
-                    $refillDetailedParamsDialog.find("#invoiceSubmit").off("click").one("click", function () {
-                        refillDetailedParamsDialogResult = true;
-                        $refillDetailedParamsDialog.modal("hide");
-                    });
-                    $refillDetailedParamsDialog.one("hidden.bs.modal", function () {
-                        if (refillDetailedParamsDialogResult) {
-                            sendConfirm(requestData.id);
-                        }
-                    });
-                    showRefillDetailDialog(requestData);
-                }
-            });
-
-            function showRefillDetailDialog(data) {
-                resetForm();
-                $refillDetailedParamsDialog.find("#amount").html(numbro(data.amount).format(numberFormat));
-                $refillDetailedParamsDialog.find("#bank-name").html(data.recipientBankName);
-                $refillDetailedParamsDialog.find("#bank-account").html(data.recipientBankAccount);
-                $refillDetailedParamsDialog.find("#bank-recipient").html(data.recipientBankRecipient);
-                getBankDataList(data.currencyId, function (bankDataList) {
-                    var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list");
-                    $bankSelect.empty();
-                    var $bankItem = $("<option> </option>");
-                    $bankItem.val(-1);
-                    $bankItem.attr("data-bank-id", "");
-                    $bankItem.attr("data-bank-code", "");
-                    $bankItem.attr("data-bank-name", "");
-                    $bankItem.attr("data-bank-account", "");
-                    $bankItem.attr("data-bank-recipient", "");
-                    $bankItem.html(phrases.bankNotSelected);
-                    $bankSelect.append($bankItem.clone());
-                    /**/
-                    bankDataList.forEach(function (bank) {
-                        $bankItem.val(bank.id);
-                        $bankItem.attr("data-bank-id", bank.id);
-                        $bankItem.attr("data-bank-code", bank.code);
-                        $bankItem.attr("data-bank-name", bank.name);
-                        $bankItem.attr("data-bank-account", bank.accountNumber);
-                        $bankItem.attr("data-bank-recipient", bank.recipient);
-                        $bankItem.html(bank.name);
-                        $bankSelect.append($bankItem.clone());
-                    });
-                    /**/
-                    $bankItem.val(0);
-                    $bankItem.attr("data-bank-id", "");
-                    $bankItem.attr("data-bank-code", "");
-                    $bankItem.attr("data-bank-name", "");
-                    $bankItem.html(phrases.enterOtherBankPhrase);
-                    $bankSelect.append($bankItem.clone());
-                });
-                $refillDetailedParamsDialog.modal({
-                    backdrop: 'static'
-                });
-            }
-
-            function getBankDataList(currency, callback) {
-                $.ajax({
-                    url: '/withdraw/banks',
-                    async: true,
-                    type: "get",
-                    contentType: "application/json",
-                    data: {"currencyId": currency}
-                }).success(function (response) {
-                    if (callback) {
-                        callback(response);
-                    }
-                });
-            }
-
-            function sendConfirm(id) {
-                var data = new FormData();
-                data.append('invoiceId', id);
-                data.append('payerBankName', $refillDetailedParamsDialog.find('#bank-data-list').find('option:selected').text());
-                data.append('payerBankCode', $refillDetailedParamsDialog.find("#bank-code").val());
-                data.append('userAccount', $refillDetailedParamsDialog.find("#user-account").val());
-                data.append('userFullName', $refillDetailedParamsDialog.find("#user-full-name").val());
-                data.append('remark', $refillDetailedParamsDialog.find("#remark").val());
-                data.append('receiptScan', $refillDetailedParamsDialog.find("#receipt-scan")[0].files[0]);
-                $.ajax({
-                    url: '/refill/request/confirm',
-                    headers: {
-                        'X-CSRF-Token': $("input[name='_csrf']").val(),
-                    },
-                    data: data,
-                    type: 'POST',
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    enctype: 'multipart/form-data',
-                    success: function () {
-                        that.updateAndShowAll(false);
-                    }
-                });
-            }
+            getRequestDataAndShowConfirmDialog(id, function () {
+                that.updateAndShowAll(false);
+            })
 
         });
 
     })(currentCurrencyPair);
+
+    function getRequestDataAndShowConfirmDialog(id, confirmCallback) {
+        $.ajax({
+            url: '/refill/request/info?id=' + id,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'GET',
+            success: function (requestData) {
+                var refillDetailedParamsDialogResult= false;
+                $refillDetailedParamsDialog.find("#invoiceSubmitConfirm").off("click").one("click", function () {
+                    refillDetailedParamsDialogResult = true;
+                    $refillDetailedParamsDialog.modal("hide");
+                });
+                $refillDetailedParamsDialog.one("hidden.bs.modal", function () {
+                    if (refillDetailedParamsDialogResult) {
+                        sendConfirm(requestData.id, confirmCallback);
+                    }
+                });
+                showRefillDetailDialog(requestData);
+            }
+        });
+    }
+
+    function showRefillDetailDialog(data) {
+        resetFormConfirm();
+        $refillDetailedParamsDialog.find("#amount").html(numbro(data.amount).format(numberFormat));
+        $refillDetailedParamsDialog.find("#bank-name").html(data.recipientBankName);
+        $refillDetailedParamsDialog.find("#bank-account").html(data.recipientBankAccount);
+        $refillDetailedParamsDialog.find("#bank-recipient").html(data.recipientBankRecipient);
+        getBankDataList(data.currencyId, function (bankDataList) {
+            var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list");
+            $bankSelect.empty();
+            var $bankItem = $("<option> </option>");
+            $bankItem.val(-1);
+            $bankItem.attr("data-bank-id", "");
+            $bankItem.attr("data-bank-code", "");
+            $bankItem.attr("data-bank-name", "");
+            $bankItem.attr("data-bank-account", "");
+            $bankItem.attr("data-bank-recipient", "");
+            $bankItem.html(phrases.bankNotSelected);
+            $bankSelect.append($bankItem.clone());
+            /**/
+            bankDataList.forEach(function (bank) {
+                $bankItem.val(bank.id);
+                $bankItem.attr("data-bank-id", bank.id);
+                $bankItem.attr("data-bank-code", bank.code);
+                $bankItem.attr("data-bank-name", bank.name);
+                $bankItem.attr("data-bank-account", bank.accountNumber);
+                $bankItem.attr("data-bank-recipient", bank.recipient);
+                $bankItem.html(bank.name);
+                $bankSelect.append($bankItem.clone());
+            });
+            /**/
+            $bankItem.val(0);
+            $bankItem.attr("data-bank-id", "");
+            $bankItem.attr("data-bank-code", "");
+            $bankItem.attr("data-bank-name", "");
+            $bankItem.html(phrases.enterOtherBankPhrase);
+            $bankSelect.append($bankItem.clone());
+        });
+        $refillDetailedParamsDialog.modal({
+            backdrop: 'static'
+        });
+    }
+
+    function getBankDataList(currency, callback) {
+        $.ajax({
+            url: '/withdraw/banks',
+            async: true,
+            type: "get",
+            contentType: "application/json",
+            data: {"currencyId": currency}
+        }).success(function (response) {
+            if (callback) {
+                callback(response);
+            }
+        });
+    }
+
+    function sendConfirm(id, confirmCallback) {
+        var data = new FormData();
+        data.append('invoiceId', id);
+        data.append('payerBankName', $refillDetailedParamsDialog.find('#bank-data-list').find('option:selected').text());
+        data.append('payerBankCode', $refillDetailedParamsDialog.find("#bank-code").val());
+        data.append('userAccount', $refillDetailedParamsDialog.find("#user-account").val());
+        data.append('userFullName', $refillDetailedParamsDialog.find("#user-full-name").val());
+        data.append('remark', $refillDetailedParamsDialog.find("#remark").val());
+        data.append('receiptScan', $refillDetailedParamsDialog.find("#receipt-scan")[0].files[0]);
+        $.ajax({
+            url: '/refill/request/confirm',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: data,
+            type: 'POST',
+            cache: false,
+            contentType: false,
+            processData: false,
+            enctype: 'multipart/form-data',
+            success: function () {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+            }
+        });
+    }
+
+    function revokeRefillRequest(id, revokeCallback) {
+        $.ajax({
+            url: '/refill/request/revoke?id=' + id,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            success: function () {
+                if (revokeCallback) {
+                    revokeCallback();
+                }
+            }
+        });
+    }
+
+    this.revokeRefillRequest = function (requestId, callback) {
+        revokeRefillRequest(requestId, callback);
+    };
+
+
+    this.getRequestDataAndShowConfirmDialog = function (requestId, confirmCallback) {
+        getRequestDataAndShowConfirmDialog(requestId, confirmCallback);
+    }
+
+
+
 }

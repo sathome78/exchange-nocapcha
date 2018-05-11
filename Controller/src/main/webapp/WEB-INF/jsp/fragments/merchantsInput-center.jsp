@@ -1,5 +1,6 @@
 <div id="merchants-input-center">
   <div hidden>
+    <div id="enter-other-bank-phrase"><loc:message code="merchants.invoice.otherBank"/></div>
     <div id="bank-not-selected"><loc:message code="merchants.notSelected"/></div>
   </div>
   <h4><loc:message code="merchants.inputTitle"/></h4>
@@ -166,6 +167,7 @@
   <%@include file="modal/loading_modal.jsp" %>
   <%@include file="modal/dialogRefillCreation_modal.jsp" %>
   <%@include file="modal/dialogRefillDetailedParamsEnter_modal.jsp" %>
+  <%@include file="modal/dialogRefillConfirmationParamsEnter_modal.jsp" %>
 </div>
 <c:if test="${not empty warningSingleAddress}">
   <div class="row inout-warning">
