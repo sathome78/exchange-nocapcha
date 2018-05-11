@@ -6,6 +6,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -149,6 +150,13 @@ public class RefillRequestController {
       Locale locale) {
     Integer userId = userService.getIdByEmail(principal.getName());
     return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId, locale);
+  }
+
+  @RequestMapping(value = "/refill/unconfirmed", method = GET)
+  @ResponseBody
+  public List<MyInputOutputHistoryDto> findMyUnconfirmedRefillRequests(@RequestParam("currency") String currencyName,
+                                                                       Principal principal, Locale locale) {
+    return inputOutputService.findUnconfirmedInvoices(principal.getName(), currencyName, locale);
   }
 
   @AdminLoggable
