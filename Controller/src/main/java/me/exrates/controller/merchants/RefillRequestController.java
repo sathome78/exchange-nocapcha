@@ -152,6 +152,13 @@ public class RefillRequestController {
     return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId, locale);
   }
 
+    @RequestMapping(value = "/refill/unconfirmed", method = GET)
+    @ResponseBody
+    public List<MyInputOutputHistoryDto> findMyUnconfirmedRefillRequests(@RequestParam("currency") String currencyName,
+                                                                         Principal principal, Locale locale) {
+        return inputOutputService.findUnconfirmedInvoices(principal.getName(), currencyName, locale);
+    }
+
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/take", method = POST)
   @ResponseBody

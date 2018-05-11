@@ -23,7 +23,9 @@ public interface InputOutputService {
 
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 
-  List<Map<String, Object>> generateAndGetButtonsSet(InvoiceStatus status, InvoiceOperationPermission permittedOperation, boolean authorisedUserIsHolder, Locale locale);
+    List<MyInputOutputHistoryDto> findUnconfirmedInvoices(String userEmail, String currencyName, Locale locale);
+
+    List<Map<String, Object>> generateAndGetButtonsSet(InvoiceStatus status, InvoiceOperationPermission permittedOperation, boolean authorisedUserIsHolder, Locale locale);
 
   Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 

@@ -85,12 +85,7 @@ public class InputOutputServiceImpl implements InputOutputService {
         add(new MyInputOutputHistoryDto(false));
       }};
     } else {
-      result.forEach(e ->
-      {
-        e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-        e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
-        e.setAuthorisedUserId(e.getUserId());
-      });
+      setAdditionalFields(result, locale);
     }
     return result;
   }
@@ -106,14 +101,27 @@ public class InputOutputServiceImpl implements InputOutputService {
         .map(OperationType::getType)
         .collect(Collectors.toList());
     List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-    result.forEach(e ->
+    setAdditionalFields(result, locale);
+    return result;
+  }
+
+  private void setAdditionalFields(List<MyInputOutputHistoryDto> inputOutputList, Locale locale) {
+    inputOutputList.forEach(e ->
     {
       e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
       e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
       e.setAuthorisedUserId(e.getUserId());
     });
+  }
+
+  @Override
+  public List<MyInputOutputHistoryDto> findUnconfirmedInvoices(String userEmail, String currencyName, Locale locale) {
+    List<MyInputOutputHistoryDto> result = inputOutputDao.findUnconfirmedInvoices(userService.getIdByEmail(userEmail),
+            currencyService.findByName(currencyName).getId());
+    setAdditionalFields(result, locale);
     return result;
   }
+
 
   @Override
   public List<Map<String, Object>> generateAndGetButtonsSet(

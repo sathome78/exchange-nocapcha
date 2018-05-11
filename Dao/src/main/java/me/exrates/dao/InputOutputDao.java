@@ -20,6 +20,8 @@ public interface InputOutputDao {
       List<Integer> operationTypeIdList,
       Locale locale);
 
+    List<MyInputOutputHistoryDto> findUnconfirmedInvoices(Integer userId, Integer currencyId);
+
     List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
     List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
