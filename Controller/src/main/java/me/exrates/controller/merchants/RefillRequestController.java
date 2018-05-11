@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.InvoiceConfirmData;
+import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
@@ -154,9 +155,11 @@ public class RefillRequestController {
 
     @RequestMapping(value = "/refill/unconfirmed", method = GET)
     @ResponseBody
-    public List<MyInputOutputHistoryDto> findMyUnconfirmedRefillRequests(@RequestParam("currency") String currencyName,
-                                                                         Principal principal, Locale locale) {
-        return inputOutputService.findUnconfirmedInvoices(principal.getName(), currencyName, locale);
+    public PaginationWrapper<List<MyInputOutputHistoryDto>> findMyUnconfirmedRefillRequests(@RequestParam("currency") String currencyName,
+                                                                                           @RequestParam("limit") Integer limit,
+                                                                                           @RequestParam("offset") Integer offset,
+                                                                                           Principal principal, Locale locale) {
+        return inputOutputService.findUnconfirmedInvoices(principal.getName(), currencyName, limit, offset, locale);
     }
 
   @AdminLoggable

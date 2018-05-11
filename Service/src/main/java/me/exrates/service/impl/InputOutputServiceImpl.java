@@ -12,6 +12,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.PaginationWrapper;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -115,10 +116,10 @@ public class InputOutputServiceImpl implements InputOutputService {
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> findUnconfirmedInvoices(String userEmail, String currencyName, Locale locale) {
-    List<MyInputOutputHistoryDto> result = inputOutputDao.findUnconfirmedInvoices(userService.getIdByEmail(userEmail),
-            currencyService.findByName(currencyName).getId());
-    setAdditionalFields(result, locale);
+  public PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(String userEmail, String currencyName, Integer limit, Integer offset, Locale locale) {
+    PaginationWrapper<List<MyInputOutputHistoryDto>> result = inputOutputDao.findUnconfirmedInvoices(userService.getIdByEmail(userEmail),
+            currencyService.findByName(currencyName).getId(), limit, offset);
+    setAdditionalFields(result.getData(), locale);
     return result;
   }
 

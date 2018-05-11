@@ -161,6 +161,47 @@
             </c:forEach>
           </div>
         </div>
+        <div id="unconfirmed-refills-container" style="display: none">
+          <div>
+            <h4><loc:message code="refill.unconfirmed.invoices"/></h4>
+          </div>
+          <div class="col-md-8 col-md-offset-2">
+            <table id="unconfirmed-refills-table" class="table">
+              <thead>
+              <tr>
+                <th class="col-2 center blue-white"><loc:message code="inputoutput.datetime"/></th>
+                <th class="col-1 center blue-white"><loc:message code="orderinfo.id"/></th>
+                <th class="col-1 center blue-white"><loc:message code="inputoutput.currency"/></th>
+                <th class="col-08 right blue-white"><loc:message code="inputoutput.amount"/></th>
+                <th class="col-1 center blue-white"><loc:message code="inputoutput.merchant"/></th>
+                <th class="col-2 center blue-white"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <script type="text/template" id="unconfirmed-refills-table-row">
+                <tr>
+                  <td class="center blue-white"><@=datetime@></td>
+                  <td class="center blue-white"><@=id@></td>
+                  <td class="center"><@=currencyName@></td>
+                  <td class="right"><@=amount@></td>
+                  <td class="center"><@=merchantName@></td>
+                  <td class="center table-button-block" style="text-align: right;">
+                    <form id="inputoutput-center-tableBody__form" class="table-button-block__form">
+                      <input type="text" hidden value="" name="transactionId" >
+                      <input type="text" hidden value="" name="action">
+                      <input type="text" hidden value="" name="sourceType">
+                      <@=getButtonsSet(id, sourceType, merchantName, buttons, "unconfirmed-refills-table")@>
+                    </form>
+                </tr>
+              </script>
+              </tbody>
+            </table>
+
+            <ul id="unconfirmed-pagination" class="pagination-sm"></ul>
+          </div>
+
+
+        </div>
       </div>
     </c:otherwise>
   </c:choose>
@@ -168,6 +209,7 @@
   <%@include file="modal/dialogRefillCreation_modal.jsp" %>
   <%@include file="modal/dialogRefillDetailedParamsEnter_modal.jsp" %>
   <%@include file="modal/dialogRefillConfirmationParamsEnter_modal.jsp" %>
+  <%@include file="modal/confirm_with_info_modal.jsp" %>
 </div>
 <c:if test="${not empty warningSingleAddress}">
   <div class="row inout-warning">

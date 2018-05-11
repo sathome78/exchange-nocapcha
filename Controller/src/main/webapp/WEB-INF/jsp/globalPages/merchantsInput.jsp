@@ -34,6 +34,8 @@
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/inputOutput.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/inputOutput/refillCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
+
     <%----%>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>

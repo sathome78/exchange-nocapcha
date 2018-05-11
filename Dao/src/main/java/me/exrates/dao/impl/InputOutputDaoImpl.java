@@ -9,6 +9,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.vo.PaginationWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -237,7 +239,18 @@ public class InputOutputDaoImpl implements InputOutputDao {
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> findUnconfirmedInvoices(Integer userId, Integer currencyId) {
+  public PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(Integer userId, Integer currencyId, @Nullable Integer limit, @Nullable Integer offset) {
+    String limitSql = "";
+    String offsetSql = "";
+    Map<String, Object> params = new HashMap<>();
+    if (limit != null) {
+      limitSql = " LIMIT :limit ";
+      params.put("limit", limit);
+      if (offset != null) {
+        offsetSql = " OFFSET :offset";
+        params.put("offset", offset);
+      }
+    }
     String sql = "SELECT RR.id AS request_id, RR.date_creation AS datetime, CUR.name AS currency, RR.amount, COM.value AS commission_value," +
             " MER.name AS merchant, RR.user_id, IB.account_number AS destination, RR.status_id, RR.status_modification_date," +
             " RRP.user_full_name, RR.remark, RR.admin_holder_id, RR.merchant_transaction_id AS transaction_hash" +
@@ -247,12 +260,22 @@ public class InputOutputDaoImpl implements InputOutputDao {
             " JOIN COMMISSION COM ON RR.commission_id = COM.id" +
             " LEFT JOIN REFILL_REQUEST_PARAM RRP ON RR.refill_request_param_id = RRP.id" +
             " LEFT JOIN INVOICE_BANK IB ON RRP.recipient_bank_id = IB.id " +
+            " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id = :status_id " +
+            " ORDER BY datetime DESC "
+            + limitSql + offsetSql;
+    String sqlCount = "SELECT COUNT(*) " +
+            " FROM REFILL_REQUEST RR " +
+            " JOIN CURRENCY CUR ON RR.currency_id = CUR.id" +
+            " JOIN MERCHANT MER ON RR.merchant_id = MER.id" +
+            " JOIN COMMISSION COM ON RR.commission_id = COM.id" +
             " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id = :status_id ";
-    Map<String, Object> params = new HashMap<>();
+
     params.put("user_id", userId);
     params.put("currency_id", currencyId);
     params.put("status_id", RefillStatusEnum.WAITING_CONFIRMATION_USER.getCode());
-    return jdbcTemplate.query(sql, params, (rs, i) -> {
+
+    Integer count = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
+    List<MyInputOutputHistoryDto> result = jdbcTemplate.query(sql, params, (rs, i) -> {
       MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
       myInputOutputHistoryDto.setId(rs.getInt("request_id"));
       Timestamp datetime = rs.getTimestamp("datetime");
@@ -277,6 +300,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setTransactionHash(rs.getString("transaction_hash"));
       return myInputOutputHistoryDto;
     });
+
+    return new PaginationWrapper<>(result, count, limit == null ? 0 : limit);
 
   }
 

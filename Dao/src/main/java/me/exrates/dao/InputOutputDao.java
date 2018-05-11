@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InputOutputCommissionSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.vo.PaginationWrapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +21,7 @@ public interface InputOutputDao {
       List<Integer> operationTypeIdList,
       Locale locale);
 
-    List<MyInputOutputHistoryDto> findUnconfirmedInvoices(Integer userId, Integer currencyId);
+    PaginationWrapper<List<MyInputOutputHistoryDto>> findUnconfirmedInvoices(Integer userId, Integer currencyId, Integer limit, Integer offset);
 
     List<CurrencyInputOutputSummaryDto> getInputOutputSummary(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 

@@ -21,6 +21,29 @@ function InputOutputClass(currentCurrencyPair) {
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
+
+    var unconfirmedRefillsTableSize = 5;
+    var $pagination = $('#unconfirmed-pagination');
+    var $unconfirmedRefillsTable = $('#unconfirmed-refills-table');
+    var defaultPaginationOpts = {
+        visiblePages: 5,
+        first: "<<",
+        prev: "<",
+        next: ">",
+        last: ">>",
+        onPageClick: function (event, page) {
+            var currency = $('#currencyName').val();
+            var offset = (page - 1) * unconfirmedRefillsTableSize;
+            getUnconfirmedRefills(currency, unconfirmedRefillsTableSize, offset).done(function (result) {
+                if (!result || result['totalCount'] === 0) return;
+                fillUnconfirmedRefillsTable($unconfirmedRefillsTable, result['data']);
+            });
+        }
+    };
+
+
+    var $unconfirmedRefillsContainer = $('#unconfirmed-refills-container');
+
     /**/
     const numberFormat = '0,0.00[0000000]';
     const $refillDetailedParamsDialog = $('#dialog-refill-confirmation-params-enter');
@@ -87,6 +110,21 @@ function InputOutputClass(currentCurrencyPair) {
             }
         });
     };
+
+    this.updateUnconfirmedRefillsTable = function() {
+        if (!$('#unconfirmed-refills-container').length) return;
+        var $currencyNameInput = $('#currencyName');
+        if (!$($currencyNameInput).length) {
+            return;
+        }
+        var currency = $currencyNameInput.val();
+        getUnconfirmedRefills(currency, unconfirmedRefillsTableSize, 0).done(function (result) {
+            if (!result || result['totalCount'] === 0) return;
+            fillUnconfirmedRefillsTable($unconfirmedRefillsTable, result['data']);
+            refreshPagination(result['pagesCount']);
+        });
+    };
+
 
     /*=====================================================*/
     (function init(currentCurrencyPair) {
@@ -191,10 +229,84 @@ function InputOutputClass(currentCurrencyPair) {
             getRequestDataAndShowConfirmDialog(id, function () {
                 that.updateAndShowAll(false);
             })
-
         });
 
+        $($unconfirmedRefillsTable).on('click', 'button[data-source=REFILL].confirm_user_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            getRequestDataAndShowConfirmDialog(id, function () {
+                that.updateUnconfirmedRefillsTable();
+            })
+        });
+
+        $($unconfirmedRefillsTable).on('click', 'button[data-source=REFILL].revoke_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var $modal = $("#confirm-with-info-modal");
+            $modal.find("label[for=info-field]").html($(this).html());
+            $modal.find("#info-field").val(id);
+            $modal.find("#confirm-button").off("click").one("click", function () {
+                $modal.modal('hide');
+                revokeRefillRequest(id, function () {
+                    that.updateUnconfirmedRefillsTable();
+                });
+            });
+            $modal.modal();
+        });
+
+        if($('#unconfirmed-refills-container').length) {
+            initUnconfirmedRefillHistoryTable();
+        }
+
     })(currentCurrencyPair);
+
+    function fillUnconfirmedRefillsTable($unconfirmedRefillsTable, data) {
+        var $tmpl = $('#unconfirmed-refills-table-row').html().replace(/@/g, '%');
+        clearTable($unconfirmedRefillsTable);
+        data.forEach(function (e) {
+            $unconfirmedRefillsTable.append(tmpl($tmpl, e));
+        });
+        blink($unconfirmedRefillsTable.find('td:not(:first-child)'));
+    }
+
+    function initPagination(totalPages) {
+        $pagination.twbsPagination($.extend({}, defaultPaginationOpts,  {
+            totalPages: totalPages
+        }));
+    }
+
+    function refreshPagination(totalPages) {
+        var currentPage = $pagination.twbsPagination('getCurrentPage');
+        $pagination.twbsPagination('destroy');
+        $pagination.twbsPagination($.extend({}, defaultPaginationOpts,  {
+            startPage: currentPage,
+            totalPages: totalPages,
+            initiateStartPageClick: false
+        }));
+    }
+
+    function initUnconfirmedRefillHistoryTable() {
+        var $currencyNameInput = $('#currencyName');
+        if (!$($currencyNameInput).length) {
+            return;
+        }
+        var currency = $currencyNameInput.val();
+        getUnconfirmedRefills(currency, unconfirmedRefillsTableSize, 0).done(function (result) {
+            if (!result || result['totalCount'] === 0) return;
+            fillUnconfirmedRefillsTable($unconfirmedRefillsTable, result['data']);
+            initPagination(result['pagesCount']);
+            $('#unconfirmed-refills-container').show();
+        });
+
+    }
+
+     function getUnconfirmedRefills(currency, limit, offset) {
+        var url = '/refill/unconfirmed?currency=' + currency + '&limit=' + limit + '&offset=' + offset;
+        return $.ajax({
+            url: url,
+            type: 'GET'
+        });
+    }
 
     function getRequestDataAndShowConfirmDialog(id, confirmCallback) {
         $.ajax({
