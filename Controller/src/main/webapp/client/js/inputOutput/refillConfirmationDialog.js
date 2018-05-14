@@ -1,16 +1,9 @@
-var bankId = -1;
 var $dialogConfirm;
 $(function () {
     $dialogConfirm = $("#dialog-refill-confirmation-params-enter");
+    $dialogConfirm.find("#bank-data-list-confirm").val(-1);
     $($dialogConfirm).find(".credits-operation-enter__item").on("change input", function (event) {
         checkAllConfirmFields();
-        /*var $elem = $(event.currentTarget);
-        var checkResult = checkConfirmField($elem);
-        if (checkResult) {
-            $('#invoiceSubmitConfirm').prop('disabled', false);
-        } else {
-            $('#invoiceSubmitConfirm').prop('disabled', true);
-        }*/
     });
 });
 
@@ -23,7 +16,8 @@ function resetFormConfirm() {
 }
 
 function onSelectNewValueConfirm(select) {
-    bankId = $('#bank-data-list').val();
+    debugger;
+    var bankId = $('#bank-data-list-confirm').val();
     var $bankInfoOption = $(select).find("option[value=" + bankId + "]");
     var $bankCode = $dialogConfirm.find("#bank-code");
     $bankCode.val($bankInfoOption.data("bank-code"));
@@ -60,6 +54,7 @@ function checkConfirmField($elem) {
 
     var result = true;
     var elemId = $elem.attr("id");
+    var bankId = $('#bank-data-list-confirm').val();
 
     if ($elem.closest(".input-block-wrapper").css("display") == 'none') {
         result = true;

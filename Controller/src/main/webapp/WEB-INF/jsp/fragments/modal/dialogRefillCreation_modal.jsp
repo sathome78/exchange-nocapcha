@@ -49,7 +49,7 @@
         <div id="response-money-operation-btns-wrapper">
           <div class="pull-left">
             <button id="request-confirm-btn" class="btn btn-primary btn-md" type="button"><loc:message
-                    code="refill.invoice.payed"/></button>
+                    code="refill.invoice.paid"/></button>
             <button id="request-revoke-btn" class="btn btn-danger btn-md" type="button"><loc:message
                     code="merchants.invoice.revoke"/></button>
           </div>

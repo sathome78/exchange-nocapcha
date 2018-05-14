@@ -50,11 +50,11 @@
           </div>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-3 input-block-wrapper__label-wrapper">
-              <label for="bank-data-list" class="input-block-wrapper__label">
+              <label for="bank-data-list-confirm" class="input-block-wrapper__label">
                 <loc:message code="merchants.invoiceConfirm.bankFrom"/>*</label>
             </div>
             <div class="col-md-5 ">
-              <select id="bank-data-list"
+              <select id="bank-data-list-confirm"
                       class="credits-operation-enter__item form-control input-block-wrapper__input"
                       onchange="onSelectNewValueConfirm(this)">
               </select>

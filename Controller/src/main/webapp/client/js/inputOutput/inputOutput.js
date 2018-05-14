@@ -338,7 +338,7 @@ function InputOutputClass(currentCurrencyPair) {
         $refillDetailedParamsDialog.find("#bank-account").html(data.recipientBankAccount);
         $refillDetailedParamsDialog.find("#bank-recipient").html(data.recipientBankRecipient);
         getBankDataList(data.currencyId, function (bankDataList) {
-            var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list");
+            var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list-confirm");
             $bankSelect.empty();
             var $bankItem = $("<option> </option>");
             $bankItem.val(-1);
@@ -390,7 +390,7 @@ function InputOutputClass(currentCurrencyPair) {
     function sendConfirm(id, confirmCallback) {
         var data = new FormData();
         data.append('invoiceId', id);
-        data.append('payerBankName', $refillDetailedParamsDialog.find('#bank-data-list').find('option:selected').text());
+        data.append('payerBankName', $refillDetailedParamsDialog.find('#bank-data-list-confirm').find('option:selected').text());
         data.append('payerBankCode', $refillDetailedParamsDialog.find("#bank-code").val());
         data.append('userAccount', $refillDetailedParamsDialog.find("#user-account").val());
         data.append('userFullName', $refillDetailedParamsDialog.find("#user-full-name").val());
