@@ -134,6 +134,13 @@ function MyOrdersClass(currentCurrencyPair) {
     };
 
     this.getAndShowMySellAndBuyOrdersData = function () {
+        if ($myordersContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForMyOrdersData);
+            timeOutIdForMyOrdersData = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshIntervalForMyOrdersData);
+            return;
+        }
         if ($.fn.dataTable.isDataTable('#myHistoryOrdersTable')) {
             myHistoryOrdersTable.ajax.reload();
         } else {

@@ -48,6 +48,14 @@ function OrdersClass(currentCurrencyPair) {
     };
 
     this.getAndShowMySellAndBuyOrdersData = function () {
+        if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForOrdersData);
+            timeOutIdForOrdersData = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshIntervalForOrdersData);
+            return;
+        }
+
         if ($.fn.dataTable.isDataTable('#myOrdersTable')) {
             myOrdersTable.ajax.reload();
         } else {
