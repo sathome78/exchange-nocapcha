@@ -141,6 +141,12 @@ public class CryptocurrencyConfig {
                 "BEET", "BEET", 4, 20, false, false);
     }
 
+    @Bean(name = "nycoinServiceImpl")
+    public BitcoinService nycoinService() {
+        return new BitcoinServiceImpl("merchants/nyc_wallet.properties",
+                "NYC", "NYC", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
