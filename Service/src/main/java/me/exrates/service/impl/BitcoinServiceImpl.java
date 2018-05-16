@@ -125,7 +125,8 @@ public class BitcoinServiceImpl implements BitcoinService {
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
-      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
+//      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
+      examineMissingPaymentsOnStartup();
     }
 
   }

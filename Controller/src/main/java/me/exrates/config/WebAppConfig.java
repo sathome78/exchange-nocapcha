@@ -396,11 +396,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
-    @Bean(name = "nsrServiceImpl")
-    public BitcoinService nsrService() {
-        return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
-                "NuShares", "NSR", 4, 20, false, false);
-    }
+//    @Bean(name = "nsrServiceImpl")
+//    public BitcoinService nsrService() {
+//        return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
+//                "NuShares", "NSR", 4, 20, false, false);
+//    }
 
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
