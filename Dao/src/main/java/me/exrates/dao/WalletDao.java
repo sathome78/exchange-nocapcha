@@ -86,4 +86,7 @@ public interface WalletDao {
     List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList);
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
+
+    List<UserRoleBalanceDto> getexternalWallets();
+
 }
