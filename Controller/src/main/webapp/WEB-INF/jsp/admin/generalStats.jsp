@@ -150,7 +150,9 @@
                         <table id="total-balances-table">
                             <thead>
                             <tr>
+                                <th><loc:message code="admin.currency.id"/></th>
                                 <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="admin.rate.to.usd"/></th>
                                 <th><loc:message code="admin.stats.allRealUsers"/></th>
                                 <c:forEach items="${roleGroups}" var="roleGroup">
                                     <th>${roleGroup.name()}</th>

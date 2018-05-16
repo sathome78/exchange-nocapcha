@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -581,7 +582,7 @@ public class OnlineRestController {
     Locale locale = localeResolver.resolveLocale(request);
     List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
-    return list.stream().collect(Collectors.groupingBy(CurrencyPair::getMarket));
+    return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }
 
 
@@ -965,7 +966,7 @@ public class OnlineRestController {
 
   @OnlineMethod
   @RequestMapping(value = "/dashboard/newsTwitter", method = RequestMethod.GET)
-  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "30")int amount) {
+  public List<NewsDto> getTwitterNewsList(@RequestParam(value = "amount", defaultValue = "50") int amount) {
     return newsService.getTwitterNews(amount);
   }
 

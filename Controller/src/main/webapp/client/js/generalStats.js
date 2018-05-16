@@ -131,7 +131,13 @@ $(function () {
             "order": [],
             "columns": [
                 {
+                    data: 'curId'
+                },
+                {
                     data: 'currency'
+                },
+                {
+                    data: 'rateToUSD'
                 },
                 {
                     data: 'totalReal'
@@ -147,7 +153,7 @@ $(function () {
         };
 
        $($balancesTable).find('th').filter(function (index) {
-            return index > 1
+            return index > 3
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {

@@ -257,7 +257,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "   AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
             "  ) AGGR " +
             "RIGHT JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
-            "GROUP BY currency_name ORDER BY CUR.id ASC";
+            "GROUP BY currency_name ORDER BY currency_id ASC";
     Map<String, Object> params = new HashMap<>();
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));
@@ -306,7 +306,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             "               AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
             "              ) AGGR " +
             "            RIGHT JOIN CURRENCY CUR ON AGGR.currency_id = CUR.id " +
-            "            GROUP BY currency_name ORDER BY CUR.id ASC;";
+            "            GROUP BY currency_name ORDER BY currency_id ASC;";
     Map<String, Object> params = new HashMap<>();
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));

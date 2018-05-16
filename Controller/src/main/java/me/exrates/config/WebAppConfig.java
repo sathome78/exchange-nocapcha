@@ -396,6 +396,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
+    @Bean(name = "nsrServiceImpl")
+    public BitcoinService nsrService() {
+        return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
+                "NuShares", "NSR", 4, 20, false, false);
+    }
+
+    @Bean(name = "amlServiceImpl")
+    public BitcoinService amlService() {
+        return new BitcoinServiceImpl("merchants/aml_wallet.properties",
+                "AML", "ABTC", 4, 20, false);
+    }
+
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -661,6 +673,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BEZ", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "simServiceImpl")
+    public EthTokenService simService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SIM",
+                "SIM", false, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "amnServiceImpl")
     public EthTokenService amnService() {
         List<String> tokensList = new ArrayList<>();
@@ -681,7 +703,46 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GET", true, ExConvert.Unit.ETHER);
     }
 
-//    Qtum tokens:
+    @Bean(name = "flotServiceImpl")
+    public EthTokenService flotService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x049399a6b048d52971f7d122ae21a1532722285f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FLOT",
+                "FLOT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "vdgServiceImpl")
+    public EthTokenService vdgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x57c75eccc8557136d32619a191fbcdc88560d711");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "VDG",
+                "VDG", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "dgtxServiceImpl")
+    public EthTokenService dgtxService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1c83501478f1320977047008496dacbd60bb15ef");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DGTX",
+                "DGTX", true, ExConvert.Unit.ETHER);
+    }
+    @Bean(name = "droneServiceImpl")
+    public EthTokenService droneService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x131f193692b5cce8c87d12ff4f7aa1d4e1668f1e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DRONE",
+                "DRONE", true, ExConvert.Unit.WEI);
+    }
+
+    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
         List<String> tokensList = new ArrayList<>();

@@ -59,6 +59,13 @@
   <%--libs--%>
   <script type="text/javascript" src="/client/js/lib/tinymce/tinymce.min.js"></script>
   <script type="text/javascript" src="/client/js/lib/tinymce/angular-ui-tinymce/tinymce.js"></script>
+  <%--... Alerts --%>
+  <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+  <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
   <%--... Angular and binded--%>
 </head>
 
