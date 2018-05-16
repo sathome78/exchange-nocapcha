@@ -130,7 +130,7 @@ public class MoneroServiceImpl implements MoneroService {
         return mapAddress;
     }
 
-//    @PostConstruct
+    @PostConstruct
     public void init(){
 
         currency = currencyService.findByName("XMR");
