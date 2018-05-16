@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('Ark', 'Ark', 2, 'arkServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('ARK', 'Ark', '0', 8, 8, 8);
+VALUES ('ARK', 'Ark', 1, 8, 8, 8);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='Ark'),
@@ -20,7 +20,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'ARK'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'USD'), 'ARK/USD', 12, 0, 'ARK/USD');
+VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'USD'), 'ARK/USD', 12, 1, 'ARK/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -28,7 +28,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='ARK/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'BTC'), 'ARK/BTC', 50, 0, 'BTC', 'ARK/BTC');
+VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'BTC'), 'ARK/BTC', 50, 1, 'BTC', 'ARK/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -36,7 +36,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='ARK/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'ETH'), 'ARK/ETH', 50, 0, 'ETH', 'ARK/ETH');
+VALUES((select id from CURRENCY where name = 'ARK'), (select id from CURRENCY where name = 'ETH'), 'ARK/ETH', 50, 1, 'ETH', 'ARK/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
