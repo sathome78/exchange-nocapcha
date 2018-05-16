@@ -531,6 +531,7 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
+
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());

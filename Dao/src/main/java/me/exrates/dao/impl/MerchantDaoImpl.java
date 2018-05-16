@@ -17,6 +17,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -41,6 +42,18 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
   MessageSource messageSource;
+
+  private RowMapper<CoreWalletDto> coreWalletRowMapper = (rs, row) -> {
+    CoreWalletDto dto = new CoreWalletDto();
+    dto.setId(rs.getInt("id"));
+    dto.setCurrencyId(rs.getInt("currency_id"));
+    dto.setMerchantId(rs.getInt("merchant_id"));
+    dto.setCurrencyName(rs.getString("currency_name"));
+    dto.setMerchantName(rs.getString("merchant_name"));
+    dto.setTitleCode(rs.getString("title"));
+
+    return dto;
+  };
 
   @Override
   public Merchant create(Merchant merchant) {
@@ -340,9 +353,11 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+  public void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus) {
     String blockField = resolveBlockFieldByOperationType(operationType);
-    String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
+    String sql = "UPDATE MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "SET MC." + blockField + " = :block WHERE M.process_type != 'TRANSFER'";
     Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
     namedParameterJdbcTemplate.update(sql, params);
   }
@@ -439,13 +454,14 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
-    String sql = "SELECT CURRENCY.name FROM CURRENCY " +
-            "JOIN CRYPTO_CORE_WALLET core ON CURRENCY.id = core.currency_id " +
-            "JOIN MERCHANT ON MERCHANT.id = core.merchant_id " +
-            "WHERE MERCHANT.name = :merchant_name";
+  public Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName) {
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+            "FROM CRYPTO_CORE_WALLET ccw " +
+            "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
+            "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
+            "WHERE m.name = :merchant_name";
     try {
-      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), String.class));
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), coreWalletRowMapper));
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
@@ -459,17 +475,7 @@ public class MerchantDaoImpl implements MerchantDao {
             "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
             "ORDER BY currency_name ASC;";
 
-    return jdbcTemplate.query(sql, (rs, row) -> {
-      CoreWalletDto dto = new CoreWalletDto();
-      dto.setId(rs.getInt("id"));
-      dto.setCurrencyId(rs.getInt("currency_id"));
-      dto.setMerchantId(rs.getInt("merchant_id"));
-      dto.setCurrencyName(rs.getString("currency_name"));
-      dto.setMerchantName(rs.getString("merchant_name"));
-      dto.setTitleCode(rs.getString("title"));
-
-      return dto;
-    });
+    return jdbcTemplate.query(sql, coreWalletRowMapper);
 
   }
 

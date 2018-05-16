@@ -36,6 +36,14 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
 
+    <%--... Alerts --%>
+    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+    <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+
     <%@include file="../tools/google_head.jsp"%>
     <%@include file="../tools/alexa.jsp" %>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
@@ -140,11 +148,6 @@
     <div class="row">
         <p><loc:message code="contacts.contactPhone"/> </p>
         <loc:message code="contacts.address"/>
-    </div>
-    <div class="row">
-        <strong><p><loc:message code="contacts.arm.title"/> </p></strong>
-        <p><loc:message code="contacts.arm.phone"/> </p>
-        <loc:message code="contacts.arm.address"/>
     </div>
 
 </main>

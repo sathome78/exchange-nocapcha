@@ -18,10 +18,7 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.BackDealInterval;
-import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.TransactionDescription;
-import me.exrates.model.vo.WalletOperationData;
+import me.exrates.model.vo.*;
 import me.exrates.service.*;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
@@ -51,6 +48,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -60,6 +58,7 @@ import static me.exrates.model.enums.OrderActionEnum.*;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+  public static final String SCOPE = "ALL";
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(100000);
@@ -130,17 +129,16 @@ public class OrderServiceImpl implements OrderService {
   public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
     ExOrderStatisticsDto result = serviceCacheableProxy.getOrderStatistic(currencyPair, backDealInterval);
     result = new ExOrderStatisticsDto(result);
-    result.setPercentChange(BigDecimalProcessing.formatLocale(BigDecimalProcessing.doAction(
-            result.getFirstOrderRate(), result.getLastOrderRate(), ActionType.PERCENT_GROWTH),
-            locale, 2));
-    result.setFirstOrderAmountBase(BigDecimalProcessing.formatLocale(result.getFirstOrderAmountBase(),locale, true));
-    result.setFirstOrderRate(BigDecimalProcessing.formatLocale(result.getFirstOrderRate(), locale, true));
-    result.setLastOrderAmountBase(BigDecimalProcessing.formatLocale(result.getLastOrderAmountBase(), locale, true));
-    result.setLastOrderRate(BigDecimalProcessing.formatLocale(result.getLastOrderRate(), locale, true));
-    result.setMinRate(BigDecimalProcessing.formatLocale(result.getMinRate(), locale, true));
-    result.setMaxRate(BigDecimalProcessing.formatLocale(result.getMaxRate(), locale, true));
-    result.setSumBase(BigDecimalProcessing.formatLocale(result.getSumBase(), locale, true));
-    result.setSumConvert(BigDecimalProcessing.formatLocale(result.getSumConvert(), locale, true));
+    result.setPercentChange(BigDecimalProcessing.formatNonePoint(BigDecimalProcessing.doAction(
+            result.getFirstOrderRate(), result.getLastOrderRate(), ActionType.PERCENT_GROWTH), 2));
+    result.setFirstOrderAmountBase(BigDecimalProcessing.formatNonePoint(result.getFirstOrderAmountBase(), true));
+    result.setFirstOrderRate(BigDecimalProcessing.formatNonePoint(result.getFirstOrderRate(), true));
+    result.setLastOrderAmountBase(BigDecimalProcessing.formatNonePoint(result.getLastOrderAmountBase(), true));
+    result.setLastOrderRate(BigDecimalProcessing.formatNonePoint(result.getLastOrderRate(), true));
+    result.setMinRate(BigDecimalProcessing.formatNonePoint(result.getMinRate(), true));
+    result.setMaxRate(BigDecimalProcessing.formatNonePoint(result.getMaxRate(), true));
+    result.setSumBase(BigDecimalProcessing.formatNonePoint(result.getSumBase(), true));
+    result.setSumConvert(BigDecimalProcessing.formatNonePoint(result.getSumConvert(), true));
     return result;
   }
 
@@ -450,6 +448,15 @@ public class OrderServiceImpl implements OrderService {
     } finally {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
     }
+  }
+
+  @Override
+  @Transactional
+  public void postBotOrderToDb(OrderCreateDto orderCreateDto) {
+    ExOrder exOrder = new ExOrder(orderCreateDto);
+    exOrder.setUserAcceptorId(orderCreateDto.getUserId());
+    orderDao.postAcceptedOrderToDB(exOrder);
+    eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
   }
 
 
@@ -1011,6 +1018,12 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public Integer deleteOrderByAdmin(int orderId) {
     OrderCreateDto order = orderDao.getMyOrderById(orderId);
+    OrderRoleInfoForDelete orderRoleInfo = orderDao.getOrderRoleInfo(orderId);
+    if (orderRoleInfo.mayDeleteWithoutProcessingTransactions()) {
+      setStatus(orderId, OrderStatus.DELETED);
+      return 1;
+    }
+
     Object result = deleteOrder(orderId, OrderStatus.DELETED, DELETE);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
@@ -1259,7 +1272,7 @@ public class OrderServiceImpl implements OrderService {
   public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                                 OperationType operationType,
                                                                 Integer offset, Integer limit, Locale locale) {
-    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
+    List<OrderWideListDto> result = orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, SCOPE, offset, limit, locale);
 
     return result;
   }
@@ -1267,9 +1280,9 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                     OperationType operationType,
+                                                     OperationType operationType, String scope,
                                                      Integer offset, Integer limit, Locale locale) {
-    return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, null, offset, limit, locale);
+    return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, status, operationType, scope, offset, limit, locale);
   }
 
   @Override
@@ -1576,6 +1589,23 @@ public class OrderServiceImpl implements OrderService {
   public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                               List<Integer> userRoleIdList) {
     return orderDao.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoleIdList);
+  }
+
+  //wolper 23.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
+  }
+
+
+  //wolper 24.04.18
+  //Returns the list of the latest exchange rates for each currency to USD
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
+    return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
   }
 }
 

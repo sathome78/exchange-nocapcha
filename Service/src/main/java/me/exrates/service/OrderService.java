@@ -56,7 +56,10 @@ public interface OrderService {
    */
   int createOrder(OrderCreateDto order, OrderActionEnum action);
 
-  Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+  @Transactional
+    void postBotOrderToDb(OrderCreateDto orderCreateDto);
+
+    Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
   Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -299,7 +302,7 @@ public interface OrderService {
                                                          Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
-                                              OperationType operationType,
+                                              OperationType operationType, String scope,
                                               Integer offset, Integer limit, Locale locale);
 
   List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
@@ -336,4 +339,12 @@ public interface OrderService {
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
+
+  /**
+   * wolper 24.04.18
+   *  Returns the list of the latest exchange rates for each currency to USD
+   */
+  Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
+
+  Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
 }

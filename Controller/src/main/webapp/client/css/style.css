@@ -438,10 +438,13 @@ th, td {
 .mywallets_table td:first-child span {
     font-size: 0.9rem;
 }
+
+.mywallets_table td:nth-child(2) {
+    vertical-align: middle;
+}
 .mywallets_table td:last-child {
     vertical-align: middle;
 }
-
 
 .currency_table td:first-child {
     cursor: pointer;
@@ -454,6 +457,7 @@ th, td {
 
 /*my*/
 .mywallets_table th:last-child,
+.mywallets_table th:nth-child(2),
 .currency_table th:nth-child(2),
 .currency_table th:last-child {
     text-align: center;
@@ -488,6 +492,14 @@ th, td {
     float: right;
 }
 
+.total_usd_child
+{
+    display: inline-block;
+    width: 45%;
+    font-weight: 300;
+    color: #63a20a;
+
+}
 /**********************************
 			Main Content
 ***********************************/
@@ -2035,6 +2047,12 @@ input[type=email], .dropdown-menu__form,
 
 #all_news_table td {
     font-size: 1.2rem;
+}
+
+#archive_news_table_wrapper {
+    height: 500px;
+    overflow: hidden;
+    display: block;
 }
 
 #notification-icon {

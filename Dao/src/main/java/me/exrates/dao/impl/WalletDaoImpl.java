@@ -160,7 +160,7 @@ public class WalletDaoImpl implements WalletDao {
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
     final String sql =
-        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance " +
+        " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
@@ -173,7 +173,8 @@ public class WalletDaoImpl implements WalletDao {
       MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
       myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
       myWalletsStatisticsDto.setDescription(rs.getString("description"));
-      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, true));
+      myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("active_balance"), true));
+      myWalletsStatisticsDto.setTotalBalance(BigDecimalProcessing.formatNonePoint(rs.getBigDecimal("total_balance"), true));
       return myWalletsStatisticsDto;
     });
   }
@@ -1112,7 +1113,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<UserGroupBalanceDto> getWalletBalancesSummaryByGroups() {
-      String sql = "SELECT CUR.name AS currency_name, AGR.feature_name, AGR.total_balance FROM ( " +
+      String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, AGR.feature_name, AGR.total_balance FROM ( " +
               "  SELECT STRAIGHT_JOIN W.currency_id, URGF.name AS feature_name, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance " +
               "  FROM WALLET W " +
               "    JOIN USER U ON U.id = W.user_id " +
@@ -1124,6 +1125,7 @@ public class WalletDaoImpl implements WalletDao {
               "  ORDER BY CUR.name";
       return jdbcTemplate.query(sql, Collections.emptyMap(), (rs, row) -> {
         UserGroupBalanceDto dto = new UserGroupBalanceDto();
+        dto.setCurId(rs.getInt("currency_id"));
         dto.setCurrency(rs.getString("currency_name"));
         dto.setReportGroupUserRole(ReportGroupUserRole.valueOf(rs.getString("feature_name")));
         dto.setTotalBalance(rs.getBigDecimal("total_balance"));
@@ -1133,7 +1135,7 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<UserRoleBalanceDto> getWalletBalancesSummaryByRoles(List<Integer> roleIdsList) {
-    String sql = "SELECT CUR.name AS currency_name, UR.name AS role_name, AGR.total_balance FROM ( " +
+    String sql = "SELECT CUR.name AS currency_name, CUR.id AS currency_id, UR.name AS role_name, AGR.total_balance FROM ( " +
             "     SELECT STRAIGHT_JOIN W.currency_id, U.roleid AS role_id, " +
             "     (SUM(W.active_balance) + SUM(W.reserved_balance)) AS total_balance " +
             "      FROM WALLET W " +
@@ -1149,6 +1151,9 @@ public class WalletDaoImpl implements WalletDao {
       dto.setCurrency(rs.getString("currency_name"));
       dto.setUserRole(UserRole.valueOf(rs.getString("role_name")));
       dto.setTotalBalance(rs.getBigDecimal("total_balance"));
+      //wolper 19.04.18
+      //currency id added
+      dto.setCurId(rs.getInt("currency_id"));
       return dto;
     });
   }

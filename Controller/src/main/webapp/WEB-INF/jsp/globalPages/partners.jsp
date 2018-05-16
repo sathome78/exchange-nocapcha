@@ -29,6 +29,13 @@
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
+    <%--... Alerts --%>
+    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+    <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
@@ -47,7 +54,8 @@
                 <loc:message code="partners.title"/>
             </c:set>
             <c:set var="supportLink">
-                <a href="mailto:support@exrates.me?Subject=Add%20coin">listing@exrates.top</a>
+                <a href="mailto:listing@exrates.top?Subject=Add%20coin">listing@exrates.top</a>&#44;
+                <a href="mailto:commercial@exrates.top?Subject=Add%20coin">commercial@exrates.top</a>
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
