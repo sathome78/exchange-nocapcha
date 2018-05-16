@@ -162,9 +162,9 @@ public class CryptocurrencyConfig {
         return new LiskSpecialMethodServiceImpl();
     }
 
-    @Bean
-    public LiskSpecialMethodService arkSendTxService() {
-        return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
-    }
+//    @Bean
+//    public LiskSpecialMethodService arkSendTxService() {
+//        return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
+//    }
 
 }
