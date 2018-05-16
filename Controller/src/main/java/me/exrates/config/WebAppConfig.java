@@ -486,6 +486,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BTCZ", "BTCZ", 4, 20, false);
     }
 
+    @Bean(name = "nsrServiceImpl")
+    public BitcoinService nsrService() {
+        return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
+                "NuShares", "NSR", 4, 20, false, false);
+    }
+
     @Bean(name = "lccServiceImpl")
     public BitcoinService lccService() {
         return new BitcoinServiceImpl("merchants/lcc_wallet.properties",
