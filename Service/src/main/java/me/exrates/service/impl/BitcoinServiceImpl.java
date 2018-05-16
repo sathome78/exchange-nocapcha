@@ -24,6 +24,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -124,7 +125,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
-      examineMissingPaymentsOnStartup();
+      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
     }
 
   }
