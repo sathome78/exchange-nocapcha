@@ -152,10 +152,10 @@ public class CryptocurrencyConfig {
         return new LiskServiceImpl(liskSendTxService(),"RiseVision", "RISE", "merchants/rise_vision.properties");
     }
 
-    @Bean(name = "arkServiceImpl")
-    public LiskService arkService() {
-        return new LiskServiceImpl(arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
-    }
+//    @Bean(name = "arkServiceImpl")
+//    public LiskService arkService() {
+//        return new LiskServiceImpl(arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
+//    }
 
     @Bean
     public LiskSpecialMethodService liskSendTxService() {
