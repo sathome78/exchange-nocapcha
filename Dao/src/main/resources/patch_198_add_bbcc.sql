@@ -73,3 +73,8 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
 VALUES ((SELECT id from MERCHANT WHERE name='BBCC'), (select id from CURRENCY where name='BBCC'), 'bbccWallet.title');
+
+-- NEED TO GET LAST BLOCK FROM NODE OR BLOCK EXPLORER!!
+
+INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES ((SELECT id from MERCHANT WHERE name='BBCC'),
+  'lastBlock', '');

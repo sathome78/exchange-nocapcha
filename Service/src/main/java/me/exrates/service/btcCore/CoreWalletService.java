@@ -63,4 +63,6 @@ public interface CoreWalletService {
     BtcPaymentResultDto signAndSendRawTransaction(String hex);
 
     String getTxIdByHex(String hex);
+
+  String getLastBlockHash();
 }

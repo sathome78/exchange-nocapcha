@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
@@ -9,6 +10,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
+import me.exrates.service.exception.MerchantSpecParamNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,6 +26,9 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -39,6 +44,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   private CurrencyService currencyService;
   @Autowired
   private MerchantService merchantService;
+
+  @Autowired
+  private MerchantSpecParamsDao merchantSpecParamsDao;
+
   @Autowired
   private MessageSource messageSource;
   @Autowired
@@ -68,6 +77,12 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Boolean supportSubtractFee;
 
+  private Boolean supportWalletNotifications;
+
+  private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
+
+
+
   @Override
   public Integer minConfirmationsRefill() {
     return minConfirmations;
@@ -79,6 +94,11 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                             Boolean rawTxEnabled, Boolean supportSubtractFee) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
+  }
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -94,6 +114,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.blockTargetForFee = blockTargetForFee;
       this.rawTxEnabled = rawTxEnabled;
       this.supportSubtractFee = supportSubtractFee;
+      this.supportWalletNotifications = supportWalletNotifications;
     } catch (IOException e) {
       log.error(e);
     }
@@ -120,7 +141,11 @@ public class BitcoinServiceImpl implements BitcoinService {
       bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
-      bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+      if (supportWalletNotifications) {
+        bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+      } else {
+        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+      }
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
@@ -239,7 +264,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                       .merchantTransactionId(btcPaymentFlatDto.getTxId()).build()));
       if (btcPaymentFlatDto.getConfirmations() >= 0 && btcPaymentFlatDto.getConfirmations() < minConfirmations) {
         try {
-          log.debug("put on bch exam {}", btcPaymentFlatDto );
+          log.info("put on bch exam {}", btcPaymentFlatDto );
           refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
                   .requestId(requestId)
                   .merchantId(btcPaymentFlatDto.getMerchantId())
@@ -370,7 +395,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   public String getEstimatedFeeString() {
     BigDecimal feeRate = estimateFee();
-    if (feeRate.equals(BigDecimal.valueOf(-1L))) {
+    if (feeRate.compareTo(BigDecimal.ZERO) < 0) {
       return "N/A";
     }
     return BigDecimalProcessing.formatNonePoint(feeRate, true);
@@ -469,6 +494,32 @@ public class BitcoinServiceImpl implements BitcoinService {
     });
   }
 
+  private void checkForNewTransactions() {
+    log.info("Start checking new {} transactions: ", currencyName);
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    String blockParamName = "lastBlock";
+    MerchantSpecParamDto lastBlockParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), blockParamName);
+    if (lastBlockParam == null) {
+      throw new MerchantSpecParamNotFoundException(String.format("merchant %s, currency %s, param %s", merchant.getName(), currency.getName(),
+              blockParamName));
+    }
+    String currentBlockHash = bitcoinWalletService.getLastBlockHash();
+    List<BtcPaymentFlatDto> payments = bitcoinWalletService.listSinceBlock(lastBlockParam.getParamValue(), merchant.getId(), currency.getId());
+    payments.forEach(btcPaymentFlatDto -> {
+      try {
+        log.info("Processing tx {}", btcPaymentFlatDto);
+        processBtcPayment(btcPaymentFlatDto);
+      } catch (Exception e) {
+        log.error(e);
+      }
+    });
+    merchantSpecParamsDao.updateParam(merchantName, blockParamName, currentBlockHash);
+
+  }
+
+
+
   @Override
   public String getNewAddressForAdmin() {
     return bitcoinWalletService.getNewAddress(walletPassword);
@@ -492,6 +543,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PreDestroy
   public void shutdown() {
     bitcoinWalletService.shutdown();
+    newTxCheckerScheduler.shutdown();
   }
 
 }
