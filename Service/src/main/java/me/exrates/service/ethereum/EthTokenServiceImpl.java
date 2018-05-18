@@ -75,6 +75,8 @@ public class EthTokenServiceImpl implements EthTokenService {
 
     private final ExConvert.Unit unit;
 
+    private final BigInteger minWalletBalance;
+
     @Autowired
     private RefillService refillService;
     @Autowired
@@ -98,7 +100,20 @@ public class EthTokenServiceImpl implements EthTokenService {
         this.currencyName = currencyName;
         this.isERC20 = isERC20;
         this.unit = unit;
+        this.minWalletBalance = new BigInteger("0");
     }
+
+    public EthTokenServiceImpl(List<String> contractAddress, String merchantName,
+                               String currencyName, boolean isERC20, ExConvert.Unit unit, BigInteger minWalletBalance) {
+        this.contractAddress = contractAddress;
+        this.merchantName = merchantName;
+        this.currencyName = currencyName;
+        this.isERC20 = isERC20;
+        this.unit = unit;
+        this.minWalletBalance = minWalletBalance;
+    }
+
+
 
     @PostConstruct
     public void init() {
@@ -287,9 +302,9 @@ public class EthTokenServiceImpl implements EthTokenService {
                     }
 
                     contractMain.transferFrom(credentials.getAddress(),
-                            ethereumCommonService.getMainAddress(), balance).send();
+                            ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance)).send();
 
-                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
+                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance.subtract(minWalletBalance)), unit) + " sent to main account!!!");
                 }else {
 
                     ethTokenNotERC20 contract = (ethTokenNotERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), credentials, GAS_PRICE, GAS_LIMIT);
@@ -315,9 +330,9 @@ public class EthTokenServiceImpl implements EthTokenService {
                                 credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
                     }
 
-                    contract.transfer(ethereumCommonService.getMainAddress(), balance).send();
+                    contract.transfer(ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance)).send();
 
-                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance), unit) + " sent to main account!!!");
+                    log.debug(merchantName + " Funds " + ExConvert.fromWei(String.valueOf(balance.subtract(minWalletBalance)), unit) + " sent to main account!!!");
                 }
 
                 }catch (Exception e){
