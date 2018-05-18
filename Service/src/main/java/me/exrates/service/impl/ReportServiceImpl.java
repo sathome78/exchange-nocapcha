@@ -79,6 +79,10 @@ public class ReportServiceImpl implements ReportService {
   @Autowired
   Scheduler reportScheduler;
 
+  @Autowired
+  private CryptoCurrencyBalances cryptoCurrencyBalances;
+
+
   private final String MAIL_JOB_NAME = "REPORT_MAIL_JOB";
   private final String MAIL_TRIGGER_NAME = "REPORT_MAIL_TRIGGER";
 
@@ -472,6 +476,28 @@ public class ReportServiceImpl implements ReportService {
       });
   }
 
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
+    List<ExternalWalletsDto> externalWalletsDtos = walletService.getBalancesWithExternalWallets();
+
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+//    externalWalletsDtos.stream().forEach(w -> {
+//      mapCryptoCurrencyBalances.forEach((k,v)-> {
+//        if (w.getMerchantId().equals(k)){
+//          try {
+//            w.setMainWalletBalance(new BigDecimal(v));
+//          }catch (Exception e){
+//            log.error(e);
+//          }
+//        }
+//      });
+//    });
+
+    return externalWalletsDtos;
+  }
+
+
   private void rescheduleMailJob(LocalTime newMailTime) {
     try {
       TriggerKey triggerKey = TriggerKey.triggerKey(MAIL_TRIGGER_NAME);
@@ -514,22 +540,5 @@ public class ReportServiceImpl implements ReportService {
   private LocalTime parseTime(String timeString) {
     return LocalTime.from(DateTimeFormatter.ofPattern("HH:mm").parse(timeString));
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

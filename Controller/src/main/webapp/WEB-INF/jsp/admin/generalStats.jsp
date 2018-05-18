@@ -37,6 +37,9 @@
                     <loc:message code="reports.balances.buttonTitle"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
+                    <loc:message code="reports.balancesWithWallets"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.mailing"/>
                 </button>
             </div>
@@ -165,8 +168,32 @@
 
                 </div>
 
-
                 <div id="panel3" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="reports.balancesWithWallets"/></h4>
+                    </div>
+
+
+                    <div class="col-md-8 col-md-offset-2">
+                        <table id="balances-external-wallets-table">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.currency.id"/></th>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="admin.stats.allRealUsers"/></th>
+                                <%--<th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>--%>
+                                <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <div id="panel4" class="tab-pane">
                     <div class="col-md-6 col-md-offset-3">
                         <div class="form_full_height_width " style="margin: 50px 0">
 

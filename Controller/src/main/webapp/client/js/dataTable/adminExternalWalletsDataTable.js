@@ -1,65 +1,52 @@
 /**
  * Created by OLEG on 23.09.2016.
  */
-var currencyLimitDataTable;
+var externalWalletsDataTable;
 var currencyPairLimitDataTable;
 $(document).ready(function () {
 
-    var $currencyLimitsTable = $('#currency-limits-table');
+    var $externalWalletsTable = $('#external-wallets-table');
     // var $currencyPairLimitsTable = $('#currency-pair-limits-table');
-    // var $editCurrencyLimitForm = $('#edit-currency-limit-form');
+    var $editExternalWalletsForm = $('#edit-external-wallets-form');
     // var $editCurrencyPairLimitForm = $('#edit-currency-pair-limit-form');
 
 
     // $('#roleName, #operationType').change(updateCurrencyLimitsDataTable);
     // $('#roleName-pair, #orderType').change(updateCurrencyPairLimitsDataTable);
-    updateCurrencyLimitsDataTable();
+    updateExternalWalletsTable();
     // updateCurrencyPairLimitsDataTable();
-    $($currencyLimitsTable).find('tbody').on('click', 'tr', function () {
-        var rowData = currencyLimitDataTable.row(this).data();
-        var currencyId = rowData.currency.id;
-        var currencyName = rowData.currency.name;
-        var currentMinLimit = rowData.minSum;
-        var currentMaxDailyRequest = rowData.maxDailyRequest;
-        var operationType = $('#operationType').val();
-        var userRole = $('#roleName').val();
-        $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
+    $($externalWalletsTable).find('tbody').on('click', 'tr', function () {
+        var rowData = externalWalletsDataTable.row(this).data();
+        var currencyId = rowData.currencyId;
+        var currencyName = rowData.currencyName;
+        var reservedWalletBalance = rowData.reservedWalletBalance;
+        var coldWalletBalance = rowData.coldWalletBalance;
+        $($editExternalWalletsForm).find('input[name="currencyId"]').val(currencyId);
         $('#currency-name').val(currencyName);
-        $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
-        $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
-        $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
-        $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
-        $('#editLimitModal').modal();
+        $($editExternalWalletsForm).find('input[name="reservedWalletBalance"]').val(reservedWalletBalance);
+        $($editExternalWalletsForm).find('input[name="coldWalletBalance"]').val(coldWalletBalance);
+        $('#editBalanceModal').modal();
     });
 
 
-    $('#submitNewLimit').click(function(e) {
+    $('#submitNewBalance').click(function(e) {
         e.preventDefault();
-        submitNewLimit()
+        submitNewBalance()
     });
-
-    $('#submitNewPairLimit').click(function(e) {
-        e.preventDefault();
-        submitNewPairLimit();
-    });
-
-
-
-
 
 });
 
-function updateCurrencyLimitsDataTable() {
-    var $currencyLimitsTable = $('#currency-limits-table');
+function updateExternalWalletsTable() {
+    var $externalWalletsTable = $('#external-wallets-table');
     var urlBase = '/2a8fy7b07dxe44/externalWallets/retrieve';
-    var currencyLimitUrl = urlBase + '?roleName=' + userRole + '&operationType=' + operationType;
-    if ($.fn.dataTable.isDataTable('#currency-limits-table')) {
-        currencyLimitDataTable = $($currencyLimitsTable).DataTable();
-        currencyLimitDataTable.ajax.url(currencyLimitUrl).load();
+    var externalWalletsUrl = urlBase;
+    if ($.fn.dataTable.isDataTable('#external-wallets-table')) {
+        externalWalletsDataTable = $($externalWalletsTable).DataTable();
+        externalWalletsDataTable.ajax.url(externalWalletsUrl).load();
     } else {
-        currencyLimitDataTable = $($currencyLimitsTable).DataTable({
+        externalWalletsDataTable = $($externalWalletsTable).DataTable({
             "ajax": {
-                "url": currencyLimitUrl,
+                "url": externalWalletsUrl,
                 "dataSrc": ""
             },
             "bFilter": false,
@@ -70,14 +57,14 @@ function updateCurrencyLimitsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currency.id",
+                    "data":"currencyId",
                     "visible": false
                 },
                 {
-                    "data": "currency.name"
+                    "data": "currencyName"
                 },
                 {
-                    "data": "minSum",
+                    "data": "reservedWalletBalance",
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbro(data).format('0.00[000000]');
@@ -86,120 +73,36 @@ function updateCurrencyLimitsDataTable() {
                     }
                 },
                 {
-                    "data": "maxDailyRequest"
-                }
+                    "data": "coldWalletBalance",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                },
             ]
         });
     }
 }
 
-function updateCurrencyPairLimitsDataTable() {
-    var $currencyPairLimitsTable = $('#currency-pair-limits-table');
-    var userRole = $('#roleName-pair').val();
-    var orderType = $('#orderType').val();
-    var urlBase = '/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve';
-    var currencyPairLimitUrl = urlBase + '?roleName=' + userRole + '&orderType=' + orderType;
-    if ($.fn.dataTable.isDataTable('#currency-pair-limits-table')) {
-        currencyPairLimitDataTable = $($currencyPairLimitsTable).DataTable();
-        currencyPairLimitDataTable.ajax.url(currencyPairLimitUrl).load();
-    } else {
-        currencyPairLimitDataTable = $($currencyPairLimitsTable).DataTable({
-            "ajax": {
-                "url": currencyPairLimitUrl,
-                "dataSrc": ""
-            },
-            "bFilter": false,
-            "paging": false,
-            "order": [],
-            "bLengthChange": false,
-            "bPaginate": false,
-            "bInfo": false,
-            "columns": [
-                {
-                    "data":"currencyPairId",
-                    "visible": false
-                },
-                {
-                    "data": "currencyPairName"
-                },
-                {
-                    "data": "minRate",
-                    "render": function (data, type, row) {
-                        if (type === 'display') {
-                            return numbro(data).format('0.[0000000000]');
-                        }
-                        return data;
-                    }
-                },
-                {
-                    "data": "maxRate",
-                    "render": function (data, type, row) {
-                        if (type === 'display') {
-                            return numbro(data).format('0.[0000000000]');
-                        }
-                        return data;
-                    }
-                },
-                {
-                    "data": "minAmount",
-                    "render": function (data, type, row) {
-                        if (type === 'display') {
-                            return numbro(data).format('0.[0000000000]');
-                        }
-                        return data;
-                    }
-                },
-                {
-                    "data": "maxAmount",
-                    "render": function (data, type, row) {
-                        if (type === 'display') {
-                            return numbro(data).format('0.[0000000000]');
-                        }
-                        return data;
-                    }
-                }
-            ]
-        });
-    }
-}
-
-
-function submitNewLimit() {
-    var formData =  $('#edit-currency-limit-form').serialize();
+function submitNewBalance() {
+    var formData =  $('#edit-external-wallets-form').serialize();
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/2a8fy7b07dxe44/editCurrencyLimits/submit',
+        url: '/2a8fy7b07dxe44/externalWallets/submit',
         type: 'POST',
         data: formData,
         success: function () {
-            updateCurrencyLimitsDataTable();
-            $('#editLimitModal').modal('hide');
+            updateExternalWalletsTable();
+            $('#editBalanceModal').modal('hide');
         },
         error: function (error) {
-            $('#editLimitModal').modal('hide');
+            $('#editBalanceModal').modal('hide');
             console.log(error);
         }
     });
 }
 
-function submitNewPairLimit() {
-    var formData =  $('#edit-currency-pair-limit-form').serialize();
-    $.ajax({
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        url: '/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit',
-        type: 'POST',
-        data: formData,
-        success: function () {
-            updateCurrencyPairLimitsDataTable();
-            $('#editPairLimitModal').modal('hide');
-        },
-        error: function (error) {
-            $('#editPairLimitModal').modal('hide');
-            console.log(error);
-        }
-    });
-}

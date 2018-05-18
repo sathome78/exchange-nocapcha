@@ -152,6 +152,7 @@ public class AdminController {
   @Autowired
   private UsersAlertsService alertsService;
 
+
   @Autowired
   @Qualifier("ExratesSessionRegistry")
   private SessionRegistry sessionRegistry;
@@ -1051,18 +1052,31 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets", method = RequestMethod.GET)
   public ModelAndView externalWallets() {
     ModelAndView modelAndView = new ModelAndView("admin/externalWallets");
-//    modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
-//    modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
-//    modelAndView.addObject("orderTypes", OrderType.values());
     return modelAndView;
   }
 
-//  @AdminLoggable
-//  @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
-//  @ResponseBody
-//  public List<CurrencyLimit> retrieveCurrencyLimits() {
-//    return currencyService.retrieveCurrencyLimitsForRole(roleName, operationType);
-//  }
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/retrieve", method = RequestMethod.GET)
+  @ResponseBody
+  public List<ExternalWalletsDto> retrieveExternalWallets() {
+    return walletService.getExternalWallets();
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
+  @ResponseBody
+  public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
+                                                @RequestParam BigDecimal reservedWalletBalance,
+                                                @RequestParam BigDecimal coldWalletBalance) {
+
+    ExternalWalletsDto externalWalletsDto = new ExternalWalletsDto();
+    externalWalletsDto.setCurrencyId(currencyId);
+    externalWalletsDto.setReservedWalletBalance(reservedWalletBalance);
+    externalWalletsDto.setColdWalletBalance(coldWalletBalance);
+
+    walletService.updateExternalWallets(externalWalletsDto);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)

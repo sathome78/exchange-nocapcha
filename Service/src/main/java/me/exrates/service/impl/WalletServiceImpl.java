@@ -23,7 +23,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -441,5 +440,20 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
     return walletDao.getWalletIdAndBlock(userId, currencyId);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getExternalWallets() {
+    return walletDao.getExternalWallets();
+  }
+
+  @Override
+  public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
+     walletDao.updateExternalWallets(externalWalletsDto);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
+    return walletDao.getBalancesWithExternalWallets();
   }
 }
