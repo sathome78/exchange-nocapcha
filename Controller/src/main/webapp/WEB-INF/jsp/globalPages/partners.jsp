@@ -49,7 +49,7 @@
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2 content legal_content">
+        <div class="col-md-5 col-md-offset-2 content legal_content">
             <c:set var="termsHeading">
                 <loc:message code="partners.title"/>
             </c:set>
@@ -63,6 +63,10 @@
                 <loc:message code="partners.content" arguments="${supportLink}"/>
             </div>
 
+        </div>
+        <div class="col-md-3 col-md-offset-1">
+            <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
+                <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
         </div>
 
     </div>
