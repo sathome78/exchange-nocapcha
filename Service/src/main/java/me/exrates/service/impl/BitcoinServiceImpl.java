@@ -496,25 +496,29 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private void checkForNewTransactions() {
     log.info("Start checking new {} transactions: ", currencyName);
-    Merchant merchant = merchantService.findByName(merchantName);
-    Currency currency = currencyService.findByName(currencyName);
-    String blockParamName = "lastBlock";
-    MerchantSpecParamDto lastBlockParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), blockParamName);
-    if (lastBlockParam == null) {
-      throw new MerchantSpecParamNotFoundException(String.format("merchant %s, currency %s, param %s", merchant.getName(), currency.getName(),
-              blockParamName));
-    }
-    String currentBlockHash = bitcoinWalletService.getLastBlockHash();
-    List<BtcPaymentFlatDto> payments = bitcoinWalletService.listSinceBlock(lastBlockParam.getParamValue(), merchant.getId(), currency.getId());
-    payments.forEach(btcPaymentFlatDto -> {
-      try {
-        log.info("Processing tx {}", btcPaymentFlatDto);
-        processBtcPayment(btcPaymentFlatDto);
-      } catch (Exception e) {
-        log.error(e);
+    try {
+      Merchant merchant = merchantService.findByName(merchantName);
+      Currency currency = currencyService.findByName(currencyName);
+      String blockParamName = "lastBlock";
+      MerchantSpecParamDto lastBlockParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), blockParamName);
+      if (lastBlockParam == null) {
+        throw new MerchantSpecParamNotFoundException(String.format("merchant %s, currency %s, param %s", merchant.getName(), currency.getName(),
+                blockParamName));
       }
-    });
-    merchantSpecParamsDao.updateParam(merchantName, blockParamName, currentBlockHash);
+      String currentBlockHash = bitcoinWalletService.getLastBlockHash();
+      List<BtcPaymentFlatDto> payments = bitcoinWalletService.listSinceBlock(lastBlockParam.getParamValue(), merchant.getId(), currency.getId());
+      payments.forEach(btcPaymentFlatDto -> {
+        try {
+          log.info("Processing tx {}", btcPaymentFlatDto);
+          processBtcPayment(btcPaymentFlatDto);
+        } catch (Exception e) {
+          log.error(e);
+        }
+      });
+      merchantSpecParamsDao.updateParam(merchantName, blockParamName, currentBlockHash);
+    } catch (Exception e) {
+      log.error(e);
+    }
 
   }
 
