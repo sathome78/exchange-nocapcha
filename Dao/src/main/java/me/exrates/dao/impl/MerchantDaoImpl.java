@@ -353,9 +353,11 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+  public void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus) {
     String blockField = resolveBlockFieldByOperationType(operationType);
-    String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
+    String sql = "UPDATE MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "SET MC." + blockField + " = :block WHERE M.process_type != 'TRANSFER'";
     Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
     namedParameterJdbcTemplate.update(sql, params);
   }
