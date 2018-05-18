@@ -193,9 +193,9 @@ $(function () {
                 {
                     data: 'totalReal'
                 },
-                // {
-                //     data: 'mainWalletBalance'
-                // },
+                {
+                    data: 'mainWalletBalance'
+                },
                 {
                     data: 'reservedWalletBalance'
                 },
@@ -214,7 +214,7 @@ $(function () {
         };
 
         $($balancesExternalWalletsTable).find('th').filter(function (index) {
-            return index > 4
+            return index > 5
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {

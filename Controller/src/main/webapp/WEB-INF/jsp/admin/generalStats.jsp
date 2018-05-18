@@ -181,7 +181,7 @@
                                 <th><loc:message code="admin.currency.id"/></th>
                                 <th><loc:message code="transaction.currency"/></th>
                                 <th><loc:message code="admin.stats.allRealUsers"/></th>
-                                <%--<th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>--%>
+                                <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
                             </tr>

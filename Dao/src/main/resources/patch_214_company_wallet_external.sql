@@ -1,6 +1,7 @@
 CREATE TABLE COMPANY_WALLET_EXTERNAL (
   `id` INT(40) NOT NULL AUTO_INCREMENT,
   `currency_id` INT(40) NOT NULL,
+  `main_wallet_balance` DOUBLE(40,9) NULL DEFAULT '0.000000000',
   `reserve_wallet_balance` DOUBLE(40,9) NULL DEFAULT '0.000000000',
   `cold_wallet_balance` DOUBLE(40,9) NULL DEFAULT '0.000000000',
   PRIMARY KEY (`id`),

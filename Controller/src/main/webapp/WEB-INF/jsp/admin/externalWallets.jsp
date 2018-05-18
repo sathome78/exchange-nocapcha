@@ -33,6 +33,7 @@
                         <tr>
                             <th></th>
                             <th><loc:message code="admin.externalWallets.name"/></th>
+                            <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
                         </tr>
@@ -53,14 +54,15 @@
             <div class="modal-body">
                 <form id="edit-external-wallets-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyId">
-                    <%--<div class="input-block-wrapper">--%>
-                        <%--<div class="col-md-5 input-block-wrapper__label-wrapper">--%>
-                            <%--<label class="input-block-wrapper__label"><loc:message code="withdrawal.currency"/></label>--%>
-                        <%--</div>--%>
-                        <%--<div class="col-md-7 input-block-wrapper__input-wrapper">--%>
-                            <%--<input id="currency-name" class="input-block-wrapper__input" readonly type="text">--%>
-                        <%--</div>--%>
-                    <%--</div>--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.externalWallets.mainWalletBalance"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="mainWalletBalance" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message

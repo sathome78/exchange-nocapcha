@@ -2,27 +2,22 @@
  * Created by OLEG on 23.09.2016.
  */
 var externalWalletsDataTable;
-var currencyPairLimitDataTable;
 $(document).ready(function () {
 
     var $externalWalletsTable = $('#external-wallets-table');
-    // var $currencyPairLimitsTable = $('#currency-pair-limits-table');
     var $editExternalWalletsForm = $('#edit-external-wallets-form');
-    // var $editCurrencyPairLimitForm = $('#edit-currency-pair-limit-form');
 
-
-    // $('#roleName, #operationType').change(updateCurrencyLimitsDataTable);
-    // $('#roleName-pair, #orderType').change(updateCurrencyPairLimitsDataTable);
     updateExternalWalletsTable();
-    // updateCurrencyPairLimitsDataTable();
     $($externalWalletsTable).find('tbody').on('click', 'tr', function () {
         var rowData = externalWalletsDataTable.row(this).data();
         var currencyId = rowData.currencyId;
         var currencyName = rowData.currencyName;
+        var mainWalletBalance = rowData.mainWalletBalance;
         var reservedWalletBalance = rowData.reservedWalletBalance;
         var coldWalletBalance = rowData.coldWalletBalance;
         $($editExternalWalletsForm).find('input[name="currencyId"]').val(currencyId);
         $('#currency-name').val(currencyName);
+        $($editExternalWalletsForm).find('input[name="mainWalletBalance"]').val(mainWalletBalance);
         $($editExternalWalletsForm).find('input[name="reservedWalletBalance"]').val(reservedWalletBalance);
         $($editExternalWalletsForm).find('input[name="coldWalletBalance"]').val(coldWalletBalance);
         $('#editBalanceModal').modal();
@@ -62,6 +57,15 @@ function updateExternalWalletsTable() {
                 },
                 {
                     "data": "currencyName"
+                },
+                {
+                    "data": "mainWalletBalance",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "reservedWalletBalance",

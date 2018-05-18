@@ -1066,11 +1066,13 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
+                                                @RequestParam BigDecimal mainWalletBalance,
                                                 @RequestParam BigDecimal reservedWalletBalance,
                                                 @RequestParam BigDecimal coldWalletBalance) {
 
     ExternalWalletsDto externalWalletsDto = new ExternalWalletsDto();
     externalWalletsDto.setCurrencyId(currencyId);
+    externalWalletsDto.setMainWalletBalance(mainWalletBalance);
     externalWalletsDto.setReservedWalletBalance(reservedWalletBalance);
     externalWalletsDto.setColdWalletBalance(coldWalletBalance);
 

@@ -1160,12 +1160,13 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<ExternalWalletsDto> getExternalWallets() {
-    String sql = "SELECT currency_id, CURRENCY.name as currency_name, reserve_wallet_balance, cold_wallet_balance FROM COMPANY_WALLET_EXTERNAL\n" +
+    String sql = "SELECT currency_id, CURRENCY.name as currency_name, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance FROM COMPANY_WALLET_EXTERNAL\n" +
             " join CURRENCY on (COMPANY_WALLET_EXTERNAL.currency_id = CURRENCY.id) order by currency_id;";
     return jdbcTemplate.query(sql, (rs, row) -> {
       ExternalWalletsDto dto = new ExternalWalletsDto();
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
       dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
       dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
       return dto;
@@ -1174,11 +1175,12 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
-    final String sql = "UPDATE COMPANY_WALLET_EXTERNAL SET reserve_wallet_balance = :reserveWalletBalance" +
+    final String sql = "UPDATE COMPANY_WALLET_EXTERNAL SET main_wallet_balance = :mainWalletBalance, reserve_wallet_balance = :reserveWalletBalance" +
             ", cold_wallet_balance = :coldWalletBalance WHERE currency_id = :currencyId";
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("currencyId", externalWalletsDto.getCurrencyId());
+        put("mainWalletBalance", externalWalletsDto.getMainWalletBalance());
         put("reserveWalletBalance", externalWalletsDto.getReservedWalletBalance());
         put("coldWalletBalance", externalWalletsDto.getColdWalletBalance());
       }
@@ -1188,17 +1190,23 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
-    String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, AGR.total_balance, reserve_wallet_balance, cold_wallet_balance \n" +
+    String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, AGR.total_balance, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id \n" +
             "FROM (   SELECT STRAIGHT_JOIN W.currency_id, URGF.name AS feature_name, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance   \n" +
             "FROM WALLET W     JOIN USER U ON U.id = W.user_id     JOIN USER_ROLE UR ON U.roleid = UR.id     \n" +
-            "JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id   GROUP BY W.currency_id   ) AGR   \n" +
+            "JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id AND UR.user_role_report_group_feature_id IN (1,2)   GROUP BY W.currency_id   ) AGR   \n" +
             "JOIN CURRENCY CUR ON AGR.currency_id = CUR.id \n" +
             "JOIN COMPANY_WALLET_EXTERNAL CWE ON CUR.id = CWE.currency_id\n" +
+            "LEFT JOIN \n" +
+            "(SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY\n" +
+            "join MERCHANT on (MERCHANT_CURRENCY.merchant_id = MERCHANT.id) \n" +
+            "where process_type = 'CRYPTO') as MC on MC.currency_id = CUR.id\n" +
             "  ORDER BY currency_id";
     return jdbcTemplate.query(sql, (rs, row) -> {
       ExternalWalletsDto dto = new ExternalWalletsDto();
       dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
       dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
       dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
       dto.setTotalReal(rs.getBigDecimal("total_balance"));
