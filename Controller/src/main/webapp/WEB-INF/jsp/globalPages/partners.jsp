@@ -49,25 +49,27 @@
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <div class="col-md-5 col-md-offset-2 content legal_content">
+        <div class="col-md-8 col-md-offset-2 content legal_content">
             <c:set var="termsHeading">
                 <loc:message code="partners.title"/>
             </c:set>
             <c:set var="supportLink">
-                <a href="mailto:listing@exrates.top?Subject=Add%20coin">listing@exrates.top</a>&#44;
-                <a href="mailto:commercial@exrates.top?Subject=Add%20coin">commercial@exrates.top</a>
+                <a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a>
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
             <div style="margin-bottom: 70px" id="termsContent">
-                <loc:message code="partners.content" arguments="${supportLink}"/>
+                <div class="col-md-7">
+                    <loc:message code="partners.content" arguments="${supportLink}"/>
+                </div>
+                <div class="col-md-4 col-md-offset-1">
+                    <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
+                        <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
+                </div>
             </div>
 
         </div>
-        <div class="col-md-3 col-md-offset-1">
-            <div class="pipedriveWebForms" data-pd-webforms="https://pipedrivewebforms.com/form/020d70347deb09bd6f285e7bb17c1c523330571">
-                <script src="https://webforms.pipedriveassets.com/webforms.min.js"></script></div>
-        </div>
+
 
     </div>
 </main>
