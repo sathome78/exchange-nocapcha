@@ -119,9 +119,12 @@ function InputOutputClass(currentCurrencyPair) {
         }
         var currency = $currencyNameInput.val();
         getUnconfirmedRefills(currency, unconfirmedRefillsTableSize, 0).done(function (result) {
-            if (!result || result['totalCount'] === 0) return;
-            fillUnconfirmedRefillsTable($unconfirmedRefillsTable, result['data']);
-            refreshPagination(result['pagesCount']);
+            if (!result || result['totalCount'] === 0) {
+                $('#unconfirmed-refills-container').hide();
+            } else {
+                fillUnconfirmedRefillsTable($unconfirmedRefillsTable, result['data']);
+                refreshPagination(result['pagesCount']);
+            }
         });
     };
 

@@ -166,22 +166,22 @@
             <h4><loc:message code="refill.unconfirmed.invoices"/></h4>
           </div>
           <div class="col-md-8 col-md-offset-2">
-            <table id="unconfirmed-refills-table" class="table">
+            <table id="unconfirmed-refills-table" class="table" style="border: none">
               <thead>
               <tr>
-                <th class="col-2 center blue-white"><loc:message code="inputoutput.datetime"/></th>
-                <th class="col-1 center blue-white"><loc:message code="orderinfo.id"/></th>
-                <th class="col-1 center blue-white"><loc:message code="inputoutput.currency"/></th>
-                <th class="col-08 right blue-white"><loc:message code="inputoutput.amount"/></th>
-                <th class="col-1 center blue-white"><loc:message code="inputoutput.merchant"/></th>
-                <th class="col-2 center blue-white"></th>
+                <th class="col-2 center"><loc:message code="inputoutput.datetime"/></th>
+                <th class="col-1 center"><loc:message code="orderinfo.id"/></th>
+                <th class="col-1 center"><loc:message code="inputoutput.currency"/></th>
+                <th class="col-08 right"><loc:message code="inputoutput.amount"/></th>
+                <th class="col-1 center"><loc:message code="inputoutput.merchant"/></th>
+                <th class="col-3 center"></th>
               </tr>
               </thead>
               <tbody>
               <script type="text/template" id="unconfirmed-refills-table-row">
                 <tr>
-                  <td class="center blue-white"><@=datetime@></td>
-                  <td class="center blue-white"><@=id@></td>
+                  <td class="center"><@=datetime@></td>
+                  <td class="center"><@=id@></td>
                   <td class="center"><@=currencyName@></td>
                   <td class="right"><@=amount@></td>
                   <td class="center"><@=merchantName@></td>
