@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('Beetlecoin', 'BEET', 2, 'beetServiceImpl', 'CRYPTO', 16);
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
+VALUES ('Beetlecoin', 'BEET', 2, 'beetServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('BEET', 'Beetlecoin', '0', 8, 8, 8);
 
@@ -9,7 +9,7 @@ INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
           0.00000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='BEET')
-, '/client/img/merchants/BEET.png', 'BEET', (SELECT id from CURRENCY WHERE name='BEET'));
+, '/client/img/merchants/beet.png', 'BEET', (SELECT id from CURRENCY WHERE name='BEET'));
 
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='BEET') from USER;
 
