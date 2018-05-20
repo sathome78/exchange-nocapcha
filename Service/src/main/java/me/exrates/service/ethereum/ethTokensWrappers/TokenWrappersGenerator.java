@@ -10,10 +10,10 @@ public class TokenWrappersGenerator {
     public static void main(String[] args) throws Exception {
         SolidityFunctionWrapperGenerator.run(new String[]{
                 "generate",
-                "d:/eth/ORME.bin",
-                "d:/eth/ORME.abi",
+                "d:/eth/Ink.bin",
+                "d:/eth/Ink.abi",
                 "-o",
-                "c:/Users/Maks/IdeaProjects/exrates/Service/src/main/java",
+                "c:/Users/Administrator/IdeaProjects/exrates/Service/src/main/java",
                 "-p",
                 "me.exrates.service.ethereum.ethTokensWrappers"});
     }
