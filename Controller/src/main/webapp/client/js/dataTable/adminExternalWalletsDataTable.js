@@ -52,8 +52,7 @@ function updateExternalWalletsTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currencyId",
-                    "visible": false
+                    "data":"currencyId"
                 },
                 {
                     "data": "currencyName"
@@ -85,6 +84,15 @@ function updateExternalWalletsTable() {
                         return data;
                     }
                 },
+                {
+                    "data": "totalWalletsBalance",
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbro(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
+                }
             ]
         });
     }

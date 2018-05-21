@@ -184,6 +184,7 @@
                                 <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletDifference"/></th>
                             </tr>
                             </thead>
                         </table>

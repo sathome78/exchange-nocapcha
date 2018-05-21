@@ -58,6 +58,8 @@ public class WalletServiceImpl implements WalletService {
   private MessageSource messageSource;
   @Autowired
   private UserTransferService userTransferService;
+  @Autowired
+  private CryptoCurrencyBalances cryptoCurrencyBalances;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -444,7 +446,27 @@ public class WalletServiceImpl implements WalletService {
 
   @Override
   public List<ExternalWalletsDto> getExternalWallets() {
-    return walletDao.getExternalWallets();
+
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getExternalWallets();
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+      try {
+          w.setTotalWalletsBalance(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance()));
+      }catch (Exception e){
+          log.error(e);
+      }
+    });
+    return externalWalletsDtos;
   }
 
   @Override
@@ -454,6 +476,22 @@ public class WalletServiceImpl implements WalletService {
 
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
-    return walletDao.getBalancesWithExternalWallets();
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();
+
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+      w.setTotalWalletsDifference(w.getTotalReal().subtract(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())));
+    });
+    return externalWalletsDtos;
   }
 }

@@ -17,7 +17,10 @@ public class ExternalWalletsDto {
     private String currencyName;
     private BigDecimal reservedWalletBalance;
     private BigDecimal coldWalletBalance;
-    private BigDecimal totalReal;
     private BigDecimal mainWalletBalance = BigDecimal.ZERO;
+    private BigDecimal totalReal;
+
+    private BigDecimal totalWalletsBalance;
+    private BigDecimal totalWalletsDifference;
 
 }

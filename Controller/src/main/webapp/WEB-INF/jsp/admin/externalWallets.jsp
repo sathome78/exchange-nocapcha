@@ -31,11 +31,12 @@
                     <table id="external-wallets-table">
                         <thead>
                         <tr>
-                            <th></th>
+                            <th><loc:message code="admin.currency.id"/></th>
                             <th><loc:message code="admin.externalWallets.name"/></th>
                             <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
+                            <th><loc:message code="admin.externalWallets.totalWalletBalance"/></th>
                         </tr>
                         </thead>
                     </table>
@@ -60,7 +61,7 @@
                                     code="admin.externalWallets.mainWalletBalance"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="mainWalletBalance" class="input-block-wrapper__input" type="number">
+                            <input name="mainWalletBalance" class="input-block-wrapper__input" type="number" min="0">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -69,7 +70,7 @@
                                     code="admin.externalWallets.reservedWalletBalance"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="reservedWalletBalance" class="input-block-wrapper__input" type="number">
+                            <input name="reservedWalletBalance" class="input-block-wrapper__input" type="number" min="0">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -77,7 +78,7 @@
                             <label class="input-block-wrapper__label"><loc:message code="admin.externalWallets.coldWalletBalance"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper" >
-                            <input  name="coldWalletBalance" class="input-block-wrapper__input" type="number" style="align-content: center">
+                            <input  name="coldWalletBalance" class="input-block-wrapper__input" type="number" min="0" style="align-content: center">
                         </div>
                     </div>
                     <button id="submitNewBalance" class="blue-box admin-form-submit" type="submit"><loc:message

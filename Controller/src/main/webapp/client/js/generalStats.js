@@ -201,6 +201,9 @@ $(function () {
                 },
                 {
                     data: 'coldWalletBalance'
+                },
+                {
+                    data: 'totalWalletsDifference'
                 }
 
             ],
@@ -214,7 +217,7 @@ $(function () {
         };
 
         $($balancesExternalWalletsTable).find('th').filter(function (index) {
-            return index > 5
+            return index > 6
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {
@@ -222,8 +225,8 @@ $(function () {
                 data: 'balances.' + item
             });
         });
-        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
     }
 

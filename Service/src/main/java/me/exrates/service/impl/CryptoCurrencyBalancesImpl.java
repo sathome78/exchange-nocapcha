@@ -29,8 +29,11 @@ public class CryptoCurrencyBalancesImpl implements CryptoCurrencyBalances {
         Map<Integer, String> mapBalances = new HashMap<>();
         bitcoinServiceMap.entrySet().parallelStream().forEach(entry -> {
             try {
-                mapBalances.put(merchants.stream().filter(m -> m.getServiceBeanName().equals(entry.getKey())).findFirst().get().getId()
-                        ,entry.getValue().getWalletInfo().getBalance());
+                String balance = entry.getValue().getWalletInfo().getBalance();
+                if (balance != null){
+                    mapBalances.put(merchants.stream().filter(m -> m.getServiceBeanName().equals(entry.getKey())).findFirst().get().getId()
+                            , balance);
+                }
             }catch (Exception e){
                 log.error(e);
             }
