@@ -59,7 +59,7 @@
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
             <div style="margin-bottom: 70px" id="termsContent">
-                <div class="col-md-7">
+                <div class="col-md-7" style="padding-left: 0">
                     <loc:message code="partners.content" arguments="${supportLink}"/>
                 </div>
                 <div class="col-md-4 col-md-offset-1">
