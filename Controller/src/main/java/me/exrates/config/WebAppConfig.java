@@ -732,6 +732,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "DGTX",
                 "DGTX", true, ExConvert.Unit.ETHER);
     }
+
     @Bean(name = "droneServiceImpl")
     public EthTokenService droneService() {
         List<String> tokensList = new ArrayList<>();
@@ -740,6 +741,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "DRONE",
                 "DRONE", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "wdscServiceImpl")
+    public EthTokenService wdscService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x170cf89358ce17742955ea43927da5fc1e8e1211");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WDSC",
+                "WDSC", true, ExConvert.Unit.ETHER, new BigInteger("1"));
     }
 
     //    Qtum tokens:
