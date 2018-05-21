@@ -753,14 +753,24 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WDSC", true, ExConvert.Unit.ETHER, new BigInteger("1"));
     }
 
-    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
-    public QtumTokenService InkService() {
+    public EthTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
-
-        return new QtumTokenServiceImpl(tokensList, "INK", "INK");
+        tokensList.add("0xf4c90e18727c5c76499ea6369c856a6d61d3e92e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "Ink",
+                "INK", true, ExConvert.Unit.GWEI);
     }
+
+    //    Qtum tokens:
+//    @Bean(name = "inkServiceImpl")
+//    public QtumTokenService InkService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
+//
+//        return new QtumTokenServiceImpl(tokensList, "INK", "INK");
+//    }
 
 
     /***tokens based on xem mosaic)****/
