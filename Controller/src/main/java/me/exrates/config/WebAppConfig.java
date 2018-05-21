@@ -742,6 +742,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "DRONE", true, ExConvert.Unit.WEI);
     }
 
+    @Bean(name = "fsbtServiceImpl")
+    public EthTokenService fsbtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ed7ae1f0e2fa4276dd7ddc786334a3df81d50c0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FSBT",
+                "FSBT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public QtumTokenService InkService() {
