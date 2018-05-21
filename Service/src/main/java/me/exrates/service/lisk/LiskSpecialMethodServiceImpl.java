@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class LiskSpecialMethodServiceImpl implements LiskSpecialMethodService {
 
-    @Autowired
     private LiskRestClient liskRestClient;
+
+    public LiskSpecialMethodServiceImpl(LiskRestClient liskRestClient) {
+        this.liskRestClient = liskRestClient;
+    }
 
     @Override
     public String sendTransaction(String secret, Long amount, String recipientId) {
