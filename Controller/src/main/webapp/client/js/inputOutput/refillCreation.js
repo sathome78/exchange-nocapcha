@@ -270,6 +270,11 @@ $(function refillCreation() {
     }
 
     function showRefillDialogAfterCreation(message, qrTag, requestId) {
+        if (merchantIsSimpleInvoice) {
+            $refillParamsDialog.find("#simple-invoice-btns-wrapper").show();
+        } else {
+            $refillParamsDialog.find("#simple-invoice-btns-wrapper").hide();
+        }
         $refillParamsDialog.find('#request-money-operation-btns-wrapper').hide();
         $refillParamsDialog.find('#destination-input-wrapper').hide();
         $refillParamsDialog.find('#response-money-operation-btns-wrapper').show();

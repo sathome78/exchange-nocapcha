@@ -16,7 +16,6 @@ function resetFormConfirm() {
 }
 
 function onSelectNewValueConfirm(select) {
-    debugger;
     var bankId = $('#bank-data-list-confirm').val();
     var $bankInfoOption = $(select).find("option[value=" + bankId + "]");
     var $bankCode = $dialogConfirm.find("#bank-code");

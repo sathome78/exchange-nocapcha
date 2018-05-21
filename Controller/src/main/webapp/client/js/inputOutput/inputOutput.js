@@ -77,6 +77,8 @@ function InputOutputClass(currentCurrencyPair) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowInputOutputData');
         }
         var $inputoutputTable = $('#' + tableId).find('tbody');
+        if (!$($inputoutputTable).length) return;
+
         var url = '/dashboard/myInputoutputData/' + tableId + '' +
             '?page=' + (page ? page : '') +
             '&direction=' + (direction ? direction : '') +
@@ -370,6 +372,11 @@ function InputOutputClass(currentCurrencyPair) {
             $bankItem.attr("data-bank-name", "");
             $bankItem.html(phrases.enterOtherBankPhrase);
             $bankSelect.append($bankItem.clone());
+        });
+        $($refillDetailedParamsDialog).find('#invoiceCancelConfirm').one("click", function () {
+            that.updateAndShowAll(false);
+            that.updateUnconfirmedRefillsTable();
+
         });
         $refillDetailedParamsDialog.modal({
             backdrop: 'static'

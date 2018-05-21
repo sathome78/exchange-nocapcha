@@ -148,7 +148,7 @@
             <button id="invoiceSubmitConfirm"
                     class="btn btn-primary btn-md"
                     onmouseover="checkAllConfirmFields()"><loc:message code="admin.submit"/></button>
-            <button id="invoiceCancel" class="btn btn-danger btn-md" data-dismiss="modal"><loc:message
+            <button id="invoiceCancelConfirm" class="btn btn-danger btn-md" data-dismiss="modal"><loc:message
                     code="admin.cancel"/></button>
           </div>
         </div>
