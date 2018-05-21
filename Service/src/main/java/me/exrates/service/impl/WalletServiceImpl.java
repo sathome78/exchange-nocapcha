@@ -23,7 +23,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -59,6 +58,8 @@ public class WalletServiceImpl implements WalletService {
   private MessageSource messageSource;
   @Autowired
   private UserTransferService userTransferService;
+  @Autowired
+  private CryptoCurrencyBalances cryptoCurrencyBalances;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -441,5 +442,56 @@ public class WalletServiceImpl implements WalletService {
   @Override
   public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
     return walletDao.getWalletIdAndBlock(userId, currencyId);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getExternalWallets() {
+
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getExternalWallets();
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+      try {
+          w.setTotalWalletsBalance(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance()));
+      }catch (Exception e){
+          log.error(e);
+      }
+    });
+    return externalWalletsDtos;
+  }
+
+  @Override
+  public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
+     walletDao.updateExternalWallets(externalWalletsDto);
+  }
+
+  @Override
+  public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
+    List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();
+
+    Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+
+    externalWalletsDtos.stream().forEach(w -> {
+      mapCryptoCurrencyBalances.forEach((k,v)-> {
+        if (w.getMerchantId().equals(k)){
+          try {
+            w.setMainWalletBalance(new BigDecimal(v));
+          }catch (Exception e){
+            log.error(e);
+          }
+        }
+      });
+      w.setTotalWalletsDifference(w.getTotalReal().subtract(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())));
+    });
+    return externalWalletsDtos;
   }
 }

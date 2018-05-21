@@ -114,4 +114,10 @@ public interface WalletService {
     List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
+
+    List<ExternalWalletsDto> getExternalWallets();
+
+    void updateExternalWallets(ExternalWalletsDto externalWalletsDto);
+
+    List<ExternalWalletsDto> getBalancesWithExternalWallets();
 }

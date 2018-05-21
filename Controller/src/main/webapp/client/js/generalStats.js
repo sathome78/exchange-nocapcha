@@ -5,6 +5,7 @@ $(function () {
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
     const $balancesTable = $('#total-balances-table');
+    const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
     const timeFormat = 'HH:mm';
@@ -14,6 +15,7 @@ $(function () {
 
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
+    var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
 
 
 
@@ -163,6 +165,68 @@ $(function () {
         });
         balancesDataTable = $($balancesTable).DataTable(options);
 
+
+    }
+
+    if ($.fn.dataTable.isDataTable('#balances-external-wallets-table')) {
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable();
+        balancesExternalWalletsDataTable.ajax.reload();
+    } else {
+        var options = {
+            "ajax": {
+                "url": balancesExternalWalletsUrl,
+                "dataSrc": ""
+            },
+            "paging": false,
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            dom: "<'row pull-left' B>t",
+            "order": [],
+            "columns": [
+                {
+                    data: 'currencyId'
+                },
+                {
+                    data: 'currencyName'
+                },
+                {
+                    data: 'totalReal'
+                },
+                {
+                    data: 'mainWalletBalance'
+                },
+                {
+                    data: 'reservedWalletBalance'
+                },
+                {
+                    data: 'coldWalletBalance'
+                },
+                {
+                    data: 'totalWalletsDifference'
+                }
+
+            ],
+            buttons: [{
+                extend: 'csv',
+                text: 'CSV',
+                fieldSeparator: ';',
+                bom:true,
+                charset: 'UTF8'
+            }]
+        };
+
+        $($balancesExternalWalletsTable).find('th').filter(function (index) {
+            return index > 6
+        }).map(function(){
+            return $.trim($(this).text());
+        }).get().forEach(function (item) {
+            options['columns'].push({
+                data: 'balances.' + item
+            });
+        });
+
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
     }
 
