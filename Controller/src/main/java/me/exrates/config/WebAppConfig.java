@@ -754,6 +754,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WDSC", true, ExConvert.Unit.ETHER, new BigInteger("1"));
     }
 
+    @Bean(name = "fsbtServiceImpl")
+    public EthTokenService fsbtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1ed7ae1f0e2fa4276dd7ddc786334a3df81d50c0");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "FSBT",
+                "FSBT", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
