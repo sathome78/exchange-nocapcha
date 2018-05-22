@@ -21,10 +21,7 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by ValkSam on 16.04.2017.
@@ -260,7 +257,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
             " JOIN COMMISSION COM ON RR.commission_id = COM.id" +
             " LEFT JOIN REFILL_REQUEST_PARAM RRP ON RR.refill_request_param_id = RRP.id" +
             " LEFT JOIN INVOICE_BANK IB ON RRP.recipient_bank_id = IB.id " +
-            " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id = :status_id " +
+            " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id IN (:status_ids) " +
             " ORDER BY datetime DESC "
             + limitSql + offsetSql;
     String sqlCount = "SELECT COUNT(*) " +
@@ -268,11 +265,11 @@ public class InputOutputDaoImpl implements InputOutputDao {
             " JOIN CURRENCY CUR ON RR.currency_id = CUR.id" +
             " JOIN MERCHANT MER ON RR.merchant_id = MER.id" +
             " JOIN COMMISSION COM ON RR.commission_id = COM.id" +
-            " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id = :status_id ";
+            " WHERE RR.user_id = :user_id AND RR.currency_id = :currency_id AND RR.status_id IN (:status_ids) ";
 
     params.put("user_id", userId);
     params.put("currency_id", currencyId);
-    params.put("status_id", RefillStatusEnum.WAITING_CONFIRMATION_USER.getCode());
+    params.put("status_ids", Arrays.asList(RefillStatusEnum.WAITING_CONFIRMATION_USER.getCode(), RefillStatusEnum.DECLINED_ADMIN.getCode()));
 
     Integer count = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
     List<MyInputOutputHistoryDto> result = jdbcTemplate.query(sql, params, (rs, i) -> {

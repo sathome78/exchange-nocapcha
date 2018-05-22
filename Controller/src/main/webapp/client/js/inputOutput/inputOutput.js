@@ -22,7 +22,7 @@ function InputOutputClass(currentCurrencyPair) {
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
 
-    var unconfirmedRefillsTableSize = 5;
+    var unconfirmedRefillsTableSize = 15;
     var $pagination = $('#unconfirmed-pagination');
     var $unconfirmedRefillsTable = $('#unconfirmed-refills-table');
     var defaultPaginationOpts = {

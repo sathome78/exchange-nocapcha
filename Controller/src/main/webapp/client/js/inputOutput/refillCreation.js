@@ -85,14 +85,10 @@ $(function refillCreation() {
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                     .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
                 newHTMLElements[1] = newHTMLElements[1]
-                    .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
-                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                    .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
-                newHTMLElements[2] = newHTMLElements[2]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                     .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
-                newHTMLElements[3] = newHTMLElements[3]
+                newHTMLElements[2] = newHTMLElements[2]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
                 var newHTML = '';
