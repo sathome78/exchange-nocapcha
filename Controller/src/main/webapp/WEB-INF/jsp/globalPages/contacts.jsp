@@ -145,10 +145,6 @@
     </div>
 
     </div>
-    <div class="row">
-        <p><loc:message code="contacts.contactPhone"/> </p>
-        <loc:message code="contacts.address"/>
-    </div>
 
 </main>
 <span hidden id="errorNoty">${errorNoty}</span>
