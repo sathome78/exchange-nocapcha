@@ -763,6 +763,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "FSBT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "iprServiceImpl")
+    public EthTokenService iprService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x68b539381b317a04190c3bd7ce95b9233275d02a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IPR",
+                "IPR", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "casServiceImpl")
+    public EthTokenService casService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe8780b48bdb05f928697a5e8155f672ed91462f7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CAS",
+                "CAS", true, ExConvert.Unit.ETHER);
+    }
+
+    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
