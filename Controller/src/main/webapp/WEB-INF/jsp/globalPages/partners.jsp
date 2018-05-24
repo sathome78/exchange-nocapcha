@@ -54,7 +54,8 @@
                 <loc:message code="partners.title"/>
             </c:set>
             <c:set var="supportLink">
-                <a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a>
+                <a href="mailto:listing@exrates.me?Subject=Add%20coin">listing@exrates.me</a>&#44;
+                <a href="mailto:listing@exrates.top?Subject=Add%20coin">listing@exrates.top</a>
             </c:set>
             <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
