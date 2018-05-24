@@ -805,13 +805,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     //    Qtum tokens:
-//    @Bean(name = "inkServiceImpl")
-//    public QtumTokenService InkService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
-//
-//        return new QtumTokenServiceImpl(tokensList, "INK", "INK");
-//    }
+    @Bean(name = "spcServiceImpl")
+    public QtumTokenService spcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("57931faffdec114056a49adfcaa1caac159a1a25");
+
+        return new QtumTokenServiceImpl(tokensList, "SPC", "SPC", ExConvert.Unit.AIWEI);
+    }
 
 
     /***tokens based on xem mosaic)****/
