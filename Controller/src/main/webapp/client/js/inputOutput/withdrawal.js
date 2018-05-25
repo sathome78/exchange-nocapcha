@@ -135,6 +135,9 @@ $(function () {
     $('#withdraw-requests-declined').click(function () {
         changeTableViewType(this, "DECLINED")
     });
+    $('#withdraw-requests-checking').click(function () {
+        changeTableViewType(this, "FOR_CHECKING")
+    });
     $('#withdraw-requests-All').click(function () {
         changeTableViewType(this, "ALL")
     });
