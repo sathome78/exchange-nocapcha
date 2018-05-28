@@ -1162,7 +1162,7 @@ public class WalletDaoImpl implements WalletDao {
   public List<ExternalWalletsDto> getExternalWallets() {
     String sql = "SELECT COMPANY_WALLET_EXTERNAL." +
             "currency_id, CURRENCY.name as currency_name, main_wallet_balance, reserve_wallet_balance, " +
-            " cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id FROM COMPANY_WALLET_EXTERNAL\n" +
+            " cold_wallet_balance, rate_usd_additional, IFNULL(MC.merchant_id, 0) as merchant_id FROM COMPANY_WALLET_EXTERNAL\n" +
             " join CURRENCY on (COMPANY_WALLET_EXTERNAL.currency_id = CURRENCY.id AND CURRENCY.hidden = 0) " +
             "LEFT JOIN \n" +
             "(SELECT merchant_id, currency_id FROM MERCHANT_CURRENCY\n" +
@@ -1174,6 +1174,7 @@ public class WalletDaoImpl implements WalletDao {
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setRateUsdAdditional(rs.getBigDecimal("rate_usd_additional"));
       dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
       dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
       dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));
@@ -1184,13 +1185,14 @@ public class WalletDaoImpl implements WalletDao {
   @Override
   public void updateExternalWallets(ExternalWalletsDto externalWalletsDto) {
     final String sql = "UPDATE COMPANY_WALLET_EXTERNAL SET main_wallet_balance = :mainWalletBalance, reserve_wallet_balance = :reserveWalletBalance" +
-            ", cold_wallet_balance = :coldWalletBalance WHERE currency_id = :currencyId";
+            ", cold_wallet_balance = :coldWalletBalance, rate_usd_additional = :rateUsdAdditional WHERE currency_id = :currencyId";
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("currencyId", externalWalletsDto.getCurrencyId());
         put("mainWalletBalance", externalWalletsDto.getMainWalletBalance());
         put("reserveWalletBalance", externalWalletsDto.getReservedWalletBalance());
         put("coldWalletBalance", externalWalletsDto.getColdWalletBalance());
+        put("rateUsdAdditional", externalWalletsDto.getRateUsdAdditional());
       }
     };
     jdbcTemplate.update(sql, params);
@@ -1198,7 +1200,7 @@ public class WalletDaoImpl implements WalletDao {
 
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
-    String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, AGR.total_balance, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id \n" +
+    String sql = "SELECT CUR.name AS currency_name, CUR.id as currency_id, rate_usd_additional, AGR.total_balance, main_wallet_balance, reserve_wallet_balance, cold_wallet_balance, IFNULL(MC.merchant_id, 0) as merchant_id \n" +
             "FROM (   SELECT STRAIGHT_JOIN W.currency_id, URGF.name AS feature_name, SUM(IFNULL(W.active_balance, 0)) + SUM(IFNULL(W.reserved_balance, 0)) AS total_balance   \n" +
             "FROM WALLET W     JOIN USER U ON U.id = W.user_id     JOIN USER_ROLE UR ON U.roleid = UR.id     \n" +
             "JOIN USER_ROLE_REPORT_GROUP_FEATURE URGF ON UR.user_role_report_group_feature_id = URGF.id AND UR.user_role_report_group_feature_id IN (1,2)   GROUP BY W.currency_id   ) AGR   \n" +
@@ -1214,6 +1216,7 @@ public class WalletDaoImpl implements WalletDao {
       dto.setCurrencyId(rs.getInt("currency_id"));
       dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setRateUsdAdditional(rs.getBigDecimal("rate_usd_additional"));
       dto.setMainWalletBalance(rs.getBigDecimal("main_wallet_balance"));
       dto.setReservedWalletBalance(rs.getBigDecimal("reserve_wallet_balance"));
       dto.setColdWalletBalance(rs.getBigDecimal("cold_wallet_balance"));

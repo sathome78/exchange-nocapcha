@@ -19,8 +19,10 @@ public class ExternalWalletsDto {
     private BigDecimal coldWalletBalance;
     private BigDecimal mainWalletBalance = BigDecimal.ZERO;
     private BigDecimal totalReal;
+    private BigDecimal rateUsdAdditional;
 
     private BigDecimal totalWalletsBalance;
     private BigDecimal totalWalletsDifference;
+    private BigDecimal totalWalletsDifferenceUSD;
 
 }

@@ -60,6 +60,8 @@ public class WalletServiceImpl implements WalletService {
   private UserTransferService userTransferService;
   @Autowired
   private CryptoCurrencyBalances cryptoCurrencyBalances;
+  @Autowired
+  private OrderService orderService;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -479,6 +481,7 @@ public class WalletServiceImpl implements WalletService {
     List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();
 
     Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
+    Map<Integer, RatesUSDForReportDto> ratesList = orderService.getRatesToUSDForReport();
 
     externalWalletsDtos.stream().forEach(w -> {
       mapCryptoCurrencyBalances.forEach((k,v)-> {
@@ -490,8 +493,11 @@ public class WalletServiceImpl implements WalletService {
           }
         }
       });
-      w.setTotalWalletsDifference(w.getTotalReal().subtract(w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())));
+      w.setTotalWalletsDifference((w.getMainWalletBalance().add(w.getReservedWalletBalance()).add(w.getColdWalletBalance())).subtract(w.getTotalReal()));
+      w.setTotalWalletsDifferenceUSD((ratesList.get(w.getCurrencyId())==null?w.getRateUsdAdditional():ratesList.get(w.getCurrencyId()).getRate()).multiply(w.getTotalWalletsDifference()));
     });
+
+
     return externalWalletsDtos;
   }
 }

@@ -26,7 +26,7 @@
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
 
-        <div class="col-md-8 col-sm-offset-1 content admin-container">
+        <div class="col-md-8 content admin-container">
             <div class="text-center"> <h4><loc:message code="admin.generalStats.title"/></h4></div>
 
             <div id="limitsMenu" class="buttons text-center">
@@ -185,6 +185,7 @@
                                 <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
                                 <th><loc:message code="admin.externalWallets.totalWalletDifference"/></th>
+                                <th><loc:message code="admin.externalWallets.totalWalletDifferenceUSD"/></th>
                             </tr>
                             </thead>
                         </table>
