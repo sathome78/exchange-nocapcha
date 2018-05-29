@@ -23,16 +23,17 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2 admin-container">
+        <div class="col-md-4 admin-container">
             <div class="text-center"><h4><loc:message code="admin.externalWallets.title"/></h4></div>
             <div class="tab-content">
-                <div class="col-md-6 col-md-offset-3 text-center">
+                <div class="col-md-12 text-center">
 
                     <table id="external-wallets-table">
                         <thead>
                         <tr>
                             <th><loc:message code="admin.currency.id"/></th>
                             <th><loc:message code="admin.externalWallets.name"/></th>
+                            <th><loc:message code="admin.rate.to.usd"/></th>
                             <th><loc:message code="admin.externalWallets.mainWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.reservedWalletBalance"/></th>
                             <th><loc:message code="admin.externalWallets.coldWalletBalance"/></th>
@@ -44,7 +45,7 @@
             </div>
         </div>
 </main>
-<div id="editBalanceModal" class="modal modal-small fade">
+<div id="editBalanceModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -55,6 +56,15 @@
             <div class="modal-body">
                 <form id="edit-external-wallets-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyId">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.rate.to.usd"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="rateUsdAdditional" class="input-block-wrapper__input" type="number" min="0">
+                        </div>
+                    </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message

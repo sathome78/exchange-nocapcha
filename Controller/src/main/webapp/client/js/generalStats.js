@@ -139,7 +139,13 @@ $(function () {
                     data: 'currency'
                 },
                 {
-                    data: 'rateToUSD'
+                    data: 'rateToUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'totalReal'
@@ -160,7 +166,13 @@ $(function () {
             return $.trim($(this).text());
         }).get().forEach(function (item) {
             options['columns'].push({
-                data: 'balances.' + item
+                data: 'balances.' + item,
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        return numbroWithCommas(data);
+                    }
+                    return data;
+                }
             });
         });
         balancesDataTable = $($balancesTable).DataTable(options);
@@ -191,19 +203,58 @@ $(function () {
                     data: 'currencyName'
                 },
                 {
-                    data: 'totalReal'
+                    data: 'totalReal',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
-                    data: 'mainWalletBalance'
+                    data: 'mainWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
-                    data: 'reservedWalletBalance'
+                    data: 'reservedWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
-                    data: 'coldWalletBalance'
+                    data: 'coldWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
-                    data: 'totalWalletsDifference'
+                    data: 'totalWalletsDifference',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'totalWalletsDifferenceUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 }
 
             ],
@@ -217,7 +268,7 @@ $(function () {
         };
 
         $($balancesExternalWalletsTable).find('th').filter(function (index) {
-            return index > 6
+            return index > 7
         }).map(function(){
             return $.trim($(this).text());
         }).get().forEach(function (item) {
@@ -392,4 +443,9 @@ function getEndDateFromPicker() {
 function getDateFromPicker($datepicker) {
     var date = $($datepicker).datetimepicker('getValue');
     return moment(date).format('YYYY-MM-DD HH-mm');
+}
+
+function numbroWithCommas(value) {
+
+    return numbro(value).format('0.00[000000]').toString().replace(/\./g, ',');
 }
