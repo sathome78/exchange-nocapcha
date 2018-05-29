@@ -1068,13 +1068,15 @@ public class AdminController {
   public ResponseEntity<Void> submitExternalWallets(@RequestParam int currencyId,
                                                 @RequestParam BigDecimal mainWalletBalance,
                                                 @RequestParam BigDecimal reservedWalletBalance,
-                                                @RequestParam BigDecimal coldWalletBalance) {
+                                                @RequestParam BigDecimal coldWalletBalance,
+                                                @RequestParam BigDecimal rateUsdAdditional) {
 
     ExternalWalletsDto externalWalletsDto = new ExternalWalletsDto();
     externalWalletsDto.setCurrencyId(currencyId);
     externalWalletsDto.setMainWalletBalance(mainWalletBalance);
     externalWalletsDto.setReservedWalletBalance(reservedWalletBalance);
     externalWalletsDto.setColdWalletBalance(coldWalletBalance);
+    externalWalletsDto.setRateUsdAdditional(rateUsdAdditional);
 
     walletService.updateExternalWallets(externalWalletsDto);
     return new ResponseEntity<>(HttpStatus.OK);
