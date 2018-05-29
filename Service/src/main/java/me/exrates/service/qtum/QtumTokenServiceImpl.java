@@ -105,7 +105,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
                 log.error(e);
             }
 
-        }, 8L, 95L, TimeUnit.MINUTES);
+        }, 8L, 28L, TimeUnit.MINUTES);
 
         scheduler.scheduleAtFixedRate(() -> {
             try {
