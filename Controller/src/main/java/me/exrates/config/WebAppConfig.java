@@ -159,6 +159,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailSupportUser;
     @Value("${mail_support.password}")
     String mailSupportPassword;
+    @Value("${mail_mandrill.host}")
+    String mailMandrillHost;
+    @Value("${mail_mandrill.port}")
+    String mailMandrillPort;
+    @Value("${mail_mandrill.protocol}")
+    String mailMandrillProtocol;
+    @Value("${mail_mandrill.user}")
+    String mailMandrillUser;
+    @Value("${mail_mandrill.password}")
+    String mailMandrillPassword;
     @Value("${mail_info.host}")
     String mailInfoHost;
     @Value("${mail_info.port}")
@@ -330,6 +340,22 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
         javaMailProps.put("mail.smtp.ssl.trust", mailSupportHost);
+        mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "MandrillMailSender")
+    public JavaMailSenderImpl mandrillMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost(mailMandrillHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailMandrillPort));
+        mailSenderImpl.setProtocol(mailMandrillProtocol);
+        mailSenderImpl.setUsername(mailMandrillUser);
+        mailSenderImpl.setPassword(mailMandrillPassword);
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", mailMandrillHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
@@ -802,6 +828,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "RTH",
                 "RTH", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "spdServiceImpl")
+    public EthTokenService SpdService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1dea979ae76f26071870f824088da78979eb91c8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SPD",
+                "SPD", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

@@ -30,6 +30,10 @@ public class SendMailServiceImpl implements SendMailService{
 	private JavaMailSender supportMailSender;
 
 	@Autowired
+	@Qualifier("MandrillMailSender")
+	private JavaMailSender mandrillMailSender;
+
+	@Autowired
 	@Qualifier("InfoMailSender")
 	private JavaMailSender infoMailSender;
 	
@@ -39,13 +43,14 @@ public class SendMailServiceImpl implements SendMailService{
 	@Value("${mail_info.allowedEmails}")
 	private String allowedEmailsList;
 
-	private final static int THREADS_NUMBER = 3;
+	private final static int THREADS_NUMBER = 4;
 	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
-	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(2);
+	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(3);
 
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	private final String SUPPORT_EMAIL = "mail@exrates.top";
+	private final String MANDRILL_EMAIL = "no-reply@exrates.me";
 	private final String INFO_EMAIL = "no-reply@exrates.top";
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -53,6 +58,18 @@ public class SendMailServiceImpl implements SendMailService{
 		supportMailExecutors.execute(() -> {
 			try {
 				sendMail(email, SUPPORT_EMAIL, supportMailSender);
+			} catch (Exception e) {
+				logger.error(e);
+				sendMail(email, INFO_EMAIL, infoMailSender);
+			}
+		});
+	}
+
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public void sendMailRegistration(Email email){
+		supportMailExecutors.execute(() -> {
+			try {
+				sendMail(email, MANDRILL_EMAIL, mandrillMailSender);
 			} catch (Exception e) {
 				logger.error(e);
 				sendMail(email, INFO_EMAIL, infoMailSender);

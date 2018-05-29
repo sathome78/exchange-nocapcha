@@ -145,6 +145,13 @@
     </div>
 
     </div>
+    <div class="row">
+        <loc:message code="contacts.address"/>
+        <p><loc:message code="contacts.contactPhone"/> </p>
+        <p><loc:message code="contacts.fax"/> </p>
+    </div>
+    <div style="margin-bottom: 15%"></div>
+
 
 </main>
 <span hidden id="errorNoty">${errorNoty}</span>
