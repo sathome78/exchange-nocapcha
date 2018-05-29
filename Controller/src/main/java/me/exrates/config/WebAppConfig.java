@@ -413,8 +413,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
-//                "Ethereum", "ETH", 12);
-                "Ethereum", "ETH", 2);
+                "Ethereum", "ETH", 12);
     }
 
     @Bean(name = "ethereumClassicServiceImpl")
@@ -764,6 +763,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "FSBT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "iprServiceImpl")
+    public EthTokenService iprService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x68b539381b317a04190c3bd7ce95b9233275d02a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IPR",
+                "IPR", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "casServiceImpl")
+    public EthTokenService casService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xe8780b48bdb05f928697a5e8155f672ed91462f7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CAS",
+                "CAS", true, ExConvert.Unit.ETHER);
+    }
+
+    //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
         List<String> tokensList = new ArrayList<>();
@@ -795,13 +815,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     //    Qtum tokens:
-//    @Bean(name = "inkServiceImpl")
-//    public QtumTokenService InkService() {
-//        List<String> tokensList = new ArrayList<>();
-//        tokensList.add("fe59cbc1704e89a698571413a81f0de9d8f00c69");
-//
-//        return new QtumTokenServiceImpl(tokensList, "INK", "INK");
-//    }
+    @Bean(name = "spcServiceImpl")
+    public QtumTokenService spcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("57931faffdec114056a49adfcaa1caac159a1a25");
+
+        return new QtumTokenServiceImpl(tokensList, "SPC", "SPC", ExConvert.Unit.AIWEI);
+    }
 
 
     /***tokens based on xem mosaic)****/

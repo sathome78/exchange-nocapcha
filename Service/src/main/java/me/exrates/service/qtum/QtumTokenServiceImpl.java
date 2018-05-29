@@ -12,6 +12,7 @@ import me.exrates.model.dto.merchants.qtum.QtumTokenTransaction;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.vo.ProfileData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,12 +81,15 @@ public class QtumTokenServiceImpl implements QtumTokenService {
 
     private final BigDecimal amountForCommission = new BigDecimal("0.15");
 
+    private final ExConvert.Unit unit;
+
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public QtumTokenServiceImpl(List<String> contractAddress, String merchantName, String currencyName) {
+    public QtumTokenServiceImpl(List<String> contractAddress, String merchantName, String currencyName, ExConvert.Unit unit) {
         this.contractAddress = contractAddress;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
+        this.unit = unit;
     }
 
     @PostConstruct
@@ -189,7 +193,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
                     BigInteger balance = (BigInteger) FunctionReturnDecoder.decodeIndexedValue(hexBalance, new TypeReference<Uint256>() {}).getValue();
                     log.info("token balance: " + balance.toString());
 
-                    if (balance.compareTo(Convert.toWei(minTransferAmount, Convert.Unit.GWEI).toBigInteger()) > 0) {
+                    if (balance.compareTo(ExConvert.toWei(minTransferAmount, unit).toBigInteger()) > 0) {
                         try {
                             qtumNodeService.setWalletPassphrase();
                             qtumNodeService.transfer(t.getAddress(), amountForCommission);
@@ -241,7 +245,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         QtumTokenServiceImpl.TransferEventResponse typedResponse = new QtumTokenServiceImpl.TransferEventResponse();
         typedResponse.from = qtumNodeService.fromHexAddress(Numeric.cleanHexPrefix(eventValues.getIndexedValues().get(0).toString()));
         typedResponse.to = qtumNodeService.fromHexAddress(Numeric.cleanHexPrefix(eventValues.getIndexedValues().get(1).toString()));
-        typedResponse.amount = Convert.fromWei(String.valueOf(eventValues.getNonIndexedValues().get(0).getValue()), Convert.Unit.GWEI);
+        typedResponse.amount = ExConvert.fromWei(String.valueOf(eventValues.getNonIndexedValues().get(0).getValue()), unit);
 
         return typedResponse;
     }
