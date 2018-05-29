@@ -1581,6 +1581,12 @@ form span.repass,  form span.repass-error{
     margin: 0 10px;
 }
 
+.content {
+    padding-bottom: 90px;
+    height: 100%;
+}
+
+
 /********************************
             NEWS
 ********************************/
