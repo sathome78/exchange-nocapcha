@@ -454,6 +454,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EtherZero", "ETZ", 12);
     }
 
+    @Bean(name = "cloServiceImpl")
+    public EthereumCommonService cloService() {
+        return new EthereumCommonServiceImpl("merchants/callisto.properties",
+                "CLO", "CLO", 12);
+    }
+
     @Bean(name = "eosServiceImpl")
     public EthTokenService EosService() {
         List<String> tokensList = new ArrayList<>();
