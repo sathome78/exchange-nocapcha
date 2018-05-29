@@ -411,7 +411,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "bbccServiceImpl")
     public BitcoinService bbccService() {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
-                "BBX", "BBX", 4, 20, true, false, false);
+                "BBX", "BBX", 4, 20, false, false, false);
     }
 
 
