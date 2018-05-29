@@ -787,7 +787,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "spdServiceImpl")
     public EthTokenService SpdService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x1dEa979ae76f26071870F824088dA78979eb91C8");
+        tokensList.add("0x1dea979ae76f26071870f824088da78979eb91c8");
         return new EthTokenServiceImpl(
                 tokensList,
                 "SPD",
