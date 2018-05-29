@@ -45,7 +45,7 @@
             </div>
         </div>
 </main>
-<div id="editBalanceModal" class="modal modal-small fade">
+<div id="editBalanceModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
