@@ -784,6 +784,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "RTH", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "spdServiceImpl")
+    public EthTokenService SpdService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x1dEa979ae76f26071870F824088dA78979eb91C8");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SPD",
+                "SPD", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
 //    @Bean(name = "inkServiceImpl")
 //    public QtumTokenService InkService() {
