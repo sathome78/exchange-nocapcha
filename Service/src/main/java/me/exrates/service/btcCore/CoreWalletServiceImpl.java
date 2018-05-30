@@ -374,7 +374,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
       result = btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
-      btcdClient.walletLock();
+      lockWallet();
       }
       return result;
     } catch (BitcoindException e) {
@@ -405,6 +405,17 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         Long unlockedUntil = getUnlockedUntil();
         if (unlockedUntil != null && (forceUnlock || unlockedUntil == 0) ) {
             btcdClient.walletPassphrase(password, authTimeout);
+        }
+    }
+
+    private void lockWallet() {
+        try {
+            Long unlockedUntil = getUnlockedUntil();
+            if (unlockedUntil != null && unlockedUntil != 0) {
+                btcdClient.walletLock();
+            }
+        } catch (Exception e) {
+            log.error(e);
         }
     }
 
