@@ -454,15 +454,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EtherZero", "ETZ", 12);
     }
 
-    @Bean(name = "eosServiceImpl")
-    public EthTokenService EosService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "EOS",
-                "EOS", true, ExConvert.Unit.ETHER);
-    }
+//    @Bean(name = "eosServiceImpl")
+//    public EthTokenService EosService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0x86fa049857e0209aa7d9e616f7eb3b3b78ecfdb0");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "EOS",
+//                "EOS", true, ExConvert.Unit.ETHER);
+//    }
 
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
