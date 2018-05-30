@@ -396,12 +396,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
 
-    @Bean(name = "ptcServiceImpl")
-    public BitcoinService ptcService() {
-        return new BitcoinServiceImpl("merchants/perfectcoin_wallet.properties",
-                "Perfectcoin", "PTC", 4, 20, false, false);
-    }
-
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
