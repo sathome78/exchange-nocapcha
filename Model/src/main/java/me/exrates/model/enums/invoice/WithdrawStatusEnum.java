@@ -115,6 +115,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_REVIEWING);
     }
   };
 
