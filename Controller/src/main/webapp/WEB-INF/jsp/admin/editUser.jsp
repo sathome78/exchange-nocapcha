@@ -9,14 +9,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
   <title><loc:message code="admin.title"/></title>
   <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+
   <%@include file='links_scripts.jsp' %>
+
   <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
   <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
   <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>

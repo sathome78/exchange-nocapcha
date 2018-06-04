@@ -14,6 +14,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
+
+    <%--TOOLS ... --%>
+    <%@include file="../tools/google_head.jsp"%>
+    <%--ZOPIM CHAT--%>
+    <%@include file="../tools/zopim.jsp" %>
+    <%-- ... TOOLS--%>
+    <%@include file="../tools/alexa.jsp" %>
+    <%----------%>
+
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
     <script src="<c:url value='/client/js/jquery_1.11.3.min.js'/>" type="text/javascript"></script>
@@ -54,13 +63,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
 
-<%----------%>
-    <%--TOOLS ... --%>
-    <%@include file="../tools/google_head.jsp"%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp" %>
-    <%-- ... TOOLS--%>
-    <%@include file="../tools/alexa.jsp" %>
 </head>
 <body>
 
