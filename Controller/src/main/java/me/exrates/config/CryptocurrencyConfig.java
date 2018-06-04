@@ -135,6 +135,12 @@ public class CryptocurrencyConfig {
                 "BitDollar", "XBD", 4, 20, false, false);
     }
 
+    @Bean(name = "beetServiceImpl")
+    public BitcoinService beetService() {
+        return new BitcoinServiceImpl("merchants/beet_wallet.properties",
+                "BEET", "BEET", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
