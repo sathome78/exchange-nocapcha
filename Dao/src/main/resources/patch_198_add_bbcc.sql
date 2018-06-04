@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('BBCashCoin', 'BBX', 2, 'bbccServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('BBX', ' BBCashCoin', '0', 8, 8, 8);
+VALUES ('BBX', ' BBCashCoin', 1, 8, 8, 8);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='BBX'),
@@ -20,7 +20,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'BBX'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'USD'), 'BBX/USD', 12, 0, 'BBX/USD');
+VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'USD'), 'BBX/USD', 12, 1, 'BBX/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -28,7 +28,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BBX/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'BTC'), 'BBX/BTC', 50, 0, 'BTC', 'BBX/BTC');
+VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'BTC'), 'BBX/BTC', 50, 1, 'BTC', 'BBX/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -36,7 +36,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BBX/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'ETH'), 'BBX/ETH', 50, 0, 'ETH', 'BBX/ETH');
+VALUES((select id from CURRENCY where name = 'BBX'), (select id from CURRENCY where name = 'ETH'), 'BBX/ETH', 50, 1, 'ETH', 'BBX/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -77,4 +77,4 @@ VALUES ((SELECT id from MERCHANT WHERE name='BBX'), (select id from CURRENCY whe
 -- NEED TO GET LAST BLOCK FROM NODE OR BLOCK EXPLORER!!
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES ((SELECT id from MERCHANT WHERE name='BBX'),
-  'lastBlock', '');
+  'lastBlock', '5717285e5f90505082687998f3517a8f86a1523fc8586e73b0ab434047dfc5a7');
