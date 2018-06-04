@@ -22,8 +22,6 @@ import java.util.*;
 import static me.exrates.service.lisk.LiskRestUtils.*;
 
 @Log4j2(topic = "lisk_log")
-@Service
-@Scope("prototype")
 public class LiskRestClientImpl implements LiskRestClient {
 
     @Autowired

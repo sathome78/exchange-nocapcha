@@ -19,7 +19,6 @@ import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -44,7 +43,6 @@ public class LiskServiceImpl implements LiskService {
     @Autowired
     private MerchantService merchantService;
 
-    @Autowired
     private LiskRestClient liskRestClient;
 
     @Autowired
@@ -62,7 +60,8 @@ public class LiskServiceImpl implements LiskService {
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 
-    public LiskServiceImpl(LiskSpecialMethodService liskSpecialMethodService, String merchantName, String currencyName, String propertySource) {
+    public LiskServiceImpl(LiskRestClient liskRestClient, LiskSpecialMethodService liskSpecialMethodService, String merchantName, String currencyName, String propertySource) {
+        this.liskRestClient = liskRestClient;
         this.liskSpecialMethodService = liskSpecialMethodService;
         this.merchantName = merchantName;
         this.currencyName = currencyName;
@@ -82,7 +81,7 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
-        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 1L, 2L, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 1L, 30L, TimeUnit.MINUTES);
     }
 
     @PreDestroy

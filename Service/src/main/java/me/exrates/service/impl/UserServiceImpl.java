@@ -383,7 +383,11 @@ public class UserServiceImpl implements UserService {
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
     email.setTo(user.getEmail());
-    sendMailService.sendMail(email);
+    if (tokenType.equals(TokenType.REGISTRATION)) {
+      sendMailService.sendMailRegistration(email);
+    }else {
+      sendMailService.sendMail(email);
+    }
   }
 
   @Override

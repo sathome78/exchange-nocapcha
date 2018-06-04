@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -149,6 +150,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
+//      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
       examineMissingPaymentsOnStartup();
     }
 

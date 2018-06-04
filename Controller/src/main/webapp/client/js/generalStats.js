@@ -5,6 +5,7 @@ $(function () {
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
     const $balancesTable = $('#total-balances-table');
+    const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
     const timeFormat = 'HH:mm';
@@ -14,6 +15,7 @@ $(function () {
 
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
+    var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
 
 
 
@@ -137,7 +139,13 @@ $(function () {
                     data: 'currency'
                 },
                 {
-                    data: 'rateToUSD'
+                    data: 'rateToUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
                 },
                 {
                     data: 'totalReal'
@@ -158,11 +166,118 @@ $(function () {
             return $.trim($(this).text());
         }).get().forEach(function (item) {
             options['columns'].push({
-                data: 'balances.' + item
+                data: 'balances.' + item,
+                "render": function (data, type, row) {
+                    if (type === 'display') {
+                        return numbroWithCommas(data);
+                    }
+                    return data;
+                }
             });
         });
         balancesDataTable = $($balancesTable).DataTable(options);
 
+
+    }
+
+    if ($.fn.dataTable.isDataTable('#balances-external-wallets-table')) {
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable();
+        balancesExternalWalletsDataTable.ajax.reload();
+    } else {
+        var options = {
+            "ajax": {
+                "url": balancesExternalWalletsUrl,
+                "dataSrc": ""
+            },
+            "paging": false,
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            dom: "<'row pull-left' B>t",
+            "order": [],
+            "columns": [
+                {
+                    data: 'currencyId'
+                },
+                {
+                    data: 'currencyName'
+                },
+                {
+                    data: 'totalReal',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'mainWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'reservedWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'coldWalletBalance',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'totalWalletsDifference',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    data: 'totalWalletsDifferenceUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                }
+
+            ],
+            buttons: [{
+                extend: 'csv',
+                text: 'CSV',
+                fieldSeparator: ';',
+                bom:true,
+                charset: 'UTF8'
+            }]
+        };
+
+        $($balancesExternalWalletsTable).find('th').filter(function (index) {
+            return index > 7
+        }).map(function(){
+            return $.trim($(this).text());
+        }).get().forEach(function (item) {
+            options['columns'].push({
+                data: 'balances.' + item
+            });
+        });
+
+        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
 
     }
 
@@ -328,4 +443,9 @@ function getEndDateFromPicker() {
 function getDateFromPicker($datepicker) {
     var date = $($datepicker).datetimepicker('getValue');
     return moment(date).format('YYYY-MM-DD HH-mm');
+}
+
+function numbroWithCommas(value) {
+
+    return numbro(value).format('0.00[000000]').toString().replace(/\./g, ',');
 }

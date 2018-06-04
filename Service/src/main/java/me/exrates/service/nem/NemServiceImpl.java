@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 /**
@@ -63,6 +64,9 @@ public class NemServiceImpl implements NemService {
     private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
     private static final int CONFIRMATIONS_COUNT_REFILL = 20;
+
+    private static final BigDecimal maxMosiacQuantity = new BigDecimal("9000000000000000");
+    private static final BigDecimal xemMaxQuantity = new BigDecimal("8999999999");
 
     private Merchant merchant;
     private Currency currency;
@@ -263,38 +267,57 @@ public class NemServiceImpl implements NemService {
         if (!merchantId.equals(merchant.getId())) {
             return countSpecComissionForMosaic(amount, destinationTag, merchantId);
         }
-        return nemTransactionsService.countTxFee(amount, destinationTag);
+        return nemTransactionsService.countTxFee(amount, destinationTag).setScale(6, BigDecimal.ROUND_HALF_UP);
     }
 
     private BigDecimal countSpecComissionForMosaic(BigDecimal amount, String destinationTag, Integer merchantId) {
         XemMosaicService service = mosaicStrategy.getByMerchantName(merchantService.findById(merchantId).getName());
+        log.info("merchant {}", service);
         long quantity = amount.multiply(BigDecimal.valueOf(service.getDecimals())).longValue();
         BigDecimal exrate = getExrateForMosaic(merchantId);
 
         BigDecimal tokenLevy = countTokenLevy(quantity, service);
 
-        BigDecimal feeForTagInXem = nemTransactionsService.countMosaicTxFeeForTagInXem(service, destinationTag, quantity);
+        BigDecimal feeForTagInXem = nemTransactionsService.countMessageFeeInNem(service.getDivisibility(), destinationTag);
 
-        BigDecimal feeForAmountInXem = countFeeForAmountInXem(amount);
+        BigDecimal feeForAmountInXem = countFeeForAmountInXem(amount, service);
 
         BigDecimal baseFeesInToken = BigDecimalProcessing.doAction(BigDecimalProcessing.doAction(feeForTagInXem, feeForAmountInXem, ActionType.ADD),
                                                                     exrate, ActionType.DEVIDE);
         log.debug("fees - levy {}, forTag in nem {}, for quantity in nem {} exrate {}, basefees in token {}",
                 tokenLevy, feeForTagInXem, feeForAmountInXem, exrate, baseFeesInToken);
-        return BigDecimalProcessing.doAction(tokenLevy, baseFeesInToken, ActionType.ADD);
+        return BigDecimalProcessing.doAction(tokenLevy, baseFeesInToken, ActionType.ADD).setScale(service.getDivisibility(), RoundingMode.HALF_UP);
     }
 
     private BigDecimal countTokenLevy(long quantity, XemMosaicService service) {
+        if (service.getLevyFee().getRaw() == 0) {
+            return BigDecimal.ZERO;
+        }
         double feeFromMosaicInMosaicToken = (quantity * service.getLevyFee().getRaw() / 10000D)/service.getDecimals();
         return BigDecimal.valueOf(feeFromMosaicInMosaicToken);
     }
 
-    private BigDecimal countFeeForAmountInXem(BigDecimal amount) {
+    /*private BigDecimal countFeeForAmountInXem(BigDecimal amount, XemMosaicService service) {
         BigDecimal initFee = new BigDecimal(0.05);
         int multiplier = amount.intValue() / 10000;
         BigDecimal fee = BigDecimalProcessing.doAction(initFee, new BigDecimal(multiplier), ActionType.MULTIPLY);
         return BigDecimalProcessing.doAction(initFee, fee, ActionType.ADD);
 
+    }*/
+
+    private BigDecimal countFeeForAmountInXem(BigDecimal amount, XemMosaicService service) {
+        BigDecimal totalMosiacQuantity = BigDecimalProcessing.doAction(BigDecimal.valueOf(service.getSupply().getRaw()),
+                BigDecimal.valueOf(service.getDecimals()), ActionType.MULTIPLY);
+        BigDecimal supplyRelatedAdjustment = new BigDecimal(0.8 * Math.log(BigDecimalProcessing
+                .doAction(maxMosiacQuantity, totalMosiacQuantity, ActionType.DEVIDE)
+                .doubleValue())).setScale(0, RoundingMode.HALF_EVEN);
+        BigDecimal xemEqu = BigDecimalProcessing.doAction(BigDecimalProcessing.doAction(xemMaxQuantity,
+                    BigDecimalProcessing.doAction(amount, new BigDecimal(service.getDecimals()), ActionType.MULTIPLY),
+                ActionType.MULTIPLY), totalMosiacQuantity, ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);
+        BigDecimal xemFee = BigDecimalProcessing.doAction(xemEqu,
+                BigDecimal.valueOf(10000), ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);
+        BigDecimal unewightedFee = BigDecimalProcessing.doAction(xemFee, supplyRelatedAdjustment, ActionType.SUBTRACT).max(new BigDecimal(1));
+        return BigDecimalProcessing.doAction(unewightedFee, BigDecimal.valueOf(0.05), ActionType.MULTIPLY).min(BigDecimal.valueOf(1.25));
     }
 
 

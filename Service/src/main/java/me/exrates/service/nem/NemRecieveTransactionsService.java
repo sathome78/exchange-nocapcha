@@ -22,8 +22,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by maks on 21.07.2017.
@@ -58,9 +62,15 @@ public class NemRecieveTransactionsService {
 
     private @Value("${nem.address}")String address;
 
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Scheduled(initialDelay = 1000, fixedRate = 1000 * 60 * 4)
-    public void checkTransactions() {
+    @PostConstruct
+    private void init() {
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 1, 5, TimeUnit.MINUTES);
+    }
+
+
+    public synchronized void checkTransactions() {
         log.debug("starting check nem income payments");
         String lastHash = loadLastHash();
         String pagingHash = null;
@@ -74,7 +84,7 @@ public class NemRecieveTransactionsService {
         for (int i = 0; transactions.opt(i) != null; i++) {
             JSONObject transactionData = transactions.getJSONObject(i);
             Map<String, String> params = extractParams(transactionData);
-
+            log.info("transaction {}", transactionData);
             String trHash = params.get("hash");
             if (trHash.equals(lastHash)) {
                 return null;
@@ -82,13 +92,17 @@ public class NemRecieveTransactionsService {
             if (i == 0 && pagingHash == null) {
                 saveLastHash(trHash);
             }
+            saveLastHash(trHash);
             log.debug("mosaics {}", params.get("mosaics"));
-            double amountD = Double.valueOf(params.get("amount"));
+            Double amountD = Double.valueOf(params.get("amount"));
             log.debug("amountD {}", amountD);
-            if (amountD == 0) {
+            if (amountD.equals(0d)) {
                 continue;
             }
-            if (params.get("mosaics") != null && amountD != 1) {
+            if (params.get("mosaics") != null) {
+                if (!amountD.equals(1d)) {
+                    continue;
+                }
                 try {
                     List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
                     nemService.processMosaicPayment(mosaics, params);

@@ -6,6 +6,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 @Log4j2(topic = "config")
 @Configuration
@@ -139,30 +140,37 @@ public class CryptocurrencyConfig {
 
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
-        return new LiskServiceImpl(liskSendTxService(),"Lisk", "LSK", "merchants/lisk.properties");
+        LiskRestClient restClient = liskRestClient();
+        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
+                "Lisk", "LSK", "merchants/lisk.properties");
     }
 
     @Bean(name = "btwServiceImpl")
     public LiskService btwService() {
-        return new LiskServiceImpl(liskSendTxService(),"BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
+        LiskRestClient restClient = liskRestClient();
+        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient), "BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
     }
 
     @Bean(name = "riseServiceImpl")
     public LiskService riseService() {
-        return new LiskServiceImpl(liskSendTxService(),"RiseVision", "RISE", "merchants/rise_vision.properties");
+        LiskRestClient restClient = liskRestClient();
+        return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient),
+                "RiseVision", "RISE", "merchants/rise_vision.properties");
     }
 
     @Bean(name = "arkServiceImpl")
     public LiskService arkService() {
-        return new LiskServiceImpl(arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
+        return new LiskServiceImpl(liskRestClient(), arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
     }
 
     @Bean
-    public LiskSpecialMethodService liskSendTxService() {
-        return new LiskSpecialMethodServiceImpl();
+    @Scope("prototype")
+    public LiskRestClient liskRestClient() {
+        return new LiskRestClientImpl();
     }
 
     @Bean
+    @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
     }
