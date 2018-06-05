@@ -843,7 +843,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "mtcServiceImpl")
     public EthTokenService MtcService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x905E337c6c8645263D3521205Aa37bf4d034e745");
+        tokensList.add("0x905e337c6c8645263d3521205aa37bf4d034e745");
         return new EthTokenServiceImpl(
                 tokensList,
                 "MTC",
