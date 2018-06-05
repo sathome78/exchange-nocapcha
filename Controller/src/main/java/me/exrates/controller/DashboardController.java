@@ -171,7 +171,10 @@ public class DashboardController {
       SecurityContextHolder.getContext().setAuthentication(auth);
       user.setPassword(null);
     } catch (Exception e) {
-      model.setViewName("DBError");
+      model.addObject("email", SecurityContextHolder.getContext().getAuthentication().getName());
+      model.addObject("user", new User());
+      model.addObject("captchaType", CAPTCHA_TYPE);
+      model.setViewName("passRecoveryError");
       e.printStackTrace();
     }
     return model;
