@@ -440,10 +440,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
     }
-    @Bean(name = "hcashServiceImpl")
+    @Bean(name = "hsrServiceImpl")
     public BitcoinService hcasheService() {
-        return new BitcoinServiceImpl("merchants/hcash_wallet.properties",
-                "HCASH", "HCASH", 4, 20, true);
+        return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
+                "HShare", "HSR", 4, 20, true);
     }
 
 
