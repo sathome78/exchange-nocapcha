@@ -158,23 +158,28 @@ public class DashboardController {
     ModelAndView model = new ModelAndView();
     try {
       int userId = userService.verifyUserEmail(token);
-      User user = userService.getUserById(userId);
-      model.addObject("user", user);
-      model.addObject("captchaType", CAPTCHA_TYPE);
-      model.setViewName("updatePassword");
-      org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), false, false, false, false,
-          userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
-      Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
-      authList.add(new SimpleGrantedAuthority(UserRole.ROLE_CHANGE_PASSWORD.name()));
-      Authentication auth = new UsernamePasswordAuthenticationToken(
-          userSpring, null, authList);
-      SecurityContextHolder.getContext().setAuthentication(auth);
-      user.setPassword(null);
+      if (userId != 0) {
+          User user = userService.getUserById(userId);
+          model.addObject("user", user);
+          model.addObject("captchaType", CAPTCHA_TYPE);
+          model.setViewName("updatePassword");
+          org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), false, false, false, false,
+                  userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+          Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
+          authList.add(new SimpleGrantedAuthority(UserRole.ROLE_CHANGE_PASSWORD.name()));
+          Authentication auth = new UsernamePasswordAuthenticationToken(
+                  userSpring, null, authList);
+          SecurityContextHolder.getContext().setAuthentication(auth);
+          user.setPassword(null);
+      } else {
+          model.addObject("email", SecurityContextHolder.getContext().getAuthentication().getName());
+          model.addObject("user", new User());
+          model.addObject("captchaType", CAPTCHA_TYPE);
+          model.setViewName("passRecoveryError");
+          SecurityContextHolder.getContext().setAuthentication(null);
+      }
     } catch (Exception e) {
-      model.addObject("email", SecurityContextHolder.getContext().getAuthentication().getName());
-      model.addObject("user", new User());
-      model.addObject("captchaType", CAPTCHA_TYPE);
-      model.setViewName("passRecoveryError");
+      model.setViewName("DBError");
       e.printStackTrace();
     }
     return model;

@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
   public int verifyUserEmail(String token) {
     TemporalToken temporalToken = userDao.verifyToken(token);
     //deleting all tokens related with current through userId and tokenType
-    return deleteTokensAndUpdateUser(temporalToken);
+    return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
   }
 
   private int deleteTokensAndUpdateUser(TemporalToken temporalToken) {
