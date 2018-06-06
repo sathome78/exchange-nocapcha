@@ -1447,7 +1447,7 @@ td.blue-white {
 }
 
 .input-block-wrapper__error-wrapper {
-    text-align: right;
+    text-align: center;
     color: rgba(232, 0, 0, 0.93);
     overflow: hidden;
     margin: 0;
