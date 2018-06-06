@@ -5,9 +5,9 @@
   Time: 4:07 PM
   To change this template use File | Settings | File Templates.
 --%>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
@@ -63,65 +63,76 @@
         <div class="col-sm-4">
             <hr>
             <h4 class="">
-                К сожалению, ссылка восстановления пароля уже была использована.
-                Запросите восстановление пароля еще раз!
+                <%--<loc:message code="dashboard.resetPasswordDoubleClick"></loc:message>--%>
+                Unfortunately, the password recovery link has already been used. Request password recovery again please!
             </h4>
-            <c:choose>
-                <c:when test="${email == \"anonymousUser\"}">
-                    <a href="/forgotPassword">Получить новую ссылку</a>
-                </c:when>
-                <c:otherwise>
-                    <div class="clearfix">
-                        <form:form id="settings-user-form"
-                                   action="/forgotPassword/submit" method="post" modelAttribute="user">
-                            <div class="input-block-wrapper clearfix">
-                                <loc:message code="login.email" var="adminEmail"/>
-                                <div class="col-md-10 input-block-wrapper__input-wrapper">
+            <div class="clearfix">
+                <form:form id="settings-user-form"
+                           action="/forgotPassword/submit" method="post" modelAttribute="user">
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.email" var="adminEmail"/>
+                        <div class="col-md-10 input-block-wrapper__input-wrapper">
+                            <c:choose>
+                                <c:when test="${email == \"anonymousUser\"}">
+                                    <form:input id="user-email" path="email" type="email"
+                                                placeholder="${adminEmail}"
+                                                class="form-control input-block-wrapper__input"/>
+                                </c:when>
+                                <c:otherwise>
                                     <form:input id="user-email" path="email" type="email"
                                                 placeholder="${adminEmail}"
                                                 value="${email}"
                                                 class="form-control input-block-wrapper__input"/>
-                                </div>
-                                <div class="col-md-10 input-block-wrapper__error-wrapper">
-                                    <form:errors path="email" class="input-block-wrapper__input"/>
-                                </div>
-                            </div>
-                            <c:if test="${captchaType==\"RECAPTCHA\"}">
-                                <%--CAPTCHA GOOGLE--%>
-                                <div class="col-md-10 login__captcha-wrapper">
-                                    <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
-                                         data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                        <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
-                                    <br/>
-                                </div>
-                                <div class="col-md-10 input-block-wrapper__error-wrapper">
-                                    <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                </div>
-                            </c:if>
-                            <c:if test="${captchaType==\"BOTDETECT\"}">
-                                <%--CAPTCHA BotDetect--%>
-                                <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
-                                    <botDetect:captcha id="forgotFormRegCaptcha" userInputID="captchaCode"/>
-                                    <input name="captchaCode" type="text" id="captchaCode"/>
-                                    <input type="hidden" name="captchaId" value="forgotFormRegCaptcha"/>
-                                </div>
-                                <div class="col-md-10 input-block-wrapper__error-wrapper">
-                                    <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                </div>
-                            </c:if>
-                            <input type="hidden" name="captchaType" value="${captchaType}"/>
-                            <%----%>
-                            <div class="col-md-10 login__button-wrapper">
-                                <button class="login__button" type="submit">
-                                    Получить новую ссылку
-                                </button>
-                            </div>
-                        </form:form>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <form:errors path="email" class="input-block-wrapper__input"/>
+                        </div>
                     </div>
-                </c:otherwise>
-            </c:choose>
+                    <c:if test="${captchaType==\"RECAPTCHA\"}">
+                        <%--CAPTCHA GOOGLE--%>
+                        <div class="col-md-10 login__captcha-wrapper">
+                            <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                            <br/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <c:if test="${captchaType==\"BOTDETECT\"}">
+                        <%--CAPTCHA BotDetect--%>
+                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
+                            <botDetect:captcha id="forgotFormRegCaptcha" userInputID="captchaCode"/>
+                            <input name="captchaCode" type="text" id="captchaCode"/>
+                            <input type="hidden" name="captchaId" value="forgotFormRegCaptcha"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <input type="hidden" name="captchaType" value="${captchaType}"/>
+                    <%----%>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" type="submit">
+                            <loc:message code="dashboard.resetPasswordButton"/>
+                        </button>
+                    </div>
+                </form:form>
+            </div>
+            <br/>
+            <br/>
+            <br/>
+
+            <div>
+                <h5><loc:message
+                        code="admin.changePasswordSendEmail"/></h5>
+            </div>
         </div>
     </div>
 </main>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
