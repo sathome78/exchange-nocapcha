@@ -248,6 +248,7 @@ public class EntryController {
         }
 
         notificationService.updateUserNotifications(notificationOptions);
+        redirectAttributes.addFlashAttribute("activeTabId", "notification-options-wrapper");
         return redirectView;
     }
 
@@ -273,6 +274,7 @@ public class EntryController {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
                     localeResolver.resolveLocale(request)));
         }
+        redirectAttributes.addFlashAttribute("activeTabId", "session-options-wrapper");
         return redirectView;
     }
 
@@ -308,6 +310,7 @@ public class EntryController {
                     localeResolver.resolveLocale(request)));
             throw e;
         }
+        redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
         return redirectView;
     }
 

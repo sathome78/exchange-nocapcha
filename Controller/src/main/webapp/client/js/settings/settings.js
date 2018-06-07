@@ -30,6 +30,15 @@ function SettingsClass() {
         if (!that.tabIdx) {
             that.tabIdx = 0;
         }
+        var $activeTabIdSpan = $('#activeTabId');
+        if ($($activeTabIdSpan).length > 0) {
+            var $settingsMenu = $('#user-settings-menu');
+            $($settingsMenu).find('li:active').removeClass('active');
+            var $activeLink =  $($settingsMenu).find('a[href=#' + $($activeTabIdSpan).text() +  ']')
+            $($activeLink).click();
+        }
+
+
         setActiveSwitcher();
         switchPassTab();
         /**/

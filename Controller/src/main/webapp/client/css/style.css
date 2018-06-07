@@ -2410,3 +2410,8 @@ input.copyable:hover{
     font-size: 1.3rem;
     margin: 10px 0;
 }
+
+#user-settings-menu > li.active > a {
+    background-color: #434e60;
+
+}
