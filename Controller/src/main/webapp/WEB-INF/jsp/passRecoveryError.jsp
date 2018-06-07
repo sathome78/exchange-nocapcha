@@ -63,8 +63,7 @@
         <div class="col-sm-4">
             <hr>
             <h4 class="">
-                <%--<loc:message code="dashboard.resetPasswordDoubleClick"></loc:message>--%>
-                Unfortunately, the password recovery link has already been used. Request password recovery again please!
+                <loc:message code="dashboard.resetPasswordDoubleClick"/>
             </h4>
             <div class="clearfix">
                 <form:form id="settings-user-form"
