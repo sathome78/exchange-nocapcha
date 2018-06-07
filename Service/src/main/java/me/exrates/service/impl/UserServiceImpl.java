@@ -368,6 +368,9 @@ public class UserServiceImpl implements UserService {
 
     Email email = new Email();
     String confirmationUrl = tokenLink + "?token=" + token.getValue() + tempPassId;
+    if (tokenLink.equals("/resetPasswordConfirm")) {
+      confirmationUrl = confirmationUrl + "&email=" + user.getEmail();
+    }
     String rootUrl = "";
     if (!confirmationUrl.contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +

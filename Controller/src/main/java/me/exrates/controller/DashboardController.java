@@ -154,7 +154,7 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/resetPasswordConfirm")
-  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token) {
+  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email) {
     ModelAndView model = new ModelAndView();
     try {
       int userId = userService.verifyUserEmail(token);
@@ -172,7 +172,7 @@ public class DashboardController {
           SecurityContextHolder.getContext().setAuthentication(auth);
           user.setPassword(null);
       } else {
-          model.addObject("email", SecurityContextHolder.getContext().getAuthentication().getName());
+          model.addObject("email", email);
           model.addObject("user", new User());
           model.addObject("captchaType", CAPTCHA_TYPE);
           model.setViewName("passRecoveryError");
