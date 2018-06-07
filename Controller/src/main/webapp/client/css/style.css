@@ -1447,13 +1447,14 @@ td.blue-white {
 }
 
 .input-block-wrapper__error-wrapper {
-    text-align: center;
+    text-align: left;
     color: rgba(232, 0, 0, 0.93);
     overflow: hidden;
     margin: 0;
     line-height: 20px;
     font-size: 1rem;
-    padding: 0 15px 0 0;
+    /*padding: 0 15px 0 0;*/
+    padding: 15px 0 15px 15px;
 }
 
 .modal-form-dialog

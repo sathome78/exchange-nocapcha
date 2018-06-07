@@ -115,10 +115,9 @@ public class DashboardController {
         String captchaCode = request.getParameter("captchaCode");
         if (!captcha.validate(captchaCode)) {
           String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-          ModelAndView modelAndView = new ModelAndView("/forgotPassword", "user", user);
-          modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-          modelAndView.addObject("cpch", correctCapchaRequired);
-          return modelAndView;
+          attr.addFlashAttribute("cpch", correctCapchaRequired);
+          attr.addFlashAttribute("user", user);
+          return new ModelAndView("redirect:/forgotPassword");
         }
         break;
       }
