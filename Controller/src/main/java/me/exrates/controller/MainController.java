@@ -139,7 +139,20 @@ public class MainController {
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, ModelMap model, HttpServletRequest request) {
+    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
+
+        Map<String, String> xssErrors = (Map<String, String>) request.getAttribute("xssErrors");
+        if (xssErrors !=null){
+            for (Map.Entry<String, String> errorsEntry : xssErrors.entrySet()) {
+                result.rejectValue(errorsEntry.getKey(),errorsEntry.getValue());
+            }
+            ModelAndView modelAndView = new ModelAndView("register", "user", user);
+            modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
+
+        }
+
         boolean flag = false;
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -175,7 +188,6 @@ public class MainController {
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
-
         registerFormValidation.validate(user, result, localeResolver.resolveLocale(request));
         user.setPhone("");
         if (result.hasErrors()) {
