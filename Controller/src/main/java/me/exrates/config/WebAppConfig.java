@@ -799,6 +799,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService iprService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x68b539381b317a04190c3bd7ce95b9233275d02a");
+        tokensList.add("0x9bcd4f04cafead107dfd715b4922b22d8ab941a0");
         return new EthTokenServiceImpl(
                 tokensList,
                 "IPR",
