@@ -340,18 +340,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
         try {
             web3j.netVersion().send();
-            if (subscription == null || subscription.isUnsubscribed()){
-                log.info("Subscribe test log");
-//                createSubscribe();
-            }
-            if (subscribeCreated == false){
+            if (subscription == null || subscribeCreated == false || subscription.isUnsubscribed()){
                 createSubscribe();
             }
             subscribeCreated = true;
         } catch (IOException e) {
-            if (subscription != null){
-                subscription.unsubscribe();
-            }
             log.error(merchantName + " " + e);
             subscribeCreated = false;
         }
