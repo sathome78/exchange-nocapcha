@@ -72,7 +72,7 @@
                                    placeholder="${adminEmail}"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
-                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                        <div class="col-md-10 input-block-wrapper__error-wrapper_forgot">
                             <form:errors path="email" class="input-block-wrapper__input"/>
                         </div>
                     </div>
