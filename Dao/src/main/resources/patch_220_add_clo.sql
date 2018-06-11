@@ -3,6 +3,8 @@ VALUES ('CALLISTO', 'CLO', 2, 'cloServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('CLO', 'CALLISTO', '0', 8, 8, 8);
 
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='CLO'));
+
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='CLO'),
           (SELECT id from CURRENCY WHERE name='CLO'),

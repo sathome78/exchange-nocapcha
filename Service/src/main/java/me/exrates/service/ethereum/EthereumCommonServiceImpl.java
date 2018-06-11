@@ -308,7 +308,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
                 currentBlockNumber = ethBlock.getBlockNumber();
                 currentHash[0] = ethBlock.getBlockHash();
-                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
+//                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
 
 /*-------------Tokens--------------*/
                 if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
