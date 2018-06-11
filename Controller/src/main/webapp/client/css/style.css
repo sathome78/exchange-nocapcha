@@ -1447,13 +1447,24 @@ td.blue-white {
 }
 
 .input-block-wrapper__error-wrapper {
-    text-align: right;
+    text-align: left;
     color: rgba(232, 0, 0, 0.93);
     overflow: hidden;
     margin: 0;
     line-height: 20px;
     font-size: 1rem;
     padding: 0 15px 0 0;
+}
+
+.input-block-wrapper__error-wrapper_forgot {
+    text-align: left;
+    color: rgba(232, 0, 0, 0.93);
+    overflow: hidden;
+    margin: 0;
+    line-height: 20px;
+    font-size: 1rem;
+    /*padding: 0 15px 0 0;*/
+    padding: 0px 0 15px 15px;
 }
 
 .modal-form-dialog
