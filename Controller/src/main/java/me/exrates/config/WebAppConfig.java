@@ -866,6 +866,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new QtumTokenServiceImpl(tokensList, "SPC", "SPC", ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "hlcServiceImpl")
+    public QtumTokenService hlcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
+
+        return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
+    }
+
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
