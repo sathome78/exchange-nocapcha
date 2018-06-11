@@ -62,8 +62,8 @@
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp" %>
+    <%--INTERCOM CHAT--%>
+    <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
 
