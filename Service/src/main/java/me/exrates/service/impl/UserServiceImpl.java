@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
   public int verifyUserEmail(String token) {
     TemporalToken temporalToken = userDao.verifyToken(token);
     //deleting all tokens related with current through userId and tokenType
-    return deleteTokensAndUpdateUser(temporalToken);
+    return temporalToken != null ? deleteTokensAndUpdateUser(temporalToken) : 0;
   }
 
   private int deleteTokensAndUpdateUser(TemporalToken temporalToken) {
@@ -368,6 +368,9 @@ public class UserServiceImpl implements UserService {
 
     Email email = new Email();
     String confirmationUrl = tokenLink + "?token=" + token.getValue() + tempPassId;
+    if (tokenLink.equals("/resetPasswordConfirm")) {
+      confirmationUrl = confirmationUrl + "&email=" + user.getEmail();
+    }
     String rootUrl = "";
     if (!confirmationUrl.contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
