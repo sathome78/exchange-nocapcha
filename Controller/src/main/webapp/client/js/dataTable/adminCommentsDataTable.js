@@ -4,6 +4,26 @@ $(function () {
     $('#commentsTable').hide();
     $('#comments-table-init').click(update);
 
+    var maxCount = 400;
+    $("#checkMaxLengthComment").html(maxCount);
+
+    $("#checkLengthComment").html(maxCount);
+
+    $("#commentText").keyup(function () {
+        var revText = this.value.length;
+
+        if (this.value.length > maxCount) {
+            this.value = this.value.substr(0, maxCount);
+        }
+        var cnt = (maxCount - revText);
+        if (cnt <= 0) {
+            $("#checkLengthComment").html('0');
+        }
+        else {
+            $("#checkLengthComment").html(cnt);
+        }
+    })
+
     function update() {
         $('#checkMessage').hide();
         if ($.fn.dataTable.isDataTable('#commentsTable')) {
