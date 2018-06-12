@@ -823,6 +823,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "CAS", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tnrServiceImpl")
+    public EthTokenService tnrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x543199bfd8c343fadd8c1a2bc289e876c588c8e5");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TNR",
+                "TNR", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
