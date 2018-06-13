@@ -6,13 +6,16 @@ $(function () {
 
     var maxCount = 400;
     $("#checkMaxLengthComment").html(maxCount);
-
     $("#checkLengthComment").html(maxCount);
 
-    $("#commentText").keyup(function () {
+    if (document.getElementById("checkMaxLengthComment")) {
+        $("#checkMaxLengthComment").prop('maxlength', maxCount);
+    }
+
+    $('#commentText').bind('input', function(){
         var revText = this.value.length;
 
-        if (this.value.length > maxCount) {
+        if (revText > maxCount) {
             this.value = this.value.substr(0, maxCount);
         }
         var cnt = (maxCount - revText);
@@ -22,7 +25,7 @@ $(function () {
         else {
             $("#checkLengthComment").html(cnt);
         }
-    })
+    });
 
     function update() {
         $('#checkMessage').hide();
