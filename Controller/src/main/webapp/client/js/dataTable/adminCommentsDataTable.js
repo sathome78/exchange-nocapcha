@@ -5,12 +5,12 @@ $(function () {
     $('#comments-table-init').click(update);
 
     var maxCount = 400;
-    $("#checkMaxLengthComment").html(maxCount);
-    $("#checkLengthComment").html(maxCount);
 
-    if (document.getElementById("checkMaxLengthComment")) {
+    $( "#comments-button" ).click(function() {
+        $("#checkLengthComment").html(maxCount);
+        $("#checkMaxLengthComment").html(maxCount);
         $("#checkMaxLengthComment").prop('maxlength', maxCount);
-    }
+    });
 
     $('#commentText').bind('input', function(){
         var revText = this.value.length;
@@ -142,7 +142,6 @@ $(function () {
         var sendMessage = document.getElementById("sendMessageCheckbox").checked;
         if (sendMessage){
             if (!confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
-                $("#myModal").modal('hide');
                 return;
             }
         }
