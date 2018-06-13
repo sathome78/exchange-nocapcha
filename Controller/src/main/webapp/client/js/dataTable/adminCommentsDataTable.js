@@ -10,6 +10,12 @@ $(function () {
         $("#checkLengthComment").html(maxCount);
         $("#checkMaxLengthComment").html(maxCount);
         $("#checkMaxLengthComment").prop('maxlength', maxCount);
+
+        if(document.getElementById("sendMessageCheckbox").checked){
+            $('#checkMessage').show();
+        }else{
+            $('#checkMessage').hide();
+        }
     });
 
     $('#commentText').bind('input', function(){
