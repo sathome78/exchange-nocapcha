@@ -886,6 +886,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "DTRC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ceekServiceImpl")
+    public EthTokenService CeekService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb056c38f6b7dc4064367403e26424cd2c60655e1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CEEK",
+                "CEEK", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
