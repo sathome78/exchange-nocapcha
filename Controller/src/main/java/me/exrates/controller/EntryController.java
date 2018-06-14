@@ -240,12 +240,13 @@ public class EntryController {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
         RedirectView redirectView = new RedirectView("/settings");
         List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
-        if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
+        //TODO uncomment after turning notifications on
+        /*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
                     localeResolver.resolveLocale(request)));
             return redirectView;
 
-        }
+        }*/
 
         notificationService.updateUserNotifications(notificationOptions);
         redirectAttributes.addFlashAttribute("activeTabId", "notification-options-wrapper");
