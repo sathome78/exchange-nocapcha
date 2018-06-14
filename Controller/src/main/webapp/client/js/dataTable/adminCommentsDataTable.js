@@ -4,35 +4,6 @@ $(function () {
     $('#commentsTable').hide();
     $('#comments-table-init').click(update);
 
-    var maxCount = 400;
-
-    $( "#comments-button" ).click(function() {
-        $("#checkLengthComment").html(maxCount);
-        $("#checkMaxLengthComment").html(maxCount);
-        $("#checkMaxLengthComment").prop('maxlength', maxCount);
-
-        if(document.getElementById("sendMessageCheckbox").checked){
-            $('#checkMessage').show();
-        }else{
-            $('#checkMessage').hide();
-        }
-    });
-
-    $('#commentText').bind('input', function(){
-        var revText = this.value.length;
-
-        if (revText > maxCount) {
-            this.value = this.value.substr(0, maxCount);
-        }
-        var cnt = (maxCount - revText);
-        if (cnt <= 0) {
-            $("#checkLengthComment").html('0');
-        }
-        else {
-            $("#checkLengthComment").html(cnt);
-        }
-    });
-
     function update() {
         $('#checkMessage').hide();
         if ($.fn.dataTable.isDataTable('#commentsTable')) {
@@ -211,3 +182,33 @@ function deleteUserComment(e) {
         });
     }
 }
+
+/**
+ * The method for working with creating comments (adding a counter, the maximum length of comments)
+ */
+$(function(){
+    var maxCountOfSymbols = 400;
+
+    $( "#comments-button" ).click(function() {
+        $("#checkLengthComment").html(maxCountOfSymbols);
+        $("#checkMaxLengthComment").html(maxCountOfSymbols);
+        $("#checkMaxLengthComment").prop('maxlength', maxCountOfSymbols);
+
+        $("#sendMessageCheckbox").checked ? $('#checkMessage').show() : $('#checkMessage').hide();
+
+        $("#createCommentConfirm").prop('disabled', true);
+    });
+
+    $('#commentText').bind('input', function(){
+        var commentText = this.value.length;
+
+        commentText == 0 ? $("#createCommentConfirm").prop('disabled', true) : $("#createCommentConfirm").prop('disabled', false);
+
+        if (commentText > maxCountOfSymbols) {
+            this.value = this.value.substr(0, maxCountOfSymbols);
+        }
+        var counter = (maxCountOfSymbols - commentText);
+
+        counter <= 0 ? $("#checkLengthComment").html('0') : $("#checkLengthComment").html(counter);
+    });
+})
