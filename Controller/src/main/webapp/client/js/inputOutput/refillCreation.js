@@ -82,6 +82,7 @@ $(function refillCreation() {
                     var elementIdString = elementId ? ' id="' + elementId + '"' : '';
                     newHTMLElements[index] = '<p' + elementIdString + '>' + $(val).html() + '</p>';
                 });
+
                 newHTMLElements[0] = newHTMLElements[0]
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
@@ -98,6 +99,7 @@ $(function refillCreation() {
                     .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                     .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
                 var newHTML = '';
+
                 $.each(newHTMLElements, function (index) {
                     newHTML += newHTMLElements[index];
                 });
