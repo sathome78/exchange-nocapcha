@@ -90,6 +90,7 @@ function checkFill() {
 
 $(function () {
     /*Activates submit button if all field filled correct (email, password, captcha) on login page (/login)
+    and on /dashboard page for login model panel
      * */
     if (document.getElementById("login_button")) {
         checkFillOnLoginPage();

@@ -203,11 +203,16 @@ header li {
 
 .login_button {
     background-color: #b9c4d8;
-    color: #434e60;
+    color: #fff;
     padding: 10px 20px;
     margin: 10px;
     margin-left: 0px;
-    border: none;
+    border: 1px solid #7fff00;
+}
+
+.login_button:disabled{
+    color: #fff;
+    border: 1px solid #ff0000;
 }
 
 .inline-block {
