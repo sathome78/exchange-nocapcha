@@ -83,6 +83,31 @@ $(function () {
 
 });
 
+$(function () {
+    /*Add min and max value for filter-id for transaction id in admin panel on vouchers page
+    (min = 0, max = maxValueOfInteger);
+     * */
+    var minValueOfTransactionId = 1;
+    var maxValueOfTransactionId = 2147483647;
+
+    $("#filter-id").prop('min', minValueOfTransactionId);
+    $("#filter-id").prop('max', maxValueOfTransactionId);
+
+    $("#filter-id").on('keyup keypress blur change', function(e) {
+        if (!(e.which>47 && e.which<58)) return false;
+
+        if ($(this).val() < maxValueOfTransactionId){
+            $('#errorValueForTransactionId').prop("display", "none");
+        }
+
+        if ($(this).val() > maxValueOfTransactionId) {
+            this.value = maxValueOfTransactionId;
+            $('#errorValueForTransactionId').show();
+        }
+
+    });
+});
+
 function getRowId($elem) {
     var rowData = retrieveRowDataForElement($elem);
     return rowData.transaction.id;
@@ -112,8 +137,6 @@ function fillModal($modal, data) {
     $("#info-commissionAmount").html(numbro(data.commissionAmount).format('0.00[000000]'));
     $("#info-hash").html(data.hash);
 }
-
-
 
 function updateVoucherTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
