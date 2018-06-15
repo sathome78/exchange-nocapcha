@@ -49,6 +49,10 @@ $(function () {
         e.preventDefault();
         filterParams = $('#withdrawal-request-search-form').serialize();
         updateVoucherTable();
+
+        /* Hide error message for transaction id ("#errorValueForTransactionId")
+        on vouchers page (vouchers.jsp) - extended filter. */
+        $('#errorValueForTransactionId').hide();
     });
 
     $('#filter-reset').on('click', function (e) {
@@ -56,6 +60,10 @@ $(function () {
         $('#withdrawal-request-search-form')[0].reset();
         filterParams = '';
         updateVoucherTable();
+
+        /* Hide error message for transaction id ("#errorValueForTransactionId")
+        on vouchers page (vouchers.jsp) - extended filter. */
+        $('#errorValueForTransactionId').hide();
     });
 
     $('#voucherTable').on('click', 'button[data-source=USER_TRANSFER].revoke_admin_button', function (e) {
@@ -81,31 +89,6 @@ $(function () {
         $modal.modal();
     });
 
-});
-
-$(function () {
-    /*Add min and max value for filter-id for transaction id in admin panel on vouchers page
-    (min = 0, max = maxValueOfInteger);
-     * */
-    var minValueOfTransactionId = 1;
-    var maxValueOfTransactionId = 2147483647;
-
-    $("#filter-id").prop('min', minValueOfTransactionId);
-    $("#filter-id").prop('max', maxValueOfTransactionId);
-
-    $("#filter-id").on('keyup keypress blur change', function(e) {
-        if (!(e.which>47 && e.which<58)) return false;
-
-        if ($(this).val() < maxValueOfTransactionId){
-            $('#errorValueForTransactionId').prop("display", "none");
-        }
-
-        if ($(this).val() > maxValueOfTransactionId) {
-            this.value = maxValueOfTransactionId;
-            $('#errorValueForTransactionId').show();
-        }
-
-    });
 });
 
 function getRowId($elem) {
@@ -230,3 +213,38 @@ function updateVoucherTable() {
         });
     }
 }
+
+/**
+ * The method for validation transaction hash. Add min and max value for filter-id for transaction id in admin panel on vouchers page
+ (min = 0, max = maxValueOfInteger).
+ */
+$(function () {
+
+    var minValueOfTransactionId = 0;
+    var maxValueOfTransactionId = 2147483647;
+    var maxCountOfSymbols = maxValueOfTransactionId.toString().length;
+
+    $("#filter-id").prop('min', minValueOfTransactionId);
+    $("#filter-id").prop('max', maxValueOfTransactionId);
+    $("#filter-id").prop('maxlength', maxCountOfSymbols);
+
+    $("#filter-id").on('keyup keypress blur change', function(e) {
+        if (!(e.which>47 && e.which<58)) return false;
+        if(this.value.charAt(0)=="0") return false;
+    });
+
+    $('#filter-id').bind('input', function(){
+        var commentText = this.value.length;
+        if (commentText > maxCountOfSymbols) {
+            this.value = this.value.substr(0, maxCountOfSymbols);
+        }
+
+        if (this.value > maxValueOfTransactionId){
+            this.value = maxValueOfTransactionId;
+            $('#errorValueForTransactionId').show();
+        }
+        else{
+            $('#errorValueForTransactionId').hide();
+        }
+    });
+});

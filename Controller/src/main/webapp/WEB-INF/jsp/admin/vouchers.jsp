@@ -50,7 +50,7 @@
               </div>
               <div class="col-md-7 input-block-wrapper__label-wrapper">
                 <span id="errorValueForTransactionId" class="input-block-wrapper__label" style="color: #FF0000;" hidden>
-                  ERROR
+                  <loc:message code="transaction.id.error.message.for.user"/>
                 </span>
               </div>
             </div>
