@@ -39,4 +39,8 @@ public class TransactionDTO implements Serializable {
      */
     private String apiParams;
 
+    private boolean isConfirmed;
+
+    private String toAddr;
+
 }

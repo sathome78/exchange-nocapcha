@@ -20,7 +20,7 @@ import java.util.Random;
 /**
  * Created by Maks on 14.06.2018.
  */
-@Log4j2
+@Log4j2(topic = "achain")
 @Service
 public class SDKHttpClient {
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +21,7 @@ import java.util.Objects;
 /**
  * Created by Maks on 14.06.2018.
  */
-@Log4j2
+@Log4j2(topic = "achain")
 @Component
 public class NodeServiceImpl implements NodeService {
 
@@ -41,13 +42,14 @@ public class NodeServiceImpl implements NodeService {
         String result =
                 httpClient.post(walletUrl, rpcUser, "sub_address", new JSONArray());
         JSONObject createTaskJson = new JSONObject(result);
+        log.info(createTaskJson);
         return createTaskJson.getString("result");
     }
 
 
     @Override
     public long getBlockCount() {
-        log.info("BlockchainServiceImpl|getBlockCount");
+        log.info("NodeServiceImpl|getBlockCount");
         String result =
                 httpClient.post(walletUrl, rpcUser, "blockchain_get_block_count", new JSONArray());
         JSONObject createTaskJson = new JSONObject(result);
@@ -56,11 +58,34 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public JSONArray getBlock(long blockNum) {
-        log.info("BlockchainServiceImpl|getBlock [{}]", blockNum);
+        log.info("NodeServiceImpl|getBlock [{}]", blockNum);
         String result =
                 httpClient.post(walletUrl, rpcUser, "blockchain_get_block", String.valueOf(blockNum));
         JSONObject createTaskJson = new JSONObject(result);
         return createTaskJson.getJSONObject("result").getJSONArray("user_transaction_ids");
+    }
+
+    @Override
+    public List<TransactionDTO> getTransactionsList(String account, String asset, Integer limit, String startBlock, String endBlock) {
+        log.info("NodeServiceImpl|getTransactionsList [{}, {}, {}, {}]", account, asset, limit, startBlock, endBlock);
+        String result =
+                httpClient.post(walletUrl, rpcUser, "wallet_account_transaction_history",
+                        account, asset, limit.toString(), startBlock, endBlock);
+        JSONArray transactions = new JSONObject(result).getJSONArray("result");
+        List<TransactionDTO> txsList = new ArrayList<>();
+        transactions.forEach(p-> {
+            try {
+                JSONObject jso = (JSONObject) p;
+                long blockNum = jso.getLong("block_num");
+                String txId = jso.getString("trx_id");
+                boolean isConfirmed = jso.getBoolean("is_confirmed");
+                TransactionDTO dto = getTransaction(blockNum, txId);
+                dto.setConfirmed(isConfirmed);
+            } catch (Exception e) {
+                log.error("");
+            }
+        });
+        return null;
     }
 
     /**
@@ -71,7 +96,7 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public TransactionDTO getTransaction(long blockNum, String trxId) {
         try {
-            log.info("BlockchainServiceImpl|getBlock [{}]", trxId);
+            log.info("NodeServiceImpl|getBlock [{}]", trxId);
             String result = httpClient.post(walletUrl, rpcUser, "blockchain_get_transaction", trxId);
             JSONObject createTaskJson = new JSONObject(result);
             JSONArray resultJsonArray = createTaskJson.getJSONArray("result");
@@ -151,7 +176,7 @@ public class NodeServiceImpl implements NodeService {
                 return transactionDTO;
             }
         } catch (Exception e) {
-            log.error("BlockchainServiceImpl", e);
+            log.error("NodeServiceImpl", e);
         }
         return null;
     }
