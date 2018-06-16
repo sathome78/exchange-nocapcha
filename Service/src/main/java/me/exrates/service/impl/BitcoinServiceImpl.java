@@ -9,9 +9,7 @@ import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.btcCore.CoreWalletService;
-import me.exrates.service.exception.BtcPaymentNotFoundException;
-import me.exrates.service.exception.MerchantSpecParamNotFoundException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "bitcoin_core")
@@ -53,8 +50,6 @@ public class BitcoinServiceImpl implements BitcoinService {
   private MessageSource messageSource;
   @Autowired
   private CoreWalletService bitcoinWalletService;
-
-  private String walletPassword;
 
   private String backupFolder;
 
@@ -103,7 +98,6 @@ public class BitcoinServiceImpl implements BitcoinService {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
-      this.walletPassword = props.getProperty("wallet.password");
       this.backupFolder = props.getProperty("backup.folder");
       this.nodePropertySource = props.getProperty("node.propertySource");
       this.nodeEnabled = Boolean.valueOf(props.getProperty("node.isEnabled"));
@@ -126,8 +120,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     return rawTxEnabled;
   }
 
-  public BitcoinServiceImpl(String walletPassword, Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
-    this.walletPassword = walletPassword;
+  public BitcoinServiceImpl(Boolean zmqEnabled, String merchantName, String currencyName, Integer minConfirmations) {
     this.zmqEnabled = zmqEnabled;
     this.merchantName = merchantName;
     this.currencyName = currencyName;
@@ -161,8 +154,14 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Transactional
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
+    String txId = bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, getCoreWalletPassword());
     return Collections.singletonMap("hash", txId);
+  }
+
+  private String getCoreWalletPassword() {
+    return merchantService.getCoreWalletPassword(merchantName, currencyName)
+            .orElseThrow(() -> new CoreWalletPasswordNotFoundException(String.format("pass not found for merchant %s currency %s", merchantName, currencyName)));
+
   }
 
   @Override
@@ -200,7 +199,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private String address() {
     boolean isFreshAddress = false;
-    String address = bitcoinWalletService.getNewAddress(walletPassword);
+    String address = bitcoinWalletService.getNewAddress(getCoreWalletPassword());
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
 //    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
@@ -415,6 +414,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Override
   public void submitWalletPassword(String password) {
+    String storedPassword = getCoreWalletPassword();
+    if (password == null || !password.equals(storedPassword)) {
+      throw new IncorrectCoreWalletPasswordException("Incorrect password: " + password);
+    }
     bitcoinWalletService.submitWalletPassword(password);
   }
   
@@ -528,7 +531,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   public String getNewAddressForAdmin() {
-    return bitcoinWalletService.getNewAddress(walletPassword);
+    return bitcoinWalletService.getNewAddress(getCoreWalletPassword());
   }
 
   @Override
