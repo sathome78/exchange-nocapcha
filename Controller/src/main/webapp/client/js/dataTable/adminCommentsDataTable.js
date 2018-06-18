@@ -56,11 +56,12 @@ $(function () {
             });
         }
         $('#commentsTable').show();
-
     }
 
     $('#comments-button').on('click', function () {
         $("#commentText").val("");
+
+        preparingToStartModelWindowWithComment();
         $("#myModal").modal();
     });
 
@@ -122,12 +123,11 @@ $(function () {
             }
         }
 
-        if (commentId != null || commentId !="") {
+        if (commentId == null || commentId =="") {
             sendAddComment(newComment, email, sendMessage);
         } else {
             sendEditComment(commentId, newComment, email, sendMessage)
         }
-
         $("#myModal").modal('hide');
     });
 
@@ -139,7 +139,7 @@ $(function () {
         document.getElementById("sendMessageCheckbox").checked ? $('#checkMessage').show() : $('#checkMessage').hide();
     });
 
-    });
+});
 
 function editUserComment(elem) {
     var row = $(elem).parents('tr');
@@ -147,6 +147,8 @@ function editUserComment(elem) {
     console.log(rowData.comment);
     $("#commentId").val(rowData.id);
     $("#commentText").val(rowData.comment);
+
+    preparingToStartModelWindowWithCommentForEditing();
     $("#myModal").modal();
 
 }
@@ -179,23 +181,47 @@ function deleteUserComment(e) {
 }
 
 /**
- * The method for working with creating comments (adding a counter, the maximum length of comments)
- * Added a restriction that the comment can not be empty or only with spaces.
+* Max count of symbols in comment on user for admin
  */
+var maxCountOfSymbols = 400;
+
+/**
+* Preparing to start a modal window with a comment
+*/
+function preparingToStartModelWindowWithComment(){
+    $("#checkLengthComment").html(maxCountOfSymbols);
+    $("#checkMaxLengthComment").html(maxCountOfSymbols);
+    $("#checkMaxLengthComment").prop('maxlength', maxCountOfSymbols);
+
+    $("#sendMessageCheckbox").prop('checked', false);
+    $('#checkMessage').hide();
+
+    $("#createCommentConfirm").prop('disabled', true);
+}
+
+/**
+* Preparing to start a modal window with a comment.
+* For editing comment.
+*/
+function preparingToStartModelWindowWithCommentForEditing(){
+    var presentValueOfLengthComment = $("#commentText").val().length;
+    var remainingCharactersCurrentValue = maxCountOfSymbols - presentValueOfLengthComment;
+
+    $("#checkLengthComment").html(remainingCharactersCurrentValue);
+    $("#checkMaxLengthComment").html(maxCountOfSymbols);
+    $("#checkMaxLengthComment").prop('maxlength', maxCountOfSymbols);
+
+    $("#sendMessageCheckbox").prop('checked', false);
+    $('#checkMessage').hide();
+
+    $("#createCommentConfirm").prop('disabled', true);
+}
+
+/**
+* The method for working with creating comments (adding a counter, the maximum length of comments)
+* Added a restriction that the comment can not be empty or only with spaces.
+*/
 $(function(){
-    var maxCountOfSymbols = 400;
-
-    $( "#comments-button" ).click(function() {
-        $("#checkLengthComment").html(maxCountOfSymbols);
-        $("#checkMaxLengthComment").html(maxCountOfSymbols);
-        $("#checkMaxLengthComment").prop('maxlength', maxCountOfSymbols);
-
-        $("#sendMessageCheckbox").prop('checked', false);
-        $('#checkMessage').hide();
-
-        $("#createCommentConfirm").prop('disabled', true);
-    });
-
     $('#commentText').bind('input', function(){
         var commentText = this.value.length;
         var pattern = /^[\s]+$/;
@@ -210,4 +236,4 @@ $(function(){
 
         counter <= 0 ? $("#checkLengthComment").html('0') : $("#checkLengthComment").html(counter);
     });
-})
+});
