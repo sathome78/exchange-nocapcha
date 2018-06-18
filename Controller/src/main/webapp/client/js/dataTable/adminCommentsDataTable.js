@@ -59,8 +59,6 @@ $(function () {
 
     }
 
-
-
     $('#comments-button').on('click', function () {
         $("#commentText").val("");
         $("#myModal").modal();
@@ -117,31 +115,28 @@ $(function () {
         var newComment = document.getElementById("commentText").value;
         var email = $("input[name='email']").val();
         var sendMessage = document.getElementById("sendMessageCheckbox").checked;
+
         if (sendMessage){
             if (!confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
                 return;
             }
         }
-        if (commentId == null || commentId =="") {
+
+        if (commentId != null || commentId !="") {
             sendAddComment(newComment, email, sendMessage);
         } else {
             sendEditComment(commentId, newComment, email, sendMessage)
-
         }
+
         $("#myModal").modal('hide');
     });
 
     $('#createCommentCancel').on('click', function () {
         document.getElementById("commentText").value = "";
-        document.getElementById("sendMessageCheckbox").checked = false;
     });
 
     $('#sendMessageCheckbox').on('click', function () {
-        if(document.getElementById("sendMessageCheckbox").checked){
-            $('#checkMessage').show();
-        }else{
-            $('#checkMessage').hide();
-        }
+        document.getElementById("sendMessageCheckbox").checked ? $('#checkMessage').show() : $('#checkMessage').hide();
     });
 
     });
@@ -185,6 +180,7 @@ function deleteUserComment(e) {
 
 /**
  * The method for working with creating comments (adding a counter, the maximum length of comments)
+ * Added a restriction that the comment can not be empty or only with spaces.
  */
 $(function(){
     var maxCountOfSymbols = 400;
@@ -194,15 +190,18 @@ $(function(){
         $("#checkMaxLengthComment").html(maxCountOfSymbols);
         $("#checkMaxLengthComment").prop('maxlength', maxCountOfSymbols);
 
-        $("#sendMessageCheckbox").checked ? $('#checkMessage').show() : $('#checkMessage').hide();
+        $("#sendMessageCheckbox").prop('checked', false);
+        $('#checkMessage').hide();
 
         $("#createCommentConfirm").prop('disabled', true);
     });
 
     $('#commentText').bind('input', function(){
         var commentText = this.value.length;
+        var pattern = /^[\s]+$/;
 
-        commentText == 0 ? $("#createCommentConfirm").prop('disabled', true) : $("#createCommentConfirm").prop('disabled', false);
+        //Block button 'confirm' when textarea contains only spaces or length of comment = 0.
+        commentText == 0 || pattern.test(this.value) ? $("#createCommentConfirm").prop('disabled', true) : $("#createCommentConfirm").prop('disabled', false);
 
         if (commentText > maxCountOfSymbols) {
             this.value = this.value.substr(0, maxCountOfSymbols);
