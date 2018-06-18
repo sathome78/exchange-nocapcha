@@ -221,8 +221,12 @@ function updateVoucherTable() {
 $(function () {
 
     var minValueOfTransactionId = 0;
+
+    //Max value of integer in Java
     var maxValueOfTransactionId = 2147483647;
-    var maxCountOfSymbols = maxValueOfTransactionId.toString().length;
+
+    //Max length can be maxValueOfTransactionId.toString().length (but in this case need use: length-1;
+    var maxCountOfSymbols = maxValueOfTransactionId.toString().length-1;
 
     $("#filter-id").prop('min', minValueOfTransactionId);
     $("#filter-id").prop('max', maxValueOfTransactionId);
