@@ -207,12 +207,12 @@ header li {
     padding: 10px 20px;
     margin: 10px;
     margin-left: 0px;
-    border: 1px solid #7fff00;
+    border: 1px solid #fff;
 }
 
 .login_button:disabled{
     color: #fff;
-    border: 1px solid #ff0000;
+    border: none;
 }
 
 .inline-block {
