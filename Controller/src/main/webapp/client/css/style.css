@@ -212,7 +212,7 @@ header li {
 
 .login_button:disabled{
     color: #fff;
-    border: none;
+    border: 1px solid #b9c4d8;
 }
 
 .inline-block {
