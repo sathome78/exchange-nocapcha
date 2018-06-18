@@ -133,6 +133,7 @@ public class EntryController {
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
+            model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
