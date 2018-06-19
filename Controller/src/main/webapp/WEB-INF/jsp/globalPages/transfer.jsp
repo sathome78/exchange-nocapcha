@@ -24,11 +24,10 @@
 
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp" %>
+    <%--INTERCOM CHAT--%>
+    <%@include file="../tools/intercom.jsp" %>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
-    <%--/TOOLS ... --%>
 
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
