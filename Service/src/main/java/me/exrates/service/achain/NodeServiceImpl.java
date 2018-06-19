@@ -1,16 +1,18 @@
 package me.exrates.service.achain;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.achain.ActBlock;
-import me.exrates.model.dto.achain.ActTransaction;
 import me.exrates.model.dto.achain.TransactionDTO;
+import me.exrates.model.dto.achain.enums.AchainTransactionType;
 import me.exrates.model.dto.achain.enums.TrxType;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,16 +23,21 @@ import java.util.Objects;
 /**
  * Created by Maks on 14.06.2018.
  */
+
+@PropertySource("classpath:/merchants/achain.properties")
 @Log4j2(topic = "achain")
 @Component
 public class NodeServiceImpl implements NodeService {
 
+
+
     @Autowired
     private SDKHttpClient httpClient;
 
-    private String walletUrl;
-    private String rpcUser;
-    private String mainAccountAddress;
+    private @Value("${achain.node.url}")String nodeUrl;
+    private @Value("${achain.node.rpcUser}")String rpcUser;
+    private @Value("${achain.mainAddress}")String mainAccountAddress;
+    private @Value("${achain.account}")String accountName;
 
     @Override
     public String getMainAccountAddress() {
@@ -38,20 +45,15 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public String getNewAddress() {
-        String result =
-                httpClient.post(walletUrl, rpcUser, "sub_address", new JSONArray());
-        JSONObject createTaskJson = new JSONObject(result);
-        log.info(createTaskJson);
-        return createTaskJson.getString("result");
+    public String getAccountName() {
+        return accountName;
     }
-
 
     @Override
     public long getBlockCount() {
         log.info("NodeServiceImpl|getBlockCount");
         String result =
-                httpClient.post(walletUrl, rpcUser, "blockchain_get_block_count", new JSONArray());
+                httpClient.post(nodeUrl, rpcUser, "blockchain_get_block_count", new JSONArray());
         JSONObject createTaskJson = new JSONObject(result);
         return createTaskJson.getLong("result");
     }
@@ -60,7 +62,7 @@ public class NodeServiceImpl implements NodeService {
     public JSONArray getBlock(long blockNum) {
         log.info("NodeServiceImpl|getBlock [{}]", blockNum);
         String result =
-                httpClient.post(walletUrl, rpcUser, "blockchain_get_block", String.valueOf(blockNum));
+                httpClient.post(nodeUrl, rpcUser, "blockchain_get_block", String.valueOf(blockNum));
         JSONObject createTaskJson = new JSONObject(result);
         return createTaskJson.getJSONObject("result").getJSONArray("user_transaction_ids");
     }
@@ -69,7 +71,7 @@ public class NodeServiceImpl implements NodeService {
     public List<TransactionDTO> getTransactionsList(String account, String asset, Integer limit, String startBlock, String endBlock) {
         log.info("NodeServiceImpl|getTransactionsList [{}, {}, {}, {}]", account, asset, limit, startBlock, endBlock);
         String result =
-                httpClient.post(walletUrl, rpcUser, "wallet_account_transaction_history",
+                httpClient.post(nodeUrl, rpcUser, "wallet_account_transaction_history",
                         account, asset, limit.toString(), startBlock, endBlock);
         JSONArray transactions = new JSONObject(result).getJSONArray("result");
         List<TransactionDTO> txsList = new ArrayList<>();
@@ -81,8 +83,9 @@ public class NodeServiceImpl implements NodeService {
                 boolean isConfirmed = jso.getBoolean("is_confirmed");
                 TransactionDTO dto = getTransaction(blockNum, txId);
                 dto.setConfirmed(isConfirmed);
+                txsList.add(dto);
             } catch (Exception e) {
-                log.error("");
+                log.error(e);
             }
         });
         return null;
@@ -97,19 +100,33 @@ public class NodeServiceImpl implements NodeService {
     public TransactionDTO getTransaction(long blockNum, String trxId) {
         try {
             log.info("NodeServiceImpl|getBlock [{}]", trxId);
-            String result = httpClient.post(walletUrl, rpcUser, "blockchain_get_transaction", trxId);
+            String result = httpClient.post(nodeUrl, rpcUser, "blockchain_get_transaction", trxId);
             JSONObject createTaskJson = new JSONObject(result);
             JSONArray resultJsonArray = createTaskJson.getJSONArray("result");
-            JSONObject operationJson = resultJsonArray.getJSONObject(1)
-                    .getJSONObject("trx")
+            JSONObject trx = resultJsonArray.getJSONObject(1).getJSONObject("trx");
+            JSONObject operationJson = trx
                     .getJSONArray("operations")
                     .getJSONObject(0);
             //determine the transaction type
             String operationType = operationJson.getString("type");
             //Not ignored on contract invocation
-            if (!"transaction_op_type".equals(operationType)) {
-                return null;
+            AchainTransactionType transactionType = AchainTransactionType.convert(operationType);
+            String recieveAccount = trx.getString("alp_account");
+            if (StringUtils.isEmpty(recieveAccount)) {
+                throw new RuntimeException("no reciever defined");
             }
+            JSONObject amountData = trx.getJSONObject("alp_inport_asset");
+            String finalAmount = parseAmount(amountData.getLong("amount"));
+
+            TransactionDTO transactionDTO = new TransactionDTO();
+            transactionDTO.setTrxId(trxId);
+            transactionDTO.setToAddr(recieveAccount);
+            transactionDTO.setBlockNum(blockNum);
+            transactionDTO.setAmount(finalAmount);
+            transactionDTO.setContractId("");
+
+
+
 
             JSONObject operationData = operationJson.getJSONObject("data");
             log.info("BlockchainServiceImpl|operationData={}", operationData);
@@ -122,7 +139,7 @@ public class NodeServiceImpl implements NodeService {
                     resultTrxId);
             String resultSignee =
                     httpClient
-                            .post(walletUrl, rpcUser, "blockchain_get_pretty_contract_transaction", jsonArray);
+                            .post(nodeUrl, rpcUser, "blockchain_get_pretty_contract_transaction", jsonArray);
             JSONObject resultJson2 = new JSONObject(resultSignee).getJSONObject("result");
 
             String origTrxId = resultJson2.getString("orig_trx_id");
@@ -136,7 +153,7 @@ public class NodeServiceImpl implements NodeService {
             /*if (!config.contractId.equals(contractId)) {
                 return null;
             }*/
-            TrxType type = TrxType.getTrxType(trxType);
+            /*TrxType type = TrxType.getTrxType(trxType);
             if (TrxType.TRX_TYPE_DEPOSIT_CONTRACT == type) {
                 TransactionDTO transactionDTO = new TransactionDTO();
                 transactionDTO.setTrxId(origTrxId);
@@ -157,7 +174,7 @@ public class NodeServiceImpl implements NodeService {
                 jsonArray = new JSONArray();
                 jsonArray.put(blockNum);
                 jsonArray.put(trxId);
-                String data = httpClient.post(walletUrl, rpcUser, "blockchain_get_events", jsonArray);
+                String data = httpClient.post(nodeUrl, rpcUser, "blockchain_get_events", jsonArray);
                 JSONObject jsonObject = new JSONObject(data);
                 JSONArray jsonArray1 = jsonObject.getJSONArray("result");
                 JSONObject resultJson = new JSONObject();
@@ -174,13 +191,13 @@ public class NodeServiceImpl implements NodeService {
                 transactionDTO.setAmount(amount);
                 transactionDTO.setApiParams(apiParams);
                 return transactionDTO;
-            }
+            }*/
+            return transactionDTO;
         } catch (Exception e) {
             log.error("NodeServiceImpl", e);
         }
         return null;
     }
-
 
 
     private void parseEventData(JSONObject result, JSONArray jsonArray1) {
@@ -195,6 +212,11 @@ public class NodeServiceImpl implements NodeService {
             result.put("event_type", eventType);
             result.put("event_param", eventParam);
         }
+    }
+
+    private String parseAmount(Long amount) {
+        Double res = amount/10000d;
+        return res.toString();
     }
 
 

@@ -12,7 +12,7 @@ public interface NodeService {
 
     String getMainAccountAddress();
 
-    String getNewAddress();
+    String getAccountName();
 
     long getBlockCount();
 

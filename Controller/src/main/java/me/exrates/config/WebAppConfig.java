@@ -931,7 +931,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean("vexaniumContract")
     public AchainContract achainContractService() {
-        return new AchainContract("CON9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
+        return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
     }
 
     @Bean

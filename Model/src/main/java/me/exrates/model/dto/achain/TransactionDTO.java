@@ -1,6 +1,7 @@
 package me.exrates.model.dto.achain;
 
 import lombok.Data;
+import me.exrates.model.dto.achain.enums.AchainTransactionType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -25,6 +26,8 @@ public class TransactionDTO implements Serializable {
 
     private Date trxTime;
 
+    private AchainTransactionType transactionType;
+
     /**
      * Call the method name
      */
@@ -32,7 +35,7 @@ public class TransactionDTO implements Serializable {
 
     private String fromAddr;
 
-    private Long amount;
+    private String amount;
 
     /**
      * Call parameters

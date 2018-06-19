@@ -10,6 +10,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,11 +43,15 @@ public class AchainServiceImpl implements AchainService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String address = nodeService.getNewAddress();
         return new HashMap<String, String>() {{
-            put("address",  address);
+            put("address",  generateRandomSymbolsAndAddToAddress(nodeService.getMainAccountAddress()));
            /* put("message", message);*/
         }};
+    }
+
+    private String generateRandomSymbolsAndAddToAddress(String mainAddress) {
+        String generatedString = RandomStringUtils.randomAlphanumeric(32);
+        return mainAddress.concat(generatedString);
     }
 
     @Override

@@ -24,8 +24,13 @@ import java.util.Random;
 @Service
 public class SDKHttpClient {
 
-    @Autowired
+
     private CloseableHttpClient httpclient;
+
+    @Autowired
+    public SDKHttpClient(CloseableHttpClient closeableHttpClient) {
+        this.httpclient = closeableHttpClient;
+    }
 
     /**
      * Dealing exclusively with a parameter is json's broadcast transaction
@@ -50,13 +55,16 @@ public class SDKHttpClient {
         HttpPost httppost = null;
         String result = null;
         try {
-            String rpcAuth = (int) ((Math.random() * 9 + 1) * 100000) + "" + Base64.getEncoder().encode(key.getBytes()).toString();
+            System.out.println(key);
+            String rpcAuth = (int) ((Math.random() * 9 + 1) * 100000) + "" + Base64.getEncoder().encodeToString(key.getBytes());
+            System.out.println(rpcAuth);
             httppost = new HttpPost(url);
             httppost.setEntity(new StringEntity(entity, Charset.forName("UTF-8")));
             httppost.setHeader("Content-type", "application/json");
             httppost.setHeader("Authorization", rpcAuth);
             log.info("【SDKHttpClient】｜POST开始：url=[{}]", url);
             CloseableHttpResponse response = httpclient.execute(httppost);
+            System.out.println(response);
             if (null != response) {
                 try {
                     result = EntityUtils.toString(response.getEntity(), "UTF-8");
