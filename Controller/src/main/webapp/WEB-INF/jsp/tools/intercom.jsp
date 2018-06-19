@@ -2,9 +2,8 @@
   User: Sasha
   Date: 6/11/2018
 --%>
-<input id="userEmailFor" hidden value='${userEmail}'/>
 <script>
-    var email = $('#userEmailFor').val();
+    var email = '${userEmail}';
     window.intercomSettings = {
         app_id: "p027pve7",
     };
