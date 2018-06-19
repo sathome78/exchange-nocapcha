@@ -74,6 +74,8 @@ public interface MerchantService {
 
     List<CoreWalletDto> retrieveCoreWallets(Locale locale);
 
+    Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
+
     Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount,
                                                            OperationType type,
                                                            String currency,

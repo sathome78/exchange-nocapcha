@@ -372,6 +372,11 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
+  public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
+    return merchantDao.getCoreWalletPassword(merchantName, currencyName);
+  }
+
+  @Override
   public Map<String, String> computeCommissionAndMapAllToString(final BigDecimal amount,
                                                                 final OperationType type,
                                                                 final String currency,

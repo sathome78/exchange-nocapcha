@@ -560,6 +560,20 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
+  public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
+    String sql = "SELECT passphrase FROM CRYPTO_CORE_WALLET WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+            "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+    Map<String, String> params = new HashMap<>();
+    params.put("merchant_name", merchantName);
+    params.put("currency_name", currencyName);
+    try {
+      return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, String.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
   public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
     final String sql = "SELECT M.name AS merchant_name, M.id AS merchant_id, CUR.name AS currency_name, CUR.id AS currency_id," +
             "CUR.max_scale_for_refill, CUR.max_scale_for_withdraw, CUR.max_scale_for_transfer " +

@@ -3,6 +3,8 @@ VALUES ('Guaranteed Entrance', 'GET', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('GET', 'Guaranteed Entrance', '0', 8, 8, 8);
 
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='GET'));
+
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='GET'),
           (SELECT id from CURRENCY WHERE name='GET'),

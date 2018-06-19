@@ -442,6 +442,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
+
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
@@ -458,6 +460,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthereumCommonService etzService() {
         return new EthereumCommonServiceImpl("merchants/etherzero.properties",
                 "EtherZero", "ETZ", 12);
+    }
+
+    @Bean(name = "cloServiceImpl")
+    public EthereumCommonService cloService() {
+        return new EthereumCommonServiceImpl("merchants/callisto.properties",
+                "CLO", "CLO", 12);
+    }
+
+    @Bean(name = "b2gServiceImpl")
+    public EthereumCommonService b2gService() {
+        return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
+                "B2G", "B2G", 12);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -816,6 +830,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "CAS", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tnrServiceImpl")
+    public EthTokenService tnrService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x543199bfd8c343fadd8c1a2bc289e876c588c8e5");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TNR",
+                "TNR", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "inkServiceImpl")
     public EthTokenService InkService() {
@@ -857,6 +881,36 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MTC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "dtrcServiceImpl")
+    public EthTokenService DtrcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc20464e0c373486d2b3335576e83a218b1618a5e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DTRC",
+                "DTRC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ceekServiceImpl")
+    public EthTokenService CeekService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb056c38f6b7dc4064367403e26424cd2c60655e1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CEEK",
+                "CEEK", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "egtServiceImpl")
+    public EthTokenService egtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x5dbac24e98e2a4f43adc0dc82af403fca063ce2c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "EGT",
+                "EGT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -864,6 +918,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         tokensList.add("57931faffdec114056a49adfcaa1caac159a1a25");
 
         return new QtumTokenServiceImpl(tokensList, "SPC", "SPC", ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "hlcServiceImpl")
+    public QtumTokenService hlcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("b27d7bf95b03e02b55d5eb63d3f1692762101bf9");
+
+        return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
     }
 
 

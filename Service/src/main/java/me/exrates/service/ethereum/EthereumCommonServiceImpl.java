@@ -250,16 +250,35 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
 
+            final int[] counter = {0};
+            final String[] currentHash = new String[1];
+            currentHash[0] = "";
+
             observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
             subscription = observable.subscribe(ethBlock -> {
                 if (merchantName.equals("Ethereum")) {
                     if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
+                        counter[0]++;
                         return;
                     }
                 }
 
                 if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
                     log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
+
+                    try {
+                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())){
+
+                            log.info(merchantName + " Block number for review: " + currentBlockNumber.add(new BigInteger("1")));
+                            log.info(merchantName + " Txs counter: " + counter[0]);
+                            log.info(merchantName + " Txs block: " + web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount());
+
+                        }
+
+                    } catch (Exception e) {
+                        log.error(e);
+                    }
+                    counter[0] = 0;
 
                     List<RefillRequestFlatDto> providedTransactions = new ArrayList<RefillRequestFlatDto>();
                     pendingTransactions.forEach(transaction ->
@@ -288,6 +307,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 }
 
                 currentBlockNumber = ethBlock.getBlockNumber();
+                currentHash[0] = ethBlock.getBlockHash();
 //                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
 
 /*-------------Tokens--------------*/
@@ -295,6 +315,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
                 }
 /*---------------------------------*/
+
+                counter[0]++;
 
                 String recipient = ethBlock.getTo();
 

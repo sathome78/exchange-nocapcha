@@ -72,5 +72,7 @@ public interface MerchantDao {
 
   void setSubtractFeeFromAmount(Integer merchantId, Integer currencyId, boolean subtractFeeFromAmount);
 
+    Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
+
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 }
