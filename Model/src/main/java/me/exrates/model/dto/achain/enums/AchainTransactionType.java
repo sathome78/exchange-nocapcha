@@ -8,7 +8,7 @@ import java.util.Arrays;
 public enum AchainTransactionType {
 
     CONTRACT_CALL("call_contract_op_type"),
-    SIMPLE_TRANSFER("withdraw_op_type");
+    SIMPLE_TRANSFER("deposit_op_type");
 
 
     private String value;

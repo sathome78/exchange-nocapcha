@@ -28,7 +28,7 @@ public class AchainTokenContext {
         });
     }
 
-    public Map<String, AchainContract> getContractsMap() {
-        return contractsMap;
+    AchainContract getByContractId(String contractId) {
+        return contractsMap.get(contractId);
     }
 }

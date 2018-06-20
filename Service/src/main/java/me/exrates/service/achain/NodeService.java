@@ -18,7 +18,6 @@ public interface NodeService {
 
     JSONArray getBlock(long blockNum);
 
-    List<TransactionDTO> getTransactionsList(String account, String asset, Integer limit, String startBlock, String endBlock);
+    JSONArray getBlockTransactions(long blockNum);
 
-    TransactionDTO getTransaction(long blockNum, String trxId);
 }

@@ -68,6 +68,15 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
+    public JSONArray getBlockTransactions(long blockNum) {
+        log.info("NodeServiceImpl|getBlockTransactions [{}]", blockNum);
+        String result =
+                httpClient.post(nodeUrl, rpcUser, "blockchain_get_block_transactions", String.valueOf(blockNum));
+        JSONObject transactions = new JSONObject(result);
+        return transactions.getJSONArray("result");
+    }
+
+   /* @Override
     public List<TransactionDTO> getTransactionsList(String account, String asset, Integer limit, String startBlock, String endBlock) {
         log.info("NodeServiceImpl|getTransactionsList [{}, {}, {}, {}]", account, asset, limit, startBlock, endBlock);
         String result =
@@ -89,14 +98,10 @@ public class NodeServiceImpl implements NodeService {
             }
         });
         return null;
-    }
+    }*/
 
-    /**
-     * Need to determine the type of transaction, the contract id, the method used to call the contract, and the address to which the transfer was made.
-     *
-     * @param trxId Transaction id
-     */
-    @Override
+
+    /*@Override
     public TransactionDTO getTransaction(long blockNum, String trxId) {
         try {
             log.info("NodeServiceImpl|getBlock [{}]", trxId);
@@ -149,11 +154,11 @@ public class NodeServiceImpl implements NodeService {
             JSONArray reserved = resultJson2.getJSONArray("reserved");
             JSONObject temp = resultJson2.getJSONObject("to_contract_ledger_entry");
             String contractId = temp.getString("to_account");
-            /*todo: check contracts*/
-            /*if (!config.contractId.equals(contractId)) {
+            *//*todo: check contracts*//*
+            *//*if (!config.contractId.equals(contractId)) {
                 return null;
-            }*/
-            /*TrxType type = TrxType.getTrxType(trxType);
+            }*//*
+            *//*TrxType type = TrxType.getTrxType(trxType);
             if (TrxType.TRX_TYPE_DEPOSIT_CONTRACT == type) {
                 TransactionDTO transactionDTO = new TransactionDTO();
                 transactionDTO.setTrxId(origTrxId);
@@ -191,13 +196,13 @@ public class NodeServiceImpl implements NodeService {
                 transactionDTO.setAmount(amount);
                 transactionDTO.setApiParams(apiParams);
                 return transactionDTO;
-            }*/
+            }*//*
             return transactionDTO;
         } catch (Exception e) {
             log.error("NodeServiceImpl", e);
         }
         return null;
-    }
+    }*/
 
 
     private void parseEventData(JSONObject result, JSONArray jsonArray1) {
@@ -214,10 +219,7 @@ public class NodeServiceImpl implements NodeService {
         }
     }
 
-    private String parseAmount(Long amount) {
-        Double res = amount/10000d;
-        return res.toString();
-    }
+
 
 
     private Date dealTime(String timestamp) {
