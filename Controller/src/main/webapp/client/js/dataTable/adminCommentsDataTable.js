@@ -45,7 +45,7 @@ $(function () {
                         "data": "messageSent",
                         "render": function (data, type, row){
                             if (data) {
-                                return '<input type="image" src="/client/img/email.png" style="width: 20px; height: ;ght: 20px"/> ';
+                                return '<input type="image" src="/client/img/email.png" style="width: 20px; height: 20px"/> ';
                             } else if (row.editable) {
                                 return '<input type="image" src="/client/img/edit_icon_32.png" onclick="editUserComment(this)" style="width: 20px; height: 20px"/>' ;
                             }
