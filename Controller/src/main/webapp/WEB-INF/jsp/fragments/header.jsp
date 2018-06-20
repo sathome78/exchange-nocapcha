@@ -13,6 +13,14 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 
+<!-- New design -->
+<link rel="stylesheet" href="client/assets/css/main.min.css">
+<link rel="stylesheet" href="client/assets/css/libs.min.css">
+
+<script src="<c:url value="/client/assets/js/libs.min.js"/>"></script>
+<script src="<c:url value="/client/assets/js/main.min.js"/>"></script>
+<!-- New design -->
+
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
@@ -82,61 +90,89 @@
 
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
-                        <c:if test="${showEntrance}">
+                        <a data-fancybox href="#login" class="demo-bar-item">login</a>
+                        <div id="login" class="popup">
+                            <div class="popup__inner">
+                                <div class="popup__caption">Log in</div>
 
-                            <li role="presentation" class="dropdown paddingtop10 open-li">
-                                <a class="dropdown-toggle nav__link focus-white" data-toggle="dropdown" href="#"
-                                   role="button"
-                                   aria-haspopup="true" aria-expanded="false">
-                                    <loc:message code="dashboard.entrance"/> <span class="caret"></span>
-                                </a>
-                                <div class="dropdown-menu">
-                                    <form action="/login" class="dropdown-menu__form" method="post">
-                                        <input name="username" type="email" placeholder=
-                                            <loc:message code="dashboard.loginText"/>
-                                                class="form_input">
-                                        <input name="password" type="password" placeholder=
-                                            <loc:message
-                                                    code="dashboard.passwordText"/> class="form_input">
-                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                        <br/>
-                                        <c:if test="${captchaType==\"RECAPTCHA\"}">
-                                            <%--CAPTCHA GOOGLE--%>
-                                            <div id="cpch-head-field" class="g-recaptcha"
-                                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                            <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                        </c:if>
-                                        <c:if test="${captchaType==\"BOTDETECT\"}">
-                                            <%--CAPTCHA BotDetect--%>
-                                            <div class="validationDiv">
-                                                <botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>
-                                                <input name="captchaCode" type="text" id="captchaCode"/>
-                                                <input type="hidden" name="captchaId" value="headerRegCaptcha"/>
-                                            </div>
-                                        </c:if>
-                                        <input type="hidden" name="captchaType" value="${captchaType}"/>
-                                            <%----%>
-                                        <button type="submit" class="login_button"><loc:message
-                                                code="dashboard.entrance"/></button>
-                                        <a href="/forgotPassword" class="white forgot-password"><loc:message
-                                                code="dashboard.forgotPassword"/></a>
+                                <form action="" class="form">
+                                    <div class="field">
+                                        <div class="field__label">Email</div>
+                                        <input class="field__input" type="email" name="email" placeholder="Email" required>
+                                    </div>
+                                    <div class="field">
+                                        <div class="field__label">Password</div>
+                                        <div class="field__pwd-show / js-show-pwd"></div>
+                                        <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                                    </div>
 
-                                        <div></div>
-                                            <%--QR--%>
-                                            <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>
-                                        <div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white"><loc:message code="dashboard.qrLogin.login"/></span></div>
-                                    </form>
-                                    <sec:authorize access="isAuthenticated()">
-                                        <form action="/logout" class="dropdown-menu__logout-form" method="post">
-                                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                            <button type="submit" class="register">
-                                                <strong><loc:message code="dashboard.goOut"/></strong>
-                                            </button>
-                                        </form>
-                                    </sec:authorize>
+                                    <div class="field field--btn">
+                                        <input class="btn btn--form" type="submit" value="Authorise me">
+                                    </div>
+                                </form>
+
+                                <div class="popup__bottom-links-row">
+                                    <a class="popup__bottom-link" href="/">Go to registration form</a>
+                                    <a class="popup__bottom-link" href="/">Forgot password?</a>
                                 </div>
-                            </li>
-                        </c:if>
+                            </div>
+                        </div>
+
+                        <%--<c:if test="${showEntrance}">--%>
+
+                            <%--<li role="presentation" class="dropdown paddingtop10 open-li">--%>
+                                <%--<a class="dropdown-toggle nav__link focus-white" data-toggle="dropdown" href="#"--%>
+                                   <%--role="button"--%>
+                                   <%--aria-haspopup="true" aria-expanded="false">--%>
+                                    <%--<loc:message code="dashboard.entrance"/> <span class="caret"></span>--%>
+                                <%--</a>--%>
+                                <%--<div class="dropdown-menu">--%>
+                                    <%--<form action="/login" class="dropdown-menu__form" method="post">--%>
+                                        <%--<input name="username" type="email" placeholder=--%>
+                                            <%--<loc:message code="dashboard.loginText"/>--%>
+                                                <%--class="form_input">--%>
+                                        <%--<input name="password" type="password" placeholder=--%>
+                                            <%--<loc:message--%>
+                                                    <%--code="dashboard.passwordText"/> class="form_input">--%>
+                                        <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
+                                        <%--<br/>--%>
+                                        <%--<c:if test="${captchaType==\"RECAPTCHA\"}">--%>
+                                            <%--&lt;%&ndash;CAPTCHA GOOGLE&ndash;%&gt;--%>
+                                            <%--<div id="cpch-head-field" class="g-recaptcha"--%>
+                                                 <%--data-sitekey=${captchaProperties.get("captcha.key")}></div>--%>
+                                            <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                                        <%--</c:if>--%>
+                                        <%--<c:if test="${captchaType==\"BOTDETECT\"}">--%>
+                                            <%--&lt;%&ndash;CAPTCHA BotDetect&ndash;%&gt;--%>
+                                            <%--<div class="validationDiv">--%>
+                                                <%--<botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>--%>
+                                                <%--<input name="captchaCode" type="text" id="captchaCode"/>--%>
+                                                <%--<input type="hidden" name="captchaId" value="headerRegCaptcha"/>--%>
+                                            <%--</div>--%>
+                                        <%--</c:if>--%>
+                                        <%--<input type="hidden" name="captchaType" value="${captchaType}"/>--%>
+                                            <%--&lt;%&ndash;&ndash;%&gt;--%>
+                                        <%--<button type="submit" class="login_button"><loc:message--%>
+                                                <%--code="dashboard.entrance"/></button>--%>
+                                        <%--<a href="/forgotPassword" class="white forgot-password"><loc:message--%>
+                                                <%--code="dashboard.forgotPassword"/></a>--%>
+
+                                        <%--<div></div>--%>
+                                            <%--&lt;%&ndash;QR&ndash;%&gt;--%>
+                                            <%--<div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>--%>
+                                        <%--<div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white"><loc:message code="dashboard.qrLogin.login"/></span></div>--%>
+                                    <%--</form>--%>
+                                    <%--<sec:authorize access="isAuthenticated()">--%>
+                                        <%--<form action="/logout" class="dropdown-menu__logout-form" method="post">--%>
+                                            <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
+                                            <%--<button type="submit" class="register">--%>
+                                                <%--<strong><loc:message code="dashboard.goOut"/></strong>--%>
+                                            <%--</button>--%>
+                                        <%--</form>--%>
+                                    <%--</sec:authorize>--%>
+                                <%--</div>--%>
+                            <%--</li>--%>
+                        <%--</c:if>--%>
                     </sec:authorize>
                 </ul>
             </ul>
@@ -145,9 +181,35 @@
 
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
-                    <c:if test="${showRegistration}">
-                        <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
-                    </c:if>
+                    <%--<c:if test="${showRegistration}">--%>
+                        <%--<li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>--%>
+                    <%--</c:if>--%>
+                    <a data-fancybox href="#registration" class="demo-bar-item">registration</a>
+                    <div id="registration" class="popup">
+                        <div class="popup__inner">
+                            <div class="popup__caption">Registration</div>
+
+                            <form action="" class="form">
+                                <div class="field">
+                                    <div class="field__label">Nickname</div>
+                                    <input class="field__input" type="text" name="nickname" placeholder="Nickname" required>
+                                </div>
+                                <div class="field">
+                                    <div class="field__label">Email</div>
+                                    <input class="field__input" type="email" name="email" placeholder="Email" required>
+                                </div>
+
+                                <div class="field field--btn">
+                                    <input class="btn btn--form" type="submit" value="Create an account">
+                                </div>
+
+                                <div class="popup__bottom">
+                                    <div class="popup__privacy">I agree to exrates <a href="" class="popup__bottom-link">Terms of Use</a></div>
+                                    <div class="popup__bottom-row">Already have an account? <a href="" class="popup__bottom-link">Log in</a></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
