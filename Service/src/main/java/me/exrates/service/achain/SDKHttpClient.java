@@ -55,20 +55,17 @@ public class SDKHttpClient {
         HttpPost httppost = null;
         String result = null;
         try {
-            System.out.println(key);
             String rpcAuth = (int) ((Math.random() * 9 + 1) * 100000) + "" + Base64.getEncoder().encodeToString(key.getBytes());
-            System.out.println(rpcAuth);
             httppost = new HttpPost(url);
             httppost.setEntity(new StringEntity(entity, Charset.forName("UTF-8")));
             httppost.setHeader("Content-type", "application/json");
             httppost.setHeader("Authorization", rpcAuth);
-            log.info("【SDKHttpClient】｜POST开始：url=[{}]", url);
+            log.debug("【SDKHttpClient】｜POST开始：url=[{}]", url);
             CloseableHttpResponse response = httpclient.execute(httppost);
-            System.out.println(response);
             if (null != response) {
                 try {
                     result = EntityUtils.toString(response.getEntity(), "UTF-8");
-                    log.info("【SDKHttpClient】｜POST end URL:[{}][jsonArray={}],Response results[response={}][result={}]!", url, entity,
+                    log.debug("【SDKHttpClient】｜POST end URL:[{}][jsonArray={}],Response results[response={}][result={}]!", url, entity,
                             response.getStatusLine().getStatusCode(), result);
                     if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                         result = null;
@@ -77,7 +74,7 @@ public class SDKHttpClient {
                     response.close();
                 }
             } else {
-                log.info("【SDKHttpClient】｜POST URL:[{}],The response is empty!", url);
+                log.debug("【SDKHttpClient】｜POST URL:[{}],The response is empty!", url);
             }
         } catch (Exception e) {
             log.error("【SDKHttpClient】｜POST URL:[{}] Abnormal[{}]!", url, e.getStackTrace());

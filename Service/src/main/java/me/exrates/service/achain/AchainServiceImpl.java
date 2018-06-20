@@ -13,6 +13,7 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -26,14 +27,18 @@ import java.util.Map;
 @Service
 public class AchainServiceImpl implements AchainService {
 
+    private final NodeService nodeService;
+    private final CurrencyService currencyService;
+    private final MerchantService merchantService;
+    private final RefillService refillService;
+
     @Autowired
-    private NodeService nodeService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private RefillService refillService;
+    public AchainServiceImpl(NodeService nodeService, CurrencyService currencyService, MerchantService merchantService, RefillService refillService) {
+        this.nodeService = nodeService;
+        this.currencyService = currencyService;
+        this.merchantService = merchantService;
+        this.refillService = refillService;
+    }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -61,6 +66,10 @@ public class AchainServiceImpl implements AchainService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(params.get("merchant"));
         BigDecimal amount = new BigDecimal(params.get("amount"));
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+            log.warn("achain tx duplicated {}", hash);
+            return;
+        }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -77,5 +86,10 @@ public class AchainServiceImpl implements AchainService {
             requestAcceptDto.setRequestId(requestId);
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+    }
+
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 }

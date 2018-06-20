@@ -16,10 +16,14 @@ import java.util.Map;
 public class AchainTokenContext {
 
 
-    @Autowired
-    Map<String, AchainContract> contractsMap;
+    private final Map<String, AchainContract> contractsMap;
 
-    Map<String, AchainContract> conractIdMap = new HashMap<>();
+    private Map<String, AchainContract> conractIdMap = new HashMap<>();
+
+    @Autowired
+    public AchainTokenContext(Map<String, AchainContract> contractsMap) {
+        this.contractsMap = contractsMap;
+    }
 
     @PostConstruct
     private void init() {
@@ -29,6 +33,6 @@ public class AchainTokenContext {
     }
 
     AchainContract getByContractId(String contractId) {
-        return contractsMap.get(contractId);
+        return conractIdMap.get(contractId);
     }
 }

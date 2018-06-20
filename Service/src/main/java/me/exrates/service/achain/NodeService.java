@@ -18,6 +18,8 @@ public interface NodeService {
 
     JSONArray getBlock(long blockNum);
 
+    boolean getSyncState();
+
     JSONArray getBlockTransactions(long blockNum);
 
 }

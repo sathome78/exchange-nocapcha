@@ -15,9 +15,12 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Maks on 14.06.2018.
@@ -26,24 +29,36 @@ import java.util.Map;
 @Service
 public class TxsScanerImpl implements BlocksScaner {
 
-    @Autowired
-    private NodeService nodeService;
-    @Autowired
-    private MerchantSpecParamsDao merchantSpecParamsDao;
-    @Autowired
-    private AchainTokenContext tokenContext;
-    @Autowired
-    private AchainService achainService;
-    @Autowired
-    private MerchantSpecParamsDao specParamsDao;
+    private final NodeService nodeService;
+    private final AchainTokenContext tokenContext;
+    private final AchainService achainService;
+    private final MerchantSpecParamsDao specParamsDao;
+
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final String PARAM_NAME = "LastScannedBlock";
     private static final String MERCHANT_NAME = "ACHAIN";
     private static final String CURRENCY_NAME = "ACT";
 
+    @Autowired
+    public TxsScanerImpl(NodeService nodeService, AchainTokenContext tokenContext, AchainService achainService, MerchantSpecParamsDao specParamsDao) {
+        this.nodeService = nodeService;
+        this.tokenContext = tokenContext;
+        this.achainService = achainService;
+        this.specParamsDao = specParamsDao;
+    }
+
+    @PostConstruct
+    private void init() {
+        scheduler.scheduleWithFixedDelay(this::scan, 3, 5, TimeUnit.MINUTES);
+    }
+
     @Override
     public void scan() {
-
+        /*check is node synced*/
+        if (!nodeService.getSyncState()) {
+            return;
+        }
         Long lastProcessedBlock = loadLastBlock();
         /*scan to the pred-last block*/
         Long endBlock = nodeService.getBlockCount() - 1;
@@ -59,31 +74,18 @@ public class TxsScanerImpl implements BlocksScaner {
         for (Object p : transactions) {
             try {
                 JSONArray tx = (JSONArray)p;
+                log.debug(tx);
                 JSONObject trx = tx.getJSONObject(1).getJSONObject("trx");
                 String result = trx.getString("result_trx_type");
                 String recieveAccount = trx.getString("alp_account");
                 if (StringUtils.isEmpty(recieveAccount)
-                        || recieveAccount.startsWith(nodeService.getMainAccountAddress())
+                        || !recieveAccount.startsWith(nodeService.getMainAccountAddress())
                         || !result.equals("origin_transaction")) {
                     continue;
                 }
                 //determine the transaction type
                 JSONArray operations = trx.getJSONArray("operations");
-                String operation = "";
-                if (operations.length() == 1) {
-                    operation = operations.getJSONObject(0).getString("type");
-                } else if (operations.length() > 1) {
-                    for (Object op : operations) {
-                        JSONObject opJson = (JSONObject)op;
-                        if (opJson.get("type").equals("deposit_op_type")) {
-                            operation = "deposit_op_type";
-                        }
-                    }
-                } else {
-                    continue;
-                }
-                AchainTransactionType transactionType =
-                        AchainTransactionType.convert(operation);
+                AchainTransactionType transactionType = determinteTxType(operations);
                 JSONObject amountData = trx.getJSONObject("alp_inport_asset");
                 String finalAmount = parseAmount(amountData.getLong("amount"));
                 String txHash = tx.getString(0);
@@ -108,6 +110,21 @@ public class TxsScanerImpl implements BlocksScaner {
         }
     }
 
+    private AchainTransactionType determinteTxType(JSONArray operations) {
+        String operation = "";
+        if (operations.length() == 1) {
+            operation = operations.getJSONObject(0).getString("type");
+        } else if (operations.length() > 1) {
+            for (Object op : operations) {
+                JSONObject opJson = (JSONObject)op;
+                if (opJson.get("type").equals("deposit_op_type")) {
+                    operation = "deposit_op_type";
+                }
+            }
+        }
+        return AchainTransactionType.convert(operation);
+    }
+
     private String parseAmount(Long amount) {
         Double res = amount/10000d;
         return res.toString();
@@ -126,8 +143,6 @@ public class TxsScanerImpl implements BlocksScaner {
             log.error(e);
         }
     }
-
-
 
     private void saveLastBlock(Long blockNum) {
         specParamsDao.updateParam(MERCHANT_NAME, PARAM_NAME, blockNum.toString());

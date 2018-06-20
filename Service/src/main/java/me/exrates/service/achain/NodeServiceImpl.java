@@ -29,15 +29,17 @@ import java.util.Objects;
 @Component
 public class NodeServiceImpl implements NodeService {
 
-
-
-    @Autowired
-    private SDKHttpClient httpClient;
+    private final SDKHttpClient httpClient;
 
     private @Value("${achain.node.url}")String nodeUrl;
     private @Value("${achain.node.rpcUser}")String rpcUser;
     private @Value("${achain.mainAddress}")String mainAccountAddress;
     private @Value("${achain.account}")String accountName;
+
+    @Autowired
+    public NodeServiceImpl(SDKHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     @Override
     public String getMainAccountAddress() {
@@ -65,6 +67,15 @@ public class NodeServiceImpl implements NodeService {
                 httpClient.post(nodeUrl, rpcUser, "blockchain_get_block", String.valueOf(blockNum));
         JSONObject createTaskJson = new JSONObject(result);
         return createTaskJson.getJSONObject("result").getJSONArray("user_transaction_ids");
+    }
+
+    @Override
+    public boolean getSyncState() {
+        log.info("NodeServiceImpl|getSyncState [{}]");
+        String result =
+                httpClient.post(nodeUrl, rpcUser, "blockchain_is_synced", new JSONArray());
+        JSONObject createTaskJson = new JSONObject(result);
+        return createTaskJson.getBoolean("result");
     }
 
     @Override
@@ -203,34 +214,4 @@ public class NodeServiceImpl implements NodeService {
         }
         return null;
     }*/
-
-
-    private void parseEventData(JSONObject result, JSONArray jsonArray1) {
-        if (Objects.nonNull(jsonArray1) && jsonArray1.length() > 0) {
-            StringBuffer eventType = new StringBuffer();
-            StringBuffer eventParam = new StringBuffer();
-            jsonArray1.forEach(json -> {
-                JSONObject jso = (JSONObject) json;
-                eventType.append(eventType.length() > 0 ? "|" : "").append(jso.getString("event_type"));
-                eventParam.append(eventParam.length() > 0 ? "|" : "").append(jso.getString("event_param"));
-            });
-            result.put("event_type", eventType);
-            result.put("event_param", eventParam);
-        }
-    }
-
-
-
-
-    private Date dealTime(String timestamp) {
-        try {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-            return format.parse(timestamp);
-        } catch (ParseException e) {
-            log.error("dealTime|error|", e);
-            return null;
-        }
-    }
-
-
 }
