@@ -31,6 +31,9 @@ $(function () {
                         "render": function (data, type, row){
                             if (data.length > commentLengthNoShorter || data.split('\n').length > 2) {
                                 var shortData = data.substr(0, commentLengthNoShorter) + " ... ";
+                                if(data.split('\n').length > 2){
+                                    shortData = shortData.substring(0, shortData.indexOf("\n", shortData.indexOf("\n",  shortData.indexOf("\n")+1))) + " ... ";
+                                }
                                 return '<textarea id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize:none; overflow: auto; text-align: justify;" readonly>'+ shortData +'</textarea>'
                                     +'<button id="buttonShowFullComment'+row.id+'"onclick="showFullComment(this)" style="float: right;">Expand</button>'
                                     +'<button id="buttonHideFullComment'+row.id+'"onclick="hideFullComment(this)" style="float: right;" hidden>Hide</button>';
@@ -255,7 +258,11 @@ function hideFullComment(elem) {
     $(buttonHideFullComment).prop("hidden", true);
 
     $(textArea).css("resize", "none");
+
     $(textArea).html(rowData.comment.substring(0,commentLengthNoShorter)+" ... ");
+    if(rowData.comment.split('\n').length > 2){
+        $(textArea).html(rowData.comment.substring(0, rowData.comment.indexOf("\n", rowData.comment.indexOf("\n",  rowData.comment.indexOf("\n")+1)))+" ... ");
+    }
 
     $(textArea).css("height", "100%");
 }
