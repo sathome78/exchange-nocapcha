@@ -192,15 +192,27 @@
                             <form action="" class="form">
                                 <div class="field">
                                     <div class="field__label">Nickname</div>
-                                    <input class="field__input" type="text" name="nickname" placeholder="Nickname" required>
+                                    <input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>
+                                    <div id="nickname_exists" class='field__error' style="display:none">
+                                        Nichname exists
+                                    </div>
+                                    <div id="nichname_wrong" class='field__error' style="display:none">
+                                        Wrong nichname
+                                    </div>
                                 </div>
                                 <div class="field">
                                     <div class="field__label">Email</div>
-                                    <input class="field__input" type="email" name="email" placeholder="Email" required>
+                                    <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
+                                    <div id="email_exists" class='field__error' style="display:none">
+                                        Email exists
+                                    </div>
+                                    <div id="email_wrong" class='field__error' style="display:none">
+                                        Wrong email
+                                    </div>
                                 </div>
 
                                 <div class="field field--btn">
-                                    <input class="btn btn--form" type="submit" value="Create an account">
+                                    <input id="reg_submit" class="btn btn--form" type="submit" value="Create an account" disabled>
                                 </div>
 
                                 <div class="popup__bottom">
