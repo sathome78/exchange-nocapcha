@@ -27,7 +27,8 @@ public class XssRequestFilter implements Filter {
             Map<String,String> errorMap = new HashMap<>();
             parameterMap.forEach((k,v) -> {
                 Stream.of(v).forEach(va -> {
-                    if (!k.equalsIgnoreCase("password")&&!k.equalsIgnoreCase("confirmPassword")&&!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
+                    if (!k.equalsIgnoreCase("creatorEmail")&&!k.equalsIgnoreCase("recipientEmail")&&!k.equalsIgnoreCase("hash")&&
+                            !k.equalsIgnoreCase("password")&&!k.equalsIgnoreCase("confirmPassword")&&!va.equals(Jsoup.clean(va, Whitelist.basic()))) {
                         errorMap.put(k,"validation.notallowedsymbol");
                     }
                 });
