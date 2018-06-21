@@ -29,9 +29,9 @@ $(function () {
                     {
                         "data": "comment",
                         "render": function (data, type, row){
-                            if (data.length>commentLengthNoShorter || checkOnCountOfEnter(data.comment)) {
+                            if (data.length > commentLengthNoShorter || data.split('\n').length > 2) {
                                 var shortData = data.substr(0, commentLengthNoShorter) + " ... ";
-                                return '<textarea class="textareaOfComment" id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize:none; overflow: auto; text-align: justify;" readonly>'+ shortData +'</textarea>'
+                                return '<textarea id="textOfComment'+row.id+'"style="width: 100%; height: 100%; resize:none; overflow: auto; text-align: justify;" readonly>'+ shortData +'</textarea>'
                                     +'<button id="buttonShowFullComment'+row.id+'"onclick="showFullComment(this)" style="float: right;">Expand</button>'
                                     +'<button id="buttonHideFullComment'+row.id+'"onclick="hideFullComment(this)" style="float: right;" hidden>Hide</button>';
                             }
@@ -213,12 +213,6 @@ function calculateAndSetHeightForCommentTextArea(commentId) {
     var heightTextAreaFullComment = numberOfLines*taLineHeight+"px";
     $("#textOfComment"+commentId).css("height", heightTextAreaFullComment);
 };
-
-function checkOnCountOfEnter(comment) {
-    var lines = comment.split('\n').length;
-
-    lines>2 ? true : false;
-}
 
 /**
  * Long comments will be shortened to this length for correct display.
