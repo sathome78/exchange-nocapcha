@@ -12,10 +12,12 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,13 +33,23 @@ public class AchainServiceImpl implements AchainService {
     private final CurrencyService currencyService;
     private final MerchantService merchantService;
     private final RefillService refillService;
+    private final MessageSource messageSource;
+    private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
+    private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.02).setScale(2, RoundingMode.HALF_UP);
+    private static final String MERCHANT_NAME = "ACHAIN";
 
     @Autowired
-    public AchainServiceImpl(NodeService nodeService, CurrencyService currencyService, MerchantService merchantService, RefillService refillService) {
+    public AchainServiceImpl(NodeService nodeService, CurrencyService currencyService, MerchantService merchantService, RefillService refillService, MessageSource messageSource) {
         this.nodeService = nodeService;
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.refillService = refillService;
+        this.messageSource = messageSource;
+    }
+
+    @Override
+    public String getMainAddress() {
+        return nodeService.getMainAccountAddress();
     }
 
     @Override
@@ -48,15 +60,19 @@ public class AchainServiceImpl implements AchainService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
+        String generated = generateRandomSymbolsAndAddToAddress();
+        String fullAddress = nodeService.getMainAccountAddress().concat(generated);
+        String message = messageSource.getMessage("merchants.refill.btc",
+                new Object[]{fullAddress}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  generateRandomSymbolsAndAddToAddress(nodeService.getMainAccountAddress()));
-           /* put("message", message);*/
+            put("address",  generated);
+            put("message", message);
+            put("qr", fullAddress);
         }};
     }
 
-    private String generateRandomSymbolsAndAddToAddress(String mainAddress) {
-        String generatedString = RandomStringUtils.randomAlphanumeric(32);
-        return mainAddress.concat(generatedString);
+    private String generateRandomSymbolsAndAddToAddress() {
+        return RandomStringUtils.random(32, false ,true);
     }
 
     @Override
@@ -78,6 +94,7 @@ public class AchainServiceImpl implements AchainService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+        log.info("try to accept payment {}", requestAcceptDto);
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
@@ -91,5 +108,15 @@ public class AchainServiceImpl implements AchainService {
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
+    }
+
+    @Override
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        log.debug("comission merchant {}", merchantId);
+        Merchant merchant = merchantService.findById(merchantId);
+        if (merchant.getName().equals(MERCHANT_NAME)) {
+            return ACT_COMISSION;
+        }
+        return TOKENS_COMISSION;
     }
 }

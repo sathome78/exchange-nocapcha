@@ -34,7 +34,7 @@ public class NodeServiceImpl implements NodeService {
     private @Value("${achain.node.url}")String nodeUrl;
     private @Value("${achain.node.rpcUser}")String rpcUser;
     private @Value("${achain.mainAddress}")String mainAccountAddress;
-    private @Value("${achain.account}")String accountName;
+    private @Value("${achain.accountName}")String accountName;
 
     @Autowired
     public NodeServiceImpl(SDKHttpClient httpClient) {
@@ -46,6 +46,8 @@ public class NodeServiceImpl implements NodeService {
         return mainAccountAddress;
     }
 
+
+
     @Override
     public String getAccountName() {
         return accountName;
@@ -53,7 +55,7 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public long getBlockCount() {
-        log.info("NodeServiceImpl|getBlockCount");
+        log.debug("NodeServiceImpl|getBlockCount");
         String result =
                 httpClient.post(nodeUrl, rpcUser, "blockchain_get_block_count", new JSONArray());
         JSONObject createTaskJson = new JSONObject(result);
@@ -62,7 +64,7 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public JSONArray getBlock(long blockNum) {
-        log.info("NodeServiceImpl|getBlock [{}]", blockNum);
+        log.debug("NodeServiceImpl|getBlock [{}]", blockNum);
         String result =
                 httpClient.post(nodeUrl, rpcUser, "blockchain_get_block", String.valueOf(blockNum));
         JSONObject createTaskJson = new JSONObject(result);
@@ -71,7 +73,7 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public boolean getSyncState() {
-        log.info("NodeServiceImpl|getSyncState [{}]");
+        log.debug("NodeServiceImpl|getSyncState [{}]");
         String result =
                 httpClient.post(nodeUrl, rpcUser, "blockchain_is_synced", new JSONArray());
         JSONObject createTaskJson = new JSONObject(result);
@@ -80,7 +82,7 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     public JSONArray getBlockTransactions(long blockNum) {
-        log.info("NodeServiceImpl|getBlockTransactions [{}]", blockNum);
+        log.debug("NodeServiceImpl|getBlockTransactions [{}]", blockNum);
         String result =
                 httpClient.post(nodeUrl, rpcUser, "blockchain_get_block_transactions", String.valueOf(blockNum));
         JSONObject transactions = new JSONObject(result);

@@ -48,4 +48,10 @@ public interface AchainService extends IWithdrawable, IRefillable {
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
         return true;
     }
+
+    @Override
+    default boolean concatAdditionalToMainAddress() {
+        return true;
+    }
+
 }

@@ -50,18 +50,21 @@ public class TxsScanerImpl implements BlocksScaner {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleWithFixedDelay(this::scan, 3, 5, TimeUnit.MINUTES);
+        scheduler.scheduleWithFixedDelay(this::scan, 0, 2, TimeUnit.MINUTES);
     }
 
     @Override
     public void scan() {
+        log.info("achain scan tx's");
         /*check is node synced*/
         if (!nodeService.getSyncState()) {
+            log.debug("achain not synced");
             return;
         }
         Long lastProcessedBlock = loadLastBlock();
         /*scan to the pred-last block*/
         Long endBlock = nodeService.getBlockCount() - 1;
+        log.info("achain end block {}, last block {}", endBlock, lastProcessedBlock);
         while (lastProcessedBlock < endBlock) {
             lastProcessedBlock++;
             JSONArray transactions =  nodeService.getBlockTransactions(lastProcessedBlock);
@@ -78,30 +81,31 @@ public class TxsScanerImpl implements BlocksScaner {
                 JSONObject trx = tx.getJSONObject(1).getJSONObject("trx");
                 String result = trx.getString("result_trx_type");
                 String recieveAccount = trx.getString("alp_account");
-                if (StringUtils.isEmpty(recieveAccount)
-                        || !recieveAccount.startsWith(nodeService.getMainAccountAddress())
-                        || !result.equals("origin_transaction")) {
-                    continue;
-                }
-                //determine the transaction type
-                JSONArray operations = trx.getJSONArray("operations");
-                AchainTransactionType transactionType = determinteTxType(operations);
-                JSONObject amountData = trx.getJSONObject("alp_inport_asset");
-                String finalAmount = parseAmount(amountData.getLong("amount"));
-                String txHash = tx.getString(0);
-                switch (transactionType) {
-                    /*accept ACT transfer*/
-                    case SIMPLE_TRANSFER: {
-                        acceptPayment(recieveAccount, txHash, finalAmount, MERCHANT_NAME, CURRENCY_NAME);
-                        break;
-                    }
-                    /*accept contract transfer*/
-                    case CONTRACT_CALL: {
-                        String contractId = " ";
+                if (!StringUtils.isEmpty(recieveAccount)
+                        && recieveAccount.startsWith(nodeService.getMainAccountAddress())
+                        && result.equals("origin_transaction")) {
+                    processAct(tx, trx, recieveAccount);
+                } else {
+                    JSONArray operations = trx.getJSONArray("operations");
+                    if ("transaction_op_type".equals(operations.getJSONObject(0).getString("type")) &&
+                            result.equals("complete_result_transaction")) {
+                        log.info(operations);
+                        JSONObject innerTrx = operations.getJSONObject(0).getJSONObject("data")
+                                .getJSONObject("trx").getJSONArray("operations").getJSONObject(0).getJSONObject("data");
+                        log.info(innerTrx);
+                        String[] args = innerTrx.getString("args").split("\\|");
+                        String fullAddress = args[0];
+                        if (!(fullAddress.startsWith(nodeService.getMainAccountAddress()) &&
+                                innerTrx.getString("method").equals("transfer_to"))) {
+                            continue;
+                        }
+                        String contractId = innerTrx.getString("contract");
                         AchainContract contract =
-                            Preconditions.checkNotNull(tokenContext.getByContractId(contractId));
-                        acceptPayment(recieveAccount, txHash, finalAmount, contract.getMerchantName(), contract.getCurencyName());
-                        break;
+                                Preconditions.checkNotNull(tokenContext.getByContractId(contractId));
+                        recieveAccount = fullAddress.replace(nodeService.getMainAccountAddress(), "");
+                        String txHash = tx.getString(0);
+                        acceptPayment(recieveAccount, txHash, args[1], contract.getMerchantName(), contract.getCurencyName());
+
                     }
                 }
             } catch (Exception e) {
@@ -110,10 +114,28 @@ public class TxsScanerImpl implements BlocksScaner {
         }
     }
 
+
+    private void processAct(JSONArray tx, JSONObject trx, String recieveAccount) {
+        log.info("income tx {}", trx);
+        //determine the transaction type
+        JSONArray operations = trx.getJSONArray("operations");
+        AchainTransactionType transactionType = determinteTxType(operations);
+        JSONObject amountData = trx.getJSONObject("alp_inport_asset");
+        String finalAmount = parseAmount(amountData.getLong("amount"));
+        String txHash = tx.getString(0);
+        if (transactionType.equals(AchainTransactionType.SIMPLE_TRANSFER)) {
+            acceptPayment(recieveAccount, txHash, finalAmount, MERCHANT_NAME, CURRENCY_NAME);
+        }
+    }
+
     private AchainTransactionType determinteTxType(JSONArray operations) {
         String operation = "";
         if (operations.length() == 1) {
             operation = operations.getJSONObject(0).getString("type");
+            if (operation.equals(AchainTransactionType.CONTRACT_CALL.name())
+                    && !operations.getJSONObject(0).getString("method").equals("transfer_to")) {
+                throw new RuntimeException("not supported method");
+            }
         } else if (operations.length() > 1) {
             for (Object op : operations) {
                 JSONObject opJson = (JSONObject)op;
@@ -134,7 +156,7 @@ public class TxsScanerImpl implements BlocksScaner {
         Map<String, String> paymentParamsMap = new HashMap<>();
         paymentParamsMap.put("currency", currencyName);
         paymentParamsMap.put("merchant", merchantName);
-        paymentParamsMap.put("address", address);
+        paymentParamsMap.put("address", address.replace(nodeService.getMainAccountAddress(), ""));
         paymentParamsMap.put("hash", txHash);
         paymentParamsMap.put("amount", amount);
         try {

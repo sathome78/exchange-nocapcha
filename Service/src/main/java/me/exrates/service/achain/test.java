@@ -1,5 +1,6 @@
 package me.exrates.service.achain;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.Consts;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.ConnectionConfig;
@@ -22,9 +23,9 @@ public class test {
 
     public static void main(String[] args) {
         SDKHttpClient sdkHttpClient = new SDKHttpClient(getClient());
-        String result =
+       /* String result =
                 sdkHttpClient.post(nodeUrl, rpcUser, "blockchain_get_transaction",
-                        "d6ef0fc8628ec1e63837d7c327fb1619ddff7768");
+                        "d6ef0fc8628ec1e63837d7c327fb1619ddff7768");*/
         /*String result =
                 sdkHttpClient.post(nodeUrl, rpcUser, "wallet_get_transaction", "b67b2fd708295f446daa0d093e6b0e5c6be01e43");*/
        /* String result =
@@ -37,10 +38,10 @@ public class test {
                         "blockchain_get_account",
                         "ACT5yMzxAE6TmGa2gT8UCvKXiFa1XwydgK8C2dvuYYrVEqkhKspWs");
         System.out.println(result1);
-      /* String result = sdkHttpClient.post(nodeUrl,
-               rpcUser,"wallet_list_accounts", new JSONArray());*/
+       String result = sdkHttpClient.post(nodeUrl,
+               rpcUser,"blockchain_get_block_count", new JSONArray());
 
-        System.out.println(result);
+        /*System.out.println(result);*/
     }
 
 

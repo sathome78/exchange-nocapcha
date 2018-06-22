@@ -23,7 +23,7 @@ public enum AchainTransactionType {
 
     public static AchainTransactionType convert(String name) {
         return Arrays.stream(AchainTransactionType.class.getEnumConstants())
-                .filter(e -> e.name().equals(name))
+                .filter(e -> e.getValue().equals(name))
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("unsupported type " + name));
     }
