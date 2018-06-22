@@ -6,6 +6,8 @@ import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
@@ -30,7 +32,14 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -47,9 +56,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -92,6 +99,8 @@ public class MainController {
     private SendMailService sendMailService;
     @Autowired
     private SecureService secureService;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -221,14 +230,107 @@ public class MainController {
         }
     }
 
+    @RequestMapping(value = "/createUser", method = RequestMethod.POST)
+    public ResponseEntity createNewUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
+        registerFormValidation.validate(user.getNickname(), user.getEmail(), null,
+                result, localeResolver.resolveLocale(request));
+        user.setPhone("");
+        if (result.hasErrors()) {
+            //TODO
+            return ResponseEntity.badRequest().body(result);
+        } else {
+            boolean flag = false;
+            user = (User) result.getModel().get("user");
+            try {
+                String ip = IpUtils.getClientIpAddress(request, 100);
+                if (ip == null) {
+                    ip = request.getRemoteHost();
+                }
+                user.setIp(ip);
+                if (userService.create(user, localeResolver.resolveLocale(request))) {
+                    flag = true;
+                    logger.info("User registered with parameters = " + user.toString());
+                } else {
+                    throw new NotCreateUserException("Error while user creation");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
+            }
+            if (flag) {
+                final int child = userService.getIdByEmail(user.getEmail());
+                final int parent = userService.getIdByEmail(user.getParentEmail());
+                if (child > 0 && parent > 0) {
+                    referralService.bindChildAndParent(child, parent);
+                }
+
+                String successNoty = null;
+                try {
+                    successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
+                            localeResolver.resolveLocale(request)), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+                Map<String, Object> body = new HashMap<>();
+                body.put("result",successNoty);
+                body.put("user", user);
+                return ResponseEntity.ok(body);
+
+            } else {
+                throw new NotCreateUserException("DBError");
+            }
+        }
+    }
+
+    @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
+    public ModelAndView createPassword(@ModelAttribute User user , BindingResult result, HttpServletRequest request, Principal principal) {
+        registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
+            //TODO
+           return null;
+        } else {
+            User updatedUser = userService.findByEmail(principal.getName());
+            UpdateUserDto updateUserDto = new UpdateUserDto(updatedUser.getId());
+            updateUserDto.setPassword(user.getPassword());
+            updateUserDto.setRole(updatedUser.getRole());
+            userService.updateUserByAdmin(updateUserDto);
+
+            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updatedUser.getEmail()).getAuthorities());
+            org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                    updatedUser.getEmail(),
+                    updateUserDto.getPassword(),
+                    false,
+                    false,
+                    false,
+                    false,
+                    authList);
+            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            return new ModelAndView("redirect:/dashboard");
+        }
+    }
+
     @RequestMapping(value = "/registrationConfirm")
-    public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token) {
+    public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token, RedirectAttributes attr) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != 0) {
-                model.addObject("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+            int userId = userService.verifyUserEmail(token);
+            if (userId != 0) {
+                User user = userService.getUserById(userId);
+                Collection<GrantedAuthority> authList = AuthorityUtils.createAuthorityList(UserRole.ROLE_CHANGE_PASSWORD.name(), UserRole.USER.name());
+                org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                                user.getEmail(), "",false, false, false, false, authList);
+                Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                user.setPassword(null);
+
+                attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved",
+                        null, localeResolver.resolveLocale(request)));
             } else {
-                model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
+                model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",
+                        null, localeResolver.resolveLocale(request)));
             }
             model.setViewName("redirect:/dashboard");
         } catch (Exception e) {

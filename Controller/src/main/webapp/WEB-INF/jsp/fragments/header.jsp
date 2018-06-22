@@ -95,10 +95,10 @@
                             <div class="popup__inner">
                                 <div class="popup__caption">Log in</div>
 
-                                <form action="" class="form">
+                                <form action="/login" class="form" method="post">
                                     <div class="field">
                                         <div class="field__label">Email</div>
-                                        <input class="field__input" type="email" name="email" placeholder="Email" required>
+                                        <input class="field__input" type="email" name="username" placeholder="Email" required>
                                     </div>
                                     <div class="field">
                                         <div class="field__label">Password</div>
@@ -117,62 +117,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <%--<c:if test="${showEntrance}">--%>
-
-                            <%--<li role="presentation" class="dropdown paddingtop10 open-li">--%>
-                                <%--<a class="dropdown-toggle nav__link focus-white" data-toggle="dropdown" href="#"--%>
-                                   <%--role="button"--%>
-                                   <%--aria-haspopup="true" aria-expanded="false">--%>
-                                    <%--<loc:message code="dashboard.entrance"/> <span class="caret"></span>--%>
-                                <%--</a>--%>
-                                <%--<div class="dropdown-menu">--%>
-                                    <%--<form action="/login" class="dropdown-menu__form" method="post">--%>
-                                        <%--<input name="username" type="email" placeholder=--%>
-                                            <%--<loc:message code="dashboard.loginText"/>--%>
-                                                <%--class="form_input">--%>
-                                        <%--<input name="password" type="password" placeholder=--%>
-                                            <%--<loc:message--%>
-                                                    <%--code="dashboard.passwordText"/> class="form_input">--%>
-                                        <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
-                                        <%--<br/>--%>
-                                        <%--<c:if test="${captchaType==\"RECAPTCHA\"}">--%>
-                                            <%--&lt;%&ndash;CAPTCHA GOOGLE&ndash;%&gt;--%>
-                                            <%--<div id="cpch-head-field" class="g-recaptcha"--%>
-                                                 <%--data-sitekey=${captchaProperties.get("captcha.key")}></div>--%>
-                                            <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
-                                        <%--</c:if>--%>
-                                        <%--<c:if test="${captchaType==\"BOTDETECT\"}">--%>
-                                            <%--&lt;%&ndash;CAPTCHA BotDetect&ndash;%&gt;--%>
-                                            <%--<div class="validationDiv">--%>
-                                                <%--<botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>--%>
-                                                <%--<input name="captchaCode" type="text" id="captchaCode"/>--%>
-                                                <%--<input type="hidden" name="captchaId" value="headerRegCaptcha"/>--%>
-                                            <%--</div>--%>
-                                        <%--</c:if>--%>
-                                        <%--<input type="hidden" name="captchaType" value="${captchaType}"/>--%>
-                                            <%--&lt;%&ndash;&ndash;%&gt;--%>
-                                        <%--<button type="submit" class="login_button"><loc:message--%>
-                                                <%--code="dashboard.entrance"/></button>--%>
-                                        <%--<a href="/forgotPassword" class="white forgot-password"><loc:message--%>
-                                                <%--code="dashboard.forgotPassword"/></a>--%>
-
-                                        <%--<div></div>--%>
-                                            <%--&lt;%&ndash;QR&ndash;%&gt;--%>
-                                            <%--<div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>--%>
-                                        <%--<div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white"><loc:message code="dashboard.qrLogin.login"/></span></div>--%>
-                                    <%--</form>--%>
-                                    <%--<sec:authorize access="isAuthenticated()">--%>
-                                        <%--<form action="/logout" class="dropdown-menu__logout-form" method="post">--%>
-                                            <%--<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>--%>
-                                            <%--<button type="submit" class="register">--%>
-                                                <%--<strong><loc:message code="dashboard.goOut"/></strong>--%>
-                                            <%--</button>--%>
-                                        <%--</form>--%>
-                                    <%--</sec:authorize>--%>
-                                <%--</div>--%>
-                            <%--</li>--%>
-                        <%--</c:if>--%>
                     </sec:authorize>
                 </ul>
             </ul>
@@ -181,15 +125,16 @@
 
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
-                    <%--<c:if test="${showRegistration}">--%>
-                        <%--<li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>--%>
-                    <%--</c:if>--%>
+                    <c:if test="${showRegistration}">
+                        <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
+                    </c:if>
                     <a data-fancybox href="#registration" class="demo-bar-item">registration</a>
                     <div id="registration" class="popup">
                         <div class="popup__inner">
                             <div class="popup__caption">Registration</div>
 
-                            <form action="" class="form">
+                            <form id="create_me" class="form" method="post">
+                                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
                                 <div class="field">
                                     <div class="field__label">Nickname</div>
                                     <input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>
@@ -264,6 +209,59 @@
             </ul>
         </div>
     </div>
+
+    <%--Confirm register--%>
+    <a data-fancybox id="confirm-success" href="#confirm" class="demo-bar-item" style="display: none">Confirm</a>
+    <div id="confirm" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Confirm the email</div>
+
+            <div class="popup__text">
+                We sended the confirmation link to<br>
+                <a id="confirm_email" href="" class="popup__text-link"></a>
+            </div>
+            <div class="popup__text">
+                Please check your email and follow instructions.
+            </div>
+
+            <div class="popup__hr"></div>
+
+            <div class="popup__bottom">
+                <div class="popup__bottom-row">If you haven't received the email, do the following:</div>
+                <div class="popup__bottom-row">
+                    Check spam or other folders.<br>
+                    Set email address whitelist. <a href="" class="popup__bottom-link">How to set?</a><br>
+                    Check the mail client works normally.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%--Finish register--%>
+    <a id="finish_register" data-fancybox href="#confirmed" class="demo-bar-item / js-coverbox" style="display: none">finish</a>
+    <div id="confirmed" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Email confirmed</div>
+
+            <div class="popup__sub-caption">
+                Now, we need to create strong password.
+            </div>
+
+            <form action="/createPassword" class="form" method="post">
+                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
+                <div class="field">
+                    <div class="field__label">Password</div>
+                    <div class="field__pwd-show / js-show-pwd"></div>
+                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <div class="field field--btn">
+                    <input class="btn btn--form" type="submit" value="Finish registration">
+                </div>
+            </form>
+        </div>
+    </div>
+
 </header>
 
 <%--capcha--%>

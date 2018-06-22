@@ -247,11 +247,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
         .antMatchers(GET, "/rest/stockExchangeStatistics", "/rest/temp/retrieveCurrencyPairRates").permitAll()
         .antMatchers( "/test/**").permitAll()
-        .antMatchers("/login", "/register", "/create", "/rest/user/resetPasswordConfirm/**").anonymous()
+        .antMatchers("/login", "/register", "/create", "/createUser", "/rest/user/resetPasswordConfirm/**").anonymous()
         .antMatchers("/resetPasswordConfirm/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers("/forgotPassword/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/login/new_pin_send").anonymous()
-        .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+        .antMatchers("/updatePassword", "/createPassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name())
