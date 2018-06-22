@@ -575,7 +575,6 @@
         </logger>
         <logger name="nem_log" level="ALL" additivity="false">
             <AppenderRef ref="nem_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
@@ -634,7 +633,6 @@
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
-            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">
