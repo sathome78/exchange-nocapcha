@@ -1,0 +1,49 @@
+<%--
+  Created by Sasha
+--%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Create password</title>
+
+    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
+
+    <!-- New design -->
+    <link rel="stylesheet" href="client/assets/css/main.min.css">
+    <link rel="stylesheet" href="client/assets/css/libs.min.css">
+
+    <script src="<c:url value="/client/assets/js/libs.min.js"/>"></script>
+    <script src="<c:url value="/client/assets/js/main.min.js"/>"></script>
+    <!-- New design -->
+
+</head>
+<body>
+    <input id="successConfirm" hidden value='${successConfirm}'/>
+    <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+
+    <a id="reg_confirmed" data-fancybox href="#confirmed" class="demo-bar-item / js-coverbox" style="display: none">finish</a>
+    <div id="confirmed" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Email confirmed</div>
+
+            <div class="popup__sub-caption">
+                Now, we need to create strong password.
+            </div>
+
+            <form action="/createPassword" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf"/>
+                <div class="field">
+                    <div class="field__label">Password</div>
+                    <div class="field__pwd-show / js-show-pwd"></div>
+                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <div class="field field--btn">
+                    <input class="btn btn--form" type="submit" value="Finish registration">
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

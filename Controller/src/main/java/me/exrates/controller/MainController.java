@@ -3,6 +3,7 @@ package me.exrates.controller;
 import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotCreateUserException;
+import me.exrates.controller.exception.PasswordCreationException;
 import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
@@ -232,8 +233,7 @@ public class MainController {
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
     public ResponseEntity createNewUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
-        registerFormValidation.validate(user.getNickname(), user.getEmail(), null,
-                result, localeResolver.resolveLocale(request));
+        registerFormValidation.validate(user.getNickname(), user.getEmail(), null, result, localeResolver.resolveLocale(request));
         user.setPhone("");
         if (result.hasErrors()) {
             //TODO
@@ -283,12 +283,17 @@ public class MainController {
         }
     }
 
+    @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
+    public ModelAndView createPassword() {
+        return new ModelAndView("fragments/createPassword");
+    }
+
     @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
     public ModelAndView createPassword(@ModelAttribute User user , BindingResult result, HttpServletRequest request, Principal principal) {
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
-           return null;
+           throw new PasswordCreationException("Error while creating password.");
         } else {
             User updatedUser = userService.findByEmail(principal.getName());
             UpdateUserDto updateUserDto = new UpdateUserDto(updatedUser.getId());
@@ -298,13 +303,7 @@ public class MainController {
 
             Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updatedUser.getEmail()).getAuthorities());
             org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                    updatedUser.getEmail(),
-                    updateUserDto.getPassword(),
-                    false,
-                    false,
-                    false,
-                    false,
-                    authList);
+                    updatedUser.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
             Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
@@ -328,6 +327,8 @@ public class MainController {
 
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved",
                         null, localeResolver.resolveLocale(request)));
+                model.setViewName("redirect:/createPassword");
+                return model;
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",
                         null, localeResolver.resolveLocale(request)));

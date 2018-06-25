@@ -128,7 +128,7 @@
                     <c:if test="${showRegistration}">
                         <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
-                    <a data-fancybox href="#registration" class="demo-bar-item">registration</a>
+                    <a id="regT" data-fancybox href="#registration" class="demo-bar-item">registration</a>
                     <div id="registration" class="popup">
                         <div class="popup__inner">
                             <div class="popup__caption">Registration</div>
@@ -234,31 +234,6 @@
                     Check the mail client works normally.
                 </div>
             </div>
-        </div>
-    </div>
-
-    <%--Finish register--%>
-    <a id="finish_register" data-fancybox href="#confirmed" class="demo-bar-item / js-coverbox" style="display: none">finish</a>
-    <div id="confirmed" class="popup">
-        <div class="popup__inner">
-            <div class="popup__caption">Email confirmed</div>
-
-            <div class="popup__sub-caption">
-                Now, we need to create strong password.
-            </div>
-
-            <form action="/createPassword" class="form" method="post">
-                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
-                <div class="field">
-                    <div class="field__label">Password</div>
-                    <div class="field__pwd-show / js-show-pwd"></div>
-                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
-                </div>
-
-                <div class="field field--btn">
-                    <input class="btn btn--form" type="submit" value="Finish registration">
-                </div>
-            </form>
         </div>
     </div>
 
