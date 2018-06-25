@@ -36,11 +36,14 @@
                 <div class="field">
                     <div class="field__label">Password</div>
                     <div class="field__pwd-show / js-show-pwd"></div>
-                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                    <input id="password" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                    <div id="password_wrong" class='field__error' style="display:none">
+                        Wrong password
+                    </div>
                 </div>
 
                 <div class="field field--btn">
-                    <input class="btn btn--form" type="submit" value="Finish registration">
+                    <input id="pass_submit" class="btn btn--form" type="submit" value="Finish registration" disabled>
                 </div>
             </form>
         </div>
