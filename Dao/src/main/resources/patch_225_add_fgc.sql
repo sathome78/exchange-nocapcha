@@ -74,5 +74,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('FGC/USD', 'FGC/BTC', 'FGC/ETH'));
 
-INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
-VALUES ((SELECT id from MERCHANT WHERE name='FGC'), (select id from CURRENCY where name='FGC'), 'fgcWallet.title');
+INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, title_code, passphrase)
+VALUES ((SELECT id from MERCHANT WHERE name='FGC'), (select id from CURRENCY where name='FGC'), 'fgcWallet.title', 'u9affTP8TVN4CWPanPwuENJ37seV5j9EPhpY');
