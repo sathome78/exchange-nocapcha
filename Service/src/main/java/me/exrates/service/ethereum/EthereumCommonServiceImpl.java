@@ -1,6 +1,5 @@
 package me.exrates.service.ethereum;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -88,9 +87,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private String mainAddress;
 
-    private final List<String> accounts = new ArrayList<>();
+    private final Set<String> accounts = new HashSet<>();
 
-    private final List<String> pendingTransactions = new ArrayList<>();
+    private final Set<String> pendingTransactions = new HashSet<>();
 
     private Web3j web3j;
 
@@ -132,7 +131,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     }
 
     @Override
-    public List<String> getAccounts() {
+    public Set<String> getAccounts() {
         return accounts;
     }
 
@@ -317,6 +316,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 /*-------------Tokens--------------*/
                 if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
+                }
+
+                if (ethBlock.getTo() != null && ethBlock.getInput().contains("0xb61d27f6")
+                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34,74))){
+                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34,74)).tokenTransaction(ethBlock);
                 }
 /*---------------------------------*/
 
