@@ -149,7 +149,7 @@ function getErrorMessage(jqXHR) {
     if (!detail && !notyMessage) {
         notyMessage = "";
     } else {
-        notyMessage = notyMessage + "</br>" + detail;
+        notyMessage = detail;
     }
     return notyMessage;
 }
