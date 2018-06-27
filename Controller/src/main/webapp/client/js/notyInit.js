@@ -32,7 +32,8 @@ $(function () {
             if (jqXHR.status == 419 || jqXHR.status == '419') {
                 /*session end*/
                 var resp = JSON.parse(jqXHR.responseText);
-                window.location.replace(resp.url + '?errorNoty=' + resp.msg);
+                var detail = resp.detail ? resp.detail : resp.error;
+                window.location.replace(resp.url + '?errorNoty=' + detail);
             } else {
                 failNoty(jqXHR);
             }
@@ -145,7 +146,7 @@ function deleteCookie(name) {
 function getErrorMessage(jqXHR) {
     var errorInfo = $.parseJSON(jqXHR.responseText);
     var notyMessage = errorInfo.cause;
-    var detail = errorInfo.detail;
+    var detail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
     if (!detail && !notyMessage) {
         notyMessage = "";
     } else {
