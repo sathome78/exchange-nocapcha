@@ -145,7 +145,7 @@ function deleteCookie(name) {
 function getErrorMessage(jqXHR) {
     var errorInfo = $.parseJSON(jqXHR.responseText);
     var notyMessage = errorInfo.cause;
-    var detail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
+    var detail = errorInfo.detail ? errorInfo.detail : errorInfo.detail;
     if (!detail && !notyMessage) {
         notyMessage = "";
     } else {
