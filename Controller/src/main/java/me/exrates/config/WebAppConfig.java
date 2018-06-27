@@ -476,7 +476,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "golServiceImpl")
     public EthereumCommonService golService() {
-        return new EthereumCommonServiceImpl("merchants/smartchain.properties",
+        return new EthereumCommonServiceImpl("merchants/goldiam.properties",
                 "GOL", "GOL", 12);
     }
 
