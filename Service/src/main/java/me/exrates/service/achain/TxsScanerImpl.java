@@ -148,7 +148,7 @@ public class TxsScanerImpl implements BlocksScaner {
     }
 
     private String parseAmount(String amount) {
-        Double res = Double.valueOf(amount)/10000d;
+        Double res = Double.valueOf(amount)/100000d;
         return res.toString();
     }
 
