@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang3.StringUtils;
@@ -105,12 +106,14 @@ public class NemRecieveTransactionsService {
                 }
                 try {
                     List<NemMosaicTransferDto> mosaics = getMosaicPayments(params);
+                    checkOwnedMosaics(params.get("signer"));
                     nemService.processMosaicPayment(mosaics, params);
                 } catch (Exception e) {
                     log.error("nem mosaic refill process error {} {}", e, transactionData.toString());
                 }
             } else {
                 try {
+                    checkOwnedMosaics(params.get("signer"));
                     nemService.processPayment(params);
                 } catch (RefillRequestAppropriateNotFoundException e) {
                     log.error("nem refill address not found {}", transactionData.toString());
@@ -123,6 +126,19 @@ public class NemRecieveTransactionsService {
             }
         }
         return null;
+    }
+
+    private void checkOwnedMosaics(String publicKey) {
+        String address = nodeService.getAddressByPk(publicKey);
+        JSONArray array = nodeService.getOwnedMosaics(address);
+        array.forEach(p -> {
+            JSONObject object = ((JSONObject) p).getJSONObject("mosaicId");
+            MosaicIdDto idDto = new MosaicIdDto(object.getString("namespaceId"), object.getString("name"));
+            if (nemService.getDeniedMosaicList().contains(idDto)) {
+                log.warn("sender contains denied mosaic!!! {} ", idDto);
+                throw new RuntimeException("sender contains denied mosaic " + idDto);
+            }
+        });
     }
 
     private List<NemMosaicTransferDto> getMosaicPayments(Map<String, String> params) throws IOException {
@@ -163,6 +179,7 @@ public class NemRecieveTransactionsService {
         paramsMap.put("amount", transactionsService.transformToString(transaction.getLong("amount")));
         paramsMap.put("transaction", transactionMetaPair.toString());
         paramsMap.put("mosaics", transaction.optString("mosaics", null));
+        paramsMap.put("signer", transaction.getString("signer"));
         return paramsMap;
     }
 
