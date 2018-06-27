@@ -88,38 +88,9 @@
                         </li>
                     </sec:authorize>
 
-
-
-
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
-                        <a data-fancybox href="#login" class="demo-bar-item">login</a>
-                        <div id="login" class="popup">
-                            <div class="popup__inner">
-                                <div class="popup__caption">Log in</div>
-
-                                <form action="/login" class="form" method="post">
-                                    <div class="field">
-                                        <div class="field__label">Email</div>
-                                        <input class="field__input" type="email" name="username" placeholder="Email" required>
-                                    </div>
-                                    <div class="field">
-                                        <div class="field__label">Password</div>
-                                        <div class="field__pwd-show / js-show-pwd"></div>
-                                        <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
-                                    </div>
-
-                                    <div class="field field--btn">
-                                        <input class="btn btn--form" type="submit" value="Authorise me">
-                                    </div>
-                                </form>
-
-                                <div class="popup__bottom-links-row">
-                                    <a class="popup__bottom-link" href="/">Go to registration form</a>
-                                    <a class="popup__bottom-link" href="/">Forgot password?</a>
-                                </div>
-                            </div>
-                        </div>
+                        <a id="login_link" data-fancybox href="#login" class="demo-bar-item">login</a>
                     </sec:authorize>
                 </ul>
             </ul>
@@ -132,44 +103,6 @@
                         <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
                     <a id="regT" data-fancybox href="#registration" class="demo-bar-item">registration</a>
-                    <div id="registration" class="popup">
-                        <div class="popup__inner">
-                            <div class="popup__caption">Registration</div>
-
-                            <form id="create_me" class="form" method="post">
-                                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
-                                <div class="field">
-                                    <div class="field__label">Nickname</div>
-                                    <input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>
-                                    <div id="nickname_exists" class='field__error' style="display:none">
-                                        Nichname exists
-                                    </div>
-                                    <div id="nichname_wrong" class='field__error' style="display:none">
-                                        Wrong nichname
-                                    </div>
-                                </div>
-                                <div class="field">
-                                    <div class="field__label">Email</div>
-                                    <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
-                                    <div id="email_exists" class='field__error' style="display:none">
-                                        Email exists
-                                    </div>
-                                    <div id="email_wrong" class='field__error' style="display:none">
-                                        Wrong email
-                                    </div>
-                                </div>
-
-                                <div class="field field--btn">
-                                    <input id="reg_submit" class="btn btn--form" type="submit" value="Create an account" disabled>
-                                </div>
-
-                                <div class="popup__bottom">
-                                    <div class="popup__privacy">I agree to exrates <a href="" class="popup__bottom-link">Terms of Use</a></div>
-                                    <div class="popup__bottom-row">Already have an account? <a href="" class="popup__bottom-link">Log in</a></div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
                 </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
@@ -210,6 +143,95 @@
                 </sec:authorize>
 
             </ul>
+        </div>
+    </div>
+
+    <!-- Fancybox -->
+    <div id="login" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Log in</div>
+
+            <form action="/login" class="form" method="post">
+                <div class="field">
+                    <div class="field__label">Email</div>
+                    <input class="field__input" type="email" name="username" placeholder="Email" required>
+                </div>
+                <div class="field">
+                    <div class="field__label">Password</div>
+                    <div class="field__pwd-show / js-show-pwd"></div>
+                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <div class="field field--btn">
+                    <input class="btn btn--form" type="submit" value="Authorise me">
+                </div>
+            </form>
+
+            <div class="popup__bottom-links-row">
+                <a id="go_to_register" class="popup__bottom-link">Go to registration form</a>
+                <a id="forgot_pwd" class="popup__bottom-link">Forgot password?</a>
+                <a id="forgot_pwd_hide"data-fancybox href="#pwd_restore" class="popup__bottom-link" style="display: none">Forgot password?</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="pwd_restore" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Forgot password?</div>
+
+            <form action="" class="form">
+                <div class="field">
+                    <div class="field__label">Email</div>
+                    <input class="field__input" type="email" name="email" placeholder="Email" required>
+                </div>
+
+                <div class="field field--btn">
+                    <input class="btn btn--form" type="submit" value="Reset password">
+                </div>
+            </form>
+
+            <div class="popup__bottom-links-row">
+                <a id="back_login" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="registration" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Registration</div>
+
+            <form id="create_me" class="form" method="post">
+                <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
+                <div class="field">
+                    <div class="field__label">Nickname</div>
+                    <input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>
+                    <div id="nickname_exists" class='field__error' style="display:none">
+                        Nichname exists
+                    </div>
+                    <div id="nichname_wrong" class='field__error' style="display:none">
+                        Wrong nichname
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="field__label">Email</div>
+                    <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
+                    <div id="email_exists" class='field__error' style="display:none">
+                        Email exists
+                    </div>
+                    <div id="email_wrong" class='field__error' style="display:none">
+                        Wrong email
+                    </div>
+                </div>
+
+                <div class="field field--btn">
+                    <input id="reg_submit" class="btn btn--form" type="submit" value="Create an account" disabled>
+                </div>
+
+                <div class="popup__bottom">
+                    <div class="popup__privacy">I agree to exrates <a href="" class="popup__bottom-link">Terms of Use</a></div>
+                    <div class="popup__bottom-row">Already have an account? <a id="go_login" class="popup__bottom-link">Log in</a></div>
+                </div>
+            </form>
         </div>
     </div>
 
