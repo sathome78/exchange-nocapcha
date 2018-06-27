@@ -233,10 +233,10 @@ public class RegisterFormValidation implements Validator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password",
                 "required.password", passwordRequired);
 
-        if (!user.getPassword().equals(user.getConfirmPassword())) {
-            errors.rejectValue("confirmPassword", "password.mismatch",
-                    passwordMismatch);
-        }
+//        if (!user.getPassword().equals(user.getConfirmPassword())) {
+//            errors.rejectValue("confirmPassword", "password.mismatch",
+//                    passwordMismatch);
+//        }
 
         if (!(user.getPassword() != null && user.getPassword().isEmpty())) {
             pattern = Pattern.compile(PASSWORD_PATTERN);

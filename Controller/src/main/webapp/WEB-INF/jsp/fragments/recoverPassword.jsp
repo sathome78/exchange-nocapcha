@@ -1,0 +1,53 @@
+<%--
+  Created by Sasha
+--%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>Create password</title>
+
+    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
+
+    <!-- New design -->
+    <link href="<c:url value='/client/assets/css/main.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/assets/css/libs.min.css'/>" rel="stylesheet">
+
+    <script src="<c:url value="/client/assets/js/libs.min.js"/>"></script>
+    <script src="<c:url value="/client/assets/js/main.min.js"/>"></script>
+    <!-- New design -->
+
+</head>
+<body>
+<input id="recoveryConfirm" hidden value='${recoveryConfirm}'/>
+<input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+
+<a id="recovery_confirmed_link" data-fancybox href="#recovery_confirmed" class="demo-bar-item / js-coverbox" style="display: none">finish</a>
+<div id="recovery_confirmed" class="popup">
+    <div class="popup__inner">
+        <div class="popup__caption">Confirmed</div>
+
+        <div class="popup__sub-caption">
+            Now, we need to create strong password.
+        </div>
+
+        <form action="/dashboard/updatePassword" class="form" method="post">
+            <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+            <div class="field">
+                <div class="field__label">Password</div>
+                <div class="field__pwd-show / js-show-pwd"></div>
+                <input id="password" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                <div id="password_wrong" class='field__error' style="display:none">
+                    Wrong password
+                </div>
+            </div>
+
+            <div class="field field--btn">
+                <input id="pass_submit" class="btn btn--form" type="submit" value="Update password" disabled>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

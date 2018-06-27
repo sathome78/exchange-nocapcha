@@ -179,14 +179,20 @@
         <div class="popup__inner">
             <div class="popup__caption">Forgot password?</div>
 
-            <form action="" class="form">
+            <form id="pwd_restore_form" class="form" method="post">
                 <div class="field">
                     <div class="field__label">Email</div>
-                    <input class="field__input" type="email" name="email" placeholder="Email" required>
+                    <input id="email_pwd_restore" class="field__input" type="email" name="email" placeholder="Email" required>
+                    <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
+                        Wrong email
+                    </div>
+                    <div id="email_pwd_restore_notExist" class='field__error' style="display:none">
+                        Such email not exists
+                    </div>
                 </div>
 
                 <div class="field field--btn">
-                    <input class="btn btn--form" type="submit" value="Reset password">
+                    <input id="pwd_restore_submit" class="btn btn--form" type="submit" value="Reset password" disabled>
                 </div>
             </form>
 
@@ -235,7 +241,6 @@
         </div>
     </div>
 
-    <%--Confirm register--%>
     <a data-fancybox id="confirm-success" href="#confirm" class="demo-bar-item" style="display: none">Confirm</a>
     <div id="confirm" class="popup">
         <div class="popup__inner">
