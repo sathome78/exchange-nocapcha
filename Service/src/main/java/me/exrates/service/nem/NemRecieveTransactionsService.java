@@ -7,6 +7,7 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
+import me.exrates.service.exception.NemTransactionException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -129,16 +130,22 @@ public class NemRecieveTransactionsService {
     }
 
     private void checkOwnedMosaics(String publicKey) {
-        String address = nodeService.getAddressByPk(publicKey);
-        JSONArray array = nodeService.getOwnedMosaics(address);
-        array.forEach(p -> {
-            JSONObject object = ((JSONObject) p).getJSONObject("mosaicId");
-            MosaicIdDto idDto = new MosaicIdDto(object.getString("namespaceId"), object.getString("name"));
-            if (nemService.getDeniedMosaicList().contains(idDto)) {
-                log.warn("sender contains denied mosaic!!! {} ", idDto);
-                throw new RuntimeException("sender contains denied mosaic " + idDto);
-            }
-        });
+        try {
+            String address = nodeService.getAddressByPk(publicKey);
+            JSONArray array = nodeService.getOwnedMosaics(address);
+            array.forEach(p -> {
+                JSONObject object = ((JSONObject) p).getJSONObject("mosaicId");
+                MosaicIdDto idDto = new MosaicIdDto(object.getString("namespaceId"), object.getString("name"));
+                if (nemService.getDeniedMosaicList().contains(idDto)) {
+                    log.warn("sender contains denied mosaic!!! {} ", idDto);
+                    throw new NemTransactionException("sender contains denied mosaic " + idDto);
+                }
+            });
+        } catch (NemTransactionException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("can't check owned mosaics");
+        }
     }
 
     private List<NemMosaicTransferDto> getMosaicPayments(Map<String, String> params) throws IOException {
