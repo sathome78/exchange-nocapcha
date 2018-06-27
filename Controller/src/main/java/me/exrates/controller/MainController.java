@@ -10,6 +10,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.form.FeedbackMessageForm;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -37,10 +38,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -102,6 +101,8 @@ public class MainController {
     private SecureService secureService;
     @Autowired
     private UserDetailsService userDetailsService;
+    @Autowired
+    private GeetestLib geetest;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -233,53 +234,81 @@ public class MainController {
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
     public ResponseEntity createNewUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
-        registerFormValidation.validate(user.getNickname(), user.getEmail(), null, result, localeResolver.resolveLocale(request));
-        user.setPhone("");
-        if (result.hasErrors()) {
-            //TODO
-            return ResponseEntity.badRequest().body(result);
+        String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+        String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+        String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
+        int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+        String userid = (String)request.getSession().getAttribute("userid");
+
+        HashMap<String, String> param = new HashMap<>();
+        param.put("user_id", userid);
+        param.put("client_type", "web");
+        param.put("ip_address", "127.0.0.1");
+
+        int gtResult = 0;
+        if (gt_server_status_code == 1) {
+            gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
+            System.out.println(gtResult);
         } else {
-            boolean flag = false;
-            user = (User) result.getModel().get("user");
-            try {
-                String ip = IpUtils.getClientIpAddress(request, 100);
-                if (ip == null) {
-                    ip = request.getRemoteHost();
-                }
-                user.setIp(ip);
-                if (userService.create(user, localeResolver.resolveLocale(request))) {
-                    flag = true;
-                    logger.info("User registered with parameters = " + user.toString());
-                } else {
-                    throw new NotCreateUserException("Error while user creation");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
-            }
-            if (flag) {
-                final int child = userService.getIdByEmail(user.getEmail());
-                final int parent = userService.getIdByEmail(user.getParentEmail());
-                if (child > 0 && parent > 0) {
-                    referralService.bindChildAndParent(child, parent);
-                }
+            System.out.println("failback:use your own server captcha validate");
+            gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
+            System.out.println(gtResult);
+        }
 
-                String successNoty = null;
-                try {
-                    successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
-                            localeResolver.resolveLocale(request)), "utf-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-                Map<String, Object> body = new HashMap<>();
-                body.put("result",successNoty);
-                body.put("user", user);
-                return ResponseEntity.ok(body);
-
+        if (gtResult == 1) {
+            registerFormValidation.validate(user.getNickname(), user.getEmail(), null, result, localeResolver.resolveLocale(request));
+            user.setPhone("");
+            if (result.hasErrors()) {
+                //TODO
+                return ResponseEntity.badRequest().body(result);
             } else {
-                throw new NotCreateUserException("DBError");
+                boolean flag = false;
+                user = (User) result.getModel().get("user");
+                try {
+                    String ip = IpUtils.getClientIpAddress(request, 100);
+                    if (ip == null) {
+                        ip = request.getRemoteHost();
+                    }
+                    user.setIp(ip);
+                    if (userService.create(user, localeResolver.resolveLocale(request))) {
+                        flag = true;
+                        logger.info("User registered with parameters = " + user.toString());
+                    } else {
+                        throw new NotCreateUserException("Error while user creation");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
+                }
+                if (flag) {
+                    final int child = userService.getIdByEmail(user.getEmail());
+                    final int parent = userService.getIdByEmail(user.getParentEmail());
+                    if (child > 0 && parent > 0) {
+                        referralService.bindChildAndParent(child, parent);
+                    }
+
+                    String successNoty = null;
+                    try {
+                        successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null,
+                                localeResolver.resolveLocale(request)), "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("result",successNoty);
+                    body.put("user", user);
+                    return ResponseEntity.ok(body);
+
+                } else {
+                    throw new NotCreateUserException("DBError");
+                }
             }
+        }
+        else {
+            //TODO
+            throw new RuntimeException("Geetest error");
         }
     }
 

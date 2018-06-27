@@ -19,6 +19,9 @@
 
 <script src="<c:url value="/client/assets/js/libs.min.js"/>"></script>
 <script src="<c:url value="/client/assets/js/main.min.js"/>"></script>
+
+<!-- Geetest-->
+<script src="<c:url value="/client/assets/js/gt.js"/>"></script>
 <!-- New design -->
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
@@ -234,6 +237,29 @@
                     Check the mail client works normally.
                 </div>
             </div>
+        </div>
+    </div>
+
+    <%--Geetest--%>
+    <a data-fancybox id="geetest_confirm" href="#getest" class="demo-bar-item" style="display: none">Geetest</a>
+    <div id="getest" class="popup">
+        <div class="popup__inner">
+            <div>
+                <label>Registration：</label>
+
+                <div id="captcha_mssg" class="popup__text" style="display: none">
+                    Resolve the captcha please<br>
+                </div>
+
+                <div class="popup__hr"></div>
+
+                <div id="captcha1">
+                    <div id="wait1" class="popup__text">
+                        Loading verification code......<br>
+                    </div>
+                </div>
+            </div>
+            <br>
         </div>
     </div>
 
