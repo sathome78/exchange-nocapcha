@@ -15,7 +15,7 @@ public enum IntervalType {
     MONTH(ChronoUnit.MONTHS);
     
     private TemporalUnit correspondingTimeUnit;
-    
+
     IntervalType(TemporalUnit correspondingTimeUnit) {
         this.correspondingTimeUnit = correspondingTimeUnit;
     }
@@ -23,7 +23,7 @@ public enum IntervalType {
     public TemporalUnit getCorrespondingTimeUnit() {
         return correspondingTimeUnit;
     }
-    
+
     public static IntervalType convert(String str) {
         switch (str) {
             case "HOUR":

@@ -2,7 +2,7 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair,) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
@@ -34,7 +34,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
         that.getAndShowCurrencySelector();
     };
 
-    this.syncState = function (callback) {
+    this.syncState = function (onChangeHandler) {
         syncCurrentParams(null, null, null, null, null, function (data) {
             var $item;
             if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
@@ -47,10 +47,8 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             });
             $item.addClass('active');
             that.currentCurrencyPair = $item.text();
-            var pairHasChanged = setButtonTitle();
-            if (callback) {
-                callback(pairHasChanged);
-            }
+            setButtonTitle();
+            onChangeHandler(data.currencyPair);
         });
     };
 
@@ -90,6 +88,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
         $('.' + market).text(newText).append('<span class="caret"></span>');
         var res = previousValue == newText;
         previousValue = $('.currency-pair-selector__menu-item.active').attr('id');
+
         return res;
     }
 }
