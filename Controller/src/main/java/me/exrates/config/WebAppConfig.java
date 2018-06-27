@@ -474,6 +474,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "B2G", "B2G", 12);
     }
 
+    @Bean(name = "cnetServiceImpl")
+    public EthereumCommonService cnetService() {
+        return new EthereumCommonServiceImpl("merchants/contractnet.properties",
+                "CNET", "CNET", 12);
+    }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
