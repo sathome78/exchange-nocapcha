@@ -32,7 +32,7 @@
             </div>
 
             <form action="/createPassword" class="form" method="post">
-                <input type="hidden"  class="csrfC" name="_csrf"/>
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <div class="field">
                     <div class="field__label">Password</div>
                     <div class="field__pwd-show / js-show-pwd"></div>

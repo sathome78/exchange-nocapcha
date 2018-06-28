@@ -1,12 +1,15 @@
 package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
+import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
+import me.exrates.service.geetest.GeetestLib;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
@@ -76,6 +81,9 @@ public class DashboardController {
   @Value("${captcha.type}")
   String CAPTCHA_TYPE;
 
+  @Autowired
+  private GeetestLib geetest;
+
   @RequestMapping(value = {"/dashboard/locale"})
   @ResponseBody
   public void localeSwitcherCommand(
@@ -110,22 +118,49 @@ public class DashboardController {
   @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, RedirectAttributes attr) {
-    /**/
-    registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      //TODO
-      throw new RuntimeException(result.toString());
-    }
-    String email = user.getEmail();
-    user = userService.findByEmail(email);
-    UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-    updateUserDto.setEmail(email);
-    userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
-    /**/
-    Map<String, Object> body = new HashMap<>();
-    body.put("result",messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
-    body.put("email", email);
-    return ResponseEntity.ok(body);
+      String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+      String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+      String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
+      int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+      String userid = (String)request.getSession().getAttribute("userid");
+
+      HashMap<String, String> param = new HashMap<>();
+      param.put("user_id", userid);
+      param.put("client_type", "web");
+      param.put("ip_address", "127.0.0.1");
+
+      int gtResult = 0;
+      if (gt_server_status_code == 1) {
+          gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
+          System.out.println(gtResult);
+      } else {
+          System.out.println("failback:use your own server captcha validate");
+          gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
+          System.out.println(gtResult);
+      }
+
+      if (gtResult == 1) {
+          registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
+          if (result.hasErrors()) {
+              //TODO
+              throw new RuntimeException(result.toString());
+          }
+          String email = user.getEmail();
+          user = userService.findByEmail(email);
+          UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+          updateUserDto.setEmail(email);
+          userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
+
+          Map<String, Object> body = new HashMap<>();
+          body.put("result",messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
+          body.put("email", email);
+          return ResponseEntity.ok(body);
+      }
+      else {
+          //TODO
+          throw new RuntimeException("Geetest error");
+      }
   }
 
   @RequestMapping(value = "/forgotPassword/recover", method = RequestMethod.GET)
