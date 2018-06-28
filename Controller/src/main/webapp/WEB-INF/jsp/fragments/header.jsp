@@ -90,7 +90,8 @@
 
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
-                        <a id="login_link" data-fancybox href="#login" class="demo-bar-item">login</a>
+                        <li class="pull-left paddingtop10"> <a id="login_link" data-fancybox href="#login" class="focus-white nav__link"><loc:message code="dashboard.loginText"/></a></li>
+                        <%--<a id="login_link" data-fancybox href="#login" class="demo-bar-item">login</a>--%>
                     </sec:authorize>
                 </ul>
             </ul>
@@ -100,9 +101,9 @@
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
                     <c:if test="${showRegistration}">
-                        <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
+                        <li class="pull-left paddingtop10"> <a id="regT" data-fancybox href="#registration" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
-                    <a id="regT" data-fancybox href="#registration" class="demo-bar-item">registration</a>
+                    <%--<a id="regT" data-fancybox href="#registration" class="demo-bar-item">registration</a>--%>
                 </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
