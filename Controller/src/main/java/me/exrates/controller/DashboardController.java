@@ -131,11 +131,11 @@ public class DashboardController {
       int gtResult = 0;
       if (gt_server_status_code == 1) {
           gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-          System.out.println(gtResult);
+          LOG.info(gtResult);
       } else {
-          System.out.println("failback:use your own server captcha validate");
+          LOG.error("failback:use your own server captcha validate");
           gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-          System.out.println(gtResult);
+          LOG.error(gtResult);
       }
 
       if (gtResult == 1) {

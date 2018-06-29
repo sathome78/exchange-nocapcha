@@ -148,13 +148,13 @@
     </div>
 
     <!-- Fancybox -->
-    <input id="login_error" hidden value='${error}'/>
+    <input id="login_error" hidden value='${loginErr}'/>
     <div id="login" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Log in</div>
-            <c:if test="${not empty error}">
-                <div class='field__error'>
-                        ${error}
+            <c:if test="${not empty loginErr}">
+                <div class='field__error' style="text-align: center">
+                        ${loginErr}
                 </div>
             </c:if>
 
@@ -169,6 +169,10 @@
                     <div class="field__pwd-show / js-show-pwd"></div>
                     <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
                 </div>
+
+                <input id="log_geetest_challenge" type="hidden" name="geetest_challenge">
+                <input id="log_geetest_validate" type="hidden" name="geetest_validate">
+                <input id="log_geetest_seccode" type="hidden" name="geetest_seccode">
 
                 <div class="field field--btn">
                     <input id="login_submit" class="btn btn--form" value="Authorise me">

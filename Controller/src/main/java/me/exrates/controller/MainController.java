@@ -247,11 +247,11 @@ public class MainController {
         int gtResult = 0;
         if (gt_server_status_code == 1) {
             gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-            System.out.println(gtResult);
+            logger.info(gtResult);
         } else {
-            System.out.println("failback:use your own server captcha validate");
+            logger.error("failback:use your own server captcha validate");
             gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
-            System.out.println(gtResult);
+            logger.error(gtResult);
         }
 
         if (gtResult == 1) {
@@ -390,24 +390,25 @@ public class MainController {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
                 if (exceptionClass.equals("DisabledException")) {
-                    attr.addFlashAttribute("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("loginErr", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("contactsUrl", "/contacts");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
-                    attr.addFlashAttribute("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("loginErr", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
+
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
-                    attr.addFlashAttribute("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
-                }   else if (exceptionClass.equals("PinCodeCheckNeedException")) {
+                    attr.addFlashAttribute("loginErr", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+                } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
-                    attr.addFlashAttribute("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("loginErr", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
-                    attr.addFlashAttribute("error", exception.getMessage());
+                    attr.addFlashAttribute("loginErr", exception.getMessage());
                 } else {
-                    attr.addFlashAttribute("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
             }
         }

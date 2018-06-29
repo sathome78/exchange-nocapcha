@@ -9,11 +9,13 @@ import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.UserService;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,10 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Valk on 31.03.16.
@@ -48,6 +54,9 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 
     @Autowired
     private IpBlockingService ipBlockingService;
+
+    @Autowired
+    private GeetestLib geetest;
 
     private @Value("${session.checkPinParam}") String checkPinParam;
     private @Value("${session.pinParam}") String pinParam;
@@ -115,6 +124,34 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 //                    break;
 //                }
 //            }
+
+            String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+            String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+            String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
+            int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+            String userid = (String)request.getSession().getAttribute("userid");
+
+            HashMap<String, String> param = new HashMap<>();
+            param.put("user_id", userid);
+
+            int gtResult = 0;
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+
+            if (gt_server_status_code == 1) {
+                gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
+                logger.error(gtResult);
+            } else {
+                logger.error("failback:use your own server captcha validate");
+                gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
+                logger.error(gtResult);
+                throw new NotVerifiedCaptchaError(correctCapchaRequired);
+            }
+
+            if (gtResult != 1) {
+                logger.error(gtResult);
+                throw new NotVerifiedCaptchaError(correctCapchaRequired);
+            }
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
