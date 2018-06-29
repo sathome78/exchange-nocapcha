@@ -243,8 +243,6 @@ public class MainController {
 
         HashMap<String, String> param = new HashMap<>();
         param.put("user_id", userid);
-        param.put("client_type", "web");
-        param.put("ip_address", "127.0.0.1");
 
         int gtResult = 0;
         if (gt_server_status_code == 1) {
@@ -381,7 +379,7 @@ public class MainController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView login(HttpSession httpSession, Principal principal,
-                              @RequestParam(value = "error", required = false) String error, HttpServletRequest request) {
+                              @RequestParam(value = "error", required = false) String error, HttpServletRequest request, RedirectAttributes attr) {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
@@ -392,31 +390,29 @@ public class MainController {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
                 if (exceptionClass.equals("DisabledException")) {
-                    model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
-                    model.addObject("contactsUrl", "/contacts");
+                    attr.addFlashAttribute("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("contactsUrl", "/contacts");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
-                    model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
-                    model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 }   else if (exceptionClass.equals("PinCodeCheckNeedException")) {
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
-                    model.addObject("pinNeed", exception.getMessage());
+                    attr.addFlashAttribute("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
-                    model.addObject("pinNeed", exception.getMessage());
-                    model.addObject("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("pinNeed", exception.getMessage());
+                    attr.addFlashAttribute("error", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
-                    model.addObject("error", exception.getMessage());
+                    attr.addFlashAttribute("error", exception.getMessage());
                 } else {
-                    model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
             }
         }
 
-        model.setViewName("login");
-
-        return model;
+        return new ModelAndView(new RedirectView("/dashboard"));
 
     }
 

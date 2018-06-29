@@ -148,11 +148,18 @@
     </div>
 
     <!-- Fancybox -->
+    <input id="login_error" hidden value='${error}'/>
     <div id="login" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Log in</div>
+            <c:if test="${not empty error}">
+                <div class='field__error'>
+                        ${error}
+                </div>
+            </c:if>
 
-            <form action="/login" class="form" method="post">
+            <form id="login_form" action="/login" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <div class="field">
                     <div class="field__label">Email</div>
                     <input class="field__input" type="email" name="username" placeholder="Email" required>
@@ -164,7 +171,7 @@
                 </div>
 
                 <div class="field field--btn">
-                    <input class="btn btn--form" type="submit" value="Authorise me">
+                    <input id="login_submit" class="btn btn--form" value="Authorise me">
                 </div>
             </form>
 
@@ -273,7 +280,7 @@
     <div id="getest" class="popup">
         <div class="popup__inner">
             <div>
-                <label>Registration：</label>
+                <label>Processing</label>
 
                 <div id="captcha_mssg" class="popup__text" style="display: none">
                     Resolve the captcha please<br>
@@ -283,7 +290,7 @@
 
                 <div id="captcha1">
                     <div id="wait1" class="popup__text">
-                        Loading verification code......<br>
+                        Loading verification code...<br>
                     </div>
                 </div>
             </div>
