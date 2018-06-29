@@ -1,6 +1,5 @@
 package me.exrates.service.ethereum;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
@@ -48,7 +47,6 @@ import java.util.concurrent.TimeUnit;
  * Created by ajet
  */
 //@Service
-@Log4j2(topic = "ethereum_log")
 public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
@@ -89,9 +87,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private String mainAddress;
 
-    private final List<String> accounts = new ArrayList<>();
+    private final Set<String> accounts = new HashSet<>();
 
-    private final List<String> pendingTransactions = new ArrayList<>();
+    private final Set<String> pendingTransactions = new HashSet<>();
 
     private Web3j web3j;
 
@@ -125,13 +123,15 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private BigDecimal minSumOnAccount;
 
+    private Logger log;
+
     @Override
     public Web3j getWeb3j() {
         return web3j;
     }
 
     @Override
-    public List<String> getAccounts() {
+    public Set<String> getAccounts() {
         return accounts;
     }
 
@@ -174,6 +174,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.merchantName = merchantName;
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
+            this.log = LogManager.getLogger(props.getProperty("ethereum.log"));
             if (merchantName.equals("Ethereum")){
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
@@ -188,6 +189,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
     @PostConstruct
     void start() {
         merchantId = merchantService.findByName(merchantName).getId();
+
+        log.info("start " + merchantName);
 
         web3j = Web3j.build(new HttpService(url));
 
@@ -313,6 +316,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 /*-------------Tokens--------------*/
                 if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
+                }
+
+                if (ethBlock.getTo() != null && ethBlock.getInput().contains("0xb61d27f6")
+                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34,74))){
+                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34,74)).tokenTransaction(ethBlock);
                 }
 /*---------------------------------*/
 

@@ -72,7 +72,7 @@
                     </li>
                     <sec:authorize access="isAuthenticated()">
                         <li id="hello-my-friend"><a class="nav__link" href="">
-                            <loc:message code="dashboard.hello"/>
+
                             <strong><sec:authentication property="principal.username"/></strong></a>
                         </li>
                     </sec:authorize>
@@ -172,7 +172,9 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <!--
                         <li><a href="#" class="language">AR</a></li>
+                        -->
                     </ul>
 
                 </li>
