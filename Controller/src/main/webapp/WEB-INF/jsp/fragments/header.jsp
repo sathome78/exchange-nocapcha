@@ -174,15 +174,15 @@
                 <input id="log_geetest_validate" type="hidden" name="geetest_validate">
                 <input id="log_geetest_seccode" type="hidden" name="geetest_seccode">
 
-                <div class="field field--btn">
-                    <input id="login_submit" class="btn btn--form" value="Authorise me" disabled>
+                <div class="field field--btn__new">
+                    <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" disabled>
                 </div>
             </form>
 
             <div class="popup__bottom-links-row">
                 <a id="go_to_register" class="popup__bottom-link">Go to registration form</a>
                 <a id="forgot_pwd" class="popup__bottom-link">Forgot password?</a>
-                <a id="forgot_pwd_hide"data-fancybox href="#pwd_restore" class="popup__bottom-link" style="display: none">Forgot password?</a>
+                <a id="forgot_pwd_hide" data-fancybox href="#pwd_restore" class="popup__bottom-link" style="display: none">Forgot password?</a>
             </div>
         </div>
     </div>
@@ -203,8 +203,8 @@
                     </div>
                 </div>
 
-                <div class="field field--btn">
-                    <input id="pwd_restore_submit" class="btn btn--form" type="submit" value="Reset password" disabled>
+                <div class="field field--btn__new">
+                    <input id="pwd_restore_submit" class="btn__new btn__new--form" type="submit" value="Reset password" disabled>
                 </div>
             </form>
 
@@ -241,8 +241,8 @@
                     </div>
                 </div>
 
-                <div class="field field--btn">
-                    <input id="reg_submit" class="btn btn--form" type="submit" value="Create an account" disabled>
+                <div class="field field--btn__new">
+                    <input id="reg_submit" class="btn__new btn__new--form" type="submit" value="Create an account" disabled>
                 </div>
 
                 <div class="popup__bottom">
@@ -284,7 +284,7 @@
     <div id="getest" class="popup">
         <div class="popup__inner">
             <div>
-                <label>Processing</label>
+                <label>Verification</label>
 
                 <div id="captcha_mssg" class="popup__text" style="display: none">
                     Resolve the captcha please<br>

@@ -7,6 +7,13 @@
 <head>
     <title>Create password</title>
 
+    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
+
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
 
     <!-- New design -->
@@ -42,8 +49,8 @@
                     </div>
                 </div>
 
-                <div class="field field--btn">
-                    <input id="pass_submit" class="btn btn--form" type="submit" value="Finish registration" disabled>
+                <div class="field field--btn__new">
+                    <input id="pass_submit" class="btn__new btn__new--form" type="submit" value="Finish registration" disabled>
                 </div>
             </form>
         </div>
