@@ -162,12 +162,12 @@
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <div class="field">
                     <div class="field__label">Email</div>
-                    <input class="field__input" type="email" name="username" placeholder="Email" required>
+                    <input id="auth_email" class="field__input" type="email" name="username" placeholder="Email" required>
                 </div>
                 <div class="field">
                     <div class="field__label">Password</div>
                     <div class="field__pwd-show / js-show-pwd"></div>
-                    <input class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
+                    <input id="auth_pass" class="field__input / js-pwd" type="password" name="password" placeholder="Password" required>
                 </div>
 
                 <input id="log_geetest_challenge" type="hidden" name="geetest_challenge">
@@ -175,7 +175,7 @@
                 <input id="log_geetest_seccode" type="hidden" name="geetest_seccode">
 
                 <div class="field field--btn">
-                    <input id="login_submit" class="btn btn--form" value="Authorise me">
+                    <input id="login_submit" class="btn btn--form" value="Authorise me" disabled>
                 </div>
             </form>
 
