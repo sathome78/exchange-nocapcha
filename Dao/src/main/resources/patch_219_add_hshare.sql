@@ -71,8 +71,8 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('HSR/USD', 'HSR/BTC', 'HSR/ETH'));
 
-INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
-VALUES ((SELECT id from MERCHANT WHERE name='HSR'), (select id from CURRENCY where name='HSR'), 'hsrWallet.title');
+INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code,CRYPTO_CORE_WALLET.passphrase)
+VALUES ((SELECT id from MERCHANT WHERE name='HSR'), (select id from CURRENCY where name='HSR'), 'hsrWallet.title','pass123');
 
 -- NEED TO GET LAST BLOCK FROM NODE OR BLOCK EXPLORER!!
 
