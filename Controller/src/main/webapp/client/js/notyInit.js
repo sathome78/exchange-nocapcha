@@ -32,8 +32,7 @@ $(function () {
             if (jqXHR.status == 419 || jqXHR.status == '419') {
                 /*session end*/
                 var resp = JSON.parse(jqXHR.responseText);
-                var detail = resp.detail ? resp.detail : resp.error;
-                window.location.replace(resp.url + '?errorNoty=' + detail);
+                window.location.replace(resp.url + '?errorNoty=' + resp.msg);
             } else {
                 failNoty(jqXHR);
             }
