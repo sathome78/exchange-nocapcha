@@ -40,7 +40,7 @@ $(function () {
 
         //Show error message on page load - if massage was passed to page
         +function showErrorNotyOnEntry() {
-            var msg = $('#errorNoty').val();
+            var msg = $('#errorNoty').html();
             if (!msg) {
                 msg = getParameterByName('errorNoty');
             }
@@ -111,9 +111,10 @@ function successNoty(text, typeName) {
     successNote = noty(notyOptions(text, notyType));
 }
 
-function failNoty(text) {
-    if (text.length > 0) {
-        failedNote = noty(notyOptions(text, ERROR_NOTY_TYPE['errorDefault']));
+function failNoty(jqXHR) {
+    var notyMessage = getErrorMessage(jqXHR);
+    if (notyMessage.length > 0) {
+        failedNote = noty(notyOptions(notyMessage, ERROR_NOTY_TYPE['errorDefault']));
     }
 }
 
