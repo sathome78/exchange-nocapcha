@@ -147,6 +147,12 @@ public class CryptocurrencyConfig {
                 "NYC", "NYC", 4, 20, false, false);
     }
 
+    @Bean(name = "ptcServiceImpl")
+    public BitcoinService ptcService() {
+        return new BitcoinServiceImpl("merchants/perfectcoin_wallet.properties",
+                "Perfectcoin", "PTC", 4, 20, false, false);
+    }
+
     @Bean(name = "fgcServiceImpl")
     public BitcoinService fgcService() {
         return new BitcoinServiceImpl("merchants/fgc_wallet.properties",

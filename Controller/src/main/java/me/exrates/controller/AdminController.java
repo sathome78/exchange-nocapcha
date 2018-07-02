@@ -660,7 +660,7 @@ public class AdminController {
 
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, HttpServletRequest request) {
+                                             ModelAndView model, Principal principal, HttpServletRequest request) {
     user.setStatus(user.getUserStatus());
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -670,7 +670,7 @@ public class AdminController {
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setEmail(user.getEmail()); //need for send the email
+      updateUserDto.setEmail(principal.getName()); //need for send the email
       userService.update(updateUserDto, localeResolver.resolveLocale(request));
       new SecurityContextLogoutHandler().logout(request, null, null);
       model.setViewName("redirect:/dashboard");
@@ -683,7 +683,7 @@ public class AdminController {
 
   @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
   public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                ModelAndView model, HttpServletRequest request, RedirectAttributes redir) {
+                                                ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
     user.setStatus(user.getUserStatus());
     registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -693,7 +693,7 @@ public class AdminController {
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setFinpassword(user.getFinpassword());
-      updateUserDto.setEmail(user.getEmail()); //need for send the email
+      updateUserDto.setEmail(principal.getName()); //need for send the email
       userService.update(updateUserDto, localeResolver.resolveLocale(request));
 
       final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));

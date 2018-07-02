@@ -938,6 +938,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TGAME", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "mtlServiceImpl")
+    public EthTokenService mtlServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf433089366899d83a9f26a773d59ec7ecf30355e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTL",
+                "MTL", true, ExConvert.Unit.AIWEI);
+    }
+
     @Bean(name = "egtServiceImpl")
     public EthTokenService egtService() {
         List<String> tokensList = new ArrayList<>();
@@ -946,6 +956,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "EGT",
                 "EGT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "tavittServiceImpl")
+    public EthTokenService tavittService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdd690d8824c00c84d64606ffb12640e932c1af56");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TAVITT",
+                "TAVITT", true, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:
