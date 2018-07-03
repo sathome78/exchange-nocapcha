@@ -187,14 +187,27 @@
         </div>
     </div>
 
+    <input id="restore_error" hidden value='${recoveryError}'/>
     <div id="pwd_restore" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Forgot password?</div>
+            <c:if test="${not empty recoveryError}">
+                <div class='field__error' style="text-align: center">
+                        ${recoveryError}
+                </div>
+            </c:if>
 
             <form id="pwd_restore_form" class="form" method="post">
                 <div class="field">
                     <div class="field__label">Email</div>
-                    <input id="email_pwd_restore" class="field__input" type="email" name="email" placeholder="Email" required>
+                    <c:choose>
+                        <c:when test="${not empty recoveryError}">
+                            <input id="email_pwd_restore" class="field__input" type="email" name="email" placeholder="Email" value="${userEmail}" required>
+                        </c:when>
+                        <c:otherwise>
+                            <input id="email_pwd_restore" class="field__input" type="email" name="email" placeholder="Email" required>
+                        </c:otherwise>
+                    </c:choose>
                     <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
                         Wrong email
                     </div>

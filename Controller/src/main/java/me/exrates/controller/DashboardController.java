@@ -180,15 +180,13 @@ public class DashboardController {
                   userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
           Collection<GrantedAuthority> authList = new ArrayList<>();
           authList.add(new SimpleGrantedAuthority(UserRole.ROLE_CHANGE_PASSWORD.name()));
-          Authentication auth = new UsernamePasswordAuthenticationToken(
-                  userSpring, null, authList);
+          Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
           SecurityContextHolder.getContext().setAuthentication(auth);
           user.setPassword(null);
       } else {
-          model.addObject("email", email);
-          model.addObject("user", new User());
-          model.addObject("captchaType", CAPTCHA_TYPE);
-          model.setViewName("passRecoveryError");
+          attr.addFlashAttribute("userEmail", email);
+          attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
+          model.setViewName("redirect:/dashboard");
           SecurityContextHolder.getContext().setAuthentication(null);
       }
     } catch (Exception e) {
