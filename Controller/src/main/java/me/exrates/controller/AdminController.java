@@ -634,33 +634,35 @@ public class AdminController {
 
 
   @RequestMapping(value = "/settings/uploadFile", method = POST)
-  public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+  public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+                                     RedirectAttributes redirectAttributes,
                                      final Principal principal,
                                      final Locale locale) {
-    final ModelAndView mav = new ModelAndView("globalPages/settings");
+    final RedirectView redirectView = new RedirectView("/settings");
     final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
     final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
-    mav.addObject("user", user);
+    redirectAttributes.addFlashAttribute("user", user);
     if (uploaded.isEmpty()) {
-      mav.addObject("userFiles", userService.findUserDoc(user.getId()));
-      mav.addObject("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
-      return mav;
+      redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+      redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
+      return redirectView;
     }
     try {
       userFilesService.createUserFiles(user.getId(), uploaded);
     } catch (final IOException e) {
       LOG.error(e);
-      mav.addObject("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
-      return mav;
+      redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
+      return redirectView;
     }
-    mav.addObject("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
-    mav.addObject("userFiles", userService.findUserDoc(user.getId()));
-    return mav;
+    redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
+    redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
+    redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
+    return redirectView;
   }
 
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, HttpServletRequest request) {
+                                             ModelAndView model, Principal principal, HttpServletRequest request) {
     user.setStatus(user.getUserStatus());
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -670,7 +672,7 @@ public class AdminController {
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setEmail(user.getEmail()); //need for send the email
+      updateUserDto.setEmail(principal.getName()); //need for send the email
       userService.update(updateUserDto, localeResolver.resolveLocale(request));
       new SecurityContextLogoutHandler().logout(request, null, null);
       model.setViewName("redirect:/dashboard");
@@ -683,7 +685,7 @@ public class AdminController {
 
   @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
   public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                ModelAndView model, HttpServletRequest request, RedirectAttributes redir) {
+                                                ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
     user.setStatus(user.getUserStatus());
     registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -693,7 +695,7 @@ public class AdminController {
     } else {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setFinpassword(user.getFinpassword());
-      updateUserDto.setEmail(user.getEmail()); //need for send the email
+      updateUserDto.setEmail(principal.getName()); //need for send the email
       userService.update(updateUserDto, localeResolver.resolveLocale(request));
 
       final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));

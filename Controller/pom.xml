@@ -98,6 +98,7 @@
         <profile>
             <id>dev</id>
             <build>
+
                 <finalName>ROOT</finalName>
                 <plugins>
                     <plugin>

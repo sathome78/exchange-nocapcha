@@ -4,18 +4,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
+import me.exrates.service.cache.ChartsCacheManager;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -47,6 +49,8 @@ public class WsContorller {
     @Autowired
     private UsersAlertsService usersAlertsService;
     @Autowired
+    private ChartsCacheManager chartsCacheManager;
+    @Autowired
     private ChartsCache chartsCache;
 
 
@@ -64,6 +68,11 @@ public class WsContorller {
     @SubscribeMapping("/ev/{sessionId}")
     public String subscribeEvents(@DestinationVariable String sessionId) {
         return "ok";
+    }
+
+    @SubscribeMapping("/statisticsNew")
+    public String subscribeStatisticNew() {
+        return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
     @SubscribeMapping("/statistics")
@@ -88,6 +97,13 @@ public class WsContorller {
     public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
         BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
         return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
+    }
+
+    @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
+    public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
+        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
+        String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
+        return preparedData;
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")

@@ -202,7 +202,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -440,9 +439,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
     }
-
-
-
 
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
@@ -946,6 +942,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "TGAME",
                 "TGAME", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mtlServiceImpl")
+    public EthTokenService mtlServiceImpl() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf433089366899d83a9f26a773d59ec7ecf30355e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTL",
+                "MTL", true, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "leduServiceImpl")
