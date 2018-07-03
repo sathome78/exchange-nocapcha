@@ -11,6 +11,8 @@ VALUES ((SELECT id from MERCHANT WHERE name='HSR'),
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='HSR')
   , '/client/img/merchants/HShare.png', 'HSR', (SELECT id from CURRENCY WHERE name='HSR'));
 
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='HSR'));
+
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='HSR') from USER;
 
 INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum)
