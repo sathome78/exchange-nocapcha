@@ -1008,7 +1008,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GST", false, ExConvert.Unit.ETHER);
     }
 
-
+    @Bean(name = "satServiceImpl")
+    public EthTokenService satService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc56b13ebbcffa67cfb7979b900b736b3fb480d78");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SAT",
+                "SAT", true, ExConvert.Unit.AIWEI);
+    }
     @Bean(name = "cheServiceImpl")
     public EthTokenService cheService() {
         List<String> tokensList = new ArrayList<>();
