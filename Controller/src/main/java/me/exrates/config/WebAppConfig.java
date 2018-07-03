@@ -216,7 +216,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dataSource.setPassword(dbPassword);
         return dataSource;
     }
-    
+
     @Bean(name = "hikariDataSource")
     public DataSource hikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
@@ -438,6 +438,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public BitcoinService bbccService() {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
                 "BBX", "BBX", 4, 20, false, false, false);
+    }
+
+    @Bean(name = "hsrServiceImpl")
+    public BitcoinService hcasheService() {
+        return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
+                "HSR", "HSR", 4, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
