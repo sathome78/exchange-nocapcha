@@ -493,7 +493,7 @@ a:hover {
     margin-right: 5px;
     content: "";
     vertical-align: bottom;
-    background: url(../img/icons/privacy-cbx.svg) no-repeat center/contain
+    /*background: url(../img/icons/privacy-cbx.svg) no-repeat center/contain*/
 }
 
 .btn__new {
@@ -600,6 +600,10 @@ a:hover {
 
 a:focus {
     outline: none;
+}
+
+.privacy__checkbox {
+    vertical-align: bottom;
 }
 
 

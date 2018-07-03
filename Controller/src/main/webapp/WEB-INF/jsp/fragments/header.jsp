@@ -246,7 +246,11 @@
                 </div>
 
                 <div class="popup__bottom">
-                    <div class="popup__privacy">I agree to exrates <a href="" class="popup__bottom-link">Terms of Use</a></div>
+                    <div class="popup__privacy">
+                        <input id="privacy__checked" class="privacy__checkbox" type="checkbox" />
+                        I agree to exrates
+                        <a href="/termsAndConditions" class="popup__bottom-link" target="_blank">Terms of Use</a>
+                    </div>
                     <div class="popup__bottom-row">Already have an account? <a id="go_login" class="popup__bottom-link">Log in</a></div>
                 </div>
             </form>
