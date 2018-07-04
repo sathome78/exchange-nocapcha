@@ -37,7 +37,7 @@ public class DecredServiceImpl implements DecredService {
     @Autowired
     private MerchantService merchantService;
 
-    private @Value("${stellar.account.name}")String ACCOUNT_NAME;
+    private @Value("${decred.mainAddres}")String ACCOUNT_NAME;
 
     private Merchant merchant;
     private Currency currency;
