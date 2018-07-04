@@ -77,3 +77,6 @@
 
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
+<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+    <script src="<c:url value="/client/js/admin/admin.chat.js"/>"></script>
+</sec:authorize>
