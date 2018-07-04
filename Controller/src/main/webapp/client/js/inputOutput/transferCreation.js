@@ -144,6 +144,7 @@ $(function transferCreation() {
     }
 
     function sendRequest(data) {
+        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForTransferCreate,

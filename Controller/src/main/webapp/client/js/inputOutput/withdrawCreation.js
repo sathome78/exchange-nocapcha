@@ -229,6 +229,7 @@ $(function withdrawCreation() {
     }
 
     function sendRequest(data) {
+        $pinWrong.hide();
         $loadingDialog.one("shown.bs.modal", function () {
             $.ajax({
                 url: urlForWithdrawCreate,
