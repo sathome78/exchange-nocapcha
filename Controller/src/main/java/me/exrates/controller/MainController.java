@@ -316,7 +316,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
-    public ModelAndView createPassword(@ModelAttribute User user , BindingResult result, HttpServletRequest request, Principal principal) {
+    public ModelAndView createPassword(@ModelAttribute User user , BindingResult result, HttpServletRequest request, Principal principal, RedirectAttributes attr) {
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
@@ -334,6 +334,7 @@ public class MainController {
             Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
+            attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved",null, localeResolver.resolveLocale(request)));
             return new ModelAndView("redirect:/dashboard");
         }
     }
