@@ -127,7 +127,7 @@ public class EntryController {
       /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
       */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
-        model.setViewName("globalPages/dashboard");
+        model.setViewName("globalPages/tradingview");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
