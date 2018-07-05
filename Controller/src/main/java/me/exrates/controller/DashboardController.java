@@ -187,7 +187,6 @@ public class DashboardController {
           attr.addFlashAttribute("userEmail", email);
           attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
           model.setViewName("redirect:/dashboard");
-          SecurityContextHolder.getContext().setAuthentication(null);
       }
     } catch (Exception e) {
       model.setViewName("DBError");
