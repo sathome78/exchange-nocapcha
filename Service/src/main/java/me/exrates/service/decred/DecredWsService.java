@@ -3,6 +3,8 @@ package me.exrates.service.decred;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
 import me.exrates.service.MerchantService;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.neemre.btcdcli4j.core.util.CollectionUtils.asList;
 
-@Log4j2
+@Log4j2(topic = "decred")
 @ClientEndpoint(configurator = DecredWSConfig.class)
 @Service
 @PropertySource("classpath:/merchants/decred.properties")
@@ -52,12 +54,14 @@ public class DecredWsService {
     private void init() {
         merchant = merchantService.findByName(MERCHANT);
         WS_SERVER_URL = URI.create(wsUrl);
-        scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);
+       /* scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);*/
+        connectAndSubscribe();
     }
 
 
     public void connectAndSubscribe() {
         if (session == null || !session.isOpen()) {
+            System.out.println(session);
             connect();
             subscribeToPayments();
             session.isOpen();
@@ -77,14 +81,15 @@ public class DecredWsService {
             access = true;
             log.debug("decred node ws connection established");
         } catch (Exception e) {
-            log.error("error connection to ripple node {}", e);
+            log.error("error connection to decred node {}", e);
         }
     }
 
     private void subscribeToPayments() {
-        RpcRequest rpcRequest = new RpcRequest("notifyreceived", new Object[]{address}, "1");
+        RpcRequest rpcRequest = new RpcRequest("notifyreceived", new Object[]{address}, "3");
+        /*RpcRequest rpcRequest = new RpcRequest("notifyblocks", new Object[]{}, "1");*/
         try {
-            endpoint.sendObject(rpcRequest);
+            endpoint.sendText(rpcRequest.encode());
         } catch (Exception e) {
             log.error("error subscribe {}", e);
             throw new RuntimeException(e);
@@ -127,10 +132,20 @@ public class DecredWsService {
 
         private String id;
 
-        public RpcRequest(String method, Object[] params, String id) {
+        RpcRequest(String method, Object[] params, String id) {
             this.method = method;
             this.params = params;
             this.id = id;
+        }
+
+        protected String encode() {
+            JSONObject object = new JSONObject();
+            object.put("jsonrpc", jsonrpc);
+            object.put("method", method);
+            object.put("params", params == null? null : new JSONArray(params));
+            object.put("id", id);
+            log.debug(object);
+            return object.toString();
         }
     }
 

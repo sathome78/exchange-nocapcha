@@ -37,17 +37,17 @@ public class DecredServiceImpl implements DecredService {
     @Autowired
     private MerchantService merchantService;
 
-    private @Value("${decred.mainAddres}")String ACCOUNT_NAME;
+    private @Value("${decred.mainAddress}")String ACCOUNT_NAME;
 
     private Merchant merchant;
     private Currency currency;
 
-    private static final String MERCHANT_name = "Decred";
+    private static final String MERCHANT_name = "DCR";
     private static final int MAX_DIGITS = 12;
 
     @PostConstruct
     public void init() {
-        currency = currencyService.findByName("XLM");
+        currency = currencyService.findByName("DCR");
         merchant = merchantService.findByName(MERCHANT_name);
     }
 
