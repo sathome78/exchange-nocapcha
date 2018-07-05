@@ -233,16 +233,16 @@
 
             <form id="create_me" class="form" method="post">
                 <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
-                <div class="field">
-                    <div class="field__label">Nickname</div>
-                    <input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>
-                    <div id="nickname_exists" class='field__error' style="display:none">
-                        Nichname exists
-                    </div>
-                    <div id="nichname_wrong" class='field__error' style="display:none">
-                        Wrong nichname
-                    </div>
-                </div>
+                <%--<div class="field">--%>
+                    <%--<div class="field__label">Nickname</div>--%>
+                    <%--<input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>--%>
+                    <%--<div id="nickname_exists" class='field__error' style="display:none">--%>
+                        <%--Nichname exists--%>
+                    <%--</div>--%>
+                    <%--<div id="nichname_wrong" class='field__error' style="display:none">--%>
+                        <%--Wrong nichname--%>
+                    <%--</div>--%>
+                <%--</div>--%>
                 <div class="field">
                     <div class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>

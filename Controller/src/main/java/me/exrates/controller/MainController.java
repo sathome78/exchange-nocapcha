@@ -255,7 +255,7 @@ public class MainController {
         }
 
         if (gtResult == 1) {
-            registerFormValidation.validate(user.getNickname(), user.getEmail(), null, result, localeResolver.resolveLocale(request));
+            registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
             user.setPhone("");
             if (result.hasErrors()) {
                 //TODO
