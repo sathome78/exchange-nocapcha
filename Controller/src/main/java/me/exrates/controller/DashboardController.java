@@ -167,7 +167,7 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/resetPasswordConfirm")
-  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request, Principal principal) {
+  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
     ModelAndView model = new ModelAndView();
     try {
       int userId = userService.verifyUserEmail(token);
@@ -184,19 +184,10 @@ public class DashboardController {
           SecurityContextHolder.getContext().setAuthentication(auth);
           user.setPassword(null);
       } else {
-          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-          System.out.println(authentication.getName());
-          System.out.println(authentication.getAuthorities());
-          System.out.println(authentication.getPrincipal());
-          System.out.println(authentication.getDetails());
-          System.out.println(authentication.getCredentials());
-          System.out.println();request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name());
           if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
-              System.out.println("NULL OR RESTORE");
               attr.addFlashAttribute("userEmail", email);
               attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
           } else {
-              System.out.println("LOGED IN");
               attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
           }
           model.setViewName("redirect:/dashboard");
