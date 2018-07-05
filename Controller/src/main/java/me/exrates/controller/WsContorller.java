@@ -12,12 +12,10 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.model.vo.BackDealInterval2;
-import me.exrates.service.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
 import org.json.JSONArray;
@@ -72,8 +70,8 @@ public class WsContorller {
         return "ok";
     }
 
-    @SubscribeMapping("/statistics2")
-    public String subscribeStatistic2() {
+    @SubscribeMapping("/statisticsNew")
+    public String subscribeStatisticNew() {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
@@ -104,7 +102,6 @@ public class WsContorller {
     @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
     public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
         ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
-//        Map<String, String> data = chartsCache.getData(currencyPairId);
         String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
         return preparedData;
     }

@@ -216,7 +216,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dataSource.setPassword(dbPassword);
         return dataSource;
     }
-    
+
     @Bean(name = "hikariDataSource")
     public DataSource hikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
@@ -440,6 +440,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "BBX", "BBX", 4, 20, false, false, false);
     }
 
+    @Bean(name = "hsrServiceImpl")
+    public BitcoinService hcasheService() {
+        return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
+                "HSR", "HSR", 4, 20, false, false);
+    }
+
     @Bean(name = "ethereumServiceImpl")
     public EthereumCommonService ethereumService() {
         return new EthereumCommonServiceImpl("merchants/ethereum.properties",
@@ -474,6 +480,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthereumCommonService golService() {
         return new EthereumCommonServiceImpl("merchants/goldiam.properties",
                 "GOL", "GOL", 12);
+    }
+
+    @Bean(name = "cnetServiceImpl")
+    public EthereumCommonService cnetService() {
+        return new EthereumCommonServiceImpl("merchants/contractnet.properties",
+                "CNET", "CNET", 0);
     }
 
 //    @Bean(name = "eosServiceImpl")
@@ -964,14 +976,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
 
-    @Bean(name = "egtServiceImpl")
-    public EthTokenService egtService() {
+    @Bean(name = "engtServiceImpl")
+    public EthTokenService engtService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x5dbac24e98e2a4f43adc0dc82af403fca063ce2c");
         return new EthTokenServiceImpl(
                 tokensList,
-                "EGT",
-                "EGT", true, ExConvert.Unit.ETHER);
+                "ENGT",
+                "ENGT", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "tavittServiceImpl")
