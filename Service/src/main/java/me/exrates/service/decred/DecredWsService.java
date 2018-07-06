@@ -86,10 +86,14 @@ public class DecredWsService {
     }
 
     private void subscribeToPayments() {
-        RpcRequest rpcRequest = new RpcRequest("notifyreceived", new Object[]{address}, "3");
-        /*RpcRequest rpcRequest = new RpcRequest("notifyblocks", new Object[]{}, "1");*/
+        /*RpcRequest rpcRequest = new RpcRequest("notifyreceived", new String[]{address}, null);*/
+        RpcRequest rpcRequest = new RpcRequest("notifyblocks", new Object[]{}, "1");
+        JSONArray addressesArray = new JSONArray().put(address);
+        JSONArray outpointsArray = new JSONArray();
+        RpcRequest loadFilter = new RpcRequest("loadtxfilter", new Object[]{true, addressesArray, outpointsArray},"2");
         try {
             endpoint.sendText(rpcRequest.encode());
+            endpoint.sendText(loadFilter.encode());
         } catch (Exception e) {
             log.error("error subscribe {}", e);
             throw new RuntimeException(e);
