@@ -50,13 +50,13 @@ public class DecredWsService {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
-    @PostConstruct
+    /*@PostConstruct
     private void init() {
         merchant = merchantService.findByName(MERCHANT);
         WS_SERVER_URL = URI.create(wsUrl);
-       /* scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);*/
+       *//* scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);*//*
         connectAndSubscribe();
-    }
+    }*/
 
 
     public void connectAndSubscribe() {
