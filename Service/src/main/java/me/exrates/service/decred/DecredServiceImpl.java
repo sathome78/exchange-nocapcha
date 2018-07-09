@@ -8,6 +8,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-@PropertySource("classpath:/merchants/decred.properties")
 @Log4j2(topic = "decred")
 @Service
 public class DecredServiceImpl implements DecredService {
@@ -31,13 +31,12 @@ public class DecredServiceImpl implements DecredService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
-    private RefillService refillService;
-    @Autowired
     private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
+    @Autowired
+    private DecredGrpcService decredGrpcService;
 
-    private @Value("${decred.mainAddress}")String ACCOUNT_NAME;
 
     private Merchant merchant;
     private Currency currency;
@@ -54,36 +53,17 @@ public class DecredServiceImpl implements DecredService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        Integer destinationTag = generateUniqDestinationTag(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.xlm",
-                new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
-        DecimalFormat myFormatter = new DecimalFormat("###.##");
-        return new HashMap<String, String>() {{
-            put("address",  myFormatter.format(destinationTag));
-            put("message", message);
-        }};
-    }
-
-    private Integer generateUniqDestinationTag(int userId) {
-        Optional<Integer> id;
-        int destinationTag;
-        do {
-            destinationTag = generateDestinationTag(userId);
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag),
-                    currency.getId(), merchant.getId());
-        } while (id.isPresent());
-        log.debug("tag is {}", destinationTag);
-        return destinationTag;
-    }
-
-    private Integer generateDestinationTag(int userId) {
-        String idInString = String.valueOf(userId);
-        int randomNumberLength = MAX_DIGITS - idInString.length();
-        if (randomNumberLength < 0) {
-            throw new MerchantInternalException("error generating new destination tag for stellar" + userId);
-        }
-        String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
-        return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
+        Api.NextAddressResponse response = decredGrpcService.getNewAddress();
+        String message = messageSource.getMessage("merchants.refill.btc",
+                new Object[]{response.getAddress()}, request.getLocale());
+        return new HashMap<String, String>() {
+            {
+                put("address", response.getAddress());
+                put("pubKey", response.getPublicKey());
+                put("message", message);
+                put("qr", response.getAddress());
+            }
+        };
     }
 
     @Override

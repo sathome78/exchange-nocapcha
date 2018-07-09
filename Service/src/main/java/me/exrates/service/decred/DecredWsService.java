@@ -33,7 +33,7 @@ import static com.neemre.btcdcli4j.core.util.CollectionUtils.asList;
 @PropertySource("classpath:/merchants/decred.properties")
 public class DecredWsService {
 
-    @Autowired
+    /*@Autowired
     private MerchantService merchantService;
 
     private @Value("${decred.server.ws.url}") String wsUrl;
@@ -50,13 +50,13 @@ public class DecredWsService {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
-    /*@PostConstruct
+    @PostConstruct
     private void init() {
         merchant = merchantService.findByName(MERCHANT);
         WS_SERVER_URL = URI.create(wsUrl);
-       *//* scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);*//*
+        scheduler.scheduleAtFixedRate(this::connectAndSubscribe, 5, 300, TimeUnit.SECONDS);
         connectAndSubscribe();
-    }*/
+    }
 
 
     public void connectAndSubscribe() {
@@ -86,7 +86,7 @@ public class DecredWsService {
     }
 
     private void subscribeToPayments() {
-        /*RpcRequest rpcRequest = new RpcRequest("notifyreceived", new String[]{address}, null);*/
+        *//*RpcRequest rpcRequest = new RpcRequest("notifyreceived", new String[]{address}, null);*//*
         RpcRequest rpcRequest = new RpcRequest("notifyblocks", new Object[]{}, "1");
         JSONArray addressesArray = new JSONArray().put(address);
         JSONArray outpointsArray = new JSONArray();
@@ -151,7 +151,7 @@ public class DecredWsService {
             log.debug(object);
             return object.toString();
         }
-    }
+    }*/
 
 
 }

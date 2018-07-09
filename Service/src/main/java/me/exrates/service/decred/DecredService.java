@@ -34,22 +34,12 @@ public interface DecredService extends IWithdrawable, IRefillable {
 
     @Override
     default Boolean additionalFieldForRefillIsUsed() {
-        return true;
-    }
-
-    @Override
-    default String additionalRefillFieldName() {
-        return "Description";
-    }
-
-    @Override
-    default String additionalWithdrawFieldName() {
-        return "Description";
+        return false;
     }
 
     @Override
     default Boolean additionalTagForWithdrawAddressIsUsed() {
-        return true;
+        return false;
     }
 
     @Override
