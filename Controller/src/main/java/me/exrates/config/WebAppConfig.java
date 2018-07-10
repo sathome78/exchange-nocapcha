@@ -975,6 +975,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "LEDU",
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
+    @Bean(name = "adbServiceImpl")
+    public EthTokenService adbService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2baac9330cf9ac479d819195794d79ad0c7616e3");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ADB",
+                "ADB", true, ExConvert.Unit.ETHER);
+    }
 
     @Bean(name = "cedexServiceImpl")
     public EthTokenService cedexService() {
@@ -984,6 +993,27 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "CEDEX",
                 "CEDEX", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gstServiceImpl")
+    public EthTokenService gstService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x67a9099f0008c35c61c00042cd9fb03684451097");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GST",
+                "GST", false, ExConvert.Unit.ETHER);
+    }
+
+
+    @Bean(name = "cheServiceImpl")
+    public EthTokenService cheService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x632f62fcf63cb56380ffd27d63afcf5f1349f73f");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "CHE",
+                "CHE", false, ExConvert.Unit.AIWEI);
     }
 
     @Bean(name = "engtServiceImpl")
