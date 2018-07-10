@@ -1,7 +1,7 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('BitcoinClean', 'BitcoinClean', 2, 'bclServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('BCL', 'BitcoinClean', '0', 4, 4, 8);
+VALUES ('BCL', 'BitcoinClean', '0', 8, 8, 8);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
 VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean'),
@@ -28,7 +28,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BCL/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BCL'), (select id from CURRENCY where name = 'BCL'), 'BCL/BTC', 50, 0, 'BTC', 'BCL/BTC');
+VALUES((select id from CURRENCY where name = 'BCL'), (select id from CURRENCY where name = 'BTC'), 'BCL/BTC', 50, 0, 'BTC', 'BCL/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
