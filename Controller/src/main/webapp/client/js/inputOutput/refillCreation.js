@@ -142,7 +142,11 @@ $(function refillCreation() {
             $refillParamsDialog.find('#message').html(message ? message : '');
             $refillParamsDialog.find('#payment-qr').html('');
             $refillParamsDialog.find("#continue-btn").off('click').on('click', function () {
-                successNoty("Refill request is valid for 48 hours");
+
+            $("#warning-remporary-validity-refill-request-merchant").modal({
+                backdrop: 'static'
+            });
+
                 window.open("about:blank","newwin");
                 if (!checkRefillParamsEnter()) {
                     return;
