@@ -3,10 +3,10 @@ VALUES ('BitcoinClean', 'BitcoinClean', 2, 'bclServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('BCL', 'BitcoinClean', '0', 8, 8, 8);
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
 VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean'),
         (SELECT id from CURRENCY WHERE name='BCL'),
-        0.00000001, TRUE, TRUE);
+        0.00000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean')
   , '/client/img/merchants/bitcoinclean.png', 'BCL', (SELECT id from CURRENCY WHERE name='BCL'));
@@ -70,5 +70,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('BCL/USD', 'BCL/BTC', 'BCL/ETH'));
 
-INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code)
-VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean'), (select id from CURRENCY where name='BCL'), 'bclWallet.title');
+INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, title_code, passphrase)
+VALUES ((SELECT id from MERCHANT WHERE name='BitcoinClean'), (select id from CURRENCY where name='BCL'), 'bclWallet.title', 'DNpMU7hcSyYZfXZLSb8gfjvNMgdPB9HWJwfC');
