@@ -1,10 +1,10 @@
-ALTER TABLE withdraw_request MODIFY wallet VARCHAR(128) NOT NULL;
+ALTER TABLE WITHDRAW_REQUEST MODIFY wallet VARCHAR(128) NOT NULL;
 
 
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('Bitcoinreco', 'BRECO', 2, 'brecoServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('BRECO', 'Bitcoinreco', 1, 8, 8, 8);
+VALUES ('BRECO', 'Bitcoinreco', 0, 8, 8, 8);
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='BRECO'));
 
 
@@ -25,7 +25,7 @@ INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'BRECO'));
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'USD'), 'BRECO/USD', 170, 1, 'BRECO/USD');
+VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'USD'), 'BRECO/USD', 170, 0, 'BRECO/USD');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -33,7 +33,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   JOIN ORDER_TYPE OT where CP.name='BRECO/USD';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'BTC'), 'BRECO/BTC', 160, 1, 'BTC', 'BRECO/BTC');
+VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'BTC'), 'BRECO/BTC', 160, 0, 'BTC', 'BRECO/BTC');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -41,7 +41,7 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN ORDER_TYPE OT where CP.name='BRECO/BTC';
 
 INSERT INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'ETH'), 'BRECO/ETH', 160, 1, 'ETH', 'BRECO/ETH');
+VALUES((select id from CURRENCY where name = 'BRECO'), (select id from CURRENCY where name = 'ETH'), 'BRECO/ETH', 160, 0, 'ETH', 'BRECO/ETH');
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
