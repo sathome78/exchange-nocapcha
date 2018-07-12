@@ -45,6 +45,9 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
     JOIN USER_ROLE UR
     JOIN ORDER_TYPE OT where CP.name='DCR/ETH';
 
+    INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'DCR'), 'LastBlock', '255306');
+
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
 VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'DCR'), 0.000001, 1, 1, 0);
 
