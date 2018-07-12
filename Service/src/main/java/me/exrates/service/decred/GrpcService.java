@@ -8,10 +8,16 @@ import io.grpc.netty.NettyChannelBuilder;
 import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.decred.rpc.WalletServiceGrpc;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.nem.core.utils.ArrayUtils;
+import org.nem.core.utils.StringUtils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,7 +64,15 @@ public class GrpcService {
             System.out.println("spendable " + response.getSpendable() + " total " + response.getTotal() + " unconfirmed " + response.getUnconfirmed());
         }
 
-        private static void getTransactions() {
+    private static void getTransaction() {
+            String hash = "16a7882d9e4019c9e7ed88100ce10c6629c21d804d3a6de733593dc7eaed91b7";
+            ByteString bytes = ByteString.copyFrom(hash.getBytes());
+            WalletServiceGrpc.WalletServiceBlockingStub stub = WalletServiceGrpc.newBlockingStub(channel);
+            Api.GetTransactionResponse response = stub.getTransaction(Api.GetTransactionRequest.newBuilder().setTransactionHash(bytes).build());
+            System.out.println(response.toString());
+    }
+
+    private static void getTransactions() {
             WalletServiceGrpc.WalletServiceBlockingStub stub = WalletServiceGrpc.newBlockingStub(channel);
             Iterator<Api.GetTransactionsResponse> response = stub.getTransactions(Api.GetTransactionsRequest
                     .newBuilder()
@@ -71,27 +85,29 @@ public class GrpcService {
                 List<Api.TransactionDetails> transactionDetails = txResp.getMinedTransactions().getTransactionsList();
                 Api.BlockDetails blockDetails = txResp.getMinedTransactions();
                 int block = blockDetails.getHeight();
-                System.out.println(block);
+                System.out.println("block hash "  + blockDetails.getHash().toStringUtf8());
+
                 transactionDetails.forEach(tr-> {
                     Api.TransactionDetails.TransactionType transactionType = tr.getTransactionType();
                     System.out.println("tx type " + transactionType.name());
                     tr.getCreditsList().forEach(dl-> {
                         System.out.println(dl);
                         String address = dl.getAddress();
-                        System.out.println("address " + address);
                         long amount = dl.getAmount();
-                        System.out.println("amount credit " + amount);
                     });
                     ByteString hash = tr.getHash();
-                    tr.getDescriptorForType();
-                    try {
-                        Base64 base64 = new Base64();
-                        System.out.println(base64.encodeToString(hash.toString("ISO-8859-1").getBytes()));
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
+                    decodeHash(hash.toByteArray());
                     System.out.println("-__________________________-");
                 });
             }
+        }
+
+        private static void decodeHash(byte[] bytes) {
+            if (bytes.length % 2 != 0) {
+                bytes =  org.apache.commons.lang3.ArrayUtils.insert(0, bytes, (byte) 0);
+            }
+            org.apache.commons.lang3.ArrayUtils.reverse(bytes);
+            System.out.print("hash ");
+            System.out.println(String.copyValueOf(org.springframework.security.crypto.codec.Hex.encode(bytes)));
         }
 }

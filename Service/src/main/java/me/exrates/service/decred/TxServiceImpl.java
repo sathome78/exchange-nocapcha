@@ -9,7 +9,9 @@ import me.exrates.service.decred.rpc.Api;
 import me.exrates.service.decred.rpc.WalletServiceGrpc;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.codec.Hex;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -65,7 +67,7 @@ public class TxServiceImpl implements TxService {
                        String address = dl.getAddress();
                        long amount = dl.getAmount();
                        if (decredService.getAddresses().contains(address)) {
-                           tryToRefill(address, hash.toStringUtf8(), amount);
+                           tryToRefill(address, hash.toByteArray(), amount);
                        }
                    });
                }
@@ -73,16 +75,24 @@ public class TxServiceImpl implements TxService {
         }
     }
 
-    private void tryToRefill(String address, String hash, long amount) {
+    private void tryToRefill(String address, byte[] hash, long amount) {
         try {
             Map<String, String> map = new HashMap<>();
             map.put("address", address);
-            map.put("hash", hash);
+            map.put("hash", decodeHash(hash));
             map.put("amount", normalizeAmount(amount));
             decredService.processPayment(map);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);
         }
+    }
+
+    private String decodeHash(byte[] bytes) {
+        if (bytes.length % 2 != 0) {
+            bytes =  org.apache.commons.lang3.ArrayUtils.insert(0, bytes, (byte) 0);
+        }
+        ArrayUtils.reverse(bytes);
+        return String.copyValueOf(Hex.encode(bytes));
     }
 
     private String normalizeAmount(long amount) {
