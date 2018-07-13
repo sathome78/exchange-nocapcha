@@ -1090,6 +1090,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         SLT_EMMITER);
     }
 
+    @Bean(name = "sltStellarService")
+    public StellarAsset vntStellarService() {
+        return new StellarAsset("VNT",
+                "VNT",
+                "VNT",
+                "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO");
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
