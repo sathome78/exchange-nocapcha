@@ -1037,6 +1037,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "TAVITT", true, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "skillServiceImpl")
+    public EthTokenService skillService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x417d6feeae8b2fcb73d14d64be7f192e49431978");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SKILL",
+                "SKILL", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
