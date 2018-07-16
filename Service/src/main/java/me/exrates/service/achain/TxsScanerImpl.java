@@ -50,7 +50,7 @@ public class TxsScanerImpl implements BlocksScaner {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleWithFixedDelay(this::scan, 0, 2, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::scan, 1, 5, TimeUnit.MINUTES);
     }
 
     @Override
