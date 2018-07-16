@@ -161,7 +161,7 @@ public class DashboardController {
       }
   }
 
-  @RequestMapping(value = "/forgotPassword/recover", method = RequestMethod.GET)
+  @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
   public ModelAndView recoveryPassword() {
     return new ModelAndView("fragments/recoverPassword");
   }
@@ -175,7 +175,7 @@ public class DashboardController {
           User user = userService.getUserById(userId);
           attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
                 null, localeResolver.resolveLocale(request)));
-          model.setViewName("redirect:/forgotPassword/recover");
+          model.setViewName("redirect:/passwordRecovery");
           org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), false, false, false, false,
                   userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
           Collection<GrantedAuthority> authList = new ArrayList<>();
