@@ -122,7 +122,8 @@ public class TxsScanerImpl implements BlocksScaner {
         AchainTransactionType transactionType = determinteTxType(operations);
         JSONObject amountData = trx.getJSONObject("alp_inport_asset");
         String finalAmount = parseAmount(amountData.getDouble("amount"));
-        String txHash = tx.getString(0);
+        String txInnerHash = tx.getString(0);
+        String txHash = getContractTxId(txInnerHash);
         if (transactionType.equals(AchainTransactionType.SIMPLE_TRANSFER)) {
             acceptPayment(recieveAccount, txHash, finalAmount, MERCHANT_NAME, CURRENCY_NAME);
         }
@@ -145,6 +146,16 @@ public class TxsScanerImpl implements BlocksScaner {
             }
         }
         return AchainTransactionType.convert(operation);
+    }
+
+    private String getContractTxId(String innerHash) {
+        try {
+            JSONObject res = nodeService.getPrettyContractTransaction(innerHash);
+            JSONObject resultJson2 = res.getJSONObject("result");
+            return resultJson2.getString("orig_trx_id");
+        } catch (Exception e) {
+            return innerHash;
+        }
     }
 
     private String parseAmount(Double amount) {
