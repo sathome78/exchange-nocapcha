@@ -1364,7 +1364,6 @@ public class AdminController {
   @ResponseBody
   public void checkPayments(@PathVariable String merchantName,
                                                @RequestParam(required = false) String blockhash) {
-    LOG.info("Checking payments for hash " + blockhash);
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
     walletService.scanForUnprocessedTransactions(blockhash);
   }

@@ -183,18 +183,15 @@ $(function () {
     });
 
     $('#submit-check-payments-btn').click(function () {
-        console.log('Start checking');
         $('#btc-check-payments-modal').modal('hide');
         $('#submit-check-payments-btn').prop('disabled', true);
         var url = urlBase + 'checkPayments';
         var data = {
           blockhash: $('#start-block-hash').val()
         };
-        console.log('Data: ' + data);
         $loadingDialog.modal({
             backdrop: 'static'
         });
-        console.log('Sending request');
        $.ajax(url, {
            headers: {
                'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -202,7 +199,6 @@ $(function () {
            type: 'POST',
            data: data,
            complete: function () {
-               console.log('request completed');
                $loadingDialog.modal('hide');
                $('#submit-check-payments-btn').prop('disabled', false);
            }
