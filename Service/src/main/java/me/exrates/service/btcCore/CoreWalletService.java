@@ -35,8 +35,10 @@ public interface CoreWalletService {
   List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
   
   List<BtcTransactionHistoryDto> listAllTransactions();
-  
-  List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
+
+    List<BtcPaymentFlatDto> listSinceBlockEx(@Nullable String blockHash, Integer merchantId, Integer currencyId);
+
+    List<BtcPaymentFlatDto> listSinceBlock(String blockHash, Integer merchantId, Integer currencyId);
   
   BigDecimal estimateFee(int blockCount);
   
@@ -65,4 +67,6 @@ public interface CoreWalletService {
     String getTxIdByHex(String hex);
 
   String getLastBlockHash();
+
+  BtcBlockDto getBlockByHash(String blockHash);
 }
