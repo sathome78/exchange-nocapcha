@@ -285,7 +285,6 @@ function handleEventsMessage(data) {
             window.location = data.redirect.url;
             /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-
     }
 
 }
