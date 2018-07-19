@@ -578,9 +578,14 @@ public class OnlineRestController {
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(HttpServletRequest request) {
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "ico", required = false) Boolean ico,   HttpServletRequest request) {
     Locale locale = localeResolver.resolveLocale(request);
-    List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
+    List<CurrencyPair> list;
+    if (ico) {
+      list = currencyService.getIcoCurrencyPairsInAlphabeticOrder();
+    } else {
+      list = currencyService.getNotIcoCurrencyPairsInAlphabeticOrder();
+    }
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
     return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }

@@ -114,6 +114,19 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
+  public List<CurrencyPair> getIcoCurrencyPairsInAlphabeticOrder() {
+    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs();
+    return result.stream().filter(p->p.isIco()).sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<CurrencyPair> getNotIcoCurrencyPairsInAlphabeticOrder() {
+    List<CurrencyPair> result = currencyDao.getAllCurrencyPairs();
+    return result.stream().filter(p->!p.isIco()).sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.toList());
+
+  }
+
+  @Override
   public CurrencyPair findCurrencyPairById(int currencyPairId) {
     try {
       return currencyDao.findCurrencyPairById(currencyPairId);

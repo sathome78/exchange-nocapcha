@@ -40,7 +40,11 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
 
-    CurrencyPair findCurrencyPairById(int currencyPairId);
+    List<CurrencyPair> getIcoCurrencyPairsInAlphabeticOrder();
+
+  List<CurrencyPair> getNotIcoCurrencyPairsInAlphabeticOrder();
+
+  CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
 

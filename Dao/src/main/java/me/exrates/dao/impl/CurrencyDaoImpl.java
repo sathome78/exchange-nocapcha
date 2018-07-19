@@ -49,6 +49,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     currencyPair.setCurrency2(currency2);
       /**/
     currencyPair.setMarket(rs.getString("market"));
+    currencyPair.setIco(rs.getBoolean("ico"));
 
     return currencyPair;
 
@@ -187,13 +188,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
         "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
         "(select name from CURRENCY where id = currency2_id) as currency2_name " +
         " FROM CURRENCY_PAIR " +
-        " WHERE hidden IS NOT TRUE " +
+        " WHERE hidden IS NOT TRUE AND " +
         " ORDER BY -pair_order DESC";
-
     List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, currencyPairRowMapper);
-
     return currencyPairList;
   }
+
 
   @Override
   public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {

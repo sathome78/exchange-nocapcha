@@ -10,6 +10,7 @@ public class CurrencyPair {
     private Currency currency2;
     private String market;
     private String marketName;
+    private boolean ico;
 
     /*constructors*/
     public CurrencyPair() {
@@ -102,5 +103,13 @@ public class CurrencyPair {
 
     public void setMarketName(String marketName) {
         this.marketName = marketName;
+    }
+
+    public boolean isIco() {
+        return ico;
+    }
+
+    public void setIco(boolean ico) {
+        this.ico = ico;
     }
 }
