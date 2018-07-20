@@ -31,13 +31,11 @@
         <div class="cols-md-8">
             <ul class="nav header__nav">
                 <sec:authorize access="isAuthenticated()">
-                    <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
-                            code="dashboard.trading"/></a></li>
-                    <li id="menu-mywallets"><a href="#" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
+                    <li><a href="/dashboard?startupSubPage=wallet" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
                     </li>
-                    <li id="menu-myhistory"><a href="#" class="nav__link"><loc:message code="usermenu.myorders"/></a>
+                    <li><a href="/dashboard?startupSubPage=history" class="nav__link"><loc:message code="usermenu.myorders"/></a>
                     </li>
-                    <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
+                    <li><a href="/dashboard?startupSubPage=orders" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
                 <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
@@ -45,11 +43,11 @@
 
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
-                            <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
-                                <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
-                                    <loc:message code="admin.title"/>
-                                </a>
-                            </sec:authorize>
+                        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+                            <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
+                                <loc:message code="admin.title"/>
+                            </a>
+                        </sec:authorize>
                         <sec:authorize access="<%=AdminController.traderAuthority%>">
                             <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>">
                                 <loc:message code="manageOrder.title"/>
@@ -63,25 +61,23 @@
                     </li>
                 </sec:authorize>
 
-                    <li>
-                        <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
-                            ICO
-                        </a>
-                    </li>
-                    <li>
-                        <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
-                           class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
-                    </li>
-                    <li>
-                        <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
-                           class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
-                    </li>
-                    <sec:authorize access="isAuthenticated()">
-                        <li id="hello-my-friend"><a class="nav__link" href="">
 
-                            <strong><sec:authentication property="principal.username"/></strong></a>
-                        </li>
-                    </sec:authorize>
+                <li id="menu-traiding"><a href="/dashboard" class="nav__link  "><loc:message
+                        code="dashboard.trading"/></a></li>
+                <li>
+                    <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
+                       class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
+                </li>
+                <li>
+                    <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
+                       class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
+                </li>
+                <sec:authorize access="isAuthenticated()">
+                    <li id="hello-my-friend"><a class="nav__link" href="">
+
+                        <strong><sec:authentication property="principal.username"/></strong></a>
+                    </li>
+                </sec:authorize>
 
 
 
@@ -129,7 +125,7 @@
 
                                         <div></div>
                                             <%--QR--%>
-                                            <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>
+                                        <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr"></span></div>
                                         <div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white"><loc:message code="dashboard.qrLogin.login"/></span></div>
                                     </form>
                                     <sec:authorize access="isAuthenticated()">

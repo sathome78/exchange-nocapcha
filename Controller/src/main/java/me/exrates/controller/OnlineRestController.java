@@ -581,7 +581,7 @@ public class OnlineRestController {
   public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "ico", required = false) Boolean ico,   HttpServletRequest request) {
     Locale locale = localeResolver.resolveLocale(request);
     List<CurrencyPair> list;
-    if (ico) {
+    if (ico != null && ico) {
       list = currencyService.getIcoCurrencyPairsInAlphabeticOrder();
     } else {
       list = currencyService.getNotIcoCurrencyPairsInAlphabeticOrder();

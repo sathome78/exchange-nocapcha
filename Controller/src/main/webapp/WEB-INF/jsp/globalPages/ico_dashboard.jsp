@@ -49,17 +49,18 @@
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard_ico-init.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
+ <%--   <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/inputOutput/refillConfirmationDialog.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/inputOutput/inputOutput.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>--%>
     <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
@@ -94,7 +95,7 @@
 </head>
 <body>
 
-<%@include file="../fragments/header.jsp" %>
+<%@include file="../fragments/header_ico.jsp" %>
 <main class="container">
 
     <%@include file="../fragments/alerts.jsp" %>
@@ -114,13 +115,12 @@
                 ${startupSubPage}
             </div>
             <%@include file="../fragments/ico_trading_center.jsp" %>
-            <%@include file="../fragments/orders-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
-<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
+<%--<%@include file="../fragments/modal/poll_invite_modal.jsp" %>--%>
 <%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="session">${sessionId}</span>

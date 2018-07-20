@@ -18,6 +18,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
+import org.apache.commons.codec.binary.StringUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -75,9 +76,12 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefreshForAllPairs();
     }
 
-    @SubscribeMapping("/statistics")
-    public String subscribeStatistic() {
-        return orderService.getAllCurrenciesStatForRefresh();
+    @SubscribeMapping("/statistics/{ico}")
+    public String subscribeStatistic(@DestinationVariable String ico) {
+        if (!org.springframework.util.StringUtils.isEmpty(ico)) {
+            return orderService.getAllCurrenciesStatForRefresh();
+        }
+
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")

@@ -1,5 +1,6 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +13,8 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
+  @JsonIgnore
+  private boolean ico;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
