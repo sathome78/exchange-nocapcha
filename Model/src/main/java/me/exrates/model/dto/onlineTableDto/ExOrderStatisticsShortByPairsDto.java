@@ -31,6 +31,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
+    this.ico = exOrderStatisticsShortByPairsDto.isIco();
   }
 
   @Override

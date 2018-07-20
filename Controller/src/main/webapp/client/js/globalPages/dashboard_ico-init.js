@@ -84,7 +84,6 @@ function connectAndReconnect() {
 function subscribeForAlerts() {
     if (alertsSubscription == undefined) {
         var lang = $("#language").text().toUpperCase().trim();
-        console.log('lang ' + lang);
         var headers = {'X-CSRF-TOKEN': csrf};
         alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
             var messageBody = JSON.parse(message.body);
@@ -150,7 +149,7 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics/ico ';
+        var path = '/app/statistics/ICO_CURRENCIES_STATISTIC';
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
             messageBody.forEach(function(object){
@@ -261,11 +260,11 @@ function drawTechAlert(object) {
 
 function handleStatisticMessages(object) {
     switch (object.type){
-        case "CURRENCIES_STATISTIC" : {
+        case "ICO_CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
             break;
         }
-        case "CURRENCY_STATISTIC" : {
+        case "ICO_CURRENCY_STATISTIC" : {
             object.data.forEach(function(object){
                 leftSider.updateStatisticsForCurrency(object);
             });
@@ -462,15 +461,10 @@ $(function dashdoardInit() {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
             newChartPeriod = data.period;
-            leftSider = new LeftSiderClass();
+            leftSider = new LeftSiderClass(true);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
-           /* myWallets = new MyWalletsClass();
-            myStatements = new MyStatementsClass();
-            myHistory = new MyHistoryClass(data.currencyPair.name);
-            orders = new OrdersClass(data.currencyPair.name);*/
-            showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
 
@@ -535,12 +529,6 @@ function showPage(pageId) {
     $currentPageMenuItem = $('#' + $('#' + pageId).data('menuitemid'));
 }
 
-function showSubPage(subPageId) {
-    if (subPageId) {
-        $currentSubMenuItem = $('#' + $('#' + subPageId).data('submenuitemid'));
-        $($currentSubMenuItem).click();
-    }
-}
 
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
@@ -599,71 +587,3 @@ function parseNumber(numberStr) {
     return parseFloat(numberStr);
 }
 
-
-function doPoll($pollDialog) {
-    Survey.Survey.cssType = "bootstrap";
-    var surveyToken;
-    var surveyData = getSurveyData(function (response) {
-        var surveyData = response;
-        surveyToken = surveyData.token;
-        var surveyJSON = JSON.parse(surveyData.json);
-        var surveyItems = surveyData.items;
-        /**/
-        surveyJSON.locale = $.cookie("myAppLocaleCookie");
-        surveyJSON.pages.forEach(function (page, pi) {
-            page.elements.forEach(function (element, ei) {
-                var name = element.name;
-                surveyItems.forEach(function (item) {
-                    if (item.name == name) {
-                        surveyJSON.pages[pi].elements[ei].title = item.title;
-                        return;
-                    }
-                })
-            });
-        });
-        $pollDialog.find("#description").html(surveyData.description);
-        /**/
-        var survey = new Survey.Model(surveyJSON);
-        $("#surveyContainer").Survey({
-            model: survey,
-            onComplete: sendDataToServer
-        });
-    });
-
-    function sendDataToServer(survey) {
-        survey.sendResult(surveyToken);
-        var result = JSON.stringify(survey.data);
-        savePollAsDone(surveyToken, result);
-    }
-
-    function getSurveyData(callback) {
-        $.ajax({
-            type: 'GET',
-            url: '/survey/getSurvey',
-            success: function (data) {
-                callback(data);
-            }
-        });
-    }
-
-    function savePollAsDone(surveyToken, result) {
-        $.ajax({
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val(),
-            },
-            contentType: "text/plain; charset=utf-8",
-            type: 'POST',
-            url: '/survey/saveAsDone?surveyToken=' + surveyToken,
-            data: result,
-        });
-    }
-
-    function successRegister (event) {
-        if ($('#successRegister').text() != undefined ) {
-            gtag('event', 'sendregister', { 'event_category': 'register', 'event_action': 'sendregister', });
-            yaCounter47624182.reachGoal('sendregister');
-            console.log('it works!');
-            return true;
-        }
-    }
-}

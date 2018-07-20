@@ -11,6 +11,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%----%>
 
 <div id="trading" data-menuitemid="menu-traiding" class="dashboard center-frame-container hidden">
@@ -172,7 +173,7 @@
         </div>
         <!-- end cols-md-4 -->
 
-        <sec:authorize access="<%=AdminController.traderAuthority%>">
+        <security:authorize access="hasAuthority('ICO_MARKET_MAKER')">
             <div class="cols-md-4">
                 <div class="lightblue em-08">
                     <span class="red margin-right"><loc:message code="dashboard.SELL"/></span>
@@ -256,7 +257,7 @@
                 </div>
                 <!-- end buyBTC -->
             </div>
-        </sec:authorize>
+        </security:authorize>
 
         <div class="cols-md-4">
             <div id="orders-history-table-wrapper" class="margin-top-10">

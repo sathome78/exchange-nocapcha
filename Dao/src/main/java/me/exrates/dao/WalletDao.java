@@ -41,7 +41,7 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 

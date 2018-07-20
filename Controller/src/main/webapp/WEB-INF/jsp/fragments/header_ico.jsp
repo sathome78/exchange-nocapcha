@@ -45,7 +45,7 @@
                     <li id="adminka-entry">
                         <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                             <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
-                                <loc:message code="admin.title"/>
+                                <loc:message code="admin.ti tle"/>
                             </a>
                         </sec:authorize>
                         <sec:authorize access="<%=AdminController.traderAuthority%>">

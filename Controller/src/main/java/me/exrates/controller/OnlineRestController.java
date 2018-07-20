@@ -147,17 +147,17 @@ public class OnlineRestController {
   @OnlineMethod
   @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
   public Map<String, Object> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+                                                                    @RequestParam(defaultValue = "false") Boolean ico,
                                                                              Principal principal, HttpServletRequest request) {
     if (principal == null) {
       return null;
     }
-
     String email = principal.getName();
     String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
 
-    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request), ico);
     HashMap<String, Object> map = new HashMap<String, Object>();
     map.put("mapWallets", resultWallet);
 

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -143,6 +144,7 @@ public class EntryController {
         }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
+                    .filter(p->!p.isIco())
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
@@ -201,6 +203,7 @@ public class EntryController {
         }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
+                    .filter(p->p.isIco())
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));

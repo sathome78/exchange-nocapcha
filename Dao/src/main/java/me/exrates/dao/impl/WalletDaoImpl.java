@@ -158,16 +158,17 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico) {
     final String sql =
         " SELECT CURRENCY.name, CURRENCY.description, WALLET.active_balance, (WALLET.reserved_balance + WALLET.active_balance) as total_balance " +
             " FROM USER " +
             "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 " +
+            " WHERE USER.email = :email  AND CURRENCY.hidden != 1 AND ico=:ico " +
             " ORDER BY active_balance DESC, CURRENCY.name ASC ";
-    final Map<String, String> params = new HashMap<String, String>() {{
+    final Map<String, Object> params = new HashMap() {{
       put("email", email);
+      put("ico", ico);
     }};
     return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
       MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();

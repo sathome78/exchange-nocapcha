@@ -50,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -236,10 +235,24 @@ public class OrderServiceImpl implements OrderService {
       }
     return result;
   }
+
    @Transactional(readOnly = true)
    @Override
-   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx() {
-     return this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
+      List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+      switch (refreshObjectsEnum) {
+          case ICO_CURRENCIES_STATISTIC: {
+              dto = dto.stream().filter(p->p.isIco()).collect(toList());
+              break;
+          }
+          case MAIN_CURRENCIES_STATISTIC: {
+              dto = dto.stream().filter(p->!p.isIco()).collect(toList());
+              break;
+          }
+          default: {
+          }
+      }
+     return dto;
    }
 
     @Transactional(readOnly = true)
@@ -1587,9 +1600,9 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public String getAllCurrenciesStatForRefresh() {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(),
-                                                      RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
+  public String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum) {
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.getOrdersStatisticByPairsEx(refreshObjectsEnum),
+                                                      refreshObjectsEnum.name());
     try {
       return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
     } catch (JsonProcessingException e) {
@@ -1611,15 +1624,32 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public String getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.getStatForSomeCurrencies(currencyIds),
-            RefreshObjectsEnum.CURRENCY_STATISTIC.name());
-    try {
-      return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
-    } catch (JsonProcessingException e) {
-      log.error(e);
-      return null;
+  public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+    List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
+    List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(ExOrderStatisticsShortByPairsDto::isIco).collect(toList());
+    List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p->!p.isIco()).collect(toList());
+    Map<RefreshObjectsEnum, String> res = new HashMap<>();
+    if (!icos.isEmpty()) {
+      OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
+      res.put(RefreshObjectsEnum.ICO_CURRENCY_STATISTIC, new JSONArray(){{
+        try {
+          put(objectMapper.writeValueAsString(wrapper));
+        } catch (JsonProcessingException e) {
+          logger.error(e);
+        }
+      }}.toString());
     }
+    if (!mains.isEmpty()) {
+      OrdersListWrapper wrapper = new OrdersListWrapper(mains, RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC.name());
+      res.put(RefreshObjectsEnum.MAIN_CURRENCY_STATISTIC, new JSONArray(){{
+        try {
+          put(objectMapper.writeValueAsString(wrapper));
+        } catch (JsonProcessingException e) {
+          log.error(e);
+        }
+      }}.toString());
+    }
+    return res;
   }
 
   @Override

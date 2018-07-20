@@ -162,6 +162,7 @@ public class AdminController {
   public static String traderAuthority;
   public static String botAuthority;
 
+
   @PostConstruct
   private void init() {
     traderAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.TRADER);
