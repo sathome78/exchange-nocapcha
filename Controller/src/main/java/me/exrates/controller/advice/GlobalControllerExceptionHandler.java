@@ -62,8 +62,6 @@ public class GlobalControllerExceptionHandler {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-
-
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     @ResponseBody

@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
+import me.exrates.config.handlerException.HandlerExceptionToViewResolver;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
@@ -63,6 +64,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
@@ -108,7 +110,7 @@ import java.util.stream.Collectors;
     "classpath:/angular.properties",
     "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter {
+public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     private
     @Value("${db.user}")
