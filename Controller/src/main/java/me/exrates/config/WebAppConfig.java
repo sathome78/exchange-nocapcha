@@ -1116,6 +1116,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
     }
 
+    @Bean(name = "vntStellarService")
+    public StellarAsset vntStellarService() {
+        return new StellarAsset("VNT",
+                "VNT",
+                "VNT",
+                "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO");
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         HttpClientBuilder b = HttpClientBuilder.create();
