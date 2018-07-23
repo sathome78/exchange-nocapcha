@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title><loc:message code="accessDenied.title" /> </title>
+<title><loc:message code="error.404NotFound.message.title" /> </title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
     <meta charset="UTF-8">
 
