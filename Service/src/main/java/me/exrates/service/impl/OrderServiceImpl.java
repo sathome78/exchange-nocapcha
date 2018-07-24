@@ -41,12 +41,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -242,11 +244,11 @@ public class OrderServiceImpl implements OrderService {
       List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
       switch (refreshObjectsEnum) {
           case ICO_CURRENCIES_STATISTIC: {
-              dto = dto.stream().filter(p->p.isIco()).collect(toList());
+              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
               break;
           }
           case MAIN_CURRENCIES_STATISTIC: {
-              dto = dto.stream().filter(p->!p.isIco()).collect(toList());
+              dto = dto.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
               break;
           }
           default: {
@@ -355,6 +357,14 @@ public class OrderServiceImpl implements OrderService {
         }
       }
     }
+
+    if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+      throw new RuntimeException("unsupported type of order");
+    }
+    if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
+      validateIcoOrder(errors, errorParams, orderCreateDto);
+    }
+
     if (orderCreateDto.getAmount() != null) {
       if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
         String key1 = "amount_" + errors.size();
@@ -398,6 +408,25 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     return orderValidationDto;
+  }
+
+  private void validateIcoOrder(Map<String, Object> errors, Map<String, Object[]> errorParams, OrderCreateDto orderCreateDto) {
+    if (orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
+      throw new RuntimeException("unsupported type of order");
+    }
+    if (orderCreateDto.getOperationType() == OperationType.SELL) {
+      SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+              .stream()
+              .filter(p-> p.getAuthority().equals(UserRole.ICO_MARKET_MAKER.name())).findAny().orElseThrow(()-> new RuntimeException("not allowed"));
+    }
+    if (orderCreateDto.getOperationType() == OperationType.BUY) {
+      Optional<BigDecimal> lastRate = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType().getType());
+      if (!lastRate.isPresent() || orderCreateDto.getExchangeRate().compareTo(lastRate.get()) < 0) {
+        errors.put("exrate_" + errors.size(), "order_ico.no_orders_for_rate");
+      }
+    }
+
+
   }
 
   @Override
@@ -451,8 +480,9 @@ public class OrderServiceImpl implements OrderService {
         ExOrder exOrder = new ExOrder(orderCreateDto);
         OrderBaseType orderBaseType = orderCreateDto.getOrderBaseType();
         if (orderBaseType == null) {
-          orderBaseType = OrderBaseType.LIMIT;
-          exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+          CurrencyPairType type = exOrder.getCurrencyPair().getPairType();
+          orderBaseType = type == CurrencyPairType.ICO ? OrderBaseType.ICO : OrderBaseType.LIMIT;
+          exOrder.setOrderBaseType(orderBaseType);
         }
         TransactionSourceType sourceType;
         switch (orderBaseType) {
@@ -460,6 +490,11 @@ public class OrderServiceImpl implements OrderService {
             createdOrderId = stopOrderService.createOrder(exOrder);
             sourceType = TransactionSourceType.STOP_ORDER;
             break;
+          }
+          case ICO: {
+            if (orderCreateDto.getOperationType() == OperationType.BUY) {
+              return 0;
+            }
           }
           default: {
             createdOrderId = orderDao.createOrder(exOrder);
@@ -526,7 +561,6 @@ public class OrderServiceImpl implements OrderService {
     }
     successMessage.append("\"}");
     return Optional.of(successMessage.toString());
-
   }
 
   @Override
@@ -567,7 +601,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
         orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
         orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
-      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0 && orderCreateDto.getOrderBaseType() != OrderBaseType.ICO) {
         User user = userService.getUserById(orderCreateDto.getUserId());
         profileData.setTime2();
         OrderCreateDto remainderNew = prepareNewOrder(
@@ -607,6 +641,7 @@ public class OrderServiceImpl implements OrderService {
             orderForPartialAccept.getAmountBase().toString(), newOrder.getCurrencyPair().getCurrency1().getName()});*/
     return amountForPartialAccept;
   }
+
 
   @Transactional(readOnly = true)
   @Override
@@ -1008,7 +1043,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
     final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
     result.addAll(currencyPairList.stream()
         .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
             && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
@@ -1626,8 +1661,8 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
     List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
-    List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(ExOrderStatisticsShortByPairsDto::isIco).collect(toList());
-    List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p->!p.isIco()).collect(toList());
+    List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
+    List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());
     Map<RefreshObjectsEnum, String> res = new HashMap<>();
     if (!icos.isEmpty()) {
       OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());

@@ -6,6 +6,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -41,7 +42,7 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, CurrencyPairType type);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 

@@ -144,7 +144,7 @@ public class EntryController {
         }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
-                    .filter(p->!p.isIco())
+                    .filter(p->p.getPairType() == CurrencyPairType.MAIN)
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
@@ -203,7 +203,7 @@ public class EntryController {
         }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
-                    .filter(p->p.isIco())
+                    .filter(p->p.getPairType() == CurrencyPairType.ICO)
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));

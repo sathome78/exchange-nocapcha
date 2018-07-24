@@ -106,8 +106,8 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, Boolean ico) {
-    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale, ico);
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
+    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale, type);
     /*if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyWalletsStatisticsDto>() {{
         add(new MyWalletsStatisticsDto(false));
@@ -250,8 +250,8 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico) {
-    return walletDao.getAllWalletsForUserReduced(email, locale, ico);
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, CurrencyPairType type) {
+    return walletDao.getAllWalletsForUserReduced(email, locale, type);
   }
 
   @Override

@@ -2,11 +2,11 @@
  * Created by Valk on 05.06.2016.
  */
 
-function LeftSiderClass(ico) {
+function LeftSiderClass(type) {
     if (LeftSiderClass.__instance) {
         return LeftSiderClass.__instance;
     } else if (this === window) {
-        return new LeftSiderClass(currentCurrencyPair, ico);
+        return new LeftSiderClass(currentCurrencyPair, type);
     }
     LeftSiderClass.__instance = this;
     /**/
@@ -34,8 +34,10 @@ function LeftSiderClass(ico) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForMyWallets');
         }
         var $mywalletsTable = $('#mywallets_table').find('tbody');
-        var url = '/dashboard/myWalletsStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
-        if (thisIco) url = url + "&ico=true";
+        if (!type) {
+            type = 'MAIN'
+        }
+        var url = '/dashboard/myWalletsStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false') + '&type=' + type;
         console.log(thisIco);
         $.ajax({
             url: url,
@@ -92,7 +94,7 @@ function LeftSiderClass(ico) {
     };
 
     /*===========================================================*/
-    (function init(ico) {
+    (function init(type) {
         clearTimeout(timeOutIdForStatisticsForAllCurrencies);
         $.ajax({
             url: '/dashboard/firstentry',
@@ -101,8 +103,7 @@ function LeftSiderClass(ico) {
               /*  that.getStatisticsForAllCurrencies();*/
             }
         });
-        console.log('ico ' + ico);
-        that.getStatisticsForMyWallets(undefined, ico);
+        that.getStatisticsForMyWallets(undefined, type);
         $('#refferal-generate').on('click', generateReferral);
         $('#refferal-copy').on('click', function () {
             selectAndCopyText($('#refferal-reference'));
@@ -117,7 +118,7 @@ function LeftSiderClass(ico) {
             excludeZero();
         });
         generateReferral();
-    })(ico);
+    })(type);
 
     function setPairFilter() {
         var str = $('#pair-filter').val().toUpperCase();
