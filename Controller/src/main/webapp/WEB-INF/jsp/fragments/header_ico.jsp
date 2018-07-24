@@ -79,9 +79,6 @@
                     </li>
                 </sec:authorize>
 
-
-
-
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
                         <c:if test="${showEntrance}">

@@ -1,18 +1,22 @@
 package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
+import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
+import me.exrates.service.geetest.GeetestLib;
+import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +34,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
@@ -75,6 +81,9 @@ public class DashboardController {
   @Value("${captcha.type}")
   String CAPTCHA_TYPE;
 
+  @Autowired
+  private GeetestLib geetest;
+
   @RequestMapping(value = {"/dashboard/locale"})
   @ResponseBody
   public void localeSwitcherCommand(
@@ -107,75 +116,81 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
-  public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, RedirectAttributes attr) {
-    switch (CAPTCHA_TYPE) {
-      case "BOTDETECT": {
-        String captchaId = request.getParameter("captchaId");
-        Captcha captcha = Captcha.load(request, captchaId);
-        String captchaCode = request.getParameter("captchaCode");
-        if (!captcha.validate(captchaCode)) {
-          String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-          attr.addFlashAttribute("cpch", correctCapchaRequired);
-          attr.addFlashAttribute("user", user);
-          return new ModelAndView("redirect:/forgotPassword");
-        }
-        break;
+  @ResponseBody
+  public ResponseEntity forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, RedirectAttributes attr) {
+      String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
+      String validate = request.getParameter(GeetestLib.fn_geetest_validate);
+      String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
+
+      int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+      String userid = (String)request.getSession().getAttribute("userid");
+
+      HashMap<String, String> param = new HashMap<>();
+      param.put("user_id", userid);
+
+      int gtResult = 0;
+      if (gt_server_status_code == 1) {
+          gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
+          LOG.info(gtResult);
+      } else {
+          LOG.error("failback:use your own server captcha validate");
+          gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
+          LOG.error(gtResult);
       }
-      case "RECAPTCHA": {
-        String recapchaResponse = request.getParameter("g-recaptcha-response");
-        if (!verifyReCaptcha.verify(recapchaResponse)) {
-          String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-          ModelAndView modelAndView = new ModelAndView("/forgotPassword", "user", user);
-          modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-          modelAndView.addObject("cpch", correctCapchaRequired);
-          return modelAndView;
-        }
-        break;
+
+      if (gtResult == 1) {
+          registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
+          if (result.hasErrors()) {
+              //TODO
+              throw new RuntimeException(result.toString());
+          }
+          String email = user.getEmail();
+          user = userService.findByEmail(email);
+          UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+          updateUserDto.setEmail(email);
+          userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
+
+          Map<String, Object> body = new HashMap<>();
+          body.put("result",messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
+          body.put("email", email);
+          return ResponseEntity.ok(body);
       }
-    }
-        /**/
-    registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      attr.addFlashAttribute("org.springframework.validation.BindingResult.user", result);
-      attr.addFlashAttribute("user", user);
-      return new ModelAndView("redirect:/forgotPassword");
-    }
-    String email = user.getEmail();
-    user = userService.findByEmail(email);
-    UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-    updateUserDto.setEmail(email);
-    userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
-        /**/
-    request.getSession().setAttribute("successNoty", messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request)));
-    model.setViewName("redirect:/dashboard");
-        /**/
-    return model;
+      else {
+          //TODO
+          throw new RuntimeException("Geetest error");
+      }
+  }
+
+  @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
+  public ModelAndView recoveryPassword() {
+    return new ModelAndView("fragments/recoverPassword");
   }
 
   @RequestMapping(value = "/resetPasswordConfirm")
-  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email) {
+  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
     ModelAndView model = new ModelAndView();
     try {
       int userId = userService.verifyUserEmail(token);
       if (userId != 0) {
           User user = userService.getUserById(userId);
-          model.addObject("user", user);
-          model.addObject("captchaType", CAPTCHA_TYPE);
-          model.setViewName("updatePassword");
+          attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
+                null, localeResolver.resolveLocale(request)));
+          model.setViewName("redirect:/passwordRecovery");
           org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), false, false, false, false,
                   userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
-          Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
+          Collection<GrantedAuthority> authList = new ArrayList<>();
           authList.add(new SimpleGrantedAuthority(UserRole.ROLE_CHANGE_PASSWORD.name()));
-          Authentication auth = new UsernamePasswordAuthenticationToken(
-                  userSpring, null, authList);
+          Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
           SecurityContextHolder.getContext().setAuthentication(auth);
           user.setPassword(null);
       } else {
-          model.addObject("email", email);
-          model.addObject("user", new User());
-          model.addObject("captchaType", CAPTCHA_TYPE);
-          model.setViewName("passRecoveryError");
-          SecurityContextHolder.getContext().setAuthentication(null);
+          if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
+              attr.addFlashAttribute("userEmail", email);
+              attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
+          } else {
+              attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick",null, localeResolver.resolveLocale(request)));
+          }
+          model.setViewName("redirect:/dashboard");
       }
     } catch (Exception e) {
       model.setViewName("DBError");
@@ -186,32 +201,6 @@ public class DashboardController {
 
   @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
   public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request, Principal principal) {
-    switch (CAPTCHA_TYPE) {
-      case "BOTDETECT": {
-        String captchaId = request.getParameter("captchaId");
-        Captcha captcha = Captcha.load(request, captchaId);
-        String captchaCode = request.getParameter("captchaCode");
-        if (!captcha.validate(captchaCode)) {
-          String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-          ModelAndView modelAndView = new ModelAndView("/updatePassword", "user", user);
-          modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-          modelAndView.addObject("cpch", correctCapchaRequired);
-          return modelAndView;
-        }
-        break;
-      }
-      case "RECAPTCHA": {
-        String recapchaResponse = request.getParameter("g-recaptcha-response");
-        if (!verifyReCaptcha.verify(recapchaResponse)) {
-          String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-          ModelAndView modelAndView = new ModelAndView("/updatePassword", "user", user);
-          modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-          modelAndView.addObject("cpch", correctCapchaRequired);
-          return modelAndView;
-        }
-        break;
-      }
-    }
         /**/
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
