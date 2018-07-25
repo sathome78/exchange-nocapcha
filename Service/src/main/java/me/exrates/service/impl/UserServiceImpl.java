@@ -376,6 +376,7 @@ public class UserServiceImpl implements UserService {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
           ":" + request.getServerPort();
     }
+    confirmationUrl =  confirmationUrl + "&view=ico&pair=BTC/USD";
     email.setMessage(
         messageSource.getMessage(emailText, null, locale) +
             " <a href='" +

@@ -40,6 +40,8 @@
 
             <form action="/createPassword" class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+                <input type="hidden"  name="view" value="${view}"/>
+                <input type="hidden"  name="pair" value="${pair}"/>
                 <div class="field">
                     <div class="field__label">Password</div>
                     <div class="field__pwd-show / js-show-pwd"></div>

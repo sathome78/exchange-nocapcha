@@ -41,6 +41,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -246,7 +247,8 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
+    public ResponseEntity createNewUser(@ModelAttribute("user") User user, @RequestParam(required = false) String requestParam,
+                                        BindingResult result, HttpServletRequest request) {
         String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
         String validate = request.getParameter(GeetestLib.fn_geetest_validate);
         String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
@@ -324,12 +326,22 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword() {
-        return new ModelAndView("fragments/createPassword");
+    public ModelAndView createPassword(@RequestParam(required = false) String view,
+                                       @RequestParam(required = false) String pair) {
+        ModelAndView mav = new ModelAndView("fragments/createPassword");
+        mav.addObject("view", view);
+        mav.addObject("pair", pair);
+        return mav;
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
-    public ModelAndView createPassword(@ModelAttribute User user , BindingResult result, HttpServletRequest request, Principal principal, RedirectAttributes attr) {
+    public ModelAndView createPassword(@ModelAttribute User user,
+                                       @RequestParam(required = false) String view,
+                                       @RequestParam(required = false) String pair,
+                                       BindingResult result,
+                                       HttpServletRequest request,
+                                       Principal principal,
+                                       RedirectAttributes attr) {
         registerFormValidation.validate(null, null, user.getPassword(), result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             //TODO
@@ -348,12 +360,24 @@ public class MainController {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved",null, localeResolver.resolveLocale(request)));
+            if (view != null && view.equals("ico")) {
+                if (pair != null) {
+                    attr.addAttribute("currencyPair", pair);
+                }
+                ModelAndView mav = new ModelAndView("redirect:/ico_dashboard");
+                mav.addObject("currencyPair", pair);
+                return mav;
+            }
             return new ModelAndView("redirect:/dashboard");
         }
     }
 
     @RequestMapping(value = "/registrationConfirm")
-    public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token, RedirectAttributes attr) {
+    public ModelAndView verifyEmail(HttpServletRequest request,
+                                    @RequestParam("token") String token,
+                                    @RequestParam(required = false) String view,
+                                    @RequestParam(required = false) String pair,
+                                    RedirectAttributes attr) {
         ModelAndView model = new ModelAndView();
         try {
             int userId = userService.verifyUserEmail(token);
@@ -368,6 +392,10 @@ public class MainController {
 
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved",
                         null, localeResolver.resolveLocale(request)));
+                if (view != null) {
+                    model.addObject("view", view);
+                    model.addObject("pair", pair);
+                }
                 model.setViewName("redirect:/createPassword");
                 return model;
             } else {
@@ -408,7 +436,6 @@ public class MainController {
                     attr.addFlashAttribute("contactsUrl", "/contacts");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
-
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
