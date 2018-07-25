@@ -161,7 +161,7 @@ public class StompMessengerImpl implements StompMessenger{
     public void sendStatisticMessage(List<Integer> currenciesIds) {
         Map<RefreshObjectsEnum, String> result =  orderService.getSomeCurrencyStatForRefresh(currenciesIds);
         result.forEach((k,v) -> {
-            sendMessageToDestination("/app/statistics/".concat(k.name()), v);
+            sendMessageToDestination("/app/statistics/".concat(k.getSubscribeChannel()), v);
         });
     }
 
@@ -172,7 +172,7 @@ public class StompMessengerImpl implements StompMessenger{
 
     @Override
     public void sendAlerts(final String message, final String lang) {
-       log.debug("lang to send {}", lang);
+        log.debug("lang to send {}", lang);
         sendMessageToDestination("/app/users_alerts/".concat(lang), message);
     }
 

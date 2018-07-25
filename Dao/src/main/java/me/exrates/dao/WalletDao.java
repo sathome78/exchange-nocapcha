@@ -15,6 +15,7 @@ import me.exrates.model.vo.WalletOperationData;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public interface WalletDao {
 
@@ -30,6 +31,8 @@ public interface WalletDao {
 
     List<Wallet> findAllByUser(int userId);
 
+    List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
+
     MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
 
     List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId, List<Integer> withdrawEndStatusIds,
@@ -42,7 +45,7 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, CurrencyPairType type);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 

@@ -239,7 +239,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $('.buyBTC__input').val('');
         calculateFieldsForBuy();
         calculateFieldsForSell();
-        switchCreateOrAcceptButtons();
+        /*switchCreateOrAcceptButtons();*/
     };
 
     function getOrderCommissions() {
@@ -383,7 +383,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         $('#dashboard-buy').on('click', orderBuy);
         $('#dashboard-sell').on('click', orderSell);
         /**/
-        $('#dashboard-sell-accept').on('click', orderSellAccept);
+       /* $('#dashboard-sell-accept').on('click', orderSellAccept);*/
         /**/
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
@@ -396,10 +396,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             $('.orders-history-table').addClass('hidden');
             $tableId.removeClass('hidden');
             /*that.getAndShowAcceptedOrdersHistory(); move on sockets*/
-            that.getAndShowAcceptedOrdersHistory_myDeals();
+           /* that.getAndShowAcceptedOrdersHistory_myDeals();*/
         });
         /**/
-        switchCreateOrAcceptButtons();
+       /* switchCreateOrAcceptButtons();*/
     })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled);
 
     function fillOrdersFormFromCurrentOrder() {
@@ -441,42 +441,9 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         /**/
         calculateFieldsForSell();
         calculateFieldsForBuy();
-        switchCreateOrAcceptButtons(orderType, that.ordersListForAccept.length);
+        /*switchCreateOrAcceptButtons(orderType, that.ordersListForAccept.length);*/
     }
 
-    function switchCreateOrAcceptButtons(acceptedOrderType, ordersForAcceptionCount) {
-        var s;
-        s = $('#dashboard-sell-accept').text();
-        s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-sell-accept').text(s);
-        s = $('#dashboard-buy-accept').text();
-        s = s.split('(')[0].trim() + ' (' + ordersForAcceptionCount + ')';
-        $('#dashboard-buy-accept').text(s);
-        if (!acceptedOrderType) {
-            $('#dashboard-sell-accept').addClass('hidden');
-            $('#dashboard-sell-accept-reset').addClass('hidden');
-            $('#dashboard-buy-accept').addClass('hidden');
-            $('#dashboard-buy-accept-reset').addClass('hidden');
-            $('#dashboard-sell').removeClass('hidden');
-            $('#dashboard-buy').removeClass('hidden');
-        }
-        if (acceptedOrderType == 'BUY') {
-            $('#dashboard-sell-accept').removeClass('hidden');
-            $('#dashboard-sell-accept-reset').removeClass('hidden');
-            $('#dashboard-buy-accept').addClass('hidden');
-            $('#dashboard-buy-accept-reset').addClass('hidden');
-            $('#dashboard-sell').addClass('hidden');
-            $('#dashboard-buy').removeClass('hidden');
-        }
-        if (acceptedOrderType == 'SELL') {
-            $('#dashboard-sell-accept').addClass('hidden');
-            $('#dashboard-sell-accept-reset').addClass('hidden');
-            $('#dashboard-buy-accept').removeClass('hidden');
-            $('#dashboard-buy-accept-reset').removeClass('hidden');
-            $('#dashboard-sell').removeClass('hidden');
-            $('#dashboard-buy').addClass('hidden');
-        }
-    }
 
     function resetOrdersListForAcceptOnClick(e) {
         e.preventDefault();
@@ -589,14 +556,12 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     function orderCreate(event) {
         event.preventDefault();
         $('#order-create-confirm__modal').one('hidden.bs.modal', function (e) {
-            orders.createOrder(onCreateOrderSuccess, onCreateOrderError);
+            createOrder(onCreateOrderSuccess, onCreateOrderError);
         });
         $('#order-create-confirm__modal').modal('hide');
     }
 
     function onCreateOrderSuccess(data) {
-        that.getAndShowSellOrders();
-        that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         that.fillOrderCreationFormFields();
         /*that.clearOrdersCreationForm();*/
@@ -610,26 +575,26 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*PREPARE DATA FOR ACCEPTION ORDER ... */
 
-    function orderSellAccept(event) {
+    /*function orderSellAccept(event) {
         event.preventDefault();
         orderAccept(event);
-    }
+    }*/
 
     /*... PREPARE DATA FOR ACCEPTION ORDER */
 
     /*CALL ACCEPTANCE THE ORDERS LIST AND CONTROL RESULT ... */
-    function orderAccept(event) {
+    /*function orderAccept(event) {
         event.preventDefault();
         var ordersList = that.ordersListForAccept.map(function (e) {
             return e.orderId;
         });
         console.log(ordersList);
         that.clearOrdersCreationForm();
-        switchCreateOrAcceptButtons();
-        orders.acceptOrder(ordersList, onAcceptOrderSuccess, onAcceptOrderError);
-    }
+        /!*switchCreateOrAcceptButtons();*!/
+        acceptOrder(ordersList, onAcceptOrderSuccess, onAcceptOrderError);
+    }*/
 
-    function onAcceptOrderSuccess(data) {
+    /*function onAcceptOrderSuccess(data) {
         that.ordersListForAccept = [];
         that.updateAndShowAll();
         leftSider.getStatisticsForMyWallets();
@@ -638,7 +603,23 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     function onAcceptOrderError(jqXHR, textStatus, errorThrown) {
         that.ordersListForAccept = [];
-    }
+    }*/
+
+    function createOrder(onSuccess, onError) {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/order/create/',
+            type: 'POST',
+            success: function (data) {
+                onSuccess(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                onError(jqXHR, textStatus, errorThrown);
+            }
+        });
+    };
 
     /*... CALL ACCEPTANCE THE ORDERS LIST AND CONTROL RESULT*/
 

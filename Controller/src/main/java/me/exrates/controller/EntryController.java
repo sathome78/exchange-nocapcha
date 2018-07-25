@@ -142,6 +142,9 @@ public class EntryController {
                                                 .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                                                 .collect(Collectors.toList()));
         }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
                     .filter(p->p.getPairType() == CurrencyPairType.MAIN)
@@ -201,6 +204,9 @@ public class EntryController {
                     .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                     .collect(Collectors.toList()));
         }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()
                     .filter(p->p.getPairType() == CurrencyPairType.ICO)
@@ -259,6 +265,9 @@ public class EntryController {
                     .stream()
                     .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                     .collect(Collectors.toList()));
+        }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
         if (currencyPair != null){
             currencyService.findPermitedCurrencyPairs().stream()

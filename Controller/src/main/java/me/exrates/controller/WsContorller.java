@@ -54,7 +54,6 @@ public class WsContorller {
 
     @SubscribeMapping("/users_alerts/{loc}")
     public String usersAlerts(@DestinationVariable String loc) throws JsonProcessingException {
-        log.debug("locale {}", loc);
         if (!userService.getLocalesList().contains(loc)) {
             throw new RuntimeException("unsupported locale");
         }
@@ -76,7 +75,6 @@ public class WsContorller {
     @SubscribeMapping("/statistics/{type}")
     public String subscribeStatistic(@DestinationVariable String type) {
         RefreshObjectsEnum refreshObjectsEnum = RefreshObjectsEnum.valueOf(type);
-        System.out.println("subscribe " + refreshObjectsEnum.toString());
         return orderService.getAllCurrenciesStatForRefresh(refreshObjectsEnum);
     }
 

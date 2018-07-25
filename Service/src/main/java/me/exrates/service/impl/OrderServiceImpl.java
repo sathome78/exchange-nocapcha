@@ -420,13 +420,11 @@ public class OrderServiceImpl implements OrderService {
               .filter(p-> p.getAuthority().equals(UserRole.ICO_MARKET_MAKER.name())).findAny().orElseThrow(()-> new RuntimeException("not allowed"));
     }
     if (orderCreateDto.getOperationType() == OperationType.BUY) {
-      Optional<BigDecimal> lastRate = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getOperationType().getType());
+      Optional<BigDecimal> lastRate = orderDao.getLowestOpenOrderPriceByCurrencyPairAndOperationType(orderCreateDto.getCurrencyPair().getId(), OperationType.SELL.type);
       if (!lastRate.isPresent() || orderCreateDto.getExchangeRate().compareTo(lastRate.get()) < 0) {
         errors.put("exrate_" + errors.size(), "order_ico.no_orders_for_rate");
       }
     }
-
-
   }
 
   @Override
@@ -570,7 +568,7 @@ public class OrderServiceImpl implements OrderService {
     try {
       boolean acceptSameRoleOnly = userRoleService.isOrderAcceptionAllowedForUser(orderCreateDto.getUserId());
       List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-          OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole());
+          OperationType.getOpposite(orderCreateDto.getOperationType()), acceptSameRoleOnly, userService.getUserRoleFromDB(orderCreateDto.getUserId()).getRole(), orderCreateDto.getOrderBaseType());
       profileData.setTime1();
       logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
       if (acceptableOrders.isEmpty()) {
@@ -1660,6 +1658,7 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
+    System.out.println("curencies for refresh size " + currencyIds.size());
     List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
     List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
     List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p->p.getType() == CurrencyPairType.MAIN).collect(toList());

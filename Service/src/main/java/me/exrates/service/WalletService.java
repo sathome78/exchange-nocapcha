@@ -83,7 +83,7 @@ public interface WalletService {
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
 
     @Transactional(readOnly = true)
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, CurrencyPairType type);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);

@@ -30,6 +30,11 @@
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
+                <li>
+                    <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
+                        ICO
+                    </a>
+                </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
                             code="dashboard.trading"/></a></li>
@@ -63,11 +68,7 @@
                     </li>
                 </sec:authorize>
 
-                    <li>
-                        <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
-                            ICO
-                        </a>
-                    </li>
+
                     <li>
                         <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
                            class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>

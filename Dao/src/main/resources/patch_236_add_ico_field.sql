@@ -1,5 +1,4 @@
 ALTER TABLE CURRENCY_PAIR ADD type ENUM('MAIN', 'ICO') DEFAULT 'MAIN'  NOT NULL;
-ALTER TABLE CURRENCY ADD type ENUM('MAIN', 'ICO') DEFAULT 'MAIN'  NOT NULL;
 
 INSERT INTO USER_ROLE (name, user_role_business_feature_id, user_role_group_feature_id) VALUES ('ICO_MARKET_MAKER', 2, 2);
 
@@ -17,3 +16,8 @@ INSERT INTO COMMISSION (operation_type, value, user_role) VALUES
  (8,0,11),
  (9,1,11);
 
+INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
+SELECT CP.id, 11, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
+  JOIN ORDER_TYPE OT;
+
+ALTER TABLE EXORDERS ADD base_type ENUM('LIMIT', 'ICO') DEFAULT 'LIMIT'  NOT NULL;
