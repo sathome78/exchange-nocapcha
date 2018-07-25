@@ -200,7 +200,8 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-  public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request, Principal principal) {
+  public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request,
+                                     Principal principal, RedirectAttributes attr, Locale locale) {
         /**/
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -215,8 +216,22 @@ public class DashboardController {
       updateUserDto.setPassword(password);
       updateUserDto.setRole(updatedUser.getRole());
       userService.updateUserByAdmin(updateUserDto);
-            /**/
-      new SecurityContextLogoutHandler().logout(request, null, null);
+
+      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updatedUser.getEmail()).getAuthorities());
+      org.springframework.security.core.userdetails.User userSpring =
+              new org.springframework.security.core.userdetails.User(
+                      updatedUser.getEmail(),
+                      updateUserDto.getPassword(),
+                      false,
+                      false,
+                      false,
+                      false,
+                      authList
+              );
+      Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+      SecurityContextHolder.getContext().setAuthentication(auth);
+
+      attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
       model.setViewName("redirect:/dashboard");
       return model;
     }
