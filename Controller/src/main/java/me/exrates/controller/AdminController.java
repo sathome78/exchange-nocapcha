@@ -98,6 +98,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
+
+
   private static final Logger LOG = LogManager.getLogger(AdminController.class);
   @Autowired
   private MessageSource messageSource;
