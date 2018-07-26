@@ -258,7 +258,7 @@ public class RefillRequestController {
               messageSource.getMessage(((MerchantException)(exception)).getReason(), null,  localeResolver.resolveLocale(req)));
   }
 
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
   @ExceptionHandler(RequestLimitExceededException.class)
   @ResponseBody
   public ErrorInfo requestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
