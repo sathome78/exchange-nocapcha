@@ -240,6 +240,9 @@ public class StellarServiceImpl implements StellarService {
             case "VNT" : {
                 return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
             }
+            case "TERN" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
             default:
                 return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
         }

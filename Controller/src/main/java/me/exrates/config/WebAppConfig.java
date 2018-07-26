@@ -1172,6 +1172,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         SLT_EMMITER);
     }
 
+    @Bean(name = "ternStellarService")
+    public StellarAsset ternStellarService() {
+        return new StellarAsset("TERN",
+                "TERN",
+                "TERN",
+                "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C");
+    }
+
     @Bean("vexaniumContract")
     public AchainContract achainContractService() {
         return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
