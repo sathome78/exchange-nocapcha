@@ -71,3 +71,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('TERN/USD', 'TERN/BTC', 'TERN/ETH'));
+
+INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'TERN'));
