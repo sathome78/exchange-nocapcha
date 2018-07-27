@@ -225,7 +225,7 @@ public class StellarServiceImpl implements StellarService {
                 && Long.valueOf(destinationTag) <= 9007199254740991L)) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }*/
-        if (destinationTag.length() > 40) {
+        if (destinationTag.length() > 26) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }
     }
