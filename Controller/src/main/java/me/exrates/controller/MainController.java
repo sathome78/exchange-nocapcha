@@ -216,7 +216,7 @@ public class MainController {
                     ip = request.getRemoteHost();
                 }
                 user.setIp(ip);
-                if (userService.create(user, localeResolver.resolveLocale(request))) {
+                if (userService.create(user, localeResolver.resolveLocale(request), null)) {
                     flag = true;
                     logger.info("User registered with parameters = " + user.toString());
                 } else {
@@ -247,7 +247,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") User user, @RequestParam(required = false) String requestParam,
+    public ResponseEntity createNewUser(@ModelAttribute("user") User user, @RequestParam(required = false) String source,
                                         BindingResult result, HttpServletRequest request) {
         String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
         String validate = request.getParameter(GeetestLib.fn_geetest_validate);
@@ -284,7 +284,7 @@ public class MainController {
                         ip = request.getRemoteHost();
                     }
                     user.setIp(ip);
-                    if (userService.create(user, localeResolver.resolveLocale(request))) {
+                    if (userService.create(user, localeResolver.resolveLocale(request), source)) {
                         flag = true;
                         logger.info("User registered with parameters = " + user.toString());
                     } else {
@@ -326,18 +326,15 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(@RequestParam(required = false) String view,
-                                       @RequestParam(required = false) String pair) {
+    public ModelAndView createPassword(@RequestParam(required = false) String view) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
-        mav.addObject("pair", pair);
         return mav;
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
     public ModelAndView createPassword(@ModelAttribute User user,
                                        @RequestParam(required = false) String view,
-                                       @RequestParam(required = false) String pair,
                                        BindingResult result,
                                        HttpServletRequest request,
                                        Principal principal,
@@ -360,13 +357,8 @@ public class MainController {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved",null, localeResolver.resolveLocale(request)));
-            if (view != null && view.equals("ico")) {
-                if (pair != null) {
-                    attr.addAttribute("currencyPair", pair);
-                }
-                ModelAndView mav = new ModelAndView("redirect:/ico_dashboard");
-                mav.addObject("currencyPair", pair);
-                return mav;
+            if (view != null && view.equals("ico_dashboard")) {
+                return new ModelAndView("redirect:/ico_dashboard");
             }
             return new ModelAndView("redirect:/dashboard");
         }
@@ -376,7 +368,6 @@ public class MainController {
     public ModelAndView verifyEmail(HttpServletRequest request,
                                     @RequestParam("token") String token,
                                     @RequestParam(required = false) String view,
-                                    @RequestParam(required = false) String pair,
                                     RedirectAttributes attr) {
         ModelAndView model = new ModelAndView();
         try {
@@ -394,7 +385,6 @@ public class MainController {
                         null, localeResolver.resolveLocale(request)));
                 if (view != null) {
                     model.addObject("view", view);
-                    model.addObject("pair", pair);
                 }
                 model.setViewName("redirect:/createPassword");
                 return model;
