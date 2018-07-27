@@ -221,8 +221,11 @@ public class StellarServiceImpl implements StellarService {
     /*must bee only unsigned int = Memo.id - unsigned 64-bit number, MAX_SAFE_INTEGER  memo 0 - 9007199254740991*/
     @Override
     public void checkDestinationTag(String destinationTag) {
-        if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
+        /*if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
                 && Long.valueOf(destinationTag) <= 9007199254740991L)) {
+            throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
+        }*/
+        if (destinationTag.length() > 40) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }
     }
