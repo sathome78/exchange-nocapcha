@@ -77,7 +77,7 @@ READS SQL DATA
       SET base_volume = 0;
 /**/
       SELECT EXORDERS.exrate AS pred_period_last_exrate
-      FROM EXORDERS
+      FROM EXORDERS USE INDEX(EXORDERS_PAIR_STATUS_DATE_ACCEPTION)
       WHERE (EXORDERS.date_acception <= predPoint) AND
             (EXORDERS.currency_pair_id = currency_pair_id) AND
             (EXORDERS.status_id = status_id)
@@ -93,7 +93,7 @@ READS SQL DATA
         AGRIGATE.baseVolume
       FROM
         (SELECT
-           EXORDERS.currency_pair_id,
+           EXORDERS.currency_pair_id,DEV1
            EXORDERS.status_id,
            MIN(EXORDERS.date_acception) AS first_date_acception,
            MAX(EXORDERS.date_acception) AS last_date_acception,
