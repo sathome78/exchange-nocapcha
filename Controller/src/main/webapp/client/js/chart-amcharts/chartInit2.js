@@ -1,7 +1,9 @@
 
 
-    if (ChartAmchartsClass.__instance) {
-        return ChartAmchartsClass.__instance;
+function ChartAmchartsClass2(currencyPair, subscribeCallback) {
+
+    if (ChartAmchartsClass2.__instance) {
+        return ChartAmchartsClass2.__instance;
     } else if (this === window) {
         return new ChartAmchartsClass2();
     }

@@ -41,8 +41,7 @@ public class ChartController {
         this.currencyService = currencyService;
     }
 
-    /*todo new cache*/
-    /*@OnlineMethod
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData(
             @QueryParam("symbol") String symbol,
@@ -189,11 +188,11 @@ public class ChartController {
                 .build();
     }
 
-    *//**
+    /**
      * Returns configurations for chart graphic
      *
      * @return
-     *//*
+     */
     private JsonObject getConfig() {
 
         return Json.createObjectBuilder()
@@ -300,5 +299,5 @@ public class ChartController {
         response.put("l", l);
         response.put("c", c);
         response.put("v", v);
-    }*/
+    }
 }
