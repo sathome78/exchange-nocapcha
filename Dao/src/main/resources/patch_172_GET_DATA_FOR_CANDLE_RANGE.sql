@@ -93,7 +93,7 @@ READS SQL DATA
         AGRIGATE.baseVolume
       FROM
         (SELECT
-           EXORDERS.currency_pair_id,DEV1
+           EXORDERS.currency_pair_id,
            EXORDERS.status_id,
            MIN(EXORDERS.date_acception) AS first_date_acception,
            MAX(EXORDERS.date_acception) AS last_date_acception,
