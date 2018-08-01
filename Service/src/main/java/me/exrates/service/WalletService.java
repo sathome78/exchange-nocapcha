@@ -31,7 +31,7 @@ public interface WalletService {
      */
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, Boolean ico);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type);
 
     int getWalletId(int userId, int currencyId);
 
@@ -83,7 +83,7 @@ public interface WalletService {
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
 
     @Transactional(readOnly = true)
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount, String adminEmail);

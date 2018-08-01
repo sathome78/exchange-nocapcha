@@ -461,7 +461,7 @@ $(function dashdoardInit() {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
             newChartPeriod = data.period;
-            leftSider = new LeftSiderClass(true);
+            leftSider = new LeftSiderClass('ICO');
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
@@ -539,11 +539,12 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
         currencyPairName = $("#preferedCurrencyPairName").val();
         $("#preferedCurrencyPairName").val("");
     }
+    url = url + ('&currencyPairType=ICO');
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');
-    url = url + (showAllPairs != null ? '&showAllPairs=' + showAllPairs : '');
-    url = url + (enableFilter != null ? '&orderRoleFilterEnabled=' + enableFilter : '');
+ /*   url = url + (showAllPairs != null ? '&showAllPairs=' + showAllPairs : '');
+    url = url + (enableFilter != null ? '&orderRoleFilterEnabled=' + enableFilter : '');*/
     $.ajax({
         url: url,
         type: 'GET',
@@ -552,6 +553,9 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyBaseName').text(data.currencyPair.currency1.name);
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
+            if (!data.currencyPair.id) {
+                console.log('noa available pairs');
+            }
             currentCurrencyPairId = data.currencyPair.id;
             enableF = enableFilter;
             if (period != null) {
@@ -561,6 +565,8 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             if (callback) {
                 callback(data);
             }
+        }, error: function (data) {
+            console.log('error')
         }
     });
 }

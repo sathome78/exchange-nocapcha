@@ -3,6 +3,7 @@ package me.exrates.model.dto.onlineTableDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import me.exrates.model.enums.CurrencyPairType;
 
 /**
  * Created by Valk
@@ -14,7 +15,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String predLastOrderRate;
   private String percentChange;
   @JsonIgnore
-  private boolean ico;
+  private CurrencyPairType type;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -31,7 +32,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
-    this.ico = exOrderStatisticsShortByPairsDto.isIco();
+    this.type = exOrderStatisticsShortByPairsDto.type;
   }
 
   @Override

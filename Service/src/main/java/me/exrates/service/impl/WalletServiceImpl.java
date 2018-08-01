@@ -106,14 +106,11 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, Boolean ico) {
-    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale, ico);
-    /*if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<MyWalletsStatisticsDto>() {{
-        add(new MyWalletsStatisticsDto(false));
-      }};
-    }*/
-    return result;
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
+    List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
+    Set<Integer> currencies = pairList.stream().map(p -> p.getCurrency2().getId()).collect(Collectors.toSet());
+    currencies.addAll(pairList.stream().map(p -> p.getCurrency1().getId()).collect(toSet()));
+    return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
   }
 
   @Override
@@ -250,8 +247,8 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale, Boolean ico) {
-    return walletDao.getAllWalletsForUserReduced(email, locale, ico);
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+    return walletDao.getAllWalletsForUserReduced(email, locale);
   }
 
   @Override

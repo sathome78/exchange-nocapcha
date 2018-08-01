@@ -42,12 +42,15 @@
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
+                <li><a href="/dashboard" class="nav__link"><loc:message
+                        code="dashboard.trading"/></a></li>
+                <li>
                 <sec:authorize access="isAuthenticated()">
-                    <li><a href="/dashboard?startupSubPage=wallet" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
+                    <li><a href="/dashboard?startupPage=balance-page" class="nav__link"><loc:message code="usermenu.mywallets"/></a>
                     </li>
-                    <li><a href="/dashboard?startupSubPage=history" class="nav__link"><loc:message code="usermenu.myorders"/></a>
+                    <li><a href="/dashboard?startupPage=myhistory" class="nav__link"><loc:message code="usermenu.myorders"/></a>
                     </li>
-                    <li><a href="/dashboard?startupSubPage=orders" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
+                    <li><a href="/dashboard?startupPage=orders" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
                 <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
@@ -57,7 +60,7 @@
                     <li id="adminka-entry">
                         <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                             <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
-                                <loc:message code="admin.ti tle"/>
+                                <loc:message code="admin.title"/>
                             </a>
                         </sec:authorize>
                         <sec:authorize access="<%=AdminController.traderAuthority%>">
@@ -74,9 +77,7 @@
                 </sec:authorize>
 
 
-                <li id="menu-traiding"><a href="/dashboard" class="nav__link  "><loc:message
-                        code="dashboard.trading"/></a></li>
-                <li>
+
                     <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
                        class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
                 </li>

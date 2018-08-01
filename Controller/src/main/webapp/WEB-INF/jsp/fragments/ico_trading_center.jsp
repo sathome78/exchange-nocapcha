@@ -216,9 +216,9 @@
                             <span class="item__span"><loc:message code="dashboard.total"/></span>
                             <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                             <input id="totalForSell" class="item__input numericInputField"/>
-                                &lt;%&ndash; <div id="totalForSell" class="blue_area">
+                              <%--  <div id="totalForSell" class="blue_area">
                                      <span></span>
-                                 </div>&ndash;%&gt;
+                                </div>--%>
                         </div>
 
                         <div class="buyBTC__item item">
