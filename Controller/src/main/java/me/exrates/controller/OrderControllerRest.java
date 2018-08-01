@@ -133,7 +133,7 @@ public class OrderControllerRest {
     public String recordOrderToDB(HttpServletRequest request) {
         ProfileData profileData = new ProfileData(200);
         long before = System.currentTimeMillis();
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(request.getUserPrincipal().getName()), UserOperationAuthority.INPUT);
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(request.getUserPrincipal().getName()), UserOperationAuthority.TRADING);
         if(!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
         }
@@ -176,7 +176,7 @@ public class OrderControllerRest {
     @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
         long before = System.currentTimeMillis();
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.INPUT);
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
         if(!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(request)));
         }
