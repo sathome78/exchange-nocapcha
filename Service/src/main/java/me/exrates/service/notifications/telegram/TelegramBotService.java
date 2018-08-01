@@ -41,7 +41,7 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     @PostConstruct
     private void init() {
-        if (!"exrates_local_test_bot".equals(botName)) {
+        if (!"exrates_local_test_bot".equals(botName) || !"exrates_test_bot".equals(botName)) {
             TelegramBotsApi botsApi = new TelegramBotsApi();
             try {
                 botsApi.registerBot(this);
