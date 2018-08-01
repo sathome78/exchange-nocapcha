@@ -150,9 +150,11 @@ function subscribeTrades() {
 function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/statistics';
+        var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
+        console.log("subscribe statistics ");
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
+            console.log(messageBody);
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));
             });
@@ -261,11 +263,11 @@ function drawTechAlert(object) {
 
 function handleStatisticMessages(object) {
     switch (object.type){
-        case "CURRENCIES_STATISTIC" : {
+        case "MAIN_CURRENCIES_STATISTIC" : {
             leftSider.updateStatisticsForAllCurrencies(object.data);
             break;
         }
-        case "CURRENCY_STATISTIC" : {
+        case "MAIN_CURRENCY_STATISTIC" : {
             object.data.forEach(function(object){
                 leftSider.updateStatisticsForCurrency(object);
             });
