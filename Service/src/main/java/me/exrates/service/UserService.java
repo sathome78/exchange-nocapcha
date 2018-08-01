@@ -43,7 +43,7 @@ public interface UserService {
 
     List<String> getLocalesList();
 
-    boolean create(User user, Locale locale);
+    boolean create(User user, Locale locale, String source);
 
   boolean ifNicknameIsUnique(String nickname);
 
@@ -80,7 +80,7 @@ public interface UserService {
   boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
   @Transactional(rollbackFor = Exception.class)
-  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass);
+  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
 
   void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
