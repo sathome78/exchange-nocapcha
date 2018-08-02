@@ -423,10 +423,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-    @Bean
+    /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
-    }
+    }*/
 
 
     @Bean
@@ -1115,6 +1115,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "QUiNT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ttcServiceImpl")
+    public EthTokenService ttcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TTC",
+                "TTC", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1179,6 +1189,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SLT",
                 "SLT",
         SLT_EMMITER);
+    }
+
+    @Bean(name = "ternStellarService")
+    public StellarAsset ternStellarService() {
+        return new StellarAsset("TERN",
+                "TERN",
+                "TERN",
+                "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C");
     }
 
     @Bean("vexaniumContract")

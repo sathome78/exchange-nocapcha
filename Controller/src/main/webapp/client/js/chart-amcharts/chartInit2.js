@@ -50,7 +50,7 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
             allow_symbol_change: true,
             autosize: true,
             symbol: currencyPair,
-            timezone: 240,
+            timezone: 'UTC',
             interval: '30',
             container_id: "amcharts-stock_chart_div",
             //	BEWARE: no trailing slash is expected in feed URL

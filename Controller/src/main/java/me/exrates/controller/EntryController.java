@@ -91,13 +91,19 @@ public class EntryController {
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -218,16 +224,21 @@ public class EntryController {
         return model;
     }
 
-    /*todo new chart*/
-    /*@RequestMapping(value = {"/tradingview"})
+    @RequestMapping(value = {"/tradingview"})
     public ModelAndView tradingview(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -236,7 +247,7 @@ public class EntryController {
             successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
-        *//**//*
+        /**/
         if (StringUtils.isEmpty(errorNoty)) {
             errorNoty = (String) request.getSession().getAttribute("errorNoty");
             request.getSession().removeAttribute("errorNoty");
@@ -244,14 +255,14 @@ public class EntryController {
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
             errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
-        *//**//*
+        /**/
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        *//*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         *//*model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+         */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/tradingview");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -278,7 +289,7 @@ public class EntryController {
         }
 
         return model;
-    }*/
+    }
 
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,

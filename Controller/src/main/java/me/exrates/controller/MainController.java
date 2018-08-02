@@ -151,7 +151,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request) {
+    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
         Map<String, String> xssErrors = (Map<String, String>) request.getAttribute("xssErrors");
 
@@ -239,7 +239,8 @@ public class MainController {
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-                ModelAndView modelAndView = new ModelAndView("redirect:/dashboard?successNoty=" + successNoty);
+                ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
+                redirectAttributes.addFlashAttribute("successNoty", successNoty);
                 modelAndView.addObject("successRegister");
                 return modelAndView;
             } else return new ModelAndView("DBError", "user", user);
