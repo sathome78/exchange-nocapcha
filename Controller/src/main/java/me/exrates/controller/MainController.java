@@ -274,7 +274,6 @@ public class MainController {
             registerFormValidation.validate(null, user.getEmail(), null, result, localeResolver.resolveLocale(request));
             user.setPhone("");
             if (result.hasErrors()) {
-                //TODO
                 return ResponseEntity.badRequest().body(result);
             } else {
                 boolean flag = false;

@@ -77,7 +77,7 @@
                 </sec:authorize>
 
 
-
+                <li>
                     <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
                        class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
                 </li>
