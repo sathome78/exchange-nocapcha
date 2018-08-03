@@ -236,6 +236,74 @@
         </div>
     </div>
 
+    <%--PIN | START--%>
+    <c:if test="${pinNeed != null}">
+        <%--PIN--%>
+        <div id="pin_2fa_login" class="popup">
+            <div class="popup__inner">
+                <div class="popup__caption">Forgot password?</div>
+                <form id="pin_2fa_login_form" class="form" method="post">
+                    <div class="field">
+                        <loc:message code="message.pin_code" var="pin"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                    ${pin}
+                            </label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="pin" name="l_pin"
+                                   type="text"
+                                   placeholder="${pin}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                        <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
+                            Wrong email
+                        </div>
+                    </div>
+
+                    <div class="field field--btn__new">
+                        <input id="pwd_restore_submit" class="btn__new btn__new--form" type="submit" value="Reset password" disabled>
+                    </div>
+                </form>
+
+                <div class="popup__bottom-links-row">
+                    <a id="back_login" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+                </div>
+            </div>
+        </div>
+        <div id="pin_block">
+            <h4 class=""><loc:message
+                    code="message.pin_code"/></h4>
+            <h5 id="res">${pinNeed}</h5>
+            <hr>
+            <c:url value="/login" var="loginUrl"/>
+            <div class="clearfix">
+                <p class="login__error">${error}
+                    <br/>
+                    <c:if test="${not empty contactsUrl}">
+                        <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
+                    </c:if>
+                </p>
+                <form action="${loginUrl}" method="post" id="pin_code" >
+                    <div class="input-block-wrapper clearfix">
+
+                        <div class="input-block-wrapper clearfix" >
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    </div>
+                    <a id="send_pin_again" style="cursor: pointer; margin-left: 14px;"><loc:message
+                            code="login.pin.sendagain"/></a>
+                    <div id="send_pin_res" style="margin-left: 14px;"></div>
+                    <br>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" id="send_pin" disabled><loc:message
+                                code="login.submit"/></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </c:if>
+    <%--PIN | END--%>
+
     <div id="registration" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Registration</div>
