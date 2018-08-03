@@ -696,6 +696,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair=currentCurrencyPair;
         /**/
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
