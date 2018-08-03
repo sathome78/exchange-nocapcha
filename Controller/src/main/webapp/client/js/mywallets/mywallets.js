@@ -63,7 +63,7 @@ function MyWalletsClass() {
         });
     };
     /*=====================================================*/
-    (function init() {
+    (function init(cpData) {
         that.getAndShowMyWalletsData();
         $('#exclude-zero-mybalances').prop('checked', localStorage.checked == 'true');
         excludeZero();
