@@ -454,7 +454,6 @@ public class MainController {
         response.setCharacterEncoding("UTF-8");
         Object auth = request.getSession().getAttribute("authentication");
         if (auth == null) {
-            ;
             return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
         }
         Authentication authentication = (Authentication) auth;
