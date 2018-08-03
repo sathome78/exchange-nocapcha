@@ -434,7 +434,7 @@ public class MainController {
                 } else if (exceptionClass.equals("IncorrectPinException")) {
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
-                    attr.addFlashAttribute("loginErr", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("pinError", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("loginErr", exception.getMessage());

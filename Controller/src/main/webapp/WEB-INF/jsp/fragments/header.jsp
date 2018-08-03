@@ -239,12 +239,18 @@
     </div>
 
     <%--PIN | START--%>
+        <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
+
     <c:if test="${pinNeed != null}">
         <script>
-            $('#pin_2fa_login_hide').trigger('click');
+            $("document").ready(function() {
+                setTimeout(function() {
+                    $('#pin_2fa_login_hide').trigger('click');
+                    alert("KY-KY");
+                },10);
+            });
         </script>
     </c:if>
-        <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
 
         <c:url value="/login" var="loginUrl"/>
         <div id="pin_2fa_login" class="popup">
@@ -254,12 +260,11 @@
                         code="message.pin_code"/></h4>
                 <h5 id="res">${pinNeed}</h5>
                 <hr>
-                <p class="login__error">${error}
-                    <br/>
-                    <c:if test="${not empty contactsUrl}">
-                        <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
-                    </c:if>
-                </p>
+                <c:if test="${not empty pinError}">
+                    <div class='field__error' style="text-align: center">
+                            ${pinError}
+                    </div>
+                </c:if>
                 <form id="pin_2fa_login_form" action="${loginUrl}" method="post" class="form">
                     <div class="field">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -280,7 +285,7 @@
                     <br>
 
                     <div class="field field--btn__new">
-                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value="Authorise me" disabled>
+                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value="Authorise me">
                         <loc:message code="login.submit"/>
                         </input>
                     </div>
