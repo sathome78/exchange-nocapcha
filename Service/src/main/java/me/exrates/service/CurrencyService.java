@@ -89,4 +89,6 @@ public interface CurrencyService {
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
   List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType ico);
+
+    CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
 }

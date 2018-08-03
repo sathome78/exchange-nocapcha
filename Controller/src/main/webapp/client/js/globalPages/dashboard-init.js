@@ -35,6 +35,7 @@ var sessionId;
 var email;
 var csrf;
 var reconnectsCounter = 0;
+var currencyPairs;
 
 var timer;
 
@@ -84,7 +85,6 @@ function connectAndReconnect() {
 function subscribeForAlerts() {
     if (alertsSubscription == undefined) {
         var lang = $("#language").text().toUpperCase().trim();
-        console.log('lang ' + lang);
         var headers = {'X-CSRF-TOKEN': csrf};
         alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
             var messageBody = JSON.parse(message.body);
@@ -151,10 +151,8 @@ function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
-        console.log("subscribe statistics ");
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
-            console.log(messageBody);
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));
             });
@@ -381,6 +379,7 @@ $(function dashdoardInit() {
         /*FOR HEADER...*/
         notifications = new NotificationsClass();
 
+
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
@@ -423,6 +422,8 @@ $(function dashdoardInit() {
             }
         });
 
+
+
         $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
@@ -459,19 +460,27 @@ $(function dashdoardInit() {
             live: true
         });
 
-
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled);
-            newChartPeriod = data.period;
-            leftSider = new LeftSiderClass();
-            leftSider.setOnWalletsRefresh(function () {
-                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+            var url = '/dashboard/createPairSelectorMenu';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (cpData) {
+                    if (!cpData) return;
+                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
+                    newChartPeriod = data.period;
+                    leftSider = new LeftSiderClass();
+                    leftSider.setOnWalletsRefresh(function () {
+                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+                    });
+                    myWallets = new MyWalletsClass();
+                    myStatements = new MyStatementsClass();
+                    myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
+                    orders = new OrdersClass(data.currencyPair.name, cpData);
+                    /**/
+                }
             });
-            myWallets = new MyWalletsClass();
-            myStatements = new MyStatementsClass();
-            myHistory = new MyHistoryClass(data.currencyPair.name);
-            orders = new OrdersClass(data.currencyPair.name);
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
@@ -532,9 +541,11 @@ function showPage(pageId) {
     if (!pageId) {
         return;
     }
+    $('.nav__link').css("color", "#fff");
     $('.center-frame-container').addClass('hidden');
     $('#' + pageId).removeClass('hidden');
     $currentPageMenuItem = $('#' + $('#' + pageId).data('menuitemid'));
+    $currentPageMenuItem.find('a').css("color", "#d9dbff");
 }
 
 function showSubPage(subPageId) {
