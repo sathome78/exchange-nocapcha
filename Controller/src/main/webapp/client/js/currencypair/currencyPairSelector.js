@@ -2,10 +2,11 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, ico) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
+
     var previousValue;
 
     this.init = function (onChangeHandler) {
@@ -31,7 +32,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
                 onChangeHandler(data.currencyPair);
             });
         });
-        that.getAndShowCurrencySelector(ico);
+        that.getAndShowCurrencySelector();
     };
 
     this.syncState = function (onChangeHandler) {
@@ -52,25 +53,24 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
         });
     };
 
-    this.getAndShowCurrencySelector = function (ico) {
+    this.getAndShowCurrencySelector = function () {
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
         var $template = $('.selectors_template');
-        var url = '/dashboard/createPairSelectorMenu';
-        if (ico) {
-            url = url + '?ico=true';
-        }
+        var $tmpl1 = $template.html().replace(/@/g, '%');
+        $currencyList.append(tmpl($tmpl1, {keys : Object.keys(cpData), data: Object.values(cpData), currentCurrencyPair: that.currentCurrencyPair}));
+        setButtonTitle();
+
+        /*var url = '/dashboard/createPairSelectorMenu';
         $.ajax({
             url: url,
             type: 'GET',
             success: function (data) {
                 if (!data) return;
-                /**/
-                 var $tmpl1 = $template.html().replace(/@/g, '%');
-                $currencyList.append(tmpl($tmpl1, {keys : Object.keys(data), data: Object.values(data), currentCurrencyPair: that.currentCurrencyPair}));
-                setButtonTitle();
+                /!**!/
+
             }
-        });
+        });*/
     };
 
     function setButtonTitle() {
