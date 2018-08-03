@@ -20,4 +20,18 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
 SELECT CP.id, 11, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
   JOIN ORDER_TYPE OT;
 
+INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum, max_daily_request)
+  SELECT id , 1, 11, 1, null, 10 from CURRENCY
+
+  INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum, max_daily_request)
+  SELECT id , 2, 11, 1, null, 10 from CURRENCY
+
+INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum, max_daily_request)
+  SELECT id , 9, 11, 1, null, 10 from CURRENCY
+
+
 ALTER TABLE EXORDERS ADD base_type ENUM('LIMIT', 'ICO') DEFAULT 'LIMIT'  NOT NULL;
+
+
+INSERT INTO USER_ADMIN_AUTHORITY_ROLE_APPLICATION  (user_id, admin_authority_id, applied_to_role_id)
+  SELECT distinct user_id, 8, 11 FROM USER_ADMIN_AUTHORITY_ROLE_APPLICATION

@@ -705,6 +705,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
+        data.currencyPair=currentCurrencyPair;
         /**/
         $('#aggree').hide();
         $('#aggree_check').prop( "checked", false );

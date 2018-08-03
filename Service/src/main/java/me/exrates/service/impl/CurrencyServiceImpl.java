@@ -277,4 +277,9 @@ public class CurrencyServiceImpl implements CurrencyService {
   public List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType){
     return currencyDao.findPermitedCurrencyPairs(currencyPairType);
   }
+
+  @Override
+  public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair) {
+    return currencyDao.getNotHiddenCurrencyPairByName(currencyPair);
+  }
 }
