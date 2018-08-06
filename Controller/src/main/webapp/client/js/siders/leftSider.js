@@ -30,6 +30,9 @@ function LeftSiderClass(type) {
             }, refreshIntervalForStatisticsForMyWallets);
             return;
         }
+        if( $('#my-wallets-filter').val().length > 0 ) {
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForMyWallets');
         }
@@ -114,8 +117,13 @@ function LeftSiderClass(type) {
         $('#my-wallets-filter').on('keyup', function (e) {
             setMyWalletsFilter();
         });
-        $('#exclude-zero-statbalances').change(function() {
+        $('#exclude-zero-statbalances').click(function(e) {
             excludeZero();
+            if (e.target.checked) {
+                localStorage.setItem('statWalletsCheckbox', true);
+            } else {
+                localStorage.setItem('statWalletsCheckbox', false);
+            }
         });
         generateReferral();
     })(type);
@@ -132,28 +140,31 @@ function LeftSiderClass(type) {
         })
     }
 
-    function setMyWalletsFilter() {
-        var str = $('#my-wallets-filter').val().toUpperCase();
-        $('#mywallets_table').find('td:first-child').each(function (idx) {
-            var currency = $(this).text().toUpperCase();
-            if (!currency || currency.indexOf(str) != -1) {
-                $(this).parent().removeClass('hidden');
-            } else {
-                $(this).parent().addClass('hidden');
-            }
-        })
-    }
-
     function excludeZero() {
-        var excludeZeroes = $('#exclude-zero-statbalances').prop('checked');
-        $('#mywallets_table').find('td:nth-child(2)').each(function (idx) {
-            var currency = $(this).text();
-            if (excludeZeroes && currency === '0.00000') {
-                $(this).parent().addClass('hidden');
-            } else {
-                $(this).parent().removeClass('hidden');
+        var exclZeroes = $('#exclude-zero-statbalances').prop('checked');
+        // Declare variables
+        var input, filter, table, tr, td1, tdIn1, td2, description, i, activeBalance;
+        input = document.getElementById("my-wallets-filter");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("mywallets_table");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows, and hide those who don't match the search query
+        for (i = 0; i < tr.length; i++) {
+            td1 = tr[i].getElementsByTagName("td")[0];
+            td2 = tr[i].getElementsByTagName("td")[1];
+            if (td1 || td2 || tdIn1) {
+                activeBalance =  parseFloat(td2.innerText) || 0;
+                if (td1.innerText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                    if (exclZeroes && activeBalance === 0.0) {
+                        tr[i].style.display = "none";
+                    }
+                } else {
+                    tr[i].style.display = "none";
+                }
             }
-        })
+        }
     }
 
 
@@ -164,5 +175,32 @@ function LeftSiderClass(type) {
             $('#refferal-reference').html(e['referral']);
         });
         blink($('#refferal-reference'));
+    }
+}
+
+function setMyWalletsFilter() {
+    var exclZeroes = $('#exclude-zero-statbalances').prop('checked');
+    // Declare variables
+    var input, filter, table, tr, td1, td2,  i, activeBalance;
+    input = document.getElementById("my-wallets-filter");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("mywallets_table");
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those who don't match the search query
+    for (i = 0; i < tr.length; i++) {
+        td1 = tr[i].getElementsByTagName("td")[0];
+        td2 = tr[i].getElementsByTagName("td")[1];
+        if (td1 || td2 ) {
+            activeBalance =  parseFloat(td2.innerText) || 0;
+            if (td1.innerText.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+                if (exclZeroes && activeBalance === 0.0) {
+                    tr[i].style.display = "none";
+                }
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
     }
 }

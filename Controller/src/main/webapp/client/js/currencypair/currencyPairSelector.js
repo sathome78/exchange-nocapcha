@@ -66,7 +66,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
             success: function (data) {
                 if (!data) return;
                 /**/
-                 var $tmpl1 = $template.html().replace(/@/g, '%');
+                var $tmpl1 = $template.html().replace(/@/g, '%');
                 $currencyList.append(tmpl($tmpl1, {keys : Object.keys(data), data: Object.values(data), currentCurrencyPair: that.currentCurrencyPair}));
                 setButtonTitle();
             }
