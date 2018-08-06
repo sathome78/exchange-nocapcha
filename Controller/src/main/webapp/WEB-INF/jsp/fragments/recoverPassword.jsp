@@ -43,6 +43,7 @@
 
         <form action="/dashboard/updatePassword" class="form" method="post">
             <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+            <input type="hidden" name="userId" value="${user.id}">
             <div class="field">
                 <div class="field__label">Password</div>
                 <div class="field__pwd-show / js-show-pwd"></div>
