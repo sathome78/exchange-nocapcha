@@ -24,7 +24,7 @@
     <div>
         <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
 
-        <div class="chat-locales">
+        <div id="chatLangButtons" class="chat-locales">
             <a href="javascript:void(0)" onclick="changeChatLocale('en')">EN</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('cn')">CN</a>

@@ -1,5 +1,5 @@
 function addDeleteButton() {
-    deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
+    var deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
         '<span class="glyphicon glyphicon-remove"></span></button>';
     $('.chat_message').prepend(deletionButton);
 }
@@ -29,6 +29,6 @@ function deleteMessage(event) {
     })
 }
 
-$(window).on('load', function() {
+$('#chatLangButtons').on('historyLoaded', function () {
     addDeleteButton();
 });

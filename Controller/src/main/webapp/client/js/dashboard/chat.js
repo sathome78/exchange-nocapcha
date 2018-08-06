@@ -69,6 +69,7 @@ function loadChatHistory(lang) {
         if (lang === 'ar') {
             $('#chat').find('.chat_message p').addClass('right-to-left')
         }
+        $('#chatLangButtons').trigger('historyLoaded')
     }).fail(function(e){
         console.log(e)
     })
