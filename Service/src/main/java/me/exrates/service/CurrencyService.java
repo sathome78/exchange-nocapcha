@@ -91,4 +91,6 @@ public interface CurrencyService {
   List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType ico);
 
     CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isIco(Integer currencyId);
 }
