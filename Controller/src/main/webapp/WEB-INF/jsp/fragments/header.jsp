@@ -221,7 +221,7 @@
                         Wrong email
                     </div>
                     <div id="email_pwd_restore_notExist" class='field__error' style="display:none">
-                        Such email not exists
+                        <loc:message code="login.notExists.email"/>
                     </div>
                 </div>
 
