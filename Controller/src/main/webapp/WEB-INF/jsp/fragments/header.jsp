@@ -184,7 +184,7 @@
                 <input id="log_geetest_seccode" type="hidden" name="geetest_seccode">
 
                 <div class="field field--btn__new">
-                    <input id="login_submit" class="btn__new btn__new--form" value="Authorise me" disabled>
+                    <input id="login_submit" class="btn__new btn__new--form" type="submit" value="Authorise me" disabled>
                 </div>
             </form>
 
