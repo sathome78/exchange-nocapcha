@@ -108,14 +108,19 @@ public class UserServiceImpl implements UserService {
   }
 
   @Transactional(rollbackFor = Exception.class)
-  public boolean create(User user, Locale locale) {
+  public boolean create(User user, Locale locale, String source) {
     Boolean flag = false;
     if (this.ifEmailIsUnique(user.getEmail())) {
       if (this.ifNicknameIsUnique(user.getNickname())) {
         if (userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp())) {
           int user_id = this.getIdByEmail(user.getEmail());
           user.setId(user_id);
-          sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+          if (source != null && !source.isEmpty()) {
+            String view = "view=" + source;
+            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale, null, view);
+          } else {
+            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+          }
           flag = true;
         }
       }
@@ -353,7 +358,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String tempPass) {
+  public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String tempPass, String... params) {
     TemporalToken token = new TemporalToken();
     token.setUserId(user.getId());
     token.setValue(generateRegistrationToken());
@@ -367,20 +372,25 @@ public class UserServiceImpl implements UserService {
     }
 
     Email email = new Email();
-    String confirmationUrl = tokenLink + "?token=" + token.getValue() + tempPassId;
+    StringBuilder confirmationUrl = new StringBuilder(tokenLink + "?token=" + token.getValue() + tempPassId);
     if (tokenLink.equals("/resetPasswordConfirm")) {
-      confirmationUrl = confirmationUrl + "&email=" + user.getEmail();
+      confirmationUrl.append("&email=").append(user.getEmail());
     }
     String rootUrl = "";
-    if (!confirmationUrl.contains("//")) {
+    if (!confirmationUrl.toString().contains("//")) {
       rootUrl = request.getScheme() + "://" + request.getServerName() +
           ":" + request.getServerPort();
+    }
+    if (params != null) {
+      for (String patram : params) {
+        confirmationUrl.append("&").append(patram);
+      }
     }
     email.setMessage(
         messageSource.getMessage(emailText, null, locale) +
             " <a href='" +
             rootUrl +
-            confirmationUrl +
+            confirmationUrl.toString() +
             "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
     );
     email.setSubject(messageSource.getMessage(emailSubject, null, locale));

@@ -122,9 +122,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    String hashedPassword = passwordEncoder.encode(user.getPassword());
-    namedParameters.put("password", hashedPassword);
+    if (user.getPassword() != null) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      String hashedPassword = passwordEncoder.encode(user.getPassword());
+      namedParameters.put("password", hashedPassword);
+    } else {
+      namedParameters.put("password", user.getPassword());
+    }
     String phone = user.getPhone();
     if (user.getPhone() != null && user.getPhone().equals("")) {
       phone = null;

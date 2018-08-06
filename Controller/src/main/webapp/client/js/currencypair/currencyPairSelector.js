@@ -2,7 +2,7 @@
  * Created by Valk on 06.06.2016.
  */
 
-function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, cpData) {
+function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, ico) {
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
@@ -31,7 +31,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
                 onChangeHandler(data.currencyPair);
             });
         });
-        that.getAndShowCurrencySelector();
+        that.getAndShowCurrencySelector(ico);
     };
 
     this.syncState = function (onChangeHandler) {
@@ -52,24 +52,25 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
         });
     };
 
-    this.getAndShowCurrencySelector = function () {
+    this.getAndShowCurrencySelector = function (ico) {
         var $currencyList = that.$currencyPairSelector;
         $currencyList.find('.currency-pair-selector__menu').remove();
         var $template = $('.selectors_template');
-        var $tmpl1 = $template.html().replace(/@/g, '%');
-        $currencyList.append(tmpl($tmpl1, {keys : Object.keys(cpData), data: Object.values(cpData), currentCurrencyPair: that.currentCurrencyPair}));
-        setButtonTitle();
-
-        /*var url = '/dashboard/createPairSelectorMenu';
+        var url = '/dashboard/createPairSelectorMenu';
+        if (ico) {
+            url = url + '?ico=true';
+        }
         $.ajax({
             url: url,
             type: 'GET',
             success: function (data) {
                 if (!data) return;
-                /!**!/
-
+                /**/
+                var $tmpl1 = $template.html().replace(/@/g, '%');
+                $currencyList.append(tmpl($tmpl1, {keys : Object.keys(data), data: Object.values(data), currentCurrencyPair: that.currentCurrencyPair}));
+                setButtonTitle();
             }
-        });*/
+        });
     };
 
     function setButtonTitle() {
