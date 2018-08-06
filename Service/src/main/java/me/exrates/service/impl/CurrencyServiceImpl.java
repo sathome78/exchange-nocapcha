@@ -255,6 +255,11 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
+  public boolean isIco(Integer currencyId) {
+    return currencyDao.isCurrencyIco(currencyId);
+  }
+
+  @Override
   @Transactional
   public MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId) {
     MerchantCurrencyScaleDto result = currencyDao.findCurrencyScaleByCurrencyId(currencyId);
@@ -282,4 +287,6 @@ public class CurrencyServiceImpl implements CurrencyService {
   public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair) {
     return currencyDao.getNotHiddenCurrencyPairByName(currencyPair);
   }
+
+
 }

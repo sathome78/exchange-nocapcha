@@ -73,4 +73,6 @@ public interface CurrencyDao {
   List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
 
     CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isCurrencyIco(Integer currencyId);
 }

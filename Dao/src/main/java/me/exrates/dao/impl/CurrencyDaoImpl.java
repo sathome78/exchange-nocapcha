@@ -481,6 +481,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
         sql = sql.concat(" AND type =:type");
     }
     return jdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()),currencyPairRowMapper);
+  }
 
+
+
+  @Override
+  public boolean isCurrencyIco(Integer currencyId) {
+    String sql = "SELECT id " +
+            "         FROM CURRENCY_PAIR " +
+            "         WHERE hidden IS NOT TRUE AND type = 'ICO' AND currency1_id =:currency_id ";
+    return !jdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
   }
 }
