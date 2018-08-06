@@ -256,16 +256,16 @@
                     <div class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
                     <div id="reg__email_exists" class='field__error' style="display:none">
-                        Email exists
+                        <loc:message code="register.emailExists"/>
                     </div>
                     <div id="reg__email_wrong" class='field__error' style="display:none">
-                        Wrong email
+                        <loc:message code="register.emailWrong"/>
                     </div>
                     <div id="reg__email_regex" class='field__error' style="display:none">
-                        Email cannot contain special characters except period (.), plus (+), underscore (_) and dash (-)
+                        <loc:message code="register.emailValidation"/>
                     </div>
                     <div id="reg__email_reequired" class='field__error' style="display:none">
-                        Email is required
+                        <loc:message code="register.emailIsRequired"/>
                     </div>
                 </div>
 
