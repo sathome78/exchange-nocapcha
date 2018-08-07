@@ -38,12 +38,13 @@
         <div class="popup__caption">Password recovery</div>
 
         <div class="popup__sub-caption">
-            Now, we need to create strong password.
+            Now, we need to create strong password. ${user.id} ${user.email}
         </div>
 
         <form action="/dashboard/updatePassword" class="form" method="post">
             <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
-            <input type="hidden" name="userId" value="${user.id}">
+            <input name="id" hidden value='${user.id}'>
+            <input name="email" hidden value='${user.email}'>
             <div class="field">
                 <div class="field__label">Password</div>
                 <div class="field__pwd-show / js-show-pwd"></div>

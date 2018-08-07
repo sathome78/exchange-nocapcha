@@ -163,9 +163,9 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
-  public ModelAndView recoveryPassword(@RequestParam int userId) {
+  public ModelAndView recoveryPassword(@ModelAttribute("user") User user) {
       ModelAndView model = new ModelAndView("fragments/recoverPassword");
-      model.addObject("user", userService.getUserById(userId));
+      model.addObject("user", user);
     return model;
   }
 
@@ -178,8 +178,8 @@ public class DashboardController {
           User user = userService.getUserById(userId);
           attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
                   null, localeResolver.resolveLocale(request)));
+          attr.addFlashAttribute("user", user);
           model.setViewName("redirect:/passwordRecovery");
-          model.addObject("userId", userId);
           user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
           user.setPassword(null);
       } else {
@@ -199,8 +199,7 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-  public ModelAndView updatePassword(@RequestParam int userId, @ModelAttribute User user, BindingResult result, HttpServletRequest request,
-                                     Principal principal, RedirectAttributes attr, Locale locale) {
+  public ModelAndView updatePassword(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes attr, Locale locale) {
         /**/
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -208,18 +207,20 @@ public class DashboardController {
       modelAndView.addObject("captchaType", CAPTCHA_TYPE);
       return modelAndView;
     } else {
-        User userUpdate = userService.getUserById(userId);
-      String password = userUpdate.getPassword();
+      String password = user.getPassword();
       ModelAndView model = new ModelAndView();
-      UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+      int usId = user.getId();
+      String usEmail = user.getEmail();
+      System.out.println("LOOOOOOOL | UserID: "+usId+" | UserEMAIL: "+usEmail);
+      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setPassword(password);
       updateUserDto.setRole(UserRole.USER);
       userService.updateUserByAdmin(updateUserDto);
 
-      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(userUpdate.getEmail()).getAuthorities());
+      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
       org.springframework.security.core.userdetails.User userSpring =
               new org.springframework.security.core.userdetails.User(
-                      userUpdate.getEmail(),
+                      user.getEmail(),
                       updateUserDto.getPassword(),
                       false,
                       false,
