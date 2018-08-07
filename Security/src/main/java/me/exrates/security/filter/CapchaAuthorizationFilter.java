@@ -3,8 +3,10 @@ package me.exrates.security.filter;
 import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.UnverifiedUserException;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.security.service.SecureServiceImpl;
@@ -152,6 +154,10 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
                 logger.error(gtResult);
                 throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
+        }
+        if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
+            String unverifiedUser = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            throw new UnverifiedUserException(unverifiedUser);
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
