@@ -459,7 +459,7 @@ public class MainController {
         }
         Authentication authentication = (Authentication) auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName());
+        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
@@ -480,13 +480,13 @@ public class MainController {
 
     /*CHECK FIN PASSWORD*/
 
-    @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
+   /* @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
     @ResponseBody
     public void checkFinPassword(User user, HttpServletRequest request) {
         String enteredFinPassword = user.getFinpassword();
         User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
         userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
-    }
+    }*/
 
     /*
     error handlers for this controller
