@@ -68,7 +68,6 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
             success: function (data) {
                 if (!data) return;
                 /!**!/
-
             }
         });*/
     };

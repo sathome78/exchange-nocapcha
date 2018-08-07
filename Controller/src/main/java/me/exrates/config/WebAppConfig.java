@@ -112,7 +112,7 @@ import java.util.stream.Collectors;
     "classpath:/merchants/stellar.properties",
     "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter {
+public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     private
     @Value("${db.user}")

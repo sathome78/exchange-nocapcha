@@ -26,6 +26,7 @@
 
 </head>
 <body>
+
 <input id="recoveryConfirm" hidden value='${recoveryConfirm}'/>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
