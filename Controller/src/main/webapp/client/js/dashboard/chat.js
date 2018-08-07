@@ -49,12 +49,8 @@ function formatNewMessage(o) {
 
 function appendNewMessage(messageObj) {
     const newMessage = formatNewMessage(messageObj);
-
-    $('#chat .mCSB_container').append(newMessage);
-
-     scrollChat();
-
-    $('#new_mess').find('input[name="body"]').val('');
+    $(newMessage).appendTo($('#chat').find('.mCSB_container')).trigger('newMessage');
+    scrollChat();
 }
 
 function loadChatHistory(lang) {
@@ -63,7 +59,7 @@ function loadChatHistory(lang) {
         data: 'lang=' + lang
     }).done(function (data) {
         for (var i = data.length - 1; i >=0; i--) {
-            $('#chat .mCSB_container').append(formatNewMessage(data[i]));
+            $('#chat').find('.mCSB_container').append(formatNewMessage(data[i]));
         }
         scrollChat();
         if (lang === 'ar') {
@@ -81,7 +77,7 @@ function changeChatLocale(lang) {
     } else {
         $('#new_mess').find('input[name="body"]').removeClass('right-to-left');
     }
-    $('#chat .mCSB_container').empty();
+    $('#chat').find('.mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
 
     connect(lang);
@@ -97,13 +93,14 @@ $(function () {
 
     $('#new_mess').submit(function (e) {
         e.preventDefault();
-        const o = toJson($(this).serializeArray());
+        const payload = toJson($(this).serializeArray());
+        $('#new_mess').find('input[name="body"]').val('');
         $.ajax('/chat/new-message', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             method: 'POST',
-            data: $(this).serializeArray()
+            data: payload
         }).done(function (e) {
             /*NOP*/
         }).fail(function (e) {
