@@ -150,8 +150,9 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             }
         }
         if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
-            String unverifiedUser = messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request));
-            throw new UnconfirmedUserException(unverifiedUser);
+            String unconfirmedUserMessage = messageSource.getMessage("register.unconfirmedUserMessage",
+                    new Object[]{userService.findByEmail(request.getParameter("username")).getEmail()}, localeResolver.resolveLocale(request));
+            throw new UnconfirmedUserException(unconfirmedUserMessage);
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);

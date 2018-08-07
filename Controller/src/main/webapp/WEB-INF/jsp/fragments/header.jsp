@@ -302,7 +302,7 @@
                 <input name="id" hidden value='${user.id}'>
                 <input name="email" hidden value='${user.email}'>
 
-                <div class="field">Lol. You need second try.</div>
+                <div class="field">${unconfirmedUserMessage}</div>
 
                 <div class="field field--btn__new">
                     <input id="pwd_unverifiedUser_submit" class="btn__new--form" type="submit" value='<loc:message code="register.button.sendAgain"/>'>
