@@ -10,9 +10,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
 import me.exrates.model.form.FeedbackMessageForm;
-import me.exrates.security.exception.UnverifiedUserException;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
@@ -438,8 +436,8 @@ public class MainController {
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("loginErr", exception.getMessage());
-                } else if(exceptionClass.equals("UnverifiedUserException")){
-                    attr.addFlashAttribute("unverifiedUser", messageSource.getMessage("admin.balance", null, localeResolver.resolveLocale(request)));
+                } else if(exceptionClass.equals("UnconfirmedUserException")){
+                    attr.addFlashAttribute("unconfirmedUser", messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request)));
                 } else {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
