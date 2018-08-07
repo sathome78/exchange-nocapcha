@@ -728,7 +728,6 @@ public class UserServiceImpl implements UserService {
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), event);
-    System.out.println("checkPin checkPin  checkPin  " + pin +"  "+ setting.getNotificatorId());
     if (setting.getNotificatorId() == 4) {
       return checkGoogle2faVerifyCode(pin, email);
     }
@@ -782,7 +781,6 @@ public class UserServiceImpl implements UserService {
     String google2faSecret = userDao.get2faSecretByEmail(userEmail);
     final Totp totp = new Totp(google2faSecret);
     if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-      System.out.println("WTF?!@!!!!");
       throw new IncorrectSmsPinException();
     }
     return true;

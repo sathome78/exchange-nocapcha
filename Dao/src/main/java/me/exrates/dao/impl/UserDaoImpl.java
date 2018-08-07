@@ -1059,7 +1059,6 @@ public class UserDaoImpl implements UserDao {
   }
 
   public boolean set2faSecretCode(String email) {
-    System.out.println("set2faSecretCode");
     String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
             "WHERE USER.email = :email";
     Map<String, Object> namedParameters = new HashMap<String, Object>() {{
