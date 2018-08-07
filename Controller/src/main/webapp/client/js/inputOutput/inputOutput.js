@@ -63,6 +63,7 @@ function InputOutputClass(currentCurrencyPair, cpData) {
             inputoutputCurrencyPairSelector.syncState(function () {
                 that.updateAndShowAll(currentCurrencyPair);
             });
+        }
     };
 
     this.updateAndShowAll = function (refreshIfNeeded) {
@@ -138,16 +139,9 @@ function InputOutputClass(currentCurrencyPair, cpData) {
 
     /*=====================================================*/
     (function init(currentCurrencyPair, cpData) {
-<<<<<<< HEAD
         if (currentCurrencyPair) {
             inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair, cpData);
             inputoutputCurrencyPairSelector.init(onCurrencyPairChange());
-=======
-        console.log(cpData);
-        if (currentCurrencyPair) {
-            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair, cpData);
-            inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
->>>>>>> EX-609_correct_validation_not_exists_email
         }
 
         var currentClicked;
