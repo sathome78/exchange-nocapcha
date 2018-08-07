@@ -355,6 +355,10 @@ public class UserServiceImpl implements UserService {
     sendEmailWithToken(user, tokenType, tokenLink, emailSubject, emailText, locale, null);
   }
 
+  @Override
+  public boolean deleteTemporalTokensForUserByUserIdAndTokenType(int userId, TokenType tokenType){
+    return userDao.deleteTemporalTokensForUserByUserIdAndTokenType(userId, tokenType);
+  }
 
   @Override
   @Transactional(rollbackFor = Exception.class)

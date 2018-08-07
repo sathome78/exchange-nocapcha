@@ -156,7 +156,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             }
         }
         if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
-            String unverifiedUser = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            String unverifiedUser = messageSource.getMessage("admin.balance", null, localeResolver.resolveLocale(request));
             throw new UnverifiedUserException(unverifiedUser);
         }
         /*---------------*/

@@ -285,6 +285,36 @@
         </div>
     </div>
 
+    <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none">Unverified user</a>
+
+    <input id="unverifiedUser_error" hidden value='${unverifiedUser}'/>
+    <div id="pwd_unverifiedUser" class="popup">
+        <div class="popup__inner">
+            <div class="popup__caption">Forgot password?</div>
+            <c:if test="${not empty unverifiedUser}">
+                <div class='field__error' style="text-align: center">
+                        ${unverifiedUser}
+                </div>
+            </c:if>
+
+            <form id="pwd_unverifiedUser_form"  action="/register/new_link_to_confirm" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+                <input name="id" hidden value='${user.id}'>
+                <input name="email" hidden value='${user.email}'>
+
+                <div class="field">Lol. You need second try.</div>
+
+                <div class="field field--btn__new">
+                    <input id="pwd_unverifiedUser_submit" class="btn__new btn__new--form" type="submit" value="Отправить снова">
+                </div>
+            </form>
+
+            <div class="popup__bottom-links-row">
+                <a id="back_login_from_unverifiedUser_error" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+            </div>
+        </div>
+    </div>
+
     <a data-fancybox id="confirm-success" href="#confirm" class="demo-bar-item" style="display: none">Confirm</a>
     <div id="confirm" class="popup">
         <div class="popup__inner">
