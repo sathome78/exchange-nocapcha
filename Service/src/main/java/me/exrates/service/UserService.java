@@ -75,15 +75,6 @@ public interface UserService {
 
   void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
 
-  /**
-   * Delete all tokens for user with concrete TokenType.
-   * Uses in "Send again" in registration.
-   * @param userId (int)
-   * @param tokenType (TokenType)
-   * @return boolean (false/true)
-   */
-  boolean deleteTemporalTokensForUserByUserIdAndTokenType(int userId, TokenType tokenType);
-
   List<TemporalToken> getAllTokens();
 
   boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;

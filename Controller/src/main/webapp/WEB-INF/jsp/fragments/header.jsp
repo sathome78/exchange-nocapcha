@@ -297,10 +297,9 @@
                 </div>
             </c:if>
 
-            <form id="pwd_unverifiedUser_form"  action="/register/new_link_to_confirm" class="form" method="post">
+            <form id="pwd_unverifiedUser_form" class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
-                <input name="id" hidden value='${user.id}'>
-                <input name="email" hidden value='${user.email}'>
+                <input id="unconfirmedUserEmail" name="unconfirmedUserEmail" hidden value='${unconfirmedUserEmail}'>
 
                 <div class="field">${unconfirmedUserMessage}</div>
 

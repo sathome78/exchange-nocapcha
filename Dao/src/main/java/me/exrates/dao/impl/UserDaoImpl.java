@@ -564,14 +564,6 @@ public class UserDaoImpl implements UserDao {
     return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
   }
 
-  public boolean deleteTemporalTokensForUserByUserIdAndTokenType(int userId, TokenType tokenType) {
-    String sql = "DELETE FROM TEMPORAL_TOKEN where user_id = :user_id and token_type_id=:token_type_id";
-    Map<String, String> namedParameters = new HashMap<String, String>();
-    namedParameters.put("user_id", String.valueOf(userId));
-    namedParameters.put("token_type_id", String.valueOf(tokenType.getTokenType()));
-    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
-  }
-
   public List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType) {
     String sql = "SELECT * FROM TEMPORAL_TOKEN WHERE user_id= :user_id and token_type_id=:token_type_id";
     Map<String, String> namedParameters = new HashMap<String, String>();

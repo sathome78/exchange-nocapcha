@@ -10,6 +10,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.service.geetest.GeetestLib;
@@ -346,10 +347,11 @@ public class MainController {
             //TODO
            throw new PasswordCreationException("Error while creating password.");
         } else {
-            System.out.println("LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOL | userID:"+user.getId()+" | userEMAIL:"+user.getEmail()+" | userSTATUS:"+user.getStatus());
-            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            User userUpdate = userService.findByEmail(user.getEmail());
+            UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setRole(UserRole.USER);
+            updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
 
             Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
@@ -382,6 +384,7 @@ public class MainController {
                 attr.addFlashAttribute("user", user);
 
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
+                user.setStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
 
                 if (view != null) {
@@ -390,7 +393,7 @@ public class MainController {
                 }
             } else {
                 attr.addFlashAttribute("errorNoty", messageSource.getMessage("register.unsuccessfullyproved",null, localeResolver.resolveLocale(request)));
-                return new ModelAndView(new RedirectView("/dashboard"));
+                model.setViewName("redirect:/dashboard");
             }
         } catch (Exception e) {
             model.setViewName("DBError");
@@ -439,7 +442,9 @@ public class MainController {
                     attr.addFlashAttribute("loginErr", exception.getMessage());
                 } else if(exceptionClass.equals("UnconfirmedUserException")){
                     UnconfirmedUserException exception = (UnconfirmedUserException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
-                    attr.addFlashAttribute("unconfirmedUserMessage", exception.getMessage());
+                    attr.addFlashAttribute("unconfirmedUserEmail", exception.getMessage());
+                    attr.addFlashAttribute("unconfirmedUserMessage",  messageSource.getMessage("register.unconfirmedUserMessage",
+                            new Object[]{exception.getMessage()}, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("unconfirmedUser", messageSource.getMessage("register.unconfirmedUser", null, localeResolver.resolveLocale(request)));
                 } else {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
@@ -470,9 +475,14 @@ public class MainController {
 
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)
-    public void sendRegisterLinkAgain(@ModelAttribute("user") User user, Locale locale) {
-        userService.deleteTemporalTokensForUserByUserIdAndTokenType(user.getId(), TokenType.REGISTRATION);
-        userService.sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+    public void sendRegisterLinkAgain(@ModelAttribute("unconfirmedUserEmail") String unconfirmedUserEmail, @RequestParam(required = false) String source, Locale locale) {
+        User userForSend = userService.findByEmail(unconfirmedUserEmail);
+        if (source != null && !source.isEmpty()) {
+            String viewForRequest = "view=" + source;
+            userService.sendEmailWithToken(userForSend, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale, null, viewForRequest);
+        } else {
+            userService.sendEmailWithToken(userForSend, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+        }
     }
 
 
