@@ -252,10 +252,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/login", "/register", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
         .antMatchers("/resetPasswordConfirm/**").permitAll()
         .antMatchers("/forgotPassword/**").permitAll()
+        .antMatchers(GET, "/stockChart/timeFrames").permitAll()
         .antMatchers("/passwordRecovery").permitAll()
         .antMatchers(POST, "/login/new_pin_send").anonymous()
+        .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
         .antMatchers("/updatePassword", "/createPassword").permitAll()
-        .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+        .antMatchers(POST, "/createPassword").permitAll()
         .antMatchers(POST, "/survey/**").authenticated()
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())

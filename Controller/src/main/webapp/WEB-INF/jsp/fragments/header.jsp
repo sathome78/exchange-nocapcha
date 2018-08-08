@@ -13,6 +13,7 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
 
 <!-- New design -->
 <link rel="stylesheet" href="client/assets/css/main.min.css">
@@ -191,6 +192,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a id="pin_2fa_login_hides" data-fancybox href="#pin_2fa_login" class="popup__bottom-link">2fa Login</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -287,10 +289,66 @@
             </form>
 
             <div class="popup__bottom-links-row">
-                <a id="back_login" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+                <a id="back_login" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
             </div>
         </div>
     </div>
+
+    <%--PIN | START--%>
+        <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
+
+    <c:if test="${pinNeed != null}">
+        <script>
+            $("document").ready(function() {
+                setTimeout(function() {
+                    $('#pin_2fa_login_hide').trigger('click');
+                    alert("KY-KY");
+                },10);
+            });
+        </script>
+    </c:if>
+
+        <c:url value="/login" var="loginUrl"/>
+        <div id="pin_2fa_login" class="popup">
+            <div class="popup__inner">
+                <hr>
+                <h4 class=""><loc:message
+                        code="message.pin_code"/></h4>
+                <h5 id="res">${pinNeed}</h5>
+                <hr>
+                <c:if test="${not empty pinError}">
+                    <div class='field__error' style="text-align: center">
+                            ${pinError}
+                    </div>
+                </c:if>
+                <form id="pin_2fa_login_form" action="${loginUrl}" method="post" class="form">
+                    <div class="field">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                        <loc:message code="message.pin_code" var="pin"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">${pin}</label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="pin" name="l_pin" type="text" placeholder="${pin}" class="form-control input-block-wrapper__input"/>
+                        </div>
+                        <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
+                            Wrong email
+                        </div>
+                    </div>
+
+                    <a id="send_pin_again" style="cursor: pointer; margin-left: 14px;"><loc:message code="login.pin.sendagain"/></a>
+                    <div id="send_pin_res" style="margin-left: 14px;"></div>
+                    <br>
+
+                    <div class="field field--btn__new">
+                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value="Authorise me">
+                        <loc:message code="login.submit"/>
+                        </input>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <%--PIN | END--%>
 
     <div id="registration" class="popup">
         <div class="popup__inner">
@@ -341,6 +399,34 @@
         </div>
     </div>
 
+    <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
+
+    <input id="unverifiedUser_error" hidden value='${unconfirmedUser}'/>
+    <div id="pwd_unverifiedUser" class="popup">
+        <div class="popup__inner">
+            <c:if test="${not empty unconfirmedUser}">
+                <div class='field__error' style="text-align: center">
+                        ${unconfirmedUser}
+                </div>
+            </c:if>
+
+            <form id="pwd_unverifiedUser_form" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+                <input id="unconfirmedUserEmail" name="unconfirmedUserEmail" hidden value='${unconfirmedUserEmail}'>
+
+                <div class="field">${unconfirmedUserMessage}</div>
+
+                <div class="field field--btn__new">
+                    <input id="pwd_unverifiedUser_submit" class="btn__new--form" type="submit" value='<loc:message code="register.button.sendAgain"/>'>
+                </div>
+            </form>
+
+            <div class="popup__bottom-links-row">
+                <a id="back_login_from_unverifiedUser_error" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
+            </div>
+        </div>
+    </div>
+
     <a data-fancybox id="confirm-success" href="#confirm" class="demo-bar-item" style="display: none">Confirm</a>
     <div id="confirm" class="popup">
         <div class="popup__inner">
@@ -360,7 +446,7 @@
                 <div class="popup__bottom-row">If you haven't received the email, do the following:</div>
                 <div class="popup__bottom-row">
                     Check spam or other folders.<br>
-                    Set email address whitelist. <a href="" class="popup__bottom-link">How to set?</a><br>
+                    Set email address whitelist.<br>
                     Check the mail client works normally.
                 </div>
             </div>
