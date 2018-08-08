@@ -173,15 +173,7 @@ public class UserServiceImpl implements UserService {
       //deleting of appropriate jobs
       tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
             /**/
-      User user = new User();
-      user.setId(temporalToken.getUserId());
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CHANGE_PASSWORD) {
-        user.setStatus(UserStatus.ACTIVE);
-        if (!userDao.updateUserStatus(user)) return 0;
-      }
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
+      if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
         if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
           return 0;
         }
@@ -360,7 +352,6 @@ public class UserServiceImpl implements UserService {
   public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale) {
     sendEmailWithToken(user, tokenType, tokenLink, emailSubject, emailText, locale, null);
   }
-
 
   @Override
   @Transactional(rollbackFor = Exception.class)

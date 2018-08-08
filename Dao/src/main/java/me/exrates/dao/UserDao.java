@@ -92,6 +92,12 @@ public interface UserDao {
 
   boolean deleteTemporalToken(TemporalToken token);
 
+  /**
+   * Delete all tokens for user with concrete TokenType.
+   * Uses in "Send again" in registration.
+   * @param token (TemporalToken)
+   * @return boolean (false/true)
+   */
   boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
 
   List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);

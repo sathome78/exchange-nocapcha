@@ -1,14 +1,14 @@
 package me.exrates.security.filter;
 
-import com.captcha.botdetect.web.servlet.Captcha;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.service.IpBlockingService;
 import me.exrates.security.service.SecureService;
-import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.service.UserService;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,10 +27,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Valk on 31.03.16.
@@ -153,6 +149,9 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
                 logger.error(gtResult);
                 throw new NotVerifiedCaptchaError(correctCapchaRequired);
             }
+        }
+        if(userService.findByEmail(request.getParameter("username")).getStatus()==UserStatus.REGISTERED){
+            throw new UnconfirmedUserException(userService.findByEmail(request.getParameter("username")).getEmail());
         }
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
