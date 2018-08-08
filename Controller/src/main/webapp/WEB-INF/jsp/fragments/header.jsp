@@ -89,6 +89,7 @@
                         <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
                            class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
                     </li>
+
                     <sec:authorize access="isAuthenticated()">
                         <li id="hello-my-friend"><a class="nav__link" href="">
 
@@ -422,6 +423,26 @@
 
             <div class="popup__bottom-links-row">
                 <a id="back_login_from_unverifiedUser_error" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
+            </div>
+        </div>
+    </div>
+
+    <a id="pwd_blockedUser_hide" data-fancybox href="#pwd_blockedUser" class="popup__bottom-link" style="display: none"><loc:message code="login.blocked"/></a>
+
+    <input id="blockedUser_error" hidden value='${blockedUser}'/>
+    <div id="pwd_blockedUser" class="popup">
+        <div class="popup__inner">
+            <c:if test="${not empty blockedUser}">
+                <div class='field__error' style="text-align: center">
+                        ${blockedUser}
+                </div>
+            </c:if>
+
+            <div class="field"><a href='${contactsUrl}'><loc:message code="dashboard.contactsAndSupport"/></a></div>
+
+            <div class="popup__bottom-links-row">
+                <a id="back_login_from_blockedUser_error" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
+            </div>
             </div>
         </div>
     </div>
