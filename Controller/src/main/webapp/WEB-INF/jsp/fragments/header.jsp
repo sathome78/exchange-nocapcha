@@ -135,6 +135,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a id="pwd_unverifiedUser_hided" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link">Unverified user</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -231,7 +232,7 @@
             </form>
 
             <div class="popup__bottom-links-row">
-                <a id="back_login" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+                <a id="back_login" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
             </div>
         </div>
     </div>
@@ -285,6 +286,34 @@
         </div>
     </div>
 
+    <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
+
+    <input id="unverifiedUser_error" hidden value='${unconfirmedUser}'/>
+    <div id="pwd_unverifiedUser" class="popup">
+        <div class="popup__inner">
+            <c:if test="${not empty unconfirmedUser}">
+                <div class='field__error' style="text-align: center">
+                        ${unconfirmedUser}
+                </div>
+            </c:if>
+
+            <form id="pwd_unverifiedUser_form" class="form" method="post">
+                <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+                <input id="unconfirmedUserEmail" name="unconfirmedUserEmail" hidden value='${unconfirmedUserEmail}'>
+
+                <div class="field">${unconfirmedUserMessage}</div>
+
+                <div class="field field--btn__new">
+                    <input id="pwd_unverifiedUser_submit" class="btn__new--form" type="submit" value='<loc:message code="register.button.sendAgain"/>'>
+                </div>
+            </form>
+
+            <div class="popup__bottom-links-row">
+                <a id="back_login_from_unverifiedUser_error" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
+            </div>
+        </div>
+    </div>
+
     <a data-fancybox id="confirm-success" href="#confirm" class="demo-bar-item" style="display: none">Confirm</a>
     <div id="confirm" class="popup">
         <div class="popup__inner">
@@ -304,7 +333,7 @@
                 <div class="popup__bottom-row">If you haven't received the email, do the following:</div>
                 <div class="popup__bottom-row">
                     Check spam or other folders.<br>
-                    Set email address whitelist. <a href="" class="popup__bottom-link">How to set?</a><br>
+                    Set email address whitelist.<br>
                     Check the mail client works normally.
                 </div>
             </div>
