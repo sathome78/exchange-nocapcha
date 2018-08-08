@@ -207,20 +207,16 @@ public class DashboardController {
       modelAndView.addObject("captchaType", CAPTCHA_TYPE);
       return modelAndView;
     } else {
-      String password = user.getPassword();
       ModelAndView model = new ModelAndView();
-      int usId = user.getId();
-      String usEmail = user.getEmail();
-      System.out.println("LOOOOOOOL | UserID: "+usId+" | UserEMAIL: "+usEmail);
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setPassword(password);
+      updateUserDto.setPassword(user.getPassword());
       updateUserDto.setRole(UserRole.USER);
       userService.updateUserByAdmin(updateUserDto);
 
-      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
       org.springframework.security.core.userdetails.User userSpring =
               new org.springframework.security.core.userdetails.User(
-                      user.getEmail(),
+                      updateUserDto.getEmail(),
                       updateUserDto.getPassword(),
                       false,
                       false,
