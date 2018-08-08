@@ -436,7 +436,7 @@ public class MainController {
                 } else if (exceptionClass.equals("IncorrectPinException")) {
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
-                    attr.addFlashAttribute("loginErr", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("pinError", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("BannedIpException")) {
                     BannedIpException exception = (BannedIpException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("loginErr", exception.getMessage());
@@ -462,12 +462,11 @@ public class MainController {
         response.setCharacterEncoding("UTF-8");
         Object auth = request.getSession().getAttribute("authentication");
         if (auth == null) {
-            ;
             return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON_UTF8).body("error");
         }
         Authentication authentication = (Authentication) auth;
         org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-        String res = secureService.reSendLoginMessage(request, authentication.getName());
+        String res = secureService.reSendLoginMessage(request, authentication.getName(), true).getMessage();
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
@@ -500,13 +499,13 @@ public class MainController {
 
     /*CHECK FIN PASSWORD*/
 
-    @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
+   /* @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
     @ResponseBody
     public void checkFinPassword(User user, HttpServletRequest request) {
         String enteredFinPassword = user.getFinpassword();
         User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
         userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
-    }
+    }*/
 
     /*
     error handlers for this controller

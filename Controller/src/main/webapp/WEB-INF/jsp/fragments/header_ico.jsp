@@ -42,6 +42,9 @@
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
+                <li id="menu-traiding">
+                    <a class="nav__link" style="color: #d9dbff;" href="<c:url value='#'/>">ICO</a>
+                </li>
                 <li><a href="/dashboard" class="nav__link"><loc:message
                         code="dashboard.trading"/></a></li>
                 <li>
@@ -75,7 +78,6 @@
                         </sec:authorize>
                     </li>
                 </sec:authorize>
-
 
                 <li>
                     <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"

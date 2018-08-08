@@ -219,6 +219,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
+  public CurrencyPair getNotHiddenCurrencyPairByName(String currencyPairName) {
+    String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+            "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+            "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+            " FROM CURRENCY_PAIR WHERE name = :currencyPairName AND hidden IS NOT TRUE ";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("currencyPairName", String.valueOf(currencyPairName));
+    return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+  }
+
+  @Override
   public CurrencyPair findCurrencyPairByName(String currencyPairName) {
     String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
@@ -470,6 +481,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
         sql = sql.concat(" AND type =:type");
     }
     return jdbcTemplate.query(sql, Collections.singletonMap("type", currencyPairType.name()),currencyPairRowMapper);
+  }
 
+
+
+  @Override
+  public boolean isCurrencyIco(Integer currencyId) {
+    String sql = "SELECT id " +
+            "         FROM CURRENCY_PAIR " +
+            "         WHERE hidden IS NOT TRUE AND type = 'ICO' AND currency1_id =:currency_id ";
+    return !jdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
   }
 }

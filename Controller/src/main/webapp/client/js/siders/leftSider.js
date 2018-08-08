@@ -22,7 +22,7 @@ function LeftSiderClass(type) {
 
     var onWalletStatisticRefresh;
 
-    this.getStatisticsForMyWallets = function (refreshIfNeeded, thisIco) {
+    this.getStatisticsForMyWallets = function (refreshIfNeeded) {
         if (!windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForMyWallets);
             timeOutIdForStatisticsForMyWallets = setTimeout(function () {
@@ -41,7 +41,6 @@ function LeftSiderClass(type) {
             type = 'MAIN'
         }
         var url = '/dashboard/myWalletsStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false') + '&type=' + type;
-        console.log(thisIco);
         $.ajax({
             url: url,
             type: 'GET',

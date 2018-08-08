@@ -71,4 +71,8 @@ public interface CurrencyDao {
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
   List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
+
+    CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isCurrencyIco(Integer currencyId);
 }

@@ -175,4 +175,8 @@ public interface UserDao {
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+  String get2faSecretByEmail(String email);
+
+  boolean set2faSecretCode(String email);
 }

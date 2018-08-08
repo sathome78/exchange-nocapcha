@@ -85,7 +85,6 @@ function connectAndReconnect() {
 function subscribeForAlerts() {
     if (alertsSubscription == undefined) {
         var lang = $("#language").text().toUpperCase().trim();
-        console.log('lang ' + lang);
         var headers = {'X-CSRF-TOKEN': csrf};
         alertsSubscription = client.subscribe("/app/users_alerts/" + lang, function (message) {
             var messageBody = JSON.parse(message.body);
@@ -152,10 +151,8 @@ function subscribeStatistics() {
     if (currencyPairStatisticSubscription == undefined) {
         var headers = {'X-CSRF-TOKEN': csrf};
         var path = '/app/statistics/MAIN_CURRENCIES_STATISTIC';
-        console.log("subscribe statistics ");
         currencyPairStatisticSubscription = client.subscribe(path, function (message) {
             var messageBody = JSON.parse(message.body);
-            console.log(messageBody);
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));
             });
@@ -382,6 +379,7 @@ $(function dashdoardInit() {
         /*FOR HEADER...*/
         notifications = new NotificationsClass();
 
+
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
@@ -460,7 +458,6 @@ $(function dashdoardInit() {
             live: true
         });
 
-        console.log("sync db");
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
             var url = '/dashboard/createPairSelectorMenu';
@@ -542,9 +539,11 @@ function showPage(pageId) {
     if (!pageId) {
         return;
     }
+    $('.nav__link').css("color", "#fff");
     $('.center-frame-container').addClass('hidden');
     $('#' + pageId).removeClass('hidden');
     $currentPageMenuItem = $('#' + $('#' + pageId).data('menuitemid'));
+    $currentPageMenuItem.find('a').css("color", "#d9dbff");
 }
 
 function showSubPage(subPageId) {

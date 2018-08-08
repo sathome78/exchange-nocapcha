@@ -1,6 +1,7 @@
 package me.exrates.security.filter;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.PinDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.BannedIpException;
@@ -90,7 +91,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                String res = secureServiceImpl.reSendLoginMessage(request, authentication.getName());
+                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), true);
                 throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),
