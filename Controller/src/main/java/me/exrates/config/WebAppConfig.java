@@ -18,6 +18,7 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
@@ -108,7 +109,8 @@ import java.util.stream.Collectors;
     "classpath:/angular.properties",
     "classpath:/twitter.properties",
     "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties"})
+    "classpath:/merchants/stellar.properties",
+    "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter{
 
@@ -194,6 +196,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     private String twitterAccessToken;
     @Value("${twitter.accessTokenSecret}")
     private String twitterAccessTokenSecret;
+
+    @Value("${geetest.captchaId}")
+    private String gtCaptchaId;
+    @Value("${geetest.privateKey}")
+    private String gtPrivateKey;
+    @Value("${geetest.newFailback}")
+    private String gtNewFailback;
 
 
     @PostConstruct
@@ -491,11 +500,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "CNET", "CNET", 0);
     }
 
-    @Bean(name = "ntyServiceImpl")
-    public EthereumCommonService ntyService() {
-        return new EthereumCommonServiceImpl("merchants/nexty.properties",
-                "NTY", "NTY", 12);
-    }
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -1121,6 +1125,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TTC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "bfgServiceImpl")
+    public EthTokenService bfgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2ee3b3804f695355ddc4f8e1c54654416d7ee95a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BFG",
+                "BFG", true, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1284,6 +1298,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 twitterConsumerSecret,
                 twitterAccessToken,
                 twitterAccessTokenSecret);
+    }
+
+    @Bean
+    public GeetestLib geetest() {
+        return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
     }
 
 }
