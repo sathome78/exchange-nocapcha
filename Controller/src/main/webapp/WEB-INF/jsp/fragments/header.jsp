@@ -338,7 +338,7 @@
 
                     <a id="send_pin_again" class="btn btn-link" style="margin-left: 80px;"><loc:message code="login.pin.sendagain"/></a>
 
-                    <div id="send_pin_res""></div>
+                    <div id="send_pin_res"></div>
                     <br>
 
                     <div class="field field--btn__new">
