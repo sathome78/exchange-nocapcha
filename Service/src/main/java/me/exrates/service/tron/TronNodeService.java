@@ -1,6 +1,8 @@
 package me.exrates.service.tron;
 
+import me.exrates.model.dto.TronNewAddressDto;
+
 public interface TronNodeService {
 
-    String getNewAddress();
+    TronNewAddressDto getNewAddress();
 }

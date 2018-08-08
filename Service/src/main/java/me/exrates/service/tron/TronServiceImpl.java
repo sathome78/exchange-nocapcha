@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -15,7 +16,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,19 +35,19 @@ public class TronServiceImpl implements TronService {
     private MessageSource messageSource;
 
 
-    private final String CURRENCY_NAME = "TRX";
-    private final String MERCHANT_NAME = "TRX";
+    private final static String CURRENCY_NAME = "TRX";
+    private final static String MERCHANT_NAME = "TRX";
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String address = tronNodeService.getNewAddress();
+        TronNewAddressDto dto = tronNodeService.getNewAddress();
         String message = messageSource.getMessage("merchants.refill.btc",
-                new Object[]{address}, request.getLocale());
-        DecimalFormat myFormatter = new DecimalFormat("###.##");
+                new Object[]{dto.getAddress()}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  address);
+            put("address",  dto.getAddress());
+            put("privKey", dto.getPrivateKey());
             put("message", message);
-            put("qr", address);
+            put("qr", dto.getAddress());
         }};
     }
 
