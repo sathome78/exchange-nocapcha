@@ -328,7 +328,7 @@
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label">${pin}</label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
                             <input id="pin" name="l_pin" type="text" placeholder="${pin}" class="form-control input-block-wrapper__input"/>
                         </div>
                         <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
@@ -336,14 +336,13 @@
                         </div>
                     </div>
 
-                    <a id="send_pin_again" style="cursor: pointer; margin-left: 14px;"><loc:message code="login.pin.sendagain"/></a>
-                    <div id="send_pin_res" style="margin-left: 14px;"></div>
+                    <a id="send_pin_again" class="btn btn-link" style="margin-left: 80px;"><loc:message code="login.pin.sendagain"/></a>
+
+                    <div id="send_pin_res""></div>
                     <br>
 
                     <div class="field field--btn__new">
-                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value="Authorise me">
-                        <loc:message code="login.submit"/>
-                        </input>
+                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
                     </div>
                 </form>
             </div>

@@ -91,7 +91,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             Authentication authentication = (Authentication)session.getAttribute(authenticationParamName);
             User principal = (User) authentication.getPrincipal();
             if (!userService.checkPin(principal.getUsername(), request.getParameter(pinParam), NotificationMessageEventEnum.LOGIN)) {
-                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), false);
+                PinDto res = secureServiceImpl.reSendLoginMessage(request, authentication.getName(), true);
                 throw new IncorrectPinException(res);
             }
             return attemptAuthentication(principal.getUsername(),
