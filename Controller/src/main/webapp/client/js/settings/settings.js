@@ -19,6 +19,7 @@ function SettingsClass() {
     const $telegramSubscrPrice = $('#telegram_subscr_price');
     const $telegramCode = $('#telegram_code');
     const $smsModal = $('#sms_connect_modal');
+    const $googleModal = $('#google_authenticator_modal');
     const $smsNumberError = $('#phone_error');
     const $smsMessagePrice = $('#sms_mssg_price');
     const $smsSubscrPrice = $('#sms_subscr_price');
@@ -39,8 +40,8 @@ function SettingsClass() {
         }
 
 
-        setActiveSwitcher();
-        switchPassTab();
+       /* setActiveSwitcher();
+        switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -50,18 +51,18 @@ function SettingsClass() {
         checkSmsNumber();
     })();
 
-    function setActiveSwitcher(){
+   /* function setActiveSwitcher(){
         $('.orderForm-toggler').removeClass('active');
         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-    }
+    }*/
 
-    function switchPassTab(){
+    /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
         $('#'+tabId).siblings().removeClass('active');
         $('#'+tabId).addClass('active');
         blink($('#passwords-changing').find('[for="user-password"]'));
         blink($('#passwords-changing').find('[for="userFin-password"]'));
-    }
+    }*/
 
    $('#sessionTime').on('change keyup', function() {
        console.log('change');
@@ -177,6 +178,28 @@ function SettingsClass() {
         });
     });
 
+    $('#google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                $googleModal.modal('hide');
+                var inputs=document.getElementsByTagName('input');
+                for(i=0;i<inputs.length;i++){
+                    if (inputs[i].getAttribute('value') == '4'){
+                        inputs[i].disabled=false;
+                    }
+
+                }
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
     $('#sms_code_input').on('input', function () {
         var code = $('#sms_code_input').val();
         if (isNumber(code)) {
@@ -226,6 +249,26 @@ function SettingsClass() {
                 }
                 $telegramModal.modal();
             }
+        });
+    });
+
+
+    $('#subscribe_GOOGLE_AUTHENTICATOR').on('click', function() {
+        $('#google2fa_connect_block').show();
+        $googleModal.modal();
+       $.ajax(
+           "/settings/2FaOptions/google2fa",
+           {
+            headers:
+                {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+            type: 'POST',
+        }).success(function (data) {
+           console.log(data);
+           if($('#qr').find('img').length === 1) {
+               $("#qr").append('<img src="'+data.message+'" />').show();
+           }
         });
     });
 

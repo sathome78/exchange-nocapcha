@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.jboss.aerogear.security.otp.api.Base32;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -122,9 +123,13 @@ public class UserDaoImpl implements UserDao {
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
-    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    String hashedPassword = passwordEncoder.encode(user.getPassword());
-    namedParameters.put("password", hashedPassword);
+    if (user.getPassword() != null) {
+      BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+      String hashedPassword = passwordEncoder.encode(user.getPassword());
+      namedParameters.put("password", hashedPassword);
+    } else {
+      namedParameters.put("password", user.getPassword());
+    }
     String phone = user.getPhone();
     if (user.getPhone() != null && user.getPhone().equals("")) {
       phone = null;
@@ -1046,5 +1051,21 @@ public class UserDaoImpl implements UserDao {
   }
 
 
+  public String get2faSecretByEmail(String email) {
+    String sql = "SELECT 2fa_secret FROM USER WHERE email = :email";
+    Map<String, String> namedParameters = new HashMap<>();
+    namedParameters.put("email", email);
+   return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  public boolean set2faSecretCode(String email) {
+    String sql = "UPDATE USER SET USER.2fa_secret =:secret " +
+            "WHERE USER.email = :email";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("email", email);
+      put("secret", Base32.random());
+    }};
+    return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+  }
 
 }

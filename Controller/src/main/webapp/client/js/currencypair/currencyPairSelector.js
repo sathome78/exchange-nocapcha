@@ -6,6 +6,7 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
     var that = this;
     this.$currencyPairSelector = $('#' + currencyPairSelectorId);
     this.currentCurrencyPair = currentCurrencyPair;
+
     var previousValue;
 
     this.init = function (onChangeHandler) {
@@ -67,7 +68,6 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair, 
             success: function (data) {
                 if (!data) return;
                 /!**!/
-
             }
         });*/
     };

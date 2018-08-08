@@ -18,7 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -31,22 +30,20 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * The Controller contains methods, which mapped to entry points (main pages):
@@ -147,8 +144,79 @@ public class EntryController {
                                                 .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                                                 .collect(Collectors.toList()));
         }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
         if (currencyPair != null){
-            currencyService.findPermitedCurrencyPairs().stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
+                    .filter(p->p.getPairType() == CurrencyPairType.MAIN)
+                    .filter(p-> p.getName().equals(currencyPair))
+                    .limit(1)
+                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+        }
+
+        return model;
+    }
+
+    @RequestMapping(value = {"/ico_dashboard"})
+    public ModelAndView icoDashboard(
+            @RequestParam(required = false) String errorNoty,
+            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String startupPage,
+            @RequestParam(required = false) String startupSubPage,
+            @RequestParam(required = false) String currencyPair,
+            HttpServletRequest request, Principal principal) {
+        ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.ICO);
+        if (currencyPairs.isEmpty()) {
+            model.setViewName("redirect:/dashboard");
+            return model;
+        }
+        if (StringUtils.isEmpty(successNoty)) {
+            successNoty = (String) request.getSession().getAttribute("successNoty");
+            request.getSession().removeAttribute("successNoty");
+        }
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
+            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        }
+        model.addObject("successNoty", successNoty);
+        /**/
+        if (StringUtils.isEmpty(errorNoty)) {
+            errorNoty = (String) request.getSession().getAttribute("errorNoty");
+            request.getSession().removeAttribute("errorNoty");
+        }
+        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+        }
+        /**/
+        model.addObject("errorNoty", errorNoty);
+        model.addObject("captchaType", CAPTCHA_TYPE);
+        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
+        model.addObject("sessionId", request.getSession().getId());
+        /*model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));*/
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
+        model.setViewName("globalPages/ico_dashboard");
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        model.addObject(orderCreateDto);
+        if (principal != null) {
+            User user = userService.findByEmail(principal.getName());
+            int userStatus = user.getStatus().getStatus();
+            model.addObject("userEmail", principal.getName());
+            model.addObject("userStatus", userStatus);
+            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
+            model.addObject("referalPercents", referralService.findAllReferralLevels()
+                    .stream()
+                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList()));
+        }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
+        if (currencyPair != null){
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
+                    .filter(p->p.getPairType() == CurrencyPairType.ICO)
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
@@ -211,8 +279,11 @@ public class EntryController {
                     .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                     .collect(Collectors.toList()));
         }
+        if (principal == null) {
+            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
+        }
         if (currencyPair != null){
-            currencyService.findPermitedCurrencyPairs().stream()
+            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
                     .filter(p-> p.getName().equals(currencyPair))
                     .limit(1)
                     .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
@@ -392,6 +463,21 @@ public class EntryController {
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
+    }
+
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+        return new Generic2faResponseDto(userService.generateQRUrl(principal.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_google2fa")
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
+        if (principal != null) {
+            userService.checkGoogle2faVerifyCode(code, principal.getName());
+        }
+        return "";
     }
 
     @ResponseBody

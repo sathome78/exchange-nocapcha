@@ -98,6 +98,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
+
+
   private static final Logger LOG = LogManager.getLogger(AdminController.class);
   @Autowired
   private MessageSource messageSource;
@@ -162,6 +164,7 @@ public class AdminController {
   public static String traderAuthority;
   public static String botAuthority;
 
+
   @PostConstruct
   private void init() {
     traderAuthority = retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum.TRADER);
@@ -178,7 +181,7 @@ public class AdminController {
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
   public ModelAndView admin() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("enable_2fa", userService.isGlobal2FaActive());
     model.addObject("post_url", "/2a8fy7b07dxe44/set2fa");
@@ -206,7 +209,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
   public ModelAndView orderDeletion() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.values()));
@@ -219,7 +222,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/removeStopOrder", method = GET)
   public ModelAndView stopOrderDeletion() {
     ModelAndView model = new ModelAndView();
-    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
     model.addObject("currencyPairList", currencyPairList);
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.OPENED, OrderStatus.CLOSED, OrderStatus.CANCELLED, OrderStatus.INPROCESS));
@@ -486,7 +489,7 @@ public class AdminController {
     model.addObject("user", user);
     model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
-    model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+    model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     model.setViewName("admin/editUser");
     model.addObject("userFiles", userService.findUserDoc(id));
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
@@ -632,7 +635,7 @@ public class AdminController {
     }
   }
 
-
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/settings/uploadFile", method = POST)
   public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                      RedirectAttributes redirectAttributes,
@@ -660,6 +663,8 @@ public class AdminController {
     return redirectView;
   }
 
+
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                              ModelAndView model, Principal principal, HttpServletRequest request) {
@@ -683,7 +688,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
+  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
   public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                 ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
     user.setStatus(user.getUserStatus());
@@ -704,8 +709,9 @@ public class AdminController {
     }
 
     return model;
-  }
+  }*/
 
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/changePasswordConfirm")
   public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
     try {
@@ -728,7 +734,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "/changeFinPasswordConfirm")
+  /*@RequestMapping(value = "/changeFinPasswordConfirm")
   public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
     try {
       request.setCharacterEncoding("utf-8");
@@ -748,7 +754,7 @@ public class AdminController {
       e.printStackTrace();
     }
     return model;
-  }
+  }*/
 
   @RequestMapping(value = "/newIpConfirm")
   public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
@@ -1248,7 +1254,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
   public ModelAndView candleChartTable() {
-    return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+    return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
@@ -1412,7 +1418,7 @@ public class AdminController {
     botService.retrieveBotFromDB().ifPresent(bot -> {
       modelAndView.addObject("bot", bot);
       modelAndView.addObject("botUser", userService.getUserById(bot.getUserId()));
-      modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder());
+      modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     });
     return modelAndView;
   }
