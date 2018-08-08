@@ -232,7 +232,7 @@
             </form>
 
             <div class="popup__bottom-links-row">
-                <a id="back_login" class="popup__bottom-link popup__bottom-link--back">Back to log in</a>
+                <a id="back_login" class="popup__bottom-link popup__bottom-link--back"><loc:message code="login.button.backToLogin"/></a>
             </div>
         </div>
     </div>
@@ -334,7 +334,7 @@
                 <div class="popup__bottom-row">If you haven't received the email, do the following:</div>
                 <div class="popup__bottom-row">
                     Check spam or other folders.<br>
-                    Set email address whitelist. <a href="" class="popup__bottom-link">How to set?</a><br>
+                    Set email address whitelist.<br>
                     Check the mail client works normally.
                 </div>
             </div>
