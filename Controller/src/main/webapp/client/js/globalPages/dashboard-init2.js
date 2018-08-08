@@ -282,9 +282,9 @@ function handleEventsMessage(data) {
         var registered = $('#hello-my-friend')[0];
         var noty = '';
         if (data.redirect.url && registered) {
-            noty = "?errorNoty=" + data.redirect.successQR;
+            window.location = data.redirect.url;
+            /*noty = "?errorNoty=" + data.redirect.successQR;*/
         }
-        window.location = data.redirect.url + noty;
     }
 
 }
@@ -420,8 +420,8 @@ $(function dashdoardInit() {
                 return false;
             }
         });
-
-        $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
+    //TODO temporary disabled
+    //    $('#login-qr').html("<img src='https://chart.googleapis.com/chart?chs=150x150&chld=L|2&cht=qr&chl=" + sessionId + "'>");
         /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
@@ -460,16 +460,28 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
-            trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart);
-            newChartResolution = data.period;
-            leftSider = new LeftSiderClass();
-            leftSider.setOnWalletsRefresh(function () {
-                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+
+            var url = '/dashboard/createPairSelectorMenu';
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (cpData) {
+                    if (!cpData) return;
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, subscribeChart, cpData);
+                    newChartResolution = data.period;
+
+                    leftSider = new LeftSiderClass();
+                    leftSider.setOnWalletsRefresh(function () {
+                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+                    });
+
+                    myWallets = new MyWalletsClass();
+                    myStatements = new MyStatementsClass();
+                    myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
+                    orders = new OrdersClass(data.currencyPair.name, cpData);
+                    /**/
+                }
             });
-            myWallets = new MyWalletsClass();
-            myStatements = new MyStatementsClass();
-            myHistory = new MyHistoryClass(data.currencyPair.name);
-            orders = new OrdersClass(data.currencyPair.name);
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/

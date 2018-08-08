@@ -13,6 +13,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     var that = this;
     var chart = null;
     var orderRoleFilter = null;
+    var currentPair = currentCurrencyPair;
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
@@ -43,17 +44,18 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     this.ROUND_SCALE = 9;
     this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
-    function onCurrencyPairChange() {
+    function onCurrencyPairChange(data) {
         $graphicsLoadingImg.removeClass('hidden');
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
+        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function () {
+    this.syncCurrencyPairSelector = function (data) {
         dashboardCurrencyPairSelector.syncState(function () {
         });
     };
@@ -697,7 +699,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
-        data.currencyPair=currentCurrencyPair;
+        data.currencyPair = currentPair;
         /**/
         $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
