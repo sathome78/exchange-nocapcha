@@ -192,7 +192,6 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
-                        <li><a id="pin_2fa_login_hides" data-fancybox href="#pin_2fa_login" class="popup__bottom-link">2fa Login</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -296,17 +295,6 @@
 
     <%--PIN | START--%>
         <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
-
-    <c:if test="${pinNeed != null}">
-        <script>
-            $("document").ready(function() {
-                setTimeout(function() {
-                    $('#pin_2fa_login_hide').trigger('click');
-                    alert("KY-KY");
-                },10);
-            });
-        </script>
-    </c:if>
 
         <c:url value="/login" var="loginUrl"/>
         <div id="pin_2fa_login" class="popup">
