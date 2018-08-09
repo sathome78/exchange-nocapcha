@@ -297,6 +297,7 @@
     <%--PIN | START--%>
         <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
 
+        <input id="pin_2fa_login_pin_need" hidden value='${pinNeed}'/>
         <c:url value="/login" var="loginUrl"/>
         <div id="pin_2fa_login" class="popup">
             <div class="popup__inner">
@@ -314,10 +315,10 @@
                     <div class="field">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <loc:message code="message.pin_code" var="pin"/>
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                        <div class="col-md-4 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label">${pin}</label>
                         </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                        <div class="col-md-8 input-block-wrapper__input-wrapper">
                             <input id="pin" name="l_pin" type="text" placeholder="${pin}" class="form-control input-block-wrapper__input"/>
                         </div>
                         <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
@@ -325,7 +326,7 @@
                         </div>
                     </div>
 
-                    <a id="send_pin_again" class="btn btn-link" style="margin-left: 80px;"><loc:message code="login.pin.sendagain"/></a>
+                    <a id="send_pin_again" class="btn btn-link" style="margin-left: 90px;"><loc:message code="login.pin.sendagain"/></a>
 
                     <div id="send_pin_res"></div>
                     <br>
