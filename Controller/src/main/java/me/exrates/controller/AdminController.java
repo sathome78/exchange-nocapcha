@@ -473,7 +473,7 @@ public class AdminController {
 
   @AdminLoggable
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
-  public ModelAndView editUser(@RequestParam int id, HttpServletRequest request, Principal principal) {
+  public ModelAndView editUser(@RequestParam(required=false) Integer id, @RequestParam(required=false) String email, HttpServletRequest request, Principal principal) {
 
     ModelAndView model = new ModelAndView();
 
@@ -484,14 +484,20 @@ public class AdminController {
       roleList = userRoleService.getRolesAvailableForChangeByAdmin();
     }
     model.addObject("roleList", roleList);
-    User user = userService.getUserById(id);
-    user.setId(id);
+
+    User user = new User();
+    if (email != null){
+      user = userService.findByEmail(email);
+    } else {
+      user = userService.getUserById(id);
+    }
+
     model.addObject("user", user);
     model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     model.setViewName("admin/editUser");
-    model.addObject("userFiles", userService.findUserDoc(id));
+    model.addObject("userFiles", userService.findUserDoc(user.getId()));
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
     List<Merchant> merchantList = merchantService.findAll();
     merchantList.sort(Comparator.comparing(Merchant::getName));
@@ -499,16 +505,16 @@ public class AdminController {
     Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
     AuthorityOptionsForm form = new AuthorityOptionsForm();
-    form.setUserId(id);
-    form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+    form.setUserId(user.getId());
+    form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
-    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
-    model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
+    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+    model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
     model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
-    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
+    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
     model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
     return model;
   }
