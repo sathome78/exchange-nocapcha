@@ -296,6 +296,7 @@
     <%--PIN | START--%>
         <a id="pin_2fa_login_hide" data-fancybox href="#pin_2fa_login" class="popup__bottom-link" style="display: none">2fa Login</a>
 
+        <input id="pin_2fa_login_pin_need" hidden value='${pinNeed}'/>
         <c:url value="/login" var="loginUrl"/>
         <div id="pin_2fa_login" class="popup">
             <div class="popup__inner">
