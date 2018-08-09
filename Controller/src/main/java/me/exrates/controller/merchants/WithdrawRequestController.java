@@ -109,7 +109,7 @@ public class WithdrawRequestController {
   }
 
   private String getAmountWithCurrency(WithdrawRequestCreateDto dto) {
-    return new StringJoiner(" ", dto.getAmount().stripTrailingZeros().toPlainString(), dto.getCurrencyName()).toString();
+    return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(),  " ", dto.getCurrencyName());
   }
 
   @RequestMapping(value = "/withdraw/request/pin", method = POST)
