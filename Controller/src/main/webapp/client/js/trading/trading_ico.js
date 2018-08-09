@@ -182,16 +182,14 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
             var initialAmount = 1;
             var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
-            var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
+            var lastBuyExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateBuy').val(lastBuyExrate);
             calculateFieldsForBuy();
             $('#amountSell').val(initialAmountString);
-            var lastSellExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
+            var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateSell').val(lastSellExrate);
             calculateFieldsForSell();
             that.fillOrderBalance(currencyPairName);
-
-
         });
     };
 
