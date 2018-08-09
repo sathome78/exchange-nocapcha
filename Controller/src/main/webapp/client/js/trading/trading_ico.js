@@ -198,12 +198,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         var initialAmountString = numbro(initialAmount).format(that.numeralFormat);
         $('#amountBuy').val(initialAmountString);
         var lastBuyExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
-        console.log("last rate1 " + lastBuyExrate);
         $('#exchangeRateBuy').val(lastBuyExrate);
         calculateFieldsForBuy();
         $('#amountSell').val(initialAmountString);
         var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
-        console.log("last rate2 " + lastSellExrate);
         $('#exchangeRateSell').val(lastSellExrate);
         calculateFieldsForSell();
         that.fillOrderBalance(currencyPairName);
