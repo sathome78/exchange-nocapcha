@@ -317,6 +317,7 @@ function initTradeOrders(object) {
         }*/
         case "SELL" : {
             trading.updateAndShowSellOrders(object.data, true);
+            trading.fillTradeFormsOnes();
             break;
         }
     }
