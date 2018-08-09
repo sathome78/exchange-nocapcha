@@ -46,6 +46,7 @@ public class TronServiceImpl implements TronService {
         return new HashMap<String, String>() {{
             put("address",  dto.getAddress());
             put("privKey", dto.getPrivateKey());
+            put("pubKey", dto.getHexAddress());
             put("message", message);
             put("qr", dto.getAddress());
         }};
