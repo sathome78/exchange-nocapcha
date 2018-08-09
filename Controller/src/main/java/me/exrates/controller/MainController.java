@@ -121,30 +121,6 @@ public class MainController {
         return "403";
     }
 
-    @RequestMapping("/register")
-    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, HttpServletRequest request) {
-        User user = new User();
-        ModelAndView mav = new ModelAndView("register", "user", user);
-        mav.addObject("cpch", "");
-        mav.addObject("captchaType", CAPTCHA_TYPE);
-        if (!isNull(refReference)) {
-            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
-            if (parentId.isPresent()) {
-                final String email = userService.getUserById(parentId.get()).getEmail();
-                if (email != null) {
-                    user.setParentEmail(email);
-                    return mav;
-                }
-            }
-        }
-        //TODO for Denis
-        User refferalRoot = userService.getCommonReferralRoot();
-        if (refferalRoot != null) {
-            user.setParentEmail(refferalRoot.getEmail());
-        }
-        return mav;
-    }
-
     @RequestMapping("/generateReferral")
     public
     @ResponseBody

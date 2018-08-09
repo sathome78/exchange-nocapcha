@@ -249,7 +249,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers( "/gt/**").permitAll()
         .antMatchers( "/test/**").permitAll()
         .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
-        .antMatchers("/login", "/register", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
+        .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
         .antMatchers("/resetPasswordConfirm/**").permitAll()
         .antMatchers("/forgotPassword/**").permitAll()
         .antMatchers(GET, "/stockChart/timeFrames").permitAll()
