@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -107,7 +108,7 @@ public class WalletServiceImpl implements WalletService {
   @Transactional(readOnly = true)
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale) {
-    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale);
+    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyWalletsStatisticsDto>() {{
         add(new MyWalletsStatisticsDto(false));
@@ -250,8 +251,14 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
-    return walletDao.getAllWalletsForUserReduced(email, locale);
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
+    return walletDao.getAllWalletsForUserReduced(email);
+  }
+
+  @Override
+  public List<WalletBalanceDto> getBalancesForUser() {
+    String userEmail = userService.getUserEmailFromSecurityContext();
+    return walletDao.getBalancesForUser(userEmail);
   }
 
   @Override
