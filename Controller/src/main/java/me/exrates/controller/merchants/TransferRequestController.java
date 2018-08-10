@@ -131,7 +131,7 @@ public class TransferRequestController {
   }
 
   private String getAmountWithCurrency(TransferRequestCreateDto dto) {
-    return new StringJoiner(" ", dto.getAmount().stripTrailingZeros().toString(), dto.getCurrencyName()).toString();
+    return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(),  " ", dto.getCurrencyName());
   }
 
   @RequestMapping(value = "/transfer/request/pin", method = POST)
