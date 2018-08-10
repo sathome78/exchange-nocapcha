@@ -99,8 +99,7 @@ import java.util.stream.Collectors;
     "classpath:/angular.properties",
     "classpath:/twitter.properties",
     "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties",
-    "classpath:/geetest.properties"})
+    "classpath:/merchants/stellar.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter{
 
