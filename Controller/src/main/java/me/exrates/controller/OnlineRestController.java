@@ -435,7 +435,6 @@ public class OnlineRestController {
    * @param request
    * @return object with values of params
    */
-  @OnlineMethod
   @RequestMapping(value = "/dashboard/currentParams", method = RequestMethod.GET)
   public CurrentParams setCurrentParams(
       @RequestParam(required = false) String currencyPairName,
