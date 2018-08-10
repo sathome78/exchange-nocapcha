@@ -531,7 +531,6 @@
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
@@ -611,13 +610,11 @@
         </Logger>
         <Logger name="refill" level="DEBUG" additivity="false">
             <AppenderRef ref="refill_log"/>
-            <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="transfer" level="DEBUG" additivity="false">
             <AppenderRef ref="transfer_log"/>
         </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_log"/>
         </logger>
         <logger name="exceptions_ext_log" level="ALL" additivity="false">
@@ -750,15 +747,12 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="open_api" level="ALL" additivity="false">
             <AppenderRef ref="open_api_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">
