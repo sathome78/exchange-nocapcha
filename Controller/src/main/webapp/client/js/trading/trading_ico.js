@@ -257,18 +257,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     function getOrderCommissions() {
-        var url = '/dashboard/orderCommissions';
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (data) {
-                if (!data) return;
-                that.commissionSell = data.sellCommission;
-                that.commissionBuy = data.buyCommission;
-                calculateFieldsForBuy();
-                calculateFieldsForSell();
-            }
-        });
+        that.commissionSell = 0;
+        that.commissionBuy = 0;
+        calculateFieldsForBuy();
+        calculateFieldsForSell();
     }
 
     function calculateFieldsForStop() {

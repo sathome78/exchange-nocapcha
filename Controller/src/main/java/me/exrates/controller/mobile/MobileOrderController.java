@@ -10,6 +10,7 @@ import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
@@ -220,7 +221,7 @@ public class MobileOrderController {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
-                userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+                userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), activeCurrencyPair.getPairType().getOrderBaseType());
         orderCreateDto.setOrderBaseType(activeCurrencyPair.getPairType().getOrderBaseType());
         LOGGER.debug("Order prepared" + orderCreateDto);
         OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);

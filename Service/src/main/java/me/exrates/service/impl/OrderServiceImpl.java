@@ -289,12 +289,12 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
-    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null);
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
+    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
   }
   
   @Override
-  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId) {
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType) {
     Currency spendCurrency = null;
     if (orderType == OperationType.SELL) {
       spendCurrency = activeCurrencyPair.getCurrency1();
@@ -302,6 +302,7 @@ public class OrderServiceImpl implements OrderService {
       spendCurrency = activeCurrencyPair.getCurrency2();
     }
     WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, orderType);
+
         /**/
     OrderCreateDto orderCreateDto = new OrderCreateDto();
     orderCreateDto.setOperationType(orderType);
@@ -311,6 +312,11 @@ public class OrderServiceImpl implements OrderService {
     orderCreateDto.setUserId(walletsAndCommissions.getUserId());
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
     orderCreateDto.setSourceId(sourceId);
+    /*todo get 0 comission values from db*/
+    if (baseType == OrderBaseType.ICO) {
+      walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
+      walletsAndCommissions.setCommissionId(24);
+    }
     if (orderType == OperationType.SELL) {
       orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
       orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
@@ -604,7 +610,8 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.getOperationType(),
             user.getEmail(),
             orderCreateDto.getAmount().subtract(cumulativeSum),
-            orderCreateDto.getExchangeRate());
+            orderCreateDto.getExchangeRate(),
+            orderCreateDto.getOrderBaseType());
         profileData.setTime3();
         Integer createdOrderId = createOrder(remainderNew, CREATE);
         profileData.setTime4();
@@ -622,10 +629,10 @@ public class OrderServiceImpl implements OrderService {
     BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
     OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
     int acceptedId = createOrder(accepted, CREATE);
     createOrder(remainder, CREATE_SPLIT);
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
