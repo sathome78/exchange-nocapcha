@@ -383,7 +383,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector();
+            trading.syncCurrencyPairSelector('MAIN');
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -413,7 +413,7 @@ $(function dashdoardInit() {
         $('#menu-orders').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {
-                orders.syncCurrencyPairSelector();
+                orders.syncCurrencyPairSelector('ALL');
                 showPage('orders');
                 orders.updateAndShowAll();
             } else {
@@ -432,7 +432,7 @@ $(function dashdoardInit() {
 
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'MAIN', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -460,15 +460,18 @@ $(function dashdoardInit() {
             live: true
         });
 
-        syncCurrentParams(null, null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, 'MAIN', function (data) {
             showPage($('#startup-page-id').text().trim());
-            var url = '/dashboard/createPairSelectorMenu';
+            var url = '/dashboard/createPairSelectorMenu?pairs=ALL';
             $.ajax({
                 url: url,
                 type: 'GET',
                 success: function (cpData) {
                     if (!cpData) return;
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, cpData);
+                    var tradingCpData = jQuery.extend(true, {}, cpData);
+                    delete(tradingCpData.ICO);
+                    var infoCpData = sortCpDataInOrder(cpData);
+                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
                     leftSider = new LeftSiderClass();
                     leftSider.setOnWalletsRefresh(function () {
@@ -476,8 +479,8 @@ $(function dashdoardInit() {
                     });
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
-                    myHistory = new MyHistoryClass(data.currencyPair.name, cpData);
-                    orders = new OrdersClass(data.currencyPair.name, cpData);
+                    myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
+                    orders = new OrdersClass(data.currencyPair.name, infoCpData);
                     /**/
                 }
             });
@@ -555,8 +558,20 @@ function showSubPage(subPageId) {
     }
 }
 
+function sortCpDataInOrder(cpData) {
+    if (!cpData.ICO) {
+        return cpData;
+    }
+    var icoData = { ICO :
+        cpData.ICO
+    };
+    var newData = jQuery.extend(true, {}, cpData);
+    delete(newData.ICO);
+    return $.extend({}, icoData, newData);
+}
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
@@ -564,6 +579,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
         currencyPairName = $("#preferedCurrencyPairName").val();
         $("#preferedCurrencyPairName").val("");
     }
+    url = url + (cpType ? '&currencyPairType=' + cpType : '');
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');

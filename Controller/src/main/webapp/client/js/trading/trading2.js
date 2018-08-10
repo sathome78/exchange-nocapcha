@@ -57,7 +57,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
     };
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.syncState('MAIN', onCurrencyPairChange);
 
     };
 
@@ -506,7 +506,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, chartSubscrib
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         chart = new ChartAmchartsClass2(currentCurrencyPair, chartSubscribeCallback);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange);
         } catch (e) {
