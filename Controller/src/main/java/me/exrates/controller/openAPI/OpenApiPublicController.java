@@ -43,8 +43,8 @@ public class OpenApiPublicController {
         String currencyPairName = null;
         if (currencyPair != null) {
             currencyPairName = formatCurrencyPairNameParam(currencyPair);
+            validateCurrencyPair(currencyPairName);
         }
-        validateCurrencyPair(currencyPairName);
         return formatCoinmarketData(orderService.getDailyCoinmarketData(currencyPairName));
     }
 
