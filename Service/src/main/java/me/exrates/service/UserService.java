@@ -198,4 +198,6 @@ public interface UserService {
   String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
 
   boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail);
+
+    String getUserEmailFromSecurityContext();
 }
