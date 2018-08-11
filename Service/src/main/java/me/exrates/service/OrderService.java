@@ -68,7 +68,7 @@ public interface OrderService {
     void postBotOrderToDb(OrderCreateDto orderCreateDto);
 
   @Transactional
-  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale);
+  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType);
 
   @Transactional
     OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);

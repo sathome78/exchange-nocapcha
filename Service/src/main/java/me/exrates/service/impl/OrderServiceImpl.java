@@ -334,6 +334,7 @@ public class OrderServiceImpl implements OrderService {
     orderCreateDto.setUserId(walletsAndCommissions.getUserId());
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
     orderCreateDto.setSourceId(sourceId);
+    orderCreateDto.setOrderBaseType(baseType);
     /*todo get 0 comission values from db*/
     if (baseType == OrderBaseType.ICO) {
       walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
@@ -564,10 +565,10 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   @Transactional
-  public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale) {
+  public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType) {
     CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
     OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
-            userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+            userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
     log.debug("Order prepared" + orderCreateDto);
     OrderValidationDto orderValidationDto = validateOrder(orderCreateDto);
     Map<String, Object> errors = orderValidationDto.getErrors();
@@ -606,8 +607,11 @@ public class OrderServiceImpl implements OrderService {
       synchronized (restOrderCreationLock) {
           log.info(String.format("Start creating order: %s %s amount %s rate %s", currencyPairName, orderType.name(), amount, exrate));
           Locale locale = userService.getUserLocaleForMobile(userEmail);
-          Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
-          OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPairId, orderType, amount, exrate), userEmail, locale);
+          CurrencyPair currencyPair = currencyService.getCurrencyPairByName(currencyPairName);
+          if (currencyPair.getPairType() != CurrencyPairType.MAIN) {
+            throw new NotCreatableOrderException("This pair available only through website");
+          }
+          OrderCreateDto orderCreateDto = prepareOrderRest(new OrderCreationParamsDto(currencyPair.getId(), orderType, amount, exrate), userEmail, locale, OrderBaseType.LIMIT);
           return createPreparedOrderRest(orderCreateDto, locale);
       }
   }

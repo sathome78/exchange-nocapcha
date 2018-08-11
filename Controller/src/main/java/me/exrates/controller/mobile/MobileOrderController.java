@@ -1,6 +1,7 @@
 package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.model.CurrencyPair;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
@@ -217,8 +218,7 @@ public class MobileOrderController {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale);
-        orderCreateDto.setOrderBaseType(activeCurrencyPair.getPairType().getOrderBaseType());
+        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale, activeCurrencyPair.getPairType().getOrderBaseType());
         UUID orderKey = UUID.randomUUID();
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());
