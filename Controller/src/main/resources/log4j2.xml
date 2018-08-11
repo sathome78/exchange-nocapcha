@@ -366,6 +366,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="nexty_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/nexty_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ethereum/nexty_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="eth_tokens_log" fileName="${sys:catalina.home}/logs/crypto/ethereum/eth_tokens_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ethereum/eth_tokens_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -386,6 +395,15 @@
         </RollingFile>
         <RollingFile name="ditcoin_log" fileName="${sys:catalina.home}/logs/crypto/ditcoin_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ditcoin_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="sumokoin_log" fileName="${sys:catalina.home}/logs/crypto/sumokoin_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/sumokoin_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -669,6 +687,9 @@
         <logger name="contractnet_log" level="ALL" additivity="false">
             <AppenderRef ref="contractnet_log"/>
         </logger>
+        <logger name="nexty_log" level="ALL" additivity="false">
+            <AppenderRef ref="nexty_log"/>
+        </logger>
         <logger name="eth_tokens_log" level="DEBUG" additivity="false">
             <AppenderRef ref="eth_tokens_log"/>
         </logger>
@@ -677,6 +698,9 @@
         </logger>
         <logger name="ditcoin_log" level="ALL" additivity="false">
             <AppenderRef ref="ditcoin_log"/>
+        </logger>
+        <logger name="sumokoin_log" level="ALL" additivity="false">
+            <AppenderRef ref="sumokoin_log"/>
         </logger>
         <logger name="edc_log" level="ALL" additivity="false">
             <AppenderRef ref="edc_log"/>

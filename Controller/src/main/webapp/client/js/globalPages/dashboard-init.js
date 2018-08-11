@@ -471,16 +471,16 @@ $(function dashdoardInit() {
                     var infoCpData = sortCpDataInOrder(cpData);
                     trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
-                    leftSider = new LeftSiderClass();
-                    leftSider.setOnWalletsRefresh(function () {
-                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
-                    });
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
                     orders = new OrdersClass(data.currencyPair.name, infoCpData);
                     /**/
                 }
+            });
+            leftSider = new LeftSiderClass();
+            leftSider.setOnWalletsRefresh(function () {
+                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
             });
             showSubPage($('#startup-subPage-id').text().trim());
         });
