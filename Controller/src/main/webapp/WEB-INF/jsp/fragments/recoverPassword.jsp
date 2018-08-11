@@ -26,6 +26,9 @@
 
 </head>
 <body>
+
+<a id="forgot_pwd_hide" data-fancybox href="#recovery_confirmed" class="popup__bottom-link">Forgot password?</a>
+
 <input id="recoveryConfirm" hidden value='${recoveryConfirm}'/>
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
@@ -40,6 +43,7 @@
 
         <form action="/dashboard/updatePassword" class="form" method="post">
             <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
+            <input name="email" hidden value='${user.email}'>
             <div class="field">
                 <div class="field__label">Password</div>
                 <div class="field__pwd-show / js-show-pwd"></div>

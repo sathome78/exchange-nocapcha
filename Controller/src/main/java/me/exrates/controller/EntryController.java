@@ -33,6 +33,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -91,13 +92,19 @@ public class EntryController {
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -220,13 +227,19 @@ public class EntryController {
 
     @RequestMapping(value = {"/tradingview"})
     public ModelAndView tradingview(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String qrLogin,
             @RequestParam(required = false) String startupPage,
             @RequestParam(required = false) String startupSubPage,
             @RequestParam(required = false) String currencyPair,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
+        String successNoty = null;
+        String errorNoty = null;
+        if (qrLogin != null) {
+            successNoty = messageSource
+                    .getMessage("dashboard.qrLogin.successful", null,
+                            localeResolver.resolveLocale(request));
+        }
         if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
@@ -450,6 +463,21 @@ public class EntryController {
     public String reconnectTelegram(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.reconnect(principal.getName()).toString();
+    }
+
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+        return new Generic2faResponseDto(userService.generateQRUrl(principal.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping("/settings/2FaOptions/verify_google2fa")
+    public String verifyGoogleAuthenticatorConnect(@RequestParam String code, Principal principal) {
+        if (principal != null) {
+            userService.checkGoogle2faVerifyCode(code, principal.getName());
+        }
+        return "";
     }
 
     @ResponseBody

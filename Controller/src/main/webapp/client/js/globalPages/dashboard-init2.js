@@ -59,9 +59,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    // if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-    //     subscribeChart();
-    // }
+    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+        subscribeChart();
+    }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();

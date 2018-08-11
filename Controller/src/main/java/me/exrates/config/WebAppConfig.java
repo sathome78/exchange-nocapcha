@@ -15,11 +15,13 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
+import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
@@ -110,7 +112,7 @@ import java.util.stream.Collectors;
     "classpath:/merchants/stellar.properties",
     "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter {
+public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     private
     @Value("${db.user}")
@@ -421,10 +423,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
 
-    @Bean
+    /*@Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
-    }
+    }*/
 
 
     @Bean
@@ -836,8 +838,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "iprServiceImpl")
     public EthTokenService iprService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x68b539381b317a04190c3bd7ce95b9233275d02a");
-        tokensList.add("0x9bcd4f04cafead107dfd715b4922b22d8ab941a0");
+        tokensList.add("0x069bc4608a8764924ab991cb9eb6d6b6caad74c8");
         return new EthTokenServiceImpl(
                 tokensList,
                 "IPR",
@@ -1015,7 +1016,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "GST", false, ExConvert.Unit.ETHER);
     }
 
-
+    @Bean(name = "satServiceImpl")
+    public EthTokenService satService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xc56b13ebbcffa67cfb7979b900b736b3fb480d78");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SAT",
+                "SAT", true, ExConvert.Unit.AIWEI);
+    }
     @Bean(name = "cheServiceImpl")
     public EthTokenService cheService() {
         List<String> tokensList = new ArrayList<>();
@@ -1024,6 +1033,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "CHE",
                 "CHE", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "daccServiceImpl")
+    public EthTokenService daccService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf8c595d070d104377f58715ce2e6c93e49a87f3c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "DACC",
+                "DACC", true, ExConvert.Unit.MWEI);
     }
 
     @Bean(name = "engtServiceImpl")
@@ -1056,6 +1075,56 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "UMT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "maspServiceImpl")
+    public EthTokenService maspService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xce958ecf2c752c74973e89674faa30404b15a498");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MASP",
+                "MASP", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "skillServiceImpl")
+    public EthTokenService skillService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x417d6feeae8b2fcb73d14d64be7f192e49431978");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "SKILL",
+                "SKILL", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "storServiceImpl")
+    public EthTokenService storService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa3ceac0aac5c5d868973e546ce4731ba90e873c2");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "STOR",
+                "STOR", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "quintServiceImpl")
+    public EthTokenService quintService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x45b73654e464945a268032cdcb8d551fe8b733ca");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "QUiNT",
+                "QUiNT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ttcServiceImpl")
+    public EthTokenService ttcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x53e28b07e0795869b727ee4d585b3c025b016952");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TTC",
+                "TTC", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1073,6 +1142,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new QtumTokenServiceImpl(tokensList, "HLC", "HLC", ExConvert.Unit.GWEI);
     }
 
+    //**** Monero ****/
+    @Bean(name = "moneroServiceImpl")
+    public MoneroService moneroService() {
+        return new MoneroServiceImpl("merchants/monero.properties",
+                "Monero", "XMR", 10, 12);
+    }
+
+   @Bean(name = "ditcoinServiceImpl")
+    public MoneroService ditcoinService() {
+        return new MoneroServiceImpl("merchants/ditcoin.properties",
+                "DIT", "DIT", 10, 8);
+    }
 
     /***tokens based on xem mosaic)****/
     @Bean(name = "dimCoinServiceImpl")
@@ -1110,9 +1191,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         SLT_EMMITER);
     }
 
+    @Bean(name = "ternStellarService")
+    public StellarAsset ternStellarService() {
+        return new StellarAsset("TERN",
+                "TERN",
+                "TERN",
+                "GDGQDVO6XPFSY4NMX75A7AOVYCF5JYGW2SHCJJNWCQWIDGOZB53DGP6C");
+    }
+
     @Bean("vexaniumContract")
     public AchainContract achainContractService() {
         return new AchainContract("ACT9XnhX5FtQqGFAa3KgrgkPCCEDPmuzgtSx", "VEX", "VEX", "Vexanium_Token");
+    }
+
+    @Bean(name = "vntStellarService")
+    public StellarAsset vntStellarService() {
+        return new StellarAsset("VNT",
+                "VNT",
+                "VNT",
+                "GC2YBPMNHBHW7R7D2MFRH5RDLC6FGJDCBH7FRSNCHC5326ALOYWGMXLO");
     }
 
     @Bean

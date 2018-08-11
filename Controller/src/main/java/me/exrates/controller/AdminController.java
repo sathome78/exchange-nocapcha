@@ -473,7 +473,7 @@ public class AdminController {
 
   @AdminLoggable
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
-  public ModelAndView editUser(@RequestParam int id, HttpServletRequest request, Principal principal) {
+  public ModelAndView editUser(@RequestParam(required=false) Integer id, @RequestParam(required=false) String email, HttpServletRequest request, Principal principal) {
 
     ModelAndView model = new ModelAndView();
 
@@ -484,14 +484,20 @@ public class AdminController {
       roleList = userRoleService.getRolesAvailableForChangeByAdmin();
     }
     model.addObject("roleList", roleList);
-    User user = userService.getUserById(id);
-    user.setId(id);
+
+    User user = new User();
+    if (email != null){
+      user = userService.findByEmail(email);
+    } else {
+      user = userService.getUserById(id);
+    }
+
     model.addObject("user", user);
     model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
     model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
     model.setViewName("admin/editUser");
-    model.addObject("userFiles", userService.findUserDoc(id));
+    model.addObject("userFiles", userService.findUserDoc(user.getId()));
     model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
     List<Merchant> merchantList = merchantService.findAll();
     merchantList.sort(Comparator.comparing(Merchant::getName));
@@ -499,16 +505,16 @@ public class AdminController {
     Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
     AuthorityOptionsForm form = new AuthorityOptionsForm();
-    form.setUserId(id);
-    form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+    form.setUserId(user.getId());
+    form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
-    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
-    model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
+    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+    model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
     model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
-    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), id));
+    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
     model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
     return model;
   }
@@ -635,7 +641,7 @@ public class AdminController {
     }
   }
 
-
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/settings/uploadFile", method = POST)
   public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                      RedirectAttributes redirectAttributes,
@@ -663,6 +669,8 @@ public class AdminController {
     return redirectView;
   }
 
+
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                              ModelAndView model, Principal principal, HttpServletRequest request) {
@@ -686,7 +694,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
+  /*@RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
   public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                 ModelAndView model, HttpServletRequest request, Principal principal, RedirectAttributes redir) {
     user.setStatus(user.getUserStatus());
@@ -707,8 +715,9 @@ public class AdminController {
     }
 
     return model;
-  }
+  }*/
 
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "/changePasswordConfirm")
   public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
     try {
@@ -731,7 +740,7 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "/changeFinPasswordConfirm")
+  /*@RequestMapping(value = "/changeFinPasswordConfirm")
   public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
     try {
       request.setCharacterEncoding("utf-8");
@@ -751,7 +760,7 @@ public class AdminController {
       e.printStackTrace();
     }
     return model;
-  }
+  }*/
 
   @RequestMapping(value = "/newIpConfirm")
   public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
@@ -1676,23 +1685,6 @@ public class AdminController {
   }
 
 
-
-
-
-  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-  @ExceptionHandler(OrderDeletingException.class)
-  @ResponseBody
-  public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler(NoPermissionForOperationException.class)
-  @ResponseBody
-  public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
-    return new ErrorInfo(req.getRequestURL(), exception);
-  }
-  
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
           OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
@@ -1728,6 +1720,5 @@ public class AdminController {
     public static void main(String[] args) {
         System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
     }
-
 
 }

@@ -21,6 +21,7 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -33,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -84,6 +87,9 @@ public class UserServiceImpl implements UserService {
   }
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+  public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
+  public static String APP_NAME = "Exrates";
 
   private final int USER_FILES_THRESHOLD = 3;
 
@@ -167,15 +173,7 @@ public class UserServiceImpl implements UserService {
       //deleting of appropriate jobs
       tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
             /**/
-      User user = new User();
-      user.setId(temporalToken.getUserId());
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CHANGE_PASSWORD) {
-        user.setStatus(UserStatus.ACTIVE);
-        if (!userDao.updateUserStatus(user)) return 0;
-      }
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
+      if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
         if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
           return 0;
         }
@@ -354,7 +352,6 @@ public class UserServiceImpl implements UserService {
   public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale) {
     sendEmailWithToken(user, tokenType, tokenLink, emailSubject, emailText, locale, null);
   }
-
 
   @Override
   @Transactional(rollbackFor = Exception.class)
@@ -721,6 +718,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
+    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), event);
+    if (setting.getNotificatorId() == 4) {
+      return checkGoogle2faVerifyCode(pin, email);
+    }
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -734,6 +735,16 @@ public class UserServiceImpl implements UserService {
     return setting != null && setting.getNotificatorId() != null;
   }
 
+  @Override
+  @Transactional
+  public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
+    String secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    if (secret2faCode == null || secret2faCode.isEmpty()){
+      userDao.set2faSecretCode(userEmail);
+      secret2faCode = userDao.get2faSecretByEmail(userEmail);
+    }
+    return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
+  }
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
@@ -754,6 +765,25 @@ public class UserServiceImpl implements UserService {
   @Override
   public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
     return userDao.getNewRegisteredUserNumber(startTime, endTime);
+  }
+
+  @Override
+  public boolean checkGoogle2faVerifyCode(String verificationCode, String userEmail) {
+    String google2faSecret = userDao.get2faSecretByEmail(userEmail);
+    final Totp totp = new Totp(google2faSecret);
+    if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
+      throw new IncorrectSmsPinException();
+    }
+    return true;
+  }
+
+  private boolean isValidLong(String code) {
+    try {
+      Long.parseLong(code);
+    } catch (final NumberFormatException e) {
+      return false;
+    }
+    return true;
   }
 
 }
