@@ -33,6 +33,7 @@ import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.stopOrder.StopOrderService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -1238,7 +1239,8 @@ public class AdminController {
   public Map<String, List<String>> getPhrases(
       @PathVariable String topic,
       @RequestParam String email) {
-    Locale userLocale = Locale.forLanguageTag(userService.getPreferedLangByEmail(email));
+    String lang = userService.getPreferedLangByEmail(email);
+    Locale userLocale = Locale.forLanguageTag(StringUtils.isEmpty(lang) ? "EN" : lang);
     UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
     List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
         .map(e -> messageSource.getMessage(e, null, userLocale))
