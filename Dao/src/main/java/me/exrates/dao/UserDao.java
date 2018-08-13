@@ -18,6 +18,8 @@ public interface UserDao {
 
   int getIdByNickname(String nickname);
 
+  boolean setNickname(User user);
+
   boolean create(User user);
 
   void createUserDoc(int userId, List<Path> paths);

@@ -221,6 +221,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public boolean setNickname(User user) {
+    return userDao.setNickname(user);
+  }
+
+  @Override
   public User findByEmail(String email) {
     return userDao.findByEmail(email);
   }

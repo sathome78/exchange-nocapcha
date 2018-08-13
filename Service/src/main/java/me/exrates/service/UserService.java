@@ -26,6 +26,14 @@ public interface UserService {
 
   int getIdByNickname(String nickname);
 
+  /**
+   * Stores preferred locale for user in DB
+   *
+   * @param user
+   * @return "true" if data saved successfully, or "false" if none
+   */
+  boolean setNickname(User user);
+
   User findByEmail(String email);
 
   User findByNickname(String nickname);
