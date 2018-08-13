@@ -1,4 +1,5 @@
 ALTER TABLE CURRENCY_PAIR ADD type ENUM('MAIN', 'ICO') DEFAULT 'MAIN'  NOT NULL;
+ALTER TABLE CURRENCY_PAIR MODIFY market enum('USD', 'BTC', 'ETH', 'FIAT', 'ICO') NOT NULL DEFAULT 'USD';
 
 INSERT INTO USER_ROLE (name, user_role_business_feature_id, user_role_group_feature_id) VALUES ('ICO_MARKET_MAKER', 2, 2);
 
