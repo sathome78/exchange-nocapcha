@@ -38,7 +38,7 @@
                 Now, we need to create strong password.
             </div>
 
-            <form action="/createPassword" class="form" method="post">
+            <form action="/createPasswordConfirm" class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <input type="hidden"  name="view" value="${view}"/>
                 <input name="email" hidden value='${user.email}'>
