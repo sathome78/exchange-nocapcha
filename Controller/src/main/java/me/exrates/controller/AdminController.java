@@ -477,6 +477,8 @@ public class AdminController {
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
   public ModelAndView editUser(@RequestParam(required=false) Integer id, @RequestParam(required=false) String email, HttpServletRequest request, Principal principal) {
 
+    email = email.replace(" ", "+");
+
     ModelAndView model = new ModelAndView();
 
     model.addObject("statusList", UserStatus.values());
