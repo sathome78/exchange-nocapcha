@@ -475,8 +475,6 @@ public class AdminController {
   @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
   public ModelAndView editUser(@RequestParam(required=false) Integer id, @RequestParam(required=false) String email, HttpServletRequest request, Principal principal) {
 
-    email = email.replace(" ", "+");
-
     ModelAndView model = new ModelAndView();
 
     model.addObject("statusList", UserStatus.values());
@@ -489,6 +487,7 @@ public class AdminController {
 
     User user = new User();
     if (email != null){
+      email = email.replace(" ", "+");
       user = userService.findByEmail(email);
     } else {
       user = userService.getUserById(id);
