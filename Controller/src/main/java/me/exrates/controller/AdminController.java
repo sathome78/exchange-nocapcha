@@ -769,14 +769,14 @@ public class AdminController {
                                              HttpServletRequest request, RedirectAttributes redirectAttributes) {
     registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
-      redirectAttributes.addFlashAttribute("errorNoty", "Fail. Nickname NOT changed successfull.");
+      redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
       redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
     } else {
       boolean userNicknameUpdated = userService.setNickname(user);
       if(userNicknameUpdated){
-        redirectAttributes.addFlashAttribute("successNoty", "Nickname changed successfull.");
+        redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
       }else{
-        redirectAttributes.addFlashAttribute("errorNoty", "Fail. Nickname NOT changed successfull.");
+        redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
       }
     }
     redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");

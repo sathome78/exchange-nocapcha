@@ -38,10 +38,10 @@
 
 <div id="nickname_change" class="popup">
     <div class="popup__inner">
-        <div class="popup__caption">Nickname changing</div>
+        <div class="popup__caption">Nickname change</div>
 
         <div class="popup__sub-caption">
-            Now, we need to create unique nickname.
+            Now, we need to create a unique and correct nickname.
         </div>
 
         <form id="nickname_change_form" action="/settings/changeNickname/submit" class="form" method="post">
