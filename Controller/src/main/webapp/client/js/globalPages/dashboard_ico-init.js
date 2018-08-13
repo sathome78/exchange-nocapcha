@@ -295,6 +295,7 @@ function initTrades(object, currentCurrencyPair) {
     switch (object.type){
         case "ALL_TRADES" : {
             trading.updateAndShowAllTrades(object.data);
+
             break;
         }
         case "MY_TRADES" : {
@@ -317,6 +318,7 @@ function initTradeOrders(object) {
         }*/
         case "SELL" : {
             trading.updateAndShowSellOrders(object.data, true);
+            trading.fillTradeFormsOnes();
             break;
         }
     }

@@ -121,30 +121,6 @@ public class MainController {
         return "403";
     }
 
-    @RequestMapping("/register")
-    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, HttpServletRequest request) {
-        User user = new User();
-        ModelAndView mav = new ModelAndView("register", "user", user);
-        mav.addObject("cpch", "");
-        mav.addObject("captchaType", CAPTCHA_TYPE);
-        if (!isNull(refReference)) {
-            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
-            if (parentId.isPresent()) {
-                final String email = userService.getUserById(parentId.get()).getEmail();
-                if (email != null) {
-                    user.setParentEmail(email);
-                    return mav;
-                }
-            }
-        }
-        //TODO for Denis
-        User refferalRoot = userService.getCommonReferralRoot();
-        if (refferalRoot != null) {
-            user.setParentEmail(refferalRoot.getEmail());
-        }
-        return mav;
-    }
-
     @RequestMapping("/generateReferral")
     public
     @ResponseBody
@@ -424,7 +400,7 @@ public class MainController {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
                 if (exceptionClass.equals("DisabledException")) {
-                    attr.addFlashAttribute("loginErr", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
+                    attr.addFlashAttribute("blockedUser", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("contactsUrl", "/contacts");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
