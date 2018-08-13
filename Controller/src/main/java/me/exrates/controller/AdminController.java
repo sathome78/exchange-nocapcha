@@ -762,6 +762,24 @@ public class AdminController {
     return model;
   }*/
 
+  @RequestMapping(value = "settings/changeNickname/submit", method = POST)
+  public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
+                                             ModelAndView model, HttpServletRequest request) {
+    user.setStatus(user.getUserStatus());
+    registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+    if (result.hasErrors()) {
+      model.setViewName("globalPages/settings");
+      model.addObject("sectionid", "nickname-changing");
+      model.addObject("activeTabId", "nickname-changing-wrapper");
+    } else {
+      boolean b = userService.setNickname(user);
+      new SecurityContextLogoutHandler().logout(request, null, null);
+      model.setViewName("redirect:/dashboard");
+    }
+    model.addObject("user", user);
+    return model;
+  }
+
   @RequestMapping(value = "/newIpConfirm")
   public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
     ModelAndView model = new ModelAndView();
