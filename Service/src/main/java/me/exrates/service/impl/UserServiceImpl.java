@@ -720,14 +720,15 @@ public class UserServiceImpl implements UserService {
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-    if (setting == null && !event.isCanBeDisabled()) {
+    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
               .userId(userId)
               .notificationMessageEventEnum(event)
               .build();
     }
-    if (setting != null && setting.getNotificatorId() == 4) {
+    System.out.println("setting " + setting);
+    if (setting != null && setting.getNotificatorId() != null && setting.getNotificatorId() == 4) {
       return checkGoogle2faVerifyCode(pin, email);
     }
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
