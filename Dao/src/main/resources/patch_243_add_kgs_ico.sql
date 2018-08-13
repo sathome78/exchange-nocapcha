@@ -1,5 +1,5 @@
 INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('KGS(ICO)', 'KGS', 2, 'icoServiceImpl', 'CRYPTO');
+VALUES ('KGS', 'KGS', 2, 'icoServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('KGS', 'KGS', 0, 8, 8, 8);
 
