@@ -29,7 +29,7 @@ public class Commission {
 
     public static Commission zeroComission() {
         Commission commission = new Commission();
-        commission.setId(0);
+        commission.setId(24);
         commission.setOperationType(OperationType.OUTPUT);
         commission.setValue(BigDecimal.ZERO);
         commission.setDateOfChange(new Date());

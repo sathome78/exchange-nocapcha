@@ -6,6 +6,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;
@@ -180,7 +181,9 @@ public class DashboardController {
                   null, localeResolver.resolveLocale(request)));
           attr.addFlashAttribute("user", user);
           model.setViewName("redirect:/passwordRecovery");
+
           user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
+          user.setStatus(UserStatus.REGISTERED);
           user.setPassword(null);
       } else {
           if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
@@ -211,6 +214,7 @@ public class DashboardController {
       UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
       updateUserDto.setPassword(user.getPassword());
       updateUserDto.setRole(UserRole.USER);
+      updateUserDto.setStatus(UserStatus.ACTIVE);
       userService.updateUserByAdmin(updateUserDto);
 
       Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());

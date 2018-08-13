@@ -9,20 +9,23 @@ import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -491,5 +494,23 @@ public class CurrencyDaoImpl implements CurrencyDao {
             "         FROM CURRENCY_PAIR " +
             "         WHERE hidden IS NOT TRUE AND type = 'ICO' AND currency1_id =:currency_id ";
     return !jdbcTemplate.queryForList(sql, Collections.singletonMap("currency_id", currencyId), Integer.class).isEmpty();
+  }
+
+  @Override
+  public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
+    String sql = "SELECT name FROM CURRENCY_PAIR WHERE hidden != 1 ORDER BY name ASC";
+    return jdbcTemplate.query(sql, Collections.emptyMap(),
+            (rs, row) -> new CurrencyPairInfoItem(rs.getString("name")));
+  }
+
+  @Override
+  public Optional<Integer> findOpenCurrencyPairIdByName(String pairName) {
+    String sql = "SELECT id FROM CURRENCY_PAIR WHERE name = :pair_name AND hidden != 1";
+    try {
+      return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("pair_name", pairName), Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+
   }
 }

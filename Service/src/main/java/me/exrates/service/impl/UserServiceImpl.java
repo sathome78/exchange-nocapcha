@@ -173,15 +173,7 @@ public class UserServiceImpl implements UserService {
       //deleting of appropriate jobs
       tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
             /**/
-      User user = new User();
-      user.setId(temporalToken.getUserId());
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CHANGE_PASSWORD) {
-        user.setStatus(UserStatus.ACTIVE);
-        if (!userDao.updateUserStatus(user)) return 0;
-      }
-      if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
-          temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
+      if (temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
         if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
           return 0;
         }
@@ -360,7 +352,6 @@ public class UserServiceImpl implements UserService {
   public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale) {
     sendEmailWithToken(user, tokenType, tokenLink, emailSubject, emailText, locale, null);
   }
-
 
   @Override
   @Transactional(rollbackFor = Exception.class)
@@ -727,8 +718,17 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
-    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), event);
-    if (setting.getNotificatorId() == 4) {
+    int userId = getIdByEmail(email);
+    NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
+    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
+      setting = NotificationsUserSetting.builder()
+              .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+              .userId(userId)
+              .notificationMessageEventEnum(event)
+              .build();
+    }
+    System.out.println("setting " + setting);
+    if (setting != null && setting.getNotificatorId() != null && setting.getNotificatorId() == 4) {
       return checkGoogle2faVerifyCode(pin, email);
     }
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
@@ -793,6 +793,15 @@ public class UserServiceImpl implements UserService {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public String getUserEmailFromSecurityContext() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null) {
+      throw new AuthenticationNotAvailableException();
+    }
+    return auth.getName();
   }
 
 }

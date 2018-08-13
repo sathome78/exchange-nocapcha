@@ -38,10 +38,10 @@
                 Now, we need to create strong password.
             </div>
 
-            <form action="/createPassword" class="form" method="post">
+            <form action="/createPasswordConfirm" class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <input type="hidden"  name="view" value="${view}"/>
-                <input type="hidden"  name="pair" value="${pair}"/>
+                <input name="email" hidden value='${user.email}'>
                 <div class="field">
                     <div class="field__label">Password</div>
                     <div class="field__pwd-show / js-show-pwd"></div>
