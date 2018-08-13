@@ -764,20 +764,21 @@ public class AdminController {
 
   @RequestMapping(value = "settings/changeNickname/submit", method = POST)
   public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, HttpServletRequest request) {
-    user.setStatus(user.getUserStatus());
+                                             HttpServletRequest request, RedirectAttributes redirectAttributes) {
     registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "nickname-changing");
-      model.addObject("activeTabId", "nickname-changing-wrapper");
+      redirectAttributes.addFlashAttribute("errorNoty", "Fail. Nickname NOT changed successfull.");
+      redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
     } else {
-      boolean b = userService.setNickname(user);
-      new SecurityContextLogoutHandler().logout(request, null, null);
-      model.setViewName("redirect:/dashboard");
+      boolean userNicknameUpdated = userService.setNickname(user);
+      if(userNicknameUpdated){
+        redirectAttributes.addFlashAttribute("successNoty", "Nickname changed successfull.");
+      }else{
+        redirectAttributes.addFlashAttribute("errorNoty", "Fail. Nickname NOT changed successfull.");
+      }
     }
-    model.addObject("user", user);
-    return model;
+    redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
+    return new ModelAndView(new RedirectView("/settings"));
   }
 
   @RequestMapping(value = "/newIpConfirm")
