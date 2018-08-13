@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.controller.exception.OrderParamsWrongException;
+import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
@@ -86,7 +86,7 @@ public class OrderControllerRest {
             if (activeCurrencyPair == null) {
                 throw new RuntimeException("Wrong currency pair");
             }
-            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/

@@ -786,4 +786,13 @@ public class UserServiceImpl implements UserService {
     return true;
   }
 
+  @Override
+  public String getUserEmailFromSecurityContext() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null) {
+      throw new AuthenticationNotAvailableException();
+    }
+    return auth.getName();
+  }
+
 }

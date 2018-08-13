@@ -57,7 +57,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     this.syncCurrencyPairSelector = function () {
-        dashboardCurrencyPairSelector.syncState(function () {
+        dashboardCurrencyPairSelector.syncState('ICO', function () {
         });
     };
 
@@ -257,18 +257,10 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     };
 
     function getOrderCommissions() {
-        var url = '/dashboard/orderCommissions';
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function (data) {
-                if (!data) return;
-                that.commissionSell = data.sellCommission;
-                that.commissionBuy = data.buyCommission;
-                calculateFieldsForBuy();
-                calculateFieldsForSell();
-            }
-        });
+        that.commissionSell = 0;
+        that.commissionBuy = 0;
+        calculateFieldsForBuy();
+        calculateFieldsForSell();
     }
 
     function calculateFieldsForStop() {
@@ -355,7 +347,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'ICO');
         try {
             chart = new ChartGoogleClass();
         } catch (e) {

@@ -101,6 +101,7 @@ public class AdminController {
 
 
   private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
   @Autowired
   private MessageSource messageSource;
   @Autowired

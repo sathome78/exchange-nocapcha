@@ -55,8 +55,8 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         return chart;
     };
 
-    this.syncCurrencyPairSelector = function (data) {
-        dashboardCurrencyPairSelector.syncState(function () {
+    this.syncCurrencyPairSelector = function () {
+        dashboardCurrencyPairSelector.syncState('MAIN', function () {
         });
     };
 
@@ -503,7 +503,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
     (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
-        dashboardCurrencyPairSelector.init(onCurrencyPairChange);
+        dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'MAIN');
         try {
             chart = new ChartGoogleClass();
         } catch (e) {

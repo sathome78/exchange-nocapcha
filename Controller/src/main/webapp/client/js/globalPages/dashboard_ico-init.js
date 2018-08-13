@@ -430,7 +430,7 @@ $(function dashdoardInit() {
 
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, function (data) {
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, null, null, 'ICO', function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
                     if ($currentSubMenuItem && $currentSubMenuItem.length) {
@@ -459,9 +459,9 @@ $(function dashdoardInit() {
         });
 
 
-        syncCurrentParams(null, null, null, null, null, function (data) {
+        syncCurrentParams(null, null, null, null, null, 'ICO', function (data) {
             showPage($('#startup-page-id').text().trim());
-            var url = '/dashboard/createPairSelectorMenu?ico=true';
+            var url = '/dashboard/createPairSelectorMenu?pairs=ICO';
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -541,7 +541,7 @@ function showPage(pageId) {
 
 
 
-function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, callback) {
+function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enableFilter, cpType, callback) {
     var url = '/dashboard/currentParams?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
 
@@ -549,7 +549,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
         currencyPairName = $("#preferedCurrencyPairName").val();
         $("#preferedCurrencyPairName").val("");
     }
-    url = url + ('&currencyPairType=ICO');
+    url = url + (cpType ? '&currencyPairType=' + cpType : '');
     url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
     url = url + (period ? '&period=' + period : '');
     url = url + (chart ? '&chart=' + chart : '');

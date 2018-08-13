@@ -30,7 +30,8 @@ function LeftSiderClass(type) {
             }, refreshIntervalForStatisticsForMyWallets);
             return;
         }
-        if( $('#my-wallets-filter').val().length > 0 ) {
+        $mvFilter = $('#my-wallets-filter');
+        if($mvFilter.val() === undefined || $mvFilter.val().length > 0 ) {
             return;
         }
         if (showLog) {
@@ -144,6 +145,9 @@ function LeftSiderClass(type) {
         // Declare variables
         var input, filter, table, tr, td1, tdIn1, td2, description, i, activeBalance;
         input = document.getElementById("my-wallets-filter");
+        if (input == null) {
+            return;
+        }
         filter = input.value.toUpperCase();
         table = document.getElementById("mywallets_table");
         tr = table.getElementsByTagName("tr");

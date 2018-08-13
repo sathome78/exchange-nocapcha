@@ -7,8 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
-import me.exrates.controller.listener.StoreSessionListener;
-import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -25,12 +23,8 @@ import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
-import me.exrates.service.lisk.LiskService;
-import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
-import me.exrates.service.nem.XemMosaicService;
-import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
@@ -73,7 +67,6 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
-import org.web3j.utils.Convert;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -81,9 +74,7 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -505,6 +496,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
                 "NTY", "NTY", 12);
     }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -1130,6 +1122,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TTC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "bfgServiceImpl")
+    public EthTokenService bfgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2ee3b3804f695355ddc4f8e1c54654416d7ee95a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BFG",
+                "BFG", false, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1158,6 +1160,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
+    }
+
+    @Bean(name = "sumoServiceImpl")
+    public MoneroService sumoService() {
+        return new MoneroServiceImpl("merchants/sumokoin.properties",
+                "SUMO", "SUMO", 10, 9);
     }
 
     /***tokens based on xem mosaic)****/
