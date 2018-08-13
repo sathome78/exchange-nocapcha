@@ -305,15 +305,15 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(@ModelAttribute("user") User user, @RequestParam(required = false) String view) {
+    public ModelAndView createPassword(@ModelAttribute User user, @RequestParam(required = false) String view) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
         mav.addObject("user", user);
         return mav;
     }
 
-    @RequestMapping(value = "/createPassword", method = RequestMethod.POST)
-    public ModelAndView createPassword(@ModelAttribute("user") User user,
+    @RequestMapping(value = "/createPasswordConfirm", method = RequestMethod.POST)
+    public ModelAndView createPassword(@ModelAttribute User user,
                                        @RequestParam(required = false) String view,
                                        BindingResult result,
                                        HttpServletRequest request,
@@ -364,7 +364,7 @@ public class MainController {
                 user.setPassword(null);
 
                 if (view != null) {
-                    attr.addFlashAttribute("view", view);
+                    model.addObject("view", view);
                     model.setViewName("redirect:/createPassword");
                 }
             } else {
