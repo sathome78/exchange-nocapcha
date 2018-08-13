@@ -176,7 +176,4 @@ public interface UserDao {
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
-/*  String get2faSecretByEmail(String email);
-
-  boolean set2faSecretCode(String email);*/
 }
