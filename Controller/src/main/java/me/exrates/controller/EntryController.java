@@ -309,8 +309,8 @@ public class EntryController {
         notificationOptionsForm.setOptions(notificationOptions);
         mav.addObject("user", user);
         mav.addObject("tabIdx", tabIdx);
-        mav.addObject("sectionid", null);
-        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
+        mav.addObject("sectionid", map != null && map.containsKey("sectionid") ? map.get("sectionid") : null);
+        //mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
