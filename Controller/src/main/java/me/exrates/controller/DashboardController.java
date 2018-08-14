@@ -1,6 +1,5 @@
 package me.exrates.controller;
 
-import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
