@@ -763,10 +763,12 @@ public class AdminController {
     return model;
   }*/
 
+  /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changeNickname/submit", method = POST)
   public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
                                              HttpServletRequest request, RedirectAttributes redirectAttributes) {
     registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
+
     if (result.hasErrors()) {
       redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
       redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
@@ -778,7 +780,9 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
       }
     }
+
     redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
+
     return new ModelAndView(new RedirectView("/settings"));
   }
 
