@@ -37,11 +37,11 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    List<CurrencyPair> getAllCurrencyPairs();
+    List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
-    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder();
+    List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
-    CurrencyPair findCurrencyPairById(int currencyPairId);
+  CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
 
@@ -91,7 +91,11 @@ public interface CurrencyService {
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-  List<CurrencyPair> findPermitedCurrencyPairs();
+  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType ico);
+
+    CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isIco(Integer currencyId);
 
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 }

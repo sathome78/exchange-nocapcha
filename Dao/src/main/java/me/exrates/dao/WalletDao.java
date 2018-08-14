@@ -7,6 +7,7 @@ import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -15,6 +16,7 @@ import me.exrates.model.vo.WalletOperationData;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public interface WalletDao {
 
@@ -29,6 +31,8 @@ public interface WalletDao {
     int getUserIdFromWallet(int walletId);
 
     List<Wallet> findAllByUser(int userId);
+
+    List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
 
     List<WalletBalanceDto> getBalancesForUser(String userEmail);
 

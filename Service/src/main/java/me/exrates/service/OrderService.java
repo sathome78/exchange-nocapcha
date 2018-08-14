@@ -37,15 +37,15 @@ import java.util.Optional;
 public interface OrderService {
 
 
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx();
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
 
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
-  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
+  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
   
-  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId);
+  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
   
   OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
@@ -68,7 +68,7 @@ public interface OrderService {
     void postBotOrderToDb(OrderCreateDto orderCreateDto);
 
   @Transactional
-  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale);
+  OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType);
 
   @Transactional
     OrderCreationResultDto createPreparedOrderRest(OrderCreateDto orderCreateDto, Locale locale);
@@ -369,11 +369,11 @@ public interface OrderService {
 
   String getChartData(Integer currencyPairId, BackDealInterval backDealInterval);
 
-  String getAllCurrenciesStatForRefresh();
+  String getAllCurrenciesStatForRefresh(RefreshObjectsEnum refreshObjectsEnum);
 
   String getAllCurrenciesStatForRefreshForAllPairs();
 
-  String getSomeCurrencyStatForRefresh(List<Integer> currencyId);
+  Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);

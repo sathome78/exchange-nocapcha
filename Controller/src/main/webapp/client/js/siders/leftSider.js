@@ -2,11 +2,11 @@
  * Created by Valk on 05.06.2016.
  */
 
-function LeftSiderClass() {
+function LeftSiderClass(type) {
     if (LeftSiderClass.__instance) {
         return LeftSiderClass.__instance;
     } else if (this === window) {
-        return new LeftSiderClass(currentCurrencyPair);
+        return new LeftSiderClass(currentCurrencyPair, type);
     }
     LeftSiderClass.__instance = this;
     /**/
@@ -38,7 +38,10 @@ function LeftSiderClass() {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForMyWallets');
         }
         var $mywalletsTable = $('#mywallets_table').find('tbody');
-        var url = '/dashboard/myWalletsStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        if (!type) {
+            type = 'MAIN'
+        }
+        var url = '/dashboard/myWalletsStatistic?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false') + '&type=' + type;
         $.ajax({
             url: url,
             type: 'GET',
@@ -94,9 +97,7 @@ function LeftSiderClass() {
     };
 
     /*===========================================================*/
-    (function init() {
-        $('#exclude-zero-statbalances').prop('checked', localStorage.getItem('statWalletsCheckbox') == 'true');
-        excludeZero();
+    (function init(type) {
         clearTimeout(timeOutIdForStatisticsForAllCurrencies);
         $.ajax({
             url: '/dashboard/firstentry',
@@ -105,7 +106,7 @@ function LeftSiderClass() {
               /*  that.getStatisticsForAllCurrencies();*/
             }
         });
-        that.getStatisticsForMyWallets();
+        that.getStatisticsForMyWallets(undefined, type);
         $('#refferal-generate').on('click', generateReferral);
         $('#refferal-copy').on('click', function () {
             selectAndCopyText($('#refferal-reference'));
@@ -125,7 +126,7 @@ function LeftSiderClass() {
             }
         });
         generateReferral();
-    })();
+    })(type);
 
     function setPairFilter() {
         var str = $('#pair-filter').val().toUpperCase();

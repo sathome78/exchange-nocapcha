@@ -20,7 +20,6 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties",
                 "Bitcoin", "BTC", 4, 15, false);
     }
-
     @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
         return new BitcoinServiceImpl("merchants/litecoin_wallet.properties",

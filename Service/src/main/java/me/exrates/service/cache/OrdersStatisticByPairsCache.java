@@ -5,6 +5,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.enums.CurrencyPairType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -39,24 +42,34 @@ public class OrdersStatisticByPairsCache {
 
     private Semaphore semaphore = new Semaphore(1, true);
 
+    private CyclicBarrier barrier = new CyclicBarrier(1000);
+
     private AtomicBoolean needUpdate = new AtomicBoolean(true);
 
     @PostConstruct
     private void init() {
-        allPairs = currencyDao.getAllCurrencyPairs();
+        allPairs = currencyDao.getAllCurrencyPairs(CurrencyPairType.ALL);
         update();
         needUpdate.set(false);
         log.info("initialized, {}", cachedList.size());
     }
 
 
+
+
     public void update() {
-        log.info("try update cache");
         if (semaphore.tryAcquire()) {
+            updateCache();
+        }
+    }
+
+    private void updateCache() {
+        try {
+            log.info("try update cache");
             log.info("update cache");
             this.cachedList = orderDao.getOrderStatisticByPairs();
-            this.updateAllPairs();
             needUpdate.set(false);
+        } finally {
             semaphore.release();
         }
     }
@@ -67,26 +80,49 @@ public class OrdersStatisticByPairsCache {
         return allStatsCachedList;
     }
 
-    public List<ExOrderStatisticsShortByPairsDto> getCachedList() {
+/*    public List<ExOrderStatisticsShortByPairsDto> getCachedList() {
         log.info("get cache");
         checkCache();
         return cachedList;
-    }
+    }*/
 
     public void setNeedUpdate(boolean newNeedUpdate) {
         needUpdate.set(newNeedUpdate);
     }
 
-    private void checkCache() {
+    public List<ExOrderStatisticsShortByPairsDto> getCachedList() {
+        log.info("get cache");
         if (needUpdate.get()) {
-            if (semaphore.availablePermits() > 0) {
-                update();
+            if (semaphore.tryAcquire()) {
+                updateCache();
+                barrier.reset();
             } else {
-                LocalTime startTime = LocalTime.now();
+                try {
+                    barrier.await(10, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    barrier.reset();
+                }
+                /*LocalTime startTime = LocalTime.now();
                 while (needUpdate.get()) {
                     if (startTime.until(LocalDateTime.now(),  ChronoUnit.SECONDS) > 10) {
                         break;
                     }
+                }*/
+            }
+        }
+        return cachedList;
+    }
+
+    private void checkCache() {
+        if (needUpdate.get()) {
+            if (semaphore.tryAcquire()) {
+                updateCache();
+                barrier.reset();
+            } else {
+                try {
+                    barrier.await(10, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    barrier.reset();
                 }
             }
         }
