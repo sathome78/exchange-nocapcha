@@ -13,6 +13,7 @@ import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,7 +41,7 @@ public interface CurrencyDao {
 
   void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
 
-  List<CurrencyPair> getAllCurrencyPairs();
+  List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
   CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
@@ -75,8 +76,11 @@ public interface CurrencyDao {
 
   List<Currency> findAllCurrenciesByProcessType(MerchantProcessType processType);
 
-  List<CurrencyPair> findPermitedCurrencyPairs();
+  List<CurrencyPair> findPermitedCurrencyPairs(CurrencyPairType currencyPairType);
 
+    CurrencyPair getNotHiddenCurrencyPairByName(String currencyPair);
+
+    boolean isCurrencyIco(Integer currencyId);
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 
   Optional<Integer> findOpenCurrencyPairIdByName(String pairName);

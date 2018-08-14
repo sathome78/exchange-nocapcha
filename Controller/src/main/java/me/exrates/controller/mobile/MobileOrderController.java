@@ -1,6 +1,7 @@
 package me.exrates.controller.mobile;
 
 import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.model.CurrencyPair;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.controller.exception.WrongOrderKeyException;
 import me.exrates.model.ExOrder;
@@ -8,6 +9,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
@@ -213,9 +215,10 @@ public class MobileOrderController {
     @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OrderSummaryDto submitOrderForCreation(@Valid @RequestBody OrderCreationParamsDto orderCreationParamsDto, HttpServletRequest request) {
         LOGGER.debug("Order creation params" + orderCreationParamsDto);
+        CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale);
+        OrderCreateDto orderCreateDto = orderService.prepareOrderRest(orderCreationParamsDto, userEmail, userLocale, activeCurrencyPair.getPairType().getOrderBaseType());
         UUID orderKey = UUID.randomUUID();
         creationUnconfirmedOrders.put(orderKey, orderCreateDto);
         return new OrderSummaryDto(orderCreateDto, orderKey.toString());
