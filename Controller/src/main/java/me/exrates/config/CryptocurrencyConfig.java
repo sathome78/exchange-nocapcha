@@ -210,7 +210,7 @@ public class CryptocurrencyConfig {
                 "Lisk", "LSK", "merchants/lisk.properties");
     }
 
-    @Bean(name = "btwServiceImpl")
+    /*@Bean(name = "btwServiceImpl")
     public LiskService btwService() {
         LiskRestClient restClient = liskRestClient();
         return new LiskServiceImpl(restClient, new LiskSpecialMethodServiceImpl(restClient), "BitcoinWhite", "BTW", "merchants/bitcoin_white.properties");
@@ -226,7 +226,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "arkServiceImpl")
     public LiskService arkService() {
         return new LiskServiceImpl(liskRestClient(), arkSendTxService(), "Ark", "ARK", "merchants/ark.properties");
-    }
+    }*/
 
     @Bean
     @Scope("prototype")
@@ -248,9 +248,9 @@ public class CryptocurrencyConfig {
         return new WavesServiceImpl( "WAVES", "Waves", "merchants/waves.properties");
     }
 
-    @Bean(name = "lunesServiceImpl")
+   /* @Bean(name = "lunesServiceImpl")
     public WavesService lunesService() {
         return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
-    }
+    }*/
 
 }
