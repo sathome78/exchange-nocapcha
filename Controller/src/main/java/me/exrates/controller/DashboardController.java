@@ -217,10 +217,10 @@ public class DashboardController {
       updateUserDto.setStatus(UserStatus.ACTIVE);
       userService.updateUserByAdmin(updateUserDto);
 
-      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
+      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
       org.springframework.security.core.userdetails.User userSpring =
               new org.springframework.security.core.userdetails.User(
-                      updateUserDto.getEmail(),
+                      user.getEmail(),
                       updateUserDto.getPassword(),
                       false,
                       false,
