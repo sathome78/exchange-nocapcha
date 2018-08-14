@@ -74,4 +74,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('BRB/USD', 'BRB/BTC', 'BRB/ETH'));
 
 INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
-VALUES ((SELECT id from MERCHANT WHERE name='BRB'), (select id from CURRENCY where name='BRB'), 'brbWallet.title', 'pass123');
+VALUES ((SELECT id from MERCHANT WHERE name='BRB'), (select id from CURRENCY where name='BRB'), 'brbWallet.title', 'j9MjQPCrwaARUpuw5gn9X4pt3XKfPjuMmYLp');
