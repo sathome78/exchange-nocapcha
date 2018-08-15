@@ -11,4 +11,10 @@ public class TronTransferDto {
     private String toAddress;
 
     private Long amount;
+
+    public TronTransferDto(String privateKey, String toAddress, Long amount) {
+        this.privateKey = privateKey;
+        this.toAddress = toAddress;
+        this.amount = amount;
+    }
 }
