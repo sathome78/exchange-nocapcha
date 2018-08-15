@@ -509,7 +509,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         } catch (e) {
         }
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
+            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, "MAIN");
         } catch (e) {
         }
         if (chart) {

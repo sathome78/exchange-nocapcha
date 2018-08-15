@@ -353,7 +353,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         } catch (e) {
         }
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
+            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, 'ICO');
         } catch (e) {
         }
         if (chart) {
