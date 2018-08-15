@@ -15,9 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Log4j2
 @Service
@@ -38,11 +38,20 @@ public class TronServiceImpl implements TronService {
     private final static String CURRENCY_NAME = "TRX";
     private final static String MERCHANT_NAME = "TRX";
 
+    private Set<String> addresses = Collections.synchronizedSet(new HashSet<>());
+
+    @PostConstruct
+    private void init() {
+        /*get hex addresses*/
+        /*addresses.addAll();*/
+    }
+
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         TronNewAddressDto dto = tronNodeService.getNewAddress();
         String message = messageSource.getMessage("merchants.refill.btc",
                 new Object[]{dto.getAddress()}, request.getLocale());
+        addresses.add(dto.getHexAddress());
         return new HashMap<String, String>() {{
             put("address",  dto.getAddress());
             put("privKey", dto.getPrivateKey());

@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.TronTransactionResponseDto;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -30,6 +31,7 @@ public class TronNodeServiceImpl implements TronNodeService {
 
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
+    private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
 
 
     @Override
@@ -42,6 +44,21 @@ public class TronNodeServiceImpl implements TronNodeService {
     @Override
     public TronTransactionResponseDto transferFunds(TronTransferDto tronTransferDto) {
         String url = FULL_NODE_URL.concat(EASY_TRANSFER);
+        log.debug("url " + url);
+        ResponseEntity<TronTransactionResponseDto> responseEntity;
+        try {
+            RequestEntity<TronTransferDto> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
+            responseEntity = restTemplate.exchange(requestEntity, TronTransactionResponseDto.class);
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+        return responseEntity.getBody();
+    }
+
+    @Override
+    public JSONObject getTransactions(long blockNum) {
+        String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
         log.debug("url " + url);
         ResponseEntity<TronTransactionResponseDto> responseEntity;
         try {

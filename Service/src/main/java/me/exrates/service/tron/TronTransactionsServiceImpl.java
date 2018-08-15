@@ -25,7 +25,7 @@ public class TronTransactionsServiceImpl {
 
 
     public void easyTransferByPrivate(String address, String pk, long amount) {
-        TronTransferDto tronTransferDto = new TronTransferDto(ByteArray.fromHexString(pk), decodeFromBase58Check(address), 1000000L);
+       /* TronTransferDto tronTransferDto = new TronTransferDto(ByteArray.fromHexString(pk), decodeFromBase58Check(address), 1000000L);*/
     }
 
 
