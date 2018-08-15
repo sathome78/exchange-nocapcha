@@ -3,6 +3,8 @@ package me.exrates.service.tron;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.util.Set;
+
 public interface TronService extends IRefillable, IWithdrawable {
 
     @Override
@@ -39,4 +41,6 @@ public interface TronService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    Set<String> getAddressesHEX();
 }

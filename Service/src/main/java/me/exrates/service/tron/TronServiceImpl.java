@@ -38,11 +38,17 @@ public class TronServiceImpl implements TronService {
     private final static String CURRENCY_NAME = "TRX";
     private final static String MERCHANT_NAME = "TRX";
 
-    private Set<String> addresses = Collections.synchronizedSet(new HashSet<>());
+    private Set<String> addressesHEX = Collections.synchronizedSet(new HashSet<>());
+
+    @Override
+    public Set<String> getAddressesHEX() {
+        return addressesHEX;
+    }
 
     @PostConstruct
     private void init() {
-        /*get hex addresses*/
+        /*get hex addresses
+        * tron addresses - pub_key field*/
         /*addresses.addAll();*/
     }
 
@@ -51,7 +57,7 @@ public class TronServiceImpl implements TronService {
         TronNewAddressDto dto = tronNodeService.getNewAddress();
         String message = messageSource.getMessage("merchants.refill.btc",
                 new Object[]{dto.getAddress()}, request.getLocale());
-        addresses.add(dto.getHexAddress());
+        addressesHEX.add(dto.getHexAddress());
         return new HashMap<String, String>() {{
             put("address",  dto.getAddress());
             put("privKey", dto.getPrivateKey());

@@ -32,6 +32,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
+    private final static String GET_HASH = "/wallet/gettransactionbyid";
 
 
     @Override
@@ -60,14 +61,31 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject getTransactions(long blockNum) {
         String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
         log.debug("url " + url);
-        ResponseEntity<TronTransactionResponseDto> responseEntity;
+        ResponseEntity<String> responseEntity;
         try {
-            RequestEntity<TronTransferDto> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
-            responseEntity = restTemplate.exchange(requestEntity, TronTransactionResponseDto.class);
+            JSONObject object = new JSONObject() {{put("num", blockNum); }};
+            RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
+            responseEntity = restTemplate.exchange(requestEntity, String.class);
         } catch (Exception e) {
             log.error(e);
             throw new RuntimeException(e);
         }
-        return responseEntity.getBody();
+        return new JSONObject(responseEntity.getBody());
+    }
+
+    @Override
+    public JSONObject getTransaction(String hash) {
+        String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
+        log.debug("url " + url);
+        ResponseEntity<String> responseEntity;
+        try {
+            JSONObject object = new JSONObject() {{put("value", hash); }};
+            RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
+            responseEntity = restTemplate.exchange(requestEntity, String.class);
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+        return new JSONObject(responseEntity.getBody());
     }
 }

@@ -6,6 +6,8 @@ import me.exrates.service.achain.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Log4j2
 @Service
 public class TronReceiveServiceImpl {
@@ -14,4 +16,15 @@ public class TronReceiveServiceImpl {
     private NodeService nodeService;
     @Autowired
     private TronServiceImpl tronService;
+
+
+    @PostConstruct
+    private void init() {
+
+    }
+
+    private void checkBlocks() {
+
+    }
+
 }
