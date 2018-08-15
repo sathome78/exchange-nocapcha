@@ -43,11 +43,14 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -109,6 +112,8 @@ public class AdminController {
   private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
+  @Autowired
+  private UserDetailsService userDetailsService;
   @Autowired
   private LocaleResolver localeResolver;
   @Autowired
@@ -677,7 +682,7 @@ public class AdminController {
   @RequestMapping(value = "settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                              ModelAndView model, Principal principal, HttpServletRequest request) {
-    user.setStatus(user.getUserStatus());
+    user.setStatus(UserStatus.REGISTERED);
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
       model.setViewName("globalPages/settings");
@@ -722,7 +727,7 @@ public class AdminController {
 
   /*todo move this method from admin controller*/
   @RequestMapping(value = "/changePasswordConfirm")
-  public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
+  public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
     try {
       request.setCharacterEncoding("utf-8");
     } catch (UnsupportedEncodingException e) {
@@ -731,9 +736,22 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     try {
       if (userService.verifyUserEmail(token) != 0) {
-        model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
+        User userUpdate = userService.findByEmail(user.getEmail());
+        UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+        updateUserDto.setEmail(userUpdate.getEmail());
+        updateUserDto.setPassword(userUpdate.getPassword());
+        updateUserDto.setStatus(UserStatus.ACTIVE);
+        userService.updateUserByAdmin(updateUserDto);
+
+        Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
+        org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
+                updateUserDto.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
+        Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        attr.addFlashAttribute("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
       } else {
-        model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
+        attr.addFlashAttribute("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
       }
       model.setViewName("redirect:/dashboard");
     } catch (Exception e) {
