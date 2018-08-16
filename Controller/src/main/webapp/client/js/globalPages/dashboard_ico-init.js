@@ -473,6 +473,7 @@ $(function dashdoardInit() {
                     leftSider.setOnWalletsRefresh(function () {
                         trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
                     });
+                    connectAndReconnect();
                 }
             });
         });
@@ -525,7 +526,6 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    connectAndReconnect();
 });
 
 

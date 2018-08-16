@@ -613,7 +613,6 @@ public class OnlineRestController {
   public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "pairs", defaultValue = "MAIN") String pairType,   HttpServletRequest request) {
     Locale locale = localeResolver.resolveLocale(request);
     CurrencyPairType cpType = Preconditions.checkNotNull(CurrencyPairType.valueOf(pairType));
-    System.out.println("pairs " + cpType);
     List<CurrencyPair> list = currencyService.getAllCurrencyPairsInAlphabeticOrder(cpType);
     if (cpType == CurrencyPairType.ALL) {
       list.forEach(p->{

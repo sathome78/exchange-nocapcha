@@ -475,6 +475,7 @@ $(function dashdoardInit() {
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
                     orders = new OrdersClass(data.currencyPair.name, infoCpData);
+                    leftSider = new LeftSiderClass();
                     leftSider.setOnWalletsRefresh(function () {
                         trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
                     });
@@ -482,7 +483,7 @@ $(function dashdoardInit() {
                     connectAndReconnect();
                 }
             });
-            leftSider = new LeftSiderClass();
+
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
