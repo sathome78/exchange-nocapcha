@@ -339,7 +339,7 @@ $(function dashdoardInit() {
             .keypress(
                 function (e) {
                     var decimal = $(this).val().split('.')[1];
-                    if (decimal && decimal.length >= trading.ROUND_SCALE) {
+                    if (decimal && decimal.length > trading.ROUND_SCALE) {
                         return false;
                     }
                     if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
