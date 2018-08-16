@@ -16,9 +16,6 @@
                                        action="/settings/changePassword/submit"
                                        method="post" modelAttribute="user">
                                 <form:input path="id" type="hidden" class="form-control" id="user-id"/>
-                                <form:input path="role" type="hidden" class="form-control" id="user-role"/>
-                                <form:input path="userStatus" type="hidden" class="form-control"
-                                            id="user-status"/>
                                 <div class="input-block-wrapper clearfix">
                                     <div class="col-md-4 input-block-wrapper__label-wrapper">
                                         <label for="user-name" class="input-block-wrapper__label">
@@ -72,6 +69,12 @@
                                     <div class="col-md-12 input-block-wrapper__error-wrapper">
                                         <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
                                     </div>
+                                    <div id="new_password_wrong" class='field__error' style="display:none">
+                                        Password cannot be less than 8 and more than 20 characters long and should contain of letters (a-z), numbers (0-9) and/or any combination of @*%!#^!&$<> characters
+                                    </div>
+                                    <div id="new_password_required" class='field__error' style="display:none">
+                                        Password is required
+                                    </div>
                                 </div>
                                 <loc:message code="user.settings.label.confirmNewPassword" var="confirmNewPassword"/>
                                 <div class="input-block-wrapper clearfix">
@@ -87,7 +90,7 @@
                                     <span class="col-md-1 repass-error red"><i class="glyphicon glyphicon-remove"></i></span>
                                 </div>
                                 <div class="confirm-button-wrapper" style="text-align: center;">
-                                    <button id="change-password-button" class="btn btn-primary btn-block" type="submit" disabled>
+                                    <button id="change-password-button" class="btn btn-primary btn-block" disabled>
                                         <loc:message code="admin.save"/>
                                     </button>
                                 </div>
