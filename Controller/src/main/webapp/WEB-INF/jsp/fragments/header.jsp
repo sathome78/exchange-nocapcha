@@ -15,16 +15,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
 
-<!-- New design -->
-<link rel="stylesheet" href="client/assets/css/main.min.css">
-<link rel="stylesheet" href="client/assets/css/libs.min.css">
 
-<script src="<c:url value="/client/assets/js/libs.min.js"/>"></script>
-<script src="<c:url value="/client/assets/js/main.min.js"/>"></script>
-
-<!-- Geetest-->
-<script src="<c:url value="/client/assets/js/gt.js"/>"></script>
-<!-- New design -->
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
