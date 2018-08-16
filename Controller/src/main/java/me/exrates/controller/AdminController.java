@@ -51,6 +51,8 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,6 +60,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -624,7 +627,7 @@ public class AdminController {
       updateUserDto.setStatus(user.getUserStatus());
       userService.updateUserByAdmin(updateUserDto);
       if (updateUserDto.getStatus() == UserStatus.DELETED) {
-        invalidateUserSession(updateUserDto.getEmail());
+        invalidateUserSessionExceptConcrete(updateUserDto.getEmail(), null);
       } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
         notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
       }
@@ -637,7 +640,7 @@ public class AdminController {
     return model;
   }
 
-  private void invalidateUserSession(String userEmail) {
+  private void invalidateUserSessionExceptConcrete(String userEmail, String exceptSessionId) {
     Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
         .filter(principalObj -> {
           UserDetails principal = (UserDetails) principalObj;
@@ -645,7 +648,7 @@ public class AdminController {
         })
         .findFirst();
     if (updatedUser.isPresent()) {
-      sessionRegistry.getAllSessions(updatedUser.get(), false).forEach(SessionInformation::expireNow);
+      sessionRegistry.getAllSessions(updatedUser.get(), false).stream().filter(session -> session.getSessionId() != exceptSessionId).collect(Collectors.toList()).forEach(SessionInformation::expireNow);
     }
   }
 
@@ -677,26 +680,38 @@ public class AdminController {
     return redirectView;
   }
 
-
   /*todo move this method from admin controller*/
-  @RequestMapping(value = "settings/changePassword/submit", method = POST)
+  @RequestMapping(value = "/settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                              ModelAndView model, Principal principal, HttpServletRequest request) {
-    user.setStatus(UserStatus.REGISTERED);
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-    if (result.hasErrors()) {
-      model.setViewName("globalPages/settings");
-      model.addObject("sectionid", "passwords-changing");
-      model.addObject("tabIdx", 0);
-    } else {
-      UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
-      updateUserDto.setPassword(user.getPassword());
-      updateUserDto.setEmail(principal.getName()); //need for send the email
-      userService.update(updateUserDto, localeResolver.resolveLocale(request));
-      new SecurityContextLogoutHandler().logout(request, null, null);
-      model.setViewName("redirect:/dashboard");
+
+      BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+      User userPrincipal = userService.findByEmail(principal.getName());
+
+      if (result.hasErrors()) {
+        model.addObject("sectionid", "passwords-changing");
+        model.addObject("tabIdx", 0);
+      } else {
+          if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
+
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setPassword(user.getConfirmPassword());
+            updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
+            userService.update(updateUserDto, localeResolver.resolveLocale(request));
+
+            model.addObject("sectionid", "passwords-changing");
+            model.addObject("tabIdx", 0);
+
+            model.addObject("successNoty", messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request)));
+
+            invalidateUserSessionExceptConcrete(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
+          } else {
+            model.addObject("errorNoty", messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request)));
+          }
     }
 
+    model.setViewName("globalPages/settings");
     model.addObject("user", user);
 
     return model;
@@ -725,8 +740,10 @@ public class AdminController {
     return model;
   }*/
 
-  /*todo move this method from admin controller*/
-  @RequestMapping(value = "/changePasswordConfirm")
+  /*
+    //todo move this method from admin controller
+
+    @RequestMapping(value = "/changePasswordConfirm")
   public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
     try {
       request.setCharacterEncoding("utf-8");
@@ -760,6 +777,7 @@ public class AdminController {
     }
     return model;
   }
+  */
 
   /*@RequestMapping(value = "/changeFinPasswordConfirm")
   public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {

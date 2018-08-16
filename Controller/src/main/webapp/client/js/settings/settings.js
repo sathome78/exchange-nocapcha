@@ -267,3 +267,61 @@ function SettingsClass() {
     });
 
 }
+
+$(function () {
+    //Enable REGISTER button if pass == repass when entering repass
+    /*Activates submit button if all field filled correct
+     * */
+    if (document.getElementById("change-password-button")) {
+        checkPasswordFieldsOnFillInUserSettings();
+    }
+
+    $("#user-confirmpassword").keyup(function () {
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+
+        if (pass && (pass.length != 0) && (pass === repass)) {
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        }
+        else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
+        }
+        checkPasswordFieldsOnFillInUserSettings();
+    });
+
+    $("#confirmNewPassword").keyup(function () {
+        var pass = $('#user-confirmpassword').val();
+        var repass = $('#confirmNewPassword').val();
+        if (repass && (repass.length != 0)) {
+            if (pass === repass) {
+                $('.repass').css("display", "block");
+                $('.repass-error').css("display", "none");
+            } else {
+                $('.repass-error').css("display", "block");
+                $('.repass').css("display", "none");
+            }
+        }
+
+        checkPasswordFieldsOnFillInUserSettings();
+    });
+
+    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings)
+
+});
+
+/**
+ * Check field on fill for change password by user in user settings.
+ */
+function checkPasswordFieldsOnFillInUserSettings() {
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+    var confirmNewPassword = $('#confirmNewPassword').val();
+    if (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword)) {
+        $("#change-password-button").prop('disabled', false);
+    } else {
+        $("#change-password-button").prop('disabled', true);
+    }
+}
+
