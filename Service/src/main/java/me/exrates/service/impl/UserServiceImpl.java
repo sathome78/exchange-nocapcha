@@ -17,6 +17,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,6 +51,9 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserSessionService userSessionService;
 
   @Autowired
   private SendMailService sendMailService;
@@ -514,6 +518,9 @@ public class UserServiceImpl implements UserService {
       }
       userDao.updateUserPasswordFromTemporary(tempPassId);
       removeTemporaryPassword(tempPassId);
+
+      userSessionService.invalidateUserSessionExceptSpecific(userDao.getUserById(dto.getUserId()).getEmail(), null);
+
       return deleteTokensAndUpdateUser(temporalToken) > 0;
     }
     removeTemporaryPassword(tempPassId);

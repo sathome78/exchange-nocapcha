@@ -32,6 +32,7 @@ import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -43,8 +44,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
@@ -52,8 +51,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -75,7 +72,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -164,6 +160,8 @@ public class AdminController {
   @Autowired
   private UsersAlertsService alertsService;
 
+  @Autowired
+  private UserSessionService userSessionService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -627,7 +625,7 @@ public class AdminController {
       updateUserDto.setStatus(user.getUserStatus());
       userService.updateUserByAdmin(updateUserDto);
       if (updateUserDto.getStatus() == UserStatus.DELETED) {
-        invalidateUserSessionExceptConcrete(updateUserDto.getEmail(), null);
+        userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
       } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
         notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
       }
@@ -638,18 +636,6 @@ public class AdminController {
     model.addObject("user", user);
         /**/
     return model;
-  }
-
-  private void invalidateUserSessionExceptConcrete(String userEmail, String exceptSessionId) {
-    Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
-        .filter(principalObj -> {
-          UserDetails principal = (UserDetails) principalObj;
-          return userEmail.equals(principal.getUsername());
-        })
-        .findFirst();
-    if (updatedUser.isPresent()) {
-      sessionRegistry.getAllSessions(updatedUser.get(), false).stream().filter(session -> session.getSessionId() != exceptSessionId).collect(Collectors.toList()).forEach(SessionInformation::expireNow);
-    }
   }
 
   /*todo move this method from admin controller*/
@@ -705,7 +691,7 @@ public class AdminController {
 
             model.addObject("successNoty", messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request)));
 
-            invalidateUserSessionExceptConcrete(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
+            userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
           } else {
             model.addObject("errorNoty", messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request)));
           }
@@ -1031,39 +1017,14 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
   @ResponseBody
   public List<UserSessionDto> retrieveUserSessionInfo() {
-    List<UserSessionDto> result = null;
-    try {
-      Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
-          .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
-          .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
-            UserDetails user = (UserDetails) sessionInformation.getPrincipal();
-            return user.getUsername();
-          }));
-      log.debug("USsize ", + usersSessions.size());
-      Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
-          .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
-      log.debug("USinfosize ", + userSessionInfo.size());
-      result = usersSessions.entrySet().stream()
-          .map(entry -> {
-            UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
-            return dto;
-          }).collect(Collectors.toList());
-    } catch (Exception e) {
-      log.error("session_error {}", e);
-    }
-    return result;
+    return userSessionService.retrieveUserSessionInfo();
   }
 
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/expireSession", method = RequestMethod.POST)
   @ResponseBody
   public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
-    SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
-    if (sessionInfo == null) {
-      return new ResponseEntity<>("Sesion not found", HttpStatus.NOT_FOUND);
-    }
-    sessionInfo.expireNow();
-    return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
+    return userSessionService.expireSession(sessionId);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
