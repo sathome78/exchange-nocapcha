@@ -475,13 +475,14 @@ $(function dashdoardInit() {
                     myStatements = new MyStatementsClass();
                     myHistory = new MyHistoryClass(data.currencyPair.name, infoCpData);
                     orders = new OrdersClass(data.currencyPair.name, infoCpData);
+                    leftSider.setOnWalletsRefresh(function () {
+                        trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+                    });
                     /**/
+                    connectAndReconnect();
                 }
             });
             leftSider = new LeftSiderClass();
-            leftSider.setOnWalletsRefresh(function () {
-                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
-            });
             showSubPage($('#startup-subPage-id').text().trim());
         });
         /*...FOR CENTER ON START UP*/
@@ -533,7 +534,6 @@ $(function dashdoardInit() {
     $('.accept_2fa').on('click', function () {
         window.location.href = '/settings?2fa';
     });
-    connectAndReconnect();
 });
 
 
