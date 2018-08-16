@@ -277,11 +277,10 @@ $(function () {
         checkOldPasswordField();
     }
 
-    if (document.getElementById("change-password-button")) {
-        checkPasswordFieldsOnFillInUserSettings();
+    if (document.getElementById("confirmNewPassword")) {
+        checkOldPasswordAndNewPasswordField();
     }
-
-
+    
     $("#user-confirmpassword").keyup(function () {
         var pass = $('#user-confirmpassword').val();
         var repass = $('#confirmNewPassword').val();
@@ -309,12 +308,12 @@ $(function () {
                 $('.repass').css("display", "none");
             }
         }
-
         checkPasswordFieldsOnFillInUserSettings();
     });
 
-    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
     $('#user-password').keyup(checkOldPasswordField);
+    $('#user-password, #user-confirmpassword').keyup(checkOldPasswordAndNewPasswordField);
+    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
 
 });
 
@@ -342,6 +341,20 @@ function checkOldPasswordField(){
         $("#user-confirmpassword").prop('disabled', false);
     } else {
         $("##user-confirmpassword").prop('disabled', true);
+    }
+}
+
+/**
+ * Remove disabled from button confirmNewPassword, when old password and new password fields fill.
+ */
+function checkOldPasswordAndNewPasswordField(){
+    var password = $('#user-password').val();
+    var newPassword = $('#user-confirmpassword').val();
+
+    if (password && newPassword) {
+        $("#confirmNewPassword").prop('disabled', false);
+    } else {
+        $("#confirmNewPassword").prop('disabled', true);
     }
 }
 
