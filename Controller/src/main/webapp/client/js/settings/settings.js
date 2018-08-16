@@ -269,12 +269,18 @@ function SettingsClass() {
 }
 
 $(function () {
-    //Enable REGISTER button if pass == repass when entering repass
-    /*Activates submit button if all field filled correct
-     * */
     if (document.getElementById("change-password-button")) {
         checkPasswordFieldsOnFillInUserSettings();
     }
+
+    if (document.getElementById("user-password")) {
+        checkOldPasswordField();
+    }
+
+    if (document.getElementById("change-password-button")) {
+        checkPasswordFieldsOnFillInUserSettings();
+    }
+
 
     $("#user-confirmpassword").keyup(function () {
         var pass = $('#user-confirmpassword').val();
@@ -307,12 +313,13 @@ $(function () {
         checkPasswordFieldsOnFillInUserSettings();
     });
 
-    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings)
+    $('#user-password, #user-confirmpassword, #confirmNewPassword').keyup(checkPasswordFieldsOnFillInUserSettings);
+    $('#user-password').keyup(checkOldPasswordField);
 
 });
 
 /**
- * Check field on fill for change password by user in user settings.
+ * Check password fields on fill for change password by user in user settings.
  */
 function checkPasswordFieldsOnFillInUserSettings() {
     var password = $('#user-password').val();
@@ -322,6 +329,19 @@ function checkPasswordFieldsOnFillInUserSettings() {
         $("#change-password-button").prop('disabled', false);
     } else {
         $("#change-password-button").prop('disabled', true);
+    }
+}
+
+/**
+ * Remove disabled from buttons newPassword, when old password field fill.
+ */
+function checkOldPasswordField(){
+    var password = $('#user-password').val();
+
+    if (password) {
+        $("#user-confirmpassword").prop('disabled', false);
+    } else {
+        $("##user-confirmpassword").prop('disabled', true);
     }
 }
 
