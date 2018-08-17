@@ -78,7 +78,7 @@ public class TronNodeServiceImpl implements TronNodeService {
 
     @Override
     public JSONObject getTransaction(String hash) {
-        String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
+        String url = SOLIDITY_NODE_URL.concat(GET_BLOCK_TX);
         log.debug("url " + url);
         ResponseEntity<String> responseEntity;
         try {
