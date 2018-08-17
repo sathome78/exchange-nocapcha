@@ -6,22 +6,41 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.Sha256Hash;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-interface CommonConstant {
-    byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
-    byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
-    int ADDRESS_SIZE = 21;
-}
 
 
 @Log4j2
 @Service
-public class TronTransactionsServiceImpl {
+public class TronTransactionsServiceImpl implements TronTransactionsService {
+
+    interface CommonConstant {
+        byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
+        byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
+        int ADDRESS_SIZE = 21;
+    }
+
 
     @Autowired
     private TronNodeService tronNodeService;
+
+    @Override
+    public boolean checkIsTransactionConfirmed(String txHash) {
+        JSONObject rawResponse = tronNodeService.getTransaction(txHash);
+        return rawResponse.getBoolean("confirmed");
+    }
+
+
+
+
+
+
+
+
+
+
 
 
     public void easyTransferByPrivate(String address, String pk, long amount) {

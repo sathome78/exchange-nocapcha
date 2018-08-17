@@ -3,10 +3,7 @@ package me.exrates.service.tron;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.TronNewAddressDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -37,6 +34,8 @@ public class TronServiceImpl implements TronService {
 
     private final static String CURRENCY_NAME = "TRX";
     private final static String MERCHANT_NAME = "TRX";
+    private int merchantId;
+    private int currencyId;
 
     private Set<String> addressesHEX = Collections.synchronizedSet(new HashSet<>());
 
@@ -50,6 +49,8 @@ public class TronServiceImpl implements TronService {
         /*get hex addresses
         * tron addresses - pub_key field*/
         /*addresses.addAll();*/
+        merchantId = merchantService.findByName(MERCHANT_NAME).getId();
+        currencyId = currencyService.findByName(CURRENCY_NAME).getId();
     }
 
     @Override
@@ -65,6 +66,20 @@ public class TronServiceImpl implements TronService {
             put("message", message);
             put("qr", dto.getAddress());
         }};
+    }
+
+    @Override
+    public void createRequest(TronReceivedTransactionDto dto) {
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .address(dto.getAddressBase58())
+                .merchantId(merchantId)
+                .currencyId(currencyId)
+                .amount(new BigDecimal(dto.getAmount()))
+                .merchantTransactionId(dto.getHash())
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                .build();
+        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
     }
 
     @Override
@@ -96,4 +111,6 @@ public class TronServiceImpl implements TronService {
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         throw new RuntimeException("Tron withdraw method not implemented!");
     }
+
+
 }
