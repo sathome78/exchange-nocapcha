@@ -33,6 +33,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
     private final static String GET_HASH = "/wallet/gettransactionbyid";
+    private final static String GET_LAST_BLOCK = "/wallet/getnowblock";
 
 
     @Override
@@ -73,6 +74,8 @@ public class TronNodeServiceImpl implements TronNodeService {
         return new JSONObject(responseEntity.getBody());
     }
 
+
+
     @Override
     public JSONObject getTransaction(String hash) {
         String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
@@ -81,6 +84,21 @@ public class TronNodeServiceImpl implements TronNodeService {
         try {
             JSONObject object = new JSONObject() {{put("value", hash); }};
             RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
+            responseEntity = restTemplate.exchange(requestEntity, String.class);
+        } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+        return new JSONObject(responseEntity.getBody());
+    }
+
+    @Override
+    public JSONObject getLAstBlock() {
+        String url = FULL_NODE_URL.concat(GET_LAST_BLOCK);
+        log.debug("url " + url);
+        ResponseEntity<String> responseEntity;
+        try {
+            RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.POST, new URI(url));
             responseEntity = restTemplate.exchange(requestEntity, String.class);
         } catch (Exception e) {
             log.error(e);

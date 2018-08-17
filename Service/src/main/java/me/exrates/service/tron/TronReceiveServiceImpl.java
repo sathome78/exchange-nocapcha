@@ -24,7 +24,32 @@ public class TronReceiveServiceImpl {
     }
 
     private void checkBlocks() {
+        long lastScannedBlock = loadLastBlock();
+        long blockchainHeight = getLastBlockNum();
+        while (lastScannedBlock < blockchainHeight) {
+            JSONObject object = nodeService.getTransactions(lastScannedBlock + 1);
 
+            lastScannedBlock++;
+        }
+    }
+
+    private void parseTransactions(JSONObject rawResponse) {
+
+    }
+
+    private void saveLastBlock(String hash) {
+        specParamsDao.updateParam(MERCHANT_NAME, LAST_HASH_PARAM, hash);
+    }
+
+    private long loadLastBlock() {
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_HASH_PARAM);
+        return specParamsDto == null ? 0 : Long.valueOf(specParamsDto.getParamValue());
+    }
+
+    private long getLastBlockNum() {
+        JSONObject jsonObject = nodeService.getLAstBlock();
+        /*todo parse object*/
+        return 0;
     }
 
 }
