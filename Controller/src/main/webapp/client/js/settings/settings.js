@@ -269,6 +269,27 @@ function SettingsClass() {
 }
 
 $(function () {
+    $('#change-password-button').click(function () {
+        var formData = new FormData(document.getElementsByName('settings-user-form')[0]);// yourForm: form selector
+        $.ajax({
+            type: "POST",
+            url: "/settings/changePassword/submit\"",// where you wanna post
+data: formData,
+    processData: false,
+    contentType: false,
+    error: function(data) {
+    errorNoty(data.errorNoty);
+},
+success: function(data) {
+    successNoty(data.successNoty);
+}
+});
+})
+});
+
+
+
+$(function () {
     const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
     const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
     const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");

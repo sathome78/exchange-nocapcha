@@ -669,15 +669,15 @@ public class AdminController {
   /*todo move this method from admin controller*/
   @RequestMapping(value = "/settings/changePassword/submit", method = POST)
   public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                             ModelAndView model, Principal principal, HttpServletRequest request) {
+                                             ModelAndView model, Principal principal, HttpServletRequest request, RedirectAttributes attr) {
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
 
       BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
       User userPrincipal = userService.findByEmail(principal.getName());
 
       if (result.hasErrors()) {
-        model.addObject("sectionid", "passwords-changing");
-        model.addObject("tabIdx", 0);
+        attr.addFlashAttribute("sectionid", "passwords-changing");
+        attr.addFlashAttribute("tabIdx", 0);
       } else {
           if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
 
@@ -686,19 +686,19 @@ public class AdminController {
             updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
             userService.update(updateUserDto, localeResolver.resolveLocale(request));
 
-            model.addObject("sectionid", "passwords-changing");
-            model.addObject("tabIdx", 0);
+            attr.addFlashAttribute("sectionid", "passwords-changing");
+            attr.addFlashAttribute("tabIdx", 0);
 
-            model.addObject("successNoty", messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request)));
+            attr.addFlashAttribute("successNoty", messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request)));
 
             userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
           } else {
-            model.addObject("errorNoty", messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request)));
+            attr.addFlashAttribute("errorNoty", messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request)));
           }
     }
 
     model.setViewName("globalPages/settings");
-    model.addObject("user", user);
+    attr.addFlashAttribute("user", user);
 
     return model;
   }

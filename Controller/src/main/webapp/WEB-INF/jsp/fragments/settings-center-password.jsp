@@ -12,9 +12,7 @@
                 <div class="tab-content">
                     <%--change main passwod--%>
                         <div <%--class="tab-pane"--%> id="tab__mainpass">
-                            <form:form class="form-horizontal" id="settings-user-form"
-                                       action="/settings/changePassword/submit"
-                                       method="post" modelAttribute="user">
+                            <form:form class="form-horizontal" id="settings-user-form" modelAttribute="user">
                                 <form:input path="id" type="hidden" class="form-control" id="user-id"/>
                                 <div class="input-block-wrapper clearfix">
                                     <div class="col-md-4 input-block-wrapper__label-wrapper">
