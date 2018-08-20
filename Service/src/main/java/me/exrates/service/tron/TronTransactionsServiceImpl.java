@@ -1,6 +1,8 @@
 package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.RefillRequestAddressDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransferDto;
 import me.exrates.service.RefillService;
@@ -14,12 +16,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 @Log4j2
 @Service
 public class TronTransactionsServiceImpl implements TronTransactionsService {
+
+
 
     interface CommonConstant {
         byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
@@ -35,7 +43,30 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     @Autowired
     private RefillService refillService;
 
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService transferScheduler = Executors.newScheduledThreadPool(1);
+
+    private void init() {
+        scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 1, 10, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 1, 20, TimeUnit.MINUTES);
+    }
+
     private void checkUnconfirmedJob() {
+        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(tronService.getMerchantId(), tronService.getCurrencyId());
+        dtos.forEach(p->{
+            if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
+                processTransaction(p.getAddress(), p.getMerchantTransactionId(), p.getAmount().toString());
+            }
+        });
+
+    }
+
+    private void transferToMainAccountJob() {
+        List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
+        listRefillRequestAddressDto.forEach(p->{
+            /*todo transfer*/
+            refillService.updateAddressNeedTransfer(p.getAddress(), tronService.getMerchantId(), tronService.getCurrencyId(), false);
+        });
 
     }
 
@@ -47,15 +78,20 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @Override
     public void processTransaction(TronReceivedTransactionDto p) {
+        processTransaction(p.getAddressBase58(), p.getHash(), p.getAmount());
+    }
+
+    @Override
+    public void processTransaction(String address, String hash, String amount) {
         Map<String, String> map = new HashMap<>();
-        map.put("address", p.getAddressBase58());
-        map.put("hash", p.getHash());
-        map.put("amount", p.getAmount());
+        map.put("address", address);
+        map.put("hash", hash);
+        map.put("amount", amount);
         try {
             tronService.processPayment(map);
-            refillService.updateAddressNeedTransfer(p.getAddressBase58(), tronService.getMerchantId(), tronService.getCurrencyId(), true);
+            refillService.updateAddressNeedTransfer(address, tronService.getMerchantId(), tronService.getCurrencyId(), true);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.error("request not found {}", p);
+            log.error("request not found {}", address);
         }
     }
 
