@@ -53,6 +53,10 @@ public class TronServiceImpl implements TronService {
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
     }
 
+    public void checkConfirmationsAndProceed() {
+
+    }
+
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         TronNewAddressDto dto = tronNodeService.getNewAddress();
@@ -69,7 +73,7 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public void createRequest(TronReceivedTransactionDto dto) {
+    public RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto) {
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(dto.getAddressBase58())
                 .merchantId(merchantId)
@@ -80,6 +84,24 @@ public class TronServiceImpl implements TronService {
                 .build();
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
+        return requestAcceptDto;
+    }
+
+    @Override
+    public void putOnBchExam(RefillRequestAcceptDto requestAcceptDto) {
+        try {
+            refillService.putOnBchExamRefillRequest(
+                    RefillRequestPutOnBchExamDto.builder()
+                            .requestId(requestAcceptDto.getRequestId())
+                            .merchantId(merchantId)
+                            .currencyId(currencyId)
+                            .address(requestAcceptDto.getAddress())
+                            .amount(requestAcceptDto.getAmount())
+                            .hash(requestAcceptDto.getMerchantTransactionId())
+                            .build());
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error(e);
+        }
     }
 
     @Override
@@ -97,14 +119,7 @@ public class TronServiceImpl implements TronService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestAppropriateNotFoundException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        }
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override
@@ -112,5 +127,13 @@ public class TronServiceImpl implements TronService {
         throw new RuntimeException("Tron withdraw method not implemented!");
     }
 
+    @Override
+    public int getMerchantId() {
+        return merchantId;
+    }
 
+    @Override
+    public int getCurrencyId() {
+        return currencyId;
+    }
 }

@@ -32,7 +32,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     private final static String GET_ADDRESS = "/wallet/generateaddress";
     private final static String EASY_TRANSFER = "/wallet/easytransferbyprivate";
     private final static String GET_BLOCK_TX = "/wallet/getblockbynum";
-    private final static String GET_HASH = "/wallet/gettransactionbyid";
+    private final static String GET_TX = "/wallet/gettransactionbyid";
     private final static String GET_LAST_BLOCK = "/wallet/getnowblock";
 
 
@@ -78,7 +78,7 @@ public class TronNodeServiceImpl implements TronNodeService {
 
     @Override
     public JSONObject getTransaction(String hash) {
-        String url = SOLIDITY_NODE_URL.concat(GET_BLOCK_TX);
+        String url = SOLIDITY_NODE_URL.concat(GET_TX);
         log.debug("url " + url);
         ResponseEntity<String> responseEntity;
         try {

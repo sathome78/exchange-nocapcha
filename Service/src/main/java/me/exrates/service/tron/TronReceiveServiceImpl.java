@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,6 +31,8 @@ public class TronReceiveServiceImpl {
     private TronServiceImpl tronService;
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+    @Autowired
+    private TronTransactionsService tronTransactionsService;
 
     private static final String LAST_HASH_PARAM = "LastScannedBlock";
     private static final String MERCHANT_NAME = "TRX";
@@ -60,7 +63,12 @@ public class TronReceiveServiceImpl {
             if(tronService.getAddressesHEX().contains(p.getAddress())) {
                 try {
                     setAdditionalTxInfo(p);
-                    tronService.processTransaction(p);
+                    RefillRequestAcceptDto dto = tronService.createRequest(p);
+                    if (p.isConfirmed()) {
+                        tronTransactionsService.processTransaction(p);
+                    } else {
+                        tronService.putOnBchExam(dto);
+                    }
                 } catch (Exception e) {
                     log.error(e);
                 }
@@ -110,8 +118,7 @@ public class TronReceiveServiceImpl {
 
     private long getLastBlockNum() {
         JSONObject jsonObject = nodeService.getLAstBlock();
-        /*todo parse object*/
-        return 0;
+        return jsonObject.getJSONObject("block_header").getJSONObject("raw_data").getLong("number");
     }
 
 }

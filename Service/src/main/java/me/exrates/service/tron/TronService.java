@@ -1,5 +1,6 @@
 package me.exrates.service.tron;
 
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -45,7 +46,11 @@ public interface TronService extends IRefillable, IWithdrawable {
 
     Set<String> getAddressesHEX();
 
-    void processTransaction(TronReceivedTransactionDto p);
+    RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto);
 
-    void createRequest(TronReceivedTransactionDto dto);
+    void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
+
+    int getMerchantId();
+
+    int getCurrencyId();
 }

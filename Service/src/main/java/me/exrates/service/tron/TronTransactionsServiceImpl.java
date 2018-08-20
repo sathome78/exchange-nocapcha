@@ -1,7 +1,10 @@
 package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransferDto;
+import me.exrates.service.RefillService;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bitcoinj.core.Base58;
@@ -10,6 +13,8 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Log4j2
@@ -25,6 +30,14 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @Autowired
     private TronNodeService tronNodeService;
+    @Autowired
+    private TronService tronService;
+    @Autowired
+    private RefillService refillService;
+
+    private void checkUnconfirmedJob() {
+
+    }
 
     @Override
     public boolean checkIsTransactionConfirmed(String txHash) {
@@ -32,13 +45,27 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         return rawResponse.getBoolean("confirmed");
     }
 
+    @Override
+    public void processTransaction(TronReceivedTransactionDto p) {
+        Map<String, String> map = new HashMap<>();
+        map.put("address", p.getAddressBase58());
+        map.put("hash", p.getHash());
+        map.put("amount", p.getAmount());
+        try {
+            tronService.processPayment(map);
+            refillService.updateAddressNeedTransfer(p.getAddressBase58(), tronService.getMerchantId(), tronService.getCurrencyId(), true);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error("request not found {}", p);
+        }
+    }
 
 
 
+    private void transferToMainAccount() {
+        /*easyTransferByPrivate(); todo*/
 
 
-
-
+    }
 
 
 
