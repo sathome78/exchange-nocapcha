@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -46,16 +47,11 @@ public class TronServiceImpl implements TronService {
 
     @PostConstruct
     private void init() {
-        /*get hex addresses
-        * tron addresses - pub_key field*/
-        /*addresses.addAll();*/
+        addressesHEX.addAll(refillService.findAddressDtos(merchantId, currencyId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
         merchantId = merchantService.findByName(MERCHANT_NAME).getId();
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
     }
 
-    public void checkConfirmationsAndProceed() {
-
-    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {

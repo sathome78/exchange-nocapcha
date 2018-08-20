@@ -248,7 +248,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                         new BigInteger(transferAccPublicKey)));
             }
 
-            refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
+            refillService.ffindAllAddresses(merchant.getId(), currency.getId()).forEach(address -> accounts.add(address));
             List<RefillRequestFlatDto> pendingTransactions = refillService.getInExamineByMerchantIdAndCurrencyIdList(merchant.getId(), currency.getId());
             subscribeCreated = true;
             currentBlockNumber = new BigInteger("0");
