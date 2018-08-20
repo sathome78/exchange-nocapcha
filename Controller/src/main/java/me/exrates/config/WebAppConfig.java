@@ -1149,7 +1149,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthTokenServiceImpl(
                 tokensList,
                 "PAT",
-                "PAT", true, ExConvert.Unit.ETHER);
+                "PAT", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
