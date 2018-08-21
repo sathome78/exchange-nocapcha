@@ -19,6 +19,7 @@ function SettingsClass() {
     const $telegramSubscrPrice = $('#telegram_subscr_price');
     const $telegramCode = $('#telegram_code');
     const $smsModal = $('#sms_connect_modal');
+    const $googleModal = $('#google_authenticator_modal');
     const $smsNumberError = $('#phone_error');
     const $smsMessagePrice = $('#sms_mssg_price');
     const $smsSubscrPrice = $('#sms_subscr_price');
@@ -39,8 +40,8 @@ function SettingsClass() {
         }
 
 
-       /* setActiveSwitcher();
-        switchPassTab();*/
+        /* setActiveSwitcher();
+         switchPassTab();*/
         /**/
         $('.orderForm-toggler').on('click', function(e){
             that.tabIdx = $(this).index();
@@ -50,10 +51,10 @@ function SettingsClass() {
         checkSmsNumber();
     })();
 
-   /* function setActiveSwitcher(){
-        $('.orderForm-toggler').removeClass('active');
-        $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
-    }*/
+    /* function setActiveSwitcher(){
+         $('.orderForm-toggler').removeClass('active');
+         $('.orderForm-toggler:eq('+that.tabIdx+')').addClass('active');
+     }*/
 
     /*function switchPassTab(){
         var tabId = $('.orderForm-toggler.active').data('tabid');
@@ -63,8 +64,8 @@ function SettingsClass() {
         blink($('#passwords-changing').find('[for="userFin-password"]'));
     }*/
 
-   $('#sessionTime').on('change keyup', function() {
-       console.log('change');
+    $('#sessionTime').on('change keyup', function() {
+        console.log('change');
         var value = $(this).val(); // get the current value of the input field.
         var sendButton = $('#submitSessionOptionsButton');
         if (!value || isNaN(value)) {
@@ -89,7 +90,7 @@ function SettingsClass() {
     }
 
     $('#subscribe_SMS').on('click', function() {
-       connectOrReconnect();
+        connectOrReconnect();
     });
 
     $('#reconnect_SMS').on('click', function() {
@@ -106,15 +107,15 @@ function SettingsClass() {
         $smsNumberError.text('');
         var val = $smsNumberInput.val().replace('+','').replace(" ", "").replace("-", "");
         $.ajax({
-                url: '/settings/2FaOptions/preconnect_sms?number=' + val,
-                type: 'GET',
-                success: function (data) {
-                    $smsMessagePrice.text(data);
-                    $('#sms_instruction').show();
-                    $('#sms_connect_button').prop('disabled', false);
-                }, error: function (data) {
-                    $smsNumberError.text(data.responseJSON.detail);
-                }
+            url: '/settings/2FaOptions/preconnect_sms?number=' + val,
+            type: 'GET',
+            success: function (data) {
+                $smsMessagePrice.text(data);
+                $('#sms_instruction').show();
+                $('#sms_connect_button').prop('disabled', false);
+            }, error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
         });
     });
 
@@ -177,6 +178,28 @@ function SettingsClass() {
         });
     });
 
+    $('#google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                $googleModal.modal('hide');
+                var inputs=document.getElementsByTagName('input');
+                for(i=0;i<inputs.length;i++){
+                    if (inputs[i].getAttribute('value') == '4'){
+                        inputs[i].disabled=false;
+                    }
+
+                }
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
     $('#sms_code_input').on('input', function () {
         var code = $('#sms_code_input').val();
         if (isNumber(code)) {
@@ -231,6 +254,26 @@ function SettingsClass() {
 
 
 
+
+    $('#subscribe_GOOGLE_AUTHENTICATOR').on('click', function() {
+        $('#google2fa_connect_block').show();
+        $googleModal.modal();
+        $.ajax(
+            "/settings/2FaOptions/google2fa",
+            {
+                headers:
+                    {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                type: 'POST',
+            }).success(function (data) {
+            console.log(data);
+            if($('#qr').find('img').length === 1) {
+                $("#qr").append('<img src="'+data.message+'" />').show();
+            }
+        });
+    });
+
     $('#telegram_pay_button').on('click', function() {
         $.ajax({
             url: '/settings/2FaOptions/connect_telegram',
@@ -269,34 +312,36 @@ function SettingsClass() {
 }
 
 $(function () {
-    $('#change-password-button').click(function () {
-        var formData = new FormData(document.getElementsByName('settings-user-form')[0]);// yourForm: form selector
-        $.ajax({
-            type: "POST",
-            url: "/settings/changePassword/submit\"",// where you wanna post
-data: formData,
-    processData: false,
-    contentType: false,
-    error: function(data) {
-    errorNoty(data.errorNoty);
-},
-success: function(data) {
-    successNoty(data.successNoty);
-}
-});
-})
-});
-
-
-
-$(function () {
     const passwordPatternLettersAndNumbers = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])[\\w]{8,20}$");
     const passwordPatternLettersAndCharacters = new RegExp("^(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
     const passwordPatternLettersAndNumbersAndCharacters = new RegExp("^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[@*%!#^!&$<>])[\\w\\W]{8,20}$");
 
     const fieldContainsSpace = new RegExp("\\s");
 
-    if (document.getElementById("change-password-button")) {
+    $("#password-change-button").click(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '/settings/changePassword/submit',
+            type: 'POST',
+            data: $('#settings-user-password-form').serialize(),
+            success: function (data) {
+                successNoty(data.message)
+            }, error: function (data) {
+                errorNoty(data.responseJSON.message);
+            }, complete : function () {
+                $('#user-confirmpassword').val('');
+                $('#user-password').val('');
+                $('#confirmNewPassword').val('');
+                $('#user-confirmpassword').attr('readonly', true);
+                $('#confirmNewPassword').attr('readonly', true);
+                $('.repass').css("display", "none");
+                $('.repass-error').css("display", "none");
+                $('#password-change-button').attr('disabled', true);
+            }
+        });
+    });
+
+    if (document.getElementById("password-change-button")) {
         checkPasswordFieldsOnFillInUserSettings();
     }
 
@@ -334,19 +379,19 @@ $(function () {
         if(!pass) {
             $('#new_password_wrong').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
             $('#new_password_required').css('display', 'block');
-            $("#change-password-button").prop('disabled', true);
+            $("#password-change-button").attr('disabled', true);
             checkPasswordFieldsOnFillInUserSettings();
             return;
         }
         if ((passwordPatternLettersAndNumbers.test(pass) || passwordPatternLettersAndCharacters.test(pass)
             || passwordPatternLettersAndNumbersAndCharacters.test(pass)) && !fieldContainsSpace.test(pass)) {
             $('#user-confirmpassword').removeClass('field__input--error').siblings('.field__label').removeClass('field__label--error');
-            $("#change-password-button").prop('disabled', false);
+            $("#password-change-button").attr('disabled', false);
             checkPasswordFieldsOnFillInUserSettings();
         } else {
             $('#user-confirmpassword').addClass('field__input--error').siblings('.field__label').addClass('field__label--error');
             $('#new_password_wrong').css('display', 'block');
-            $("#change-password-button").prop('disabled', true);
+            $("#password-change-button").attr('disabled', true);
             checkPasswordFieldsOnFillInUserSettings();
         }
     },100));
@@ -355,11 +400,11 @@ $(function () {
         var pass = $('#user-confirmpassword').val();
         var repass = $('#confirmNewPassword').val();
         if (repass && (pass === repass)) {
-                $('.repass').css("display", "block");
-                $('.repass-error').css("display", "none");
-            } else {
-                $('.repass-error').css("display", "block");
-                $('.repass').css("display", "none");
+            $('.repass').css("display", "block");
+            $('.repass-error').css("display", "none");
+        } else {
+            $('.repass-error').css("display", "block");
+            $('.repass').css("display", "none");
         }
         checkPasswordFieldsOnFillInUserSettings();
     });
@@ -378,9 +423,9 @@ function checkPasswordFieldsOnFillInUserSettings() {
     var newPassword = $('#user-confirmpassword').val();
     var confirmNewPassword = $('#confirmNewPassword').val();
     if (password && newPassword && confirmNewPassword && (newPassword === confirmNewPassword)) {
-        $("#change-password-button").prop('disabled', false);
+        $("#password-change-button").attr('disabled', false);
     } else {
-        $("#change-password-button").prop('disabled', true);
+        $("#password-change-button").attr('disabled', true);
     }
 }
 
@@ -391,9 +436,9 @@ function checkOldPasswordField(){
     var password = $('#user-password').val();
 
     if (password) {
-        $("#user-confirmpassword").prop('readonly', false);
+        $("#user-confirmpassword").attr('readonly', false);
     } else {
-        $("#user-confirmpassword").prop('readonly', true);
+        $("#user-confirmpassword").attr('readonly', true);
     }
 }
 
@@ -405,9 +450,8 @@ function checkOldPasswordAndNewPasswordField(){
     var newPassword = $('#user-confirmpassword').val();
 
     if (password && newPassword) {
-        $("#confirmNewPassword").prop('readonly', false);
+        $("#confirmNewPassword").attr('readonly', false);
     } else {
-        $("#confirmNewPassword").prop('readonly', true);
+        $("#confirmNewPassword").attr('readonly', true);
     }
 }
-
