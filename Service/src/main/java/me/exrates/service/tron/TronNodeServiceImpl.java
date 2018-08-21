@@ -1,7 +1,6 @@
 package me.exrates.service.tron;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.TronTransactionResponseDto;
 import me.exrates.model.dto.TronNewAddressDto;
 import me.exrates.model.dto.TronTransferDto;
 import org.json.JSONObject;
@@ -44,18 +43,18 @@ public class TronNodeServiceImpl implements TronNodeService {
     }
 
     @Override
-    public TronTransactionResponseDto transferFunds(TronTransferDto tronTransferDto) {
+    public JSONObject transferFunds(TronTransferDto tronTransferDto) {
         String url = FULL_NODE_URL.concat(EASY_TRANSFER);
         log.debug("url " + url);
-        ResponseEntity<TronTransactionResponseDto> responseEntity;
+        ResponseEntity<String> responseEntity;
         try {
             RequestEntity<TronTransferDto> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
-            responseEntity = restTemplate.exchange(requestEntity, TronTransactionResponseDto.class);
+            responseEntity = restTemplate.exchange(requestEntity, String.class);
         } catch (Exception e) {
             log.error(e);
             throw new RuntimeException(e);
         }
-        return responseEntity.getBody();
+        return new JSONObject(responseEntity.getBody());
     }
 
     @Override

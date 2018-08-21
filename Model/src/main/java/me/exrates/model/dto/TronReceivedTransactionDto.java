@@ -13,6 +13,7 @@ public class TronReceivedTransactionDto {
     /*Base58 address*/
     private String addressBase58;
     private boolean isConfirmed;
+    private long rawAmount;
 
     private final static String txType = "TransferContract";
 
@@ -30,7 +31,9 @@ public class TronReceivedTransactionDto {
         }
         JSONObject parameters = transaction.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0).getJSONObject("parameter").getJSONObject("value");
         String amount = parseAmount(parameters.getLong("amount"));
-        return new TronReceivedTransactionDto(amount, transaction.getString("txID"), parameters.getString("to_address"));
+        TronReceivedTransactionDto dto = new TronReceivedTransactionDto(amount, transaction.getString("txID"), parameters.getString("to_address"));
+        dto.setRawAmount(parameters.getLong("amount"));
+        return dto;
     }
 
     private static String parseAmount(long amount) {

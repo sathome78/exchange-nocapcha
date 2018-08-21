@@ -59,8 +59,12 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void checkUnconfirmedJob() {
         List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(tronService.getMerchantId(), tronService.getCurrencyId());
         dtos.forEach(p->{
-            if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
-                processTransaction(p.getAddress(), p.getMerchantTransactionId(), p.getAmount().toString());
+            try {
+                if (checkIsTransactionConfirmed(p.getMerchantTransactionId())) {
+                    processTransaction(p.getAddress(), p.getMerchantTransactionId(), p.getAmount().toString());
+                }
+            } catch (Exception e) {
+                log.error(e);
             }
         });
 
@@ -69,8 +73,12 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void transferToMainAccountJob() {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
         listRefillRequestAddressDto.forEach(p->{
-            transferToMainAccount(p);
-            refillService.updateAddressNeedTransfer(p.getAddress(), tronService.getMerchantId(), tronService.getCurrencyId(), false);
+            try {
+                transferToMainAccount(p);
+                refillService.updateAddressNeedTransfer(p.getAddress(), tronService.getMerchantId(), tronService.getCurrencyId(), false);
+            } catch (Exception e) {
+                log.error(e);
+            }
         });
     }
 
@@ -108,11 +116,15 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     private void easyTransferByPrivate(String pk, String addressTo, long amount) {
         TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, 1000000L);
+        JSONObject object = tronNodeService.transferFunds(tronTransferDto);
+        if (true/**/) {
+
+        }
     }
 
 
 
-    public static byte[] decodeFromBase58Check(String addressBase58) {
+    /*public static byte[] decodeFromBase58Check(String addressBase58) {
         if (StringUtils.isEmpty(addressBase58)) {
             log.warn("Warning: Address is empty !!");
             return null;
@@ -149,7 +161,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
             return decodeData;
         }
         return null;
-    }
+    }*/
 
     public static boolean addressValid(byte[] address) {
         if (ArrayUtils.isEmpty(address)) {

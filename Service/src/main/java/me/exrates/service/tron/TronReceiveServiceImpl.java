@@ -88,7 +88,10 @@ public class TronReceiveServiceImpl {
         JSONObject rawResponse = nodeService.getTransaction(dto.getHash());
         String tokenName = rawResponse.getString("tokenName");
         if (!tokenName.equals(CURRENCY_NAME)) {
-            throw new Exception("unsupported token");
+            throw new Exception("unsupported token " + dto.getHash());
+        }
+        if (dto.getRawAmount() != rawResponse.getLong("amount")) {
+            throw new Exception("incorrect amount " + dto.getHash());
         }
         dto.setAddressBase58("transferToAddress");
         dto.setConfirmed(rawResponse.getBoolean("confirmed"));
