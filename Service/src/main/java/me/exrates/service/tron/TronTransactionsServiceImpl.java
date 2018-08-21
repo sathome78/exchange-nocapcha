@@ -13,6 +13,8 @@ import org.bitcoinj.core.Base58;
 import org.bitcoinj.core.Sha256Hash;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Log4j2
+@PropertySource("classpath:/merchants/tron.properties")
 @Service
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
@@ -34,6 +37,8 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
         int ADDRESS_SIZE = 21;
     }
+
+    private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
 
 
     @Autowired
@@ -64,10 +69,14 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void transferToMainAccountJob() {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(tronService.getMerchantId(), tronService.getCurrencyId());
         listRefillRequestAddressDto.forEach(p->{
-            /*todo transfer*/
+            transferToMainAccount(p);
             refillService.updateAddressNeedTransfer(p.getAddress(), tronService.getMerchantId(), tronService.getCurrencyId(), false);
         });
+    }
 
+    private void transferToMainAccount(RefillRequestAddressDto dto) {
+        Long accountAmount = tronNodeService.getAccount(dto.getAddress()).getJSONObject("data").getLong("balance");
+        easyTransferByPrivate(MAIN_ADDRESS_HEX, dto.getPubKey(), accountAmount);
     }
 
     @Override
@@ -97,17 +106,8 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
 
 
-    private void transferToMainAccount() {
-        /*easyTransferByPrivate(); todo*/
-
-
-    }
-
-
-
-
-    public void easyTransferByPrivate(String address, String pk, long amount) {
-       /* TronTransferDto tronTransferDto = new TronTransferDto(ByteArray.fromHexString(pk), decodeFromBase58Check(address), 1000000L);*/
+    private void easyTransferByPrivate(String pk, String addressTo, long amount) {
+        TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, 1000000L);
     }
 
 

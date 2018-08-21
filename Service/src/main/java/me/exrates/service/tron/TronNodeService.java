@@ -15,5 +15,7 @@ public interface TronNodeService {
 
     JSONObject getTransaction(String hash);
 
-    JSONObject getLAstBlock();
+    JSONObject getLastBlock();
+
+    JSONObject getAccount(String addressBase58);
 }

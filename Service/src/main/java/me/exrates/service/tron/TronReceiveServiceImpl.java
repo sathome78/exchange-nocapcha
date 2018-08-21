@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 @Log4j2
 @Service
@@ -48,7 +47,7 @@ public class TronReceiveServiceImpl {
 
     private void checkBlocks() {
         long lastScannedBlock = loadLastBlock();
-        long blockchainHeight = getLastBlockNum();
+        long blockchainHeight = getLastBlockNum() - 10;
         while (lastScannedBlock < blockchainHeight) {
             JSONObject object = nodeService.getTransactions(lastScannedBlock + 1);
             List<TronReceivedTransactionDto> transactionDtos = parseResponse(object);
@@ -117,7 +116,7 @@ public class TronReceiveServiceImpl {
     }
 
     private long getLastBlockNum() {
-        JSONObject jsonObject = nodeService.getLAstBlock();
+        JSONObject jsonObject = nodeService.getLastBlock();
         return jsonObject.getJSONObject("block_header").getJSONObject("raw_data").getLong("number");
     }
 
