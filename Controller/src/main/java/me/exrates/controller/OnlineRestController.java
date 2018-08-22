@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
@@ -11,6 +12,7 @@ import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.*;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.stopOrder.StopOrderService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -147,17 +149,16 @@ public class OnlineRestController {
   @OnlineMethod
   @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
   public Map<String, Object> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+                                                                    @RequestParam(defaultValue = "MAIN") CurrencyPairType type,
                                                                              Principal principal, HttpServletRequest request) {
     if (principal == null) {
       return null;
     }
-
     String email = principal.getName();
     String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-
-    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+    List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request), type);
     HashMap<String, Object> map = new HashMap<String, Object>();
     map.put("mapWallets", resultWallet);
 
@@ -435,7 +436,6 @@ public class OnlineRestController {
    * @param request
    * @return object with values of params
    */
-  @OnlineMethod
   @RequestMapping(value = "/dashboard/currentParams", method = RequestMethod.GET)
   public CurrentParams setCurrentParams(
       @RequestParam(required = false) String currencyPairName,
@@ -443,23 +443,10 @@ public class OnlineRestController {
       @RequestParam(required = false) String chart,
       @RequestParam(required = false) Boolean showAllPairs,
       @RequestParam(required = false) Boolean orderRoleFilterEnabled,
+      @RequestParam(defaultValue = "ALL") CurrencyPairType currencyPairType,
       HttpServletRequest request) {
-    CurrencyPair currencyPair;
-    if (currencyPairName == null) {
-      if (request.getSession().getAttribute("currentCurrencyPair") == null) {
-        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-        currencyPair = currencyPairs.get(0);
-      } else {
-        currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-      }
-    } else {
-      List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-      currencyPair = currencyPairs
-          .stream()
-          .filter(e -> e.getName().equals(currencyPairName))
-              .findFirst()
-              .orElse(currencyService.getCurrencyPairByName("BTC/USD"));
-    }
+    CurrencyPair currencyPair = getPairFormSessionOrRequest(request, currencyPairName, currencyPairType);
+    currencyPair = resolveCurrentOrDefaultPairForType(currencyPair, currencyPairType);
     request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         /**/
     if (showAllPairs == null) {
@@ -510,6 +497,51 @@ public class OnlineRestController {
     currentParams.setOrderRoleFilterEnabled(((Boolean) request.getSession().getAttribute("orderRoleFilterEnabled")));
     return currentParams;
   }
+
+  private CurrencyPair getPairFormSessionOrRequest(HttpServletRequest request, String currencyPairName, CurrencyPairType type) {
+    CurrencyPair currencyPair = null;
+    if (StringUtils.isEmpty(currencyPairName)) {
+      if (request.getSession().getAttribute("currentCurrencyPair") != null) {
+        currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+      }
+    } else {
+      List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(type);
+      if (!currencyPairs.isEmpty()) {
+        currencyPair = currencyPairs
+                .stream()
+                .filter(e -> e.getName().equalsIgnoreCase(currencyPairName))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Unsupported pair"));
+      }
+    }
+    return currencyPair;
+  }
+
+  private CurrencyPair resolveCurrentOrDefaultPairForType(CurrencyPair currencyPair, CurrencyPairType type) {
+    if (currencyPair != null && type != CurrencyPairType.ALL && currencyPair.getPairType() != type) {
+      currencyPair = null;
+    }
+    if (currencyPair == null) {
+      switch (type) {
+        case MAIN : {}
+        case ALL: {
+          currencyPair = currencyService.getCurrencyPairByName("BTC/USD");
+          break;
+        }
+        case ICO:{
+          List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(type);
+          if (currencyPairs.isEmpty()) {
+            throw new RuntimeException("no pairs for thios type");
+          } else {
+            currencyPair = currencyPairs.get(0);
+          }
+          break;
+        }
+      }
+    }
+    return currencyPair;
+  }
+
 
   /**
    * Sets (init or reset) and returns table params for <b>tableId</b>:
@@ -578,9 +610,17 @@ public class OnlineRestController {
    * @author ValkSam
    */
   @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(HttpServletRequest request) {
+  public Map<String, List<CurrencyPair>> getCurrencyPairNameList(@RequestParam(value = "pairs", defaultValue = "MAIN") String pairType,   HttpServletRequest request) {
     Locale locale = localeResolver.resolveLocale(request);
-    List<CurrencyPair> list = currencyService.getAllCurrencyPairs();
+    CurrencyPairType cpType = Preconditions.checkNotNull(CurrencyPairType.valueOf(pairType));
+    List<CurrencyPair> list = currencyService.getAllCurrencyPairsInAlphabeticOrder(cpType);
+    if (cpType == CurrencyPairType.ALL) {
+      list.forEach(p->{
+        if (p.getPairType() == CurrencyPairType.ICO) {
+          p.setMarket(CurrencyPairType.ICO.name());
+        }
+      });
+    }
     list.forEach(p -> p.setMarketName(messageSource.getMessage("message.cp.".concat(p.getMarket()), null, locale)));
     return list.stream().sorted(Comparator.comparing(CurrencyPair::getName)).collect(Collectors.groupingBy(CurrencyPair::getMarket));
   }

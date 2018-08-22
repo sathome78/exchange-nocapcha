@@ -7,8 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
-import me.exrates.controller.listener.StoreSessionListener;
-import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -18,18 +16,15 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
 import me.exrates.service.ethereum.*;
+import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
 import me.exrates.service.nem.XemMosaicServiceImpl;
-import me.exrates.service.lisk.LiskService;
-import me.exrates.service.lisk.LiskServiceImpl;
 import me.exrates.service.qtum.QtumTokenService;
 import me.exrates.service.qtum.QtumTokenServiceImpl;
-import me.exrates.service.nem.XemMosaicService;
-import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.stellar.StellarAsset;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
@@ -72,7 +67,6 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
-import org.web3j.utils.Convert;
 import org.zeromq.ZMQ;
 
 import javax.annotation.PostConstruct;
@@ -80,9 +74,7 @@ import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -108,7 +100,8 @@ import java.util.stream.Collectors;
     "classpath:/angular.properties",
     "classpath:/twitter.properties",
     "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties"})
+    "classpath:/merchants/stellar.properties",
+    "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter{
 
@@ -194,6 +187,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     private String twitterAccessToken;
     @Value("${twitter.accessTokenSecret}")
     private String twitterAccessTokenSecret;
+
+    @Value("${geetest.captchaId}")
+    private String gtCaptchaId;
+    @Value("${geetest.privateKey}")
+    private String gtPrivateKey;
+    @Value("${geetest.newFailback}")
+    private String gtNewFailback;
 
 
     @PostConstruct
@@ -496,6 +496,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthereumCommonServiceImpl("merchants/nexty.properties",
                 "NTY", "NTY", 12);
     }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -1121,6 +1122,56 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "TTC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "bfgServiceImpl")
+    public EthTokenService bfgService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2ee3b3804f695355ddc4f8e1c54654416d7ee95a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BFG",
+                "BFG", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "jetServiceImpl")
+    public EthTokenService jetService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x8727c112c712c4a03371ac87a74dd6ab104af768");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "JET",
+                "JET", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "patServiceImpl")
+    public EthTokenService patService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xf3b3cad094b89392fce5fafd40bc03b80f2bc624");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PAT",
+                "PAT", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mtvServiceImpl")
+    public EthTokenService mtvService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x07a7ed332c595b53a317afcee50733af571475e7");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MTV",
+                "MTV", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "kwattServiceImpl")
+    public EthTokenService kwattService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x241ba672574a78a3a604cdd0a94429a73a84a324");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "KWATT",
+                "KWATT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1149,6 +1200,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
+    }
+
+    @Bean(name = "sumoServiceImpl")
+    public MoneroService sumoService() {
+        return new MoneroServiceImpl("merchants/sumokoin.properties",
+                "SUMO", "SUMO", 10, 9);
     }
 
     /***tokens based on xem mosaic)****/
@@ -1284,6 +1341,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 twitterConsumerSecret,
                 twitterAccessToken,
                 twitterAccessTokenSecret);
+    }
+
+    @Bean
+    public GeetestLib geetest() {
+        return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
     }
 
 }

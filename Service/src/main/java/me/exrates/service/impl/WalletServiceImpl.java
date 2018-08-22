@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -106,14 +107,11 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale) {
-    List<MyWalletsStatisticsDto> result = walletDao.getAllWalletsForUserReduced(email, locale);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<MyWalletsStatisticsDto>() {{
-        add(new MyWalletsStatisticsDto(false));
-      }};
-    }
-    return result;
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
+    List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
+    Set<Integer> currencies = pairList.stream().map(p -> p.getCurrency2().getId()).collect(Collectors.toSet());
+    currencies.addAll(pairList.stream().map(p -> p.getCurrency1().getId()).collect(toSet()));
+    return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
   }
 
   @Override
@@ -250,8 +248,14 @@ public class WalletServiceImpl implements WalletService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
-    return walletDao.getAllWalletsForUserReduced(email, locale);
+  public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
+    return walletDao.getAllWalletsForUserReduced(email);
+  }
+
+  @Override
+  public List<WalletBalanceDto> getBalancesForUser() {
+    String userEmail = userService.getUserEmailFromSecurityContext();
+    return walletDao.getBalancesForUser(userEmail);
   }
 
   @Override
