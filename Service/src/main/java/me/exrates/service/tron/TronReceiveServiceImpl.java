@@ -14,35 +14,38 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
+@Log4j2(topic = "tron")
 @Service
 public class TronReceiveServiceImpl {
 
-    @Autowired
-    private TronNodeService nodeService;
-    @Autowired
-    private TronServiceImpl tronService;
-    @Autowired
-    private MerchantSpecParamsDao specParamsDao;
-    @Autowired
-    private TronTransactionsService tronTransactionsService;
+    private final TronNodeService nodeService;
+    private final TronServiceImpl tronService;
+    private final MerchantSpecParamsDao specParamsDao;
+    private final TronTransactionsService tronTransactionsService;
 
-    private static final String LAST_HASH_PARAM = "LastScannedBlock";
+    private static final String LAST_BLOCK_PARAM = "LastScannedBlock";
     private static final String MERCHANT_NAME = "TRX";
     private static final String CURRENCY_NAME = "TRX";
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    @Autowired
+    public TronReceiveServiceImpl(TronNodeService nodeService, TronServiceImpl tronService, MerchantSpecParamsDao specParamsDao, TronTransactionsService tronTransactionsService) {
+        this.nodeService = nodeService;
+        this.tronService = tronService;
+        this.specParamsDao = specParamsDao;
+        this.tronTransactionsService = tronTransactionsService;
+    }
+
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkBlocks, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkBlocks, 1, 2, TimeUnit.MINUTES);
     }
 
     private void checkBlocks() {
@@ -50,6 +53,7 @@ public class TronReceiveServiceImpl {
         long blockchainHeight = getLastBlockNum() - 10;
         while (lastScannedBlock < blockchainHeight) {
             JSONObject object = nodeService.getTransactions(lastScannedBlock + 1);
+            log.debug("transactions from block {} :{}",lastScannedBlock, object);
             List<TronReceivedTransactionDto> transactionDtos = parseResponse(object);
             checkTransactionsAndProceed(transactionDtos);
             lastScannedBlock++;
@@ -77,7 +81,7 @@ public class TronReceiveServiceImpl {
 
     private List<TronReceivedTransactionDto> parseResponse(JSONObject rawResponse) {
         if(rawResponse.isNull("transactions")) {
-            return Collections.EMPTY_LIST;
+            return new ArrayList<>();
         }
         /*JSONObject blockHeader = rawResponse.getJSONObject("block_header");*/
         JSONArray transactions = rawResponse.getJSONArray("transactions");
@@ -110,11 +114,11 @@ public class TronReceiveServiceImpl {
     }
 
     private void saveLastBlock(long blockNum) {
-        specParamsDao.updateParam(MERCHANT_NAME, LAST_HASH_PARAM, String.valueOf(blockNum));
+        specParamsDao.updateParam(MERCHANT_NAME, LAST_BLOCK_PARAM, String.valueOf(blockNum));
     }
 
     private long loadLastBlock() {
-        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_HASH_PARAM);
+        MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, LAST_BLOCK_PARAM);
         return specParamsDto == null ? 0 : Long.valueOf(specParamsDto.getParamValue());
     }
 

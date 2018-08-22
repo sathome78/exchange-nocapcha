@@ -7,16 +7,13 @@ import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TronTransferDto;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
-import org.bitcoinj.core.Base58;
-import org.bitcoinj.core.Sha256Hash;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,32 +22,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-@Log4j2
+@Log4j2(topic = "tron")
 @PropertySource("classpath:/merchants/tron.properties")
 @Service
 public class TronTransactionsServiceImpl implements TronTransactionsService {
 
 
-
-    interface CommonConstant {
-        byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
-        byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
-        int ADDRESS_SIZE = 21;
+    @Autowired
+    public TronTransactionsServiceImpl(TronNodeService tronNodeService, TronService tronService, RefillService refillService) {
+        this.tronNodeService = tronNodeService;
+        this.tronService = tronService;
+        this.refillService = refillService;
     }
 
+
+
     private @Value("${tron.mainAccountHEXAddress}")String MAIN_ADDRESS_HEX;
-
-
-    @Autowired
-    private TronNodeService tronNodeService;
-    @Autowired
-    private TronService tronService;
-    @Autowired
-    private RefillService refillService;
+    private final TronNodeService tronNodeService;
+    private final TronService tronService;
+    private final RefillService refillService;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private ScheduledExecutorService transferScheduler = Executors.newScheduledThreadPool(1);
 
+    @PostConstruct
     private void init() {
         scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 1, 10, TimeUnit.MINUTES);
         transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 1, 20, TimeUnit.MINUTES);
@@ -112,58 +107,25 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         }
     }
 
-
-
     private void easyTransferByPrivate(String pk, String addressTo, long amount) {
-        TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, 1000000L);
+        TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, amount);
         JSONObject object = tronNodeService.transferFunds(tronTransferDto);
-        if (true/**/) {
-
+        log.debug("inner transfer response {}", object.toString());
+        boolean result = object.getJSONObject("result").getBoolean("result");
+        if (!result) {
+            throw new RuntimeException("erro trnasfer to main account");
         }
     }
 
 
-
-    /*public static byte[] decodeFromBase58Check(String addressBase58) {
-        if (StringUtils.isEmpty(addressBase58)) {
-            log.warn("Warning: Address is empty !!");
-            return null;
-        }
-        byte[] address = decode58Check(addressBase58);
-        if (!addressValid(address)) {
-            return null;
-        }
-        return address;
+    /*
+    interface CommonConstant {
+        byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
+        byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
+        int ADDRESS_SIZE = 21;
     }
 
-    public static String encode58Check(byte[] input) {
-        byte[] hash0 = Sha256Hash.hash(input);
-        byte[] hash1 = Sha256Hash.hash(hash0);
-        byte[] inputCheck = new byte[input.length + 4];
-        System.arraycopy(input, 0, inputCheck, 0, input.length);
-        System.arraycopy(hash1, 0, inputCheck, input.length, 4);
-        return Base58.encode(inputCheck);
-    }
-
-    private static byte[] decode58Check(String input) {
-        byte[] decodeCheck = Base58.decode(input);
-        if (decodeCheck.length <= 4) {
-            return null;
-        }
-        byte[] decodeData = new byte[decodeCheck.length - 4];
-        System.arraycopy(decodeCheck, 0, decodeData, 0, decodeData.length);
-        byte[] hash0 = Sha256Hash.hash(decodeData);
-        byte[] hash1 = Sha256Hash.hash(hash0);
-        if (hash1[0] == decodeCheck[decodeData.length] &&
-                hash1[1] == decodeCheck[decodeData.length + 1] &&
-                hash1[2] == decodeCheck[decodeData.length + 2] &&
-                hash1[3] == decodeCheck[decodeData.length + 3]) {
-            return decodeData;
-        }
-        return null;
-    }*/
-
-    public static boolean addressValid(byte[] address) {
+    private static boolean addressValid(byte[] address) {
         if (ArrayUtils.isEmpty(address)) {
             log.warn("Warning: Address is empty !!");
             return false;
@@ -182,7 +144,6 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         }
         //Other rule;
         return true;
-    }
-
+    }*/
 
 }

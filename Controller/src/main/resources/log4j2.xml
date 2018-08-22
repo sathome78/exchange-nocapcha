@@ -510,6 +510,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="tron" fileName="${sys:catalina.home}/logs/crypto/tron.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/tron_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="DEBUG" additivity="false">
@@ -729,11 +738,12 @@
         </logger>
         <logger name="cache" level="ALL" additivity="false">
             <AppenderRef ref="cache_log"/>
-            <AppenderRef ref="Console"/>
         </logger>
         <logger name="achain" level="ALL" additivity="false">
             <AppenderRef ref="achain"/>
-            <AppenderRef ref="Console"/>
+        </logger>
+        <logger name="tron" level="ALL" additivity="false">
+            <AppenderRef ref="tron"/>>
         </logger>
 
         <Root level="INFO">

@@ -11,26 +11,22 @@ import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Log4j2
+@Log4j2(topic = "tron")
 @Service
 public class TronServiceImpl implements TronService {
 
-    @Autowired
-    private TronNodeService tronNodeService;
-    @Autowired
-    private RefillService refillService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private MessageSource messageSource;
+    private final TronNodeService tronNodeService;
+    private final RefillService refillService;
+    private final CurrencyService currencyService;
+    private final MerchantService merchantService;
+    private final MessageSource messageSource;
 
 
     private final static String CURRENCY_NAME = "TRX";
@@ -39,6 +35,15 @@ public class TronServiceImpl implements TronService {
     private int currencyId;
 
     private Set<String> addressesHEX = Collections.synchronizedSet(new HashSet<>());
+
+    @Autowired
+    public TronServiceImpl(TronNodeService tronNodeService, RefillService refillService, CurrencyService currencyService, MerchantService merchantService, MessageSource messageSource) {
+        this.tronNodeService = tronNodeService;
+        this.refillService = refillService;
+        this.currencyService = currencyService;
+        this.merchantService = merchantService;
+        this.messageSource = messageSource;
+    }
 
     @Override
     public Set<String> getAddressesHEX() {
@@ -70,6 +75,10 @@ public class TronServiceImpl implements TronService {
 
     @Override
     public RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto) {
+        if (isTransactionDuplicate(dto.getHash(), currencyId, merchantId)) {
+            log.error("tron transaction allready received!!! {}", dto);
+            throw new RuntimeException("tron transaction allready received!!!");
+        }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(dto.getAddressBase58())
                 .merchantId(merchantId)
@@ -119,7 +128,7 @@ public class TronServiceImpl implements TronService {
     }
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("Tron withdraw method not implemented!");
     }
 
@@ -131,5 +140,10 @@ public class TronServiceImpl implements TronService {
     @Override
     public int getCurrencyId() {
         return currencyId;
+    }
+
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 }
