@@ -43,7 +43,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     @Override
     public TronNewAddressDto getNewAddress() {
         String url = FULL_NODE_URL.concat(GET_ADDRESS);
-        log.debug("url " + url);
+        log.debug("trx url " + url);
         return TronNewAddressDto.fromGetAddressMethod(restTemplate.postForObject(url, null, String.class));
     }
 
@@ -99,10 +99,10 @@ public class TronNodeServiceImpl implements TronNodeService {
         try {
             responseEntity = restTemplate.exchange(requestEntity, String.class);
         } catch (Exception e) {
-            log.error("request {} {} {}", requestEntity.getUrl(), requestEntity.getMethod(), e);
+            log.error("trx request {} {} {}", requestEntity.getUrl(), requestEntity.getMethod(), e);
             throw new RuntimeException(e);
         }
-        log.debug("response to url {} - {}", requestEntity.getUrl(), responseEntity);
+        log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
         return responseEntity;
     }
 }

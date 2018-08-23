@@ -761,7 +761,8 @@
             <AppenderRef ref="achain"/>
         </logger>
         <logger name="tron" level="ALL" additivity="false">
-            <AppenderRef ref="tron"/>>
+            <AppenderRef ref="tron"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="open_api" level="ALL" additivity="false">
             <AppenderRef ref="open_api_log"/>
