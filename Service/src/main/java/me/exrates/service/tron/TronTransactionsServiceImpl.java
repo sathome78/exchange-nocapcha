@@ -79,7 +79,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     private void transferToMainAccount(RefillRequestAddressDto dto) {
         Long accountAmount = tronNodeService.getAccount(dto.getAddress()).getJSONObject("data").getLong("balance");
-        easyTransferByPrivate(MAIN_ADDRESS_HEX, dto.getPubKey(), accountAmount);
+        easyTransferByPrivate(dto.getPrivKey(), MAIN_ADDRESS_HEX, accountAmount);
     }
 
     @Override
@@ -110,7 +110,6 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     private void easyTransferByPrivate(String pk, String addressTo, long amount) {
         TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, amount);
         JSONObject object = tronNodeService.transferFunds(tronTransferDto);
-        log.debug("inner transfer response {}", object.toString());
         boolean result = object.getJSONObject("result").getBoolean("result");
         if (!result) {
             throw new RuntimeException("erro trnasfer to main account");

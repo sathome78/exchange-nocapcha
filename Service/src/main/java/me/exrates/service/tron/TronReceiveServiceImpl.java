@@ -45,20 +45,23 @@ public class TronReceiveServiceImpl {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkBlocks, 1, 2, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkBlocks, 0, 2, TimeUnit.MINUTES);
     }
 
     private void checkBlocks() {
-        log.debug("start check blocks");
-        long lastScannedBlock = loadLastBlock();
-        long blockchainHeight = getLastBlockNum() - 10;
-        while (lastScannedBlock < blockchainHeight) {
-            JSONObject object = nodeService.getTransactions(lastScannedBlock + 1);
-            log.debug("transactions from block {} :{}",lastScannedBlock, object);
-            List<TronReceivedTransactionDto> transactionDtos = parseResponse(object);
-            checkTransactionsAndProceed(transactionDtos);
-            lastScannedBlock++;
-            saveLastBlock(lastScannedBlock);
+        try {
+            log.debug("tron start check blocks");
+            long lastScannedBlock = loadLastBlock();
+            long blockchainHeight = getLastBlockNum() - 10;
+            log.debug("last scanned block {} height {}", lastScannedBlock, blockchainHeight);
+            while (lastScannedBlock < blockchainHeight) {
+                JSONObject object = nodeService.getTransactions(lastScannedBlock++);
+                List<TronReceivedTransactionDto> transactionDtos = parseResponse(object);
+                checkTransactionsAndProceed(transactionDtos);
+                saveLastBlock(lastScannedBlock);
+            }
+        } catch (Exception e) {
+            /*ignore*/
         }
     }
 
@@ -84,7 +87,6 @@ public class TronReceiveServiceImpl {
         if(rawResponse.isNull("transactions")) {
             return new ArrayList<>();
         }
-        /*JSONObject blockHeader = rawResponse.getJSONObject("block_header");*/
         JSONArray transactions = rawResponse.getJSONArray("transactions");
         return parseTransactions(transactions);
     }
@@ -98,7 +100,7 @@ public class TronReceiveServiceImpl {
         if (dto.getRawAmount() != rawResponse.getLong("amount")) {
             throw new Exception("incorrect amount " + dto.getHash());
         }
-        dto.setAddressBase58("transferToAddress");
+        dto.setAddressBase58(rawResponse.getString("transferToAddress"));
         dto.setConfirmed(rawResponse.getBoolean("confirmed"));
     }
 

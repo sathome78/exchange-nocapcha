@@ -1,5 +1,6 @@
 package me.exrates.service.tron;
 
+import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.TronNewAddressDto;
@@ -52,8 +53,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject transferFunds(TronTransferDto tronTransferDto) {
         String url = FULL_NODE_URL.concat(EASY_TRANSFER);
         RequestEntity<TronTransferDto> requestEntity = new RequestEntity<>(tronTransferDto, HttpMethod.POST, new URI(url));
-        ResponseEntity responseEntity = performRequest(requestEntity);
-        return new JSONObject(responseEntity.getBody());
+        return new JSONObject(performRequest(requestEntity));
     }
 
     @SneakyThrows
@@ -62,8 +62,7 @@ public class TronNodeServiceImpl implements TronNodeService {
         String url = FULL_NODE_URL.concat(GET_BLOCK_TX);
         JSONObject object = new JSONObject() {{put("num", blockNum); }};
         RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
-        ResponseEntity responseEntity = performRequest(requestEntity);
-        return new JSONObject(responseEntity.getBody());
+        return new JSONObject(performRequest(requestEntity));
     }
 
 
@@ -72,8 +71,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject getTransaction(String hash) {
         String url = String.join("", SOLIDITY_NODE_URL, GET_TX, hash);
         RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.GET, new URI(url));
-        ResponseEntity responseEntity = performRequest(requestEntity);
-        return new JSONObject(responseEntity.getBody());
+        return new JSONObject(performRequest(requestEntity));
     }
 
     @SneakyThrows
@@ -81,28 +79,27 @@ public class TronNodeServiceImpl implements TronNodeService {
     public JSONObject getLastBlock() {
         String url = FULL_NODE_URL.concat(GET_LAST_BLOCK);
         RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.POST, new URI(url));
-        ResponseEntity responseEntity = performRequest(requestEntity);
-        return new JSONObject(responseEntity.getBody());
+        return new JSONObject(performRequest(requestEntity));
     }
 
     @SneakyThrows
     @Override
     public JSONObject getAccount(String addressBase58) {
         String url = String.join("", SOLIDITY_NODE_URL, GET_ACCOUNT_INFO, addressBase58);
-        RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.POST, new URI(url));
-        ResponseEntity responseEntity = performRequest(requestEntity);
-        return new JSONObject(responseEntity.getBody());
+        RequestEntity<String> requestEntity = new RequestEntity<>(HttpMethod.GET, new URI(url));
+        return new JSONObject(performRequest(requestEntity));
     }
 
-    private ResponseEntity performRequest(RequestEntity requestEntity) {
+    private String performRequest(RequestEntity requestEntity) {
         ResponseEntity<String> responseEntity;
         try {
             responseEntity = restTemplate.exchange(requestEntity, String.class);
+            log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
+            return new String(responseEntity.getBody().toString().getBytes(),"utf-8");
         } catch (Exception e) {
             log.error("trx request {} {} {}", requestEntity.getUrl(), requestEntity.getMethod(), e);
             throw new RuntimeException(e);
         }
-        log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
-        return responseEntity;
+
     }
 }

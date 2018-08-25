@@ -52,9 +52,9 @@ public class TronServiceImpl implements TronService {
 
     @PostConstruct
     private void init() {
-        addressesHEX.addAll(refillService.findAddressDtos(merchantId, currencyId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
         merchantId = merchantService.findByName(MERCHANT_NAME).getId();
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
+        addressesHEX.addAll(refillService.findAddressDtos(merchantId, currencyId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
     }
 
 

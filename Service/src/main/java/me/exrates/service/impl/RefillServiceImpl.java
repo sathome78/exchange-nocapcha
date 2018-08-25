@@ -1096,6 +1096,6 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
-    return refillRequestDao.findAllAddressesNeededToTransfer(merchantId, currencyId);
+    return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
   }
 }

@@ -1,6 +1,7 @@
 package me.exrates.model.dto;
 
 import lombok.Data;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 @Data
@@ -25,11 +26,12 @@ public class TronReceivedTransactionDto {
     }
 
     public static TronReceivedTransactionDto fromJson(JSONObject transaction) throws Exception {
-        String type = transaction.getString("type");
+        JSONObject contractData = transaction.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0);
+        String type = contractData.getString("type");
         if (!type.equals(txType)) {
-            throw new Exception("unsupported tx type");
+            throw new Exception("unsupported tx type " + transaction.getString("txID"));
         }
-        JSONObject parameters = transaction.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0).getJSONObject("parameter").getJSONObject("value");
+        JSONObject parameters = contractData.getJSONObject("parameter").getJSONObject("value");
         String amount = parseAmount(parameters.getLong("amount"));
         TronReceivedTransactionDto dto = new TronReceivedTransactionDto(amount, transaction.getString("txID"), parameters.getString("to_address"));
         dto.setRawAmount(parameters.getLong("amount"));
