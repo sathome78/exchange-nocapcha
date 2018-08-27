@@ -1179,7 +1179,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new EthTokenServiceImpl(
                 tokensList,
                 "CMIT",
-                "CMIT", true, ExConvert.Unit.AIWEI);
+                "CMIT", false, ExConvert.Unit.AIWEI);
     }
 
     //    Qtum tokens:
