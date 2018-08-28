@@ -1172,6 +1172,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "KWATT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "hiveServiceImpl")
+    public EthTokenService hiveService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x895f5d0b8456b980786656a33f21642807d1471c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HIVE",
+                "HIVE", false, ExConvert.Unit.AIWEI);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
