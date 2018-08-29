@@ -48,7 +48,6 @@ public interface UserDao {
 
   boolean removeUserAuthorities(Integer userId);
 
-  boolean addUserRoles(String email, String role);
 
   User findByEmail(String email);
 
