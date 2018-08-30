@@ -258,7 +258,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             currentHash[0] = "";
 
             observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
+            log.info("start subscribe method");
             subscription = observable.subscribe(ethBlock -> {
+                log.info("new block {}", ethBlock.getBlockNumber());
                 if (merchantName.equals("Ethereum")) {
                     if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
                         counter[0]++;
@@ -360,6 +362,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentHash[0] = ethBlock.getBlockHash();
 
                 });
+
+            log.info("dubscr {}", subscription.isUnsubscribed());
 
         } catch (Exception e) {
             subscribeCreated = false;
