@@ -34,6 +34,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -106,17 +107,29 @@ import java.util.stream.Collectors;
 public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     private
-    @Value("${db.user}")
-    String dbUser;
+    @Value("${db.master.user}")
+    String dbMasterUser;
     private
-    @Value("${db.password}")
-    String dbPassword;
+    @Value("${db.master.password}")
+    String dbMasterPassword;
     private
-    @Value("${db.url}")
-    String dbUrl;
+    @Value("${db.master.url}")
+    String dbMasterUrl;
     private
-    @Value("${db.classname}")
-    String dbClassname;
+    @Value("${db.master.classname}")
+    String dbMasterClassname;
+    private
+    @Value("${db.slave.user}")
+    String dbSlaveUser;
+    private
+    @Value("${db.slave.password}")
+    String dbSlavePassword;
+    private
+    @Value("${db.slave.url}")
+    String dbSlaveUrl;
+    private
+    @Value("${db.slave.classname}")
+    String dbSlaveClassname;
     private
     @Value("${upload.userFilesDir}")
     String userFilesDir;
@@ -213,34 +226,61 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     /*@Bean(name = "dataSource")*/
     public DataSource dataSource() {
         final BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(dbClassname);
-        dataSource.setUrl(dbUrl);
-        dataSource.setUsername(dbUser);
-        dataSource.setPassword(dbPassword);
+        dataSource.setDriverClassName(dbMasterClassname);
+        dataSource.setUrl(dbMasterUrl);
+        dataSource.setUsername(dbMasterUser);
+        dataSource.setPassword(dbMasterPassword);
         return dataSource;
     }
 
-    @Bean(name = "hikariDataSource")
-    public DataSource hikariDataSource() {
+    @Bean(name = "masterHikariDataSource")
+    public DataSource masterHikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(dbClassname);
-        hikariConfig.setJdbcUrl(dbUrl);
-        hikariConfig.setUsername(dbUser);
-        hikariConfig.setPassword(dbPassword);
-        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setDriverClassName(dbMasterClassname);
+        hikariConfig.setJdbcUrl(dbMasterUrl);
+        hikariConfig.setUsername(dbMasterUser);
+        hikariConfig.setPassword(dbMasterPassword);
+        hikariConfig.setMaximumPoolSize(40);
+        return new HikariDataSource(hikariConfig);
+    }
+
+    @Bean(name = "slaveHikariDataSource")
+    public DataSource slaveHikariDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbSlaveClassname);
+        hikariConfig.setJdbcUrl(dbSlaveUrl);
+        hikariConfig.setUsername(dbSlaveUser);
+        hikariConfig.setPassword(dbSlavePassword);
+        hikariConfig.setMaximumPoolSize(40);
         return new HikariDataSource(hikariConfig);
     }
 
     @DependsOn("hikariDataSource")
-    @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+    @Bean(name = "masterTemplate")
+    public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @DependsOn("slaveHikariDataSource")
+    @Bean(name = "slaveTemplate")
+    public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
     @DependsOn("hikariDataSource")
     @Bean
-    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+    public JdbcTemplate jdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+    }
+
+    @Bean(name = "masterTxManager")
+    public PlatformTransactionManager masterPlatformTransactionManager() {
+        return new DataSourceTransactionManager(masterHikariDataSource());
+    }
+
+    @Bean(name = "slaveTxManager")
+    public PlatformTransactionManager slavePlatformTransactionManager() {
+        return new DataSourceTransactionManager(masterHikariDataSource());
     }
 
     @Bean
@@ -318,11 +358,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(120_000L);
         super.configureAsyncSupport(configurer);
-    }
-
-    @Bean
-    public PlatformTransactionManager platformTransactionManager() {
-        return new DataSourceTransactionManager(hikariDataSource());
     }
 
     @Bean
