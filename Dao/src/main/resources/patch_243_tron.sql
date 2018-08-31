@@ -8,6 +8,8 @@ VALUES ((SELECT id from MERCHANT WHERE name='TRX'),
         (SELECT id from CURRENCY WHERE name='TRX'),
         0.000001, 1);
 
+INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='TRX'));
+
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='TRX')
   , '/client/img/merchants/TRX.png', 'TRX', (SELECT id from CURRENCY WHERE name='TRX'));
 
@@ -71,5 +73,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('TRX/USD', 'TRX/BTC', 'TRX/ETH'));
 
   INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'TRX'), 'LastScannedBlock', '1683140');
+  ((SELECT id FROM MERCHANT WHERE name = 'TRX'), 'LastScannedBlock', '1935069');
 
