@@ -14,6 +14,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,6 +44,7 @@ public class WalletDaoImpl implements WalletDao {
   @Autowired
   private CurrencyDao currencyDao;
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
   protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {

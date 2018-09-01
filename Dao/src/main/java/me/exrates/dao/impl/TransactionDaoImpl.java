@@ -17,6 +17,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -268,6 +269,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   @Autowired
   MessageSource messageSource;
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
   @Override

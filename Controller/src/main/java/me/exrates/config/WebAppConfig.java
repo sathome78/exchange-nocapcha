@@ -240,7 +240,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setJdbcUrl(dbMasterUrl);
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
-        hikariConfig.setMaximumPoolSize(40);
+        hikariConfig.setMaximumPoolSize(50);
         return new HikariDataSource(hikariConfig);
     }
 
@@ -251,11 +251,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setJdbcUrl(dbSlaveUrl);
         hikariConfig.setUsername(dbSlaveUser);
         hikariConfig.setPassword(dbSlavePassword);
-        hikariConfig.setMaximumPoolSize(40);
+        hikariConfig.setMaximumPoolSize(50);
         return new HikariDataSource(hikariConfig);
     }
 
-    @DependsOn("hikariDataSource")
+    @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
     public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
@@ -267,12 +267,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
-    @DependsOn("hikariDataSource")
+    @Primary
+    @DependsOn("masterHikariDataSource")
     @Bean
     public JdbcTemplate jdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 
+    @Primary
     @Bean(name = "masterTxManager")
     public PlatformTransactionManager masterPlatformTransactionManager() {
         return new DataSourceTransactionManager(masterHikariDataSource());
@@ -280,7 +282,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
 
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
-        return new DataSourceTransactionManager(masterHikariDataSource());
+        return new DataSourceTransactionManager(slaveHikariDataSource());
     }
 
     @Bean

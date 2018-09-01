@@ -6,6 +6,7 @@ import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -29,7 +30,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Autowired
-    public ReferralUserGraphDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralUserGraphDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
