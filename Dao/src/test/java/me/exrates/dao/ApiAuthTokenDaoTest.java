@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +38,7 @@ public class ApiAuthTokenDaoTest {
     }
 
     @Test
+
     public void createToken_successfull() {
         ApiAuthToken apiAuthToken = ApiAuthToken.builder().
                 id(1L).
@@ -49,11 +49,13 @@ public class ApiAuthTokenDaoTest {
         long token = apiAuthTokenDao.createToken(apiAuthToken);
 
         Map<String, Object> map = new HashMap<>();
-        map.put("id", 1);
+        map.put("id", 0);
         List<ApiAuthToken> query = namedParameterJdbcTemplate.query(SELECT_TOKEN_BY_ID, map, new ApiAuthTokenRowMapper());
 
+        assertEquals(0, token);
         assertEquals(1, query.size());
-        assertEquals(1, token);
+        assertEquals("user", query.get(0).getUsername());
+        assertEquals("value", query.get(0).getValue());
     }
 
     @Test
