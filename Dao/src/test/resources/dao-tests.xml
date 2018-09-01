@@ -13,15 +13,11 @@
         <property name="jdbcUrl" value="jdbc:hsqldb:mem:testdb"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
-        <property name="initializationFailFast" value="false"/>
     </bean>
 
-    <!--<jdbc:initialize-database data-source="dataSource">-->
-    <!--<jdbc:script location="classpath:unit_schema_SPSCDC4.sql"/>-->
-    <!--<jdbc:script location="classpath:unit_data_SPSCDC4.sql"/>-->
-    <!--<jdbc:script location="classpath:metadata_export.sql"/>-->
-    <!--<jdbc:script location="classpath:metadata_data.sql"/>-->
-    <!--</jdbc:initialize-database>-->
+    <jdbc:initialize-database data-source="hikariDataSource">
+        <jdbc:script location="classpath:exrates_API_AUTH_TOKEN.sql"/>
+    </jdbc:initialize-database>
 
     <bean id="namedParameterJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
         <constructor-arg ref="hikariDataSource"/>
