@@ -1818,7 +1818,6 @@ public class OrderServiceImpl implements OrderService {
   //wolper 23.04.18
   //Returns the list of the latest exchange rates for each currency to USD
   @Override
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
     return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
   }
