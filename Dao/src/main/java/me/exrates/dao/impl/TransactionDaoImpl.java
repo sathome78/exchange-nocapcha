@@ -559,7 +559,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   public Integer getStatementSize(Integer walletId) {
     String sql = "SELECT COUNT(*) FROM TRANSACTION WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id";
     Map<String, Integer> params = Collections.singletonMap("wallet_id", walletId);
-    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return slaveJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
 

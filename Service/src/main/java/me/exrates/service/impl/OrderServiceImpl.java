@@ -1259,7 +1259,7 @@ public class OrderServiceImpl implements OrderService {
                                                                  String email,
                                                                  BackDealInterval backDealInterval,
                                                                  Integer limit, CurrencyPair currencyPair, Locale locale) {
-    Boolean evictEhCache = cacheData.getForceUpdate() && false;
+    /*Boolean evictEhCache = cacheData.getForceUpdate() && false;
     List<OrderAcceptedHistoryDto> result = serviceCacheableProxy.getOrderAcceptedForPeriod(
         email,
         backDealInterval,
@@ -1279,7 +1279,15 @@ public class OrderServiceImpl implements OrderService {
         e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
         e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
       });
-    }
+    }*/
+    List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
+    result = result.stream()
+            .map(OrderAcceptedHistoryDto::new)
+            .collect(toList());
+    result.forEach(e -> {
+      e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
+      e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
+    });
     return result;
   }
 
