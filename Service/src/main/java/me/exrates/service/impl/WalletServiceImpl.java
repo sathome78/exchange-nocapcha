@@ -422,7 +422,7 @@ public class WalletServiceImpl implements WalletService {
     return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
     Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
@@ -439,7 +439,7 @@ public class WalletServiceImpl implements WalletService {
 
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
@@ -458,7 +458,6 @@ public class WalletServiceImpl implements WalletService {
   }
 
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<ExternalWalletsDto> getExternalWallets() {
     List<ExternalWalletsDto> externalWalletsDtos = walletDao.getExternalWallets();
@@ -497,7 +496,7 @@ public class WalletServiceImpl implements WalletService {
      walletDao.updateExternalWallets(externalWalletsDto);
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
     List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();

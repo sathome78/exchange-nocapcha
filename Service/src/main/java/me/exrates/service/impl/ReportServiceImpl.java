@@ -338,7 +338,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
@@ -350,7 +349,6 @@ public class ReportServiceImpl implements ReportService {
     return report;
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report =  walletService.getWalletBalancesSummaryByGroups();
@@ -470,7 +468,7 @@ public class ReportServiceImpl implements ReportService {
       });
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
     return walletService.getBalancesWithExternalWallets();
