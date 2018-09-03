@@ -69,6 +69,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
+  @Autowired
+  @Qualifier(value = "slaveTemplate")
+  private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
   private Optional<Integer> blockById(int id) {
     String sql = "SELECT COUNT(*) " +
         "FROM WITHDRAW_REQUEST " +

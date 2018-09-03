@@ -29,10 +29,14 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
     @Autowired
-    public ReferralUserGraphDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralUserGraphDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate, @Qualifier(value = "slaveTemplate")NamedParameterJdbcTemplate slaveJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.slaveJdbcTemplate = slaveJdbcTemplate;
     }
+
 
     @Override
     public void create(final int child, final int parent) {
@@ -76,7 +80,6 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
             infoDto.setEmail(rs.getString("email"));
             infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
             infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
-            log.error("infoDto {}", infoDto);
             return infoDto;
         };
     }
@@ -100,12 +103,11 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         namedParameters.put("offset", offset);
         namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
         sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
-        log.error(" sql {}", sql);
         if (offset >= 0 && limit > 0) {
             sql = sql.concat(" LIMIT :limit OFFSET :offset ");
         }
         try {
-            return jdbcTemplate.query(sql, namedParameters, getReferralInfoDtoRwoMapper());
+            return slaveJdbcTemplate.query(sql, namedParameters, getReferralInfoDtoRwoMapper());
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -126,7 +128,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
         sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
         try {
-            return jdbcTemplate.queryForObject(sql, namedParameters, getReferralInfoDtoRwoMapper());
+            return slaveJdbcTemplate.queryForObject(sql, namedParameters, getReferralInfoDtoRwoMapper());
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -147,9 +149,8 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
         sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
         sql = sql.concat(" GROUP BY CU.id ");
-        log.error("profit sql {}", sql);
         try {
-             return jdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralProfitDto>() {
+             return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralProfitDto>() {
                 @Override
                 public ReferralProfitDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ReferralProfitDto profitDto = new ReferralProfitDto();
@@ -170,7 +171,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("parent", parentId);
         try {
-            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException e) {
             return 0;
         }

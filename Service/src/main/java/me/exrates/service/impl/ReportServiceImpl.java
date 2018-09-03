@@ -95,7 +95,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional
   public List<InvoiceReportDto> getInvoiceReport(
       String requesterUserEmail,
       String startDate,
@@ -138,7 +137,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<SummaryInOutReportDto> getUsersSummaryInOutList(
       String requesterUserEmail,
       String startDate,
@@ -162,7 +160,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Map<String, UserSummaryTotalInOutDto> getUsersSummaryInOutMap(List<SummaryInOutReportDto> resultList) {
     Map<String, UserSummaryTotalInOutDto> resultMap = new HashMap<String, UserSummaryTotalInOutDto>() {
       @Override
@@ -185,7 +182,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       String requesterUserEmail,
       String startDate,
@@ -199,7 +195,7 @@ public class ReportServiceImpl implements ReportService {
 
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public List<UserSummaryOrdersDto> getUserSummaryOrdersList(
       String requesterUserEmail,
       String startDate,
@@ -212,7 +208,6 @@ public class ReportServiceImpl implements ReportService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
       String requesterUserEmail,
       String startDate,
@@ -343,6 +338,7 @@ public class ReportServiceImpl implements ReportService {
   }
 
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
@@ -354,6 +350,7 @@ public class ReportServiceImpl implements ReportService {
     return report;
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report =  walletService.getWalletBalancesSummaryByGroups();
@@ -473,6 +470,7 @@ public class ReportServiceImpl implements ReportService {
       });
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets(){
     return walletService.getBalancesWithExternalWallets();

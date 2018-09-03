@@ -119,6 +119,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+  @Autowired
+  @Qualifier(value = "slaveTemplate")
+  private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
 
   @Override
   public Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
@@ -968,7 +972,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       }
       put("currency_list", currencyList);
     }};
-    return namedParameterJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
+    return slaveJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
       @Override
       public RefillRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
         RefillRequestFlatForReportDto refillRequestFlatForReportDto = new RefillRequestFlatForReportDto();

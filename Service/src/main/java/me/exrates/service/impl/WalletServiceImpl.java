@@ -71,7 +71,7 @@ public class WalletServiceImpl implements WalletService {
 //				.setScale(currencyService.resolvePrecision(wallet.getName()), ROUND_CEILING));
   }
 
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<Wallet> getAllWallets(int userId) {
     final List<Wallet> wallets = walletDao.findAllByUser(userId);
@@ -79,6 +79,7 @@ public class WalletServiceImpl implements WalletService {
     return wallets;
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
     return walletDao.getAllUserWalletsForAdminDetailed(userId,
@@ -91,7 +92,7 @@ public class WalletServiceImpl implements WalletService {
 
 
 
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                  String email, Locale locale) {
@@ -105,7 +106,7 @@ public class WalletServiceImpl implements WalletService {
     return result;
   }
 
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
     List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
@@ -228,7 +229,7 @@ public class WalletServiceImpl implements WalletService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public MyWalletsStatisticsApiDto getUserWalletShortStatistics(int walletId) {
     return walletDao.getWalletShortStatistics(walletId);
   }
@@ -239,19 +240,20 @@ public class WalletServiceImpl implements WalletService {
     * */
 
 
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
     List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
     return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
   }
 
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email) {
     return walletDao.getAllWalletsForUserReduced(email);
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<WalletBalanceDto> getBalancesForUser() {
     String userEmail = userService.getUserEmailFromSecurityContext();
@@ -385,7 +387,7 @@ public class WalletServiceImpl implements WalletService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
     return walletDao.getUsersWalletsSummaryNew(requesterUserId);
   }
@@ -420,12 +422,11 @@ public class WalletServiceImpl implements WalletService {
     return walletDao.isUserAllowedToManuallyChangeWalletBalance(userService.getIdByEmail(adminEmail), walletHolderUserId);
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
     Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
             .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
-
-
     return walletDao.getWalletBalancesSummaryByGroups().stream()
             .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
 
@@ -438,6 +439,7 @@ public class WalletServiceImpl implements WalletService {
 
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
     return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
@@ -455,9 +457,10 @@ public class WalletServiceImpl implements WalletService {
     return walletDao.getWalletIdAndBlock(userId, currencyId);
   }
 
+
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<ExternalWalletsDto> getExternalWallets() {
-
     List<ExternalWalletsDto> externalWalletsDtos = walletDao.getExternalWallets();
     Map<Integer, String> mapCryptoCurrencyBalances = cryptoCurrencyBalances.getBalances();
 
@@ -494,6 +497,7 @@ public class WalletServiceImpl implements WalletService {
      walletDao.updateExternalWallets(externalWalletsDto);
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
   @Override
   public List<ExternalWalletsDto> getBalancesWithExternalWallets() {
     List<ExternalWalletsDto> externalWalletsDtos = walletDao.getBalancesWithExternalWallets();

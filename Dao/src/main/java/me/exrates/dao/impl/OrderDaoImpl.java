@@ -64,6 +64,9 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @Autowired
+    @Qualifier(value = "slaveTemplate")
+    private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     @Autowired
     CommissionDao commissionDao;
@@ -153,7 +156,7 @@ public class OrderDaoImpl implements OrderDao {
         if (filterRole != null) {
             namedParameters.put("user_role_id", filterRole.getRole());
         }
-        return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
             order.setUserId(rs.getInt("user_id"));
@@ -177,7 +180,7 @@ public class OrderDaoImpl implements OrderDao {
         if (filterRole != null) {
             namedParameters.put("user_role_id", filterRole.getRole());
         }
-        return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             OrderListDto order = new OrderListDto();
             order.setId(rs.getInt("id"));
             order.setUserId(rs.getInt("user_id"));
@@ -263,7 +266,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
-        List<Map<String, Object>> rows = namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+        List<Map<String, Object>> rows = slaveJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             Map<String, Object> map = new HashMap<>();
             map.put("dateAcception", rs.getTimestamp("date_acception"));
             map.put("exrate", rs.getBigDecimal("exrate"));
@@ -312,7 +315,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("step_value", resolutionValue);
         params.put("step_type", resolutionType);
         params.put("currency_pair_id", currencyPair.getId());
-        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
+        return slaveJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -336,7 +339,7 @@ public class OrderDaoImpl implements OrderDao {
     
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
-        List<CandleChartItemDto> result = namedParameterJdbcTemplate.execute(s, ps -> {
+        List<CandleChartItemDto> result = slaveJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -381,7 +384,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ExOrderStatisticsDto>() {
+            return slaveJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ExOrderStatisticsDto>() {
                 @Override
                 public ExOrderStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ExOrderStatisticsDto exOrderStatisticsDto = new ExOrderStatisticsDto(currencyPair);
@@ -434,7 +437,7 @@ public class OrderDaoImpl implements OrderDao {
                     " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
-            return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<ExOrderStatisticsShortByPairsDto>() {
+            return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<ExOrderStatisticsShortByPairsDto>() {
                 @Override
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
@@ -481,7 +484,7 @@ public class OrderDaoImpl implements OrderDao {
             Map<String, Object> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
             namedParameters.put("pair_id", pairsIds);
-            return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
                 ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                 exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
@@ -502,7 +505,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        List<CoinmarketApiDto> result = namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
+        List<CoinmarketApiDto> result = slaveJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
             @Override
             public List<CoinmarketApiDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
                 ResultSet rs = ps.executeQuery();
@@ -578,7 +581,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, String> mapParameters = new HashMap<>();
         mapParameters.put("order_id", String.valueOf(orderId));
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, mapParameters, new RowMapper<OrderInfoDto>() {
+            return slaveJdbcTemplate.queryForObject(sql, mapParameters, new RowMapper<OrderInfoDto>() {
                 @Override
                 public OrderInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     OrderInfoDto orderInfoDto = new OrderInfoDto();
@@ -610,7 +613,7 @@ public class OrderDaoImpl implements OrderDao {
     
     private List<Integer> getOrderChildren(int id) {
         String sql = "SELECT id FROM EXORDERS WHERE order_source_id = :id";
-        return namedParameterJdbcTemplate.queryForList(sql, Collections.singletonMap("id", id), Integer.class);
+        return slaveJdbcTemplate.queryForList(sql, Collections.singletonMap("id", id), Integer.class);
     }
 
     @Override
@@ -632,7 +635,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("exrate", String.valueOf(orderRate));
         namedParameters.put("amount_base", String.valueOf(orderVolume));
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Integer>() {
+            return slaveJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Integer>() {
                 @Override
                 public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
                     return rs.getInt(1);
@@ -657,7 +660,7 @@ public class OrderDaoImpl implements OrderDao {
             put("status", 3);
             put("currency_pair_id", currencyPair.getId());
         }};
-        return namedParameterJdbcTemplate.query(sql, params, new RowMapper<OrderAcceptedHistoryDto>() {
+        return slaveJdbcTemplate.query(sql, params, new RowMapper<OrderAcceptedHistoryDto>() {
             @Override
             public OrderAcceptedHistoryDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
@@ -734,7 +737,7 @@ public class OrderDaoImpl implements OrderDao {
                         "  ) COMMISSION";
         try {
             Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
-            return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
+            return slaveJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
                     CommissionsDto commissionsDto = new CommissionsDto();
                     commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
                     commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
@@ -803,7 +806,7 @@ public class OrderDaoImpl implements OrderDao {
         } else {
             namedParameters.put("operation_type_id", operationTypesIds);
         }
-        return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+        return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OrderWideListDto orderWideListDto = new OrderWideListDto();
@@ -961,7 +964,7 @@ public class OrderDaoImpl implements OrderDao {
 
         PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
 
-        List<OrderBasicInfoDto> infoDtoList = namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
+        List<OrderBasicInfoDto> infoDtoList = slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
             OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
             OrderBaseType baseType = OrderBaseType.convert(rs.getString("base_type"));
             infoDto.setId(rs.getInt("id"));
@@ -1073,7 +1076,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("roles", roles);
         namedParameters.put("requester_user_id", requesterUserId);
 
-        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
             @Override
             public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
@@ -1114,7 +1117,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", userRoleIdList);
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             CurrencyPairTurnoverReportDto dto = new CurrencyPairTurnoverReportDto();
             dto.setOrderNum(row + 1);
             dto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -1159,7 +1162,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", userRoleIdList);
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OrdersCommissionSummaryDto dto = new OrdersCommissionSummaryDto();
             dto.setOrderNum(row + 1);
             dto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -1220,7 +1223,7 @@ public class OrderDaoImpl implements OrderDao {
 
             int btc;
         try {
-            btc = namedParameterJdbcTemplate.queryForObject(sqlBtc, new HashMap<>(), Integer.class);
+            btc = slaveJdbcTemplate.queryForObject(sqlBtc, new HashMap<>(), Integer.class);
         } catch (EmptyResultDataAccessException e) {
             btc = 0;
         }
@@ -1238,7 +1241,7 @@ public class OrderDaoImpl implements OrderDao {
 
         int eth;
         try {
-            eth = namedParameterJdbcTemplate.queryForObject(sqlEtc, new HashMap<>(), Integer.class);
+            eth = slaveJdbcTemplate.queryForObject(sqlEtc, new HashMap<>(), Integer.class);
         } catch (EmptyResultDataAccessException e) {
             eth = 0;
         }
@@ -1266,7 +1269,7 @@ public class OrderDaoImpl implements OrderDao {
                 "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
                 "join CURRENCY CR on (CWE.currency_id = CR.id);";
 
-        return namedParameterJdbcTemplate.query(sql, params,  (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params,  (rs, row) -> {
             RatesUSDForReportDto dto = new RatesUSDForReportDto();
             dto.setId(rs.getInt("id"));
             dto.setCurrencyName(rs.getString("name"));
@@ -1286,7 +1289,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("status_id", OrderStatus.OPENED.getStatus());
         params.put("operation_type_id", orderType.getOperationType().type);
 
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OrderBookItem item = new OrderBookItem();
             item.setOrderType(orderType);
             item.setAmount(rs.getBigDecimal("amount_base"));
@@ -1302,7 +1305,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OrderBookItem item = new OrderBookItem();
             item.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
             item.setAmount(rs.getBigDecimal("amount_base"));
@@ -1322,7 +1325,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
         params.put("operation_type_id", orderType.getOperationType().type);
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OpenOrderDto item = new OpenOrderDto();
             item.setId(rs.getInt("id"));
             item.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))).name());
@@ -1342,7 +1345,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> params = new HashMap<>();
         params.put("status_id", OrderStatus.CLOSED.getStatus());
         params.put("currency_pair_id", currencyPairId);
-        return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OrderHistoryItem item = new OrderHistoryItem();
             item.setOrderId(rs.getInt("id"));
             item.setDateAcceptance(rs.getTimestamp("date_acception").toLocalDateTime());
@@ -1369,7 +1372,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return namedParameterJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
     @Override
@@ -1391,7 +1394,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("limit", limit);
         params.put("offset", offset);
 
-        return namedParameterJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
 
