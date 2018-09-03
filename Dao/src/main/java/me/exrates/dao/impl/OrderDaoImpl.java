@@ -505,7 +505,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        List<CoinmarketApiDto> result = slaveJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
+        List<CoinmarketApiDto> result = namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
             @Override
             public List<CoinmarketApiDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
                 ResultSet rs = ps.executeQuery();
