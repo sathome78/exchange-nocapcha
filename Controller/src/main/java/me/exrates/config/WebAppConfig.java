@@ -252,6 +252,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         hikariConfig.setUsername(dbSlaveUser);
         hikariConfig.setPassword(dbSlavePassword);
         hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
     }
 

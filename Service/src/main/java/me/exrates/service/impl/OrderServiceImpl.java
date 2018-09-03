@@ -187,20 +187,20 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
     return orderDao.getDataForCandleChart(currencyPair, interval);
   }
 
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<CandleChartItemDto> getCachedDataForCandle(CurrencyPair currencyPair, ChartTimeFrame timeFrame) {
     return chartsCacheManager.getData(currencyPair.getId(), timeFrame);
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<CandleChartItemDto> getLastDataForCandleChart(Integer currencyPairId,
                                                             LocalDateTime startTime, ChartResolution resolution) {
@@ -210,7 +210,7 @@ public class OrderServiceImpl implements OrderService {
             resolution.getTimeValue(), resolution.getTimeUnit().name());
   }
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(int pairId, ChartTimeFrame timeFrame) {
     LocalDateTime endTime = LocalDateTime.now();
@@ -226,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
   }
 
 
-  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+
   @Override
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime) {
     LocalDateTime endTime = startTime.plus((long) interval.intervalValue, interval.intervalType.getCorrespondingTimeUnit());

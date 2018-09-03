@@ -315,7 +315,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("step_value", resolutionValue);
         params.put("step_type", resolutionType);
         params.put("currency_pair_id", currencyPair.getId());
-        return slaveJdbcTemplate.execute(sql, params, ps -> {
+        return namedParameterJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -339,7 +339,7 @@ public class OrderDaoImpl implements OrderDao {
     
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
-        List<CandleChartItemDto> result = slaveJdbcTemplate.execute(s, ps -> {
+        List<CandleChartItemDto> result = namedParameterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
