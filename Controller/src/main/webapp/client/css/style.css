@@ -2474,6 +2474,9 @@ input.copyable:hover{
 }
 
 .partners-img{
-    margin-right: 35px;
+    margin-right: 115px;
     margin-top: 15px;
+    border:0;
+    width: 280px;
+    height: 90px
 }

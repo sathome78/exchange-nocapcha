@@ -82,18 +82,12 @@
             </div>
         </div>
 
-        <div class="col-md-8 col-md-offset-2 content sponsors">
-
-            <img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"
-                 style="width: 350px; height: 120px; margin-right: 35px"/>
-            <img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"
-                 style="width: 350px; height: 120px; margin-right: 35px"/>
-            <img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"
-                 style="width: 350px; height: 120px; margin-right: 35px"/>
-            <img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"
-                 style="width: 350px; height: 120px; margin-right: 35px"/>
-            <img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"
-                 style="width: 350px; height: 120px; margin-right: 35px"/>
+        <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
+            <img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/>
+            <img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/>
+            <img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/>
+            <img class="img-thumbnail partners-img" src="/client/img/partners/ICOUnicorn.png"/>
+            <img class="img-thumbnail partners-img" src="/client/img/partners/jedis.png"/>
         </div>
         <div class="col-md-8 col-md-offset-2 content sponsors">
 
