@@ -2472,3 +2472,8 @@ input.copyable:hover{
     width: 100%;
     word-wrap: break-word;
 }
+
+.partners-img{
+    margin-right: 35px;
+    margin-top: 15px;
+}
