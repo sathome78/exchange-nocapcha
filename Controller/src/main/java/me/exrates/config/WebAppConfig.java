@@ -1232,6 +1232,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "HDR", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "racServiceImpl")
+    public EthTokenService racService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x342ba159f988f24f0b033f3cc5232377ee500543");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RAC",
+                "RAC", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
