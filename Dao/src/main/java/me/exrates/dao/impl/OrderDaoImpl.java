@@ -409,7 +409,7 @@ public class OrderDaoImpl implements OrderDao {
         long before = System.currentTimeMillis();
         try {
             String sql = "SELECT  " +
-                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.type AS type,      " +
+                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type,      " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
@@ -442,6 +442,7 @@ public class OrderDaoImpl implements OrderDao {
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                    exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                     exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                     exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
                     exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));

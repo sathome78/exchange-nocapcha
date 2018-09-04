@@ -28,6 +28,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.*;
 import me.exrates.service.*;
 import me.exrates.service.cache.ChartsCacheManager;
+import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.cache.OrdersStatisticByPairsCache;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
@@ -142,6 +143,8 @@ public class OrderServiceImpl implements OrderService {
   private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
   @Autowired
   private ChartsCacheManager chartsCacheManager;
+  @Autowired
+  private ExchangeRatesHolder exchangeRatesHolder;
 
   @PostConstruct
   public void init() {
@@ -274,7 +277,7 @@ public class OrderServiceImpl implements OrderService {
    @Transactional(readOnly = true)
    @Override
    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-      List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(ordersStatisticByPairsCache.getCachedList());
+      List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
       switch (refreshObjectsEnum) {
           case ICO_CURRENCIES_STATISTIC: {
               dto = dto.stream().filter(p->p.getType() == CurrencyPairType.ICO).collect(toList());
@@ -292,7 +295,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
-      List<ExOrderStatisticsShortByPairsDto> dto = orderDao.getOrderStatisticForSomePairs(pairsIds);
+      List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
       Locale locale = Locale.ENGLISH;
       dto.forEach(e -> {
         BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
@@ -307,7 +310,7 @@ public class OrderServiceImpl implements OrderService {
   @Transactional
   @Override
   public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
-    List<ExOrderStatisticsShortByPairsDto> result = ordersStatisticByPairsCache.getCachedList();
+    List<ExOrderStatisticsShortByPairsDto> result = exchangeRatesHolder.getAllRates();
     result.forEach(e -> {
           BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
           BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -1763,7 +1766,7 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public String getAllCurrenciesStatForRefreshForAllPairs() {
-    OrdersListWrapper wrapper = new OrdersListWrapper(this.processStatistic(ordersStatisticByPairsCache.getAllPairsCahedList()),
+    OrdersListWrapper wrapper = new OrdersListWrapper(this.processStatistic(exchangeRatesHolder.getAllRates()),
             RefreshObjectsEnum.CURRENCIES_STATISTIC.name());
     try {
       return new JSONArray(){{put(objectMapper.writeValueAsString(wrapper));}}.toString();
