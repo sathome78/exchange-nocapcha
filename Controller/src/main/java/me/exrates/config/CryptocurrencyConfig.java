@@ -211,6 +211,12 @@ public class CryptocurrencyConfig {
                 "RIZ", "RIZ", 4, 20, false);
     }
 
+    @Bean(name = "clxServiceImpl")
+    public BitcoinService clxService() {
+        return new BitcoinServiceImpl("merchants/clx_wallet.properties",
+                "CLX", "CLX", 4, 20, false);
+    }
+
     // LISK-like cryptos
 
 
