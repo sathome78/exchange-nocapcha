@@ -464,7 +464,7 @@ public class OrderDaoImpl implements OrderDao {
         long before = System.currentTimeMillis();
         try {
             String sql = "SELECT " +
-                    "   CP.name AS currency_pair_name, CP.type AS type,      " +
+                    "   CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.type AS type,      " +
                     "   (SELECT LASTORDER.exrate " +
                     "       FROM EXORDERS LASTORDER  " +
                     "       WHERE  " +
@@ -488,6 +488,7 @@ public class OrderDaoImpl implements OrderDao {
             return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
                 ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                 exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
                 exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
                 exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
