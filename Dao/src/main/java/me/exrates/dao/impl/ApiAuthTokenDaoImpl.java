@@ -26,7 +26,7 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
     private  NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Autowired
-    public ApiAuthTokenDaoImpl(@Qualifier(value = "masterTemplate")NamedParameterJdbcTemplate jdbcTemplate) {
+    public ApiAuthTokenDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
         this.namedParameterJdbcTemplate = jdbcTemplate;
     }
 

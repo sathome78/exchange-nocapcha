@@ -256,6 +256,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new HikariDataSource(hikariConfig);
     }
 
+    @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
     public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
