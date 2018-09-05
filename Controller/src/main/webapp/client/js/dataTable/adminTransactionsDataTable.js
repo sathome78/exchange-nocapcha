@@ -152,7 +152,8 @@ $(function () {
 
     $('#download_trans_history').click(function () {
         var formParams = $('#transaction-search-form').serialize();
-        var params = "id="+$("#user-id").val() + '&' + formParams;
+        var dateParams = $('#transaction-search-datetime-form').serialize();
+        var params = "id="+$("#user-id").val() + '&' + dateParams +'&' + formParams;
         uploadUserTransactionsReport(params);
     });
 
