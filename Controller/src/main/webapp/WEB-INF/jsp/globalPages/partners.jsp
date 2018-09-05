@@ -83,6 +83,7 @@
         </div>
 
         <div class="col-md-8 col-md-offset-2 content sponsors" style="background-color: white">
+            <h1 style="text-align: center"><loc:message code="our.partners"/></h1>
             <img class="img-thumbnail partners-img" src="/client/img/partners/coingecko.png"/>
             <img class="img-thumbnail partners-img" src="/client/img/partners/coinmarketcap.png"/>
             <img class="img-thumbnail partners-img" src="/client/img/partners/icomarks.png"/>
