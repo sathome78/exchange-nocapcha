@@ -2473,10 +2473,15 @@ input.copyable:hover{
     word-wrap: break-word;
 }
 
+.img-table{
+    width: 100%;
+}
+
 .partners-img{
-    margin-right: 115px;
     margin-top: 15px;
+    margin-left: 3%;
+    margin-right: 3%;
     border:0;
-    width: 280px;
-    height: 90px
+    max-width: 90%;
+    max-height: 90%;
 }
