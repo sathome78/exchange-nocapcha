@@ -49,11 +49,11 @@
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard_ico-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init2.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
-    <script type="text/javascript" src="<c:url value='/client/js/trading/trading_ico.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/trading/trading2.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
@@ -70,10 +70,13 @@
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
     <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
     <!-- Amcharts Charts ... -->
+    <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit2 .js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
@@ -106,7 +109,7 @@
                 <%--and to keep startup page ID--%>
                 ${startupSubPage}
             </div>
-            <%@include file="../fragments/ico_trading_center.jsp" %>
+            <%@include file="../fragments/trading-center2.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
