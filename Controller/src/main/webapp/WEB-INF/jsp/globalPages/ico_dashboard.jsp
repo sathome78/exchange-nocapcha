@@ -52,6 +52,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init2.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/trading/trading2.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
