@@ -514,15 +514,15 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         } catch (e) {
         }
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, "MAIN");
+            chart = new ChartAmchartsClass2(currentCurrencyPair);
         } catch (e) {
         }
-        if (chart) {
+/*        if (chart) {
             try {
                 chart.init(chartType);
             } catch (e) {
             }
-        }
+        }*/
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
         } catch (e) {
