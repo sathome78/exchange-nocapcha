@@ -141,7 +141,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     if (nodeEnabled) {
-      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee, supportReferenceLine);
+      String passSource = String.join("", "merchants/pass/", String.join("_", merchantName, "pass.properties"));
+      bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
       if (supportWalletNotifications) {

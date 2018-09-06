@@ -27,6 +27,7 @@ import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -371,9 +372,21 @@ public class MerchantServiceImpl implements MerchantService {
     return result;
   }
 
+  /*pass file format : classpath: merchants/pass/<merchant>_pass.properties
+  * stored values: wallet.password
+  *                node.bitcoind.rpc.user
+  *                node.bitcoind.rpc.password
+  * */
   @Override
   public Optional<String> getCoreWalletPassword(String merchantName, String currencyName) {
-    return merchantDao.getCoreWalletPassword(merchantName, currencyName);
+    Properties props = new Properties();
+    try {
+      props.load(getClass().getClassLoader().getResourceAsStream(String.join("", "merchants/pass/", String.join("_", merchantName, "pass.properties"))));
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+    return Optional.ofNullable(props.getProperty("wallet.password"));
+    /*return merchantDao.getCoreWalletPassword(merchantName, currencyName);*/
   }
 
   @Override
