@@ -84,7 +84,6 @@
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-  <%--  <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>--%>
     <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
     <!-- ... Amcharts Charts -->

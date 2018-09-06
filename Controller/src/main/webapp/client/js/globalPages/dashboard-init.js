@@ -60,9 +60,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+/*    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
-    }
+    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -160,7 +160,7 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
+/*function subscribeChart() {
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
@@ -173,7 +173,7 @@ function subscribeChart() {
             trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
-}
+}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -469,7 +469,7 @@ $(function dashdoardInit() {
                     var tradingCpData = jQuery.extend(true, {}, cpData);
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();

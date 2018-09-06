@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     if (TradingClass.__instance) {
         return TradingClass.__instance;
     } else if (this === window) {
@@ -350,31 +350,28 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
 
 
     /*=========================================================*/
-    (function init(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData) {
+    (function init(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair, cpData);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange, 'ICO');
-        try {
+   /*     try {
             chart = new ChartGoogleClass();
         } catch (e) {
-        }
+        }*/
         try {
-            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg, 'ICO');
+            chart = new ChartAmchartsClass2(currentCurrencyPair);
         } catch (e) {
         }
-        if (chart) {
+/*        if (chart) {
             try {
                 chart.init(chartType);
             } catch (e) {
             }
-        }
+        }*/
         try {
             orderRoleFilter = new OrderRoleFilterClass(orderRoleFilterEnabled, onCurrencyPairChange());
         } catch (e) {
         }
-
-
-
 
         that.updateAndShowAll(false);
         that.fillOrderCreationFormFields();
@@ -412,7 +409,7 @@ function TradingClass(period, chartType, currentCurrencyPair, orderRoleFilterEna
         });
         /**/
        /* switchCreateOrAcceptButtons();*/
-    })(period, chartType, currentCurrencyPair, orderRoleFilterEnabled, cpData);
+    })(currentCurrencyPair, orderRoleFilterEnabled, cpData);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];
