@@ -50,7 +50,7 @@ public class ChartController {
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
-
+        
         String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
 
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
@@ -85,7 +85,6 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime() {
-
         return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
     }
 
@@ -98,12 +97,11 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/symbols", method = RequestMethod.GET)
     public ResponseEntity getChartSymbol(@QueryParam("symbol") String symbol) {
-
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/tradingview/history", method = RequestMethod.GET)
+    @RequestMapping(value = "/ico_dashboard/history", method = RequestMethod.GET)
     public ResponseEntity getCandleChartHistoryData2(
             @QueryParam("symbol") String symbol,
             @QueryParam("to") Long to,
@@ -143,7 +141,7 @@ public class ChartController {
 
 
     @OnlineMethod
-    @RequestMapping(value = "/tradingview/time", method = RequestMethod.GET)
+    @RequestMapping(value = "/ico_dashboard/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime2() {
         LocalDateTime now =  LocalDateTime.now();
         LocalDateTime roundFloor =  now.truncatedTo(ChronoUnit.HOURS);
@@ -151,15 +149,14 @@ public class ChartController {
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/tradingview/config", method = RequestMethod.GET)
+    @RequestMapping(value = "/ico_dashboard/config", method = RequestMethod.GET)
     public ResponseEntity getChartConfig2() {
         return new ResponseEntity(getConfig().toString(), HttpStatus.OK);
     }
 
     @OnlineMethod
-    @RequestMapping(value = "/tradingview/symbols", method = RequestMethod.GET)
+    @RequestMapping(value = "/ico_dashboard/symbols", method = RequestMethod.GET)
     public ResponseEntity getChartSymbol2(@QueryParam("symbol") String symbol) {
-
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {

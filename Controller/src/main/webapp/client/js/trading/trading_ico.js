@@ -21,7 +21,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
     var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatistics;
     var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
-    var $graphicsLoadingImg = $('#graphics-container').find('.loading');
+/*    var $graphicsLoadingImg = $('#graphics-container').find('.loading');*/
     var $totalForBuyInput = $('#totalForBuy');
     var $exchangeRateBuyInput = $('#exchangeRateBuy');
     var $amountBuyInput = $('#amountBuy');
