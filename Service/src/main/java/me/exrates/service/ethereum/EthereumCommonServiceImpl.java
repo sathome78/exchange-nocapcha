@@ -253,6 +253,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         log.debug("{} is unsubscribed {} ", currencyName,subscription.isUnsubscribed());
         observable = null;
         web3j.shutdown();
+        saveLastBlock(currentBlockNumber.toString());
         web3j = Web3j.build(new HttpService(url));
         createSubscribe(currentBlockNumber.toString());
     }
