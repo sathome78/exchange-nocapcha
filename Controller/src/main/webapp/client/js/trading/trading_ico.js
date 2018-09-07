@@ -52,10 +52,9 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         else {
             currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
         }
-        $graphicsLoadingImg.removeClass('hidden');
+        that.getChart().switchCurrencyPair(currentPair);
         that.updateAndShowAll();
         that.fillOrderCreationFormFields();
-        currentPair = $('.currency-pair-selector__menu-item.active').prop('id');
     }
 
     this.getChart = function () {

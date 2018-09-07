@@ -68,6 +68,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/valueInputControl.js'/>"></script>
     <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
     <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
     <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
