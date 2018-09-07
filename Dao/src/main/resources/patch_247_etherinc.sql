@@ -5,10 +5,10 @@ VALUES ('ETI', 'Etherinc', '0', 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ETI'));
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block, transfer_block)
   VALUES ((SELECT id from MERCHANT WHERE name='ETI'),
           (SELECT id from CURRENCY WHERE name='ETI'),
-          0.00000001, refill_block, withdraw_block, transfer_block);
+          0.00000001, 1, 1, 1);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='ETI')
 , '/client/img/merchants/ETI.png', 'ETI', (SELECT id from CURRENCY WHERE name='ETI'));
@@ -73,4 +73,4 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('ETI/USD', 'ETI/BTC', 'ETI/ETH'));
 
 INSERT INTO MERCHANT_SPEC_PARAMETERS(merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'ETI'), 'LastRecievedBlock', 1305066);
+  ((SELECT id FROM MERCHANT WHERE name = 'ETI'), 'LastRecievedBlock', 1365260);
