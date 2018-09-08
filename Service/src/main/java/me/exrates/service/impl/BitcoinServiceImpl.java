@@ -140,7 +140,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    Properties passSource = null;
+    Properties passSource;
+    log.debug("start btc service {} {}", merchantName, currencyName);
     try {
       passSource = merchantService.getPassMerchantProperties(merchantName);
     } catch (Exception e) {
