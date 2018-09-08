@@ -140,15 +140,15 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    Properties passSource;
-    log.debug("start btc service {} {}", merchantName, currencyName);
-    try {
-      passSource = merchantService.getPassMerchantProperties(merchantName);
-    } catch (Exception e) {
-      log.error("{} not started, pass props not found", merchantName);
-      return;
-    }
+      Properties passSource;
     if (nodeEnabled) {
+        try {
+            passSource = merchantService.getPassMerchantProperties(merchantName);
+        } catch (Exception e) {
+            log.error("{} not started, pass props not found", merchantName);
+            return;
+        }
+
       bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
@@ -161,7 +161,8 @@ public class BitcoinServiceImpl implements BitcoinService {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
       }
 //      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
-      examineMissingPaymentsOnStartup();
+        log.info("btc service started {} ", merchantName);
+        examineMissingPaymentsOnStartup();
     }
 
   }
