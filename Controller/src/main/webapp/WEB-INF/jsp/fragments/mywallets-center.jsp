@@ -53,7 +53,7 @@
                                 <form class="table-button-block__form" action="/merchants/input" target="_blank">
                                     <loc:message code="mywallets.input" var="inputButton"/>
                                     <input type="text" hidden value=<@=currencyName@> name="currency" >
-                                    <button class="table-butto-block__button btn btn-success" type="submit">${inputButton}</button>
+                                    <button class="table-butto-block__button butto-block btn btn-success" type="submit">${inputButton}</button>
                                 </form>
                         <% } %>
                         <% double numW = Math.random(); if (numW > 0.5) {  %>
@@ -71,8 +71,8 @@
                         <% } %>
                         <% double numH = Math.random(); if (numH > 0.5) {  %>
                             <span>
-                                <a href="/merchants/output?currency=<@=currencyName@>" target="_blank" class="wallet-mystatement-button butto-block btn btn-primary">
-                                    <loc:message code="mywallets.output"/>
+                                <a style="cursor:pointer" target="_blank" class="wallet-mystatement-button butto-block btn btn-primary">
+                                    <loc:message code="mywallets.history"/>
                                 </a>
                             </span>
                         <%  } else { %>
