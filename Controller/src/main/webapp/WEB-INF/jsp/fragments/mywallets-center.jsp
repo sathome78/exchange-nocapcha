@@ -71,8 +71,8 @@
                         <% } %>
                         <% double numH = Math.random(); if (numH > 0.5) {  %>
                             <span>
-                                <a href="/merchants/output?currency=<@=currencyName@>" target="_blank" class="wallet-mystatement-button butto-block btn btn-primary">
-                                    <loc:message code="mywallets.output"/>
+                                <a style="cursor:pointer" target="_blank" class="wallet-mystatement-button butto-block btn btn-primary">
+                                    <loc:message code="mywallets.history"/>
                                 </a>
                             </span>
                         <%  } else { %>
