@@ -50,10 +50,10 @@
                                 </a>
                             </span>
                         <%  } else { %>
-                                <form class="table-butto-block__form" action="/merchants/input" target="_blank">
+                                <form class="table-button-block__form" action="/merchants/input" target="_blank">
                                     <loc:message code="mywallets.input" var="inputButton"/>
                                     <input type="text" hidden value=<@=currencyName@> name="currency" >
-                                    <button class="table-butto-block__button btn btn-success" type="submit">${inputButton}</button>
+                                    <button class="table-butto-block__button butto-block btn btn-success" type="submit">${inputButton}</button>
                                 </form>
                         <% } %>
                         <% double numW = Math.random(); if (numW > 0.5) {  %>
