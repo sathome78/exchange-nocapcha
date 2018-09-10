@@ -45,7 +45,7 @@
                     <span>
                         <% double numR = Math.random(); if (numR > 0.5) {  %>
                             <span>
-                                <a href="/merchants/input?currency=<@=currencyName@>" target="_blank" class="btn btn-success button-block">
+                                <a href="/merchants/input?currency=<@=currencyName@>" target="_blank" class="btn btn-success butto-block">
                                     <loc:message code="mywallets.input"/>
                                 </a>
                             </span>
