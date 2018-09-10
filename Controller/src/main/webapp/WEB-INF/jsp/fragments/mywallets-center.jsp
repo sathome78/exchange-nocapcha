@@ -96,7 +96,6 @@
                                     <button class="butto-block btn btn-info" type="submit">${transferButton}</button>
                                 </form>
                         <% } %>
-                        <p>Hi</p>
                     </span>
                 </td>
             </tr>
