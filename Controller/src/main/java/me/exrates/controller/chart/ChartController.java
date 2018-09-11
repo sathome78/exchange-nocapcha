@@ -24,6 +24,7 @@ import javax.ws.rs.QueryParam;
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,7 +53,6 @@ public class ChartController {
             @QueryParam("resolution") String resolution) {
         
         String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
-
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
         ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
@@ -68,7 +68,7 @@ public class ChartController {
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(filterDataPeriod(result, from, to));
+            errors.putAll(filterDataPeriod(result, from, to, resolution));
             errors.put("s", "error");
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
@@ -77,7 +77,7 @@ public class ChartController {
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
-        return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
+        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
 
     }
 
@@ -125,7 +125,7 @@ public class ChartController {
         List<CandleDto> result = new ArrayList<>();
         if (currencyPair == null) {
             HashMap<String, Object> errors = new HashMap<>();
-            errors.putAll(filterDataPeriod(result, from, to));
+            errors.putAll(filterDataPeriod(result, from, to, resolution));
             errors.put("s", "error");
             errors.put("errmsg", "can not find currencyPair");
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
@@ -135,7 +135,7 @@ public class ChartController {
                 ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
         System.out.println("End update chart data");
-        return new ResponseEntity(filterDataPeriod(result, from, to), HttpStatus.OK);
+        return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
 
     }
 
@@ -143,9 +143,7 @@ public class ChartController {
     @OnlineMethod
     @RequestMapping(value = "/ico_dashboard/time", method = RequestMethod.GET)
     public ResponseEntity getChartTime2() {
-        LocalDateTime now =  LocalDateTime.now();
-        LocalDateTime roundFloor =  now.truncatedTo(ChronoUnit.HOURS);
-        return new ResponseEntity(roundFloor.toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
+        return new ResponseEntity(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), HttpStatus.OK);
     }
 
     @OnlineMethod
@@ -219,12 +217,12 @@ public class ChartController {
                 .build();
     }
 
-    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds) {
+    private Map<String, Object> filterDataPeriod(List<CandleDto> data, long fromSeconds, long toSeconds, String resolution) {
         List<CandleDto> filteredData = new ArrayList<>(data);
         HashMap<String, Object> filterDataResponse = new HashMap<>();
         if (filteredData.isEmpty()) {
             filterDataResponse.put("s", "ok");
-            getData(filterDataResponse, filteredData);
+            getData(filterDataResponse, filteredData, resolution);
             return filterDataResponse;
         }
 
@@ -273,12 +271,12 @@ public class ChartController {
         }
 
         filteredData = filteredData.subList(fromIndex, toIndex);
-        getData(filterDataResponse, filteredData);
+        getData(filterDataResponse, filteredData, resolution);
         return filterDataResponse;
 
     }
 
-    private void getData(HashMap<String, Object> response, List<CandleDto> result) {
+    private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {
         List<Long> t = new ArrayList<>();
         List<BigDecimal> o = new ArrayList<>();
         List<BigDecimal> h = new ArrayList<>();
@@ -286,7 +284,19 @@ public class ChartController {
         List<BigDecimal> c = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
         for (CandleDto r : result) {
-            t.add(((600000 * ((r.getTime() + 300000) / 600000)))/1000); //  t.add(((600000 * ((r.getTime() + 300000) / 600000)))/1000);
+            LocalDateTime now =  LocalDateTime.ofEpochSecond((r.getTime()/1000), 0, ZoneOffset.UTC)
+                                                                         .truncatedTo(ChronoUnit.MINUTES);
+            long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
+            if (resolution.equals("30")){
+                long minutes =  Math.abs(currentMinutesOfHour - 30);
+                LocalDateTime actualDateTime =
+                        now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
+                t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            }else{
+                LocalDateTime actualDateTime = now.minusMinutes(currentMinutesOfHour);
+                t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            }
+
             o.add(r.getOpen());
             h.add(r.getHigh());
             l.add(r.getLow());
