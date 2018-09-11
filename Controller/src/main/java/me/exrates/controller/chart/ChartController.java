@@ -283,18 +283,48 @@ public class ChartController {
         List<BigDecimal> l = new ArrayList<>();
         List<BigDecimal> c = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
+
+        if (resolution.equals("30") || resolution.equals("60")) {
+            LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime()/1000), 0, ZoneOffset.UTC)
+                    .truncatedTo(ChronoUnit.DAYS);
+            t.add(first.toEpochSecond(ZoneOffset.UTC));
+            o.add(BigDecimal.ZERO);
+            h.add(BigDecimal.ZERO);
+            l.add(BigDecimal.ZERO);
+            c.add(BigDecimal.ZERO);
+            v.add(BigDecimal.ZERO);
+        }
+
         for (CandleDto r : result) {
             LocalDateTime now =  LocalDateTime.ofEpochSecond((r.getTime()/1000), 0, ZoneOffset.UTC)
                                                                          .truncatedTo(ChronoUnit.MINUTES);
+            LocalDateTime actualDateTime;
             long currentMinutesOfHour = now.getLong(ChronoField.MINUTE_OF_HOUR);
-            if (resolution.equals("30")){
-                long minutes =  Math.abs(currentMinutesOfHour - 30);
-                LocalDateTime actualDateTime =
-                        now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
-                t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
-            }else{
-                LocalDateTime actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+            long currentHourOfDay = now.getLong(ChronoField.HOUR_OF_DAY);
+
+            switch (resolution){
+                case "30":
+                    long minutes =  Math.abs(currentMinutesOfHour - 30);
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
+                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                    break;
+                case "60":
+                    System.out.println(currentHourOfDay % 12);
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                    break;
+                case "240":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
+                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                    break;
+                case "720":
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
+                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                    break;
+                default:
+                    actualDateTime = now.minusMinutes(currentMinutesOfHour);
+                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                
             }
 
             o.add(r.getOpen());
