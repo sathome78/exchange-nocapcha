@@ -1,10 +1,13 @@
 package me.exrates.security.service;
 
 
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
+
 public interface IpBlockingService {
-    void checkIp(String ip);
 
-    void processLoginFailure(String ipAddress);
+    void checkIp(String ip, IpTypesOfChecking typeOfChecking);
 
-    void processLoginSuccess(String ipAddress);
+    void failureProcessing(String ipAddress, IpTypesOfChecking typeOfChecking);
+
+    void successfulProcessing(String ipAddress, IpTypesOfChecking typeOfChecking);
 }

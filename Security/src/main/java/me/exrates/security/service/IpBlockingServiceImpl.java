@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.LoginAttemptDto;
 import me.exrates.model.enums.IpBanStatus;
 import me.exrates.security.exception.BannedIpException;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -37,22 +38,28 @@ public class IpBlockingServiceImpl implements IpBlockingService {
 
     private final Object lock = new Object();
 
+    private ConcurrentMap<IpTypesOfChecking, ConcurrentMap<String, LoginAttemptDto>> ipchecker;
 
-    private ConcurrentMap<String, LoginAttemptDto> failedAttemptIps = new ConcurrentReferenceHashMap<>();
+    public IpBlockingServiceImpl() {
+        ipchecker = new ConcurrentReferenceHashMap<>();
+        ipchecker.put(IpTypesOfChecking.LOGIN, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.OPEN_API, new ConcurrentReferenceHashMap<>());
+    }
 
     @Override
-    public void checkIp(String ipAddress) {
+    public void checkIp(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
         synchronized (lock) {
-            if (failedAttemptIps.containsKey(ipAddress)) {
+            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+            if (specificIpChecker.containsKey(ipAddress)) {
                 LocalDateTime currentTime = LocalDateTime.now();
-                LoginAttemptDto attempt = failedAttemptIps.get(ipAddress);
-                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime)) ) {
+                LoginAttemptDto attempt = specificIpChecker.get(ipAddress);
+                if ((attempt.getStatus() == IpBanStatus.BAN_SHORT && checkBanPending(attempt, shortBanTime, currentTime))) {
                     throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", shortBanTime);
                 } else if (attempt.getStatus() == IpBanStatus.BAN_LONG && checkBanPending(attempt, longBanTime, currentTime)) {
                     throw new BannedIpException("IP banned: number of incorrect attempts exceeded!", longBanTime);
                 }
                 if (attempt.getStatus() == IpBanStatus.BAN_LONG) {
-                    failedAttemptIps.remove(ipAddress);
+                    specificIpChecker.remove(ipAddress);
                 } else {
                     attempt.setStatus(IpBanStatus.ALLOW);
                 }
@@ -68,12 +75,13 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     }
 
     @Override
-    public void processLoginFailure(String ipAddress) {
+    public void failureProcessing(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
         synchronized (lock) {
-            if (!failedAttemptIps.containsKey(ipAddress)) {
-                failedAttemptIps.put(ipAddress, new LoginAttemptDto(ipAddress));
+            ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+            if (!specificIpChecker.containsKey(ipAddress)) {
+                specificIpChecker.put(ipAddress, new LoginAttemptDto(ipAddress));
             } else {
-                LoginAttemptDto attemptDto = failedAttemptIps.get(ipAddress);
+                LoginAttemptDto attemptDto = specificIpChecker.get(ipAddress);
                 attemptDto.addNewAttempt();
                 if (checkNeedToBan(attemptDto, attemptsBeforeLongBan, periodAttemptsBeforeLongBan) && attemptDto.isWasInShortBan()) {
                     attemptDto.setStatus(IpBanStatus.BAN_LONG);
@@ -92,13 +100,10 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     }
 
     @Override
-    public void processLoginSuccess(String ipAddress) {
-        failedAttemptIps.remove(ipAddress);
+    public void successfulProcessing(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
+        ConcurrentMap<String, LoginAttemptDto> ipChecker = ipchecker.get(ipTypesOfChecking);
+        ipChecker.remove(ipAddress);
     }
-
-
-
-
 
 
 }
