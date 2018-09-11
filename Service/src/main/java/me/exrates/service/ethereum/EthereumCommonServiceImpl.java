@@ -200,7 +200,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 1, 8, TimeUnit.MINUTES);
+        }, 3, 8, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(() -> {
             try {
