@@ -309,7 +309,6 @@ public class ChartController {
                     t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                     break;
                 case "60":
-                    System.out.println(currentHourOfDay % 12);
                     actualDateTime = now.minusMinutes(currentMinutesOfHour);
                     t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                     break;
