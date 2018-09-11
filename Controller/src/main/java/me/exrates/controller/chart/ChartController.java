@@ -199,7 +199,7 @@ public class ChartController {
                 .add("supports_search", true)
                 .add("supports_group_request", false)
                 .add("supports_marks", false)
-                .add("supports_timescale_marks", false)
+                .add("supports_timescale_marks", true)
                 .add("supports_time", true)
                 .add("exchanges", Json.createArrayBuilder()
                         .add(Json.createObjectBuilder()
@@ -286,7 +286,7 @@ public class ChartController {
         List<BigDecimal> c = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
         for (CandleDto r : result) {
-            t.add(((600000 * ((r.getTime() + 300000) / 600000)))/1000);
+            t.add(((600000 * ((r.getTime() + 300000) / 600000)))/1000); //  t.add(((600000 * ((r.getTime() + 300000) / 600000)))/1000);
             o.add(r.getOpen());
             h.add(r.getHigh());
             l.add(r.getLow());
