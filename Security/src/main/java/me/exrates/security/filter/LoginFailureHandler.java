@@ -2,7 +2,7 @@ package me.exrates.security.filter;
 
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.util.IpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -3,7 +3,7 @@ package me.exrates.controller;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;

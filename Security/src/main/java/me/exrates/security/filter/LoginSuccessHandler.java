@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;

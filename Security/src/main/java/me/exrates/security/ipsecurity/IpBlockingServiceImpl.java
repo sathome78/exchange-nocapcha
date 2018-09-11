@@ -1,10 +1,9 @@
-package me.exrates.security.service;
+package me.exrates.security.ipsecurity;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.LoginAttemptDto;
 import me.exrates.model.enums.IpBanStatus;
 import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;

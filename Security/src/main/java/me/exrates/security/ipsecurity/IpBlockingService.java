@@ -1,7 +1,6 @@
-package me.exrates.security.service;
+package me.exrates.security.ipsecurity;
 
 
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 
 public interface IpBlockingService {
 

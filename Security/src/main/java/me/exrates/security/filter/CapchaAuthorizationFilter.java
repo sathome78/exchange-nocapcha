@@ -8,7 +8,7 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.UnconfirmedUserException;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
-import me.exrates.security.service.IpBlockingService;
+import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import me.exrates.service.geetest.GeetestLib;
