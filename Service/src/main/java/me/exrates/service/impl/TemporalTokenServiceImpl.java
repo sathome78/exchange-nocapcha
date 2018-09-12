@@ -13,6 +13,6 @@ public class TemporalTokenServiceImpl implements TemporalTokenService {
     TemporalTokenDao temporalTokenDao;
     @Override
     public boolean updateTemporalToken(TemporalToken temporalToken) {
-        return false;
+        return temporalTokenDao.updateTemporalToken(temporalToken);
     }
 }

@@ -1,11 +1,11 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.service.TemporalTokenService;
+import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import me.exrates.service.geetest.GeetestLib;
@@ -85,6 +85,9 @@ public class DashboardController {
   @Autowired
   private GeetestLib geetest;
 
+  @Autowired
+  TemporalTokenService temporalTokenService;
+
   @RequestMapping(value = {"/dashboard/locale"})
   @ResponseBody
   public void localeSwitcherCommand(
@@ -163,25 +166,30 @@ public class DashboardController {
   }
 
   @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
-  public ModelAndView recoveryPassword(@ModelAttribute("user") User user) {
+  public ModelAndView recoveryPassword(@ModelAttribute("user") User user, @ModelAttribute("token") TemporalToken temporalToken) {
       ModelAndView model = new ModelAndView("fragments/recoverPassword");
+
       model.addObject("user", user);
-    return model;
+      model.addObject("token", temporalToken);
+
+      return model;
   }
 
   @RequestMapping(value = "/resetPasswordConfirm")
   public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
     ModelAndView model = new ModelAndView();
     try {
-      int userId = userService.verifyUserEmail(token);
-      if (userId != 0){
-          User user = userService.getUserById(userId);
+        TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
+        if (dbToken !=null && !dbToken.isAlreadyUsed()){
+          User user = userService.getUserById(dbToken.getUserId());
 
           attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
                   null, localeResolver.resolveLocale(request)));
           attr.addFlashAttribute("user", user);
+          attr.addFlashAttribute("token", dbToken);
 
           model.setViewName("redirect:/passwordRecovery");
+          temporalTokenService.updateTemporalToken(dbToken);
       } else {
           if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
               attr.addFlashAttribute("userEmail", email);
