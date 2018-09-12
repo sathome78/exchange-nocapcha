@@ -1,4 +1,4 @@
-package me.exrates.dao;
+package me.exrates.service;
 
 import me.exrates.model.TemporalToken;
 
