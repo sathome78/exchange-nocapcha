@@ -51,8 +51,8 @@ public class ChartController {
             @QueryParam("to") Long to,
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
-        
-        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
+
+ /*       String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd ";
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
         ChartResolution resolution1 = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame().getResolution();
@@ -61,7 +61,7 @@ public class ChartController {
 
         LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
         String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
 
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
@@ -74,8 +74,9 @@ public class ChartController {
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
 
+        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
+                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
         return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
 
@@ -108,7 +109,7 @@ public class ChartController {
             @QueryParam("from") Long from,
             @QueryParam("resolution") String resolution) {
 
-        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+/*        String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
         LocalDateTime startTime = LocalDateTime.ofEpochSecond(from, 0, ZoneOffset.UTC);
         LocalDateTime endTime = LocalDateTime.ofEpochSecond(to, 0, ZoneOffset.UTC);
@@ -118,7 +119,7 @@ public class ChartController {
 
         LocalDateTime fromDate = Instant.ofEpochMilli(36000000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
         String starDay = fromDate.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
-        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
+        String endDay = endTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));*/
 
 
         CurrencyPair currencyPair = currencyService.getCurrencyPairByName(symbol);
@@ -131,8 +132,9 @@ public class ChartController {
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
         System.out.println("Update chart data");
+        String rsolutionForChartTime = (resolution == "W" || resolution == "M") ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
-                ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame())
+                ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
         System.out.println("End update chart data");
         return new ResponseEntity(filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
@@ -180,8 +182,8 @@ public class ChartController {
                          .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)
-                .add("has_weekly_and_monthly", false)
-                .add("has_empty_bars", false)
+                .add("has_weekly_and_monthly", true)
+                .add("has_empty_bars", true)
                 .add("volume_precision", 2)
                 .build();
     }
@@ -305,26 +307,25 @@ public class ChartController {
                 case "30":
                     long minutes =  Math.abs(currentMinutesOfHour - 30);
                     actualDateTime = now.minusMinutes(currentMinutesOfHour <= 30 ? currentMinutesOfHour : minutes);
-                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                     break;
                 case "60":
                     actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                     break;
                 case "240":
                     actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 4);
-                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                     break;
                 case "720":
                     actualDateTime = now.minusMinutes(currentMinutesOfHour).minusHours(currentHourOfDay % 12);
-                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
+                    break;
+                case "M":
+                    actualDateTime = now.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1);
                     break;
                 default:
                     actualDateTime = now.minusMinutes(currentMinutesOfHour);
-                    t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
                 
             }
 
+            t.add(actualDateTime.toEpochSecond(ZoneOffset.UTC));
             o.add(r.getOpen());
             h.add(r.getHigh());
             l.add(r.getLow());
