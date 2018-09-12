@@ -284,16 +284,15 @@ public class ChartController {
         List<BigDecimal> c = new ArrayList<>();
         List<BigDecimal> v = new ArrayList<>();
 
-        if (resolution.equals("30") || resolution.equals("60")) {
-            LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime()/1000), 0, ZoneOffset.UTC)
-                    .truncatedTo(ChronoUnit.DAYS);
-            t.add(first.toEpochSecond(ZoneOffset.UTC));
-            o.add(BigDecimal.ZERO);
-            h.add(BigDecimal.ZERO);
-            l.add(BigDecimal.ZERO);
-            c.add(BigDecimal.ZERO);
-            v.add(BigDecimal.ZERO);
-        }
+        LocalDateTime first = LocalDateTime.ofEpochSecond((result.get(0).getTime()/1000), 0, ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.DAYS);
+        t.add(first.toEpochSecond(ZoneOffset.UTC));
+        o.add(BigDecimal.ZERO);
+        h.add(BigDecimal.ZERO);
+        l.add(BigDecimal.ZERO);
+        c.add(BigDecimal.ZERO);
+        v.add(BigDecimal.ZERO);
+
 
         for (CandleDto r : result) {
             LocalDateTime now =  LocalDateTime.ofEpochSecond((r.getTime()/1000), 0, ZoneOffset.UTC)
