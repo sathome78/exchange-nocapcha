@@ -23,12 +23,6 @@ public class TemporalTokenDaoImpl implements TemporalTokenDao {
         return namedParameterJdbcTemplate.update(UPDATE_BY_VALUE, namedParameters) > 0;
     }
 
-    @Override
-    public int getUserIdByTokenValue(String temporalToken) {
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("value", temporalToken);
-        return namedParameterJdbcTemplate.queryForObject(GET_USER_ID_BY_VALUE, namedParameters, (resultSet, i) -> resultSet.getInt("user_id"));
-    }
 
     @Override
     public void deleteTemporalToken(String temporalToken) {
