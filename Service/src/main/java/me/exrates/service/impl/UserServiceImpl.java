@@ -792,4 +792,8 @@ public class UserServiceImpl implements UserService {
         return userDao.verifyToken(token);
     }
 
+  public User getUserByTemporalToken(String token) {
+    return userDao.getUserByTemporalToken(token);
+  }
+
 }

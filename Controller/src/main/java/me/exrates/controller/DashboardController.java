@@ -206,8 +206,12 @@ public class DashboardController {
     return model;
   }
 
-  @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-  public ModelAndView updatePassword(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes attr, Locale locale) {
+  @RequestMapping(value = "/dashboard/updatePasswordbytoken", method = RequestMethod.POST)
+  public ModelAndView updatePassword(@ModelAttribute("user") User user, @RequestParam("token") String temporalToken,
+                                     @RequestParam("password") String password,
+                                     BindingResult result,
+                                     HttpServletRequest request,
+                                     RedirectAttributes attr, Locale locale) {
         /**/
     registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
     if (result.hasErrors()) {
@@ -215,18 +219,18 @@ public class DashboardController {
       modelAndView.addObject("captchaType", CAPTCHA_TYPE);
       return modelAndView;
     } else {
-      User userUpdate = userService.findByEmail(user.getEmail());
+      User userUpdate = userService.getUserByTemporalToken(temporalToken);
       ModelAndView model = new ModelAndView();
       UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
       updateUserDto.setPassword(user.getPassword());
 
       userService.updateUserByAdmin(updateUserDto);
 
-      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+      Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(userUpdate.getEmail()).getAuthorities());
       org.springframework.security.core.userdetails.User userSpring =
               new org.springframework.security.core.userdetails.User(
-                      user.getEmail(),
-                      updateUserDto.getPassword(),
+                      userUpdate.getEmail(),
+                      password,
                       false,
                       false,
                       false,
@@ -235,14 +239,50 @@ public class DashboardController {
               );
       Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
       SecurityContextHolder.getContext().setAuthentication(auth);
-
+      temporalTokenService.deleteTemporalToken(temporalToken);
       userSessionService.invalidateUserSessionExceptSpecific(user.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
-
       attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
       model.setViewName("redirect:/dashboard");
       return model;
     }
   }
+
+    @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
+    public ModelAndView updatePasswordByToken(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes attr, Locale locale) {
+        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
+            ModelAndView modelAndView = new ModelAndView("/updatePassword", "user", user);
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
+        } else {
+            User userUpdate = userService.findByEmail(user.getEmail());
+            ModelAndView model = new ModelAndView();
+            UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
+            updateUserDto.setPassword(user.getPassword());
+
+            userService.updateUserByAdmin(updateUserDto);
+
+            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+            org.springframework.security.core.userdetails.User userSpring =
+                    new org.springframework.security.core.userdetails.User(
+                            user.getEmail(),
+                            updateUserDto.getPassword(),
+                            false,
+                            false,
+                            false,
+                            false,
+                            authList
+                    );
+            Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            userSessionService.invalidateUserSessionExceptSpecific(user.getEmail(), RequestContextHolder.currentRequestAttributes().getSessionId());
+
+            attr.addFlashAttribute("successNoty", messageSource.getMessage("login.passwordUpdateSuccess", null, locale));
+            model.setViewName("redirect:/dashboard");
+            return model;
+        }
+    }
 
   @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
   public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {

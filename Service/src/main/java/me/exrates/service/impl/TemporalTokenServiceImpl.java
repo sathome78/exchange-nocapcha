@@ -15,4 +15,8 @@ public class TemporalTokenServiceImpl implements TemporalTokenService {
     public boolean updateTemporalToken(TemporalToken temporalToken) {
         return temporalTokenDao.updateTemporalToken(temporalToken);
     }
+
+    public void deleteTemporalToken(String temporalToken) {
+        temporalTokenDao.deleteTemporalToken(temporalToken);
+    }
 }
