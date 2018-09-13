@@ -132,7 +132,7 @@ public class ChartController {
             return new ResponseEntity(errors, HttpStatus.NOT_FOUND);
         }
         System.out.println("Update chart data");
-        String rsolutionForChartTime = (resolution == "W" || resolution == "M") ? "D" : resolution;
+        String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
                 .stream().map(CandleDto::new).collect(Collectors.toList());
