@@ -4,8 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
-import me.exrates.service.waves.WavesRestClient;
-import me.exrates.service.waves.WavesRestClientImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,9 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.*;
+import me.exrates.model.Currency;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.Payment;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
