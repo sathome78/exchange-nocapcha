@@ -208,7 +208,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private String address() {
     boolean isFreshAddress = false;
+    System.out.println("begin generate address");
     String address = bitcoinWalletService.getNewAddress(getCoreWalletPassword());
+    System.out.println("end generate address " + address);
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
 //    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
