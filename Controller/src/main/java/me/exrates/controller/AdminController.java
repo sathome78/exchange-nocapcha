@@ -735,15 +735,15 @@ public class AdminController {
 
   /*todo move this method from admin controller*/
   @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-  public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
-                                             HttpServletRequest request, RedirectAttributes redirectAttributes) {
+  public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user,@RequestParam("nickname")String newNickName, BindingResult result,
+                                             HttpServletRequest request, RedirectAttributes redirectAttributes, Principal principal) {
     registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
 
     if (result.hasErrors()) {
       redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
       redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
     } else {
-      boolean userNicknameUpdated = userService.setNickname(user);
+      boolean userNicknameUpdated = userService.setNickname(newNickName,principal.getName());
       if(userNicknameUpdated){
         redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
       }else{
