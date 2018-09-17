@@ -206,13 +206,6 @@ public class DashboardController {
         }
     }
 
-    @RequestMapping(value = "/passwordRecovery", method = RequestMethod.GET)
-    public ModelAndView recoveryPassword(@ModelAttribute("user") User user) {
-        ModelAndView model = new ModelAndView("fragments/recoverPassword");
-        model.addObject("user", user);
-        return model;
-    }
-
     @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
     public ModelAndView updatePassword(@ModelAttribute("user") User user, BindingResult result, HttpServletRequest request, RedirectAttributes attr, Locale locale) {
         /**/
