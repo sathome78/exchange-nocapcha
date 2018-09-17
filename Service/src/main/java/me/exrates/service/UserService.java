@@ -11,8 +11,6 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -205,4 +203,8 @@ public interface UserService {
 
 
     String getUserEmailFromSecurityContext();
+
+  TemporalToken verifyUserEmailForForgetPassword(String token);
+
+  User getUserByTemporalToken(String token);
 }

@@ -9,21 +9,25 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.QueryParam;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -159,6 +163,7 @@ public class ChartController {
 
         return new ResponseEntity(getSymbolInfo(symbol).toString(), HttpStatus.OK);
     }
+
     private JsonObject getSymbolInfo(@QueryParam("symbol") String symbol) {
 
         return Json.createObjectBuilder()
@@ -179,7 +184,7 @@ public class ChartController {
                 .add("ticker", symbol)
                 .add("timezone", "UTC")
                 .add("supported_resolutions", Json.createArrayBuilder()
-                         .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .add("force_session_rebuild", false)
                 .add("has_daily", true)
                 .add("has_weekly_and_monthly", false)
@@ -215,7 +220,7 @@ public class ChartController {
                                 .add("name", "All types")
                                 .add("value", "")))
                 .add("supported_resolutions", Json.createArrayBuilder()
-                       .add("30") .add("60") .add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
+                        .add("30").add("60").add("240").add("720").add("D").add("2D").add("3D").add("W").add("3W").add("M"))
                 .build();
     }
 
