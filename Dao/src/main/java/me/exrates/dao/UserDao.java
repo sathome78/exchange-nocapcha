@@ -177,4 +177,6 @@ public interface UserDao {
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+  User getUserByTemporalToken(String token);
+
 }
