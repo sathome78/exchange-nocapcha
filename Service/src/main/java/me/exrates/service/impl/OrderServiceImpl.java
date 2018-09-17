@@ -1836,24 +1836,15 @@ public class OrderServiceImpl implements OrderService {
 
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
     Locale locale = Locale.ENGLISH;
-    orders = orders.stream()
-            .map(ExOrderStatisticsShortByPairsDto::new).sorted(new Comparator<ExOrderStatisticsShortByPairsDto>() {
-              @Override
-              public int compare(ExOrderStatisticsShortByPairsDto o1, ExOrderStatisticsShortByPairsDto o2) {
-                if (o1.getLastOrderRate().equals("0") || o1.getLastOrderRate() == null  ) {
-                  return o2.getLastOrderRate().compareTo(o1.getLastOrderRate());
-                } else {
-                  return o1.getPairOrder().compareTo(o2.getPairOrder());
-                }
-              }
-            })
+    List<ExOrderStatisticsShortByPairsDto> firstList = orders.stream().filter(p->!p.getLastOrderRate().equals("0"))
             .collect(toList());
-    orders.forEach(e -> {
+    firstList.addAll(orders.stream().filter(p->p.getLastOrderRate().equals("0")).collect(toList()));
+    firstList.forEach(e -> {
       BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
       BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
       e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
       e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-      BigDecimal percentChange = null;
+      BigDecimal percentChange;
       if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
         percentChange = BigDecimal.ZERO;
       }  else {
@@ -1861,7 +1852,7 @@ public class OrderServiceImpl implements OrderService {
       }
       e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
     });
-    return orders;
+    return firstList;
   }
 
 

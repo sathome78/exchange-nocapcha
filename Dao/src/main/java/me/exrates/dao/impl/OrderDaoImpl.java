@@ -435,7 +435,8 @@ public class OrderDaoImpl implements OrderDao {
                     "   WHERE EXORDERS.status_id = :status_id         " +
                     "   ) " +
                     " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1)) " +
+                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
+                    " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
                     " UNION ALL (" +
                     "   SELECT CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.type AS type, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
                     "      FROM CURRENCY_PAIR CP " +
@@ -443,16 +444,7 @@ public class OrderDaoImpl implements OrderDao {
                     ")) RESULT ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
-                ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
-                exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
-                exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
-                exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
-                return exOrderStatisticsDto;
-            });
+            return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -489,16 +481,7 @@ public class OrderDaoImpl implements OrderDao {
             Map<String, Object> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
             namedParameters.put("pair_id", pairsIds);
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
-                ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
-                exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-                exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
-                exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
-                exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
-                exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
-                return exOrderStatisticsDto;
-            });
+            return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -508,6 +491,17 @@ public class OrderDaoImpl implements OrderDao {
             LOGGER.debug("query completed ... ms: " + (after - before));
         }
     }
+
+    RowMapper<ExOrderStatisticsShortByPairsDto> exchangeRatesRowMapper = (rs, rowNum) -> {
+        ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
+        exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+        exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+        exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+        exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
+        exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
+        exOrderStatisticsDto.setPairOrder(rs.getInt("pair_order"));
+        return exOrderStatisticsDto;
+    };
 
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
