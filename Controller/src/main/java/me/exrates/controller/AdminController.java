@@ -878,7 +878,7 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         model.setViewName("UsersWallets");
         Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-            add("ALL");
+            add("ADMIN");
         }};
         usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
         model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
