@@ -24,7 +24,7 @@
 <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+<link rel="stylesheet" href="<c:url value="/client/css/jqueryDatatables.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/select.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/buttons.dataTables.min.css"/>">
 <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
@@ -33,9 +33,6 @@
 <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
 
-<%--<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
-
-<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>--%>
 
 <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
 

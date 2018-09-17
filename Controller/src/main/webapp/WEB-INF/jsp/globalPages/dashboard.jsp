@@ -41,7 +41,7 @@
     <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="<c:url value="/client/css/jqueryDatatables.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
