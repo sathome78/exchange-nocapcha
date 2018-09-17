@@ -1835,24 +1835,28 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-    Locale locale = Locale.ENGLISH;
-    List<ExOrderStatisticsShortByPairsDto> firstList = orders.stream().filter(p->!p.getLastOrderRate().equals("0"))
+      List<ExOrderStatisticsShortByPairsDto> resultList = orders.stream().filter(p->!p.getLastOrderRate().equals("0"))
             .collect(toList());
-    firstList.addAll(orders.stream().filter(p->p.getLastOrderRate().equals("0")).collect(toList()));
-    firstList.forEach(e -> {
-      BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-      BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-      e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-      e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-      BigDecimal percentChange;
-      if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-        percentChange = BigDecimal.ZERO;
-      }  else {
-        percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-      }
-      e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-    });
-    return firstList;
+      resultList.addAll(orders.stream().filter(p->p.getLastOrderRate().equals("0")).collect(toList()));
+      setStatisitcValues(resultList);
+      return resultList;
+  }
+
+  private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
+      Locale locale = Locale.ENGLISH;
+      ordersList.forEach(e -> {
+          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+          BigDecimal percentChange;
+          if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+              percentChange = BigDecimal.ZERO;
+          }  else {
+              percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+          }
+          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+      });
   }
 
 
