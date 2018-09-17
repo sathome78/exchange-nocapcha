@@ -65,6 +65,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.*;
@@ -1835,11 +1836,11 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-      List<ExOrderStatisticsShortByPairsDto> resultList = orders.stream().filter(p->!p.getLastOrderRate().equals("0"))
-            .collect(toList());
-      resultList.addAll(orders.stream().filter(p->p.getLastOrderRate().equals("0")).collect(toList()));
-      setStatisitcValues(resultList);
-      return resultList;
+      orders = Stream.of(orders.stream().filter(p -> !p.getLastOrderRate().equals("0")), orders.stream().filter(p -> p.getLastOrderRate().equals("0")))
+              .map(ExOrderStatisticsShortByPairsDto.class::cast)
+              .collect(Collectors.toList());
+      setStatisitcValues(orders);
+      return orders;
   }
 
   private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
