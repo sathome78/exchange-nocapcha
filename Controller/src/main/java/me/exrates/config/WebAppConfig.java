@@ -94,17 +94,17 @@ import java.util.stream.Collectors;
         }
 )
 @PropertySource(value = {
-  "classpath:/db.properties",
-    "classpath:/uploadfiles.properties",
-    "classpath:/news.properties",
-    "classpath:/mail.properties",
-    "classpath:/angular.properties",
-    "classpath:/twitter.properties",
-    "classpath:/angular.properties",
-    "classpath:/merchants/stellar.properties",
-    "classpath:/geetest.properties"})
+        "classpath:/db.properties",
+        "classpath:/uploadfiles.properties",
+        "classpath:/news.properties",
+        "classpath:/mail.properties",
+        "classpath:/angular.properties",
+        "classpath:/twitter.properties",
+        "classpath:/angular.properties",
+        "classpath:/merchants/stellar.properties",
+        "classpath:/geetest.properties"})
 @MultipartConfig(location = "/tmp")
-public class WebAppConfig extends WebMvcConfigurerAdapter{
+public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     private
     @Value("${db.master.user}")
@@ -256,6 +256,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
         return new HikariDataSource(hikariConfig);
     }
 
+    @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
     public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterHikariDataSource") DataSource dataSource) {
@@ -535,6 +536,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "NTY", "NTY", 12);
     }
 
+    @Bean(name = "etherincServiceImpl")
+    public EthereumCommonService etherincService() {
+        return new EthereumCommonServiceImpl("merchants/eti.properties",
+                "ETI", "ETI", 12);
+    }
+
 //    @Bean(name = "eosServiceImpl")
 //    public EthTokenService EosService() {
 //        List<String> tokensList = new ArrayList<>();
@@ -645,7 +652,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "NBC",
                 "NBC", true, ExConvert.Unit.ETHER);
     }
-
 
 
     @Bean(name = "taxiServiceImpl")
@@ -1021,6 +1027,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "LEDU",
                 "LEDU", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "adbServiceImpl")
     public EthTokenService adbService() {
         List<String> tokensList = new ArrayList<>();
@@ -1060,6 +1067,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "SAT",
                 "SAT", true, ExConvert.Unit.AIWEI);
     }
+
     @Bean(name = "cheServiceImpl")
     public EthTokenService cheService() {
         List<String> tokensList = new ArrayList<>();
@@ -1270,6 +1278,56 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "HDR", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "racServiceImpl")
+    public EthTokenService racService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x342ba159f988f24f0b033f3cc5232377ee500543");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "RAC",
+                "RAC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "iqnServiceImpl")
+    public EthTokenService iqnService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0db8d8b76bc361bacbb72e2c491e06085a97ab31");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IQN",
+                "IQN", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "gexServiceImpl")
+    public EthTokenService gexService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdac15794f0fadfdcf3a93aeaabdc7cac19066724");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "GEX",
+                "GEX", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ixeServiceImpl")
+    public EthTokenService ixeService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x7a07e1a0c2514d51132183ecfea2a880ec3b7648");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "IXE",
+                "IXE", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "phiServiceImpl")
+    public EthTokenService phiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x13c2fab6354d3790d8ece4f0f1a3280b4a25ad96");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "PHI",
+                "PHI", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1294,7 +1352,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
                 "Monero", "XMR", 10, 12);
     }
 
-   @Bean(name = "ditcoinServiceImpl")
+    @Bean(name = "ditcoinServiceImpl")
     public MoneroService ditcoinService() {
         return new MoneroServiceImpl("merchants/ditcoin.properties",
                 "DIT", "DIT", 10, 8);
@@ -1333,13 +1391,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     /***stellarAssets****/
-    private @Value("${stellar.slt.emitter}")String SLT_EMMITER;
+    private @Value("${stellar.slt.emitter}")
+    String SLT_EMMITER;
+
     @Bean(name = "sltStellarService")
     public StellarAsset sltStellarService() {
         return new StellarAsset("SLT",
                 "SLT",
                 "SLT",
-        SLT_EMMITER);
+                SLT_EMMITER);
     }
 
     @Bean(name = "ternStellarService")
@@ -1426,7 +1486,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter{
     }
 
     @Bean
-    public Map<String, String> angularProperties(){
+    public Map<String, String> angularProperties() {
         Map<String, String> props = new HashMap<>();
         props.put("angularAllowedOrigin", angularAllowedOrigin);
         return props;
