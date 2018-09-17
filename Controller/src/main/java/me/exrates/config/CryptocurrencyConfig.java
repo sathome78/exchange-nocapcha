@@ -222,12 +222,6 @@ public class CryptocurrencyConfig {
                 "CLX", "CLX", 4, 20, false, false);
     }
 
-    @Bean(name = "adkServiceImpl")
-    public BitcoinService adkService() {
-        return new BitcoinServiceImpl("merchants/adk_wallet.properties",
-                "ADK", "ADK", 4, 20, false, false);
-    }
-
     // LISK-like cryptos
 
 
