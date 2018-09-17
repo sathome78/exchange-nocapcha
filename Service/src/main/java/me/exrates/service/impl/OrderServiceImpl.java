@@ -1837,7 +1837,16 @@ public class OrderServiceImpl implements OrderService {
   private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
     Locale locale = Locale.ENGLISH;
     orders = orders.stream()
-            .map(ExOrderStatisticsShortByPairsDto::new)
+            .map(ExOrderStatisticsShortByPairsDto::new).sorted(new Comparator<ExOrderStatisticsShortByPairsDto>() {
+              @Override
+              public int compare(ExOrderStatisticsShortByPairsDto o1, ExOrderStatisticsShortByPairsDto o2) {
+                if (o1.getLastOrderRate().equals("0") || o1.getLastOrderRate() == null  ) {
+                  return o2.getLastOrderRate().compareTo(o1.getLastOrderRate());
+                } else {
+                  return o1.getPairOrder().compareTo(o2.getPairOrder());
+                }
+              }
+            })
             .collect(toList());
     orders.forEach(e -> {
       BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
