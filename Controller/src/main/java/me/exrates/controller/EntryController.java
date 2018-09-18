@@ -4,6 +4,10 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.FileLoadingException;
+import me.exrates.controller.exception.NewsCreationException;
+import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
@@ -13,6 +17,9 @@ import me.exrates.service.exception.IncorrectSmsPinException;
 import me.exrates.service.exception.PaymentException;
 import me.exrates.service.exception.ServiceUnavailableException;
 import me.exrates.service.exception.UnoperableNumberException;
+import me.exrates.service.notifications.NotificationsSettingsService;
+import me.exrates.service.notifications.NotificatorsService;
+import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.notifications.*;
 import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang.math.NumberUtils;
@@ -43,7 +50,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -130,8 +136,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -140,7 +146,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -148,8 +154,9 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-      /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-      */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -161,19 +168,19 @@ public class EntryController {
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
-                                                .stream()
-                                                .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                                                .collect(Collectors.toList()));
+                    .stream()
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .collect(Collectors.toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p->p.getPairType() == CurrencyPairType.MAIN)
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getPairType() == CurrencyPairType.MAIN)
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -197,8 +204,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -207,7 +214,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -229,18 +236,18 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                     .collect(Collectors.toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO).stream()
-                    .filter(p->p.getPairType() == CurrencyPairType.ICO)
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getPairType() == CurrencyPairType.ICO)
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -265,8 +272,8 @@ public class EntryController {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
-            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
         }
         model.addObject("successNoty", successNoty);
         /**/
@@ -275,7 +282,7 @@ public class EntryController {
             request.getSession().removeAttribute("errorNoty");
         }
         if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
         }
         /**/
         model.addObject("errorNoty", errorNoty);
@@ -284,7 +291,8 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
+         */
+        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
         model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/tradingview");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -297,17 +305,17 @@ public class EntryController {
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
-                    .filter(p->p.getPercent().compareTo(BigDecimal.ZERO) > 0)
+                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
                     .collect(Collectors.toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
         }
-        if (currencyPair != null){
+        if (currencyPair != null) {
             currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p-> p.getName().equals(currencyPair))
+                    .filter(p -> p.getName().equals(currencyPair))
                     .limit(1)
-                    .forEach(p-> model.addObject("preferedCurrencyPairName", currencyPair));
+                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
 
         return model;
@@ -489,7 +497,7 @@ public class EntryController {
         try {
             int userId = userService.getIdByEmail(principal.getName());
             Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
-            settingsMap.forEach((k,v) -> {
+            settingsMap.forEach((k, v) -> {
                 Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
                 if (notificatorId.equals(0)) {
                     notificatorId = null;
@@ -530,7 +538,7 @@ public class EntryController {
             if (!((TelegramSubscription) subscription).getSubscriptionState().isBeginState()) {
                 throw new IllegalStateException();
             }
-            dto.setCode(((TelegramSubscription)subscription).getCode());
+            dto.setCode(((TelegramSubscription) subscription).getCode());
         }
         return dto;
     }
@@ -596,8 +604,10 @@ public class EntryController {
         int roleId = userService.getUserRoleFromSecurityContext().getRole();
         BigDecimal feePercent = notificatorService.getMessagePrice(id, roleId);
         BigDecimal price = doAction(doAction(subscription.getPrice(), feePercent, ActionType.MULTIPLY_PERCENT), subscription.getPrice(), ActionType.ADD);
-        return new JSONObject(){{put("contact", contact);
-                                 put("price", price);}}.toString();
+        return new JSONObject() {{
+            put("contact", contact);
+            put("price", price);
+        }}.toString();
     }
 
     /*skip resources: img, css, js*/
@@ -617,7 +627,7 @@ public class EntryController {
                         .append(newsId)             //                                  48
                         .append("/")                //                                     /
                         .append(newsVariant)   //      ru
-                                //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
+                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
                         .append("/newstopic.html")  //                                          /newstopic.html
                         .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
                 LOGGER.debug("News content path: " + newsContentPath);
