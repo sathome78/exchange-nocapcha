@@ -374,13 +374,11 @@ public class EntryController {
         return redirectView;
     }
 
-    /*todo move this method from admin controller*/
     @ResponseBody
     @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String submitsettingsPassword(@Valid @ModelAttribute ChangePasswordDto changePasswordDto, BindingResult result,
                                          Principal principal, HttpServletRequest request, HttpServletResponse response) {
-        User user = new User(changePasswordDto);
-        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+        registerFormValidation.validateChangePassword(changePasswordDto, result, localeResolver.resolveLocale(request));
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         User userPrincipal = userService.findByEmail(principal.getName());
         Object message;
@@ -388,12 +386,10 @@ public class EntryController {
             response.setStatus(500);
             message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
         } else {
-            if(bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())){
+            if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
-                updateUserDto.setPassword(user.getConfirmPassword());
-              /*  updateUserDto.setStatus(userPrincipal.getStatus());
-                updateUserDto.setRole(userPrincipal.getRole());*/
-                updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
+                updateUserDto.setPassword(changePasswordDto.getConfirmPassword());
+                updateUserDto.setEmail(principal.getName());
                 userService.update(updateUserDto, localeResolver.resolveLocale(request));
                 message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
                 userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
@@ -405,7 +401,6 @@ public class EntryController {
         return new JSONObject(){{put("message", message);}}.toString();
     }
 
-    /*todo move this method from admin controller*/
     @RequestMapping(value = "settings/changeNickname/submit", method = POST)
     public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
                                                HttpServletRequest request, RedirectAttributes redirectAttributes) {
