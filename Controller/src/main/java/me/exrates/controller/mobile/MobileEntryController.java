@@ -15,6 +15,11 @@ import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.*;
+import me.exrates.security.service.IpBlockingService;
+import me.exrates.service.ApiService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.session.UserSessionService;
@@ -1065,7 +1070,7 @@ public class MobileEntryController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class, InvalidPasswordException.class, InvalidEmailException.class})
     public ApiError methodArgumentNotValidExceptionHandler(HttpServletRequest req, Exception exception) {
-         return new ApiError(INVALID_PARAM_VALUE, req.getRequestURL(), exception);
+        return new ApiError(INVALID_PARAM_VALUE, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
@@ -1104,12 +1109,12 @@ public class MobileEntryController {
     public ApiError uniqueEmailConstraintExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(EXISTING_EMAIL, req.getRequestURL(), exception);
     }
+
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(UniqueNicknameConstraintException.class)
     public ApiError uniqueNicknameConstraintExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(EXISTING_NICKNAME, req.getRequestURL(), exception);
     }
-
 
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

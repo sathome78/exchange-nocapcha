@@ -7,6 +7,8 @@ import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
+import me.exrates.service.OrderService;
+import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
