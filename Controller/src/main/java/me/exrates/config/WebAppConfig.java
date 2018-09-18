@@ -1318,6 +1318,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "IXE", false, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "nerServiceImpl")
+    public EthTokenService nerService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xee5dfb5ddd54ea2fb93b796a8a1b83c3fe38e0e6");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "NER",
+                "NER", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "phiServiceImpl")
     public EthTokenService phiService() {
         List<String> tokensList = new ArrayList<>();
