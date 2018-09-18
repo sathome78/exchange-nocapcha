@@ -15,7 +15,6 @@ import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.*;
-import me.exrates.security.service.IpBlockingService;
 import me.exrates.service.ApiService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.UserFilesService;
