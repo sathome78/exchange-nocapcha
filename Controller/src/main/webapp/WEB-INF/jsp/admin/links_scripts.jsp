@@ -19,8 +19,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
 <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
