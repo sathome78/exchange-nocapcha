@@ -47,7 +47,9 @@
                      data-system-min-sum="${minWithdrawSum}"
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id=".start-withdraw"/>
+                     data-submit-button-id=".start-withdraw"
+                     <c:if test="${!checkingBalance}">disabled</c:if>
+              />
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
@@ -74,13 +76,17 @@
                       </c:if>
                       <br>
                       <span><loc:message code="merchants.commission"/>:</span>
-                      <c:if test="${merchantCurrency.comissionDependsOnDestinationTag}">
-                        <loc:message code="message.comission.dynamic"/>
-                      </c:if>
-                      <c:if test="${!merchantCurrency.comissionDependsOnDestinationTag}">
-                        <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
-                      </c:if>
-
+                      <c:choose>
+                        <c:when test="${merchantCurrency.comissionDependsOnDestinationTag}">
+                          <loc:message code="message.comission.dynamic"/>
+                        </c:when>
+                        <c:when test="${merchantCurrency.specMerchantComission}">
+                          <loc:message code="message.comission.fixed"/>
+                        </c:when>
+                        <c:otherwise>
+                          <span>${merchantCurrency.outputCommission.stripTrailingZeros().toPlainString()}%</span>
+                        </c:otherwise>
+                      </c:choose>
                     </div>
                   </div>
                   <button class="start-withdraw btn btn-primary btn-lg start-button"

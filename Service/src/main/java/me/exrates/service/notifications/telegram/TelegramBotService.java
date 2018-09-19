@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -41,14 +40,14 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     @PostConstruct
     private void init() {
-        if (!"exrates_local_test_bot".equals(botName)) {
+       /* if (!"exrates_local_test_bot".equals(botName) || !"exrates_test_bot".equals(botName)) {
             TelegramBotsApi botsApi = new TelegramBotsApi();
             try {
                 botsApi.registerBot(this);
             } catch (TelegramApiException e) {
                 log.error("error while initialize bot {}", e);
             }
-        }
+        }*/
     }
 
     public void sendMessage(Long chatId, String text) {

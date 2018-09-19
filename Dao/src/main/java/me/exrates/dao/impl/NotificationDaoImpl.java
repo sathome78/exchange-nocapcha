@@ -6,6 +6,7 @@ import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class NotificationDaoImpl implements NotificationDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     private final RowMapper<NotificationOption> notificationOptionRowMapper = (resultSet, row) -> {
@@ -134,13 +136,13 @@ public class NotificationDaoImpl implements NotificationDao {
 
     @Override
     public void updateNotificationOptions(List<NotificationOption> options) {
-        String sql = "UPDATE NOTIFICATION_OPTIONS SET send_notification = :send_notification, send_email = :send_email " +
+        String sql = "UPDATE NOTIFICATION_OPTIONS SET /*send_notification = :send_notification,*/ send_email = :send_email " +
                 " WHERE notification_event_id = :notification_event_id AND user_id = :user_id ";
         Map<String, Object>[] batchValues = options.stream().map(option -> {
             Map<String, Object> optionValues = new HashMap<String, Object>() {{
                 put("notification_event_id", option.getEvent().getEventType());
                 put("user_id", option.getUserId());
-                put("send_notification", option.isSendNotification());
+                /*put("send_notification", option.isSendNotification());*/
                 put("send_email", option.isSendEmail());
             }};
             return optionValues;

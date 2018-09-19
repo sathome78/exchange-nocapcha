@@ -33,9 +33,14 @@
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-    <%----------%>
+    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
@@ -55,7 +60,10 @@
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/alert-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/lib/jquery-datatables/jquery.dataTables.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/settings/api-settings.js'/>"></script>
     <link href="<c:url value='/client/css/timer.css'/>" rel="stylesheet">
+    <%@include file="../tools/newCapchaScripts.jsp" %>
 
 </head>
 <body>
@@ -77,6 +85,9 @@
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="tabIdx">${tabIdx}</span>
+<c:if test="${activeTabId != null}">
+    <span hidden id="activeTabId">${activeTabId}</span>
+</c:if>
 <c:if test="${message!=null}">
     <label class="alert-danger"><loc:message code="${message}"/></label>
 </c:if>

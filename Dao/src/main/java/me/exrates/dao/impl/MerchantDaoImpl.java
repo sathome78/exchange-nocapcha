@@ -13,6 +13,7 @@ import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -35,6 +36,7 @@ import java.util.*;
 public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
   @Autowired
@@ -49,6 +51,7 @@ public class MerchantDaoImpl implements MerchantDao {
     dto.setCurrencyId(rs.getInt("currency_id"));
     dto.setMerchantId(rs.getInt("merchant_id"));
     dto.setCurrencyName(rs.getString("currency_name"));
+    dto.setCurrencyDescription(rs.getString("currency_description"));
     dto.setMerchantName(rs.getString("merchant_name"));
     dto.setTitleCode(rs.getString("title"));
 
@@ -455,7 +458,8 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Override
   public Optional<CoreWalletDto> retrieveCoreWalletByMerchantName(String merchantName) {
-    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, " +
+            "c.name AS currency_name, c.description AS currency_description, ccw.title_code AS title " +
             "FROM CRYPTO_CORE_WALLET ccw " +
             "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
             "  JOIN CURRENCY c ON ccw.currency_id = c.id " +
@@ -469,7 +473,8 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Override
   public List<CoreWalletDto> retrieveCoreWallets() {
-    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, c.name AS currency_name, ccw.title_code AS title " +
+    String sql = "SELECT ccw.id, ccw.merchant_id, ccw.currency_id, m.name AS merchant_name, " +
+            " c.name AS currency_name, c.description AS currency_description, ccw.title_code AS title " +
             "FROM CRYPTO_CORE_WALLET ccw " +
             "  JOIN MERCHANT m ON ccw.merchant_id = m.id " +
             "  JOIN CURRENCY c ON ccw.currency_id = c.id " +

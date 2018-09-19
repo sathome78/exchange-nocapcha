@@ -13,6 +13,7 @@ import me.exrates.model.vo.PaginationWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -32,6 +33,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
   private static final Logger log = LogManager.getLogger("inputoutput");
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -46,7 +48,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
       Locale locale) {
     String sql = " SELECT " +
         "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
-        "    CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
+        "    CURRENCY.name as currency, TRANSACTION.amount, " +
+        "    IF (WITHDRAW_REQUEST.id IS NOT NULL, (WITHDRAW_REQUEST.commission + WITHDRAW_REQUEST.merchant_commission), TRANSACTION.commission_amount) AS commission_amount, " +
         "    MERCHANT.name AS merchant,  " +
         "    TRANSACTION.source_type AS source_type, " +
         "    OPERATION_TYPE.name as operation_type, TRANSACTION.id AS transaction_id, " +
@@ -107,7 +110,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "  UNION " +
         "  (SELECT " +
         "     WR.date_creation, " +
-        "     CUR.name, WR.amount, WR.commission, " +
+        "     CUR.name, WR.amount, WR.commission + WR.merchant_commission, " +
         "     M.name, " +
         "     'WITHDRAW', " +
         "     'withdraw', NULL, " +

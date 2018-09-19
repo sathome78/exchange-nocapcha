@@ -8,7 +8,10 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -203,11 +206,11 @@ public class WithdrawServiceImpl implements WithdrawService {
       if (merchant instanceof IWithdrawable) {
           IWithdrawable merchantService = (IWithdrawable) merchant;
           e.setAdditionalTagForWithdrawAddressIsUsed(merchantService.additionalTagForWithdrawAddressIsUsed());
+          e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
               e.setMainAddress(merchantService.getMainAddress());
               e.setAdditionalFieldName(merchantService.additionalWithdrawFieldName());
               e.setComissionDependsOnDestinationTag(merchantService.comissionDependsOnDestinationTag());
-              e.setSpecMerchantComission(merchantService.specificWithdrawMerchantCommissionCountNeeded());
           }
       }
     });
@@ -647,6 +650,23 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   public List<Integer> getWithdrawalStatistic(String startDate, String endDate) {
     return withdrawRequestDao.getWithdrawalStatistic(startDate, endDate);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public WithdrawRequestInfoDto getWithdrawalInfo(Integer id, Locale locale) {
+    WithdrawRequestInfoDto infoDto = withdrawRequestDao.findWithdrawInfo(id);
+    String notificationMessageCode = "merchants.withdrawNotification.".concat(infoDto.getStatusEnum().name());
+    final Object[] messageParams = {
+            infoDto.getRequestId(),
+            infoDto.getMerchantDescription(),
+            infoDto.getDelaySeconds()
+    };
+    final String notification = messageSource
+            .getMessage(notificationMessageCode, messageParams, locale);
+    infoDto.setMessage(notification);
+    infoDto.calculateFinalAmount();
+    return infoDto;
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

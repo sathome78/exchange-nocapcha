@@ -4,6 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
+import me.exrates.service.waves.WavesService;
+import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -34,6 +36,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/atb_wallet.properties",
                 "ATB", "ATB", 10, 20, false);
     }
+
     @Bean(name = "bitcoinCashServiceImpl")
     public BitcoinService bchService() {
         return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
@@ -111,6 +114,7 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/bca_wallet.properties",
                 "BitcoinAtom", "BCA", 4, 20, false);
     }
+
     @Bean(name = "btcpServiceImpl")
     public BitcoinService btcpService() {
         return new BitcoinServiceImpl("merchants/btcp_wallet.properties",
@@ -159,6 +163,66 @@ public class CryptocurrencyConfig {
                 "FGC", "FGC", 4, 20, false, false);
     }
 
+    @Bean(name = "bclServiceImpl")
+    public BitcoinService bitcoinCleanService() {
+        return new BitcoinServiceImpl("merchants/bcl_wallet.properties",
+                "BitcoinClean", "BCL", 4, 20, false);
+    }
+
+    @Bean(name = "brecoServiceImpl")
+    public BitcoinService brecoService() {
+        return new BitcoinServiceImpl("merchants/breco_wallet.properties",
+                "BRECO", "BRECO", 4, 20, false,
+                false, true, true);
+    }
+
+    @Bean(name = "ftoServiceImpl")
+    public BitcoinService ftoService() {
+        return new BitcoinServiceImpl("merchants/fto_wallet.properties",
+                "FTO", "FTO", 4, 20, false, false);
+    }
+
+    @Bean(name = "sabrServiceImpl")
+    public BitcoinService sabrService() {
+        return new BitcoinServiceImpl("merchants/sabr_wallet.properties",
+                "SABR", "SABR", 4, 20, false, false);
+    }
+
+    @Bean(name = "eqlServiceImpl")
+    public BitcoinService eqlService() {
+        return new BitcoinServiceImpl("merchants/eql_wallet.properties",
+                "EQL", "EQL", 4, 20, false);
+    }
+
+    @Bean(name = "lbtcServiceImpl")
+    public BitcoinService lbtcService() {
+        return new BitcoinServiceImpl("merchants/lbtc_wallet.properties",
+                "LBTC", "LBTC", 4, 20, false);
+    }
+
+    @Bean(name = "brbServiceImpl")
+    public BitcoinService brbService() {
+        return new BitcoinServiceImpl("merchants/brb_wallet.properties",
+                "BRB", "BRB", 4, 20, false, false);
+    }
+
+    @Bean(name = "rizServiceImpl")
+    public BitcoinService rizService() {
+        return new BitcoinServiceImpl("merchants/riz_wallet.properties",
+                "RIZ", "RIZ", 4, 20, false);
+    }
+
+    @Bean(name = "sicServiceImpl")
+    public BitcoinService sicService() {
+        return new BitcoinServiceImpl("merchants/sic_wallet.properties", "SIC", "SIC", 4, 20, false, false);
+    }
+
+    @Bean(name = "clxServiceImpl")
+    public BitcoinService clxService() {
+        return new BitcoinServiceImpl("merchants/clx_wallet.properties",
+                "CLX", "CLX", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
 
 
@@ -197,6 +261,19 @@ public class CryptocurrencyConfig {
     @Scope("prototype")
     public LiskSpecialMethodService arkSendTxService() {
         return new ArkSpecialMethodServiceImpl("merchants/ark.properties");
+    }
+
+
+    // WAVES-like
+
+    @Bean(name = "wavesServiceImpl")
+    public WavesService wavesService() {
+        return new WavesServiceImpl("WAVES", "Waves", "merchants/waves.properties");
+    }
+
+    @Bean(name = "lunesServiceImpl")
+    public WavesService lunesService() {
+        return new WavesServiceImpl("LUNES", "LUNES", "merchants/lunes.properties");
     }
 
 }

@@ -169,6 +169,9 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime3();
+      /*if (merchantService.concatAdditionalToMainAddress()) {
+        ((Map<String, String>) result.get("params")).put("address", merchantService.getMainAddress().concat(request.getAddress()));
+      }*/
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
@@ -217,6 +220,9 @@ public class RefillServiceImpl implements RefillService {
       if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
+      }
+      if (!StringUtils.isEmpty(e.getAddress()) && merchantService.concatAdditionalToMainAddress()) {
+        e.setAddress(merchantService.getMainAddress().concat(e.getAddress()));
       }
     });
     return merchantCurrencies;
@@ -288,7 +294,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  @Transactional
   public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
@@ -929,7 +934,7 @@ public class RefillServiceImpl implements RefillService {
     payment.setMerchant(merchantId);
     payment.setSum(refillDto.getAmount() == null ? 0 : refillDto.getAmount().doubleValue());
     refillDto.setMerchantId(merchantId);
-    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, refillDto.getEmail(), locale)
             .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(
             new RefillRequestParamsDto(refillDto),
@@ -1086,5 +1091,10 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
     return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
   }
 }

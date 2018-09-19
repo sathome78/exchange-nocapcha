@@ -186,6 +186,7 @@
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${servlet-api.version}</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>javax.servlet.jsp.jstl</groupId>
@@ -419,6 +420,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>2.4.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-all</artifactId>
 			<version>1.10.1</version>
@@ -453,13 +460,6 @@
 	<!--</dependencyManagement>-->
 
 	<build>
-		<!--<extensions>
-			<extension>
-				<groupId>kr.motd.maven</groupId>
-				<artifactId>os-maven-plugin</artifactId>
-				<version>1.5.0.Final</version>
-			</extension>
-		</extensions>-->
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -469,24 +469,6 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!--<plugin>
-				<groupId>org.xolstice.maven.plugins</groupId>
-				<artifactId>protobuf-maven-plugin</artifactId>
-				<version>0.5.1</version>
-				<configuration>
-					<protocArtifact>com.google.protobuf:protoc:3.6.0:exe:${os.detected.classifier}</protocArtifact>
-					<pluginId>grpc-java</pluginId>
-					<pluginArtifact>io.grpc:protoc-gen-grpc-java:1.10.1:exe:${os.detected.classifier}</pluginArtifact>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compile</goal>
-							<goal>compile-custom</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>-->
 		</plugins>
 	</build>
 

@@ -58,12 +58,12 @@ public class YandexMoneyRestController {
                 -> new MerchantInternalException(messageSource.getMessage("merchants.authRejected", null, userLocale)));
 
         final CreditsOperation creditsOperation = inputOutputService
-                .prepareCreditsOperation(payment, email)
+                .prepareCreditsOperation(payment, email, userLocale)
                 .orElseThrow(InvalidAmountException::new);
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);
         if (!requestPayment.isPresent()) {
             yandexMoneyService.deletePayment(paymentId);
-            final String message ="merchants.successfulBalanceDeposit";
+            final String message = "merchants.successfulBalanceDeposit";
             return new ResponseEntity<>(messageSource.getMessage(message, merchantService.formatResponseMessage(creditsOperation).values().toArray(), userLocale), HttpStatus.OK);
 
         }

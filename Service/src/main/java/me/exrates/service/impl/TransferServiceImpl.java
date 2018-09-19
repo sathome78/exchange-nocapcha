@@ -5,11 +5,17 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.TransferRequest;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.TransferDto;
+import me.exrates.model.dto.TransferRequestCreateDto;
+import me.exrates.model.dto.TransferRequestFlatDto;
+import me.exrates.model.dto.VoucherAdminTableDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -165,7 +171,7 @@ public class TransferServiceImpl implements TransferService {
           walletService.transferCostsToUser(
               transferRequestCreateDto.getUserId(),
               transferRequestCreateDto.getUserWalletId(),
-              transferRequestCreateDto.getRecipient(),
+              transferRequestCreateDto.getRecipientId(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getCommission(),
               transferRequestCreateDto.getLocale(),

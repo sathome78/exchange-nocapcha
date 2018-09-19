@@ -2,11 +2,11 @@
  * Created by Valk on 27.06.2016.
  */
 
-function InputOutputClass(currentCurrencyPair) {
+function InputOutputClass(currentCurrencyPair, cpData) {
     if (InputOutputClass.__instance) {
         return InputOutputClass.__instance;
     } else if (this === window) {
-        return new InputOutputClass(currentCurrencyPair);
+        return new InputOutputClass(currentCurrencyPair, cpData);
     }
     InputOutputClass.__instance = this;
     /**/
@@ -18,9 +18,11 @@ function InputOutputClass(currentCurrencyPair) {
     var showLog = false;
     /**/
     var $inputoutputContainer = $('#inputoutput');
+    const modalTemplate = $('.paymentInfo p');
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
+    const $withdrawParamsDialog = $('#dialog-withdraw-info');
 
     var unconfirmedRefillsTableSize = 15;
     var $pagination = $('#unconfirmed-pagination');
@@ -57,7 +59,11 @@ function InputOutputClass(currentCurrencyPair) {
     }
 
     this.syncCurrencyPairSelector = function () {
-        inputoutputCurrencyPairSelector.syncState();
+        if (inputoutputCurrencyPairSelector) {
+            inputoutputCurrencyPairSelector.syncState('ALL', function () {
+                that.updateAndShowAll(currentCurrencyPair);
+            });
+        }
     };
 
     this.updateAndShowAll = function (refreshIfNeeded) {
@@ -132,11 +138,14 @@ function InputOutputClass(currentCurrencyPair) {
 
 
     /*=====================================================*/
-    (function init(currentCurrencyPair) {
+    (function init(currentCurrencyPair, cpData) {
         if (currentCurrencyPair) {
-            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair);
-            inputoutputCurrencyPairSelector.init(onCurrencyPairChange);
+            inputoutputCurrencyPairSelector = new CurrencyPairSelectorClass('inputoutput-currency-pair-selector', currentCurrencyPair, cpData);
+            inputoutputCurrencyPairSelector.init(onCurrencyPairChange(), 'ALL');
         }
+
+        var currentClicked;
+        var currentClickedTr;
 
         /**/
         syncTableParams(tableId, tablePageSize, function (data) {
@@ -152,7 +161,88 @@ function InputOutputClass(currentCurrencyPair) {
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
 
+        $('#inputoutput-table').on('click', 'button', function (e) {
+                console.log('click button');
+            })
+            .on('click', function (e) {
+                e.stopPropagation();
+                console.log('click on');
+        });
+
+        $('#inputoutput-table').on('click', 'tr[data-type=Output].in_out_row', function (e) {
+            if (currentClicked !== undefined) {
+                currentClicked = undefined;
+                return;
+            }
+           showWithdraw(this);
+        });
+
+        $('#inputoutput-table').on('click', 'tr[data-type=withdraw].in_out_row', function (e) {
+            if (currentClicked !== undefined) {
+                currentClicked = undefined;
+                return;
+            }
+            showWithdraw(this);
+        });
+
+        function showWithdraw(object) {
+            var id = $(object).data("id");
+            $.ajax({
+                url: '/withdraw/info?requestId=' + id,
+                type: 'GET',
+                success: function (data) {
+                    showWithdrawDialogAfterCreation(data)
+                }
+            });
+        }
+
+        function showWithdrawDialogAfterCreation(data) {
+            $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').show();
+            $withdrawParamsDialog.find('#message').show();
+            $withdrawParamsDialog.find('#message').html(data.message ? data.message : '');
+            fillModalWindow(data);
+            $withdrawParamsDialog.modal();
+        }
+
+        function fillModalWindow(data) {
+                var templateVariables = {
+                    amount: '__amount',
+                    currency: '__currency',
+                    merchant: '__merchant',
+                    percent: '__percent'
+                };
+                var newHTMLElements = [];
+                modalTemplate.slice().each(function (index, val) {
+                    newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+                });
+                newHTMLElements[0] = newHTMLElements[0]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.amountStr + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.merchant, "<span class='modal-merchant'>" + data.merchantName + "</span>");
+                newHTMLElements[1] = newHTMLElements[1]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.comissionAmountStr + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'></span>");
+                newHTMLElements[2] = newHTMLElements[2]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.merchantComissionAmountStr + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'></span>");
+                newHTMLElements[3] = newHTMLElements[3]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.finalAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>");
+                newHTMLElements[4] = newHTMLElements[4]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + data.totalFee + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + data.currencyName + "</span>");
+                var newHTML = '';
+                $.each(newHTMLElements, function (index) {
+                    newHTML += newHTMLElements[index];
+                });
+                $('.paymentInfo').html(newHTML);
+                $('.merchantError').hide();
+        }
+
         $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
+            currentClicked = e;
             e.preventDefault();
             var id = $(this).data("id");
             var $modal = $("#confirm-with-info-modal");
@@ -263,7 +353,7 @@ function InputOutputClass(currentCurrencyPair) {
             initUnconfirmedRefillHistoryTable();
         }
 
-    })(currentCurrencyPair);
+    })(currentCurrencyPair, cpData);
 
     function fillUnconfirmedRefillsTable($unconfirmedRefillsTable, data) {
         var $tmpl = $('#unconfirmed-refills-table-row').html().replace(/@/g, '%');

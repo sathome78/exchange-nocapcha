@@ -22,6 +22,16 @@
             </div>
         </div>
         <h4 class="h4_green"><loc:message code="mywallets.abalance"/></h4>
+        &#160;
+            <span class="glyphicon glyphicon-search"></span>
+            <input id="my-wallets-filter" size="20%" onkeyup="setMyWalletsFilter()"
+                   placeholder=<loc:message code="currency.search"/>>
+        <div class="parent">
+            <div class="total_usd_child">
+                <label for="exclude-zero-statbalances"><loc:message code="userWallets.excludeZero"/></label>
+            </div>
+            <input type='checkbox' id='exclude-zero-statbalances'>
+        </div>
         <hr class="under_h4">
         <div class="parent">
             <div class="total_usd_child">
@@ -46,7 +56,7 @@
                             <span class="text-muted"><@=description@></span>
                         </td>
                         <td class="right balanceTotal_<@=currencyName@>"><@=(Math.trunc(totalBalance * Math.pow(10, 5)) / Math.pow(10, 5)).toFixed(5)@></td>
-                        <td class="right balance_<@=currencyName@>" hidden><@=activeBalance@></td>
+                        <td class="right balance_<@=currencyName@>"><@=activeBalance@></td>
                         <td class="right balanceCut_<@=currencyName@>"><@=(Math.trunc(activeBalance * Math.pow(10, 5)) / Math.pow(10, 5)).toFixed(5)@></td>
                     </tr>
                 </script>

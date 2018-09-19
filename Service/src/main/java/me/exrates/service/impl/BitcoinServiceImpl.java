@@ -7,7 +7,10 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
@@ -19,6 +22,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -75,6 +79,8 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private Boolean supportWalletNotifications;
 
+  private Boolean supportReferenceLine;
+
   private ScheduledExecutorService newTxCheckerScheduler = Executors.newSingleThreadScheduledExecutor();
 
 
@@ -95,6 +101,11 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                             Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, supportWalletNotifications, false);
+  }
+
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications, Boolean supportReferenceLine) {
     Properties props = new Properties();
     try {
       props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
@@ -110,6 +121,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       this.rawTxEnabled = rawTxEnabled;
       this.supportSubtractFee = supportSubtractFee;
       this.supportWalletNotifications = supportWalletNotifications;
+      this.supportReferenceLine = supportReferenceLine;
     } catch (IOException e) {
       log.error(e);
     }
@@ -132,13 +144,13 @@ public class BitcoinServiceImpl implements BitcoinService {
   @PostConstruct
   void startBitcoin() {
     if (nodeEnabled) {
-      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee);
+      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee, supportReferenceLine);
       bitcoinWalletService.initBtcdDaemon(zmqEnabled);
       bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
       if (supportWalletNotifications) {
         bitcoinWalletService.walletFlux().subscribe(this::onPayment);
       } else {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 3, 1, TimeUnit.MINUTES);
       }
       if (supportInstantSend) {
         bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
@@ -497,6 +509,25 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
       });
     });
+  }
+
+  @Override
+  public void scanForUnprocessedTransactions(@Nullable String blockHash) {
+    Merchant merchant = merchantService.findByName(merchantName);
+    Currency currency = currencyService.findByName(currencyName);
+    bitcoinWalletService.listSinceBlockEx(blockHash, merchant.getId(), currency.getId()).forEach(btcPaymentFlatDto -> {
+      try {
+        processBtcPayment(btcPaymentFlatDto);
+      } catch (Exception e) {
+        log.error(e);
+      }
+    });
+    try {
+      onIncomingBlock(bitcoinWalletService.getBlockByHash(bitcoinWalletService.getLastBlockHash()));
+    } catch (Exception e) {
+      log.error(e);
+    }
+
   }
 
   private void checkForNewTransactions() {

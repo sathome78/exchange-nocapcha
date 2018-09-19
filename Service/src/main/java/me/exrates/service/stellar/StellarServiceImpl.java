@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -16,31 +15,23 @@ import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.format.annotation.NumberFormat;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.MemoText;
 import org.stellar.sdk.responses.TransactionResponse;
 
-
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by maks on 06.06.2017.
@@ -148,8 +139,9 @@ public class StellarServiceImpl implements StellarService {
                 new Object[]{ACCOUNT_NAME, destinationTag}, request.getLocale());
         DecimalFormat myFormatter = new DecimalFormat("###.##");
         return new HashMap<String, String>() {{
-            put("address",  myFormatter.format(destinationTag));
+            put("address",  String.valueOf(destinationTag));
             put("message", message);
+            put("qr", ACCOUNT_NAME);
         }};
     }
 
@@ -220,14 +212,34 @@ public class StellarServiceImpl implements StellarService {
     /*must bee only unsigned int = Memo.id - unsigned 64-bit number, MAX_SAFE_INTEGER  memo 0 - 9007199254740991*/
     @Override
     public void checkDestinationTag(String destinationTag) {
-        if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
+        /*if (!(org.apache.commons.lang.math.NumberUtils.isDigits(destinationTag)
                 && Long.valueOf(destinationTag) <= 9007199254740991L)) {
+            throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
+        }*/
+        if (destinationTag.length() > 26) {
             throw new CheckDestinationTagException(DESTINATION_TAG_ERR_MSG, this.additionalWithdrawFieldName());
         }
     }
 
     @Override
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
-        return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
+        Merchant merchant = merchantService.findById(merchantId);
+        switch (merchant.getName()) {
+            case "Stellar" : {
+                return new BigDecimal(0.001).setScale(5, RoundingMode.HALF_UP);
+            }
+            case "SLT" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
+            case "VNT" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
+            case "TERN" : {
+                return new BigDecimal(1).setScale(5, RoundingMode.HALF_UP);
+            }
+            default:
+                return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
+        }
+
     }
 }
