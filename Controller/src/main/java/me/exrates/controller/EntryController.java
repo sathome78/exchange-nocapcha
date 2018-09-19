@@ -59,6 +59,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -170,7 +171,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
                     .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -237,7 +238,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
                     .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -306,7 +307,7 @@ public class EntryController {
             model.addObject("referalPercents", referralService.findAllReferralLevels()
                     .stream()
                     .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
         if (principal == null) {
             request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
@@ -384,7 +385,7 @@ public class EntryController {
         Object message;
         if (result.hasErrors()) {
             response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(toList());
         } else {
             if(bCryptPasswordEncoder.matches(changePasswordDto.getPassword(), userPrincipal.getPassword())) {
                 UpdateUserDto updateUserDto = new UpdateUserDto(userPrincipal.getId());
@@ -442,10 +443,19 @@ public class EntryController {
 
     @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request) {
+                                                  HttpServletRequest request, Principal principal) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
         RedirectView redirectView = new RedirectView("/settings");
-        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
+        int userId = userService.getIdByEmail(principal.getName());
+        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions().
+                stream().
+                map(option ->
+                        {
+                            option.setUserId(userId);
+                            return option;
+                        }
+                ).
+                collect(toList());
         //TODO uncomment after turning notifications on
         /*if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
             redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
