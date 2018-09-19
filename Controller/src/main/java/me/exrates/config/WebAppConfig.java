@@ -208,7 +208,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         log.debug(arguments.stream().collect(Collectors.joining("; ")));
         Properties properties = new Properties();
         try {
-            System.out.println("outer " + isOuterFile + " path " + dbPropertiesFile);
             if (isOuterFile) {
                 properties.load(new FileInputStream(dbPropertiesFile));
             }
@@ -226,7 +225,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlavePassword = properties.getProperty("db.slave.password");
         dbSlaveUrl = properties.getProperty("db.slave.url");
         dbSlaveClassname = properties.getProperty("db.slave.classname");
-        System.out.println("pass " + properties.getProperty("db.master.password"));
     }
 
 
