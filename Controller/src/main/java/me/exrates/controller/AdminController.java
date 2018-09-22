@@ -606,7 +606,8 @@ public class AdminController {
         /*todo remove it; Temporary set null to prevent change role from admin, for security reasons*/
         user.setRole(null);
 
-        user.setConfirmPassword(user.getPassword());
+        /*todo: Temporary commented for security reasons*/
+        /*user.setConfirmPassword(user.getPassword());*/
         if (user.getFinpassword() == null) {
             user.setFinpassword("");
         }
@@ -622,7 +623,8 @@ public class AdminController {
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setEmail(user.getEmail());
-            updateUserDto.setPassword(user.getPassword());
+            /*todo: Temporary commented for security reasons*/
+            /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             /*todo: Temporary commented for security reasons*/
             /*if (currentUserRole == ADMINISTRATOR) {
