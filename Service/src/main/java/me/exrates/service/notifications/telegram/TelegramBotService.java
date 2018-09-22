@@ -44,7 +44,6 @@ public class TelegramBotService  extends TelegramLongPollingBot {
     private void init() {
         if (Stream.of("exrates_local_test_bot", "exrates_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
             log.debug("init telegram bot {}", botName);
-            System.out.println("init telegram bot " + botName);
             TelegramBotsApi botsApi = new TelegramBotsApi();
             try {
                 botsApi.registerBot(this);
