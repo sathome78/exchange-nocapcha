@@ -444,7 +444,8 @@ public class AdminController {
         return result;
     }
 
-    @RequestMapping("/2a8fy7b07dxe44/addUser")
+    /*todo: Temporary commented for security reasons*/
+    /*@RequestMapping("/2a8fy7b07dxe44/addUser")
     public ModelAndView addUser(HttpSession httpSession) {
         ModelAndView model = new ModelAndView();
 
@@ -474,7 +475,7 @@ public class AdminController {
         model.addObject("user", user);
 
         return model;
-    }
+    }*/
 
     @AdminLoggable
     @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
@@ -596,11 +597,15 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-        UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+        /*todo: Temporary commented for security reasons*/
+        /*UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
 
         if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
             return new ModelAndView("403");
-        }
+        }*/
+        /*todo remove it; Temporary set null to prevent change role from admin, for security reasons*/
+        user.setRole(null);
+
         user.setConfirmPassword(user.getPassword());
         if (user.getFinpassword() == null) {
             user.setFinpassword("");
@@ -610,17 +615,19 @@ public class AdminController {
         if (result.hasErrors()) {
             model.setViewName("admin/editUser");
             model.addObject("statusList", UserStatus.values());
-            if (currentUserRole == ADMINISTRATOR) {
+            /*todo: Temporary commented for security reasons*/
+            /*if (currentUserRole == ADMINISTRATOR) {
                 model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
-            }
+            }*/
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setEmail(user.getEmail());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setPhone(user.getPhone());
-            if (currentUserRole == ADMINISTRATOR) {
+            /*todo: Temporary commented for security reasons*/
+            /*if (currentUserRole == ADMINISTRATOR) {
                 updateUserDto.setRole(user.getRole());
-            }
+            }*/
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
