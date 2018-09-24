@@ -46,7 +46,7 @@ public class AdkServiceImpl implements AdkService {
     @PostConstruct
     private void init() {
 
-        initCoreClient();
+        initCoreClient("node_config/node_config_adk.properties", false, false, false);
         initBtcdDaemon();
     }
 
