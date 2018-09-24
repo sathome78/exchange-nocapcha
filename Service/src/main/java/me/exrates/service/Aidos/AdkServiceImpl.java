@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +43,13 @@ public class AdkServiceImpl implements AdkService {
 
     private BtcDaemon btcDaemon;
 
+    @PostConstruct
+    private void init() {
+
+        initCoreClient();
+        initBtcdDaemon();
+    }
+
     public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
         try {
             PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
@@ -61,9 +69,8 @@ public class AdkServiceImpl implements AdkService {
 
     }
 
-    public void initBtcdDaemon(boolean zmqEnabled)  {
+    public void initBtcdDaemon()  {
             btcDaemon = new BtcHttpDaemonImpl(btcdClient);
-
         try {
             btcDaemon.init();
         } catch (Exception e) {
