@@ -36,6 +36,7 @@
 		<spring-messaging.version>4.3.10.RELEASE</spring-messaging.version>
 		<bitcoinj.version>0.14.3</bitcoinj.version>
 		<aspectj.version>1.8.10</aspectj.version>
+		<flyway.version>4.2.0</flyway.version>
 	</properties>
 
 	<dependencies>
@@ -432,17 +433,21 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>3.6.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-tcnative-boringssl-static</artifactId>
-			<version>2.0.12.Final</version>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>${flyway.version}</version>
 		</dependency>
 
-
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>2.0.12.Final</version>
+        </dependency>
 
 	</dependencies>
 
