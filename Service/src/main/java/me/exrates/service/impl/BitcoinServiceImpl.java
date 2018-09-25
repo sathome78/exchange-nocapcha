@@ -49,6 +49,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Autowired
   private MessageSource messageSource;
+
   @Autowired
   private CoreWalletService bitcoinWalletService;
 
