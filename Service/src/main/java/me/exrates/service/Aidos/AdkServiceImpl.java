@@ -14,6 +14,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
 import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
@@ -51,6 +52,8 @@ public class AdkServiceImpl implements AdkService {
     private MerchantService merchantService;
     @Autowired
     private CurrencyService currencyService;
+    @Autowired
+    private RefillService refillService;
 
     @Autowired
     public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource) {
@@ -92,7 +95,9 @@ public class AdkServiceImpl implements AdkService {
                                     .merchantId(merchant.getId())
                                     .currencyId(currency.getId()).build();
                             try {
-                                processPayment(btcPaymentFlatDto);
+                                Map<String, String> map = new HashMap<>();
+                                map.put()
+                                processPayment();
                             } catch (Exception e) {
                                 log.error(e);
                             }
@@ -104,13 +109,18 @@ public class AdkServiceImpl implements AdkService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        String address = params.get("address");
+        String hash = params.get("hash");
+        Currency currency = currencyService.findByName(CURRENCY_NAME);
+        Merchant merchant = merchantService.findByName(MERCHANT_NAME);
+        BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .requestId(dto.getRequestId())
-                .address(dto.getAddress())
-                .amount(dto.getAmount())
-                .currencyId(dto.getCurrencyId())
-                .merchantId(dto.getMerchantId())
-                .merchantTransactionId(dto.getHash())
+                .address(address)
+                .merchantId(merchant.getId())
+                .currencyId(currency.getId())
+                .amount(amount)
+                .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
     }
@@ -155,11 +165,6 @@ public class AdkServiceImpl implements AdkService {
             put("message", message);
             put("qr", address);
         }};
-    }
-
-    @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
     }
 
 
