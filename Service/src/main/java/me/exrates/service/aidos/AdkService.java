@@ -1,12 +1,10 @@
-package me.exrates.service.Aidos;
+package me.exrates.service.aidos;
 
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
-import java.util.Map;
+import java.util.List;
 
 public interface AdkService extends IRefillable, IWithdrawable {
 
@@ -45,4 +43,8 @@ public interface AdkService extends IRefillable, IWithdrawable {
     default Boolean withdrawTransferringConfirmNeeded() {
         return false;
     }
+
+    String getBalance();
+
+    List<BtcTransactionHistoryDto> listAllTransactions();
 }

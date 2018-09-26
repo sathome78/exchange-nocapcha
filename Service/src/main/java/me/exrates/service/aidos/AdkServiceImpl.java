@@ -1,12 +1,9 @@
-package me.exrates.service.Aidos;
+package me.exrates.service.aidos;
 
-import com.neemre.btcdcli4j.core.BitcoindException;
-import com.neemre.btcdcli4j.core.CommunicationException;
-import com.neemre.btcdcli4j.core.client.BtcdClient;
-import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -15,27 +12,20 @@ import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.btcCore.CoreWalletService;
-import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
-import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
-import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.ParamMapUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Log4j2(topic = "adk_log")
 @Service
@@ -45,9 +35,10 @@ public class AdkServiceImpl implements AdkService {
     private final MessageSource messageSource;
     private static final String CURRENCY_NAME = "ADK";
     private static final String MERCHANT_NAME = "ADK";
+    private static final Integer CONFIRAMTION_VALUE = 100000;
 
-    @Autowired
-    private CoreWalletService bitcoinWalletService;
+   /* @Autowired
+    private CoreWalletService bitcoinWalletService;*/
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -64,15 +55,15 @@ public class AdkServiceImpl implements AdkService {
 
 
 
-    @PostConstruct
+   /* @PostConstruct
     private void init() {
         bitcoinWalletService.initCoreClient("node_config/node_config_adk.properties", false, false, false);
         bitcoinWalletService.initBtcdDaemon(false);
         bitcoinWalletService.walletFlux().subscribe(this::onPayment);
 
-     /*   initCoreClient("node_config/node_config_adk.properties", false, false, false);
-        initBtcdDaemon();*/
-    }
+     *//*   initCoreClient("node_config/node_config_adk.properties", false, false, false);
+        initBtcdDaemon();*//*
+    }*/
 
 
     public void onPayment(BtcTransactionDto transactionDto) {
@@ -95,9 +86,11 @@ public class AdkServiceImpl implements AdkService {
                                     .merchantId(merchant.getId())
                                     .currencyId(currency.getId()).build();
                             try {
-                                Map<String, String> map = new HashMap<>();
-                                map.put()
-                                processPayment();
+                                Map<String, String> paramsMap = new HashMap<>();
+                                paramsMap.put("hash", btcPaymentFlatDto.getTxId());
+                                paramsMap.put("address", btcPaymentFlatDto.getAddress());
+                                paramsMap.put("amount", btcPaymentFlatDto.getAmount().toPlainString());
+                                processPayment(paramsMap);
                             } catch (Exception e) {
                                 log.error(e);
                             }
@@ -171,5 +164,37 @@ public class AdkServiceImpl implements AdkService {
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public String getBalance() {
+        return aidosNodeService.getBalance().toPlainString();
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> listAllTransactions() {
+        JSONArray array = aidosNodeService.getAllTransactions();
+        return StreamSupport.stream(array.spliterator(), false)
+                .map(transaction -> dtoMapper((JSONObject) transaction)).collect(Collectors.toList());
+    }
+
+    private BtcTransactionHistoryDto dtoMapper(JSONObject jsonObject) {
+        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+        dto.setAddress(jsonObject.getString("address"));
+        dto.setAmount(jsonObject.getString("amount"));
+        dto.setCategory(jsonObject.getString("category"));
+        dto.setConfirmations(jsonObject.getInt("confirmations"));
+        dto.setTxId("txid");
+        dto.setTime(new Timestamp(jsonObject.getInt("time")).toLocalDateTime());
+
+        return dto;
+    }
+
+    public static String getCurrencyName() {
+        return CURRENCY_NAME;
+    }
+
+    public static String getMerchantName() {
+        return MERCHANT_NAME;
     }
 }

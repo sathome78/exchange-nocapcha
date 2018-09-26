@@ -1,4 +1,4 @@
-package me.exrates.service.Aidos;
+package me.exrates.service.aidos;
 
 
 import lombok.extern.log4j.Log4j2;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -42,14 +43,46 @@ public class AidosNodeServiceImpl implements AidosNodeService {
 
     @Override
     public String generateNewAddress() {
-        System.out.println();
         RequestEntity requestEntity = RequestEntity.post(nodeURI).body(createRequestBody("getnewaddress", "1", EMPTY_PARAMS).toString());
         JSONObject response = makeRequest(requestEntity);
         return response.getString("result");
     }
 
+    @Override
+    public BigDecimal getBalance() {
+        RequestEntity requestEntity = RequestEntity.post(nodeURI).body(createRequestBody("getbalance", "1", EMPTY_PARAMS).toString());
+        JSONObject response = makeRequest(requestEntity);
+        return response.getBigDecimal("result");
+    }
 
-    private JSONObject createRequestBody(String method, String id, String[] params) {
+    @Override
+    public BigDecimal getTransaction(String txId) {
+        RequestEntity requestEntity = RequestEntity.post(nodeURI).body(createRequestBody("gettransaction", "1", new Object[]{txId}).toString());
+        JSONObject response = makeRequest(requestEntity);
+        return response.getBigDecimal("result");
+    }
+
+    @Override
+    public JSONArray getAllTransactions(Integer count, Integer from) {
+        Object[] args = new Object[3];
+        args[0] = "";
+        if (count != null && from != null) {
+            args[1] = count;
+            args[2] = from;
+        }
+        RequestEntity requestEntity = RequestEntity.post(nodeURI).body(createRequestBody("listtransactions", "1", args).toString());
+        JSONObject response = makeRequest(requestEntity);
+        return response.getJSONArray("result");
+    }
+
+
+    @Override
+    public JSONArray getAllTransactions() {
+       return getAllTransactions(null ,null);
+    }
+
+
+    private JSONObject createRequestBody(String method, String id, Object[] params) {
         return new JSONObject() {{
             put("method", method);
             put("id", id);

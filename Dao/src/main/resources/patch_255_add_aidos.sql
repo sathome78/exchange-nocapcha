@@ -65,5 +65,5 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('ADK/USD', 'ADK/BTC'));
 
-INSERT INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
-VALUES ((SELECT id from MERCHANT WHERE name='ADK'), (select id from CURRENCY where name='ADK'), 'adkWallet.title', 'pass123');
+INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'LastBundle'), 'LastScannedBlock', null );
