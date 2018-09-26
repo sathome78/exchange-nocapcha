@@ -1419,8 +1419,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SWM", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "swmServiceImpl")
-    public EthTokenService swmService() {
+    @Bean(name = "bncServiceImpl")
+    public EthTokenService bncService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xef51c9377feb29856e61625caf9390bd0b67ea18");
         return new EthTokenServiceImpl(
