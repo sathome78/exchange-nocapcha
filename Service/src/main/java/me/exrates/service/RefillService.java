@@ -139,4 +139,6 @@ public interface RefillService {
   List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId);
 
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
+
+    void invalidateAddress(String address, Integer merchantId, Integer currencyId);
 }

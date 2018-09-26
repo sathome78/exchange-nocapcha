@@ -1172,6 +1172,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    String sql = "UPDATE REFILL_REQUEST_ADDRESS SET is_valid = FALSE  WHERE address = :address" +
+            " AND merchant_id = :merchant_id AND currency_id = :currency_id";
+    namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }});
+  }
+
+  @Override
   public List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId) {
     String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where currency_id = :currency_id " +
             "AND merchant_id = :merchant_id AND need_transfer = 1" ;

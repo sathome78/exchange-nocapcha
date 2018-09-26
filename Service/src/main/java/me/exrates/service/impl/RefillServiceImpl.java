@@ -1097,4 +1097,9 @@ public class RefillServiceImpl implements RefillService {
   public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
     return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
   }
+
+  @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    refillRequestDao.invalidateAddress(address, merchantId, currencyId);
+  }
 }

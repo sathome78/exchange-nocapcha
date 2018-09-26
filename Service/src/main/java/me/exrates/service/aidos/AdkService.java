@@ -1,6 +1,11 @@
 package me.exrates.service.aidos;
 
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
@@ -44,7 +49,19 @@ public interface AdkService extends IRefillable, IWithdrawable {
         return false;
     }
 
+    Merchant getMerchant();
+
+    Currency getCurrency();
+
+    MerchantService getMerchantService();
+
+    RefillRequestAcceptDto createRequest(BtcTransactionDto transactionDto);
+
+    void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
+
     String getBalance();
 
     List<BtcTransactionHistoryDto> listAllTransactions();
+
+    void unlockWallet(String password);
 }
