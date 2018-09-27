@@ -4,6 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -55,7 +56,7 @@ public interface AdkService extends IRefillable, IWithdrawable {
 
     MerchantService getMerchantService();
 
-    RefillRequestAcceptDto createRequest(BtcTransactionDto transactionDto);
+    RefillRequestAcceptDto createRequest(TxReceivedByAddressFlatDto transactionDto);
 
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 

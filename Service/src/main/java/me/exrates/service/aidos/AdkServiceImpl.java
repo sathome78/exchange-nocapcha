@@ -9,6 +9,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
+import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
@@ -111,16 +112,16 @@ public class AdkServiceImpl implements AdkService {
     }
 
     @Override
-    public RefillRequestAcceptDto createRequest(BtcTransactionDto transactionDto) {
+    public RefillRequestAcceptDto createRequest(TxReceivedByAddressFlatDto transactionDto) {
         if (isTransactionDuplicate(transactionDto.getTxId(), currency.getId(), merchant.getId())) {
             log.error("ADK transaction allready received!!! {}", transactionDto);
             throw new RuntimeException("ADK transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .address(transactionDto.getDetails().get(0).getAddress())
+                .address(transactionDto.getAddress())
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(transactionDto.getDetails().get(0).getAmount())
+                .amount(transactionDto.getAmount())
                 .merchantTransactionId(transactionDto.getTxId())
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
@@ -181,7 +182,6 @@ public class AdkServiceImpl implements AdkService {
         dto.setConfirmations(jsonObject.getInt("confirmations"));
         dto.setTxId("txid");
         dto.setTime(new Timestamp(jsonObject.getInt("time")).toLocalDateTime());
-
         return dto;
     }
 

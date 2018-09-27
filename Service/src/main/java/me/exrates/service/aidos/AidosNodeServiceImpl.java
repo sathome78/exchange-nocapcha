@@ -80,7 +80,6 @@ public class AidosNodeServiceImpl implements AidosNodeService {
                 .post(nodeURI)
                 .body(createRequestBody("gettransaction", "3", new Object[]{txId}).toString());
         JSONObject result = makeRequest(requestEntity).getJSONObject("result");
-        log.info("resp {}", result);
         try {
             return objectMapper.readValue(result.toString(), BtcTransactionDto.class);
         } catch (IOException e) {

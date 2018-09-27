@@ -1,6 +1,8 @@
 package me.exrates.service.aidos;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
@@ -8,24 +10,22 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcTxPaymentDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.RefillService;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Log4j2(topic = "adk_log")
 @Service
@@ -36,6 +36,7 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
     private final AdkService adkService;
     private final MerchantSpecParamsDao specParamsDao;
     private final RefillService refillService;
+    private final ObjectMapper objectMapper;
 
 
     private static final String LAST_BLOCK_PARAM = "LastBundle";
@@ -50,11 +51,12 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
     private ScheduledExecutorService unconfScheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
-    public AdkTransactionsServiceImpl(AidosNodeService aidosNodeService, AdkService adkService, MerchantSpecParamsDao specParamsDao, RefillService refillService) {
+    public AdkTransactionsServiceImpl(AidosNodeService aidosNodeService, AdkService adkService, MerchantSpecParamsDao specParamsDao, RefillService refillService, ObjectMapper objectMapper) {
         this.aidosNodeService = aidosNodeService;
         this.adkService = adkService;
         this.specParamsDao = specParamsDao;
         this.refillService = refillService;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -69,52 +71,46 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
             int offset = 0;
             String lastBundle = loadLastBundle();
             log.info("lastBundle {}", lastBundle);
-            List<String> hashes;
+            List<TxReceivedByAddressFlatDto> transactions;
             do {
-                hashes = getTxHashesToProcess(aidosNodeService.getAllTransactions(TX_SCAN_COUNT, offset));
-                hashes.forEach(p -> {
-                    log.info("hash {}", p);
-                    if (p.equals(lastBundle)) {
-                        return;
+                transactions = objectMapper.readValue(aidosNodeService.getAllTransactions(TX_SCAN_COUNT, offset).toString(), new TypeReference<List<TxReceivedByAddressFlatDto>>(){});
+                if (!transactions.isEmpty()) {
+                    saveLastBundle(transactions.get(0).getTxId());
+                }
+                transactions.forEach(p -> {
+                    log.info("tx {}", p);
+                    if (p.getTxId().equals(lastBundle)) {
+                        throw new RuntimeException("No new transactions");
                     }
-                    BtcTransactionDto transactionDto = aidosNodeService.getTransaction(p);
+                    BtcTransactionDto transactionDto = aidosNodeService.getTransaction(p.getTxId());
                     log.info("tx dto {}", transactionDto);
-                    RefillRequestAcceptDto requestDto = adkService.createRequest(transactionDto);
-                    refillService.invalidateAddress(requestDto.getAddress(), adkService.getMerchant().getId(), adkService.getCurrency().getId());
-                    if (transactionDto.getConfirmations().equals(CONFIRMATION_VALUE)) {
-                        processTransaction(transactionDto);
-                    } else {
-                        adkService.putOnBchExam(requestDto);
+                    if (p.getCategory().equals(RECEIVE_CATEGORY_VALUE) && transactionDto.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+                        RefillRequestAcceptDto requestDto = adkService.createRequest(p);
+                        refillService.invalidateAddress(requestDto.getAddress(), adkService.getMerchant().getId(), adkService.getCurrency().getId());
+                        if (p.getConfirmations().equals(CONFIRMATION_VALUE)) {
+                            processTransaction(p);
+                        } else {
+                            adkService.putOnBchExam(requestDto);
+                        }
                     }
-                    saveLastBundle(p);
                 });
                 offset += TX_SCAN_COUNT;
-            } while (hashes.size() < TX_SCAN_COUNT);
+            } while (transactions.size() >= TX_SCAN_COUNT);
         } catch (Exception e) {
             log.error(e);
         }
     }
 
-    private List<String> getTxHashesToProcess(JSONArray array) {
-        log.info("transactions {}", array);
-        return StreamSupport.stream(array.spliterator(), false)
-                .map(JSONObject.class::cast)
-                .filter(tx -> tx.getString("category").equals(RECEIVE_CATEGORY_VALUE))
-                .map(tx -> tx.getString("txid"))
-                .collect(Collectors.toList());
-    }
-
-    private void processTransaction(BtcTransactionDto transactionDto) {
-        BtcTxPaymentDto paymentFlatDto = transactionDto.getDetails().get(0);
-        Preconditions.checkArgument(paymentFlatDto.getCategory().equals(RECEIVE_CATEGORY_VALUE));
-        processTransaction(paymentFlatDto.getAddress(), transactionDto.getTxId(), paymentFlatDto.getAmount().toPlainString());
+    private void processTransaction(TxReceivedByAddressFlatDto dto) {
+        Preconditions.checkArgument(dto.getCategory().equals(RECEIVE_CATEGORY_VALUE));
+        processTransaction(dto.getAddress(), dto.getTxId(), dto.getAmount().toString());
     }
 
     private void processTransaction(String address, String hash, String amount) {
         try {
             Map<String, String> paramsMap = new HashMap<>();
-            paramsMap.put("hash", address);
-            paramsMap.put("address", hash);
+            paramsMap.put("hash", hash);
+            paramsMap.put("address", address);
             paramsMap.put("amount", amount);
             adkService.processPayment(paramsMap);
         } catch (Exception e) {
@@ -145,7 +141,6 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
     private boolean isTransactionConfirmed(String txHash) {
         return aidosNodeService.getTransaction(txHash).getConfirmations().equals(CONFIRMATION_VALUE);
     }
-
 
     private void saveLastBundle(String bundle) {
         specParamsDao.updateParam(MERCHANT_NAME, LAST_BLOCK_PARAM, bundle);
