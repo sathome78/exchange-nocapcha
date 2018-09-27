@@ -9,13 +9,13 @@ $(function () {
     var merchantName = $('#merchantName').text();
     var $copyAddressButton = $('#copy-address');
     $copyAddressButton.hide();
-    urlBase = '/2a8fy7b07dxe44/adkWallet/';
+    urlBase = '/2a8fy7b07dxe44/adkWallet';
 
 
     updateTxHistoryTable();
-    retrieveFee();
+    /*retrieveFee();*/
     checkSendBtcFormFields();
-    refreshSubtractFeeStatus();
+   /*refreshSubtractFeeStatus();*/
 
     $('#addPayment').click(function (e) {
         e.preventDefault();
@@ -138,7 +138,7 @@ $(function () {
         })
 
     });
-    $('#subtract-fee-from-amount').on('click', 'i', setSubtractFeeStatus);
+    /*$('#subtract-fee-from-amount').on('click', 'i', setSubtractFeeStatus);*/
 
     $('#submit-raw-tx').click(function () {
         var confirmButton = this;
@@ -229,7 +229,7 @@ function resetForm() {
     $($payments).empty();
     $payments.append($initialPayment);
     $('#send-btc-form')[0].reset();
-    retrieveFee();
+   /* retrieveFee();*/
     checkSendBtcFormFields();
 }
 
@@ -261,7 +261,7 @@ function fillConfirmModal() {
 function updateTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');
     var viewMessage = $('#viewMessage').text();
-    var url = urlBase + 'transactions';
+    var url = urlBase + '/transactions';
 
     if ($.fn.dataTable.isDataTable('#txHistory')) {
         txHistoryDataTable = $($txHistoryTable).DataTable();
@@ -364,37 +364,11 @@ function updateTxHistoryTable() {
         });}
 }
 
-function retrieveFee() {
-    $.get(urlBase + 'estimatedFee', function (data) {
-        $('#input-fee').val(data);
-    });
-    $.get(urlBase + 'actualFee', function (data) {
-        $('#input-fee-actual').val(data);
-        $('#fee-rate-raw').val(data);
-    })
-}
-
-function updateTxFee(feeRate) {
-    var data = {
-        fee: feeRate
-    };
-    return $.ajax(urlBase + 'setFee', {
-        headers: {
-            'X-CSRF-Token': $("input[name='_csrf']").val()
-        },
-        type: 'POST',
-        data: data,
-        success: function () {
-            retrieveFee();
-        }
-    });
-
-}
 
 function viewTransactionData($elem) {
     var $row = $($elem).parents('tr');
     var rowData = txHistoryDataTable.row($row).data();
-    var url = urlBase + 'transaction/details?currency=' + $('#currencyName').text() +
+    var url = '/2a8fy7b07dxe44/bitcoinWallet/ADK/transaction/details?currency=' + $('#currencyName').text() +
         '&address=' + rowData.address +
         '&hash=' + rowData.txId;
     $.get(url, function (data) {
@@ -442,14 +416,14 @@ function retrieveAddress() {
     })
 }
 
-function refreshSubtractFeeStatus() {
+/*function refreshSubtractFeeStatus() {
     $.get(urlBase + 'getSubtractFeeStatus', function (data) {
         $('#subtract-fee-from-amount').html(data ? '<i class="fa fa-check green"></i>' :
             '<i class="fa fa-close red"></i>');
     })
-}
+}*/
 
-function setSubtractFeeStatus() {
+/*function setSubtractFeeStatus() {
     const $subtractFee = $('#subtract-fee-from-amount').find('i');
     const subtractFeeNewValue = !$($subtractFee).hasClass('green') && $($subtractFee).hasClass('red');
     $.ajax(urlBase + 'setSubtractFee', {
@@ -462,7 +436,7 @@ function setSubtractFeeStatus() {
             refreshSubtractFeeStatus()
         }
     })
-}
+}*/
 
 function serializeBtcPayments() {
     var data = [];

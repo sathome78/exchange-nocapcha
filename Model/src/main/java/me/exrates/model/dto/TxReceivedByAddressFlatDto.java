@@ -22,4 +22,5 @@ public class TxReceivedByAddressFlatDto {
   @JsonProperty(value = "txid")
   private String txId;
   private String category;
+  private String abandoned;
 }

@@ -13,6 +13,7 @@ import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -37,7 +38,7 @@ import java.util.stream.StreamSupport;
 
 @Log4j2(topic = "adk_log")
 @Service
-public class AdkServiceImpl implements AdkService {
+public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
 
     private final AidosNodeService aidosNodeService;
     private final MessageSource messageSource;
@@ -174,13 +175,18 @@ public class AdkServiceImpl implements AdkService {
         Preconditions.checkState(aidosNodeService.unlockWallet(password, SECONDDS_TO_UNLOCK_WALLET), "Wallet unlocking error");
     }
 
+    @Override
+    public String getNewAddressForAdmin() {
+        return aidosNodeService.generateNewAddress();
+    }
+
     private BtcTransactionHistoryDto dtoMapper(JSONObject jsonObject) {
         BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
         dto.setAddress(jsonObject.getString("address"));
-        dto.setAmount(jsonObject.getString("amount"));
+        dto.setAmount(jsonObject.getBigDecimal("amount").toString());
         dto.setCategory(jsonObject.getString("category"));
         dto.setConfirmations(jsonObject.getInt("confirmations"));
-        dto.setTxId("txid");
+        dto.setTxId(jsonObject.getString("txid"));
         dto.setTime(new Timestamp(jsonObject.getInt("time")).toLocalDateTime());
         return dto;
     }

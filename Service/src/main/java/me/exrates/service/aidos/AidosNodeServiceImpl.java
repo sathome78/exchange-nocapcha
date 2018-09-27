@@ -89,16 +89,21 @@ public class AidosNodeServiceImpl implements AidosNodeService {
     }
 
     @Override
+    public JSONArray getAllTransactions() {
+        return getAllTransactions(null ,null);
+    }
+
+    @Override
     public JSONArray getAllTransactions(Integer count, Integer from) {
-        Object[] args = new Object[3];
-        args[0] = "";
+        List<Object> args = new ArrayList<>();
         if (count != null && from != null) {
-            args[1] = count;
-            args[2] = from;
+            args.add("");
+            args.add(count);
+            args.add(from);
         }
         RequestEntity requestEntity = RequestEntity
                 .post(nodeURI)
-                .body(createRequestBody("listtransactions", "4", args).toString());
+                .body(createRequestBody("listtransactions", "4", args.toArray()).toString());
         JSONObject response = makeRequest(requestEntity);
         return response.getJSONArray("result");
     }
@@ -132,12 +137,6 @@ public class AidosNodeServiceImpl implements AidosNodeService {
                 .body(createRequestBody("sendtoaddress", "7", new Object[]{pass, seconds}).toString());
         JSONObject response = makeRequest(requestEntity);
         return response.isNull("error");
-    }
-
-
-    @Override
-    public JSONArray getAllTransactions() {
-       return getAllTransactions(null ,null);
     }
 
     private JSONObject createRequestBody(String method, String id, Object[] params) {

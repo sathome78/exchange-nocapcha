@@ -1252,6 +1252,7 @@ public class AdminController {
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
+    if
     String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
     if (merchantService == null || !(merchantService instanceof BitcoinService)) {
@@ -1275,7 +1276,7 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
-  public ModelAndView adkWallet(@PathVariable String merchantName, Locale locale) {
+  public ModelAndView adkWallet(Locale locale) {
     ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
     modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
     modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
@@ -1284,7 +1285,7 @@ public class AdminController {
     return modelAndView;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/adk/transactions", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet/transactions", method = RequestMethod.GET)
   @ResponseBody
   public List<BtcTransactionHistoryDto> getAdkTransactions() {
     return adkService.listAllTransactions();
@@ -1293,6 +1294,9 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
   @ResponseBody
   public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
+    if (merchantName.equals("ADK")) {
+      return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
     return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
   }
 
@@ -1359,6 +1363,9 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/newAddress", method = RequestMethod.GET)
   @ResponseBody
   public String getNewAddress(@PathVariable String merchantName) {
+    if (merchantName.equals("ADK")) {
+      return adkService.getNewAddressForAdmin();
+    }
     return getBitcoinServiceByMerchantName(merchantName).getNewAddressForAdmin();
   }
 

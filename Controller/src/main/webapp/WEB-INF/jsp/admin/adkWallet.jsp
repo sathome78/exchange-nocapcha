@@ -51,9 +51,6 @@
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
                     <div class="text-center"><h4><loc:message code="btcWallet.history.title"/></h4></div>
-                    <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
-                        <button id="check-payments-btn" class="blue-box"><loc:message code="btcWallet.checkPayment.title"/></button>
-                    </sec:authorize>
 
                     <table id="txHistory">
                         <thead>
@@ -107,7 +104,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="fee-div" class="input-block-wrapper">
+                                      <%--  <div id="fee-div" class="input-block-wrapper">
                                             <div class="col-md-4 input-block-wrapper__label-wrapper">
                                                 <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee" arguments="${currency}"/></label>
                                             </div>
@@ -125,7 +122,7 @@
                                             <div class="col-md-4 input-block-wrapper__input-wrapper">
                                                 <button id="submitChangeFee" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
                                             </div>
-                                        </div>
+                                        </div>--%>
 
 
 
@@ -289,7 +286,7 @@
                             <div class="col-md-12"><ul></ul></div>
 
                         </div>
-                        <div class="row">
+                      <%--  <div class="row">
                             <div class="col-md-3">
                                 <strong><loc:message code="btcWallet.feeRate" arguments="${currency}"/>  </strong>
                             </div>
@@ -302,7 +299,7 @@
                         </div>
                         <div class="row red text-center">
                             <strong><loc:message code="btcWallet.totalFee"/> <span id="fee-amount-raw"></span> ${currency}</strong>
-                        </div>
+                        </div>--%>
 
                     </div>
                     <div class="modal-footer">

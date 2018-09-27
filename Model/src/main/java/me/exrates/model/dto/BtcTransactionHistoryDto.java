@@ -21,6 +21,7 @@ public class BtcTransactionHistoryDto {
   private String blockhash;
   private String fee;
   private Integer confirmations;
+  private String abandoned;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime time;
 }

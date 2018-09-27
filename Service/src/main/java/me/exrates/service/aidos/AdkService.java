@@ -65,4 +65,6 @@ public interface AdkService extends IRefillable, IWithdrawable {
     List<BtcTransactionHistoryDto> listAllTransactions();
 
     void unlockWallet(String password);
+
+    String getNewAddressForAdmin();
 }
