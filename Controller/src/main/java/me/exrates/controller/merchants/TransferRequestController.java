@@ -4,16 +4,21 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.User;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
+import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.exception.PinCodeCheckNeedException;
+import me.exrates.security.service.SecureService;
+import me.exrates.security.service.SecureServiceImpl;
 import me.exrates.controller.exception.RequestsLimitExceedException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
 import me.exrates.model.Payment;
-import me.exrates.model.User;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.VoucherFilterData;
-import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -22,15 +27,13 @@ import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.security.exception.IncorrectPinException;
-import me.exrates.security.exception.PinCodeCheckNeedException;
-import me.exrates.security.service.SecureService;
 import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.InvalidNicknameException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -69,56 +72,61 @@ public class TransferRequestController {
     private MessageSource messageSource;
     @Autowired
     private TransferService transferService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private MerchantService merchantService;
-    @Autowired
-    private InputOutputService inputOutputService;
-    @Autowired
-    private LocaleResolver localeResolver;
-    @Autowired
-    private RateLimitService rateLimitService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private SecureService secureServiceImpl;
+  @Autowired
+  private UserService userService;
+  @Autowired
+  private UserOperationService userOperationService;
+  @Autowired
+  private MerchantService merchantService;
+  @Autowired
+  private InputOutputService inputOutputService;
+  @Autowired
+  private LocaleResolver localeResolver;
+  @Autowired
+  private RateLimitService rateLimitService;
+  @Autowired
+  private CurrencyService currencyService;
+  @Autowired
+  private SecureService secureServiceImpl;
 
     private final static String transferRequestCreateDto = "transferRequestCreateDto";
 
-
-    @RequestMapping(value = "/transfer/request/create", method = POST)
-    @ResponseBody
-    public Map<String, Object> createTransferRequest(
-            @RequestBody TransferRequestParamsDto requestParamsDto,
-            Principal principal,
-            HttpServletRequest servletRequest) throws UnsupportedEncodingException {
-        Locale locale = localeResolver.resolveLocale(servletRequest);
-        if (requestParamsDto.getOperationType() != USER_TRANSFER) {
-            throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
-        }
-        if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
-            throw new IllegalArgumentException(messageSource.getMessage(
-                    "message.only.latin.symblos", null, locale));
-        }
-        TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
-        Payment payment = new Payment(requestParamsDto.getOperationType());
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
-        payment.setRecipient(requestParamsDto.getRecipient());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
-                .orElseThrow(InvalidAmountException::new);
-        TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-        try {
-            secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
-                    NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
-        } catch (PinCodeCheckNeedException e) {
-            servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
-            throw e;
-        }
-        return transferService.createTransferRequest(transferRequest);
+  @RequestMapping(value = "/transfer/request/create", method = POST)
+  @ResponseBody
+  public Map<String, Object> createTransferRequest(
+      @RequestBody TransferRequestParamsDto requestParamsDto,
+      Principal principal,
+      HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+    Locale locale = localeResolver.resolveLocale(servletRequest);
+    if (requestParamsDto.getOperationType() != USER_TRANSFER) {
+      throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
+    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.TRANSFER);
+    if(!accessToOperationForUser) {
+      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
+    }
+    if (requestParamsDto.getRecipient() != null && CharUtils.isCyrillic(requestParamsDto.getRecipient())) {
+      throw new IllegalArgumentException(messageSource.getMessage(
+              "message.only.latin.symblos", null, locale));
+    }
+    TransferStatusEnum beginStatus = (TransferStatusEnum) TransferStatusEnum.getBeginState();
+    Payment payment = new Payment(requestParamsDto.getOperationType());
+    payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
+    payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
+    payment.setRecipient(requestParamsDto.getRecipient());
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
+        .orElseThrow(InvalidAmountException::new);
+    TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
+    try {
+      secureServiceImpl.checkEventAdditionalPin(servletRequest, principal.getName(),
+              NotificationMessageEventEnum.TRANSFER, getAmountWithCurrency(transferRequest));
+    } catch (PinCodeCheckNeedException e) {
+      servletRequest.getSession().setAttribute(transferRequestCreateDto, transferRequest);
+      throw e;
+    }
+    return transferService.createTransferRequest(transferRequest);
+  }
 
     @RequestMapping(value = "/transfer/request/checking", method = POST)
     @ResponseBody
