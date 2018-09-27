@@ -714,7 +714,7 @@ function TradingClass(currentCurrencyPair, orderRoleFilterEnabled, cpData) {
         if (access==="false") {
             errorNoty(errorText);
             return false;
-        }
+        } else return true;
     }
 
     $('#aggree_check').on('click', function () {
