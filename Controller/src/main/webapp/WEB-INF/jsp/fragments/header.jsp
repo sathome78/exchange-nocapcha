@@ -294,7 +294,7 @@
                     <%--</div>--%>
                 <%--</div>--%>
                 <div class="field">
-                    <div class="field__label">Email</div>
+                    <div id="email_label" class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
                     <div id="reg__email_exists" class='field__error' style="display:none">
                         <loc:message code="register.emailExists"/>
