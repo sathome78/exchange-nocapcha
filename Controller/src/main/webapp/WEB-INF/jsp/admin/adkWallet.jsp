@@ -104,28 +104,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                      <%--  <div id="fee-div" class="input-block-wrapper">
-                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                                <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee" arguments="${currency}"/></label>
-                                            </div>
-                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <input id="input-fee" readonly disabled class="input-block-wrapper__input admin-form-input"/>
-                                            </div>
-                                        </div>
-                                        <div class="input-block-wrapper">
-                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                                <label for="input-fee-actual" class="input-block-wrapper__label"><loc:message code="btcWallet.actualFee" arguments="${currency}"/></label>
-                                            </div>
-                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <input id="input-fee-actual" type="number" step="any" class="input-block-wrapper__input admin-form-input"/>
-                                            </div>
-                                            <div class="col-md-4 input-block-wrapper__input-wrapper">
-                                                <button id="submitChangeFee" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
-                                            </div>
-                                        </div>--%>
-
-
-
                                         <div id="btc-wallet-buttons">
                                             <div class="col-md-12">
                                                 <button id="submit-btc" class="delete-order-info__button blue-box"

@@ -1252,7 +1252,6 @@ public class AdminController {
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
-    if
     String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
     IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
     if (merchantService == null || !(merchantService instanceof BitcoinService)) {
@@ -1276,7 +1275,7 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
-  public ModelAndView adkWallet(Locale locale) {
+  public ModelAndView adkWallet() {
     ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
     modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
     modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
@@ -1285,17 +1284,11 @@ public class AdminController {
     return modelAndView;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet/transactions", method = RequestMethod.GET)
-  @ResponseBody
-  public List<BtcTransactionHistoryDto> getAdkTransactions() {
-    return adkService.listAllTransactions();
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
   @ResponseBody
   public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
     if (merchantName.equals("ADK")) {
-      return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+      return adkService.listAllTransactions();
     }
     return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
   }
@@ -1323,6 +1316,9 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/unlock", method = RequestMethod.POST)
   @ResponseBody
   public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
+    if (merchantName.equals("ADK")) {
+      adkService.unlockWallet(password);
+    }
     getBitcoinServiceByMerchantName(merchantName).submitWalletPassword(password);
   }
 

@@ -8,11 +8,8 @@ import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -29,12 +26,16 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collectors.*;
+
 
 @Log4j2(topic = "adk_log")
 @Service
@@ -86,8 +87,6 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
-        Currency currency = currencyService.findByName(CURRENCY_NAME);
-        Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -149,7 +148,7 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     }
 
     @Override
-    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("Not implemented");
     }
 
@@ -161,8 +160,20 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         JSONArray array = aidosNodeService.getAllTransactions();
-        return StreamSupport.stream(array.spliterator(), false)
-                .map(transaction -> dtoMapper((JSONObject) transaction)).collect(Collectors.toList());
+        Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
+                .map(transaction -> dtoMapper((JSONObject) transaction))
+                .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
+        List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
+        map.forEach((k,v) -> {
+                    if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
+                        resultList.add(v.stream().reduce((a,b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
+                                                        new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
+                                                        a.getConfirmations(), a.getTime())).orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
+                    } else {
+                        resultList.addAll(v);
+                    }
+        });
+        return resultList;
     }
 
     @Override
