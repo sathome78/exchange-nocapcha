@@ -1,20 +1,19 @@
 package me.exrates.service.aidos;
 
-import lombok.Synchronized;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
 import java.util.List;
 
-public interface AdkService extends IRefillable, IWithdrawable {
+public interface AdkService extends BitcoinLikeCurrency, IRefillable, IWithdrawable {
 
 
     @Override
@@ -63,12 +62,4 @@ public interface AdkService extends IRefillable, IWithdrawable {
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 
     String getBalance();
-
-    List<BtcTransactionHistoryDto> listAllTransactions();
-
-    void unlockWallet(String password);
-
-    BtcAdminPaymentResponseDto sendManyTransactions(List<BtcWalletPaymentItemDto> payments);
-
-    String getNewAddressForAdmin();
 }

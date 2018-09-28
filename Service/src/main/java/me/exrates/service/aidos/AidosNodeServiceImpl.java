@@ -90,7 +90,7 @@ public class AidosNodeServiceImpl implements AidosNodeService {
 
     @Override
     public JSONArray getAllTransactions() {
-        return getAllTransactions(null ,null);
+        return getAllTransactions(999999999 ,0);
     }
 
     @Override

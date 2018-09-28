@@ -81,16 +81,20 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
                     if (p.getTxId().equals(lastBundle)) {
                         throw new RuntimeException("No new transactions");
                     }
-                    BtcTransactionDto transactionDto = aidosNodeService.getTransaction(p.getTxId());
-                    log.info("tx dto {}", transactionDto);
-                    if (p.getCategory().equals(RECEIVE_CATEGORY_VALUE) && transactionDto.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-                        RefillRequestAcceptDto requestDto = adkService.createRequest(p);
-                        refillService.invalidateAddress(requestDto.getAddress(), adkService.getMerchant().getId(), adkService.getCurrency().getId());
-                        if (p.getConfirmations().equals(CONFIRMATION_VALUE)) {
-                            processTransaction(p);
-                        } else {
-                            adkService.putOnBchExam(requestDto);
+                    try {
+                        BtcTransactionDto transactionDto = aidosNodeService.getTransaction(p.getTxId());
+                        log.info("tx dto {}", transactionDto);
+                        if (p.getCategory().equals(RECEIVE_CATEGORY_VALUE) && transactionDto.getAmount().compareTo(BigDecimal.ZERO) >= 0) {
+                            RefillRequestAcceptDto requestDto = adkService.createRequest(p);
+                            refillService.invalidateAddress(requestDto.getAddress(), adkService.getMerchant().getId(), adkService.getCurrency().getId());
+                            if (p.getConfirmations().equals(CONFIRMATION_VALUE)) {
+                                processTransaction(p);
+                            } else {
+                                adkService.putOnBchExam(requestDto);
+                            }
                         }
+                    } catch (RuntimeException e) {
+                        log.error(e);
                     }
                 });
                 offset += TX_SCAN_COUNT;

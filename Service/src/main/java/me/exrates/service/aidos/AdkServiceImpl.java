@@ -6,15 +6,14 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
+import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
-import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -46,7 +45,7 @@ import static java.util.stream.Collectors.*;
 @Log4j2(topic = "adk_log")
 @PropertySource("classpath:/merchants/adk.properties")
 @Service
-public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
+public class AdkServiceImpl implements AdkService {
 
     private final AidosNodeService aidosNodeService;
     private final MessageSource messageSource;
@@ -167,29 +166,36 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     }
 
     @Override
+    public BtcWalletInfoDto getWalletInfo() {
+        BtcWalletInfoDto walletInfoDto = new BtcWalletInfoDto();
+        walletInfoDto.setBalance(getBalance());
+        return walletInfoDto;
+    }
+
+    @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         JSONArray array = aidosNodeService.getAllTransactions();
-       /* Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
+        Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
         List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
         map.forEach((k,v) -> {
-                    if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
+                    if (v.stream().mapToDouble(p->Double.valueOf(p.getAmount())).sum() < 0) {
                         resultList.add(v.stream().reduce((a,b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
                                                         new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
                                                         a.getConfirmations(), a.getTime())).orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
                     } else {
                         resultList.addAll(v);
                     }
-        });*/
-
-        return StreamSupport.stream(array.spliterator(), false)
+        });
+        return resultList;
+        /*return StreamSupport.stream(array.spliterator(), false)
                 .map(transaction -> dtoMapper((JSONObject) transaction))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
     }
 
     @Override
-    public void unlockWallet(String password) {
+    public void submitWalletPassword(String password) {
         if (password == null || !password.equals(walletPassword)) {
             throw new IncorrectCoreWalletPasswordException("Incorrect password: " + password);
         }
@@ -198,14 +204,11 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
 
     @Synchronized(value = "SEND_MONITOR")
     @Override
-    public BtcAdminPaymentResponseDto sendManyTransactions(List<BtcWalletPaymentItemDto> payments) {
+    public List<BtcPaymentResultDetailedDto> sendToMany(List<BtcWalletPaymentItemDto> payments) {
         JSONObject response = aidosNodeService.sendMany(payments);
         String bundleId = response.getString("result");
         String error = response.optString("error");
-        List<BtcPaymentResultDetailedDto> results = payments.stream().map(p -> new BtcPaymentResultDetailedDto(p.getAddress(), p.getAmount().toPlainString(), bundleId, error)).collect(toList());
-        BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
-        responseDto.setResults(results);
-        return responseDto;
+        return payments.stream().map(p -> new BtcPaymentResultDetailedDto(p.getAddress(), p.getAmount().toPlainString(), bundleId, error)).collect(toList());
     }
 
     @Override

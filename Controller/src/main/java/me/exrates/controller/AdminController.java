@@ -1287,9 +1287,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
   @ResponseBody
   public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
-    if (merchantName.equals("ADK")) {
-      return adkService.listAllTransactions();
-    }
     return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
   }
 
@@ -1316,10 +1313,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/unlock", method = RequestMethod.POST)
   @ResponseBody
   public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
-    if (merchantName.equals("ADK")) {
-      adkService.unlockWallet(password);
-      return;
-    }
     getBitcoinServiceByMerchantName(merchantName).submitWalletPassword(password);
   }
 
@@ -1330,9 +1323,6 @@ public class AdminController {
   public BtcAdminPaymentResponseDto sendToMany(@PathVariable String merchantName,
                                                @RequestBody List<BtcWalletPaymentItemDto> payments, HttpServletRequest request) {
     LOG.debug(payments);
-    if (merchantName.equals("ADK")) {
-      return adkService.sendManyTransactions(payments);
-    }
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
     BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
     responseDto.setResults(walletService.sendToMany(payments));
@@ -1363,9 +1353,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/newAddress", method = RequestMethod.GET)
   @ResponseBody
   public String getNewAddress(@PathVariable String merchantName) {
-    if (merchantName.equals("ADK")) {
-      return adkService.getNewAddressForAdmin();
-    }
     return getBitcoinServiceByMerchantName(merchantName).getNewAddressForAdmin();
   }
 
