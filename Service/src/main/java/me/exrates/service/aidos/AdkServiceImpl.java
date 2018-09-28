@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.*;
@@ -168,7 +169,7 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         JSONArray array = aidosNodeService.getAllTransactions();
-        Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
+       /* Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
         List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
@@ -180,8 +181,11 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
                     } else {
                         resultList.addAll(v);
                     }
-        });
-        return resultList;
+        });*/
+
+        return StreamSupport.stream(array.spliterator(), false)
+                .map(transaction -> dtoMapper((JSONObject) transaction))
+                .collect(Collectors.toList());
     }
 
     @Override
