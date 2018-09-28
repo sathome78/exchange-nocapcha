@@ -113,6 +113,7 @@ public class AidosNodeServiceImpl implements AidosNodeService {
         RequestEntity requestEntity = RequestEntity
                 .post(nodeURI)
                 .body(createRequestBody("sendtoaddress", "5", new Object[]{address, amount}).toString());
+        log.info("send to address {}", requestEntity.getBody());
         JSONObject response = makeRequest(requestEntity);
         return response.getJSONObject("result");
     }
@@ -126,16 +127,19 @@ public class AidosNodeServiceImpl implements AidosNodeService {
         RequestEntity requestEntity = RequestEntity
                 .post(nodeURI)
                 .body(createRequestBody("sendmany", "6", new Object[]{"", convertedPayments}).toString());
+        log.info("send many {}", requestEntity.getBody());
         JSONObject response = makeRequest(requestEntity);
-        return response.getJSONObject("result");
+        log.info("send many response {}", response);
+        return response;
     }
 
     @Override
     public boolean unlockWallet(String pass, int seconds) {
         RequestEntity requestEntity = RequestEntity
                 .post(nodeURI)
-                .body(createRequestBody("sendtoaddress", "7", new Object[]{pass, seconds}).toString());
+                .body(createRequestBody("walletpassphrase", "7", new Object[]{pass, seconds}).toString());
         JSONObject response = makeRequest(requestEntity);
+        log.info("unlock resp {}", response);
         return response.isNull("error");
     }
 

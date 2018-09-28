@@ -1,6 +1,7 @@
 package me.exrates.service.aidos;
 
 import com.google.common.base.Preconditions;
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -10,17 +11,21 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.BitcoinLikeCurrency;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.CoreWalletPasswordNotFoundException;
 import me.exrates.service.exception.IncorrectCoreWalletPasswordException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -38,6 +43,7 @@ import static java.util.stream.Collectors.*;
 
 
 @Log4j2(topic = "adk_log")
+@PropertySource("classpath:/merchants/adk.properties")
 @Service
 public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
 
@@ -52,6 +58,8 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
     private Merchant merchant;
     private Currency currency;
     private static final Integer SECONDDS_TO_UNLOCK_WALLET = 60;
+    private @Value("${wallet.password}") String walletPassword;
+    private static final Object SEND_MONITOR = new Object();
 
     @Autowired
     public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource, MerchantService merchantService, CurrencyService currencyService, RefillService refillService) {
@@ -178,12 +186,22 @@ public class AdkServiceImpl implements AdkService, BitcoinLikeCurrency {
 
     @Override
     public void unlockWallet(String password) {
-        String storedPassword =  merchantService.getCoreWalletPassword(merchant.getName(), currency.getName())
-                .orElseThrow(() -> new CoreWalletPasswordNotFoundException(String.format("pass not found for merchant %s currency %s", merchant.getName(), currency.getName())));
-        if (password == null || !password.equals(storedPassword)) {
+        if (password == null || !password.equals(walletPassword)) {
             throw new IncorrectCoreWalletPasswordException("Incorrect password: " + password);
         }
         Preconditions.checkState(aidosNodeService.unlockWallet(password, SECONDDS_TO_UNLOCK_WALLET), "Wallet unlocking error");
+    }
+
+    @Synchronized(value = "SEND_MONITOR")
+    @Override
+    public BtcAdminPaymentResponseDto sendManyTransactions(List<BtcWalletPaymentItemDto> payments) {
+        JSONObject response = aidosNodeService.sendMany(payments);
+        String bundleId = response.getString("result");
+        String error = response.optString("error");
+        List<BtcPaymentResultDetailedDto> results = payments.stream().map(p -> new BtcPaymentResultDetailedDto(p.getAddress(), p.getAmount().toPlainString(), bundleId, error)).collect(toList());
+        BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
+        responseDto.setResults(results);
+        return responseDto;
     }
 
     @Override

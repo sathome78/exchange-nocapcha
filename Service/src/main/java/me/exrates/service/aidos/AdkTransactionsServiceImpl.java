@@ -44,7 +44,6 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
     private static final String RECEIVE_CATEGORY_VALUE = "receive";
     private static final String MERCHANT_NAME = "ADK";
     private static final Integer TX_SCAN_COUNT = 10;
-    private static final Object SEND_MONITOR = new Object();
 
 
     private ScheduledExecutorService txScheduler = Executors.newScheduledThreadPool(1);
@@ -116,13 +115,6 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
         } catch (Exception e) {
             log.error(e);
         }
-    }
-
-    @Synchronized(value = "SEND_MONITOR")
-    @Override
-    public String sendManyTransactions(List<BtcWalletPaymentItemDto> payments) {
-        JSONObject object = aidosNodeService.sendMany(payments);
-        return "";
     }
 
     private void checkUnconfirmedJob() {

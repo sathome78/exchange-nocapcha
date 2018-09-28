@@ -69,24 +69,6 @@ public class AdkServiceImplTest {
 
     @Test
     public void listAllTransactions() {
-        JSONArray array = new JSONArray(responseData);
-        List<BtcTransactionHistoryDto> dto = StreamSupport.stream(array.spliterator(), false)
-                .map(transaction -> adkService.dtoMapper((JSONObject) transaction))
-                .collect(toList());
-        Map<String, List<BtcTransactionHistoryDto>> map = dto.stream()
-                        .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
-        map.forEach((k,v)-> {
-            System.out.println(k + " " + v.size());
-        });
-        dto = map.entrySet().stream()
-                        .map(e -> e.getValue()
-                                .stream()
-                                .reduce((a,b) -> new BtcTransactionHistoryDto(a.getTxId(), "", a.getCategory() + b.getCategory(),
-                                        new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(), a.getConfirmations(), a.getTime())))
-                        .map(Optional::get)
-                .sorted((f1, f2) -> f2.getTime().compareTo(f1.getTime()))
-                .collect(toList());
-        System.out.println("size " + dto.size());
     }
 
 

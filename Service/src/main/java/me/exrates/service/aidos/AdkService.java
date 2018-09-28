@@ -1,11 +1,13 @@
 package me.exrates.service.aidos;
 
+import lombok.Synchronized;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
+import me.exrates.model.dto.merchants.btc.BtcAdminPaymentResponseDto;
+import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
@@ -32,7 +34,7 @@ public interface AdkService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean generatingAdditionalRefillAddressAvailable() {
-        return false;
+        return true;
     }
 
     @Override
@@ -65,6 +67,8 @@ public interface AdkService extends IRefillable, IWithdrawable {
     List<BtcTransactionHistoryDto> listAllTransactions();
 
     void unlockWallet(String password);
+
+    BtcAdminPaymentResponseDto sendManyTransactions(List<BtcWalletPaymentItemDto> payments);
 
     String getNewAddressForAdmin();
 }

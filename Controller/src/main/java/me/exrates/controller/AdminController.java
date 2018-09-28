@@ -1318,6 +1318,7 @@ public class AdminController {
   public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
     if (merchantName.equals("ADK")) {
       adkService.unlockWallet(password);
+      return;
     }
     getBitcoinServiceByMerchantName(merchantName).submitWalletPassword(password);
   }
@@ -1329,6 +1330,9 @@ public class AdminController {
   public BtcAdminPaymentResponseDto sendToMany(@PathVariable String merchantName,
                                                @RequestBody List<BtcWalletPaymentItemDto> payments, HttpServletRequest request) {
     LOG.debug(payments);
+    if (merchantName.equals("ADK")) {
+      return adkService.sendManyTransactions(payments);
+    }
     BitcoinService walletService = getBitcoinServiceByMerchantName(merchantName);
     BtcAdminPaymentResponseDto responseDto = new BtcAdminPaymentResponseDto();
     responseDto.setResults(walletService.sendToMany(payments));

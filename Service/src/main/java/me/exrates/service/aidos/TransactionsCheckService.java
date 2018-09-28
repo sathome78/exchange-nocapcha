@@ -6,5 +6,5 @@ import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import java.util.List;
 
 public interface TransactionsCheckService {
-    String sendManyTransactions(List<BtcWalletPaymentItemDto> payments);
+
 }
