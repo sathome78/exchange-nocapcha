@@ -73,7 +73,7 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
             List<TxReceivedByAddressFlatDto> transactions;
             do {
                 transactions = objectMapper.readValue(aidosNodeService.getAllTransactions(TX_SCAN_COUNT, offset).toString(), new TypeReference<List<TxReceivedByAddressFlatDto>>(){});
-                if (!transactions.isEmpty()) {
+                if (!transactions.isEmpty() && offset == 0) {
                     saveLastBundle(transactions.get(0).getTxId());
                 }
                 transactions.forEach(p -> {

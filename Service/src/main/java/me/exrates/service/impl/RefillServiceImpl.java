@@ -1024,7 +1024,12 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
-     return refillRequestDao.findAllAddresses(merchantId, currencyId);
+     return this.findAllAddresses(merchantId, currencyId, Collections.singletonList(true));
+  }
+
+  @Override
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses){
+    return refillRequestDao.findAllAddresses(merchantId, currencyId, isValidStatuses);
   }
   
   //TODO remove after changes in mobile api

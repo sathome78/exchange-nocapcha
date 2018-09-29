@@ -30,7 +30,7 @@
                 <h4>${title}</h4>
             </div>
             <div class="row text-center" style="font-size: 1.4rem">
-                <p class="green"><strong><loc:message code="btcWallet.balance"/>
+                <p class="green"><strong><loc:message code="admin.externalWallets.totalWalletBalance"/>
                     <span id="current-btc-balance">${balance}</span> ${currency}</strong></p>
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">

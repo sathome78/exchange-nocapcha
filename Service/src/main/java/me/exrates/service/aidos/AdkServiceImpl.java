@@ -5,9 +5,11 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -33,6 +35,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,20 +178,30 @@ public class AdkServiceImpl implements AdkService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         JSONArray array = aidosNodeService.getAllTransactions();
+        List<String> adresses = refillService.findAllAddresses(merchant.getId(), currency.getId(), Arrays.asList(true, false));
         Map<String, List<BtcTransactionHistoryDto>> map = StreamSupport.stream(array.spliterator(), false)
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
         List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
         map.forEach((k,v) -> {
-                    if (v.stream().mapToDouble(p->Double.valueOf(p.getAmount())).sum() < 0) {
-                        resultList.add(v.stream().reduce((a,b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
-                                                        new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
-                                                        a.getConfirmations(), a.getTime())).orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
+                    if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
+                        List<BtcTransactionHistoryDto> dtos = v.stream().filter(p -> !p.getCategory().equals("send") && adresses.contains(p.getAddress())).collect(toList());
+                        resultList.addAll(dtos);
+                        v.removeAll(dtos);
+                        if (!v.isEmpty()) {
+                            resultList.add(v.stream()
+                                    .reduce((a, b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
+                                            new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
+                                            a.getConfirmations(), a.getTime()))
+                                    .orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
+                        }
                     } else {
                         resultList.addAll(v);
                     }
         });
         return resultList;
+        /* to return list without transformations
+         * */
         /*return StreamSupport.stream(array.spliterator(), false)
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(Collectors.toList());*/
@@ -223,7 +236,7 @@ public class AdkServiceImpl implements AdkService {
         dto.setCategory(jsonObject.getString("category"));
         dto.setConfirmations(jsonObject.getInt("confirmations"));
         dto.setTxId(jsonObject.getString("txid"));
-        dto.setTime(new Timestamp(jsonObject.getInt("time")).toLocalDateTime());
+        dto.setTime(new Timestamp(jsonObject.getLong("time") * 1000L).toLocalDateTime());
         return dto;
     }
 
