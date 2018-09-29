@@ -122,6 +122,7 @@ $(function () {
 
     $('#create-refill').click(function () {
         var formData = $('#createRefillForm').serialize();
+        formData.admin = 'true';
         $.ajax({
             url: urlBase + 'transaction/create',
             type: 'POST',

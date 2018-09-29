@@ -5,20 +5,19 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
+import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.IncorrectCoreWalletPasswordException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
@@ -39,7 +38,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.*;
@@ -96,8 +94,11 @@ public class AdkServiceImpl implements AdkService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        if (!params.containsKey("admin")) {
+            processAdminTransaction(params);
+        }
         String address = params.get("address");
-        String hash = params.get("hash");
+        String hash = params.get("txId");
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
@@ -123,17 +124,17 @@ public class AdkServiceImpl implements AdkService {
     }
 
     @Override
-    public RefillRequestAcceptDto createRequest(TxReceivedByAddressFlatDto transactionDto) {
-        if (isTransactionDuplicate(transactionDto.getTxId(), currency.getId(), merchant.getId())) {
-            log.error("ADK transaction allready received!!! {}", transactionDto);
+    public RefillRequestAcceptDto createRequest(String address, String hash, BigDecimal amount) {
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+            log.error("ADK transaction allready received!!! {}", hash);
             throw new RuntimeException("ADK transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                .address(transactionDto.getAddress())
+                .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(transactionDto.getAmount())
-                .merchantTransactionId(transactionDto.getTxId())
+                .amount(amount)
+                .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
@@ -227,6 +228,21 @@ public class AdkServiceImpl implements AdkService {
     @Override
     public String getNewAddressForAdmin() {
         return aidosNodeService.generateNewAddress();
+    }
+
+    private void processAdminTransaction(Map<String, String> params) {
+        String address = params.get("address");
+        String hash = params.get("txId");
+        BtcTransactionDto transactionDto = aidosNodeService.getTransaction(hash);
+        BigDecimal amount = transactionDto.getDetails().stream().filter(payment -> address.equals(payment.getAddress()))
+                .findFirst().orElseThrow(BtcPaymentNotFoundException::new).getAmount();
+        RefillRequestAcceptDto requestDto = createRequest(address, hash, amount);
+        if (transactionDto.getConfirmations().equals(0)) {
+            putOnBchExam(requestDto);
+            throw new RuntimeException("Transaction on blockchain exam");
+        } else {
+            params.put("amount", amount.toString());
+        }
     }
 
     private BtcTransactionHistoryDto dtoMapper(JSONObject jsonObject) {

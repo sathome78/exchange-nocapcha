@@ -11,6 +11,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface AdkService extends BitcoinLikeCurrency, IRefillable, IWithdrawable {
@@ -57,7 +58,7 @@ public interface AdkService extends BitcoinLikeCurrency, IRefillable, IWithdrawa
 
     MerchantService getMerchantService();
 
-    RefillRequestAcceptDto createRequest(TxReceivedByAddressFlatDto transactionDto);
+    RefillRequestAcceptDto createRequest(String address, String hash, BigDecimal amount);
 
     void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 

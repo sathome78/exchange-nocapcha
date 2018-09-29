@@ -14,6 +14,7 @@ import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.RefillService;
+import me.exrates.service.exception.BtcPaymentNotFoundException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,8 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
         unconfScheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 10, 15, TimeUnit.MINUTES);
     }
 
+
+
     private void checkTransactions() {
         try {
             log.info("start check transactions");
@@ -85,10 +88,10 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
                         BtcTransactionDto transactionDto = aidosNodeService.getTransaction(p.getTxId());
                         log.info("tx dto {}", transactionDto);
                         if (p.getCategory().equals(RECEIVE_CATEGORY_VALUE) && transactionDto.getAmount().compareTo(BigDecimal.ZERO) >= 0) {
-                            RefillRequestAcceptDto requestDto = adkService.createRequest(p);
+                            RefillRequestAcceptDto requestDto = adkService.createRequest(p.getAddress(), p.getTxId(), p.getAmount());
                             refillService.invalidateAddress(requestDto.getAddress(), adkService.getMerchant().getId(), adkService.getCurrency().getId());
                             if (p.getConfirmations().equals(CONFIRMATION_VALUE)) {
-                                processTransaction(p);
+                                processTransaction(p.getAddress(), p.getTxId(), p.getAmount().toString());
                             } else {
                                 adkService.putOnBchExam(requestDto);
                             }
@@ -104,15 +107,10 @@ public class AdkTransactionsServiceImpl implements TransactionsCheckService {
         }
     }
 
-    private void processTransaction(TxReceivedByAddressFlatDto dto) {
-        Preconditions.checkArgument(dto.getCategory().equals(RECEIVE_CATEGORY_VALUE));
-        processTransaction(dto.getAddress(), dto.getTxId(), dto.getAmount().toString());
-    }
-
     private void processTransaction(String address, String hash, String amount) {
         try {
             Map<String, String> paramsMap = new HashMap<>();
-            paramsMap.put("hash", hash);
+            paramsMap.put("txId", hash);
             paramsMap.put("address", address);
             paramsMap.put("amount", amount);
             adkService.processPayment(paramsMap);
