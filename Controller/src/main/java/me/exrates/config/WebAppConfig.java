@@ -1446,7 +1446,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "WTL",
-                "WTL", true, ExConvert.Unit.ETHER);
+                "WTL", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
