@@ -286,7 +286,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
+             <%-- <%@include file="../fragments/admin-settings-user-2fa.jsp" %>--%>
             </div>
           </div>
         </div>

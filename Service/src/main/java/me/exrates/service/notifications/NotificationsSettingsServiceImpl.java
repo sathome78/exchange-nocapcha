@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Maks on 08.10.2017.
@@ -43,7 +44,7 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     public Map<String, Object> get2faOptionsForUser(int userId) {
         Map<String, Object> map = new HashMap<>();
         map.put("notificators", notificatorsService.getAllNotificators());
-        map.put("events", Arrays.asList(NotificationMessageEventEnum.values()));
+        map.put("events", Arrays.stream(NotificationMessageEventEnum.values()).filter(NotificationMessageEventEnum::isChangable).collect(Collectors.toList()));
         map.put("settings", setDefaultSettings(userId, getSettingsMap(userId)));
         map.put("subscriptions", notificatorsService.getSubscriptions(userId));
         return map;

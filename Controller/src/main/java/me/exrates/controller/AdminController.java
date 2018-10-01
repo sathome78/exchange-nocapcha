@@ -493,7 +493,7 @@ public class AdminController {
         }
         model.addObject("roleList", roleList);
 
-        User user = new User();
+        User user;
         if (email != null) {
             email = email.replace(" ", "+");
             user = userService.findByEmail(email);
@@ -522,12 +522,14 @@ public class AdminController {
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
         model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
         model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
-        model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
+      /*model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));*/
         model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
         model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
         return model;
     }
 
+    /*
+     * Commented temporary, for security reasons
     @AdminLoggable
     @RequestMapping("/2a8fy7b07dxe44/editUser/submit2faOptions")
     public RedirectView submitNotificationOptions(@RequestParam int userId, RedirectAttributes redirectAttributes,
@@ -561,7 +563,7 @@ public class AdminController {
             throw e;
         }
         return redirectView;
-    }
+    }*/
 
     @AdminLoggable
     @ResponseBody
