@@ -112,7 +112,7 @@ public class SecureServiceImpl implements SecureService {
 
     @Override
     public PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
-        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
+        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW) || event.equals(NotificationMessageEventEnum.CHANGE_2FA_SETTING));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = determineSettings(settingsService.getByUserAndEvent(userId, event), event.isCanBeDisabled(), userId, event);
         if (setting != null) {

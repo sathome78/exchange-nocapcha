@@ -34,10 +34,10 @@
                                                            data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
                                                         <loc:message code="message.info"/></a>
                                                     </c:if>
-                                                    <c:if test="${notificatorHead.enabled}">
+                                                   <%-- <c:if test="${notificatorHead.enabled}">
                                                     <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
                                                         <loc:message code="notificator.reconnect"/></a>
-                                                    </c:if>
+                                                    </c:if>--%>
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:if><br>${notificatorHead.name}<br>
@@ -66,16 +66,18 @@
                                             <td><input type="radio" name="${event.code}" value="0"
                                                     <c:if test="${not event.canBeDisabled}">disabled</c:if>
                                                     <c:if test="${(settings.get(event.code) == null or settings.get(event.code).notificatorId == null)
-                                                        and event.canBeDisabled}"> CHECKED</c:if>
+                                                        and event.canBeDisabled}">CHECKED</c:if>
                                                 />
-                                                            </td>
+                                            </td>
                                     </tr>
                                 </c:forEach>
                             </tbody>
                         </table>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
-                            <loc:message code="button.update"/></button>
+                        <%--<button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                            <loc:message code="button.update"/></button>--%>
                     </form>
+                <a id="SubmitSessionOptions" class="btn btn-default update_set_button">
+                    <loc:message code="button.update"/></a>
             </div>
         </div>
     </div>
