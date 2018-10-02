@@ -534,9 +534,6 @@ public class EntryController {
                 settingsMap.forEach((k, v) -> {
                     if (NotificationMessageEventEnum.convert(k).isChangable()) {
                         Integer notificatorId = params.get(k);
-                       /* if (notificatorId.equals(0)) {
-                            notificatorId = null;
-                        }*/
                         if (v == null) {
                             NotificationsUserSetting setting = NotificationsUserSetting.builder()
                                     .userId(userId)
@@ -557,7 +554,6 @@ public class EntryController {
                 throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
                         localeResolver.resolveLocale(request)));
             }
-            /*redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");*/
         } else {
             PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
             throw new IncorrectPinException(res);
