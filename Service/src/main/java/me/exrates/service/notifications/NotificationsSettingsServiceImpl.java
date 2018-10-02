@@ -33,6 +33,9 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
 
     @Override
     public void createOrUpdate(NotificationsUserSetting setting) {
+        if (!notificatorsService.getById(setting.getNotificatorId()).isEnabled()) {
+            return;
+        }
         if (getByUserAndEvent(setting.getUserId(), setting.getNotificationMessageEventEnum()) == null) {
             settingsDao.create(setting);
         } else {

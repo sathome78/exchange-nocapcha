@@ -7,7 +7,7 @@ import java.util.stream.Stream;
  */
 public enum NotificationMessageEventEnum {
 
-    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", true, true),
+    LOGIN(1, "message.pincode.forlogin", "message.subj.login.pin", false, true),
     WITHDRAW(2, "message.pincode.forWithdraw", "message.subj.withdraw.pin", false, true),
     TRANSFER(3, "message.pincode.forTransfer", "message.subj.transfer.pin", false, true),
     CHANGE_2FA_SETTING(4, "message.pincode.for2faChange", "message.subj.2fachange.pin", false, false);
