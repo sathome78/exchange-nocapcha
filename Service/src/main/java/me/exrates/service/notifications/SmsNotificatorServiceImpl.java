@@ -217,7 +217,8 @@ public class SmsNotificatorServiceImpl implements NotificatorService, Subscribab
 
     @Override
     public NotificationTypeEnum getNotificationType() {
-        return NotificationTypeEnum.SMS;
+        /*todo uncomment when sms will be enabled*/
+        return /*NotificationTypeEnum.SMS;*/null;
     }
 
     @Transactional

@@ -525,7 +525,6 @@ public class EntryController {
     @RequestMapping("/settings/2FaOptions/change")
     public String submitNotificationOptions(String pin, HttpServletRequest request, Principal principal) {
         Map<Integer, Integer> params = (Map<Integer, Integer>) request.getSession().getAttribute("2fa_newParams");
-
         request.getSession().removeAttribute("2fa_newParams");
         Preconditions.checkArgument(pin.length() > 2 && pin.length() < 15);
         if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
@@ -533,14 +532,11 @@ public class EntryController {
                 int userId = userService.getIdByEmail(principal.getName());
                 Map<Integer, NotificationsUserSetting> settingsMap = settingsService.getSettingsMap(userId);
                 settingsMap.forEach((k, v) -> {
-                    System.out.println(k  + " " + v);
                     if (NotificationMessageEventEnum.convert(k).isChangable()) {
-                        System.out.println("noti " + params.get(k));
                         Integer notificatorId = params.get(k);
-                        System.out.println(" notificator " + notificatorId);
-                        if (notificatorId.equals(0)) {
+                       /* if (notificatorId.equals(0)) {
                             notificatorId = null;
-                        }
+                        }*/
                         if (v == null) {
                             NotificationsUserSetting setting = NotificationsUserSetting.builder()
                                     .userId(userId)
@@ -585,7 +581,7 @@ public class EntryController {
         return dto;
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/preconnect_sms")
     public String preconnectSms(@RequestParam String number, Principal principal, HttpServletRequest request) {
         number = number.replaceAll("\\+", "").replaceAll("\\-", "").replaceAll("\\.", "").replaceAll(" ", "");
@@ -619,7 +615,7 @@ public class EntryController {
                 .userId(userId)
                 .build();
         return subscribable.subscribe(subscriptionDto).toString();
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping("/settings/2FaOptions/connect_telegram")
