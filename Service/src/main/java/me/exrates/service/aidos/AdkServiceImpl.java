@@ -97,9 +97,10 @@ public class AdkServiceImpl implements AdkService {
         return merchantService;
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-        if (!params.containsKey("admin")) {
+        if (params.containsKey("admin")) {
             processAdminTransaction(params);
         }
         String address = params.get("address");
