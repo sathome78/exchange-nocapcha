@@ -38,6 +38,7 @@ import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -104,7 +105,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
-
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
     @Autowired
@@ -113,6 +113,8 @@ public class AdminController {
     private UserSecureService userSecureService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserOperationService userOperationService;
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
@@ -520,8 +522,8 @@ public class AdminController {
     form.setUserId(user.getId());
     form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
     UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
-    userOperationForm.setUserId(user.getId());
-    userOperationForm.setOptions(userService.getUserOperationAuthorityOptions(user.getId(), localeResolver.resolveLocale(request)));
+    userOperationForm.setUserId(id);
+    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
     model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
     model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
@@ -1003,7 +1005,7 @@ public class AdminController {
                                       RedirectAttributes redirectAttributes) {
     RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + userOperationAuthorityOptionsForm.getUserId());
     try {
-      userService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
+      userOperationService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
       return redirectView;
