@@ -28,10 +28,7 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.IllegalOperationTypeException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.InvalidNicknameException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
