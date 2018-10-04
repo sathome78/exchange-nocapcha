@@ -83,9 +83,11 @@
                                 </c:forEach>
                             </tbody>
                         </table>
-                        <button id="submitSessionOptionsButton" type="submit" class="blue-box">
-                            <loc:message code="button.update"/></button>
+                        <%--<button id="submitSessionOptionsButton" type="submit" class="blue-box">
+                            <loc:message code="button.update"/></button>--%>
                     </form>
+                <a id="SubmitSessionOptions" class="btn btn-default update_set_button">
+                    <loc:message code="button.update"/></a>
             </div>
         </div>
     </div>
