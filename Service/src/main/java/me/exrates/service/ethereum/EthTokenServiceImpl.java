@@ -133,7 +133,7 @@ public class EthTokenServiceImpl implements EthTokenService {
                     log.error(e);
                 }
             }
-        }, 3, 12, TimeUnit.MINUTES);
+        }, 3, 10, TimeUnit.MINUTES);
     }
 
     @Override
