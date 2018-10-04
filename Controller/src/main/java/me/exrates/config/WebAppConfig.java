@@ -1419,6 +1419,46 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "SWM", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ticServiceImpl")
+    public EthTokenService ticService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x72430a612adc007c50e3b6946dbb1bb0fd3101d1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TIC",
+                "TIC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "bncServiceImpl")
+    public EthTokenService bncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xef51c9377feb29856e61625caf9390bd0b67ea18");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BNC",
+                "BNC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "wtlServiceImpl")
+    public EthTokenService wtlService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9a0587eae7ef64b2b38a10442a44cfa43edd7d2a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WTL",
+                "WTL", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uDOOServiceImpl")
+    public EthTokenService uDOOService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0df721639ca2f7ff0e1f618b918a65ffb199ac4e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDOO",
+                "uDOO", false, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
