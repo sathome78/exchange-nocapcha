@@ -19,6 +19,7 @@ function SettingsClass() {
     const $telegramSubscrPrice = $('#telegram_subscr_price');
     const $telegramCode = $('#telegram_code');
     const $smsModal = $('#sms_connect_modal');
+    const $googleModal = $('#google_authenticator_modal');
     const $smsNumberError = $('#phone_error');
     const $smsMessagePrice = $('#sms_mssg_price');
     const $smsSubscrPrice = $('#sms_subscr_price');
@@ -137,6 +138,67 @@ function SettingsClass() {
         }
     }
 
+    $('#google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                var form = document.createElement("form");
+                form.setAttribute("method", "POST");
+                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
+                var hiddenField1 = document.createElement("input");
+                     hiddenField1.setAttribute("type", "hidden");
+                     hiddenField1.setAttribute("name", "_csrf");
+                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
+                var hiddenField2 = document.createElement("input");
+                     hiddenField2.setAttribute("type", "hidden");
+                     hiddenField2.setAttribute("name", "connect");
+                     hiddenField2.setAttribute("value", "true");
+                form.appendChild(hiddenField1);
+                form.appendChild(hiddenField2);
+                document.body.appendChild(form);
+                form.submit();
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
+    $('#disconnect_google2fa_send_code_button').on('click', function () {
+        $smsNumberError.text('');
+        var code = $('#disconnect_google2fa_code_input').val();
+        $.ajax({
+            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                var form = document.createElement("form");
+                form.setAttribute("method", "POST");
+                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
+
+                var hiddenField1 = document.createElement("input");
+                     hiddenField1.setAttribute("type", "hidden");
+                     hiddenField1.setAttribute("name", "_csrf");
+                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
+                var hiddenField2 = document.createElement("input");
+                     hiddenField2.setAttribute("type", "hidden");
+                     hiddenField2.setAttribute("name", "connect");
+                     hiddenField2.setAttribute("value", "false");
+                form.appendChild(hiddenField1);
+                form.appendChild(hiddenField2);
+                document.body.appendChild(form);
+                form.submit();
+            },
+            error: function (data) {
+                $smsNumberError.text(data.responseJSON.detail);
+            }
+        });
+    });
+
+
+
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
@@ -214,8 +276,6 @@ function SettingsClass() {
         });
     });
 
-
-
     $('#subscribe_TELEGRAM').on('click', function() {
         $.ajax({
             url: '/settings/2FaOptions/getNotyPrice?id=3',
@@ -231,6 +291,74 @@ function SettingsClass() {
                     $('#telegram_back_button').show();
                 }
                 $telegramModal.modal();
+            }
+        });
+    });
+
+    $('#backed_up_16').click(function () {
+
+        if ($(this).is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
+            $('#google2fa_send_code_button').removeAttr('disabled');
+
+        } else {
+            $('#google2fa_send_code_button').attr('disabled', true);
+        }
+    });
+
+    $('#google2fa_code_input').keyup(function () {
+
+        if ($('#backed_up_16').is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
+            $('#google2fa_send_code_button').removeAttr('disabled');
+
+        } else {
+            $('#google2fa_send_code_button').attr('disabled', true);
+        }
+    });
+
+    $('#disconnect_google2fa_code_input').keyup(function () {
+
+        if ($('#disconnect_google2fa_code_input').val().length > 0 ) {
+            $('#disconnect_google2fa_send_code_button').removeAttr('disabled');
+
+        } else {
+            $('#disconnect_google2fa_send_code_button').attr('disabled', true);
+        }
+    });
+
+    $('#subscribe_GOOGLE_AUTHENTICATOR').on('click', function() {
+        $('#google2fa_connect_block').show();
+        $('#google2fa_disconnect_block').hide();
+        $googleModal.modal();
+       $.ajax(
+           "/settings/2FaOptions/google2fa",
+           {
+            headers:
+                {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+            type: 'POST',
+        }).success(function (data) {
+           if($('#qr').find('img').length==1) {
+               $("#qr").append('<img tyle="width: 100%; height: 100%;" src="'+data.message+'" />').show();
+           }
+        });
+    });
+
+    $('#reconnect_GOOGLE_AUTHENTICATOR').on('click', function() {
+        $('#google2fa_disconnect_block').show();
+        $('#google2fa_connect_block').hide();
+        $googleModal.modal();
+        $.ajax(
+            "/settings/2FaOptions/google2fa",
+            {
+                headers:
+                    {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                type: 'POST',
+            }).success(function (data) {
+            if($('#disconnect_qr').find('img').length==1) {
+                $("#disconnect_qr").append('<img tyle="width: 100%; height: 100%;" src="'+data.message+'" />').show();
             }
         });
     });
@@ -269,69 +397,6 @@ function SettingsClass() {
             }
         });
     });
-
-
-
-    $('.update_set_button').on('click', function() {
-        console.log('clivk');
-        $.ajax({
-            url: '/settings/2FaOptions/submit',
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            data: $('#2faSettings_form').serialize()
-        }).success(function (result, textStatus, xhr) {
-                $pinDialogModal.modal();
-                $pinDialogText.text(result.detail);
-        });
-    });
-
-    $pinInput.on('input', function (e) {
-        checkPinInput()
-    });
-
-    function checkPinInput() {
-        var value = $pinInput.val();
-        if (value.length > 2 && value.length < 15 ) {
-            $pinSendButton.prop('disabled', false);
-        } else {
-            $pinSendButton.prop('disabled', true);
-        }
-    }
-
-    $pinSendButton.on('click', function () {
-        sendPin($pinInput.val());
-    });
-
-    function sendPin(pin) {
-        $pinWrong.hide();
-        $.ajax({
-            url: '/settings/2FaOptions/change?pin=' + pin,
-            async: true,
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            contentType: 'application/json'
-        }).success(function (result, textStatus, xhr) {
-            if (xhr.status === 200) {
-                $pinDialogModal.modal("hide");
-                window.location.replace("/settings?success2fa");
-            } else {
-                $pinWrong.show();
-                $pinDialogText.text(result.message);
-                if (result.needToSendPin) {
-                    successNoty(result.message)
-                }
-            }
-        }).error(function (result) {
-
-        }).complete(function () {
-            $pinInput.val("");
-            $pinSendButton.prop('disabled', true);
-        });
-    }
 
 }
 
