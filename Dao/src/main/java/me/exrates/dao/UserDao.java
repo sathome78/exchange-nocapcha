@@ -18,7 +18,7 @@ public interface UserDao {
 
   int getIdByNickname(String nickname);
 
-  boolean setNickname(User user);
+  boolean setNickname(String newNickName, String userEmail);
 
   boolean create(User user);
 
@@ -176,5 +176,7 @@ public interface UserDao {
   void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+  User getUserByTemporalToken(String token);
 
 }
