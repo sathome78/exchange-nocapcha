@@ -312,16 +312,18 @@ public class EthTokenServiceImpl implements EthTokenService {
                 }else {
 
                     ethTokenNotERC20 contract = (ethTokenNotERC20)method.invoke(null, contractAddress.get(0), ethereumCommonService.getWeb3j(), credentials, GAS_PRICE, GAS_LIMIT);
-
+                    log.debug("contract {} for address {}", contractAddress.get(0), credentials.getAddress());
                     BigInteger balance = contract.balanceOf(credentials.getAddress()).send();
                     BigDecimal ethBalance = Convert.fromWei(String.valueOf(ethereumCommonService.getWeb3j().ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
                     log.debug("balance {}", balance);
-                    log.debug("eth balance", ethBalance);
+                    log.debug("eth balance of address {}", ethBalance);
                     if (balance.compareTo(ExConvert.toWei(minBalanceForTransfer, unit).toBigInteger()) <= 0){
+                        log.debug("balance is lower than min for transfer ");
                         refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchant.getId(),
                                 currency.getId(), false);
 
                         if ( ethBalance.compareTo(new BigDecimal("0.001")) > 0) {
+                            log.debug("send eth back from {} to account {} ", credentials.getAddress(), ethereumCommonService.getTransferAccAddress());
                             Transfer.sendFunds(
                                     ethereumCommonService.getWeb3j(), credentials, ethereumCommonService.getTransferAccAddress(), ethBalance
                                             .subtract(Convert.fromWei(Transfer.GAS_LIMIT.multiply(ethereumCommonService.getWeb3j().ethGasPrice().send().getGasPrice()).toString(), Convert.Unit.ETHER)), Convert.Unit.ETHER).sendAsync();
@@ -330,10 +332,12 @@ public class EthTokenServiceImpl implements EthTokenService {
                     }
 
                     if (ethBalance.compareTo(feeAmount) < 0) {
+                        log.debug("send eth from {} to account {} ", ethereumCommonService.getCredentialsMain().getAddress(), credentials.getAddress());
                         Transfer.sendFunds(
                                 ethereumCommonService.getWeb3j(), ethereumCommonService.getCredentialsMain(),
                                 credentials.getAddress(), feeAmount, Convert.Unit.ETHER).sendAsync();
                     }
+                    log.debug("send token from {} to account {} ", ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance));
 
                     contract.transfer(ethereumCommonService.getMainAddress(), balance.subtract(minWalletBalance)).send();
 
