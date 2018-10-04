@@ -728,6 +728,11 @@ public class UserServiceImpl implements UserService {
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
+
+    if (setting.getNotificatorId() == 4) {
+        return notificationService.checkGoogle2faVerifyCode(pin, userId);
+    }
+
     if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
