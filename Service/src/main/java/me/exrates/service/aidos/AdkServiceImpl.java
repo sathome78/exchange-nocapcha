@@ -65,7 +65,7 @@ public class AdkServiceImpl implements AdkService {
     private static final Integer SECONDDS_TO_UNLOCK_WALLET = 60;
     private @Value("${wallet.password}") String walletPassword;
     private static final Object SEND_MONITOR = new Object();
-    private static final String PASS_PATH = "/opt/properties/Aidos.properties";
+    private static final String PASS_PATH = "/opt/properties/Aidos_pass.properties";
 
     @Autowired
     public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource, MerchantService merchantService, CurrencyService currencyService, RefillService refillService) {
