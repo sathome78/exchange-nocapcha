@@ -228,8 +228,6 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
     @Autowired
-    private OrdersStatisticByPairsCache ordersStatisticByPairsCache;
-    @Autowired
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
