@@ -148,7 +148,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "nycoinServiceImpl")
     public BitcoinService nycoinService() {
         return new BitcoinServiceImpl("merchants/nyc_wallet.properties",
-                "NYC", "NYC", 4, 20, false, false);
+                "NYC", "NYC", 4, 20, false, true);
     }
 
     @Bean(name = "ptcServiceImpl")
@@ -223,6 +223,10 @@ public class CryptocurrencyConfig {
                 "CLX", "CLX", 4, 20, false, false);
     }
 
+    @Bean(name="cmkServiceImpl")
+    public BitcoinService cmkService(){
+        return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
+    }
     // LISK-like cryptos
 
 
