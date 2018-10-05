@@ -234,12 +234,23 @@ function SettingsClass() {
                 type: 'POST'
             }).success(function (data) {
                 if (data) {
+                    showg2faConnect();
                     $('#g2fa_code').text(data.code);
                     $("#g2fa_qr_code").append('<img tyle="width: 100%; height: 100%;" src="' + data.message + '" />').show();
                 } else {
-
+                    showg2faConnected();
                 }
         });
+    }
+
+    function showg2faConnect(){
+        $('.g2fa_connect').show();
+        $('.g2fa_connected').hide();
+    }
+
+    function showg2faConnected() {
+        $('.g2fa_connect').hide();
+        $('.g2fa_connected').show();
     }
 
 
