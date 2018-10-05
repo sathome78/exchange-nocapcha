@@ -2,93 +2,82 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <section id="2fa-options">
-    <h4 class="h4_green">
-        <loc:message code="message.2fa.title"/>
-    </h4>
-    <h4 class="under_h4_margin"></h4>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-6 content">
 
-                    <form method="post" action="/settings/2FaOptions/submit" id="2faSettings_form">
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <table id="2fa-options-table" class="table">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <c:set var = "subscriptions" value = "${user2faOptions.get('subscriptions')}"/>
-                                <c:forEach items="${user2faOptions.get('notificators')}" var="notificatorHead">
-                                    <th>
-                                        <c:if test="${notificatorHead.needSubscribe}">
-                                            <c:choose>
-                                                <c:when test="${notificatorHead.enabled && subscriptions.get(notificatorHead.id) == null
-                                                or not subscriptions.get(notificatorHead.id).isConnected()}">
-                                                    <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
-                                                    <loc:message code="notificator.conect"/></a>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <c:if test="${subscriptions.get(notificatorHead.id).getContactStr() != null}">
-                                                        <a class="btn btn-default contact_info" data-id="${notificatorHead.id}"
-                                                           data-contact="${subscriptions.get(notificatorHead.id).getContactStr()}">
-                                                        <loc:message code="message.info"/></a>
-                                                    </c:if>
-                                                    <c:if test="${notificatorHead.enabled}">
-                                                    <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
-                                                        <loc:message code="notificator.reconnect"/></a>
-                                                    </c:if>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:if>
-                                        <c:if test="${notificatorHead.id == 4 && !googleAuthenticatorEnable}">
-                                            <a class="btn btn-default" id="subscribe_${notificatorHead.name}">
-                                                <loc:message code="notificator.conect"/></a>
-                                        </c:if>
-                                        <c:if test="${notificatorHead.id == 4 && googleAuthenticatorEnable}">
-                                            <a class="btn btn-default" id="reconnect_${notificatorHead.name}">
-                                                <loc:message code="notificator.disconnect"/></a>
-                                        </c:if>
-                                        <br>${notificatorHead.name}<br>
-                                        <c:if test="${!notificatorHead.enabled}"><loc:message code="news.status.disabled"/></c:if>
-                                    </th>
-                                </c:forEach>
-                                <th>Disable</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:set var = "settings" value = "${user2faOptions.get('settings')}"/>
-                            <c:forEach items="${user2faOptions.get('events')}" var="event">
-                                    <tr>
-                                        <td><loc:message code="settings.message.event.${event}"/></td>
-                                        <c:forEach items="${user2faOptions.get('notificators')}" var="notificator">
-                                            <td><input type="radio" name="${event.code}" value="${notificator.id}"
-                                                    <c:if test="${notificator.needSubscribe and (subscriptions.get(notificator.id) == null
-                                                    or not subscriptions.get(notificator.id).isConnected())}">
-                                                        disabled
-                                                    </c:if>
-                                                       <c:if test="${notificator.id == 4 && !googleAuthenticatorEnable}">disabled</c:if>
-                                                       <c:if test="${!notificator.enabled}">disabled</c:if>
-                                                    <c:if test="${settings.get(event.code) != null
-                                                    and settings.get(event.code).notificatorId == notificator.id}">CHECKED</c:if>>
-                                            </td>
-                                        </c:forEach>
-                                            <td><input type="radio" name="${event.code}" value="0"
-                                                    <c:if test="${not event.canBeDisabled}">disabled</c:if>
-                                                    <c:if test="${(settings.get(event.code) == null or settings.get(event.code).notificatorId == null)
-                                                        and event.canBeDisabled}"> CHECKED</c:if>
-                                                />
-                                                            </td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                        <%--<button id="submitSessionOptionsButton" type="submit" class="blue-box">
-                            <loc:message code="button.update"/></button>--%>
-                    </form>
-                <a id="SubmitSessionOptions" class="btn btn-default update_set_button">
-                    <loc:message code="button.update"/></a>
+    <div class="col-sm-12" style="width: 65%; margin-bottom: 20px;">
+        <h1 style="font-size: 32px;">Two Factor Authentication (2FA) is <span style="color:red">Disabled</span> </h1>
+        <!-- disable -->
+        <div class="g2fa_connect" style="width: 45%; float:left;" hidden>
+                <h4 style="margin-top: 0;">Two Factor Authentication Disabled</h4>
+                <div>For extra account security, we strongly recommend you enable two-factor authentication (2FA).</div>
+                <hr>
+                <form action="#">
+                    <div style="margin-bottom: 4px; ">
+                        <span style="float:left;">Username/Email:</span>
+                        <span style="float:right;">${user.getEmail()}</span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 12px; ">
+                        <span style="float:left;">Password:</span>
+                        <input id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 12px; ">
+                        <span style="float:left;">Code:</span>
+                        <input type="text" style="float:right; border: 1px solid grey;">
+                        <div class="clearfix"></div>
+                    </div>
+                    <div style="margin-bottom: 8px;"><b>Before turning on 2FA, write down or save a backup of your 16-digit key and put it in safe place.</b> If your phone
+                        gets lost, stolen, or erased, you will need this key to get back into you account!</div>
+                    <div style="margin-bottom: 24px; max-width: 230px;">
+                        <input type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;">
+                        <span style="vertical-align: middle;">I have backed up my 16-digit key.</span>
+                        <div class="clearfix"></div>
+                    </div>
+                    <button class="g2fa_connect_button btn btn-default" style="float:right;" disabled>Enable 2FA</button>
+                </form>
+        </div>
+        <!-- enable -->
+        <div class="g2fa_connected" style="width: 45%; float:left;" hidden>
+              <h4 style="margin-top: 0;">Two Factor Authentication Enabled</h4>
+              <div>If you want to turn off 2FA, input your account password and the 16-digit code provided by the Google Authenticator app below, then click "Disable 2FA.</div>
+              <hr>
+              <form action="#">
+                <div style="margin-bottom: 4px; ">
+                  <span style="float:left;">Username/Email:</span>
+                  <span style="float:right;">example@example.com</span>
+                  <div class="clearfix"></div>
+                </div>
+                <div style="margin-bottom: 12px; ">
+                  <span style="float:left;">Password:</span>
+                  <input type="text" style="float:right; border: 1px solid grey;">
+                  <div class="clearfix"></div>
+                </div>
+                <div style="margin-bottom: 24px;">
+                  <span style="float:left;">Code:</span>
+                  <input type="text" style="float:right; border: 1px solid grey;">
+                  <div class="clearfix"></div>
+                </div>
+
+                <button class="btn btn-default" style="float:right;">Disable 2FA</button>
+              </form>
+        </div> -->
+        <!--  qr code block -->
+        <div class="g2fa_connect" style="width: 43%; float:right;" hidden>
+            <div id="qr" style="margin-bottom: 24px; height: 280px;">
+                <%--<img style="width: 100%;height: 100%;" src="../Desktop/card.png" alt="">--%>
+            </div>
+            <div><b>16-Digit-Key:</b> <span id="g2fa_code" style="color:red; text-transform: uppercase;"></span></div>
+            <div style="margin-bottom: 24px;">Save a backup of your recovery key</div>
+            <div>
+                NOTE: This code changes each time you enable 2FA.
+                If you disable 2FA this code will no longer be valid.
             </div>
         </div>
+        <div class="clearfix"></div>
     </div>
+
+
+
 </section>

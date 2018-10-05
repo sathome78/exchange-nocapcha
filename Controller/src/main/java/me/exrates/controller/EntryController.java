@@ -123,6 +123,8 @@ public class EntryController {
     private UserSessionService userSessionService;
     @Autowired
     private SecureService secureService;
+    @Autowired
+    private G2faService g2faService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -357,11 +359,11 @@ public class EntryController {
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
-        mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
-        mav.addObject("googleAuthenticatorEnable", notificationService.isGoogleAuthenticatorEnable(user.getId()));
-        mav.addObject("googleAuthenticatorLogin", false);
+      /*  mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
+        mav.addObject("googleAuthenticatorEnable", notificationService.isGoogleAuthenticatorEnable(user.getId()));*/
+       /* mav.addObject("googleAuthenticatorLogin", false);
         mav.addObject("googleAuthenticatorWithdraw", true);
-        mav.addObject("googleAuthenticatorTransfer", false);
+        mav.addObject("googleAuthenticatorTransfer", false);*/
         mav.addObject("tBotName", TBOT_NAME);
         mav.addObject("tBotUrl", TBOT_URL);
         return mav;
@@ -515,7 +517,7 @@ public class EntryController {
         return redirectView;
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping(value = "/settings/2FaOptions/submit", method = POST)
     public void submitNotificationOptionsPin(HttpServletRequest request, Principal principal) {
         Map<Integer, Integer> paramsMap = new HashMap<>();
@@ -525,9 +527,9 @@ public class EntryController {
         });
         request.getSession().setAttribute("2fa_newParams", paramsMap);
         secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
-    }
+    }*/
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/change")
     public String submitNotificationOptions(String pin, HttpServletRequest request, Principal principal) {
         Map<Integer, Integer> params = (Map<Integer, Integer>) request.getSession().getAttribute("2fa_newParams");
@@ -557,16 +559,17 @@ public class EntryController {
                         localeResolver.resolveLocale(request));
             } catch (Exception e) {
                 log.error(e);
-                throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
-                        localeResolver.resolveLocale(request)));
+                *//*throw new RuntimeException(messageSource.getMessage("message.error_saving_settings", null,
+                        localeResolver.resolveLocale(request)));*//*
+                throw e;
             }
         } else {
             PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
             throw new IncorrectPinException(res);
         }
-    }
+    }*/
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/getNotyPrice")
     public NotificatorTotalPriceDto getNotyPrice(@RequestParam int id, Principal principal) {
         Preconditions.checkArgument(id == NotificationTypeEnum.TELEGRAM.getCode());
@@ -581,7 +584,7 @@ public class EntryController {
             dto.setCode(((TelegramSubscription) subscription).getCode());
         }
         return dto;
-    }
+    }*/
 
     /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/preconnect_sms")
@@ -619,12 +622,12 @@ public class EntryController {
         return subscribable.subscribe(subscriptionDto).toString();
     }*/
 
-    @ResponseBody
+   /* @ResponseBody
     @RequestMapping("/settings/2FaOptions/connect_telegram")
     public String getNotyPrice(Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(NotificationTypeEnum.TELEGRAM.getCode());
         return subscribable.createSubscription(principal.getName()).toString();
-    }
+    }*/
 
     /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/reconnect_telegram")
@@ -636,7 +639,14 @@ public class EntryController {
     @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
     @ResponseBody
     public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
-        return new Generic2faResponseDto(notificationService.generateQRUrl(principal.getName()));
+        /*todo return another response when connected*/
+        User user = userService.findByEmail(principal.getName());
+        Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
+        Generic2faResponseDto dto = null;
+        if (!isConnected) {
+            dto = new Generic2faResponseDto(g2faService.generateQRUrl(principal.getName()), g2faService.getGoogleAuthenticatorCode(user.getId()));
+        }
+        return dto;
     }
 
     @ResponseBody
@@ -644,10 +654,9 @@ public class EntryController {
     public String verifyGoogleAuthenticatorConnect(@RequestParam String code,  Principal principal) {
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
-            if(!notificationService.checkGoogle2faVerifyCode(code, user.getId())){
+            if(!g2faService.checkGoogle2faVerifyCode(code, user.getId())){
                 throw new IncorrectSmsPinException("");
             }
-
         }
         return "";
     }
@@ -661,10 +670,10 @@ public class EntryController {
         boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
         User user = userService.findByEmail(principal.getName());
         if (connect) {
-            notificationService.setEnable2faGoogleAuth(user.getId(), true);
+            g2faService.setEnable2faGoogleAuth(user.getId(), true);
         } else {
-            notificationService.setEnable2faGoogleAuth(user.getId(), false);
-            notificationService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+            g2faService.setEnable2faGoogleAuth(user.getId(), false);
+            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
         }
 
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,

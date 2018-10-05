@@ -16,6 +16,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
@@ -71,19 +72,8 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private NotificationsSettingsService settingsService;
-
-  /*this variable is set to use or not 2 factor authorization for all users*/
-  private boolean global2FaActive = false;
-
-  @Override
-  public boolean isGlobal2FaActive() {
-    return global2FaActive;
-  }
-
-  @Override
-  public void setGlobal2FaActive(boolean global2FaActive) {
-    this.global2FaActive = global2FaActive;
-  }
+  @Autowired
+  private G2faService g2faService;
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -724,21 +714,23 @@ public class UserServiceImpl implements UserService {
     return pin;
   }
 
+
+  /*todo refator it*/
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
 
-    if (setting.getNotificatorId() == 4) {
-        return notificationService.checkGoogle2faVerifyCode(pin, userId);
-    }
-
-    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
+    if ((setting == null || setting.getNotificatorId() == null)) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
               .userId(userId)
               .notificationMessageEventEnum(event)
               .build();
+    }
+
+    if (setting.getNotificatorId() == 4) {
+      return g2faService.checkGoogle2faVerifyCode(pin, userId);
     }
 
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
@@ -750,8 +742,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean isLogin2faUsed(String email) {
-    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
-    return setting != null && setting.getNotificatorId() != null;
+    /*NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
+    return setting != null && setting.getNotificatorId() != null;*/
+    return true;
   }
 
   @Override

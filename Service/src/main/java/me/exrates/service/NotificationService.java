@@ -51,15 +51,4 @@ public interface NotificationService {
 
   void updateUserNotifications(List<NotificationOption> options);
 
-  String getGoogleAuthenticatorCode(Integer userId);
-
-  void updateGoogleAuthenticatorSecretCodeForUser(Integer userId);
-
-  boolean isGoogleAuthenticatorEnable(Integer userId);
-
-  boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId);
-
-  void setEnable2faGoogleAuth(Integer userId, Boolean connection);
-
-  String generateQRUrl(String userEmail) throws UnsupportedEncodingException;
 }

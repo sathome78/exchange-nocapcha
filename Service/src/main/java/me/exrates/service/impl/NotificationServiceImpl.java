@@ -37,14 +37,9 @@ import java.util.Locale;
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
 
-    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    public static String APP_NAME = "Exrates";
 
     @Autowired
     private NotificationDao notificationDao;
-
-    @Autowired
-    private NotificationUserSettingsDao notificationUserSettingsDao;
 
     @Autowired
     private UserService userService;
@@ -190,64 +185,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationDao.updateNotificationOptions(options);
     }
 
-    @Override
-    public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
-        User user = userService.findByEmail(userEmail);
-        String secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(user.getId());
-        secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(user.getId());
-        return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
-    }
-
-    @Override
-    public String getGoogleAuthenticatorCode(Integer userId) {
-        String secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(userId);
-        if (secret2faCode == null || secret2faCode.isEmpty()){
-            notificationDao.set2faGoogleAuthenticator(userId);
-            secret2faCode = notificationDao.getGoogleAuthSecretCodeByUser(userId);
-        }
-        return secret2faCode;
-    }
-
-    @Override
-    public void updateGoogleAuthenticatorSecretCodeForUser(Integer userId) {
-      notificationDao.setGoogleAuthSecretCode(userId);
-    }
-
-    @Override
-    public boolean isGoogleAuthenticatorEnable(Integer userId) {
-        return notificationDao.isGoogleAuthenticatorEnable(userId);
-    }
-
     private String[] normalizeArgs(Object... args) {
        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
-    }
-
-
-    @Override
-    public boolean checkGoogle2faVerifyCode(String verificationCode, Integer userId) {
-
-        String google2faSecret = notificationDao.getGoogleAuthSecretCodeByUser(userId);
-        final Totp totp = new Totp(google2faSecret);
-        if (!isValidLong(verificationCode) || !totp.verify(verificationCode)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isValidLong(String code) {
-        try {
-            Long.parseLong(code);
-        } catch (final NumberFormatException e) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public void setEnable2faGoogleAuth(Integer userId, Boolean connection){
-        notificationDao.setEnable2faGoogleAuth(userId, connection);
-        if (!connection) {
-            notificationUserSettingsDao.delete(userId);
-        }
     }
 }
