@@ -70,32 +70,24 @@ public class SecureServiceImpl implements SecureService {
         int userId = userService.getIdByEmail(userEmail);
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-        if (userService.isGlobal2FaActive() || (setting != null && setting.getNotificatorId() != null) ) {
-            if (setting == null) {
+        if (setting == null || setting.getNotificatorId() == null) {
                 setting = NotificationsUserSetting.builder()
                         .notificatorId(NotificationTypeEnum.EMAIL.getCode())
                         .userId(userId)
                         .notificationMessageEventEnum(event)
                         .build();
-            }
-            if (setting.getNotificatorId() == null) {
-                setting.setNotificatorId(NotificationTypeEnum.EMAIL.getCode());
-            }
-            log.debug("noty_setting {}", setting.toString());
-            PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
-            Locale locale = localeResolver.resolveLocale(request);
-            boolean needToSendPin = forceSend ? true : attempsDto.needToSendPin();
-            String message;
-            if (needToSendPin) {
-                String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
-                message =  newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
-            } else {
-                NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
-                message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
-            }
-            return new PinDto(message, needToSendPin);
         }
-        return null;
+        PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
+        Locale locale = localeResolver.resolveLocale(request);
+        boolean needToSendPin = forceSend || attempsDto.needToSendPin();
+        String message;
+        if (needToSendPin) {
+            String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
+            message =  newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)})); } else {
+            NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
+            message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
+        }
+        return new PinDto(message, needToSendPin);
     }
 
 

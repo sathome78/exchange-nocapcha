@@ -1082,5 +1082,14 @@ public class UserDaoImpl implements UserDao {
     params.put("end_time", Timestamp.valueOf(endTime));
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
+  
+  @Override
+  public String getPassword(int userId) {
+      String sql = "SELECT password FROM USER WHERE USER.id =:id";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+        put("id", userId);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
 
 }

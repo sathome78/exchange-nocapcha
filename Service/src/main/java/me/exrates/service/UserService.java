@@ -200,4 +200,6 @@ public interface UserService {
     TemporalToken verifyUserEmailForForgetPassword(String token);
 
     User getUserByTemporalToken(String token);
+
+    boolean checkPassword(int userId, String password);
 }

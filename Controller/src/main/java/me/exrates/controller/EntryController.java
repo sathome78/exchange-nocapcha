@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
@@ -11,7 +10,7 @@ import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
-import me.exrates.model.form.NotificationOptionsForm;
+import me.exrates.model.exceptions.InvalidCredentialsException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
@@ -26,7 +25,6 @@ import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.notifications.*;
 import me.exrates.service.session.UserSessionService;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,12 +58,9 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
@@ -663,7 +658,7 @@ public class EntryController {
 
     @ResponseBody
     @RequestMapping ("/settings/2FaOptions/google2fa_connect")
-    public RedirectView connectGoogleAuthenticatorConnect(RedirectAttributes redirectAttributes,
+    public RedirectView connectGoogleAuthenticator(RedirectAttributes redirectAttributes,
                                                          HttpServletRequest request,
                                                          Principal principal) {
         RedirectView redirectView = new RedirectView("/settings");
@@ -681,6 +676,17 @@ public class EntryController {
         redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
 
         return redirectView;
+    }
+
+    @ResponseBody
+    @RequestMapping ("/settings/2FaOptions/google2fa_disconnect")
+    public void disconnectGoogleAuthenticator(String password, String code, Principal principal) {
+        User user = userService.findByEmail(principal.getName());
+        if (!g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password)) {
+            throw new me.exrates.model.exceptions.InvalidCredentialsException();
+        }
+        g2faService.setEnable2faGoogleAuth(user.getId(), false);
+        g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
     }
 
     @ResponseBody
@@ -783,6 +789,13 @@ public class EntryController {
     @ResponseBody
     public ErrorInfo SmsSubscribeExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.service.unavialble", null, localeResolver.resolveLocale(req)));
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseBody
+    public ErrorInfo invalidg2faCredentilasExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getLocalizedMessage());
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)

@@ -141,8 +141,7 @@ function SettingsClass() {
             success: function (data) {
                 var form = document.createElement("form");
                 form.setAttribute("method", "POST");
-                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
-
+                form.setAttribute("action", "/settings/2FaOptions/google2fa_disconnect");
                 var hiddenField1 = document.createElement("input");
                      hiddenField1.setAttribute("type", "hidden");
                      hiddenField1.setAttribute("name", "_csrf");
@@ -254,7 +253,7 @@ function SettingsClass() {
     }
 
 
-    $('#reconnect_GOOGLE_AUTHENTICATOR').on('click', function() {
+   /* $('#reconnect_GOOGLE_AUTHENTICATOR').on('click', function() {
         $('#google2fa_disconnect_block').show();
         $('#google2fa_connect_block').hide();
         $googleModal.modal();
@@ -271,7 +270,7 @@ function SettingsClass() {
                 $("#disconnect_qr").append('<img tyle="width: 100%; height: 100%;" src="'+data.message+'" />').show();
             }
         });
-    });
+    });*/
 
     $('.update_set_button').on('click', function() {
         console.log('clivk');
