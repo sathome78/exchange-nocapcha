@@ -294,7 +294,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  @Transactional
   public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
@@ -1025,7 +1024,12 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   public List<String> findAllAddresses(Integer merchantId, Integer currencyId){
-     return refillRequestDao.findAllAddresses(merchantId, currencyId);
+     return this.findAllAddresses(merchantId, currencyId, Collections.singletonList(true));
+  }
+
+  @Override
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses){
+    return refillRequestDao.findAllAddresses(merchantId, currencyId, isValidStatuses);
   }
   
   //TODO remove after changes in mobile api
@@ -1092,5 +1096,15 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId) {
     return refillRequestDao.getUnconfirmedTxsCurrencyIdsForTokens(parentTokenId);
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId) {
+    return refillRequestDao.findAddressDtosByMerchantAndCurrency(merchantId, currencyId);
+  }
+
+  @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    refillRequestDao.invalidateAddress(address, merchantId, currencyId);
   }
 }

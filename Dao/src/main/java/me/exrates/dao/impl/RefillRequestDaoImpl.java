@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -115,7 +116,12 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   private JdbcTemplate jdbcTemplate;
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  @Autowired
+  @Qualifier(value = "slaveTemplate")
+  private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
 
   @Override
@@ -966,7 +972,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       }
       put("currency_list", currencyList);
     }};
-    return namedParameterJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
+    return slaveJdbcTemplate.query(sql, params, new RowMapper<RefillRequestFlatForReportDto>() {
       @Override
       public RefillRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
         RefillRequestFlatForReportDto refillRequestFlatForReportDto = new RefillRequestFlatForReportDto();
@@ -1058,13 +1064,14 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public List<String> findAllAddresses(Integer merchantId, Integer currencyId) {
+  public List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses) {
     final String sql = "SELECT REFILL_REQUEST_ADDRESS.address FROM REFILL_REQUEST_ADDRESS " +
-            "where merchant_id = :merchant_id AND currency_id = :currency_id AND is_valid = 1";
+            "where merchant_id = :merchant_id AND currency_id = :currency_id AND is_valid IN (:isValidStatuses)";
 
-    final Map<String, Integer> params = new HashMap<>();
+    final Map<String, Object> params = new HashMap<>();
     params.put("merchant_id", merchantId);
     params.put("currency_id", currencyId);
+    params.put("isValidStatuses", isValidStatuses);
 
     return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> rs.getString("address"));
   }
@@ -1166,6 +1173,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
+    String sql = "UPDATE REFILL_REQUEST_ADDRESS SET is_valid = FALSE  WHERE address = :address" +
+            " AND merchant_id = :merchant_id AND currency_id = :currency_id";
+    namedParameterJdbcTemplate.update(sql, new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }});
+  }
+
+  @Override
   public List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId) {
     String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where currency_id = :currency_id " +
             "AND merchant_id = :merchant_id AND need_transfer = 1" ;
@@ -1182,6 +1200,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             "AND merchant_id = :merchant_id" ;
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
+      put("currency_id", currencyId);
+      put("merchant_id", merchantId);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+  }
+
+  @Override
+  public List<RefillRequestAddressDto> findAddressDtosByMerchantAndCurrency(Integer merchantId, Integer currencyId) {
+    String sql = "SELECT * FROM REFILL_REQUEST_ADDRESS where merchant_id = :merchant_id AND currency_id = :currency_id " +
+            "AND merchant_id = :merchant_id" ;
+    Map<String, Object> params = new HashMap<String, Object>() {{
       put("currency_id", currencyId);
       put("merchant_id", merchantId);
     }};

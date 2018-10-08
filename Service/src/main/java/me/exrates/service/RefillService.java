@@ -117,7 +117,9 @@ public interface RefillService {
   Optional<InvoiceBank> findInvoiceBankById(Integer id);
 
   List<String> findAllAddresses(Integer merchantId, Integer currencyId);
-  
+
+  List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses);
+
   String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
 
   List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
@@ -137,4 +139,8 @@ public interface RefillService {
   List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
 
   List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId);
+
+    List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
+
+    void invalidateAddress(String address, Integer merchantId, Integer currencyId);
 }

@@ -10,14 +10,11 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.MerchantProcessType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -31,6 +28,7 @@ import java.util.*;
 public class CurrencyDaoImpl implements CurrencyDao {
 
   @Autowired
+  @Qualifier(value = "masterTemplate")
   private NamedParameterJdbcTemplate jdbcTemplate;
 
   protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
@@ -233,14 +231,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
   }
 
   @Override
-  public CurrencyPair findCurrencyPairByName(String currencyPairName) {
-    String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
+  public CurrencyPair findCurrencyPairByName(String currencyPair) {
+    String sql = "SELECT cp.id, " +
+            "cp.currency1_id, " +
+            "cp.currency2_id, " +
+            "cp.name, " +
+            "cp.market, " +
+            "cp.type," +
             "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
             "(select name from CURRENCY where id = currency2_id) as currency2_name " +
-            " FROM CURRENCY_PAIR WHERE name = :currencyPairName";
-    Map<String, String> namedParameters = new HashMap<>();
-    namedParameters.put("currencyPairName", String.valueOf(currencyPairName));
-    return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+            " FROM CURRENCY_PAIR cp" +
+            " WHERE cp.name = :currency_pair";
+
+    Map<String, String> params = new HashMap<>();
+    params.put("currency_pair", currencyPair);
+
+    return jdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
   }
 
   @Override

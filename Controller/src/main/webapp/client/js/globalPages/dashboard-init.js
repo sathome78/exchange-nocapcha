@@ -22,6 +22,7 @@ var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
+var currentPairName;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
@@ -60,9 +61,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+/*    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
-    }
+    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -160,7 +161,7 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
+/*function subscribeChart() {
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
@@ -173,7 +174,7 @@ function subscribeChart() {
             trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
-}
+}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -383,7 +384,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector('MAIN');
+            trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -469,7 +470,7 @@ $(function dashdoardInit() {
                     var tradingCpData = jQuery.extend(true, {}, cpData);
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
@@ -593,6 +594,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            currentPairName = data.currencyPair.name;
             enableF = enableFilter;
             if (period != null) {
                 newChartPeriod = period;
