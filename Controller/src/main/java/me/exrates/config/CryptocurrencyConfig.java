@@ -229,6 +229,10 @@ public class CryptocurrencyConfig {
                 "QRK", "QRK", 4, 20, false, false);
     }
 
+    @Bean(name="cmkServiceImpl")
+    public BitcoinService cmkService(){
+        return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
+    }
     // LISK-like cryptos
 
 
