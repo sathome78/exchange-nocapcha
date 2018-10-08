@@ -51,6 +51,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -208,10 +209,10 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(@ModelAttribute User user, @RequestParam(required = false) String view) {
+    public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
-        mav.addObject("user", user);
+        mav.addObject("user", WebUtils.getRequiredSessionAttribute(request, "reg_user"));
         return mav;
     }
 
@@ -226,20 +227,21 @@ public class MainController {
             //TODO
             throw new PasswordCreationException("Error while creating password.");
         } else {
-            User userUpdate = userService.findByEmail(user.getEmail());
+            User sessionUser = (User) WebUtils.getRequiredSessionAttribute(request, "reg_user");
+            User userUpdate = userService.findByEmail(sessionUser.getEmail());
             UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setRole(UserRole.USER);
             updateUserDto.setStatus(UserStatus.ACTIVE);
             userService.updateUserByAdmin(updateUserDto);
-            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+            Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(sessionUser.getEmail()).getAuthorities());
             org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                    user.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
+                    sessionUser.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
             Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-
+            WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
                 return new ModelAndView("redirect:/ico_dashboard");
             }
@@ -258,13 +260,11 @@ public class MainController {
             int userId = userService.verifyUserEmail(token);
             if (userId != 0) {
                 User user = userService.getUserById(userId);
+                WebUtils.setSessionAttribute(request, "reg_user", user);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                attr.addFlashAttribute("user", user);
-
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
                 user.setStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
-
                 if (view != null) {
                     model.addObject("view", view);
                     model.setViewName("redirect:/createPassword");
