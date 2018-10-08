@@ -48,6 +48,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -680,13 +681,18 @@ public class EntryController {
 
     @ResponseBody
     @RequestMapping ("/settings/2FaOptions/google2fa_disconnect")
-    public void disconnectGoogleAuthenticator(String password, String code, Principal principal) {
-        User user = userService.findByEmail(principal.getName());
-        if (!g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password)) {
-            throw new me.exrates.model.exceptions.InvalidCredentialsException();
+    public void disconnectGoogleAuthenticator(String password, String code, Principal principal, HttpServletRequest request) throws InterruptedException {
+        Object mutex = WebUtils.getSessionMutex(request.getSession());
+        synchronized (mutex) {
+            Thread.sleep(3000);
+            User user = userService.findByEmail(principal.getName());
+            if (!g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password)) {
+                throw new me.exrates.model.exceptions.InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
+            }
+            g2faService.setEnable2faGoogleAuth(user.getId(), false);
+            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
         }
-        g2faService.setEnable2faGoogleAuth(user.getId(), false);
-        g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+
     }
 
     @ResponseBody
@@ -795,7 +801,7 @@ public class EntryController {
     @ExceptionHandler(InvalidCredentialsException.class)
     @ResponseBody
     public ErrorInfo invalidg2faCredentilasExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, exception.getLocalizedMessage());
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
