@@ -111,7 +111,7 @@ function SettingsClass() {
             type: "POST",
             success: function (data) {
                 getG2fa();
-                successNoty(data.message);
+                successNoty(data);
             }
         });
     });
@@ -134,20 +134,20 @@ function SettingsClass() {
     $('#backed_up_16').click(function () {
 
         if ($(this).is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
-            $('#google2fa_send_code_button').removeAttr('disabled');
+            $('#g2fa_connect_button').removeAttr('disabled');
 
         } else {
-            $('#google2fa_send_code_button').attr('disabled', true);
+            $('#g2fa_connect_button').attr('disabled', true);
         }
     });
 
     $('#google2fa_code_input').keyup(function () {
 
         if ($('#backed_up_16').is(':checked') && $('#google2fa_code_input').val().length > 0 ) {
-            $('#google2fa_send_code_button').removeAttr('disabled');
+            $('#g2fa_connect_button').removeAttr('disabled');
 
         } else {
-            $('#google2fa_send_code_button').attr('disabled', true);
+            $('#g2fa_connect_button').attr('disabled', true);
         }
     });
 

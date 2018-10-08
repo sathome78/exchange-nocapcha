@@ -32,7 +32,7 @@
                     <div style="margin-bottom: 8px;"><b>Before turning on 2FA, write down or save a backup of your 16-digit key and put it in safe place.</b> If your phone
                         gets lost, stolen, or erased, you will need this key to get back into you account!</div>
                     <div style="margin-bottom: 24px; max-width: 230px;">
-                        <input type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;">
+                        <input id="backed_up_16" type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;">
                         <span style="vertical-align: middle;">I have backed up my 16-digit key.</span>
                         <div class="clearfix"></div>
                     </div>
