@@ -209,7 +209,7 @@ public class MainController {
     }
 
     @RequestMapping(value = "/createPassword", method = RequestMethod.GET)
-    public ModelAndView createPassword(/*@ModelAttribute User user, */@RequestParam(required = false) String view, HttpServletRequest request) {
+    public ModelAndView createPassword(@RequestParam(required = false) String view, HttpServletRequest request) {
         ModelAndView mav = new ModelAndView("fragments/createPassword");
         mav.addObject("view", view);
         mav.addObject("user", WebUtils.getRequiredSessionAttribute(request, "reg_user"));
@@ -262,12 +262,9 @@ public class MainController {
                 User user = userService.getUserById(userId);
                 WebUtils.setSessionAttribute(request, "reg_user", user);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
-                attr.addFlashAttribute("user", user);
-
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
                 user.setStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
-
                 if (view != null) {
                     model.addObject("view", view);
                     model.setViewName("redirect:/createPassword");
