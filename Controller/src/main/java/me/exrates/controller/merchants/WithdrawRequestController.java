@@ -75,6 +75,8 @@ public class WithdrawRequestController {
   private LocaleResolver localeResolver;
   @Autowired
   private SecureService secureServiceImpl;
+  @Autowired
+  private RefillService refillService;
 
     private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
@@ -193,6 +195,12 @@ public class WithdrawRequestController {
         Integer requesterAdminId = userService.getIdByEmail(principal.getName());
         withdrawService.returnFromWorkWithdrawalRequest(id, requesterAdminId);
     }
+
+  @ResponseBody
+  @RequestMapping(value = "/withdraw/check", method = POST)
+  public Boolean checkWalletAddress( @RequestParam String wallet, Principal principal, HttpServletRequest request) {
+    return refillService.checkAddressForAvailability(wallet);
+  }
 
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/decline", method = POST)
