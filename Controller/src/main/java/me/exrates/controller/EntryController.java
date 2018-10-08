@@ -658,33 +658,30 @@ public class EntryController {
     }*/
 
     @ResponseBody
-    @RequestMapping ("/settings/2FaOptions/google2fa_connect")
-    public String connectGoogleAuthenticator(RedirectAttributes redirectAttributes,
-                                                         HttpServletRequest request,
-                                                         Principal principal) {
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", produces = "text/plain;charset=UTF-8")
+    public String connectGoogleAuthenticator(HttpServletRequest request, Principal principal) {
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
         g2faService.setEnable2faGoogleAuth(user.getId(), false);
         g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));
-        return redirectView;
+        return messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request));
     }
 
     @ResponseBody
     @RequestMapping ("/settings/2FaOptions/google2fa_disconnect")
     public void disconnectGoogleAuthenticator(String password, String code, Principal principal, HttpServletRequest request) throws InterruptedException {
+        System.out.println("password " + password + " code " + code);
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
         Object mutex = WebUtils.getSessionMutex(request.getSession());
         synchronized (mutex) {
             Thread.sleep(1500);
-            if (!g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password)) {
+            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password))) {
                 throw new me.exrates.model.exceptions.InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
             }
             g2faService.setEnable2faGoogleAuth(user.getId(), false);
             g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
         }
-
     }
 
     /*@ResponseBody
