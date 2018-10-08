@@ -45,26 +45,27 @@
             <h1 style="font-size: 32px;">Two Factor Authentication (2FA) is <span style="color:red">Enabled</span> </h1>
             <div style="width: 45%; float:left;">
                 <h4 style="margin-top: 0;">Two Factor Authentication Enabled</h4>
-                    <div>If you want to turn off 2FA, input your account password and the 6-digit code provided by the Google Authenticator app below, then click "Disable 2FA.</div>
-                    <hr>
-                    <form action="#">
-                        <div style="margin-bottom: 4px; ">
-                            <span style="float:left;">Username/Email:</span>
-                            <span style="float:right;">${user.getEmail()}</span>
-                            <div class="clearfix"></div>
-                        </div>
+                <div>If you want to turn off 2FA, input your account password and the 6-digit code provided by the Google Authenticator app below, then click "Disable 2FA.</div>
+                <hr>
+                <form id='disconnect_g2fa' action="#">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <div style="margin-bottom: 4px; ">
+                        <span style="float:left;">Username/Email:</span>
+                        <span style="float:right;">${user.getEmail()}</span>
+                        <div class="clearfix"></div>
+                    </div>
                     <div style="margin-bottom: 12px; ">
                         <span style="float:left;">Password:</span>
-                        <input type="password" style="float:right; border: 1px solid grey;">
+                        <input name="password" type="password" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 24px;">
                         <span style="float:left;">Code:</span>
-                        <input type="text" style="float:right; border: 1px solid grey;">
+                        <input name="code" type="text" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
-                    <button id="disconnect_google2fa_send_code_button" class="btn btn-default" style="float:right;">Disable 2FA</button>
-                  </form>
+                </form>
+                <button id="disconnect_google2fa_send_code_button" class="btn btn-default" style="float:right;">Disable 2FA</button>
             </div>
         </div>
         <!--  qr code block -->

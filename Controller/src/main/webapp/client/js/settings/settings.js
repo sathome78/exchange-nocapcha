@@ -103,60 +103,26 @@ function SettingsClass() {
         }
     }*/
 
-    $('#google2fa_send_code_button').on('click', function () {
+    $('#g2fa_connect_button').on('click', function () {
         $smsNumberError.text('');
-        var code = $('#google2fa_code_input').val();
+        var code = $('#2fa_user_pass').val();
         $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
-            type: 'GET',
+            url: '/settings/2FaOptions/google2fa_connect2fa?code=' + code,
+            type: "POST",
             success: function (data) {
-                var form = document.createElement("form");
-                form.setAttribute("method", "POST");
-                form.setAttribute("action", "/settings/2FaOptions/google2fa_connect");
-                var hiddenField1 = document.createElement("input");
-                     hiddenField1.setAttribute("type", "hidden");
-                     hiddenField1.setAttribute("name", "_csrf");
-                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
-                var hiddenField2 = document.createElement("input");
-                     hiddenField2.setAttribute("type", "hidden");
-                     hiddenField2.setAttribute("name", "connect");
-                     hiddenField2.setAttribute("value", "true");
-                form.appendChild(hiddenField1);
-                form.appendChild(hiddenField2);
-                document.body.appendChild(form);
-                form.submit();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
+                getG2fa();
+                successNoty(data.message);
             }
         });
     });
 
     $('#disconnect_google2fa_send_code_button').on('click', function () {
-        $smsNumberError.text('');
-        var code = $('#disconnect_google2fa_code_input').val();
         $.ajax({
-            url: '/settings/2FaOptions/verify_google2fa?code=' + code,
-            type: 'GET',
-            success: function (data) {
-                var form = document.createElement("form");
-                form.setAttribute("method", "POST");
-                form.setAttribute("action", "/settings/2FaOptions/google2fa_disconnect");
-                var hiddenField1 = document.createElement("input");
-                     hiddenField1.setAttribute("type", "hidden");
-                     hiddenField1.setAttribute("name", "_csrf");
-                     hiddenField1.setAttribute("value", $("input[name='_csrf']").val());
-                var hiddenField2 = document.createElement("input");
-                     hiddenField2.setAttribute("type", "hidden");
-                     hiddenField2.setAttribute("name", "connect");
-                     hiddenField2.setAttribute("value", "false");
-                form.appendChild(hiddenField1);
-                form.appendChild(hiddenField2);
-                document.body.appendChild(form);
-                form.submit();
-            },
-            error: function (data) {
-                $smsNumberError.text(data.responseJSON.detail);
+            url: '/settings/2FaOptions/google2fa_disconnect',
+            type: "POST",
+            data: $('#disconnect_g2fa').serialize(),
+            success: function () {
+                getG2fa();
             }
         });
     });

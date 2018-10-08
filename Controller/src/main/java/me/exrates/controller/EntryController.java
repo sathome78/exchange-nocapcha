@@ -634,7 +634,7 @@ public class EntryController {
 
     @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
     @ResponseBody
-    public Generic2faResponseDto getGoogle2FA(Principal principal) throws UnsupportedEncodingException {
+    public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
         /*todo return another response when connected*/
         User user = userService.findByEmail(principal.getName());
         Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
@@ -645,7 +645,7 @@ public class EntryController {
         return dto;
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/verify_google2fa")
     public String verifyGoogleAuthenticatorConnect(@RequestParam String code,  Principal principal) {
         if (principal != null) {
@@ -655,37 +655,29 @@ public class EntryController {
             }
         }
         return "";
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping ("/settings/2FaOptions/google2fa_connect")
-    public RedirectView connectGoogleAuthenticator(RedirectAttributes redirectAttributes,
+    public String connectGoogleAuthenticator(RedirectAttributes redirectAttributes,
                                                          HttpServletRequest request,
                                                          Principal principal) {
-        RedirectView redirectView = new RedirectView("/settings");
-        boolean connect = Boolean.parseBoolean(request.getParameter("connect"));
         User user = userService.findByEmail(principal.getName());
-        if (connect) {
-            g2faService.setEnable2faGoogleAuth(user.getId(), true);
-        } else {
-            g2faService.setEnable2faGoogleAuth(user.getId(), false);
-            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-        }
-
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                localeResolver.resolveLocale(request)));
-        redirectAttributes.addFlashAttribute("activeTabId", "2fa-options-wrapper");
-
+        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        g2faService.setEnable2faGoogleAuth(user.getId(), false);
+        g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));
         return redirectView;
     }
 
     @ResponseBody
     @RequestMapping ("/settings/2FaOptions/google2fa_disconnect")
     public void disconnectGoogleAuthenticator(String password, String code, Principal principal, HttpServletRequest request) throws InterruptedException {
+        User user = userService.findByEmail(principal.getName());
+        Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
         Object mutex = WebUtils.getSessionMutex(request.getSession());
         synchronized (mutex) {
-            Thread.sleep(3000);
-            User user = userService.findByEmail(principal.getName());
+            Thread.sleep(1500);
             if (!g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password)) {
                 throw new me.exrates.model.exceptions.InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
             }
@@ -695,7 +687,7 @@ public class EntryController {
 
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/contact_info")
     public String getInfo(@RequestParam int id, Principal principal) {
         Subscribable subscribable = notificatorService.getByNotificatorId(id);
@@ -710,7 +702,7 @@ public class EntryController {
             put("contact", contact);
             put("price", price);
         }}.toString();
-    }
+    }*/
 
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/{newsVariant}/newstopic")
