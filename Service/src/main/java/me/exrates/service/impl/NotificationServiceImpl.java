@@ -117,7 +117,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
       User user = userService.getUserById(userId);
-      NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);
+      /*NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);*/
       /*if (option.isSendNotification()) {
         createNotification(
             userId,

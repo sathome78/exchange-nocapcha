@@ -26,7 +26,7 @@
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
-                        <span style="float:left;">Code:</span>
+                        <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
                         <input name="code" id="2fa_user_code" type="text" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
@@ -55,12 +55,12 @@
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
-                        <span style="float:left;"><loc:message code="login.password"/></span>
+                        <span style="float:left;"><loc:message code="login.password"/>:</span>
                         <input id="disconnect_pass" name="password" type="password" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 24px;">
-                        <span style="float:left;">Code:</span>
+                        <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
                         <input id="disconnect_code" name="code" type="text" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>

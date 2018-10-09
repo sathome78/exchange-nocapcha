@@ -5,7 +5,9 @@ import me.exrates.dao.G2faDao;
 import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.User;
 import me.exrates.model.dto.NotificationsUserSetting;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.MessageUndeliweredException;
 import org.jboss.aerogear.security.otp.Totp;
@@ -25,6 +27,8 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     private G2faDao g2faDao;
     @Autowired
     private NotificationUserSettingsDao notificationUserSettingsDao;
+    @Autowired
+    private NotificationService notificationService;
 
     private static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
     private static String APP_NAME = "Exrates";
@@ -89,6 +93,9 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
         g2faDao.setEnable2faGoogleAuth(userId, connection);
         if (!connection) {
             notificationUserSettingsDao.delete(userId);
+            notificationService.notifyUser(userId, NotificationEvent.ACCOUNT, "ga.2fa_disable_title", "message.g2fa.successDisable", null);
+        } else {
+            notificationService.notifyUser(userId, NotificationEvent.ACCOUNT, "ga.2fa_enable_title", "message.g2fa.successEnable", null);
         }
     }
 
