@@ -4,7 +4,10 @@
 
 <%@ page contentType="text/html;charset=UTF-8" %>
 <section id="2fa-options">
-
+    <h4 class="h4_green">
+        <loc:message code="message.2fa.title"/>
+    </h4>
+    <h4 class="under_h4_margin"></h4>
     <div class="col-sm-12" style="width: 65%; margin-bottom: 20px;">
         <!-- disable -->
         <div class="g2fa_connect" hidden>
