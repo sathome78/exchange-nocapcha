@@ -333,7 +333,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         viewResolver.setViewClass(JstlView.class);
         viewResolver.setPrefix("/WEB-INF/jsp/");
         viewResolver.setSuffix(".jsp");
+        viewResolver.setExposedContextBeanNames("captchaProperties");
         return viewResolver;
+    }
+
+    @Bean(name = "captchaProperties")
+    public PropertiesFactoryBean captchaProperties() {
+        PropertiesFactoryBean prop = new PropertiesFactoryBean();
+        prop.setLocation(new ClassPathResource("captcha.properties"));
+        return prop;
     }
 
     @Bean
