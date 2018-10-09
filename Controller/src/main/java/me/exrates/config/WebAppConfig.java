@@ -11,7 +11,6 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
@@ -368,11 +367,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
         resolver.setDefaultLocale(new Locale("en"));
         return resolver;
-    }
-
-    @Bean
-    public VerifyReCaptchaSec verifyReCaptcha() {
-        return new VerifyReCaptchaSec();
     }
 
     @Override
