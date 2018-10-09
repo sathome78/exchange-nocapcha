@@ -354,8 +354,8 @@ public class EntryController {
        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
-        mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
-      /*  mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
+        /*mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
+        mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
         mav.addObject("googleAuthenticatorEnable", notificationService.isGoogleAuthenticatorEnable(user.getId()));*/
        /* mav.addObject("googleAuthenticatorLogin", false);
         mav.addObject("googleAuthenticatorWithdraw", true);
@@ -635,7 +635,6 @@ public class EntryController {
     @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
     @ResponseBody
     public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
-        /*todo return another response when connected*/
         User user = userService.findByEmail(principal.getName());
         Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
         Generic2faResponseDto dto = null;
@@ -645,43 +644,39 @@ public class EntryController {
         return dto;
     }
 
-    /*@ResponseBody
-    @RequestMapping("/settings/2FaOptions/verify_google2fa")
-    public String verifyGoogleAuthenticatorConnect(@RequestParam String code,  Principal principal) {
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            if(!g2faService.checkGoogle2faVerifyCode(code, user.getId())){
-                throw new IncorrectSmsPinException("");
-            }
-        }
-        return "";
-    }*/
 
     @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", produces = "text/plain;charset=UTF-8")
-    public String connectGoogleAuthenticator(HttpServletRequest request, Principal principal) {
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "text/plain;charset=UTF-8")
+    public String connectGoogleAuthenticator(String password, String code, HttpServletRequest request, HttpServletResponse response, Principal principal) {
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
-        g2faService.setEnable2faGoogleAuth(user.getId(), false);
-        g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+        if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
+            response.setStatus(500);
+            return messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request));
+        }
+        g2faService.setEnable2faGoogleAuth(user.getId(), true);
         return messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request));
     }
 
     @ResponseBody
-    @RequestMapping ("/settings/2FaOptions/google2fa_disconnect")
-    public void disconnectGoogleAuthenticator(String password, String code, Principal principal, HttpServletRequest request) throws InterruptedException {
-        System.out.println("password " + password + " code " + code);
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "text/plain;charset=UTF-8")
+    public String disconnectGoogleAuthenticator(String password, String code, HttpServletResponse response, Principal principal, HttpServletRequest request) {
         User user = userService.findByEmail(principal.getName());
         Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
         Object mutex = WebUtils.getSessionMutex(request.getSession());
         synchronized (mutex) {
-            Thread.sleep(1500);
-            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) || userService.checkPassword(user.getId(), password))) {
-                throw new me.exrates.model.exceptions.InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+            }
+            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
+                response.setStatus(500);
+                return messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request));
             }
             g2faService.setEnable2faGoogleAuth(user.getId(), false);
             g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
         }
+        return messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request));
     }
 
     /*@ResponseBody
@@ -789,8 +784,8 @@ public class EntryController {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(InvalidCredentialsException.class)
     @ResponseBody
-    public ErrorInfo invalidg2faCredentilasExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
+    public ErrorInfo InvalidCredentialsExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(req)));
     }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)

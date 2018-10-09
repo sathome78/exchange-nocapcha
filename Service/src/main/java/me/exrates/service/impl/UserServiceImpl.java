@@ -720,7 +720,6 @@ public class UserServiceImpl implements UserService {
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-
     if ((setting == null || setting.getNotificatorId() == null)) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())

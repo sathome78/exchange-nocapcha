@@ -8,44 +8,44 @@
     <div class="col-sm-12" style="width: 65%; margin-bottom: 20px;">
         <!-- disable -->
         <div class="g2fa_connect" hidden>
-            <h2 style="font-size: 32px;">Two Factor Authentication (2FA) is <span style="color:red">Disabled</span> </h2>
+            <h2 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:red"> <loc:message code="news.status.disabled"/></span> </h2>
             <div style="width: 45%; float:left;">
-                <h4 style="margin-top: 0;">Two Factor Authentication Disabled</h4>
-                <div>For extra account security, we strongly recommend you enable two-factor authentication (2FA).</div>
+                <h4 style="margin-top: 0;"><loc:message code="ga.2fa_disable_title"/></h4>
+                <div><loc:message code="ga.2fa_recommend"/></div>
                 <hr>
-                <form action="#">
+                <form id='connect_g2fa' action="#">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <div style="margin-bottom: 4px; ">
                         <span style="float:left;">Username/Email:</span>
                         <span style="float:right;">${user.getEmail()}</span>
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
-                        <span style="float:left;">Password:</span>
-                        <input id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;">
+                        <span style="float:left;"><loc:message code="login.password"/></span>
+                        <input name="password" id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
                         <span style="float:left;">Code:</span>
-                        <input type="text" style="float:right; border: 1px solid grey;">
+                        <input name="code" id="2fa_user_code" type="text" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
-                    <div style="margin-bottom: 8px;"><b>Before turning on 2FA, write down or save a backup of your 16-digit key and put it in safe place.</b> If your phone
-                        gets lost, stolen, or erased, you will need this key to get back into you account!</div>
+                    <div style="margin-bottom: 8px;"><loc:message code="ga.2fa_turnon"/></div>
                     <div style="margin-bottom: 24px; max-width: 230px;">
                         <input id="backed_up_16" type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;">
-                        <span style="vertical-align: middle;">I have backed up my 16-digit key.</span>
+                        <span style="vertical-align: middle;"><loc:message code="ga.2fa_backed_up"/></span>
                         <div class="clearfix"></div>
                     </div>
-                    <button class="g2fa_connect_button btn btn-default" style="float:right;" disabled>Enable 2FA</button>
                 </form>
+                <button id="g2fa_connect_button" class="btn btn-default" style="float:right;" disabled><loc:message code="ga.2fa_enable_button"/></button>
             </div>
         </div>
         <!-- enable -->
         <div class="g2fa_connected" hidden>
-            <h1 style="font-size: 32px;">Two Factor Authentication (2FA) is <span style="color:red">Enabled</span> </h1>
+            <h1 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:red"> <loc:message code="admin.enabled"/></span> </h1>
             <div style="width: 45%; float:left;">
-                <h4 style="margin-top: 0;">Two Factor Authentication Enabled</h4>
-                <div>If you want to turn off 2FA, input your account password and the 6-digit code provided by the Google Authenticator app below, then click "Disable 2FA.</div>
+                <h4 style="margin-top: 0;"><loc:message code="ga.2fa_enable_title"/></h4>
+                <div><loc:message code="ga.2fa_turnoff"/></div>
                 <hr>
                 <form id='disconnect_g2fa' action="#">
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
@@ -55,29 +55,28 @@
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
-                        <span style="float:left;">Password:</span>
-                        <input name="password" type="password" style="float:right; border: 1px solid grey;">
+                        <span style="float:left;"><loc:message code="login.password"/></span>
+                        <input id="disconnect_pass" name="password" type="password" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 24px;">
                         <span style="float:left;">Code:</span>
-                        <input name="code" type="text" style="float:right; border: 1px solid grey;">
+                        <input id="disconnect_code" name="code" type="text" style="float:right; border: 1px solid grey;">
                         <div class="clearfix"></div>
                     </div>
                 </form>
-                <button id="disconnect_google2fa_send_code_button" class="btn btn-default" style="float:right;">Disable 2FA</button>
+                <button id="disconnect_google2fa" class="btn btn-default" style="float:right;" disabled><loc:message code="ga.2fa_disable_button"/></button>
             </div>
         </div>
         <!--  qr code block -->
         <div class="g2fa_connect" style="width: 43%; float:right;" hidden>
-            <div id="qr" style="margin-bottom: 24px; height: 280px;">
-                <%--<img style="width: 100%;height: 100%;" src="../Desktop/card.png" alt="">--%>
+            <div style="margin-bottom: 24px; height: 280px;">
+                <img id="g2fa_qr_code" alt="">
             </div>
-            <div><b>16-Digit-Key:</b> <span id="g2fa_code" style="color:red; text-transform: uppercase;"></span></div>
-            <div style="margin-bottom: 24px;">Save a backup of your recovery key</div>
+            <div><b><loc:message code="ga.2fa_16"/></b> <span id="g2fa_code" style="color:red; text-transform: uppercase;"></span></div>
+            <div style="margin-bottom: 24px;"><loc:message code="ga.2fa_save"/></div>
             <div>
-                NOTE: This code changes each time you enable 2FA.
-                If you disable 2FA this code will no longer be valid.
+                <loc:message code="ga.2fa_note"/>
             </div>
         </div>
         <div class="clearfix"></div>
