@@ -202,4 +202,6 @@ public interface UserService {
     User getUserByTemporalToken(String token);
 
     boolean checkPassword(int userId, String password);
+
+    long countUserIps(String userEmail);
 }

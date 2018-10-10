@@ -68,6 +68,9 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             if (ip == null) {
                 ip = IpUtils.getClientIpAddress(request, 100);
             }
+            if (userService.countUserIps(principal.getUsername()) == 0) {
+                WebUtils.setSessionAttribute(request, "user_first_entrance", true);
+            }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
             if (userIpDto.getUserIpState() == UserIpState.NEW) {
                 userService.insertIp(email, ip);

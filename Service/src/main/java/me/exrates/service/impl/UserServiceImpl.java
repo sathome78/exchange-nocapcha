@@ -790,4 +790,9 @@ public class UserServiceImpl implements UserService {
         return passwordEncoder.matches(password, userDao.getPassword(userId));
     }
 
+    @Override
+    public long countUserIps(String userEmail) {
+        return userDao.countUserEntrance(userEmail);
+    }
+
 }

@@ -162,10 +162,11 @@ public class EntryController {
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
         model.addObject("notify2fa", principal != null
-                                                /*&& (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
-                                                && !userService.isLogin2faUsed(principal.getName())*/);
+                                                && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
+                                                && !userService.isLogin2faUsed(principal.getName()));
+        model.addObject("firstLogin", principal != null && (Boolean) WebUtils.getSessionAttribute(request, "user_first_entrance"));
         WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
-        model.addObject("firstLogin", principal != null);
+        WebUtils.setSessionAttribute(request, "user_first_entrance", false);
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);

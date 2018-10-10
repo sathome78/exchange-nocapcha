@@ -1092,4 +1092,13 @@ public class UserDaoImpl implements UserDao {
       return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
   }
 
+  @Override
+  public long countUserEntrance(String email) {
+      final String sql = "SELECT COUNT(UI.user_id) FROM USER_IP UI JOIN USER U ON U.id=UI.user_id WHERE U.email =:email";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+          put("email", email);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
+  }
+
 }

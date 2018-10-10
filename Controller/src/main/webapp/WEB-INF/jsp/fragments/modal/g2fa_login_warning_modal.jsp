@@ -2,7 +2,7 @@
     <div class="modal-dialog" style="width: 900px;">
         <div class="modal-content">
             <div class="modal-body">
-                <h5 style="font-weight: bold; margin: 0 0 12px; font-size: 24px;">Safety Risk Notice</h5>
+                <h5 style="font-weight: bold; margin: 0 0 12px; font-size: 24px;"><loc:message code="message.modal.title.risks"/> </h5>
                 <style>
                     .custom-inp-check{
                         position: absolute;
@@ -51,7 +51,7 @@
                             </svg>
                         </div>
                         <div style="display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center;">
-                            Make sure you are visiting
+                            <loc:message code="message.modal.make.sure"/>
                             <span style=" position: relative; height: 28px; padding: 0 20px 0 36px; margin: 0 18px; font-size: 12px; display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center; border: 1px solid #ececec; border-radius: 4px; background-color: rgba(236, 236, 236, 0.3);">
                   <span style="position: absolute; left: 0; width: 28px; height: 28px; border-radius: 4px; background-color: #00B43D; display: -webkit-flex;display: -ms-flex;display: flex; justify-content: center; -ms-align-items: center;align-items: center;">
                     <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -60,7 +60,7 @@
                   </span>
                   www.exrates.me
                 </span>
-                            to prevent any phishing attacks.
+                            <loc:message code="message.modal.prevent.phishing"/>
                         </div>
                     </div>
                     <label style="position: relative; -ms-align-self: center;align-self: center;">
@@ -85,7 +85,7 @@
                             </svg>
                         </div>
                         <div style="display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center;">
-                            Never install any browser plug-ins that claim to be associated with Exrates.
+                            <loc:message code="message.modal.never.install"/>
                         </div>
                     </div>
                     <label style="position: relative; -ms-align-self: center;align-self: center;">
@@ -113,7 +113,7 @@
 
                         </div>
                         <div style="display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center;">
-                            Never call a phone number from anyone claiming to be a member of Exrates Support.
+                            <loc:message code="message.modal.never.call"/>
                         </div>
                     </div>
                     <label style="position: relative; -ms-align-self: center;align-self: center;">
@@ -138,7 +138,7 @@
                             </svg>
                         </div>
                         <div style="display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center;">
-                            Never tell your password or 2FA codes/keys to anyone, including Exrates Support.
+                            <loc:message code="message.modal.never.tell"/>
                         </div>
                     </div>
                     <label style="position: relative; -ms-align-self: center;align-self: center;">
@@ -165,7 +165,7 @@
                             </svg>
                         </div>
                         <div style="display: -webkit-flex;display: -ms-flex;display: flex; -ms-align-items: center;align-items: center;">
-                            Never send funds to anyone claiming to be a member of Exrates Support.
+                            <loc:message code="message.modal.never.send"/>
                         </div>
                     </div>
                     <label style="position: relative; -ms-align-self: center;align-self: center;">
@@ -174,8 +174,8 @@
                     </label>
                 </div>
                 <!-- row end -->
-                <div style="text-align: center; font-size: 14px; margin: 16px 0;">Be sure to pay attention to the above safety precautions at all times to strengthen the proection of your account.</div>
-                <div style="text-align: center;"><button class="safety_agree_button btn btn-default" disabled="">I understand, continue &gt;&gt;</button></div>
+                <div style="text-align: center; font-size: 14px; margin: 16px 0;"><loc:message code="message.modal.besure"/></div>
+                <div style="text-align: center;"><button class="safety_agree_button btn btn-default" disabled=""><loc:message code="message.modal.understand"/> &gt;&gt;</button></div>
 
             </div>
         </div>
