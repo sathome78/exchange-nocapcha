@@ -23,6 +23,7 @@ import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.*;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -95,6 +96,8 @@ public class EntryController {
     private NewsService newsService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserOperationService userOperationService;
     @Autowired
     private SessionParamsService sessionService;
     @Autowired
@@ -173,6 +176,10 @@ public class EntryController {
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
+
+            boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
+            model.addObject("accessToOperationForUser", accessToOperationForUser);
+
             model.addObject("userEmail", principal.getName());
             model.addObject("userStatus", userStatus);
             model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
