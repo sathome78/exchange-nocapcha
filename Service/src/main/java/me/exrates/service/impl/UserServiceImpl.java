@@ -720,18 +720,16 @@ public class UserServiceImpl implements UserService {
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-    if ((setting == null || setting.getNotificatorId() == null)) {
+    if (setting == null || setting.getNotificatorId() == null) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
               .userId(userId)
               .notificationMessageEventEnum(event)
               .build();
     }
-
-    if (setting.getNotificatorId() == 4) {
+    if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
       return g2faService.checkGoogle2faVerifyCode(pin, userId);
     }
-
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -741,20 +739,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean isLogin2faUsed(String email) {
-    /*NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
-    return setting != null && setting.getNotificatorId() != null;*/
-    return true;
+    return g2faService.isGoogleAuthenticatorEnable(userDao.getIdByEmail(email));
   }
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
-    LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
-    boolean res = !isLogin2faUsed(email) &&
-            (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
-    if (res) {
-      userDao.updateLast2faNotifyDate(email);
-    }
-    return res;
+    return userDao.updateLast2faNotifyDate(email);
   }
 
   @Override

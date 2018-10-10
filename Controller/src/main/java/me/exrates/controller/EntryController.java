@@ -22,7 +22,6 @@ import me.exrates.service.exception.UnoperableNumberException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
-import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.notifications.*;
 import me.exrates.service.session.UserSessionService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -64,7 +63,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -163,10 +161,11 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */
-        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
-        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
+        model.addObject("notify2fa", principal != null
+                                                /*&& (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
+                                                && !userService.isLogin2faUsed(principal.getName())*/);
+        WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
+        model.addObject("firstLogin", principal != null);
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -231,9 +230,7 @@ public class EntryController {
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
-        /*model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));*/
-        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
-        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
+        model.addObject("notify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
         model.setViewName("globalPages/ico_dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
@@ -258,77 +255,9 @@ public class EntryController {
                     .limit(1)
                     .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
         }
-
         return model;
     }
 
-    @RequestMapping(value = {"/tradingview"})
-    public ModelAndView tradingview(
-            @RequestParam(required = false) String qrLogin,
-            @RequestParam(required = false) String startupPage,
-            @RequestParam(required = false) String startupSubPage,
-            @RequestParam(required = false) String currencyPair,
-            HttpServletRequest request, Principal principal) {
-        ModelAndView model = new ModelAndView();
-        String successNoty = null;
-        String errorNoty = null;
-        if (qrLogin != null) {
-            successNoty = messageSource
-                    .getMessage("dashboard.qrLogin.successful", null,
-                            localeResolver.resolveLocale(request));
-        }
-        if (StringUtils.isEmpty(successNoty)) {
-            successNoty = (String) request.getSession().getAttribute("successNoty");
-            request.getSession().removeAttribute("successNoty");
-        }
-        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            successNoty = (String) RequestContextUtils.getInputFlashMap(request).get("successNoty");
-        }
-        model.addObject("successNoty", successNoty);
-        /**/
-        if (StringUtils.isEmpty(errorNoty)) {
-            errorNoty = (String) request.getSession().getAttribute("errorNoty");
-            request.getSession().removeAttribute("errorNoty");
-        }
-        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
-            errorNoty = (String) RequestContextUtils.getInputFlashMap(request).get("errorNoty");
-        }
-        /**/
-        model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
-        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
-        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
-        model.addObject("sessionId", request.getSession().getId());
-        /*  model.addObject("startPoll", principal != null && !surveyService.checkPollIsDoneByUser(principal.getName()));
-         */
-        model.addObject("notify2fa", principal != null && userService.checkIsNotifyUserAbout2fa(principal.getName()));
-        model.addObject("alwaysNotify2fa", principal != null && !userService.isLogin2faUsed(principal.getName()));
-        model.setViewName("globalPages/tradingview");
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        model.addObject(orderCreateDto);
-        if (principal != null) {
-            User user = userService.findByEmail(principal.getName());
-            int userStatus = user.getStatus().getStatus();
-            model.addObject("userEmail", principal.getName());
-            model.addObject("userStatus", userStatus);
-            model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-            model.addObject("referalPercents", referralService.findAllReferralLevels()
-                    .stream()
-                    .filter(p -> p.getPercent().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(toList()));
-        }
-        if (principal == null) {
-            request.getSession().setAttribute("lastPageBeforeLogin", request.getRequestURI());
-        }
-        if (currencyPair != null) {
-            currencyService.findPermitedCurrencyPairs(CurrencyPairType.MAIN).stream()
-                    .filter(p -> p.getName().equals(currencyPair))
-                    .limit(1)
-                    .forEach(p -> model.addObject("preferedCurrencyPairName", currencyPair));
-        }
-
-        return model;
-    }
 
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
@@ -341,10 +270,8 @@ public class EntryController {
         notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
         NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
         notificationOptionsForm.setOptions(notificationOptions);*/
-        if(request.getParameter("success2fa") != null) {
+        if(request.getParameter("2fa") != null) {
             mav.addObject("activeTabId", "2fa-options-wrapper");
-            mav.addObject("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    localeResolver.resolveLocale(request)));
         }
         mav.addObject("user", user);
         mav.addObject("tabIdx", tabIdx);
@@ -354,14 +281,8 @@ public class EntryController {
        /* mav.addObject("notificationOptionsForm", notificationOptionsForm);*/
         mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
         mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
-        /*mav.addObject("user2faOptions", settingsService.get2faOptionsForUser(user.getId()));
-        mav.addObject("googleAuthenticatorCode", notificationService.getGoogleAuthenticatorCode(user.getId()));
-        mav.addObject("googleAuthenticatorEnable", notificationService.isGoogleAuthenticatorEnable(user.getId()));*/
-       /* mav.addObject("googleAuthenticatorLogin", false);
-        mav.addObject("googleAuthenticatorWithdraw", true);
-        mav.addObject("googleAuthenticatorTransfer", false);*/
-        mav.addObject("tBotName", TBOT_NAME);
-        mav.addObject("tBotUrl", TBOT_URL);
+       /* mav.addObject("tBotName", TBOT_NAME);
+        mav.addObject("tBotUrl", TBOT_URL);*/
         return mav;
     }
 

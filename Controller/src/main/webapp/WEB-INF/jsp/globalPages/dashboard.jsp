@@ -105,6 +105,9 @@
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
+    <c:if test="${firstLogin}">
+        <input id="info_new" hidden value='${firstLogin}'/>
+    </c:if>
     <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -129,8 +132,8 @@
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
-<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
+<%@include file="../fragments/modal/G2fa_noty_modal.jsp" %>
+<%@include file="../fragments/modal/g2fa_login_warning_modal.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>

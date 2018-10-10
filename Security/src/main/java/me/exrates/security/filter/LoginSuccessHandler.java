@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -83,6 +84,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             if (!StringUtils.isEmpty(lastPage)) {
                 super.setDefaultTargetUrl(lastPage);
             }
+            WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
             log.error(e);
