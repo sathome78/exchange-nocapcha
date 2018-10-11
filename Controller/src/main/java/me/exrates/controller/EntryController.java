@@ -11,6 +11,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.exceptions.InvalidCredentialsException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
