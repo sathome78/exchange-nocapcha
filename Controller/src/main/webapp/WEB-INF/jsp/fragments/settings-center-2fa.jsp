@@ -45,7 +45,7 @@
         </div>
         <!-- enable -->
         <div class="g2fa_connected" hidden>
-            <h1 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:red"> <loc:message code="admin.enabled"/></span> </h1>
+            <h1 style="font-size: 32px;"><loc:message code="message.g2fa.is"/><span style="color:green"> <loc:message code="admin.enabled"/></span> </h1>
             <div style="width: 45%; float:left;">
                 <h4 style="margin-top: 0;"><loc:message code="ga.2fa_enable_title"/></h4>
                 <div><loc:message code="ga.2fa_turnoff"/></div>

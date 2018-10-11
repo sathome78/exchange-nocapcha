@@ -6,6 +6,7 @@ import me.exrates.model.enums.UserIpState;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.service.SessionParamsService;
+import me.exrates.service.SurveyService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,6 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     LocaleResolver localeResolver;
     @Autowired
     private UserService userService;
-
     @Autowired
     private IpBlockingService ipBlockingService;
 
@@ -50,7 +50,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         super.setAlwaysUseDefaultTargetUrl(false);
         try {
             User principal = (User) authentication.getPrincipal();
@@ -67,9 +67,6 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             String ip = request.getHeader("X-FORWARDED-FOR");
             if (ip == null) {
                 ip = IpUtils.getClientIpAddress(request, 100);
-            }
-            if (userService.countUserIps(principal.getUsername()) == 0) {
-                WebUtils.setSessionAttribute(request, "user_first_entrance", true);
             }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
             if (userIpDto.getUserIpState() == UserIpState.NEW) {

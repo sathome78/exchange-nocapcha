@@ -128,6 +128,8 @@ public class EntryController {
     private SecureService secureService;
     @Autowired
     private G2faService g2faService;
+    @Autowired
+    private SurveyService surveyService;
 
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
@@ -173,16 +175,17 @@ public class EntryController {
         model.addObject("notify2fa", principal != null
                                                 && (Boolean) WebUtils.getSessionAttribute(request, "first_entry_after_login")
                                                 && !userService.isLogin2faUsed(principal.getName()));
-        model.addObject("firstLogin", principal != null && (Boolean) WebUtils.getSessionAttribute(request, "user_first_entrance"));
         WebUtils.setSessionAttribute(request, "first_entry_after_login", false);
-        WebUtils.setSessionAttribute(request, "user_first_entrance", false);
+        if (principal != null && !surveyService.checkPollIsDoneByUser(principal.getName())) {
+            model.addObject("firstLogin", true);
+            surveyService.savePollAsDoneByUser(principal.getName());
+        }
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         if (principal != null) {
             User user = userService.findByEmail(principal.getName());
             int userStatus = user.getStatus().getStatus();
-
             boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(principal.getName()), UserOperationAuthority.TRADING);
             model.addObject("accessToOperationForUser", accessToOperationForUser);
 
@@ -742,7 +745,7 @@ public class EntryController {
         return new ErrorInfo(req.getRequestURL(), exception, messageSource.getMessage("message.service.unavialble", null, localeResolver.resolveLocale(req)));
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(InvalidCredentialsException.class)
     @ResponseBody
     public ErrorInfo InvalidCredentialsExceptionHandler(HttpServletRequest req, Exception exception) {
