@@ -11,6 +11,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.exceptions.InvalidCredentialsException;
+import me.exrates.model.exceptions.SessionParamTimeExceedException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
@@ -53,6 +54,7 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -60,9 +62,12 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -389,6 +394,7 @@ public class EntryController {
         return model;
     }
 
+
    /* @RequestMapping("/settings/notificationOptions/submit")
     public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
                                                   HttpServletRequest request, Principal principal) {
@@ -441,6 +447,117 @@ public class EntryController {
         }
         redirectAttributes.addFlashAttribute("activeTabId", "session-options-wrapper");
         return redirectView;
+    }
+
+    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
+    @ResponseBody
+    public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
+        User user = userService.findByEmail(principal.getName());
+        Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
+        Generic2faResponseDto dto = null;
+        if (!isConnected) {
+            dto = new Generic2faResponseDto(g2faService.generateQRUrl(principal.getName()), g2faService.getGoogleAuthenticatorCode(user.getId()));
+        }
+        return dto;
+    }
+
+
+    @ResponseBody
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect_check_creds", method = POST, produces = "application/json;charset=UTF-8")
+    public void connectGoogleAuthenticator(String password, String code, HttpServletRequest request, HttpServletResponse response, Principal principal) {
+        User user = userService.findByEmail(principal.getName());
+        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
+            throw new InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
+        }
+        try {
+            secureService.checkEventAdditionalPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
+        } catch (PinCodeCheckNeedException e) {
+            WebUtils.setSessionAttribute(request, NotificationMessageEventEnum.CHANGE_2FA_SETTING.name(), LocalDateTime.now());
+            throw e;
+        }
+    }
+
+
+    @ResponseBody
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "application/json;charset=UTF-8")
+    public String CheckPinAndSet(String pin, HttpServletRequest request, Principal principal) {
+        HttpSession session = request.getSession();
+        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(userService.getIdByEmail(principal.getName())));
+        LocalDateTime sessionParamTime = (LocalDateTime) Preconditions.checkNotNull(session.getAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name()));
+        if (sessionParamTime.plusMinutes(5).isBefore(LocalDateTime.now())) {
+            session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
+            throw new SessionParamTimeExceedException(messageSource.getMessage("message.enter.creds.again", null, localeResolver.resolveLocale(request)));
+        }
+        Preconditions.checkArgument( pin.length() > 2 && pin.length() < 10);
+        if (userService.checkPin(principal.getName(), pin, NotificationMessageEventEnum.CHANGE_2FA_SETTING)) {
+            session.removeAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name());
+        } else {
+            PinDto res = secureService.resendEventPin(request, principal.getName(), NotificationMessageEventEnum.CHANGE_2FA_SETTING, "");
+            session.setAttribute(NotificationMessageEventEnum.CHANGE_2FA_SETTING.name(), LocalDateTime.now());
+            throw new IncorrectPinException(res);
+        }
+        g2faService.setEnable2faGoogleAuth(userService.getIdByEmail(principal.getName()), true);
+        return new JSONObject(){{put("message", messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request)));}}.toString();
+    }
+
+    @ResponseBody
+    @RequestMapping (value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "application/json;charset=UTF-8")
+    public String disconnectGoogleAuthenticator(String password, String code, HttpServletResponse response, Principal principal, HttpServletRequest request) {
+        User user = userService.findByEmail(principal.getName());
+        Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
+        Object mutex = WebUtils.getSessionMutex(request.getSession());
+        synchronized (mutex) {
+            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
+                throw new InvalidCredentialsException(messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request)));
+            }
+            g2faService.setEnable2faGoogleAuth(user.getId(), false);
+            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
+        }
+        return new JSONObject(){{put("message", messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request)));}}.toString();
+    }
+
+
+    /*skip resources: img, css, js*/
+    @RequestMapping("/news/**/{newsVariant}/newstopic")
+    public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {
+        try {
+            ModelAndView modelAndView = new ModelAndView();
+            modelAndView.setViewName("globalPages/newstopic");
+            String path = request.getServletPath(); //   /news/2015/MAY/27/48/ru/newstopic.html
+            int newsId = Integer.valueOf(path.split("\\/\\p{Alpha}+\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
+//            String locale = path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1];
+            News news = newsService.getNews(newsId, new Locale(newsVariant));
+            if (news != null) {
+                String newsContentPath = new StringBuilder()
+                        .append(newsLocationDir)    //    /Users/Public/news/
+                        .append(news.getResource()) //                      2015/MAY/27/
+                        .append(newsId)             //                                  48
+                        .append("/")                //                                     /
+                        .append(newsVariant)   //      ru
+                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
+                        .append("/newstopic.html")  //                                          /newstopic.html
+                        .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
+                LOGGER.debug("News content path: " + newsContentPath);
+                try {
+                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html
+                    news.setContent(newsContent);
+                    LOGGER.debug("News content: " + newsContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                String newsContent = messageSource.getMessage("news.absent", null, localeResolver.resolveLocale(request));
+                news = new News();
+                news.setContent(newsContent);
+                LOGGER.error("NEWS NOT FOUND");
+            }
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            modelAndView.addObject("news", news);
+            return modelAndView;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /*@ResponseBody
@@ -562,52 +679,7 @@ public class EntryController {
         return subscribable.reconnect(principal.getName()).toString();
     }*/
 
-    @RequestMapping(value = "/settings/2FaOptions/google2fa", method = RequestMethod.POST)
-    @ResponseBody
-    public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
-        User user = userService.findByEmail(principal.getName());
-        Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
-        Generic2faResponseDto dto = null;
-        if (!isConnected) {
-            dto = new Generic2faResponseDto(g2faService.generateQRUrl(principal.getName()), g2faService.getGoogleAuthenticatorCode(user.getId()));
-        }
-        return dto;
-    }
 
-
-    @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_connect", method = POST, produces = "text/plain;charset=UTF-8")
-    public String connectGoogleAuthenticator(String password, String code, HttpServletRequest request, HttpServletResponse response, Principal principal) {
-        User user = userService.findByEmail(principal.getName());
-        Preconditions.checkState(!g2faService.isGoogleAuthenticatorEnable(user.getId()));
-        if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
-            response.setStatus(500);
-            return messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request));
-        }
-        g2faService.setEnable2faGoogleAuth(user.getId(), true);
-        return messageSource.getMessage("message.settings_successfully_saved", null, localeResolver.resolveLocale(request));
-    }
-
-    @ResponseBody
-    @RequestMapping (value = "/settings/2FaOptions/google2fa_disconnect", method = POST, produces = "text/plain;charset=UTF-8")
-    public String disconnectGoogleAuthenticator(String password, String code, HttpServletResponse response, Principal principal, HttpServletRequest request) {
-        User user = userService.findByEmail(principal.getName());
-        Preconditions.checkState(g2faService.isGoogleAuthenticatorEnable(user.getId()));
-        Object mutex = WebUtils.getSessionMutex(request.getSession());
-        synchronized (mutex) {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-            }
-            if (!(g2faService.checkGoogle2faVerifyCode(code, user.getId()) && userService.checkPassword(user.getId(), password))) {
-                response.setStatus(500);
-                return messageSource.getMessage("ga.2fa.invalid_credentials", null, localeResolver.resolveLocale(request));
-            }
-            g2faService.setEnable2faGoogleAuth(user.getId(), false);
-            g2faService.updateGoogleAuthenticatorSecretCodeForUser(user.getId());
-        }
-        return messageSource.getMessage("message.settings_successfully_disconnected", null, localeResolver.resolveLocale(request));
-    }
 
     /*@ResponseBody
     @RequestMapping("/settings/2FaOptions/contact_info")
@@ -626,47 +698,6 @@ public class EntryController {
         }}.toString();
     }*/
 
-    /*skip resources: img, css, js*/
-    @RequestMapping("/news/**/{newsVariant}/newstopic")
-    public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {
-        try {
-            ModelAndView modelAndView = new ModelAndView();
-            modelAndView.setViewName("globalPages/newstopic");
-            String path = request.getServletPath(); //   /news/2015/MAY/27/48/ru/newstopic.html
-            int newsId = Integer.valueOf(path.split("\\/\\p{Alpha}+\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
-//            String locale = path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1];
-            News news = newsService.getNews(newsId, new Locale(newsVariant));
-            if (news != null) {
-                String newsContentPath = new StringBuilder()
-                        .append(newsLocationDir)    //    /Users/Public/news/
-                        .append(news.getResource()) //                      2015/MAY/27/
-                        .append(newsId)             //                                  48
-                        .append("/")                //                                     /
-                        .append(newsVariant)   //      ru
-                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
-                        .append("/newstopic.html")  //                                          /newstopic.html
-                        .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
-                LOGGER.debug("News content path: " + newsContentPath);
-                try {
-                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html
-                    news.setContent(newsContent);
-                    LOGGER.debug("News content: " + newsContent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                String newsContent = messageSource.getMessage("news.absent", null, localeResolver.resolveLocale(request));
-                news = new News();
-                news.setContent(newsContent);
-                LOGGER.error("NEWS NOT FOUND");
-            }
-            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
-            modelAndView.addObject("news", news);
-            return modelAndView;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(NoFileForLoadingException.class)

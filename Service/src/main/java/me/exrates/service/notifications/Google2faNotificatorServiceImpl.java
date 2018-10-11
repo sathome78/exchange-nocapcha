@@ -52,7 +52,7 @@ public class Google2faNotificatorServiceImpl implements NotificatorService, G2fa
     @Override
     public String generateQRUrl(String userEmail) throws UnsupportedEncodingException {
         User user = userService.findByEmail(userEmail);
-        String secret2faCode = g2faDao.getGoogleAuthSecretCodeByUser(user.getId());
+        String secret2faCode = getGoogleAuthenticatorCode(user.getId());
         return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, userEmail, secret2faCode, APP_NAME), "UTF-8");
     }
 

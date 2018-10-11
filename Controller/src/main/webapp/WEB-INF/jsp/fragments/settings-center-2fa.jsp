@@ -73,7 +73,7 @@
         </div>
         <!--  qr code block -->
         <div class="g2fa_connect" style="width: 43%; float:right;" hidden>
-            <div style="margin-bottom: 24px; height: 280px;">
+            <div style="margin-bottom: 10px; height: 220px; margin-top: 15px;">
                 <img id="g2fa_qr_code" alt="">
             </div>
             <div><b><loc:message code="ga.2fa_16"/></b> <span id="g2fa_code" style="color:red; text-transform: uppercase;"></span></div>

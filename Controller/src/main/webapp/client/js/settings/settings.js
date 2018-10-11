@@ -15,7 +15,11 @@ function SettingsClass() {
     /**/
     this.tabIdx = 0;
 
-    const $smsNumberError = $('#phone_error');
+    const $pinDialogModal = $('#pin_modal');
+    const $pinDialogText = $pinDialogModal.find('#pin_text');
+    const $pinWrong = $pinDialogModal.find('#pin_wrong');
+    const $pinSendButton = $("#check-pin-button");
+    const $pinInput = $('#pin_code');
 
     /*===========================================================*/
     (function init() {
@@ -75,18 +79,64 @@ function SettingsClass() {
         $('#2fa_cell').css('color', 'red').css('text-decoration', 'underline');
     }
 
+    $pinInput.on('input', function (e) {
+        checkPinInput()
+    });
+
+    function checkPinInput() {
+        var value = $pinInput.val();
+        if (value.length > 2 && value.length < 15 ) {
+            $pinSendButton.prop('disabled', false);
+        } else {
+            $pinSendButton.prop('disabled', true);
+        }
+    }
+
     $('#g2fa_connect_button').on('click', function () {
-        $smsNumberError.text('');
         $.ajax({
-            url: '/settings/2FaOptions/google2fa_connect',
+            url: '/settings/2FaOptions/google2fa_connect_check_creds',
             type: "POST",
             data: $('#connect_g2fa').serialize(),
             success: function (data) {
-                getG2fa();
-                successNoty(data);
+                $pinWrong.hide();
+                $pinDialogModal.modal();
+                $pinDialogText.text(data.detail);
             }, error : function (data) {
-                errorNoty(data.responseText);
             }
+        });
+    });
+
+    $pinSendButton.on('click', function () {
+        var pinCode = $('#pin_code');
+        $.ajax({
+            url: '/settings/2FaOptions/google2fa_connect',
+            type: "POST",
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: pinCode
+        }).success(function (result, textStatus, xhr) {
+            console.log(xhr.status);
+            console.log(JSON.stringify(result));
+            if (xhr.status === 200) {
+                $pinDialogModal.modal("hide");
+                getG2fa();
+                successNoty(result.message);
+            } else {
+                $pinWrong.show();
+                $pinDialogText.text(result.message);
+                if (result.needToSendPin) {
+                    successNoty(result.message)
+                }
+            }
+        }).error(function (result, textStatus, xhr) {
+            console.log(xhr.status);
+            console.log(JSON.stringify(result));
+            console.log('error');
+            $pinDialogModal.modal("hide");
+        }).complete(function () {
+            $pinInput.val("");
+            $pinSendButton.prop('disabled', true);
         });
     });
 
@@ -97,35 +147,29 @@ function SettingsClass() {
             data: $('#disconnect_g2fa').serialize(),
             success: function (data) {
                 getG2fa();
-                successNoty(data);
+                successNoty(data.message);
             }, error : function (data) {
-                errorNoty(data.responseText);
             }
         });
     });
 
     $('#backed_up_16').click(function () {
-        console.log("check");
         checkConnectButton();
     });
 
     $('#2fa_user_code').keyup(function () {
-        console.log("code");
         checkConnectButton();
     });
 
     $('#2fa_user_pass').keyup(function () {
-        console.log("pass");
         checkConnectButton();
     });
 
     $('#disconnect_pass').keyup(function () {
-        console.log("pass");
         checkDisconnectButton()
     });
 
     $('#disconnect_code').keyup(function () {
-        console.log("code");
         checkDisconnectButton()
     });
 
@@ -133,10 +177,8 @@ function SettingsClass() {
         var code = $('#2fa_user_code').val();
         var pass = $('#2fa_user_pass').val();
         if ($('#backed_up_16').is(':checked') && code.length > 0 && pass.length > 0) {
-            console.log("true");
             $('#g2fa_connect_button').removeAttr('disabled');
         } else {
-            console.log("false");
             $('#g2fa_connect_button').attr('disabled', true);
         }
     }
@@ -145,10 +187,8 @@ function SettingsClass() {
         var code = $('#disconnect_code').val();
         var pass = $('#disconnect_pass').val();
         if (pass.length > 0 && code.length > 0) {
-            console.log("true");
             $('#disconnect_google2fa').removeAttr('disabled');
         } else {
-            console.log("false");
             $('#disconnect_google2fa').attr('disabled', true);
         }
     }
