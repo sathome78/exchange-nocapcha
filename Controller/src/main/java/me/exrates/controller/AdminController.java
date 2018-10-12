@@ -522,8 +522,8 @@ public class AdminController {
     form.setUserId(user.getId());
     form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
     UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
-    userOperationForm.setUserId(id);
-    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(id, localeResolver.resolveLocale(request)));
+    userOperationForm.setUserId(user.getId());
+    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(user.getId(), localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
     model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
     model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));

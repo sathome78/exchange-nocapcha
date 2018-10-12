@@ -223,6 +223,12 @@ public class CryptocurrencyConfig {
                 "CLX", "CLX", 4, 20, false, false);
     }
 
+    @Bean(name = "qrkServiceImpl")
+    public BitcoinService qrkService() {
+        return new BitcoinServiceImpl("merchants/qrk_wallet.properties",
+                "QRK", "QRK", 4, 20, false, false);
+    }
+
     @Bean(name="cmkServiceImpl")
     public BitcoinService cmkService(){
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);

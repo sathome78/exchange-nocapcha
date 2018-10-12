@@ -2,7 +2,7 @@ package me.exrates.controller.merchants;
 
 import com.google.common.base.Preconditions;
 import me.exrates.controller.annotation.AdminLoggable;
-import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
@@ -75,9 +75,12 @@ public class WithdrawRequestController {
   private LocaleResolver localeResolver;
   @Autowired
   private SecureService secureServiceImpl;
+  @Autowired
+  private RefillService refillService;
 
-    private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
+  private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
+  @CheckActiveUserStatus
   @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
@@ -118,6 +121,7 @@ public class WithdrawRequestController {
         return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/withdraw/request/pin", method = POST)
     @ResponseBody
     public Map<String, String> withdrawRequestCheckPin(
@@ -193,6 +197,12 @@ public class WithdrawRequestController {
         Integer requesterAdminId = userService.getIdByEmail(principal.getName());
         withdrawService.returnFromWorkWithdrawalRequest(id, requesterAdminId);
     }
+
+  @ResponseBody
+  @RequestMapping(value = "/withdraw/check", method = POST)
+  public Boolean checkWalletAddress( @RequestParam String wallet, Principal principal, HttpServletRequest request) {
+    return refillService.checkAddressForAvailability(wallet);
+  }
 
   @AdminLoggable
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/decline", method = POST)
