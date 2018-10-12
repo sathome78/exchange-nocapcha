@@ -549,6 +549,8 @@ $(function dashdoardInit() {
 function checkAgreeButton() {
     if ($('.custom-inp-check').not(':checked').length === 0) {
         $('.safety_agree_button').removeAttr('disabled');
+    } else {
+        $('.safety_agree_button').attr('disabled', true);
     }
 }
 

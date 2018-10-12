@@ -25,17 +25,17 @@
                     </div>
                     <div style="margin-bottom: 12px; ">
                         <span style="float:left;"><loc:message code="login.password"/></span>
-                        <input name="password" id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;">
+                        <input name="password" id="2fa_user_pass" type="password" style="float:right; border: 1px solid grey;" autocomplete="off">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 12px; ">
                         <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
-                        <input name="code" id="2fa_user_code" type="text" style="float:right; border: 1px solid grey;">
+                        <input name="code" id="2fa_user_code" type="text" style="float:right; border: 1px solid grey;" autocomplete="off">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 8px;"><loc:message code="ga.2fa_turnon"/></div>
                     <div style="margin-bottom: 24px; max-width: 230px;">
-                        <input id="backed_up_16" type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;">
+                        <input id="backed_up_16" type="checkbox" name="" value="" style="vertical-align: middle;margin: 0;" autocomplete="off">
                         <span style="vertical-align: middle;"><loc:message code="ga.2fa_backed_up"/></span>
                         <div class="clearfix"></div>
                     </div>
@@ -59,12 +59,12 @@
                     </div>
                     <div style="margin-bottom: 12px; ">
                         <span style="float:left;"><loc:message code="login.password"/>:</span>
-                        <input id="disconnect_pass" name="password" type="password" style="float:right; border: 1px solid grey;">
+                        <input id="disconnect_pass" name="password" type="password" style="float:right; border: 1px solid grey;" autocomplete="off">
                         <div class="clearfix"></div>
                     </div>
                     <div style="margin-bottom: 24px;">
                         <span style="float:left;"><loc:message code="message.sms.code"/>:</span>
-                        <input id="disconnect_code" name="code" type="text" style="float:right; border: 1px solid grey;">
+                        <input id="disconnect_code" name="code" type="text" style="float:right; border: 1px solid grey;" autocomplete="off">
                         <div class="clearfix"></div>
                     </div>
                 </form>

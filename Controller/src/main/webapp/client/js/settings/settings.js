@@ -93,10 +93,13 @@ function SettingsClass() {
     }
 
     $('#g2fa_connect_button').on('click', function () {
+        var data = $('#connect_g2fa').serialize();
+        $('#2fa_user_pass').val('');
+        $('#2fa_user_code').val('');
         $.ajax({
             url: '/settings/2FaOptions/google2fa_connect_check_creds',
             type: "POST",
-            data: $('#connect_g2fa').serialize(),
+            data: data,
             success: function (data) {
                 $pinWrong.hide();
                 $pinDialogModal.modal();
@@ -141,10 +144,13 @@ function SettingsClass() {
     });
 
     $('#disconnect_google2fa').on('click', function () {
+        var data = $('#disconnect_g2fa').serialize();
+        $('#disconnect_pass').val('');
+        $('#disconnect_code').val('');
         $.ajax({
             url: '/settings/2FaOptions/google2fa_disconnect',
             type: "POST",
-            data: $('#disconnect_g2fa').serialize(),
+            data: data,
             success: function (data) {
                 getG2fa();
                 successNoty(data.message);
