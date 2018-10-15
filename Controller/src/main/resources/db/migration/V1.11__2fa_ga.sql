@@ -11,7 +11,9 @@ CREATE TABLE 2FA_GOOGLE_AUTHENTICATOR (
   `secret_code` VARCHAR(45) NULL,
   INDEX `user_id_idx` (`user_id` ASC),
     FOREIGN KEY (`user_id`)
-    REFERENCES `birzha`.`user` (`id`)
+    REFERENCES USER (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 DEFAULT CHARACTER SET = utf8;
+
+UPDATE USER SET tmp_poll_passed = false;
