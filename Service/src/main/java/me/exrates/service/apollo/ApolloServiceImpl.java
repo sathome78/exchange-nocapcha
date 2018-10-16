@@ -138,8 +138,19 @@ public class ApolloServiceImpl implements ApolloService {
         throw new RuntimeException("not implemented");
     }
 
+
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
+    }
+
+    @Override
+    public Merchant getMerchant() {
+        return merchant;
+    }
+
+    @Override
+    public Currency getCurrency() {
+        return currency;
     }
 }

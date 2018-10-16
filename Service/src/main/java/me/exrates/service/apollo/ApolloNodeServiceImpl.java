@@ -47,7 +47,19 @@ public class ApolloNodeServiceImpl implements ApolloNodeService {
                 String.class).getBody();
     }
 
-
-
-
+    @Override
+    public String getTransaction(String txHash) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(SEVER_URL)
+                .queryParam("requestType", "getTransaction")
+                .queryParam("fullHash", txHash)
+                .queryParam("includePhasingResult", true);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+        return restTemplate.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                requestEntity,
+                String.class).getBody();
+    }
 }
