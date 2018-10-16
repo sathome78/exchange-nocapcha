@@ -508,8 +508,8 @@ $(function dashdoardInit() {
         /*2fa notify*/
         var $2faModal = $('#g2fa_noty_modal');
         var $infoModal = $('#first_info_modal');
-        var notify2fa = $("#noty2fa").val() == 'true';
-        var isNew = $('#info_new').val() == 'true';
+        var notify2fa = $("#noty2fa").val() === 'true';
+        var isNew = $('#info_new').val() === 'true';
         console.log('isnew ' + isNew);
         console.log('noty2fa ' + notify2fa);
 
