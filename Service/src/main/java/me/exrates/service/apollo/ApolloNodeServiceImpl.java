@@ -26,7 +26,7 @@ public class ApolloNodeServiceImpl implements ApolloNodeService {
     private RestTemplate restTemplate;
 
     @Override
-    public String getTransactions(String address, int firstIndex, int lastIndex) {
+    public String getTransactions(String address, long timestamp) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(SEVER_URL)
                 .queryParam("requestType", "getBlockchainTransactions")
                 .queryParam("nonPhasedOnly", true)
@@ -34,8 +34,7 @@ public class ApolloNodeServiceImpl implements ApolloNodeService {
                 .queryParam("subtype", 0)
                 .queryParam("withMessage", true)
                 .queryParam("executed", true)
-                .queryParam("firstIndex", firstIndex)
-                .queryParam("lastIndex", lastIndex)
+                .queryParam("timestamp", timestamp)
                 .queryParam("account", address);
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));

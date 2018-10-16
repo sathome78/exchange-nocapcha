@@ -60,7 +60,7 @@ public class ApolloServiceImpl implements ApolloService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         String destinationTag = generateUniqDestinationTag(request.getUserId());
-        String message = messageSource.getMessage("merchants.refill.xlm",
+        String message = messageSource.getMessage("merchants.refill.apl",
                 new Object[]{MAIN_ADDRESS, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
             put("address",  destinationTag);

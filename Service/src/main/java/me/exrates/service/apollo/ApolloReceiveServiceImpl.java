@@ -54,41 +54,37 @@ public class ApolloReceiveServiceImpl {
 
     private void checkTransactions() {
         log.debug("start check transactions");
-        long lastBLock = loadLastBlock();
-        int offset = 0;
-        int limit = 10;
-        JSONArray transactions;
-        do {
-            transactions = new JSONObject(apolloNodeService.getTransactions(MAIN_ADDRESS, offset, offset + limit)).getJSONArray("transactions");
-            transactions.forEach(p -> {
-                JSONObject tx = (JSONObject) p;
-                long blockHeight = tx.getLong("height");
-                if (lastBLock >= blockHeight) {
-                    return;
-                }
-                String sender = tx.getString("senderRS");
-                JSONObject attachment = tx.getJSONObject("attachment");
-                if (!tx.getBoolean("phased") && attachment.has("message") && !sender.equalsIgnoreCase(MAIN_ADDRESS)) {
-                    String hash = tx.getString("fullHash");
-                    BigDecimal amount = parseAmount(tx.getString("amountATM"));
-                    String address = attachment.getString("message");
-                    RefillRequestAcceptDto requestAcceptDto = apolloService.createRequest(address, amount, hash);
-                    if (needConfirmations(tx)) {
-                        apolloService.putOnBchExam(requestAcceptDto);
-                    } else {
-                        try {
-                            apolloService.processPayment(new HashMap<String, String>() {{
-                                put("address", address);
-                                put("hash", hash);
-                                put("amount", amount.toPlainString());
-                            }});
-                        } catch (RefillRequestAppropriateNotFoundException e) {
-                            log.error(e);
-                        }
+        long lastBLockTime = loadLastBlockTime();
+        JSONArray transactions = new JSONObject(apolloNodeService.getTransactions(MAIN_ADDRESS, lastBLockTime)).getJSONArray("transactions");
+        log.debug("txs {}", transactions);
+        transactions.forEach(p -> {
+            JSONObject tx = (JSONObject) p;
+            long blockHeight = tx.getLong("height");
+            if (lastBLockTime >= blockHeight) {
+                return;
+            }
+            String sender = tx.getString("senderRS");
+            JSONObject attachment = tx.getJSONObject("attachment");
+            if (!tx.getBoolean("phased") && attachment.has("message") && attachment.getBoolean("messageIsText") && !sender.equalsIgnoreCase(MAIN_ADDRESS)) {
+                String hash = tx.getString("fullHash");
+                BigDecimal amount = parseAmount(tx.getString("amountATM"));
+                String address = attachment.getString("message");
+                RefillRequestAcceptDto requestAcceptDto = apolloService.createRequest(address, amount, hash);
+                if (needConfirmations(tx)) {
+                    apolloService.putOnBchExam(requestAcceptDto);
+                } else {
+                    try {
+                        apolloService.processPayment(new HashMap<String, String>() {{
+                            put("address", address);
+                            put("hash", hash);
+                            put("amount", amount.toPlainString());
+                        }});
+                    } catch (RefillRequestAppropriateNotFoundException e) {
+                        log.error(e);
                     }
                 }
-            });
-        } while (transactions.length() > 0);
+            }
+        });
     }
 
 
@@ -132,11 +128,11 @@ public class ApolloReceiveServiceImpl {
         }
     }
 
-    private void saveLastBlock(String hash) {
+    private void saveLastBlockTime(String hash) {
         specParamsDao.updateParam(MERCHANT_NAME, PARAM_NAME, hash);
     }
 
-    private long loadLastBlock() {
+    private long loadLastBlockTime() {
         MerchantSpecParamDto specParamsDto = specParamsDao.getByMerchantNameAndParamName(MERCHANT_NAME, PARAM_NAME);
         return specParamsDto.getParamValue() == null ? 0 : Long.valueOf(specParamsDto.getParamValue());
     }
