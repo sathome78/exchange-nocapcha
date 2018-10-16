@@ -7,6 +7,8 @@ import me.exrates.model.Merchant;
 import me.exrates.model.RefillRequest;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
@@ -79,6 +82,42 @@ public class ApolloServiceImpl implements ApolloService {
 
 
     @Override
+    public RefillRequestAcceptDto createRequest(String address, BigDecimal amount, String hash) {
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+            log.error("apollo transaction allready received!!! {}", hash);
+            throw new RuntimeException("tron transaction allready received!!!");
+        }
+        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .address(address)
+                .merchantId(merchant.getId())
+                .currencyId(currency.getId())
+                .amount(amount)
+                .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+                .build();
+        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+        return requestAcceptDto;
+    }
+
+    @Override
+    public void putOnBchExam(RefillRequestAcceptDto requestAcceptDto) {
+        try {
+            refillService.putOnBchExamRefillRequest(
+                    RefillRequestPutOnBchExamDto.builder()
+                            .requestId(requestAcceptDto.getRequestId())
+                            .merchantId(merchant.getId())
+                            .currencyId(currency.getId())
+                            .address(requestAcceptDto.getAddress())
+                            .amount(requestAcceptDto.getAmount())
+                            .hash(requestAcceptDto.getMerchantTransactionId())
+                            .build());
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            log.error(e);
+        }
+    }
+
+    @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
@@ -91,18 +130,16 @@ public class ApolloServiceImpl implements ApolloService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        try {
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-            requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
-        }
+        refillService.autoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         throw new RuntimeException("not implemented");
+    }
+
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 }

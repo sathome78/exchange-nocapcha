@@ -1,7 +1,11 @@
 package me.exrates.service.apollo;
 
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+
+import java.math.BigDecimal;
 
 public interface ApolloService extends IRefillable, IWithdrawable {
 
@@ -55,4 +59,7 @@ public interface ApolloService extends IRefillable, IWithdrawable {
         return true;
     }
 
+    RefillRequestAcceptDto createRequest(String address, BigDecimal amount, String hash);
+
+    void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
 }
