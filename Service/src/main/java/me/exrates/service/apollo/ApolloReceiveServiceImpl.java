@@ -8,6 +8,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +31,7 @@ public class ApolloReceiveServiceImpl {
 
 
     private @Value("${apollo.main_address}")String MAIN_ADDRESS;
-    private static final String PARAM_NAME = "LastBlock";
+    private static final String PARAM_NAME = "LastBlockTime";
     private static final String MERCHANT_NAME = "APL";
     private static final long GENESIS_TIME = 1515931200;
 
@@ -48,43 +49,49 @@ public class ApolloReceiveServiceImpl {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 3, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 0, 3, TimeUnit.MINUTES);
         unconfirmedScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 5, 10, TimeUnit.MINUTES);
     }
 
     private void checkTransactions() {
-        log.debug("start check transactions");
-        long lastBLockTime = loadLastBlockTime();
-        JSONArray transactions = new JSONObject(apolloNodeService.getTransactions(MAIN_ADDRESS, lastBLockTime)).getJSONArray("transactions");
-        log.debug("txs {}", transactions);
-        transactions.forEach(p -> {
-            JSONObject tx = (JSONObject) p;
-            long blockHeight = tx.getLong("height");
-            if (lastBLockTime >= blockHeight) {
-                return;
-            }
-            String sender = tx.getString("senderRS");
-            JSONObject attachment = tx.getJSONObject("attachment");
-            if (!tx.getBoolean("phased") && attachment.has("message") && attachment.getBoolean("messageIsText") && !sender.equalsIgnoreCase(MAIN_ADDRESS)) {
-                String hash = tx.getString("fullHash");
-                BigDecimal amount = parseAmount(tx.getString("amountATM"));
-                String address = attachment.getString("message");
-                RefillRequestAcceptDto requestAcceptDto = apolloService.createRequest(address, amount, hash);
-                if (needConfirmations(tx)) {
-                    apolloService.putOnBchExam(requestAcceptDto);
-                } else {
-                    try {
-                        apolloService.processPayment(new HashMap<String, String>() {{
-                            put("address", address);
-                            put("hash", hash);
-                            put("amount", amount.toPlainString());
-                        }});
-                    } catch (RefillRequestAppropriateNotFoundException e) {
-                        log.error(e);
+        try {
+            log.debug("start check apl transactions");
+            long lastBLockTime = loadLastBlockTime();
+            JSONArray transactions = new JSONObject(apolloNodeService.getTransactions(MAIN_ADDRESS, lastBLockTime)).getJSONArray("transactions");
+            long lastTxBlockTimestamp = transactions.getJSONObject(0).getLong("blockTimestamp");
+            saveLastBlockTime(lastTxBlockTimestamp);
+            log.debug("txs {}", transactions);
+            transactions.forEach(p -> {
+                try {
+                    JSONObject tx = (JSONObject) p;
+                    String sender = tx.getString("senderRS");
+                    JSONObject attachment = tx.getJSONObject("attachment");
+                    if (!tx.getBoolean("phased") && attachment.has("message") && attachment.getBoolean("messageIsText") && !sender.equalsIgnoreCase(MAIN_ADDRESS)) {
+                        String hash = tx.getString("fullHash");
+                        BigDecimal amount = parseAmount(tx.getString("amountATM"));
+                        String address = attachment.getString("message");
+                        RefillRequestAcceptDto requestAcceptDto = apolloService.createRequest(address, amount, hash);
+                        if (needConfirmations(tx)) {
+                            apolloService.putOnBchExam(requestAcceptDto);
+                        } else {
+                            try {
+                                apolloService.processPayment(new HashMap<String, String>() {{
+                                    put("address", address);
+                                    put("hash", hash);
+                                    put("amount", amount.toPlainString());
+                                }});
+                            } catch (RefillRequestAppropriateNotFoundException e) {
+                                log.error(e);
+                            }
+                        }
                     }
+                } catch (Exception e) {
+                    log.error(e);
                 }
-            }
-        });
+            });
+        } catch (JSONException e) {
+            log.error(e);
+        }
     }
 
 
@@ -121,15 +128,15 @@ public class ApolloReceiveServiceImpl {
         long blockTimestamp = tx.getLong("blockTimestamp");
         long deadLine = tx.getLong("deadline");
         log.debug("1 {}, 2 {}", GENESIS_TIME + txTimestamp + (deadLine*60), blockTimestamp + (23*60*60));
-        if ((GENESIS_TIME + txTimestamp + (deadLine*60)) > (blockTimestamp + (23*60*60))) {
+        if ((GENESIS_TIME + txTimestamp + (deadLine * 60)) > (blockTimestamp + (23 * 60 * 60))) {
             return confirmations <= 10;
         } else {
             return confirmations < 720;
         }
     }
 
-    private void saveLastBlockTime(String hash) {
-        specParamsDao.updateParam(MERCHANT_NAME, PARAM_NAME, hash);
+    private void saveLastBlockTime(long lastblockTime) {
+        specParamsDao.updateParam(MERCHANT_NAME, PARAM_NAME, String.valueOf(lastblockTime));
     }
 
     private long loadLastBlockTime() {

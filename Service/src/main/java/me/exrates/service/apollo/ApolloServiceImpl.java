@@ -10,6 +10,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,8 +41,6 @@ public class ApolloServiceImpl implements ApolloService {
     private static final String APOLLO_MERCHANT_CURRENCY = "APL";
     private Merchant merchant;
     private Currency currency;
-    /*todo*/
-    private static final String DESTINATION_TAG_ERR_MSG = "";
 
     @Autowired
     private MerchantService merchantService;
@@ -50,6 +50,8 @@ public class ApolloServiceImpl implements ApolloService {
     private MessageSource messageSource;
     @Autowired
     private RefillService refillService;
+    @Autowired
+    private AlgorithmService algorithmService;
 
     @PostConstruct
     public void init() {
@@ -73,10 +75,9 @@ public class ApolloServiceImpl implements ApolloService {
         Optional<Integer> id;
         String destinationTag;
         do {
-            destinationTag = CryptoUtils.generateDestinationTag(userId, 9);
+            destinationTag = algorithmService.sha256(String.valueOf(userId)).substring(0, 10);
             id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(destinationTag, currency.getId(), merchant.getId());
         } while (id.isPresent());
-        log.debug("tag is {}", destinationTag);
         return destinationTag;
     }
 
@@ -142,6 +143,11 @@ public class ApolloServiceImpl implements ApolloService {
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
+    }
+
+    @Override
+    public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
+        return new BigDecimal(10).setScale(3, RoundingMode.HALF_UP);
     }
 
     @Override
