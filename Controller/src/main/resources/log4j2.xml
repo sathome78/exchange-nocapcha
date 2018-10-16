@@ -555,6 +555,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="adk" fileName="${sys:catalina.home}/logs/crypto/adk_log.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/adk_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="control_aspect" fileName="${sys:catalina.home}/logs/general/control_aspect.log"
+                     filePattern="${sys:catalina.home}/logs/general/control_aspect%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="apollo_log" fileName="${sys:catalina.home}/logs/crypto/apollo.log"
                      filePattern="${sys:catalina.home}/logs/crypto/apollo_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -799,8 +817,15 @@
         </logger>
         <logger name="org.web3j.protocol.core.filters.Filter" level="ERROR" additivity="false">
         </logger>
+        <logger name="adk_log" level="ALL" additivity="false">
+            <AppenderRef ref="adk"/>
+        </logger>
+        <logger name="control_aspect_log" level="ALL" additivity="false">
+            <AppenderRef ref="control_aspect"/>
+        </logger>
         <logger name="apollo" level="ALL" additivity="false">
             <AppenderRef ref="apollo_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">
