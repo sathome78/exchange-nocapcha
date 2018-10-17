@@ -38,13 +38,12 @@ public class RefillRequestJob {
    * During the check processBtcPayment is executed, which create refill request and refill user wallet.
    */
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
-  public void refillCheckPaymentsForQuarkAndLbtcAndLpc() {
-    String quarkName = "QRK";
-    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(null);
-    String litebitcoinName = "LBTC";
-    getBitcoinServiceByMerchantName(litebitcoinName).scanForUnprocessedTransactions(null);
-    String lightpaycoinName = "LPC";
-    getBitcoinServiceByMerchantName(lightpaycoinName).scanForUnprocessedTransactions(null);
+  public void refillCheckPaymentsForCoins() {
+      String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC"};
+
+      for (String coin : merchantNames) {
+          getBitcoinServiceByMerchantName(coin).scanForUnprocessedTransactions(null);
+      }
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
