@@ -49,8 +49,8 @@ public class ApolloReceiveServiceImpl {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 0, 3, TimeUnit.MINUTES);
-        unconfirmedScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 5, 10, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 3, 5, TimeUnit.MINUTES);
+        unconfirmedScheduler.scheduleAtFixedRate(this::checkUnconfirmed, 5, 8, TimeUnit.MINUTES);
     }
 
     private void checkTransactions() {
@@ -58,15 +58,22 @@ public class ApolloReceiveServiceImpl {
             log.debug("start check apl transactions");
             long lastBLockTime = loadLastBlockTime();
             JSONArray transactions = new JSONObject(apolloNodeService.getTransactions(MAIN_ADDRESS, lastBLockTime)).getJSONArray("transactions");
-            long lastTxBlockTimestamp = transactions.getJSONObject(0).getLong("blockTimestamp");
-            saveLastBlockTime(lastTxBlockTimestamp);
             log.debug("txs {}", transactions);
+            if (transactions.length() > 0) {
+                long lastTxBlockTimestamp = transactions.getJSONObject(0).getLong("blockTimestamp");
+                saveLastBlockTime(lastTxBlockTimestamp + 1L);
+            }
             transactions.forEach(p -> {
                 try {
                     JSONObject tx = (JSONObject) p;
                     String sender = tx.getString("senderRS");
+                    String recipient = tx.getString("recipientRS");
                     JSONObject attachment = tx.getJSONObject("attachment");
-                    if (!tx.getBoolean("phased") && attachment.has("message") && attachment.getBoolean("messageIsText") && !sender.equalsIgnoreCase(MAIN_ADDRESS)) {
+                    if (!tx.getBoolean("phased")
+                            && attachment.has("message")
+                            && attachment.getBoolean("messageIsText")
+                            && !sender.equalsIgnoreCase(MAIN_ADDRESS)
+                            && recipient.equalsIgnoreCase(MAIN_ADDRESS)) {
                         String hash = tx.getString("fullHash");
                         BigDecimal amount = parseAmount(tx.getString("amountATM"));
                         String address = attachment.getString("message");
@@ -96,21 +103,27 @@ public class ApolloReceiveServiceImpl {
 
 
     private void checkUnconfirmed() {
-        List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(apolloService.getMerchant().getId(), apolloService.getCurrency().getId());
-        dtos.forEach(p->{
-            try {
-                JSONObject tx = getTransaction(p.getMerchantTransactionId());
-                if (!needConfirmations(tx)) {
-                    apolloService.processPayment(new HashMap<String, String>() {{
-                        put("address", p.getAddress());
-                        put("hash", p.getMerchantTransactionId());
-                        put("amount", p.getAmount().toPlainString());
-                    }});
+        log.debug("check unconfirmed apl ");
+        try {
+            List<RefillRequestFlatDto> dtos = refillService.getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(apolloService.getMerchant().getId(), apolloService.getCurrency().getId());
+            dtos.forEach(p->{
+                log.debug("unconfirmed {}", p);
+                try {
+                    JSONObject tx = getTransaction(p.getMerchantTransactionId());
+                    if (!needConfirmations(tx)) {
+                        apolloService.processPayment(new HashMap<String, String>() {{
+                            put("address", p.getAddress());
+                            put("hash", p.getMerchantTransactionId());
+                            put("amount", p.getAmount().toPlainString());
+                        }});
+                    }
+                } catch (Exception e) {
+                    log.error(e);
                 }
-            } catch (Exception e) {
-                log.error(e);
-            }
-        });
+            });
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
 
@@ -127,8 +140,7 @@ public class ApolloReceiveServiceImpl {
         long txTimestamp = tx.getLong("timestamp");
         long blockTimestamp = tx.getLong("blockTimestamp");
         long deadLine = tx.getLong("deadline");
-        log.debug("1 {}, 2 {}", GENESIS_TIME + txTimestamp + (deadLine*60), blockTimestamp + (23*60*60));
-        if ((GENESIS_TIME + txTimestamp + (deadLine * 60)) > (blockTimestamp + (23 * 60 * 60))) {
+        if ((txTimestamp + (deadLine * 60)) > (blockTimestamp + 82800L)) {
             return confirmations <= 10;
         } else {
             return confirmations < 720;

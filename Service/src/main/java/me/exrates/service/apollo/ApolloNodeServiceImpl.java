@@ -32,7 +32,7 @@ public class ApolloNodeServiceImpl implements ApolloNodeService {
                 .queryParam("nonPhasedOnly", true)
                 .queryParam("type", 0)
                 .queryParam("subtype", 0)
-              /*  .queryParam("withMessage", true)*/
+                .queryParam("withMessage", true)
                 .queryParam("executed", true)
                 .queryParam("timestamp", timestamp)
                 .queryParam("account", address);
