@@ -353,7 +353,7 @@ public class MainController {
 
     }
 
-    @ResponseBody
+    /*@ResponseBody
     @RequestMapping(value = "/login/new_pin_send", method = RequestMethod.POST)
     public ResponseEntity<String> sendLoginPinAgain(HttpServletRequest request, HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
@@ -367,7 +367,7 @@ public class MainController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .body(res);
-    }
+    }*/
 
     @ResponseBody
     @RequestMapping(value = "/register/new_link_to_confirm", method = RequestMethod.POST)
