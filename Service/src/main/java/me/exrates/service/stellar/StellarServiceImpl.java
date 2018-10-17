@@ -15,6 +15,7 @@ import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -55,6 +56,8 @@ public class StellarServiceImpl implements StellarService {
     private RefillService refillService;
     @Autowired
     private StellarTransactionService stellarTransactionService;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private Merchant merchant;
     private Currency currency;
@@ -241,5 +244,11 @@ public class StellarServiceImpl implements StellarService {
                 return new BigDecimal(0.1).setScale(5, RoundingMode.HALF_UP);
         }
 
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(ACCOUNT_NAME, address);
     }
 }
