@@ -6,6 +6,7 @@ import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -21,10 +22,13 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
+import me.exrates.service.aidos.AdkService;
+import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.*;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -34,6 +38,7 @@ import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -84,6 +89,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
@@ -99,7 +105,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
-
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
     @Autowired
@@ -108,6 +113,8 @@ public class AdminController {
     private UserSecureService userSecureService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserOperationService userOperationService;
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
@@ -158,7 +165,8 @@ public class AdminController {
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
-
+    @Autowired
+    private AdkService adkService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -188,7 +196,6 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
         model.addObject("currencyPairList", currencyPairList);
-        model.addObject("enable_2fa", userService.isGlobal2FaActive());
         model.addObject("post_url", "/2a8fy7b07dxe44/set2fa");
         model.setViewName("admin/admin");
         return model;
@@ -444,7 +451,8 @@ public class AdminController {
         return result;
     }
 
-    @RequestMapping("/2a8fy7b07dxe44/addUser")
+    /*todo: Temporary commented for security reasons*/
+    /*@RequestMapping("/2a8fy7b07dxe44/addUser")
     public ModelAndView addUser(HttpSession httpSession) {
         ModelAndView model = new ModelAndView();
 
@@ -474,57 +482,61 @@ public class AdminController {
         model.addObject("user", user);
 
         return model;
-    }
+    }*/
 
     @AdminLoggable
     @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
     public ModelAndView editUser(@RequestParam(required = false) Integer id, @RequestParam(required = false) String email, HttpServletRequest request, Principal principal) {
+    ModelAndView model = new ModelAndView();
 
-        ModelAndView model = new ModelAndView();
+    model.addObject("statusList", UserStatus.values());
+    List<UserRole> roleList = new ArrayList<>();
+    UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+    if (currentUserRole == UserRole.ADMINISTRATOR) {
+      roleList = userRoleService.getRolesAvailableForChangeByAdmin();
+    }
+    model.addObject("roleList", roleList);
 
-        model.addObject("statusList", UserStatus.values());
-        List<UserRole> roleList = new ArrayList<>();
-        UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
-        if (currentUserRole == UserRole.ADMINISTRATOR) {
-            roleList = userRoleService.getRolesAvailableForChangeByAdmin();
-        }
-        model.addObject("roleList", roleList);
-
-        User user = new User();
-        if (email != null) {
-            email = email.replace(" ", "+");
-            user = userService.findByEmail(email);
-        } else {
-            user = userService.getUserById(id);
-        }
-
-        model.addObject("user", user);
-        model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-        model.addObject("currencies", currencyService.findAllCurrencies());
-        model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
-        model.setViewName("admin/editUser");
-        model.addObject("userFiles", userService.findUserDoc(user.getId()));
-        model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
-        List<Merchant> merchantList = merchantService.findAll();
-        merchantList.sort(Comparator.comparing(Merchant::getName));
-        model.addObject("merchants", merchantList);
-        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-        AuthorityOptionsForm form = new AuthorityOptionsForm();
-        form.setUserId(user.getId());
-        form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
-        model.addObject("authorityOptionsForm", form);
-        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
-        model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
-        model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
-        model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-        model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
-        model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
-        model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
-        model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
-        return model;
+    User user;
+    if (email != null) {
+        email = email.replace(" ", "+");
+        user = userService.findByEmail(email);
+    } else {
+        user = userService.getUserById(id);
     }
 
+    model.addObject("user", user);
+    model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
+    model.addObject("currencies", currencyService.findAllCurrencies());
+    model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
+    model.setViewName("admin/editUser");
+    model.addObject("userFiles", userService.findUserDoc(user.getId()));
+    model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
+    List<Merchant> merchantList = merchantService.findAll();
+    merchantList.sort(Comparator.comparing(Merchant::getName));
+    model.addObject("merchants", merchantList);
+    Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+    AuthorityOptionsForm form = new AuthorityOptionsForm();
+    form.setUserId(user.getId());
+    form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
+    UserOperationAuthorityOptionsForm userOperationForm = new UserOperationAuthorityOptionsForm();
+    userOperationForm.setUserId(user.getId());
+    userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(user.getId(), localeResolver.resolveLocale(request)));
+    model.addObject("authorityOptionsForm", form);
+    model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
+    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+    model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
+    model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
+    model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
+    model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
+    model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
+    model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
+    return model;
+  }
+
+    /*
+     * Commented temporary, for security reasons
     @AdminLoggable
     @RequestMapping("/2a8fy7b07dxe44/editUser/submit2faOptions")
     public RedirectView submitNotificationOptions(@RequestParam int userId, RedirectAttributes redirectAttributes,
@@ -558,7 +570,7 @@ public class AdminController {
             throw e;
         }
         return redirectView;
-    }
+    }*/
 
     @AdminLoggable
     @ResponseBody
@@ -579,29 +591,19 @@ public class AdminController {
     }
 
     @AdminLoggable
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
-    public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
-        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
-        try {
-            userService.setGlobal2FaActive(use2fa);
-        } catch (Exception e) {
-            log.error(e);
-            response.setStatus(400);
-            return "error";
-        }
-        return "ok";
-    }
-
-    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-        UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
+        /*todo: Temporary commented for security reasons*/
+        /*UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
 
         if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
             return new ModelAndView("403");
-        }
-        user.setConfirmPassword(user.getPassword());
+        }*/
+        /*todo remove it; Temporary set null to prevent change role from admin, for security reasons*/
+        user.setRole(null);
+
+        /*todo: Temporary commented for security reasons*/
+        /*user.setConfirmPassword(user.getPassword());*/
         if (user.getFinpassword() == null) {
             user.setFinpassword("");
         }
@@ -610,17 +612,20 @@ public class AdminController {
         if (result.hasErrors()) {
             model.setViewName("admin/editUser");
             model.addObject("statusList", UserStatus.values());
-            if (currentUserRole == ADMINISTRATOR) {
+            /*todo: Temporary commented for security reasons*/
+            /*if (currentUserRole == ADMINISTRATOR) {
                 model.addObject("roleList", userRoleService.getRolesAvailableForChangeByAdmin());
-            }
+            }*/
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setEmail(user.getEmail());
-            updateUserDto.setPassword(user.getPassword());
+            /*todo: Temporary commented for security reasons*/
+            /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
-            if (currentUserRole == ADMINISTRATOR) {
+            /*todo: Temporary commented for security reasons*/
+            /*if (currentUserRole == ADMINISTRATOR) {
                 updateUserDto.setRole(user.getRole());
-            }
+            }*/
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
@@ -634,145 +639,6 @@ public class AdminController {
         /**/
         model.addObject("user", user);
         /**/
-        return model;
-    }
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "/settings/uploadFile", method = POST)
-    public RedirectView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
-                                       RedirectAttributes redirectAttributes,
-                                       final Principal principal,
-                                       final Locale locale) {
-        final RedirectView redirectView = new RedirectView("/settings");
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
-        redirectAttributes.addFlashAttribute("user", user);
-        if (uploaded.isEmpty()) {
-            redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
-            return redirectView;
-        }
-        try {
-            userFilesService.createUserFiles(user.getId(), uploaded);
-        } catch (final IOException e) {
-            LOG.error(e);
-            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
-            return redirectView;
-        }
-        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
-        redirectAttributes.addFlashAttribute("userFiles", userService.findUserDoc(user.getId()));
-        redirectAttributes.addFlashAttribute("activeTabId", "files-upload-wrapper");
-        return redirectView;
-    }
-
-    /*todo move this method from admin controller*/
-    @ResponseBody
-    @RequestMapping(value = "/settings/changePassword/submit", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                         Principal principal, HttpServletRequest request, HttpServletResponse response) {
-        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        User userPrincipal = userService.findByEmail(principal.getName());
-        Object message;
-        if (result.hasErrors()) {
-            response.setStatus(500);
-            message = result.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
-        } else {
-            if (bCryptPasswordEncoder.matches(user.getPassword(), userPrincipal.getPassword())) {
-
-                UpdateUserDto updateUserDto = new UpdateUserDto(userService.getIdByEmail(principal.getName()));
-                updateUserDto.setPassword(user.getConfirmPassword());
-                updateUserDto.setStatus(UserStatus.ACTIVE);
-                updateUserDto.setRole(user.getRole());
-                updateUserDto.setEmail(principal.getName()); //need for send the email (depreceted)
-                userService.update(updateUserDto, localeResolver.resolveLocale(request));
-                message = messageSource.getMessage("user.settings.changePassword.successful", null, localeResolver.resolveLocale(request));
-                userSessionService.invalidateUserSessionExceptSpecific(principal.getName(), RequestContextHolder.currentRequestAttributes().getSessionId());
-            } else {
-                response.setStatus(500);
-                message = messageSource.getMessage("user.settings.changePassword.fail", null, localeResolver.resolveLocale(request));
-            }
-        }
-        return new JSONObject() {{
-            put("message", message);
-        }}.toString();
-    }
-
-
-  /*
-    //todo move this method from admin controller
-    @RequestMapping(value = "/changePasswordConfirm")
-  public ModelAndView verifyEmail(@ModelAttribute User user, @RequestParam("token") String token, HttpServletRequest request, RedirectAttributes attr) {
-    try {
-      request.setCharacterEncoding("utf-8");
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    ModelAndView model = new ModelAndView();
-    try {
-      if (userService.verifyUserEmail(token) != 0) {
-        User userUpdate = userService.findByEmail(user.getEmail());
-        UpdateUserDto updateUserDto = new UpdateUserDto(userUpdate.getId());
-        updateUserDto.setEmail(userUpdate.getEmail());
-        updateUserDto.setPassword(userUpdate.getPassword());
-        updateUserDto.setStatus(UserStatus.ACTIVE);
-        userService.updateUserByAdmin(updateUserDto);
-        Collection<GrantedAuthority> authList = new ArrayList<>(userDetailsService.loadUserByUsername(updateUserDto.getEmail()).getAuthorities());
-        org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(
-                updateUserDto.getEmail(), updateUserDto.getPassword(), false, false, false, false, authList);
-        Authentication auth = new UsernamePasswordAuthenticationToken(userSpring, null, authList);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        attr.addFlashAttribute("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
-      } else {
-        attr.addFlashAttribute("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
-      }
-      model.setViewName("redirect:/dashboard");
-    } catch (Exception e) {
-      model.setViewName("DBError");
-      e.printStackTrace();
-    }
-    return model;
-  }
-  */
-
-    /*todo move this method from admin controller*/
-    @RequestMapping(value = "settings/changeNickname/submit", method = POST)
-    public ModelAndView submitsettingsNickname(@Valid @ModelAttribute User user, BindingResult result,
-                                               HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        registerFormValidation.validateNickname(user, result, localeResolver.resolveLocale(request));
-
-        if (result.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            redirectAttributes.addFlashAttribute("sectionid", "nickname-changing");
-        } else {
-            boolean userNicknameUpdated = userService.setNickname(user);
-            if (userNicknameUpdated) {
-                redirectAttributes.addFlashAttribute("successNoty", "You have successfully updated nickname");
-            } else {
-                redirectAttributes.addFlashAttribute("errorNoty", "Error. Nickname NOT changed.");
-            }
-        }
-
-        redirectAttributes.addFlashAttribute("activeTabId", "nickname-changing-wrapper");
-
-        return new ModelAndView(new RedirectView("/settings"));
-    }
-
-    @RequestMapping(value = "/newIpConfirm")
-    public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
-        ModelAndView model = new ModelAndView();
-        try {
-            if (userService.verifyUserEmail(token) != 0) {
-                req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
-            } else {
-                req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
-            }
-            model.setViewName("redirect:/login");
-        } catch (Exception e) {
-            model.setViewName("DBError");
-            e.printStackTrace();
-        }
         return model;
     }
 
@@ -875,35 +741,26 @@ public class AdminController {
     @RequestMapping("/2a8fy7b07dxe44/userswallets")
     public ModelAndView showUsersWalletsSummary(Principal principal) {
         Integer requesterUserId = userService.getIdByEmail(principal.getName());
-        Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-        List<UserWalletSummaryDto> fullResult = walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId);
-        /**/
-        List<UserWalletSummaryDto> allFiltered = getSublistForRole(fullResult, "ALL");
-        List<UserWalletSummaryDto> adminFiltered = getSublistForRole(fullResult, "ADMIN");
-        List<UserWalletSummaryDto> userFiltered = getSublistForRole(fullResult, "USER");
-        List<UserWalletSummaryDto> exchangeFiltered = getSublistForRole(fullResult, "EXCHANGE");
-        List<UserWalletSummaryDto> vipUserFiltered = getSublistForRole(fullResult, "VIP_USER");
-        List<UserWalletSummaryDto> traderFiltered = getSublistForRole(fullResult, "TRADER");
-        /**/
-        mapUsersWalletsSummaryList.put("ALL", allFiltered);
-        mapUsersWalletsSummaryList.put("ADMIN", adminFiltered);
-        mapUsersWalletsSummaryList.put("USER", userFiltered);
-        mapUsersWalletsSummaryList.put("EXCHANGE", exchangeFiltered);
-        mapUsersWalletsSummaryList.put("VIP_USER", vipUserFiltered);
-        mapUsersWalletsSummaryList.put("TRADER", traderFiltered);
-        /**/
         ModelAndView model = new ModelAndView();
         model.setViewName("UsersWallets");
-        model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
         Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-            add("ALL");
+            add("ADMIN");
         }};
         usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
         model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
         List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
         model.addObject("operationDirectionList", operationDirectionList);
-
         return model;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/walletsSummaryTable", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<UserWalletSummaryDto> findRequestByStatus(
+            @RequestParam("viewType") String viewTypeName,
+            Principal principal) {
+        Integer requesterUserId = userService.getIdByEmail(principal.getName());
+        List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(viewTypeName);
+        return walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId, realRoleList);
     }
 
     private List<UserWalletSummaryDto> getSublistForRole(List<UserWalletSummaryDto> fullResult, String role) {
@@ -1125,6 +982,25 @@ public class AdminController {
                         .collect(Collectors.toList()));
     }
 
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/editUserOperationTypeAuthorities/submit", method = RequestMethod.POST)
+  public RedirectView editUserOperationTypeAuthorities(@ModelAttribute UserOperationAuthorityOptionsForm userOperationAuthorityOptionsForm, Principal principal,
+                                      RedirectAttributes redirectAttributes) {
+    RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + userOperationAuthorityOptionsForm.getUserId());
+    try {
+      userOperationService.updateUserOperationAuthority(userOperationAuthorityOptionsForm.getOptions(), userOperationAuthorityOptionsForm.getUserId(), principal.getName());
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+      return redirectView;
+    }
+    String updatedUserEmail = userService.getUserById(userOperationAuthorityOptionsForm.getUserId()).getEmail();
+    sessionRegistry.getAllPrincipals().stream()
+            .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+            .findFirst()
+            .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
+    return redirectView;
+  }
+
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantTransferCommissions", method = RequestMethod.GET)
     @ResponseBody
@@ -1270,6 +1146,16 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
+    public ModelAndView adkWallet() {
+        ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
+        modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
+        modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
+        modelAndView.addObject("title", "ADK Wallet");
+        modelAndView.addObject("balance", adkService.getBalance());
+        return modelAndView;
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
@@ -1400,6 +1286,27 @@ public class AdminController {
             modelAndView.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
         });
         return modelAndView;
+    }
+
+
+    @GetMapping(value = "/getWalletBalanceByCurrencyName")
+    public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
+        @RequestParam("token")String token){
+
+        if(!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")){
+            throw new RuntimeException("Some unexpected exception");
+        }
+        Currency byName = currencyService.findByName(currencyName);
+
+        List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
+        List<Merchant> collect = allByCurrency.stream().
+                filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
+        Map<String, String> collect1 = collect.
+                stream().
+                collect(toMap(Merchant::getName, merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
+
+
+        return new ResponseEntity<>(collect1, HttpStatus.OK);
     }
 
     @AdminLoggable
@@ -1533,7 +1440,7 @@ public class AdminController {
     public ModelAndView generalStats() {
         Map<UserRole, Boolean> defaultRoleFilter = new EnumMap<>(UserRole.class);
         defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
-                .collect(Collectors.toMap(value -> value, value -> false)));
+                .collect(toMap(value -> value, value -> false)));
         userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
