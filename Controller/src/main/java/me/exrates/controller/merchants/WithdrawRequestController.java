@@ -2,6 +2,7 @@ package me.exrates.controller.merchants;
 
 import com.google.common.base.Preconditions;
 import me.exrates.controller.annotation.AdminLoggable;
+import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
@@ -15,6 +16,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.service.SecureService;
@@ -22,6 +24,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -54,61 +57,71 @@ public class WithdrawRequestController {
 
     private static final Logger log = LogManager.getLogger("withdraw");
 
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    WithdrawService withdrawService;
-    @Autowired
-    UserService userService;
-    @Autowired
-    MerchantService merchantService;
-    @Autowired
-    private InputOutputService inputOutputService;
-    @Autowired
-    private CommissionService commissionService;
-    @Autowired
-    private LocaleResolver localeResolver;
-    @Autowired
-    private SecureService secureServiceImpl;
+  @Autowired
+  private MessageSource messageSource;
+  @Autowired
+  WithdrawService withdrawService;
+  @Autowired
+  UserService userService;
+  @Autowired
+  private UserOperationService userOperationService;
+  @Autowired
+  MerchantService merchantService;
+  @Autowired
+  private InputOutputService inputOutputService;
+  @Autowired
+  private CommissionService commissionService;
+  @Autowired
+  private LocaleResolver localeResolver;
+  @Autowired
+  private SecureService secureServiceImpl;
+  @Autowired
+  private RefillService refillService;
 
-    private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
+  private final static String withdrawRequestSessionAttr = "withdrawRequestCreateDto";
 
-    @RequestMapping(value = "/withdraw/request/create", method = POST)
-    @ResponseBody
-    public Map<String, String> createWithdrawalRequest(
-            @RequestBody WithdrawRequestParamsDto requestParamsDto,
-            Principal principal, HttpServletRequest request,
-            Locale locale) throws UnsupportedEncodingException {
-        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
-            throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
-        }
-        if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
-            merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
-        }
-        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
-        Payment payment = new Payment(OUTPUT);
-        payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(requestParamsDto.getMerchant());
-        payment.setSum(requestParamsDto.getSum().doubleValue());
-        payment.setDestination(requestParamsDto.getDestination());
-        payment.setDestinationTag(requestParamsDto.getDestinationTag());
-        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(), locale)
-                .orElseThrow(InvalidAmountException::new);
-        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-        try {
-            secureServiceImpl.checkEventAdditionalPin(request, principal.getName(),
-                    NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency(withdrawRequestCreateDto));
-        } catch (PinCodeCheckNeedException e) {
-            request.getSession().setAttribute(withdrawRequestSessionAttr, withdrawRequestCreateDto);
-            throw e;
-        }
-        return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
+  @CheckActiveUserStatus
+  @RequestMapping(value = "/withdraw/request/create", method = POST)
+  @ResponseBody
+  public Map<String, String> createWithdrawalRequest(
+      @RequestBody WithdrawRequestParamsDto requestParamsDto,
+      Principal principal, HttpServletRequest request,
+      Locale locale, HttpServletRequest servletRequest) throws UnsupportedEncodingException {
+    boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userService.getIdByEmail(servletRequest.getUserPrincipal().getName()), UserOperationAuthority.OUTPUT);
+    if(!accessToOperationForUser) {
+      throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, localeResolver.resolveLocale(servletRequest)));
     }
+    if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
+    }
+    if (!StringUtils.isEmpty(requestParamsDto.getDestinationTag())) {
+      merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
+    }
+    WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+    Payment payment = new Payment(OUTPUT);
+    payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
+    payment.setSum(requestParamsDto.getSum().doubleValue());
+    payment.setDestination(requestParamsDto.getDestination());
+    payment.setDestinationTag(requestParamsDto.getDestinationTag());
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName(),locale)
+        .orElseThrow(InvalidAmountException::new);
+    WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    try {
+      secureServiceImpl.checkEventAdditionalPin(request, principal.getName(),
+              NotificationMessageEventEnum.WITHDRAW, getAmountWithCurrency(withdrawRequestCreateDto));
+    } catch (PinCodeCheckNeedException e) {
+      request.getSession().setAttribute(withdrawRequestSessionAttr, withdrawRequestCreateDto);
+      throw e;
+    }
+    return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
+  }
 
     private String getAmountWithCurrency(WithdrawRequestCreateDto dto) {
         return String.join("", dto.getAmount().stripTrailingZeros().toPlainString(), " ", dto.getCurrencyName());
     }
 
+    @CheckActiveUserStatus
     @RequestMapping(value = "/withdraw/request/pin", method = POST)
     @ResponseBody
     public Map<String, String> withdrawRequestCheckPin(
@@ -185,16 +198,22 @@ public class WithdrawRequestController {
         withdrawService.returnFromWorkWithdrawalRequest(id, requesterAdminId);
     }
 
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/decline", method = POST)
-    @ResponseBody
-    public void decline(
-            @RequestParam Integer id,
-            @RequestParam String comment,
-            Principal principal) {
-        Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-        withdrawService.declineWithdrawalRequest(id, requesterAdminId, comment);
-    }
+  @ResponseBody
+  @RequestMapping(value = "/withdraw/check", method = POST)
+  public Boolean checkWalletAddress( @RequestParam String wallet, Principal principal, HttpServletRequest request) {
+    return refillService.checkAddressForAvailability(wallet);
+  }
+
+  @AdminLoggable
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/decline", method = POST)
+  @ResponseBody
+  public void decline(
+      @RequestParam Integer id,
+      @RequestParam String comment,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    withdrawService.declineWithdrawalRequest(id, requesterAdminId, comment);
+  }
 
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/confirm", method = POST)
