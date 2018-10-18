@@ -61,9 +61,9 @@ function subscribeAll() {
         subscribeForAlerts();
         subscribeEvents();
     }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
+/*    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
         subscribeChart();
-    }
+    }*/
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
         subscribeForMyTrades();
@@ -161,7 +161,7 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
+/*function subscribeChart() {
     if (chartSubscription != undefined) {
         chartSubscription.unsubscribe();
     }
@@ -174,7 +174,7 @@ function subscribeChart() {
             trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
-}
+}*/
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -330,8 +330,6 @@ function initTradeOrders(object) {
 $(function dashdoardInit() {
     sessionId = $('#session').text();
     csrf = $('.s_csrf').val();
-    var $2faModal = $('#noty2fa_modal');
-    var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -470,7 +468,7 @@ $(function dashdoardInit() {
                     var tradingCpData = jQuery.extend(true, {}, cpData);
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
@@ -508,37 +506,53 @@ $(function dashdoardInit() {
         }*/
         /*...FOR POLL*/
         /*2fa notify*/
+        var $2faModal = $('#g2fa_noty_modal');
+        var $infoModal = $('#first_info_modal');
+        var notify2fa = $("#noty2fa").val() === 'true';
+        var isNew = $('#info_new').val() === 'true';
+        console.log('isnew ' + isNew);
+        console.log('noty2fa ' + notify2fa);
 
-        var notify2fa = $("#noty2fa").val() == 'true';
         if (notify2fa) {
-          $2faModal.modal({
-              backdrop: 'static',
-              keyboard: false
-          });
+            $2faModal.modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        if (isNew) {
+            $infoModal.modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+            checkAgreeButton();
         }
         /*end 2fa notify*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
     }
 
-    $('#decline_2fa').on('click', function () {
+    $('.decline_2fa').on('click', function () {
         $2faModal.modal('hide');
-        $2faConfirmModal.modal({
-            backdrop: 'static',
-            keyboard: false
-        });
     });
-
-    $('#decline_2fa_finally').on('click', function () {
-        $2faConfirmModal.modal('hide');
-    });
-
-    $('.accept_2fa').on('click', function () {
+    $('#ga-btn').on('click', function () {
         window.location.href = '/settings?2fa';
     });
+    $('.custom-inp-check').on('change', function () {
+        checkAgreeButton();
+    });
+    $('.safety_agree_button').on('click', function () {
+        $infoModal.modal('hide');
+    });
+
 });
 
-
+function checkAgreeButton() {
+    if ($('.custom-inp-check').not(':checked').length === 0) {
+        $('.safety_agree_button').removeAttr('disabled');
+    } else {
+        $('.safety_agree_button').attr('disabled', true);
+    }
+}
 
 function showPage(pageId) {
     if (!pageId) {

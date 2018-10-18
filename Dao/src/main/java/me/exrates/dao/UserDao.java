@@ -8,6 +8,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -18,7 +19,7 @@ public interface UserDao {
 
   int getIdByNickname(String nickname);
 
-  boolean setNickname(User user);
+  boolean setNickname(String newNickName, String userEmail);
 
   boolean create(User user);
 
@@ -177,4 +178,9 @@ public interface UserDao {
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+  User getUserByTemporalToken(String token);
+
+    String getPassword(int userId);
+
+    long countUserEntrance(String email);
 }

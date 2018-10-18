@@ -3,17 +3,15 @@ package me.exrates.service.notifications;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.Notificator;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Maks on 08.10.2017.
@@ -26,15 +24,31 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     private NotificationUserSettingsDao settingsDao;
     @Autowired
     private NotificatorsService notificatorsService;
+    @Autowired
+    private G2faService g2faService;
 
 
     @Override
     public NotificationsUserSetting getByUserAndEvent(int userId, NotificationMessageEventEnum event) {
-        return settingsDao.getByUserAndEvent(userId, event);
+        if (g2faService.isGoogleAuthenticatorEnable(userId)) {
+            return NotificationsUserSetting.builder()
+                    .notificationMessageEventEnum(event)
+                    .notificatorId(NotificationTypeEnum.GOOGLE2FA.getCode())
+                    .build();
+        }
+        return  NotificationsUserSetting.builder()
+                .notificatorId(NotificationTypeEnum.EMAIL.getCode())
+                .userId(userId)
+                .notificationMessageEventEnum(event)
+                .build();
     }
 
-    @Override
+    /*comment because only g2fa used now, if other messengers will be in use - uncomment and change getByUserAndEvent method*/
+    /*@Override
     public void createOrUpdate(NotificationsUserSetting setting) {
+        if (!notificatorsService.getById(setting.getNotificatorId()).isEnabled()) {
+            return;
+        }
         if (getByUserAndEvent(setting.getUserId(), setting.getNotificationMessageEventEnum()) == null) {
             settingsDao.create(setting);
         } else {
@@ -46,7 +60,7 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
     public Map<String, Object> get2faOptionsForUser(int userId) {
         Map<String, Object> map = new HashMap<>();
         map.put("notificators", notificatorsService.getAllNotificators());
-        map.put("events", Arrays.asList(NotificationMessageEventEnum.values()));
+        map.put("events", Arrays.stream(NotificationMessageEventEnum.values()).filter(NotificationMessageEventEnum::isChangable).collect(Collectors.toList()));
         map.put("settings", setDefaultSettings(userId, getSettingsMap(userId)));
         map.put("subscriptions", notificatorsService.getSubscriptions(userId));
         return map;
@@ -74,6 +88,6 @@ public class NotificationsSettingsServiceImpl implements NotificationsSettingsSe
                 }
         );
         return map;
-    }
+    }*/
 
 }

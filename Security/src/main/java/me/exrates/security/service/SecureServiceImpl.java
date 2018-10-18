@@ -3,7 +3,6 @@ package me.exrates.security.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.Locale;
 
 
@@ -72,32 +70,31 @@ public class SecureServiceImpl implements SecureService {
         int userId = userService.getIdByEmail(userEmail);
         NotificationMessageEventEnum event = NotificationMessageEventEnum.LOGIN;
         NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-        if (userService.isGlobal2FaActive() || (setting != null && setting.getNotificatorId() != null) ) {
-            if (setting == null) {
+        if (setting == null || setting.getNotificatorId() == null) {
                 setting = NotificationsUserSetting.builder()
                         .notificatorId(NotificationTypeEnum.EMAIL.getCode())
                         .userId(userId)
                         .notificationMessageEventEnum(event)
                         .build();
-            }
-            if (setting.getNotificatorId() == null) {
-                setting.setNotificatorId(NotificationTypeEnum.EMAIL.getCode());
-            }
-            log.debug("noty_setting {}", setting.toString());
-            PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
-            Locale locale = localeResolver.resolveLocale(request);
-            boolean needToSendPin = forceSend ? true : attempsDto.needToSendPin();
-            String message;
+        }
+        PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
+        Locale locale = localeResolver.resolveLocale(request);
+        boolean needToSendPin = false;
+        String message;
+        if (NotificationTypeEnum.convert(setting.getNotificatorId()).isNeedToSendMessages()) {
+            needToSendPin = forceSend || attempsDto.needToSendPin();
             if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
-                message =  newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
+                message = newPin.concat(sendPinMessage(userEmail, setting, request, new String[]{IpUtils.getClientIpAddress(request, 18)}));
             } else {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
                 message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
-            return new PinDto(message, needToSendPin);
+        } else {
+            NotificationResultDto notificationResultDto = notificationService.notifyUser(userEmail, "", "", setting);
+            message = messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
         }
-        return null;
+        return new PinDto(message, needToSendPin);
     }
 
 
@@ -114,39 +111,38 @@ public class SecureServiceImpl implements SecureService {
 
     @Override
     public PinDto resendEventPin(HttpServletRequest request, String email, NotificationMessageEventEnum event, String amountCurrency) {
-        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW));
+        Preconditions.checkArgument(event.equals(NotificationMessageEventEnum.TRANSFER) || event.equals(NotificationMessageEventEnum.WITHDRAW) || event.equals(NotificationMessageEventEnum.CHANGE_2FA_SETTING));
         int userId = userService.getIdByEmail(email);
         NotificationsUserSetting setting = determineSettings(settingsService.getByUserAndEvent(userId, event), event.isCanBeDisabled(), userId, event);
-        if (setting != null) {
-            PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
-            Locale locale = localeResolver.resolveLocale(request);
-            boolean needToSendPin = attempsDto.needToSendPin();
-            String message;
+        PinAttempsDto attempsDto = (PinAttempsDto) request.getSession().getAttribute("2fa_".concat(event.name()));
+        Locale locale = localeResolver.resolveLocale(request);
+        boolean needToSendPin = false;
+        String message;
+        if (NotificationTypeEnum.convert(setting.getNotificatorId()).isNeedToSendMessages()) {
+            needToSendPin = attempsDto.needToSendPin();
             if (needToSendPin) {
                 String newPin = messageSource.getMessage("notification.message.newPinCode", null, locale);
-                message =  newPin.concat(sendPinMessage(email, setting, request, new String[]{amountCurrency}));
+                message = newPin.concat(sendPinMessage(email, setting, request, new String[]{amountCurrency}));
             } else {
                 NotificationResultDto lastNotificationResultDto = (NotificationResultDto) request.getSession().getAttribute("2fa_message".concat(event.name()));
-                message =  messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
+                message = messageSource.getMessage(lastNotificationResultDto.getMessageSource(), lastNotificationResultDto.getArguments(), locale);
             }
-            return new PinDto(message, needToSendPin);
+        } else {
+            NotificationResultDto notificationResultDto = notificationService.notifyUser(email, "", "", setting);
+            message = messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
         }
-        return null;
+        return new PinDto(message, needToSendPin);
     }
 
     private NotificationsUserSetting determineSettings(NotificationsUserSetting setting, boolean canBeDisabled, int userId, NotificationMessageEventEnum event) {
-        if ((setting == null || setting.getNotificatorId() == null) && !canBeDisabled) {
+        if (setting == null || setting.getNotificatorId() == null) {
             return NotificationsUserSetting.builder()
                     .notificatorId(NotificationTypeEnum.EMAIL.getCode())
                     .userId(userId)
                     .notificationMessageEventEnum(event)
                     .build();
         }
-        if (setting != null && setting.getNotificatorId() != null) {
-            return setting;
-        } else {
-            return null;
-        }
+        return setting;
     }
 
 

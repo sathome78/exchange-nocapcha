@@ -7,7 +7,10 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.btcCore.CoreWalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.ParamMapUtils;
@@ -49,6 +52,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Autowired
   private MessageSource messageSource;
+
   @Autowired
   private CoreWalletService bitcoinWalletService;
 
@@ -140,21 +144,32 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @PostConstruct
   void startBitcoin() {
-    if (nodeEnabled) {
-      bitcoinWalletService.initCoreClient(nodePropertySource, supportInstantSend, supportSubtractFee, supportReferenceLine);
-      bitcoinWalletService.initBtcdDaemon(zmqEnabled);
-      bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
-      if (supportWalletNotifications) {
-        bitcoinWalletService.walletFlux().subscribe(this::onPayment);
-      } else {
-        newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 1, 1, TimeUnit.MINUTES);
+      Properties passSource;
+      if (nodeEnabled) {
+          try {
+              passSource = merchantService.getPassMerchantProperties(merchantName);
+              if (!passSource.containsKey("wallet.password") || StringUtils.isEmpty(passSource.getProperty("wallet.password"))) {
+                throw new RuntimeException("No wallet password");
+              }
+          } catch (Exception e) {
+              log.info("{} not started, pass props error", merchantName);
+              return;
+          }
+          bitcoinWalletService.initCoreClient(nodePropertySource, passSource, supportInstantSend, supportSubtractFee, supportReferenceLine);
+          bitcoinWalletService.initBtcdDaemon(zmqEnabled);
+          bitcoinWalletService.blockFlux().subscribe(this::onIncomingBlock);
+          if (supportWalletNotifications) {
+              bitcoinWalletService.walletFlux().subscribe(this::onPayment);
+          } else {
+              newTxCheckerScheduler.scheduleAtFixedRate(this::checkForNewTransactions, 3, 1, TimeUnit.MINUTES);
+          }
+          if (supportInstantSend) {
+              bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
+          }
+//        CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
+          log.info("btc service started {} ", merchantName);
+          examineMissingPaymentsOnStartup();
       }
-      if (supportInstantSend) {
-        bitcoinWalletService.instantSendFlux().subscribe(this::onPayment);
-      }
-//      CompletableFuture.runAsync(this::examineMissingPaymentsOnStartup);
-      examineMissingPaymentsOnStartup();
-    }
 
   }
 
@@ -208,7 +223,9 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   private String address() {
     boolean isFreshAddress = false;
+    System.out.println("begin generate address");
     String address = bitcoinWalletService.getNewAddress(getCoreWalletPassword());
+    System.out.println("end generate address " + address);
     Currency currency = currencyService.findByName(currencyName);
     Merchant merchant = merchantService.findByName(merchantName);
 //    if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {

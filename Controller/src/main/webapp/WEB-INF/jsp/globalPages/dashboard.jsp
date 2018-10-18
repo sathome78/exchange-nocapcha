@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -77,12 +78,15 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/jquery.onoff.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orderRoleFilter.js'/>"></script>
-   <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
+    <%-- <script src="<c:url value='/client/js/lib/survey/survey.jquery.min.js'/>"></script>--%>
+    <script src="<c:url value='/client/js/lib/charting_library/charting_library.min.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/polyfills.js' />"></script>
+    <script src="<c:url value='/client/js/datafeeds/udf/dist/bundle.js' />"></script>
     <!-- Amcharts Charts ... -->
     <script src="/client/js/chart-amcharts/amcharts.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/serial.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/amstock.js" type="text/javascript"></script>
-    <script src="/client/js/chart-amcharts/chartInit.js" type="text/javascript"></script>
+    <script src="/client/js/chart-amcharts/chartInit2.js" type="text/javascript"></script>
     <script src="/client/js/chart-amcharts/stockChart.js" type="text/javascript"></script>
     <!-- ... Amcharts Charts -->
     <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
@@ -103,6 +107,9 @@
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
+    <c:if test="${firstLogin}">
+        <input id="info_new" hidden value='${firstLogin}'/>
+    </c:if>
     <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -127,8 +134,8 @@
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
-<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
+<%@include file="../fragments/modal/G2fa_noty_modal.jsp" %>
+<%@include file="../fragments/modal/g2fa_login_warning_modal.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>
@@ -137,4 +144,3 @@
 
 </body>
 </html>
-

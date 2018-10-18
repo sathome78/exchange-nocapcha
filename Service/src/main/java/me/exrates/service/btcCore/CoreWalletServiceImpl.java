@@ -14,11 +14,11 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.btcCore.btcDaemon.BtcDaemon;
 import me.exrates.service.btcCore.btcDaemon.BtcHttpDaemonImpl;
+import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
 import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
-import me.exrates.service.btcCore.btcDaemon.BtcdZMQDaemonImpl;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -71,16 +71,16 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private final Object SENDING_LOCK = new Object();
 
 
-
-
   @Override
-  public void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
+  public void initCoreClient(String nodePropertySource, Properties passPropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine) {
     try {
       PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
       CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
               .build();
       Properties nodeConfig = new Properties();
       nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
+      nodeConfig.setProperty("node.bitcoind.rpc.user", passPropertySource.getProperty("node.bitcoind.rpc.user"));
+      nodeConfig.setProperty("node.bitcoind.rpc.password", passPropertySource.getProperty("node.bitcoind.rpc.password"));
       log.info("Node config: " + nodeConfig);
       btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
       this.supportInstantSend = supportInstantSend;
