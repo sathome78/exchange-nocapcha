@@ -231,7 +231,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "ddxServiceImpl")
     public BitcoinService ddxService() {
         return new BitcoinServiceImpl("merchants/ddx_wallet.properties",
-                "DDX", "DDX", 4, 20, false, true);
+                "DDX", "DDX", 1, 20, false, true);
     }
 
 
