@@ -223,6 +223,12 @@ public class CryptocurrencyConfig {
                 "CLX", "CLX", 4, 20, false, false);
     }
 
+    @Bean(name = "qrkServiceImpl")
+    public BitcoinService qrkService() {
+        return new BitcoinServiceImpl("merchants/qrk_wallet.properties",
+                "QRK", "QRK", 4, 20, false, false);
+    }
+
     @Bean(name="cmkServiceImpl")
     public BitcoinService cmkService(){
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 4, 20, false, true);
@@ -234,6 +240,20 @@ public class CryptocurrencyConfig {
                 "DDX", "DDX", 1, 20, false, true);
     }
 
+    @Bean(name="lpcServiceImpl")
+    public BitcoinService lpcService(){
+        return new BitcoinServiceImpl("merchants/lpc_wallet.properties", "LPC", "LPC", 4, 20, false, false);
+    }
+    @Bean(name = "xfcServiceImpl")
+    public BitcoinService xfcServiceImpl() {
+        return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
+                "XFC", "XFC", 4, 20, false, false);
+    }
+
+    @Bean(name="TOAServiceImpl")
+    public BitcoinService taoServiceImpl(){
+        return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 4, 20, false, false);
+    }
 
     // LISK-like cryptos
 

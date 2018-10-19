@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -17,7 +18,8 @@
 
     <%--TOOLS ... --%>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+    <%--alexa закоментировано т.к. не используется в данный момент--%>
+    <%--<%@include file="../tools/alexa.jsp" %>--%>
     <%--ZOPIM CHAT--%>
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%--INTERCOM CHAT--%>
@@ -31,8 +33,8 @@
     <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
     <script src="<c:url value="/client/js/datatables.js"/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <%--<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">--%>
+    <%--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">--%>
+    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
@@ -40,12 +42,12 @@
     <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.onoff.css"/>">
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="<c:url value="/client/css/jqueryDatatables.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/lib/numeral/numbro.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
@@ -70,7 +72,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+    <script type="text/javascript" src="<c:url value='/client/js/tinymce.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/historyRefStr.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
@@ -105,6 +107,9 @@
 
     <%@include file="../fragments/alerts.jsp" %>
     <input id="noty2fa" hidden value='${notify2fa}'/>
+    <c:if test="${firstLogin}">
+        <input id="info_new" hidden value='${firstLogin}'/>
+    </c:if>
     <input id="preferedCurrencyPairName" hidden value='${preferedCurrencyPairName}'/>
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
@@ -129,8 +134,8 @@
     </div>
 </main>
 <%@include file='../fragments/footer.jsp' %>
-<%@include file="../fragments/modal/poll_invite_modal.jsp" %>
-<%@include file="../fragments/modal/2fa_noty_modals.jsp" %>
+<%@include file="../fragments/modal/G2fa_noty_modal.jsp" %>
+<%@include file="../fragments/modal/g2fa_login_warning_modal.jsp" %>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="session">${sessionId}</span>

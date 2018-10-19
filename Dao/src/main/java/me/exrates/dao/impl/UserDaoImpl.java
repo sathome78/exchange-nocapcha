@@ -8,6 +8,8 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +147,8 @@ public class UserDaoImpl implements UserDao {
     String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY;";
     String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
         "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
+    String sqlUserOperationAuthority = "INSERT INTO USER_OPERATION_AUTHORITY (user_id, user_operation_id) " +
+            "SELECT :user_id, id FROM USER_OPERATION;";
     Map<String, String> namedParameters = new HashMap<String, String>();
     namedParameters.put("email", user.getEmail());
     namedParameters.put("nickname", user.getNickname());
@@ -168,7 +172,8 @@ public class UserDaoImpl implements UserDao {
     Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
     return namedParameterJdbcTemplate.update(sqlWallet, userIdParamMap) > 0
-        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0;
+        && namedParameterJdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0
+            && namedParameterJdbcTemplate.update(sqlUserOperationAuthority, userIdParamMap) > 0;
   }
 
   @Override
@@ -1081,6 +1086,24 @@ public class UserDaoImpl implements UserDao {
     params.put("start_time", Timestamp.valueOf(startTime));
     params.put("end_time", Timestamp.valueOf(endTime));
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
+  
+  @Override
+  public String getPassword(int userId) {
+      String sql = "SELECT password FROM USER WHERE USER.id =:id";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+        put("id", userId);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
+  }
+
+  @Override
+  public long countUserEntrance(String email) {
+      final String sql = "SELECT COUNT(UI.user_id) FROM USER_IP UI JOIN USER U ON U.id=UI.user_id WHERE U.email =:email";
+      Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+          put("email", email);
+      }};
+      return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
   }
 
 }
