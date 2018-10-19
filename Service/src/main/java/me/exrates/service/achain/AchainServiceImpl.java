@@ -126,7 +126,7 @@ public class AchainServiceImpl implements AchainService {
     @Override
     public boolean isValidDestinationAddress(String address) {
 
-        return withdrawUtils.isValidDestinationAddress(address);
+        return !address.startsWith(nodeService.getMainAccountAddress());
     }
 
 }
