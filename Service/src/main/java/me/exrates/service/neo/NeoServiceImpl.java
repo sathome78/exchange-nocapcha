@@ -68,6 +68,8 @@ public class NeoServiceImpl implements NeoService {
     private final String gasMerchantName = "GAS";
     private final String neoCurrencyName = "NEO";
     private final String gasCurrencyName = "GAS";
+    private final String kazeStreamName = "STREAM";
+    private final String kazeCoin = "KAZE";
     private final String neoSpecParamName = "LastRecievedBlock";
 
 
@@ -85,6 +87,8 @@ public class NeoServiceImpl implements NeoService {
         neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
             put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, merchantNeo, currencyNeo));
             put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantGas, currencyGas));
+            put(NeoAsset.KAZE.getId(), new AssetMerchantCurrencyDto(NeoAsset.KAZE, merchantService.findByName(NeoAsset.KAZE.name()), currencyService.findByName(NeoAsset.KAZE.name())));
+            put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
         }};
 
         scheduler.scheduleAtFixedRate(() -> {
