@@ -68,8 +68,6 @@ public class NeoServiceImpl implements NeoService {
     private final String gasMerchantName = "GAS";
     private final String neoCurrencyName = "NEO";
     private final String gasCurrencyName = "GAS";
-    private final String kazeStreamName = "STREAM";
-    private final String kazeCoin = "KAZE";
     private final String neoSpecParamName = "LastRecievedBlock";
 
 
@@ -98,7 +96,7 @@ public class NeoServiceImpl implements NeoService {
                 log.error(e);
             }
 
-        }, 3L, 30L, TimeUnit.MINUTES);
+        }, 1L, 5L, TimeUnit.MINUTES);
     }
 
 
