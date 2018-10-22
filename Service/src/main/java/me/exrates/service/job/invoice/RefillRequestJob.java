@@ -39,11 +39,11 @@ public class RefillRequestJob {
    */
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
   public void refillCheckPaymentsForCoins() {
-      String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC", "DDX"};
+    String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC", "DDX", "MBC"};
 
-      for (String coin : merchantNames) {
-          getBitcoinServiceByMerchantName(coin).scanForUnprocessedTransactions(null);
-      }
+    for (String coin : merchantNames) {
+      getBitcoinServiceByMerchantName(coin).scanForUnprocessedTransactions(null);
+    }
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
