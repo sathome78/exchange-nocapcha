@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
-VALUES ('KAZECoin', 'KAZE', 2, 'neoServiceImpl', 'CRYPTO', 47);
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
+VALUES ('KAZECoin', 'KAZE', 2, 'neoServiceImpl', 'CRYPTO');
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('KAZE', 'KAZECoin', 0, 8, 8, 8);
 
@@ -71,3 +71,6 @@ INSERT INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   SELECT BLCH.id, OT.id FROM BOT_LAUNCH_SETTINGS BLCH
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('KAZE/USD', 'KAZE/BTC', 'KAZE/ETH'));
+
+  INSERT INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'KAZE'), 'LastRecievedBlock', '797247');
