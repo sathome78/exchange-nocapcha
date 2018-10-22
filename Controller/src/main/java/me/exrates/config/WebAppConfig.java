@@ -11,11 +11,14 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.achain.AchainContract;
-import me.exrates.service.ethereum.*;
+import me.exrates.service.ethereum.EthTokenService;
+import me.exrates.service.ethereum.EthTokenServiceImpl;
+import me.exrates.service.ethereum.EthereumCommonService;
+import me.exrates.service.ethereum.EthereumCommonServiceImpl;
+import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
@@ -31,6 +34,7 @@ import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.flywaydb.core.Flyway;
 import org.nem.core.model.primitive.Supply;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
@@ -39,7 +43,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -62,7 +73,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -77,7 +92,14 @@ import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -91,7 +113,9 @@ import java.util.stream.Collectors;
 @ComponentScan({"me.exrates"})
 @Import(
         {
-                SecurityConfig.class, WebSocketConfig.class, CryptocurrencyConfig.class
+                SecurityConfig.class,
+                WebSocketConfig.class,
+                CryptocurrencyConfig.class
         }
 )
 @PropertySource(value = {
@@ -251,7 +275,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setUsername(dbMasterUser);
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
-        return new HikariDataSource(hikariConfig);
+        DataSource dataSource = new HikariDataSource(hikariConfig);
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.migrate();
+        return dataSource;
     }
 
     @Bean(name = "slaveHikariDataSource")
@@ -337,11 +367,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
         resolver.setDefaultLocale(new Locale("en"));
         return resolver;
-    }
-
-    @Bean
-    public VerifyReCaptchaSec verifyReCaptcha() {
-        return new VerifyReCaptchaSec();
     }
 
     @Override
@@ -565,11 +590,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "repServiceImpl")
     public EthTokenService RepService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xe94327d07fc17907b4db788e5adf2ed424addff6");
+        tokensList.add("0x1985365e9f78359a9b6ad760e32412f4a445e862");
         return new EthTokenServiceImpl(
                 tokensList,
                 "REP",
-                "REP", true, ExConvert.Unit.ETHER);
+                "REP", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "golemServiceImpl")
@@ -1386,6 +1411,46 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "SWM",
                 "SWM", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "ticServiceImpl")
+    public EthTokenService ticService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x72430a612adc007c50e3b6946dbb1bb0fd3101d1");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TIC",
+                "TIC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "bncServiceImpl")
+    public EthTokenService bncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xef51c9377feb29856e61625caf9390bd0b67ea18");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "BNC",
+                "BNC", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "wtlServiceImpl")
+    public EthTokenService wtlService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9a0587eae7ef64b2b38a10442a44cfa43edd7d2a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WTL",
+                "WTL", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uDOOServiceImpl")
+    public EthTokenService uDOOService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0df721639ca2f7ff0e1f618b918a65ffb199ac4e");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "uDOO",
+                "uDOO", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

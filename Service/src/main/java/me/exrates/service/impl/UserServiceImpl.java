@@ -9,6 +9,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.userOperation.UserOperationAuthorityOption;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -16,6 +17,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
@@ -71,19 +73,8 @@ public class UserServiceImpl implements UserService {
 
   @Autowired
   private NotificationsSettingsService settingsService;
-
-  /*this variable is set to use or not 2 factor authorization for all users*/
-  private boolean global2FaActive = false;
-
-  @Override
-  public boolean isGlobal2FaActive() {
-    return global2FaActive;
-  }
-
-  @Override
-  public void setGlobal2FaActive(boolean global2FaActive) {
-    this.global2FaActive = global2FaActive;
-  }
+  @Autowired
+  private G2faService g2faService;
 
   BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -223,9 +214,17 @@ public class UserServiceImpl implements UserService {
     return userDao.getIdByNickname(nickname);
   }
 
+
+  public boolean setNickname(String newNickName, String userEmail) {
+    return userDao.setNickname(newNickName, userEmail);
+  }
+
   @Override
-  public boolean setNickname(User user) {
-    return userDao.setNickname(user);
+  public boolean hasNickname(String userEmail){
+    String nickname = userDao.findByEmail(userEmail).getNickname();
+    if(nickname==null || nickname.trim().length()==0){
+      return false;
+    } else return true;
   }
 
   @Override
@@ -657,7 +656,6 @@ public class UserServiceImpl implements UserService {
       throw new ForbiddenOperationException("Status modification not permitted");
     }
     userDao.updateAdminAuthorities(options, userId);
-
   }
 
   @Override
@@ -724,18 +722,22 @@ public class UserServiceImpl implements UserService {
     return pin;
   }
 
+
+  /*todo refator it*/
   @Override
   public boolean checkPin(String email, String pin, NotificationMessageEventEnum event) {
     int userId = getIdByEmail(email);
     NotificationsUserSetting setting = settingsService.getByUserAndEvent(userId, event);
-    if ((setting == null || setting.getNotificatorId() == null) && !event.isCanBeDisabled()) {
+    if (setting == null || setting.getNotificatorId() == null) {
       setting = NotificationsUserSetting.builder()
               .notificatorId(NotificationTypeEnum.EMAIL.getCode())
               .userId(userId)
               .notificationMessageEventEnum(event)
               .build();
     }
-
+    if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
+      return g2faService.checkGoogle2faVerifyCode(pin, userId);
+    }
     return passwordEncoder.matches(pin, getPinForEvent(email, event));
   }
 
@@ -745,19 +747,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public boolean isLogin2faUsed(String email) {
-    NotificationsUserSetting setting = settingsService.getByUserAndEvent(getIdByEmail(email), NotificationMessageEventEnum.LOGIN);
-    return setting != null && setting.getNotificatorId() != null;
+    return g2faService.isGoogleAuthenticatorEnable(userDao.getIdByEmail(email));
   }
 
   @Override
   public boolean checkIsNotifyUserAbout2fa(String email) {
-    LocalDate lastNotyDate = userDao.getLast2faNotifyDate(email);
-    boolean res = !isLogin2faUsed(email) &&
-            (lastNotyDate == null || lastNotyDate.plusDays(USER_2FA_NOTIFY_DAYS).isBefore(LocalDate.now()));
-    if (res) {
-      userDao.updateLast2faNotifyDate(email);
-    }
-    return res;
+    return userDao.updateLast2faNotifyDate(email);
   }
 
   @Override
@@ -794,8 +789,18 @@ public class UserServiceImpl implements UserService {
         return userDao.verifyToken(token);
     }
 
-  public User getUserByTemporalToken(String token) {
-    return userDao.getUserByTemporalToken(token);
+    public User getUserByTemporalToken(String token) {
+      return userDao.getUserByTemporalToken(token);
   }
+
+    @Override
+    public boolean checkPassword(int userId, String password) {
+        return passwordEncoder.matches(password, userDao.getPassword(userId));
+    }
+
+    @Override
+    public long countUserIps(String userEmail) {
+        return userDao.countUserEntrance(userEmail);
+    }
 
 }
