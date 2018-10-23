@@ -11,7 +11,6 @@ import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,9 +46,6 @@ public class InterkassaServiceImpl implements InterkassaService {
 
     @Autowired
     private RefillRequestDao refillRequestDao;
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -131,11 +127,4 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         return Base64.getEncoder().encodeToString(signMD5);
     }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
-    }
-
 }

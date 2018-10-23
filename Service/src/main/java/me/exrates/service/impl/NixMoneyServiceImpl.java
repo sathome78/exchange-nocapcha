@@ -12,7 +12,6 @@ import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +53,6 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
     @Autowired
     private RefillService refillService;
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -119,11 +115,4 @@ public class NixMoneyServiceImpl implements NixMoneyService {
             refillService.autoAcceptRefillRequest(requestAcceptDto);        }
 
     }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
-    }
-
 }
