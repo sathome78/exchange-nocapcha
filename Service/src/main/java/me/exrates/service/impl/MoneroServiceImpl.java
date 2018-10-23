@@ -10,7 +10,6 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +49,6 @@ public class MoneroServiceImpl implements MoneroService {
 
     @Autowired
     private CurrencyService currencyService;
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     private String HOST;
     private String PORT;
@@ -234,12 +230,6 @@ public class MoneroServiceImpl implements MoneroService {
         } catch (Exception e) {
             log.error(e);
         }
-    }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     @PreDestroy

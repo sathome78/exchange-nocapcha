@@ -10,7 +10,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -46,9 +45,6 @@ public class AchainServiceImpl implements AchainService {
         this.refillService = refillService;
         this.messageSource = messageSource;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @Override
     public String getMainAddress() {
@@ -122,11 +118,4 @@ public class AchainServiceImpl implements AchainService {
         }
         return TOKENS_COMISSION;
     }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return !address.startsWith(nodeService.getMainAccountAddress());
-    }
-
 }

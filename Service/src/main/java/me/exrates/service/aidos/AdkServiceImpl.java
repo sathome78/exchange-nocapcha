@@ -20,7 +20,6 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
 import me.exrates.service.exception.IncorrectCoreWalletPasswordException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,9 +74,6 @@ public class AdkServiceImpl implements AdkService {
         this.currencyService = currencyService;
         this.refillService = refillService;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @PostConstruct
     private void inti() {
@@ -246,12 +242,6 @@ public class AdkServiceImpl implements AdkService {
     @Override
     public String getNewAddressForAdmin() {
         return aidosNodeService.generateNewAddress();
-    }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     private void processAdminTransaction(Map<String, String> params) {

@@ -8,7 +8,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -46,9 +45,6 @@ public class TronServiceImpl implements TronService {
         this.merchantService = merchantService;
         this.messageSource = messageSource;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @Override
     public Set<String> getAddressesHEX() {
@@ -156,11 +152,4 @@ public class TronServiceImpl implements TronService {
     public BigDecimal countSpecCommission(BigDecimal amount, String destinationTag, Integer merchantId) {
         return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
     }
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
-    }
-
 }

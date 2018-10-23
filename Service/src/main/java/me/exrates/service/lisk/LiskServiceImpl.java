@@ -14,7 +14,6 @@ import me.exrates.service.exception.LiskCreateAddressException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.ParamMapUtils;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
@@ -48,9 +47,6 @@ public class LiskServiceImpl implements LiskService {
 
     @Autowired
     private MessageSource messageSource;
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     private LiskSpecialMethodService liskSpecialMethodService;
 
@@ -285,13 +281,6 @@ public class LiskServiceImpl implements LiskService {
     @Override
     public LiskAccount getAccountByAddress(String address) {
         return liskRestClient.getAccountByAddress(address);
-    }
-
-
-    @Override
-    public boolean isValidDestinationAddress(String address) {
-
-        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 }

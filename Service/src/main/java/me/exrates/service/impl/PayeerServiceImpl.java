@@ -10,7 +10,6 @@ import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
-import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,9 +44,6 @@ public class PayeerServiceImpl implements PayeerService {
 
   @Autowired
   private CurrencyService currencyService;
-
-  @Autowired
-  private WithdrawUtils withdrawUtils;
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -109,12 +105,5 @@ public class PayeerServiceImpl implements PayeerService {
       throw new RefillRequestFakePaymentReceivedException(params.toString());
     }
   }
-
-  @Override
-  public boolean isValidDestinationAddress(String address) {
-
-    return withdrawUtils.isValidDestinationAddress(address);
-  }
-
 
 }
