@@ -33,17 +33,17 @@ public class RefillRequestJob {
   }
 
   /**
-   * Method for check unprocessed transactions for QRK and LBTC coins.
+   * Method for check unprocessed transactions for coins in merchantNames array.
    * Because blocknotify doesn't work correctly (!!! need to check node config and node config properties !!!)
    * During the check processBtcPayment is executed, which create refill request and refill user wallet.
    */
   @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
-  public void refillCheckPaymentsForQuarkAndLbtc() {
-    String blockhash = null;
-    String quarkName = "QRK";
-    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(blockhash);
-    String litebitcoinName = "LBTC";
-    getBitcoinServiceByMerchantName(quarkName).scanForUnprocessedTransactions(litebitcoinName);
+  public void refillCheckPaymentsForCoins() {
+    String[] merchantNames = new String[]{"QRK", "LBTC", "LPC", "XFC", "DDX", "MBC"};
+
+    for (String coin : merchantNames) {
+      getBitcoinServiceByMerchantName(coin).scanForUnprocessedTransactions(null);
+    }
   }
 
   private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {

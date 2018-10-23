@@ -93,8 +93,7 @@ import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
-import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
-import static me.exrates.model.enums.UserRole.ROLE_CHANGE_PASSWORD;
+import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.*;
 import static me.exrates.model.util.BigDecimalProcessing.doAction;
 import static org.springframework.http.HttpStatus.*;
@@ -196,7 +195,6 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
         model.addObject("currencyPairList", currencyPairList);
-        model.addObject("enable_2fa", userService.isGlobal2FaActive());
         model.addObject("post_url", "/2a8fy7b07dxe44/set2fa");
         model.setViewName("admin/admin");
         return model;
@@ -531,7 +529,6 @@ public class AdminController {
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
     model.addObject("usersInvoiceTransferCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), TRANSFER_VOUCHER));
-    model.addObject("user2faOptions", notificationsSettingsService.get2faOptionsForUser(user.getId()));
     model.addObject("manualChangeAllowed", walletService.isUserAllowedToManuallyChangeWalletBalance(principal.getName(), user.getId()));
     model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
     return model;
@@ -593,31 +590,16 @@ public class AdminController {
     }
 
     @AdminLoggable
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/set2fa", method = POST)
-    public String setGlobal2fa(HttpServletRequest request, HttpServletResponse response) {
-        boolean use2fa = String.valueOf(request.getParameter("enable_2fa")).equals("on");
-        try {
-            userService.setGlobal2FaActive(use2fa);
-        } catch (Exception e) {
-            log.error(e);
-            response.setStatus(400);
-            return "error";
-        }
-        return "ok";
-    }
-
-    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
+        UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
         /*todo: Temporary commented for security reasons*/
-        /*UserRole currentUserRole = userService.getUserRoleFromSecurityContext();
-
+        /*
         if (!(currentUserRole == ADMINISTRATOR) && user.getRole() == ADMINISTRATOR) {
             return new ModelAndView("403");
         }*/
         /*todo remove it; Temporary set null to prevent change role from admin, for security reasons*/
-        user.setRole(null);
+        //user.setRole(null);
 
         /*todo: Temporary commented for security reasons*/
         /*user.setConfirmPassword(user.getPassword());*/
@@ -640,9 +622,12 @@ public class AdminController {
             /*updateUserDto.setPassword(user.getPassword());*/
             updateUserDto.setPhone(user.getPhone());
             /*todo: Temporary commented for security reasons*/
-            /*if (currentUserRole == ADMINISTRATOR) {
-                updateUserDto.setRole(user.getRole());
-            }*/
+            if (currentUserRole == ADMINISTRATOR) {
+                //Add to easy change user role to USER or VIP_USER !!! Not other
+                if(user.getRole()== USER || user.getRole()==VIP_USER) {
+                    updateUserDto.setRole(user.getRole());
+                }
+            }
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {

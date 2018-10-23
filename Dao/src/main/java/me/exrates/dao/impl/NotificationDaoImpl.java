@@ -162,7 +162,4 @@ public class NotificationDaoImpl implements NotificationDao {
         return jdbcTemplate.queryForObject(sql, params, notificationOptionRowMapper);
 
     }
-
-
-
 }

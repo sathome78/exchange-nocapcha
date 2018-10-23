@@ -97,21 +97,21 @@ public class PublicController {
     public List<String> checkIfNewUserUsernameUnique(@RequestParam("username") String username, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         String clientIpAddress = IpUtils.getClientIpAddress(request);
-        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+//        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
         try {
             List<String> errors = new ArrayList<>();
             if (!userService.ifNicknameIsUnique(username)) {
-                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+//                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
                 errors.add("Username exists");
             }
             long after = System.currentTimeMillis();
             LOGGER.debug(String.format("completed...: ms: %s", (after - before)));
-            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+//            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             return errors;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error(String.format("error... for username: %s ms: %s : %s", username, (after - before), e.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+//            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             throw e;
         }
     }
