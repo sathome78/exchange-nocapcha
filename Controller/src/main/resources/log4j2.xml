@@ -711,6 +711,7 @@
         </logger>
         <logger name="neo_log" level="ALL" additivity="false">
             <AppenderRef ref="neo_log"/>
+            <AppenderRef ref="Console"/>
         </logger>
         <logger name="qtum_log" level="ALL" additivity="false">
             <AppenderRef ref="qtum_log"/>
@@ -813,7 +814,6 @@
         </logger>
         <logger name="control_aspect_log" level="ALL" additivity="false">
             <AppenderRef ref="control_aspect"/>
-            <AppenderRef ref="Console"/>
         </logger>
 
         <Root level="INFO">

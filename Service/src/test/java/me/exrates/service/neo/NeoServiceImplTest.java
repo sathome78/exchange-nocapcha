@@ -4,6 +4,7 @@ import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.Block;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.model.dto.merchants.neo.NeoTransaction;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -72,8 +74,13 @@ public class NeoServiceImplTest {
     private RefillRequestFlatDto refillRequestFlatDto1;
     private RefillRequestFlatDto refillRequestFlatDto2;
 
+    Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+        put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, merchantNeo, currencyNeo));
+        put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantGas, currencyGas));
+    }};
+
     @InjectMocks
-    private NeoServiceImpl neoService = new NeoServiceImpl();
+    private NeoServiceImpl neoService = new NeoServiceImpl(null, null, neoAssetMap, "neo.properties");
 
     @Before
     public void setUp() {
@@ -102,7 +109,6 @@ public class NeoServiceImplTest {
         merchantGas.setProcessType(MerchantProcessType.CRYPTO);
         merchantGas.setRefillOperationCountLimitForUserPerDay(5);
         merchantGas.setAdditionalTagForWithdrawAddressIsUsed(false);
-
 
         when(currencyService.findByName("NEO")).thenReturn(currencyNeo);
         when(merchantService.findByName("NEO")).thenReturn(merchantNeo);
@@ -195,6 +201,8 @@ public class NeoServiceImplTest {
         when(refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(anyString(), anyInt(), anyInt(), anyString())).thenReturn(Optional.empty());
         ReflectionTestUtils.setField(neoService, "mainAccount", TEST_ADDRESS_MAIN);
         ReflectionTestUtils.setField(neoService, "minConfirmations", 10);
+        ReflectionTestUtils.setField(neoService, "mainMerchant", merchantNeo);
+        ReflectionTestUtils.setField(neoService, "mainCurency", currencyNeo);
         neoService.init();
     }
 
