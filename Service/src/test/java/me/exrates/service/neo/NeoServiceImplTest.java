@@ -21,6 +21,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -48,7 +50,7 @@ public class NeoServiceImplTest {
     private MerchantSpecParamsDao specParamsDao;
 
     @Mock
-    private NeoNodeService neoNodeService;
+    private NeoNodeService neoNodeService = new NeoNodeServiceImpl("", null, null);
 
     @Mock
     private MessageSource messageSource;
@@ -74,13 +76,8 @@ public class NeoServiceImplTest {
     private RefillRequestFlatDto refillRequestFlatDto1;
     private RefillRequestFlatDto refillRequestFlatDto2;
 
-    Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
-        put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, merchantNeo, currencyNeo));
-        put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantGas, currencyGas));
-    }};
-
     @InjectMocks
-    private NeoServiceImpl neoService = new NeoServiceImpl(null, null, neoAssetMap, "neo.properties");
+    private NeoServiceImpl neoService = new NeoServiceImpl(null, null, null, "neo.properties");
 
     @Before
     public void setUp() {
@@ -199,10 +196,15 @@ public class NeoServiceImplTest {
         when(refillService.createRefillRequestByFact(any())).thenReturn(20);
         when(refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(anyString(), anyInt(), anyInt())).thenReturn(Optional.empty());
         when(refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(anyString(), anyInt(), anyInt(), anyString())).thenReturn(Optional.empty());
+        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+            put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, merchantNeo, currencyNeo));
+            put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantGas, currencyGas));
+        }};
         ReflectionTestUtils.setField(neoService, "mainAccount", TEST_ADDRESS_MAIN);
         ReflectionTestUtils.setField(neoService, "minConfirmations", 10);
         ReflectionTestUtils.setField(neoService, "mainMerchant", merchantNeo);
         ReflectionTestUtils.setField(neoService, "mainCurency", currencyNeo);
+        ReflectionTestUtils.setField(neoService, "neoAssetMap", neoAssetMap);
         neoService.init();
     }
 
@@ -210,6 +212,7 @@ public class NeoServiceImplTest {
 
     @Test
     public void changeConfirmationsOrProvideTest_NotConfirming() throws RefillRequestAppropriateNotFoundException {
+        ReflectionTestUtils.setField(neoService, "neoNodeService", neoNodeService);
         RefillRequestSetConfirmationsNumberDto dto = RefillRequestSetConfirmationsNumberDto.builder()
                 .confirmations(3).build();
         neoService.changeConfirmationsOrProvide(dto, "");
@@ -220,6 +223,7 @@ public class NeoServiceImplTest {
 
     @Test
     public void changeConfirmationsOrProvideTest_Confirming() throws RefillRequestAppropriateNotFoundException {
+        ReflectionTestUtils.setField(neoService, "neoNodeService", neoNodeService);
         RefillRequestSetConfirmationsNumberDto dto = RefillRequestSetConfirmationsNumberDto.builder()
                 .amount(new BigDecimal(25))
                 .currencyId(currencyNeo.getId())
@@ -248,6 +252,7 @@ public class NeoServiceImplTest {
 
     @Test
     public void processNeoPaymentTest_NewConfirming() throws RefillRequestAppropriateNotFoundException {
+        ReflectionTestUtils.setField(neoService, "neoNodeService", neoNodeService);
         block1.setConfirmations(20);
         ArgumentCaptor<RefillRequestAcceptDto> requestArgumentCaptor = ArgumentCaptor.forClass(RefillRequestAcceptDto.class);
         when(refillService.createRefillRequestByFact(requestArgumentCaptor.capture())).thenReturn(20);
@@ -280,6 +285,7 @@ public class NeoServiceImplTest {
 
     @Test
     public void scanBlocksTest_AllNew() throws RefillRequestAppropriateNotFoundException {
+        ReflectionTestUtils.setField(neoService, "neoNodeService", neoNodeService);
         ArgumentCaptor<RefillRequestPutOnBchExamDto> requestArgumentCaptor = ArgumentCaptor.forClass(RefillRequestPutOnBchExamDto.class);
         neoService.scanBlocks();
         verify(refillService, times(4)).putOnBchExamRefillRequest(requestArgumentCaptor.capture());
@@ -299,6 +305,7 @@ public class NeoServiceImplTest {
 
     @Test
     public void scanBlocksTest_GetBlockException() throws RefillRequestAppropriateNotFoundException {
+        ReflectionTestUtils.setField(neoService, "neoNodeService", neoNodeService);
         when(neoNodeService.getBlock(12344)).thenReturn(Optional.empty());
         ArgumentCaptor<RefillRequestPutOnBchExamDto> requestArgumentCaptor = ArgumentCaptor.forClass(RefillRequestPutOnBchExamDto.class);
         neoService.scanBlocks();

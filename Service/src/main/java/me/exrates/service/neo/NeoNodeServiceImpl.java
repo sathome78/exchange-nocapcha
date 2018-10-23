@@ -32,6 +32,9 @@ public class NeoNodeServiceImpl implements NeoNodeService {
         this.objectMapper = objectMapper;
     }
 
+   /* public NeoNodeServiceImpl() {
+    }*/
+
     @Override
     public String getNewAddress() {
         return invokeJsonRpcMethod("getnewaddress", Collections.emptyList(), new TypeReference<NeoJsonRpcResponse<String>>() {});

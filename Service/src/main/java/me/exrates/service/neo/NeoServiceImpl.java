@@ -96,9 +96,6 @@ public class NeoServiceImpl implements NeoService {
       /*  log.debug("init neoService merchant {}, currency {}, map size {}, props {}", mainMerchant.getName(), mainCurrency.getName(), neoAssetMap.size(), props);*/
     }
 
-    public NeoServiceImpl() {
-    }
-
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         String address = neoNodeService.getNewAddress();
