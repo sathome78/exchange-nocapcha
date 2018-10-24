@@ -502,25 +502,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "nsrServiceImpl")
     public BitcoinService nsrService() {
         return new BitcoinServiceImpl("merchants/nushares_wallet.properties",
-                "NuShares", "NSR", 4, 20, false, false);
+                "NuShares", "NSR", 20, 20, false, false);
     }
 
     @Bean(name = "amlServiceImpl")
     public BitcoinService amlService() {
         return new BitcoinServiceImpl("merchants/aml_wallet.properties",
-                "AML", "ABTC", 4, 20, false);
+                "AML", "ABTC", 20, 20, false);
     }
 
     @Bean(name = "bbccServiceImpl")
     public BitcoinService bbccService() {
         return new BitcoinServiceImpl("merchants/bbcc_wallet.properties",
-                "BBX", "BBX", 4, 20, false, false, false);
+                "BBX", "BBX", 20, 20, false, false, false);
     }
 
     @Bean(name = "hsrServiceImpl")
     public BitcoinService hcasheService() {
         return new BitcoinServiceImpl("merchants/hsr_wallet.properties",
-                "HSR", "HSR", 4, 20, false, false);
+                "HSR", "HSR", 20, 20, false, false);
     }
 
     @Bean(name = "ethereumServiceImpl")
