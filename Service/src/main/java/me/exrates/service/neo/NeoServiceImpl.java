@@ -84,7 +84,7 @@ public class NeoServiceImpl implements NeoService {
             } catch (Exception e) {
                 log.error(e);
             }
-        }, 0L, 5L, TimeUnit.MINUTES);
+        }, 3L, 5L, TimeUnit.MINUTES);
     }
 
     public NeoServiceImpl(Merchant mainMerchant, Currency mainCurrency, Map<String, AssetMerchantCurrencyDto> neoAssetMap, String propertySource) {
@@ -92,8 +92,6 @@ public class NeoServiceImpl implements NeoService {
         this.mainMerchant = mainMerchant;
         this.mainCurency = mainCurrency;
         this.propertySource = propertySource;
-        log.debug("rest {}, mapper {}", restTemplate, objectMapper);
-      /*  log.debug("init neoService merchant {}, currency {}, map size {}, props {}", mainMerchant.getName(), mainCurrency.getName(), neoAssetMap.size(), props);*/
     }
 
     @Override
@@ -154,13 +152,9 @@ public class NeoServiceImpl implements NeoService {
     void scanBlocks() {
         Merchant merchantNeo = mainMerchant;
         Currency currencyNeo = mainCurency;
-        log.debug("begin method scan blocks");
-        log.debug("params dao {}", specParamsDao);
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(mainMerchant.getName(),
                 neoSpecParamName).getParamValue());
-        log.debug("node service {}", neoNodeService);
         final int blockCount = neoNodeService.getBlockCount();
-        log.debug("block count {} {}", blockCount, lastReceivedBlock);
         Set<String> addresses = refillService.findAllAddresses(merchantNeo.getId(), currencyNeo.getId()).stream().distinct().collect(Collectors.toSet());
         List<NeoVout> outputs = IntStream.range(lastReceivedBlock, blockCount).parallel().mapToObj(neoNodeService::getBlock).filter(Optional::isPresent).map(Optional::get)
                 .flatMap(block -> block.getTx().stream().filter(tx -> "ContractTransaction".equals(tx.getType()))
