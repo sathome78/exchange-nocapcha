@@ -1463,6 +1463,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "XAU", true, ExConvert.Unit.TWINKY);
     }
 
+    @Bean(name = "usdcServiceImpl")
+    public EthTokenService usdcService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "USDC",
+                "USDC", false, ExConvert.Unit.MWEI);
+    }
+
+    @Bean(name = "ttpServiceImpl")
+    public EthTokenService ttpService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x38f22479795a1a51ccd1e5a41f09c7525fb27318");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TTP",
+                "TTP", false, ExConvert.Unit.FINNEY);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
