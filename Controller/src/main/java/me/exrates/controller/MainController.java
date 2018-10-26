@@ -118,6 +118,11 @@ public class MainController {
         return "403";
     }
 
+    @RequestMapping("/502")
+    public String error502() {
+        return "/errorPages/502";
+    }
+
     /**
      * Register user on referral link (redirect to dashboard, call pop-up with registration)
      * @param refReference
