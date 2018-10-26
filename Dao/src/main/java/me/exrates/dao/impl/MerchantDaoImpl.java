@@ -359,14 +359,55 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public void setBlockForAllNonTransfer(OperationType operationType, boolean blockStatus) {
+  public void setBlockForAllNonTransfer(OperationType operationType) {
+
     String blockField = resolveBlockFieldByOperationType(operationType);
     String sql = "UPDATE MERCHANT_CURRENCY MC " +
             "JOIN MERCHANT M ON MC.merchant_id = M.id " +
-            "SET MC." + blockField + " = :block WHERE M.process_type != 'TRANSFER'";
-    Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
-    namedParameterJdbcTemplate.update(sql, params);
+            "SET MC." + blockField + " = 1 WHERE M.process_type != 'TRANSFER'";
+    jdbcTemplate.update(sql);
   }
+
+  @Override
+  public void backupBlockState(OperationType operationType) {
+
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "UPDATE MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "SET MC." + blockField +"_backup"+ " = MC." + blockField +" WHERE M.process_type != 'TRANSFER'";
+    jdbcTemplate.update(sql);
+  }
+
+  @Override
+  public void restoreBlockState(OperationType operationType) {
+
+      String blockField = resolveBlockFieldByOperationType(operationType);
+      String sql = "UPDATE MERCHANT_CURRENCY MC " +
+              "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+              "SET MC." + blockField + " = MC." + blockField + "_backup" + " WHERE M.process_type != 'TRANSFER'";
+      jdbcTemplate.update(sql);
+  }
+
+  @Override
+  public boolean isBlockStateBackupValid(OperationType operationType) {
+
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "select distinct MC." + blockField + "_backup from MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "WHERE M.process_type != 'TRANSFER'";
+    return jdbcTemplate.queryForList(sql).size() > 1;
+  }
+
+  @Override
+  public boolean isBlockStateValid(OperationType operationType) {
+
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "select distinct MC." + blockField + " from MERCHANT_CURRENCY MC " +
+            "JOIN MERCHANT M ON MC.merchant_id = M.id " +
+            "WHERE M.process_type != 'TRANSFER'";
+    return jdbcTemplate.queryForList(sql).size() > 1;
+  }
+
 
   @Override
   public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
