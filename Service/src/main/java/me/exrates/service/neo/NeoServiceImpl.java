@@ -20,6 +20,7 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.ParamMapUtils;
+import me.exrates.service.util.WithdrawUtils;
 import me.exrates.service.vo.ProfileData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +55,8 @@ public class NeoServiceImpl implements NeoService {
     private RestTemplate restTemplate;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     private String mainAccount;
     private Integer minConfirmations;
@@ -282,6 +285,12 @@ public class NeoServiceImpl implements NeoService {
 
     private void transferCostsToMainAccount(String assetId, BigDecimal amount) {
         neoNodeService.sendToAddress(neoAssetMap.get(assetId).getAsset(), mainAccount, amount, mainAccount);
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
     @PreDestroy
