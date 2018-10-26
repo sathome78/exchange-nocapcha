@@ -6,10 +6,10 @@ VALUES ('STREAM', 'KazeSTREAM', 0, 8, 8, 8);
 
 INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='STREAM'));
 
-INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
+INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='STREAM'),
           (SELECT id from CURRENCY WHERE name='STREAM'),
-          0.00000001, TRUE, TRUE);
+          0.00000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='STREAM')
 , '/client/img/merchants/STREAM.png', 'STREAM', (SELECT id from CURRENCY WHERE name='STREAM'));
