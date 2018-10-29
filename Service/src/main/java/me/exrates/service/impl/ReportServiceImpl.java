@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
+import me.exrates.model.Currency;
 import me.exrates.model.Email;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -21,6 +22,29 @@ import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.BalancesReportDto;
+import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExternalWalletBalancesDto;
+import me.exrates.model.dto.ExternalWalletDto;
+import me.exrates.model.dto.InputOutputCommissionSummaryDto;
+import me.exrates.model.dto.InternalWalletBalancesDto;
+import me.exrates.model.dto.InvoiceReportDto;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.RatesUSDForReportDto;
+import me.exrates.model.dto.RefillRequestFlatForReportDto;
+import me.exrates.model.dto.SummaryInOutReportDto;
+import me.exrates.model.dto.UserActivitiesInPeriodDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
+import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.UserTotalCommissionDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -41,8 +65,19 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.job.report.ReportMailingJob;
+import me.exrates.service.util.ExcelGeneratorUtil;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
+import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
@@ -69,8 +104,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -514,6 +559,27 @@ public class ReportServiceImpl implements ReportService {
         return walletService.getBalancesWithExternalWallets();
     }
 
+    @Override
+    public void generateWalletBalancesReport() {
+        List<String> curNames = currencyService.getAllCurrencies().stream().map(Currency::getName).collect(toList());
+
+        final Map<String, ExternalWalletBalancesDto> externalWalletBalances = walletService.getExternalWalletBalances().stream()
+                .collect(toMap(
+                        ExternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()));
+        final Map<String, InternalWalletBalancesDto> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+                .collect(toMap(
+                        InternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()));
+
+        List<Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto>> balances = curNames.stream()
+                .map(name -> Pair.of(externalWalletBalances.get(name), internalWalletBalances.get(name)))
+                .collect(toList());
+
+        BalancesReportDto balancesReportDto = ExcelGeneratorUtil.generateReportBalances(balances);
+
+        reportDao.addNewBalancesReport(balancesReportDto);
+    }
 
     private void rescheduleMailJob(LocalTime newMailTime) {
         try {
