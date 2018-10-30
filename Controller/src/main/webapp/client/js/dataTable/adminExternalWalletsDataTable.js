@@ -65,7 +65,7 @@ function updateExternalWalletsTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data": "currencyId"
+                    "data": "currencyId",
                 },
                 {
                     "data": "currencyName"
