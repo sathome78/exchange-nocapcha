@@ -1,5 +1,6 @@
 package me.exrates.service.autist;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -18,14 +19,17 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
+
 @Service("aunitServiceImpl")
 @PropertySource("classpath:/merchants/aunit.properties")
-//@Log4j2(topic = "aunit")
+@Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
     private @Value("${aunit.mainAddress}")String systemAddress;
@@ -58,7 +62,6 @@ public class AunitServiceImpl implements AunitService {
         return currency;
     }
 
-    /*generate 9 digits(Unsigned Integer) for identifying payment */
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
@@ -94,21 +97,6 @@ public class AunitServiceImpl implements AunitService {
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
     }
 
-//    @Override
-//    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-//        String address = params.get("accountAddress");
-//        String hash = params.get("hash");
-//        BigDecimal amount = new BigDecimal(params.get("amount"));
-//        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-//                .address(address)
-//                .merchantId(merchant.getId())
-//                .currencyId(currency.getId())
-//                .amount(amount)
-//                .merchantTransactionId(hash)
-//                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
-//                .build();
-//        refillService.autoAcceptRefillRequest(requestAcceptDto);
-//    }
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
@@ -186,10 +174,11 @@ public class AunitServiceImpl implements AunitService {
 //                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
 //    }
 
-//    //Example for decrypting memo
-//    public static void main(String[] args) throws NoSuchAlgorithmException {
-//        String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
-//                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394359322886950\",\"message\":\"5cb68485625d5a9e95ad47d10f422bcf\"}");
-//        System.out.println(s);
-//    }
+    //Example for decrypting memo
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv","{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+
+        System.out.println(s);
+    }
+
 }

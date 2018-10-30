@@ -1,11 +1,11 @@
 package me.exrates.service.autist;
 
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.MerchantSpecParamDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -28,46 +28,44 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_CURRENCY;
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_MERCHANT;
 import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 
-//@Log4j2(topic = "aunit")
+@Log4j2(topic = "aunit")
 @PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
 public class AunitNodeServiceImpl {
 
-    private @Value("${aunit.node.ws}")String wsUrl;
-    private @Value("${aunit.mainAddress}")String systemAddress;
-    private @Value("${aunit.pk.path}")String pkFilePath;
+    private @Value("${aunit.node.ws}")
+    String wsUrl;
+    private @Value("${aunit.mainAddress}")
+    String systemAddress;
+    private @Value("${aunit.pk.path}")
+    String pkFilePath;
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
     private final Merchant merchant;
     private final Currency currency;
 
-    private final MerchantService merchantService;
-    private final CurrencyService currencyService;
     private final MerchantSpecParamsDao merchantSpecParamsDao;
     private final AunitService aunitService;
     private final RefillService refillService;
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-    /*todo get it from outer file*/
-    static String privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
-    static final String accountAddress = "1.2.23845"; //todo
+    private String privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
+    private @Value("${aunit.mainAddressNum}") String accountAddress;
 
-    private int latIrreversableBlocknumber = 0;
+    private int latIrreversableBlocknumber;
     private final String lastIrreversebleBlock = "last_irreversible_block_num";
 
-    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
@@ -75,11 +73,10 @@ public class AunitNodeServiceImpl {
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
         MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
         latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
-        this.merchantService = merchantService;
-        this.currencyService = currencyService;
         this.merchantSpecParamsDao = merchantSpecParamsDao;
         this.aunitService = aunitService;
         this.refillService = refillService;
+        privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
     }
 
     @PostConstruct
@@ -146,43 +143,30 @@ public class AunitNodeServiceImpl {
         subscribe.put("method", "call");
         subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(false)));
 
-
-        System.out.println(login);
         endpoint.sendText(login.toString());
 
-        System.out.println(db.toString());
         endpoint.sendText(db.toString());
 
-        System.out.println(netw);
         endpoint.sendText(netw.toString());
 
-        System.out.println(history);
         endpoint.sendText(history.toString());
 
-        System.out.println(orders);
         endpoint.sendText(orders.toString());
 
-        System.out.println(chainId);
         endpoint.sendText(chainId.toString());
 
-        System.out.println(subscribe);
         endpoint.sendText(subscribe.toString());
 
-        System.out.println(get_object);
         endpoint.sendText(get_object.toString());
-
-       /* System.out.println("block with tx " + block.toString());
-        endpoint.sendText(block.toString());*/
-
     }
 
     @OnMessage()
     public void onMessage(String msg) {
-        if(msg.contains("notice")) setIrreversableBlock(msg);
+        if (msg.contains("notice")) setIrreversableBlock(msg);
         else if (msg.contains("previous")) processIrreversebleBlock(msg);
-        else System.out.println("unrecogrinzed msg aunit \n" + msg);;
+        else log.info("unrecogrinzed msg from aunit \n" + msg);
 
-        System.out.println(msg);
+        log.debug(msg);
     }
 
     @SneakyThrows
@@ -194,25 +178,23 @@ public class AunitNodeServiceImpl {
         endpoint.sendText(block.toString());
     }
 
-    private  void processIrreversebleBlock(String trx) {
-        System.out.println("json for process trx \n " + trx);
+    private void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
-        if(block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
+        if (block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
         JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
 
         List<String> lisfOfMemo = refillService.getListOfValidAddressByMerchantIdAndCurrency(merchant.getId(), currency.getId());
-    try {
-        for (int i = 0; i < transactions.length(); i++) {
-            JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
+        try {
+            for (int i = 0; i < transactions.length(); i++) {
+                JSONObject transaction = transactions.getJSONObject(i).getJSONArray("operations").getJSONArray(0).getJSONObject(1);
 
-            if(transaction.getString("to").equals(accountAddress)) makeRefill(lisfOfMemo, transaction);
+                if (transaction.getString("to").equals(accountAddress)) makeRefill(lisfOfMemo, transaction);
 
+            }
+
+        } catch (JSONException e) {
+            log.debug(e);
         }
-
-    } catch (JSONException e){
-        System.out.println("JSON exception while parsing \n " + trx);
-        e.printStackTrace();
-    }
 
     }
 
@@ -224,13 +206,13 @@ public class AunitNodeServiceImpl {
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString());
             System.out.println("decoded memo = " + memoText);
-            if(lisfOfMemo.contains(memoText)){
+            if (lisfOfMemo.contains(memoText)) {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
 
-                prepareAndProcessTx(String.valueOf(digest.digest(memoText.getBytes(StandardCharsets.UTF_8))), memoText, amount);
+                prepareAndProcessTx(Arrays.toString(digest.digest(memoText.getBytes(StandardCharsets.UTF_8))), memoText, amount);
             }
-        } catch (NoSuchAlgorithmException e){
-            System.out.println(e.getClass());
+        } catch (NoSuchAlgorithmException e) {
+            log.debug("Memo can not be decrypted : " + e.getClass());
         }
     }
 
@@ -239,11 +221,11 @@ public class AunitNodeServiceImpl {
         map.put("address", address);
         map.put("hash", hash);
         map.put("amount", amount.toString());
-        RefillRequestAcceptDto requestAcceptDto = aunitService.createRequest(hash, address, amount);
+        aunitService.createRequest(hash, address, amount);
         try {
             aunitService.processPayment(map);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            e.printStackTrace();
+            log.info(e);
         }
     }
 
@@ -256,7 +238,7 @@ public class AunitNodeServiceImpl {
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt("last_irreversible_block_num");
         synchronized (this) {
             if (blockNumber > latIrreversableBlocknumber) {
-                for (;latIrreversableBlocknumber <= blockNumber; latIrreversableBlocknumber++){
+                for (; latIrreversableBlocknumber <= blockNumber; latIrreversableBlocknumber++) {
                     getBlock(latIrreversableBlocknumber);
                 }
                 merchantSpecParamsDao.updateParam(merchant.getName(), lastIrreversebleBlock, String.valueOf(latIrreversableBlocknumber));
@@ -270,17 +252,9 @@ public class AunitNodeServiceImpl {
             session.close();
         } catch (IOException e) {
             e.printStackTrace();
-//            log.error("error closing session");
+            log.error("error closing session");
         }
     }
-
-//    public static void main(String[] args) throws NoSuchAlgorithmException {
-//        String memoText = decryptBTSmemo(privateKey, "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394455594312810\",\"message\":\"b823f75a3f2572bbc327ab3423d0cbf9\"}");
-//
-//        System.out.println(memoText);
-//
-//
-//    }
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
         String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
