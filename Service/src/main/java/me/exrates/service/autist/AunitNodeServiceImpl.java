@@ -60,7 +60,7 @@ public class AunitNodeServiceImpl {
     private final RefillService refillService;
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-    private String privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
+    private String privateKey;
     private @Value("${aunit.mainAddressNum}") String accountAddress;
 
     private int latIrreversableBlocknumber;
@@ -77,6 +77,7 @@ public class AunitNodeServiceImpl {
         this.aunitService = aunitService;
         this.refillService = refillService;
         privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
+        log.info("privatekey aunit = " + privateKey);
     }
 
     @PostConstruct
