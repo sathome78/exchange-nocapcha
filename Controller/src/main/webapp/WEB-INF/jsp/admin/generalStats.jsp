@@ -224,8 +224,7 @@
                     </div>
                     <div class="col-md-6">
                         <input id="datepicker-balances" type="text" class="input-block-wrapper__input admin-form-input">
-                        <button id="download-balances-button" onclick="javascript:getArchiveBalances();return false;">
-                            <loc:message code="admin.generalStats.downloadList"/></button>
+                        <button id="download-balances-button" onclick="javascript:getArchiveBalances();return false;"><loc:message code="admin.generalStats.downloadList"/></button>
                     </div>
                 </div>
 

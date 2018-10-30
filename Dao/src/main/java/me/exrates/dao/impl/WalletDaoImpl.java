@@ -1,7 +1,6 @@
 package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.CommissionDao;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
@@ -35,6 +34,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,8 +66,6 @@ import static me.exrates.model.enums.OperationType.SELL;
 @Log4j2
 public class WalletDaoImpl implements WalletDao {
 
-    @Autowired
-    private CommissionDao commissionDao;
     @Autowired
     private TransactionDao transactionDao;
     @Autowired

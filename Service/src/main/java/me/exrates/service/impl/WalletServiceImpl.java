@@ -548,6 +548,12 @@ public class WalletServiceImpl implements WalletService {
         }
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
+        return walletDao.getExternalWalletBalances();
+    }
+
     @Transactional
     @Override
     public void updateInternalWalletBalances() {
@@ -581,12 +587,6 @@ public class WalletServiceImpl implements WalletService {
                     .build();
             walletDao.updateInternalWalletBalances(inWallet);
         }
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
-        return walletDao.getExternalWalletBalances();
     }
 
     @Transactional(readOnly = true)

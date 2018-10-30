@@ -344,7 +344,6 @@ public class ReportController {
         } catch (IOException e) {
             log.error("Downloaded file is corrupted");
         }
-
         return ResponseEntity.noContent().build();
     }
 }
