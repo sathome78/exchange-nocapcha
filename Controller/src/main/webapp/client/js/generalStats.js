@@ -19,7 +19,6 @@ $(function () {
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
     var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
 
-
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
@@ -311,6 +310,10 @@ function getArchiveBalances() {
             "bPaginate": false,
             "bInfo": false,
             "columns": [
+                {
+                    "data": "id",
+                    "visible": false
+                },
                 {
                     "data": "file_name",
                     "render": function (data, type, full, meta) {
