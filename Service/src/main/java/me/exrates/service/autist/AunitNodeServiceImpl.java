@@ -264,7 +264,7 @@ public class AunitNodeServiceImpl {
                 "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
         System.out.println(s);
 
-//        System.out.println(String.valueOf(digest.digest("test".getBytes(StandardCharsets.UTF_8))));
+        System.out.println(String.valueOf(digest.digest("test".getBytes(StandardCharsets.UTF_8))));
     }
 
 }
