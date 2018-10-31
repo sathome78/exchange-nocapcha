@@ -31,6 +31,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_CURRENCY;
 import static me.exrates.service.autist.AunitServiceImpl.AUNIT_MERCHANT;
@@ -54,6 +57,7 @@ public class AunitNodeServiceImpl {
     private AunitService aunitService;
     private RefillService refillService;
     private static MessageDigest digest;
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     static {
         try {
@@ -81,6 +85,15 @@ public class AunitNodeServiceImpl {
             this.refillService = refillService;
             privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
             log.info("privatekey aunit = " + privateKey);
+            scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    reconnect();
+                } catch (Exception e) {
+                    log.info(e);
+                }
+
+            }, 0L, 3L, TimeUnit.MINUTES); //todo
+
         } catch (Exception e){
             log.error("AUNIT not started: \n" + e.getMessage());
         }
@@ -105,6 +118,18 @@ public class AunitNodeServiceImpl {
         } catch (Exception e) {
             System.out.println("gabella");
             e.printStackTrace();
+        }
+    }
+
+    private void reconnect(){
+//        System.out.println("ISOPENED = " + session);
+//        if(session != null) System.out.println(" open? " + session.isOpen());
+        if(!session.isOpen()){
+            try {
+                init();
+            } catch (Exception e) {
+                log.error(e);
+            }
         }
     }
 
@@ -169,11 +194,14 @@ public class AunitNodeServiceImpl {
 
     @OnMessage()
     public void onMessage(String msg) {
-        if (msg.contains("notice")) setIrreversableBlock(msg);
-        else if (msg.contains("previous")) processIrreversebleBlock(msg);
-        else log.info("unrecogrinzed msg from aunit \n" + msg);
+        try {
+            if (msg.contains("notice")) setIrreversableBlock(msg);
+            else if (msg.contains("previous")) processIrreversebleBlock(msg);
+            else log.info("unrecogrinzed msg from aunit \n" + msg);
+        } catch (Exception e){
+            log.error("Web socket error AUNIT : \n" + e.getMessage());
+        }
 
-        log.debug(msg);
     }
 
     @SneakyThrows
@@ -217,10 +245,9 @@ public class AunitNodeServiceImpl {
                 prepareAndProcessTx(Arrays.toString(digest.digest(memoText.getBytes(StandardCharsets.UTF_8))), memoText, amount);
             }
         } catch (NoSuchAlgorithmException e) {
-            log.debug("Memo can not be decrypted : " + e.getClass());
+            log.error("Memo can not be decrypted : " + e.getClass());
         }
     }
-
 
 
     private void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
@@ -257,6 +284,7 @@ public class AunitNodeServiceImpl {
     public void onShutdown() {
         try {
             session.close();
+            log.info("AUNIT web socket closed");
         } catch (IOException e) {
             e.printStackTrace();
             log.error("error closing session");
