@@ -46,6 +46,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -1274,6 +1276,7 @@ public class WalletDaoImpl implements WalletDao {
                 .build());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto) {
         final String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
@@ -1321,6 +1324,7 @@ public class WalletDaoImpl implements WalletDao {
                 .build());
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateInternalWalletBalances(InternalWalletBalancesDto internalWalletBalancesDto) {
         final String sql = "UPDATE INTERNAL_WALLET_BALANCES iwb" +
