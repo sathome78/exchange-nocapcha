@@ -66,7 +66,6 @@ public class AunitServiceImpl implements AunitService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer destinationTag = generateUniqDestinationTag(request.getUserId());
-        System.out.println("desitanion tag = " + destinationTag);
         String message = messageSource.getMessage("merchants.refill.xrp",
                 new String[]{systemAddress, destinationTag.toString()}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -127,7 +126,6 @@ public class AunitServiceImpl implements AunitService {
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
             log.error("aunit transaction allready received!!! {}", hash);
-            System.out.println("aunit transaction allready received!! " + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()

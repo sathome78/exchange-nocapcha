@@ -204,11 +204,9 @@ public class AunitNodeServiceImpl {
 
     @SneakyThrows
     private void makeRefill(List<String> lisfOfMemo, JSONObject transaction) {
-        System.out.println("start make refill");
         JSONObject memo = transaction.getJSONObject("memo");
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString());
-            System.out.println("decoded memo = " + memoText);
             if (lisfOfMemo.contains(memoText)) {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
 
