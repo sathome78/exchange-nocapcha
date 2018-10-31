@@ -57,6 +57,7 @@ import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.WalletNotFoundException;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -72,6 +73,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -519,12 +521,16 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     @Override
     public void updateExternalWalletBalances() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of updating external wallets start...");
+
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
         final Map<String, BigDecimal> balances = walletsApi.getBalances();
 
         if (rates.isEmpty() || balances.isEmpty()) {
+            log.info("Exchange or wallet api did not return data");
             return;
         }
 
@@ -533,10 +539,14 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+            final BigDecimal mainBalance = balances.get(currencyName);
+
+            if (isNull(pairRates) || isNull(mainBalance)) {
+                continue;
+            }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
 
-            final BigDecimal mainBalance = balances.get(currencyName);
 
             ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
@@ -546,6 +556,7 @@ public class WalletServiceImpl implements WalletService {
                     .build();
             walletDao.updateExternalWalletBalances(exWallet);
         }
+        log.info("Process of updating external wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Transactional(readOnly = true)
@@ -557,6 +568,9 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     @Override
     public void updateInternalWalletBalances() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of updating internal wallets start...");
+
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
@@ -566,6 +580,7 @@ public class WalletServiceImpl implements WalletService {
                         InternalWalletBalancesDto::getTotalBalance));
 
         if (rates.isEmpty() || balances.isEmpty()) {
+            log.info("Exchange or wallet api did not return data");
             return;
         }
 
@@ -574,10 +589,13 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+            final BigDecimal totalBalance = balances.get(currencyName);
+
+            if (isNull(pairRates) || isNull(totalBalance)) {
+                continue;
+            }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
-
-            final BigDecimal totalBalance = balances.get(currencyName);
 
             InternalWalletBalancesDto inWallet = InternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
@@ -587,6 +605,7 @@ public class WalletServiceImpl implements WalletService {
                     .build();
             walletDao.updateInternalWalletBalances(inWallet);
         }
+        log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Transactional(readOnly = true)
