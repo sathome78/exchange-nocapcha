@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -43,12 +42,8 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Service
 public class AunitNodeServiceImpl {
 
-    private @Value("${aunit.node.ws}")
-    String wsUrl;
-    private @Value("${aunit.mainAddress}")
-    String systemAddress;
-    private @Value("${aunit.pk.path}")
-    String pkFilePath;
+    private @Value("${aunit.node.ws}") String wsUrl;
+    private @Value("${aunit.mainAddress}")String systemAddress;
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
@@ -71,8 +66,7 @@ public class AunitNodeServiceImpl {
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
         this.merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.currency = currencyService.findByName(AUNIT_CURRENCY);
-        MerchantSpecParamDto byMerchantIdAndParamName = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock);
-        latIrreversableBlocknumber = Integer.valueOf(byMerchantIdAndParamName.getParamValue());
+        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
         this.merchantSpecParamsDao = merchantSpecParamsDao;
         this.aunitService = aunitService;
         this.refillService = refillService;
