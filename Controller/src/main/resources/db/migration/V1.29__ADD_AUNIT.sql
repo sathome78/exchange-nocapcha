@@ -31,7 +31,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
   JOIN ORDER_TYPE OT where CP.name='AUNIT/USD';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'AUNIT'), (select id from CURRENCY where name = 'BTC'), 'AUNIT/BTC', 160, 0, 'BTC', 'AUNIT/BTC');
+VALUES((select id from CURRENCY where name = 'AUNIT'), (select id from CURRENCY where name = 'AUNIT'), 'AUNIT/BTC', 160, 0, 'BTC', 'AUNIT/BTC');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -39,7 +39,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='AUNIT/BTC';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'AUNIT'), (select id from CURRENCY where name = 'BTC'), 'AUNIT/ETH', 160, 0, 'BTC', 'AUNIT/ETH');
+VALUES((select id from CURRENCY where name = 'AUNIT'), (select id from CURRENCY where name = 'AUNIT'), 'AUNIT/ETH', 160, 0, 'BTC', 'AUNIT/ETH');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
