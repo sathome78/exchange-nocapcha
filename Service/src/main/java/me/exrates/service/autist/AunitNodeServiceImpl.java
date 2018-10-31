@@ -47,12 +47,12 @@ public class AunitNodeServiceImpl {
     private URI WS_SERVER_URL;
     private Session session;
     private volatile RemoteEndpoint.Basic endpoint = null;
-    private final Merchant merchant;
-    private final Currency currency;
+    private Merchant merchant;
+    private Currency currency;
 
-    private final MerchantSpecParamsDao merchantSpecParamsDao;
-    private final AunitService aunitService;
-    private final RefillService refillService;
+    private MerchantSpecParamsDao merchantSpecParamsDao;
+    private AunitService aunitService;
+    private RefillService refillService;
     private static MessageDigest digest;
 
     static {
@@ -72,14 +72,18 @@ public class AunitNodeServiceImpl {
 
     @Autowired
     public AunitNodeServiceImpl(MerchantService merchantService, CurrencyService currencyService, MerchantSpecParamsDao merchantSpecParamsDao, AunitService aunitService, RefillService refillService) throws NoSuchAlgorithmException {
-        this.merchant = merchantService.findByName(AUNIT_MERCHANT);
-        this.currency = currencyService.findByName(AUNIT_CURRENCY);
-        latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
-        this.merchantSpecParamsDao = merchantSpecParamsDao;
-        this.aunitService = aunitService;
-        this.refillService = refillService;
-        privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
-        log.info("privatekey aunit = " + privateKey);
+        try {
+            this.merchant = merchantService.findByName(AUNIT_MERCHANT);
+            this.currency = currencyService.findByName(AUNIT_CURRENCY);
+            latIrreversableBlocknumber = Integer.valueOf(merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlock).getParamValue());
+            this.merchantSpecParamsDao = merchantSpecParamsDao;
+            this.aunitService = aunitService;
+            this.refillService = refillService;
+            privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
+            log.info("privatekey aunit = " + privateKey);
+        } catch (Exception e){
+            log.error("AUNIT not started: \n" + e.getMessage());
+        }
     }
 
     @PostConstruct
