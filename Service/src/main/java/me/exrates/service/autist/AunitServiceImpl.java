@@ -81,7 +81,7 @@ public class AunitServiceImpl implements AunitService {
         int destinationTag;
         do {
             destinationTag = generateDestinationTag(userId);
-            id = refillService.getRequestIdReadyForAutoAccept(String.valueOf(destinationTag), //wtf
+            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String.valueOf(destinationTag), //wtf
                     currency.getId(), merchant.getId());
         } while (id.isPresent());
         return destinationTag;
