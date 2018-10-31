@@ -41,8 +41,6 @@ public interface RefillService {
 
   List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
-  Optional<Integer> getRequestIdReadyForAutoAccept(String address, Integer merchantId, Integer currencyId);
-
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
