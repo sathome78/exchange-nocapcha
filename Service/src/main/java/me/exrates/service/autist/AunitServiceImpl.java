@@ -12,6 +12,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -124,11 +125,11 @@ public class AunitServiceImpl implements AunitService {
 
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
-//        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-////            log.error("aunit transaction allready received!!! {}", hash);
-//            System.out.println("aunit transaction allready received!! " + hash);
-//            throw new RuntimeException("aunit transaction allready received!!!");
-//        }
+        if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
+            log.error("aunit transaction allready received!!! {}", hash);
+            System.out.println("aunit transaction allready received!! " + hash);
+            throw new RuntimeException("aunit transaction allready received!!!");
+        }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -140,6 +141,11 @@ public class AunitServiceImpl implements AunitService {
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
         return requestAcceptDto;
+    }
+
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
     @Override

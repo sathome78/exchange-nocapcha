@@ -53,7 +53,15 @@ public class AunitNodeServiceImpl {
     private final MerchantSpecParamsDao merchantSpecParamsDao;
     private final AunitService aunitService;
     private final RefillService refillService;
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    private static MessageDigest digest;
+
+    static {
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            log.error(e);
+        }
+    }
 
     private String privateKey;
     private @Value("${aunit.mainAddressNum}") String accountAddress;
@@ -211,6 +219,8 @@ public class AunitNodeServiceImpl {
         }
     }
 
+
+
     private void prepareAndProcessTx(String hash, String address, BigDecimal amount) {
         Map<String, String> map = new HashMap<>();
         map.put("address", address);
@@ -255,6 +265,8 @@ public class AunitNodeServiceImpl {
         String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
                 "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
         System.out.println(s);
+
+//        System.out.println(String.valueOf(digest.digest("test".getBytes(StandardCharsets.UTF_8))));
     }
 
 }
