@@ -234,7 +234,7 @@ public class AunitNodeServiceImpl {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
 
                 prepareAndProcessTx(Hashing.sha256()
-                        .hashString(memoText, StandardCharsets.UTF_8)
+                        .hashString(memo.toString(), StandardCharsets.UTF_8)
                         .toString(), memoText, amount);
 
             }
