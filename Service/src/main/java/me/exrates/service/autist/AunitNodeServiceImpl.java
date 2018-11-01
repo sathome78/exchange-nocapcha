@@ -76,7 +76,7 @@ public class AunitNodeServiceImpl {
             this.merchantSpecParamsDao = merchantSpecParamsDao;
             this.aunitService = aunitService;
             this.refillService = refillService;
-            privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
+            privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
             scheduler.scheduleAtFixedRate(() -> {
                 try {
                     reconnect();
@@ -123,7 +123,7 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    private void subscribeToTransactions() throws IOException, NoSuchAlgorithmException {
+    private void subscribeToTransactions() throws IOException {
         JSONObject login = new JSONObject();
         login.put("id", 0);
         login.put("method", "call");
