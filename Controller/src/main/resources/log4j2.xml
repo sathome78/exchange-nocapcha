@@ -582,7 +582,7 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="aunit" fileName="${sys:catalina.home}/logs/crypto/aunit.log"
+        <RollingFile name="aunit_log" fileName="${sys:catalina.home}/logs/crypto/aunit.log"
                      filePattern="${sys:catalina.home}/logs/crypto/aunit%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
@@ -835,7 +835,9 @@
         <logger name="apollo" level="ALL" additivity="false">
             <AppenderRef ref="apollo_log"/>
         </logger>
-
+        <logger name="aunit" level="ALL" additivity="false">
+            <AppenderRef ref="aunit_log"/>
+        </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
