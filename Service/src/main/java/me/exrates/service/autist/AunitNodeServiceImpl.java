@@ -190,6 +190,7 @@ public class AunitNodeServiceImpl {
         endpoint.sendText(subscribe.toString());
 
         endpoint.sendText(get_object.toString());
+
     }
 
     @OnMessage()
@@ -259,7 +260,7 @@ public class AunitNodeServiceImpl {
         try {
             aunitService.processPayment(map);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            log.info(e);
+            log.error(e);
         }
     }
 
