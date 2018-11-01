@@ -1,5 +1,6 @@
 package me.exrates.service.autist;
 
+import com.google.common.hash.Hashing;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
@@ -56,16 +57,8 @@ public class AunitNodeServiceImpl {
     private MerchantSpecParamsDao merchantSpecParamsDao;
     private AunitService aunitService;
     private RefillService refillService;
-    private static MessageDigest digest;
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    static {
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            log.error(e);
-        }
-    }
 
     private String privateKey;
     private @Value("${aunit.mainAddressNum}") String accountAddress;
@@ -83,8 +76,7 @@ public class AunitNodeServiceImpl {
             this.merchantSpecParamsDao = merchantSpecParamsDao;
             this.aunitService = aunitService;
             this.refillService = refillService;
-            privateKey = merchantService.getPassMerchantProperties("AUNIT").getProperty("privateKey");
-            log.info("privatekey aunit = " + privateKey);
+            privateKey = "5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh";
             scheduler.scheduleAtFixedRate(() -> {
                 try {
                     reconnect();
@@ -122,8 +114,6 @@ public class AunitNodeServiceImpl {
     }
 
     private void reconnect(){
-//        System.out.println("ISOPENED = " + session);
-//        if(session != null) System.out.println(" open? " + session.isOpen());
         if(!session.isOpen()){
             try {
                 init();
@@ -243,7 +233,10 @@ public class AunitNodeServiceImpl {
             if (lisfOfMemo.contains(memoText)) {
                 BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
 
-                prepareAndProcessTx(Arrays.toString(digest.digest(memoText.getBytes(StandardCharsets.UTF_8))), memoText, amount);
+                prepareAndProcessTx(Hashing.sha256()
+                        .hashString(memoText, StandardCharsets.UTF_8)
+                        .toString(), memoText, amount);
+
             }
         } catch (NoSuchAlgorithmException e) {
             log.error("Memo can not be decrypted : " + e.getClass());
@@ -292,13 +285,13 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
-                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
-        System.out.println(s);
-
-        System.out.println(String.valueOf(digest.digest("test".getBytes(StandardCharsets.UTF_8))));
-    }
+//    public static void main(String[] args) throws NoSuchAlgorithmException {
+//        String s = decryptBTSmemo("5JZ4ZrZ7GXKGKVgqJ6ZKHNDfJAe2K1B58sUVHspA9iLQ3UBG6Lh",
+//                "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT6Y1omrtPmYEHBaK7gdAeqdGASPariaCXGm83Phjc2NDEuxYfzV\",\"nonce\":\"394357881684245\",\"message\":\"70c9c5459c69e2182693c604f6102dee\"}");
+//        System.out.println(s);
+//
+//        System.out.println(String.valueOf(digest.digest("test".getBytes(StandardCharsets.UTF_8))));
+//    }
 
 }
 
