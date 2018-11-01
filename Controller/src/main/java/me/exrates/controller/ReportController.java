@@ -2,21 +2,7 @@ package me.exrates.controller;
 
 import com.google.common.io.ByteSource;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.BalancesReportDto;
-import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.InputOutputCommissionSummaryDto;
-import me.exrates.model.dto.InvoiceReportDto;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.SummaryInOutReportDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
@@ -28,11 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -45,8 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -265,14 +245,16 @@ public class ReportController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/groupTotalBalances", method = GET)
-    public Future<List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>>> getTotalBalancesReportByGroups() {
-        return CompletableFuture.supplyAsync(() -> reportService.getWalletBalancesSummaryByGroups());
+    public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getTotalBalancesReportByGroups() {
+
+        return reportService.getWalletBalancesSummaryByGroups();
     }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesSliceStatistic", method = GET)
-    public Future<List<BalancesDto>> getBalancesExternalWallets() {
-        return CompletableFuture.supplyAsync(() -> reportService.getBalancesSliceStatistic());
+    public List<BalancesDto> getBalancesExternalWallets() {
+
+        return reportService.getBalancesSliceStatistic();
     }
 
     @ResponseBody
