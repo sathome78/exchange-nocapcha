@@ -114,7 +114,6 @@ public class AunitServiceImpl implements AunitService {
         try {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-//            log.debug("RefillRequestNotFountException: " + params);
             setIdAndAccept(requestAcceptDto);
         }
     }
