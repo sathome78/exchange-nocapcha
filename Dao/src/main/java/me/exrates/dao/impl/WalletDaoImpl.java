@@ -1443,8 +1443,8 @@ public class WalletDaoImpl implements WalletDao {
                 " JOIN CURRENCY cur ON cur.id = w.currency_id AND cur.hidden = 0" +
                 " JOIN USER u ON u.id = w.user_id" +
                 " JOIN USER_ROLE ur ON ur.id = u.roleid" +
-                " GROUP BY cur.name, ur.name" +
-                " ORDER BY cur.name, ur.name";
+                " GROUP BY cur.id, ur.id" +
+                " ORDER BY cur.id, ur.id";
 
         return slaveJdbcTemplate.query(sql, (rs, row) -> InternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))
