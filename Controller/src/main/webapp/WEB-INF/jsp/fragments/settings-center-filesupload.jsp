@@ -17,9 +17,9 @@
                         <div class="row usr_doc_row">
                             <div class="col-md-offset-0 col-md-10">
                                 <c:forEach var="image" items="${userFiles}">
-                                    <a href="${image.path}" data-toggle="lightbox" class="col-sm-4">
-                                        <img src="${image.path}" class="img-responsive">
-                                    </a>
+                                    <div class="img-container">
+                                        <img src="${image.path}" data-toggle="lightbox" class="col-sm-4">
+                                    </div>
                                 </c:forEach>
                             </div>
                         </div>

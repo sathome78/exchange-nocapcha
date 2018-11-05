@@ -304,7 +304,18 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   @Transactional
   public void setBlockForAll(OperationType operationType, boolean blockStatus) {
-    merchantDao.setBlockForAllNonTransfer(operationType, blockStatus);
+
+    if (blockStatus) {
+      if(merchantDao.isBlockStateValid(operationType)){
+        merchantDao.backupBlockState(operationType);
+      }
+      merchantDao.setBlockForAllNonTransfer(operationType);
+    } else {
+      //check for do not restore all 1 or all 0
+      if(merchantDao.isBlockStateBackupValid(operationType)){
+        merchantDao.restoreBlockState(operationType);
+      }
+    }
   }
 
   @Override
@@ -442,6 +453,17 @@ public class MerchantServiceImpl implements MerchantService {
       if (merchantService instanceof IWithdrawable && ((IWithdrawable) merchantService).additionalTagForWithdrawAddressIsUsed()) {
           ((IWithdrawable) merchantService).checkDestinationTag(destinationTag);
       }
+  }
+
+  @Override
+  public boolean isValidDestinationAddress(Integer merchantId, String address) {
+
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(merchantId);
+    if (merchantService instanceof IWithdrawable) {
+      return ((IWithdrawable) merchantService).isValidDestinationAddress(address);
+    } else {
+      return true;
+    }
   }
 
   @Override

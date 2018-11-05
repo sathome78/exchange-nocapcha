@@ -196,6 +196,11 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
+    @Override
+    public List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId) {
+        return refillRequestDao.getListOfValidAddressByMerchantIdAndCurrency(merchantId, currencyId);
+    }
+
   @Override
   @Transactional(readOnly = true)
   public Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId) {
@@ -356,7 +361,6 @@ public class RefillServiceImpl implements RefillService {
         currencyId,
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
-
   /**
    * findUnpaidBtcPayments
    */
@@ -1045,11 +1049,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public boolean checkAddressForAvailability(String address) {
-    return refillRequestDao.checkAddressForAvailability(address);
-  }
-
-  @Override
   public int getTxOffsetForAddress(String address) {
     return refillRequestDao.getTxOffsetForAddress(address);
   }
@@ -1112,4 +1111,5 @@ public class RefillServiceImpl implements RefillService {
   public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
     refillRequestDao.invalidateAddress(address, merchantId, currencyId);
   }
+
 }

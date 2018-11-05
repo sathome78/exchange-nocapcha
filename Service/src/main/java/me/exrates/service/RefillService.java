@@ -28,7 +28,9 @@ public interface RefillService {
 
   Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
-    @Transactional(readOnly = true)
+  List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId);
+
+  @Transactional(readOnly = true)
     Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
 
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
@@ -124,8 +126,6 @@ public interface RefillService {
 
   List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
-  boolean checkAddressForAvailability(String address);
-
     int getTxOffsetForAddress(String address);
 
     void updateTxOffsetForAddress(String address, Integer offset);
@@ -145,4 +145,5 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
 
     void invalidateAddress(String address, Integer merchantId, Integer currencyId);
+
 }

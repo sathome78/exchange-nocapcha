@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -666,7 +667,11 @@ public class OnlineRestController {
      * @author ValkSam
      */
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public OrderCommissionsDto getOrderCommissions() {
+    public OrderCommissionsDto getOrderCommissions(HttpServletRequest request) {
+        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        if (currencyPair.getName().contains("EDR")) {
+            return OrderCommissionsDto.zeroComissions();
+        }
         OrderCommissionsDto result = orderService.getCommissionForOrder();
         return result;
     }
@@ -1049,13 +1054,30 @@ public class OnlineRestController {
         }
         String email = principal.getName();
         /**/
-        return referralService.getRefsContainerForReq(action, userId, userService.getIdByEmail(email), onPage, page, refFilterData);
+        RefsListContainer container = referralService.getRefsContainerForReq(action, userId,
+                userService.getIdByEmail(email), onPage, page, refFilterData);
+        hideEmails(container.getReferralInfoDtos());
+        return container;
     }
 
     @ResponseBody
     @RequestMapping(value = "/dashboard/getAllCurrencies")
     public List getAllCurrencies() {
         return currencyService.findAllCurrenciesWithHidden();
+    }
+
+    private void hideEmails(List<ReferralInfoDto> referralInfoDtos) {
+
+        for (ReferralInfoDto dto : referralInfoDtos) {
+            String email = dto.getEmail();
+            StringBuilder buf = new StringBuilder(email);
+            int start = 2;
+            int end = email.length() - 5;
+            for (int i = start; i < end; i++) {
+                buf.setCharAt(i, '*');
+            }
+            dto.setEmail(buf.toString());
+        }
     }
 
 }
