@@ -39,6 +39,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
         NotificatorService service = notificatorsService.getNotificationServiceByBeanName(notificator.getBeanName());
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
+        log.debug("notify user {} for {}", userEmail, notificationTypeEnum);
         try {
             contactToNotify = service.sendMessageToUser(userEmail, message, subject);
         } catch (Exception e) {
