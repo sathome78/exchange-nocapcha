@@ -3,9 +3,10 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
+import me.exrates.model.dto.WalletBalancesDto;
+import me.exrates.model.enums.UserRole;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -27,23 +28,30 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
-public class ExcelGeneratorUtil {
+public class ReportFiveExcelGeneratorUtil {
 
-    private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
-    public static BalancesReportDto generateReportBalances(List<Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto>> balances) {
-        LocalDateTime now = LocalDateTime.now();
-
+    public static byte[] generate(List<WalletBalancesDto> firstBalances,
+                                  LocalDateTime firstCreatedAt,
+                                  List<WalletBalancesDto> secondBalances,
+                                  LocalDateTime secondCreatedAt,
+                                  List<UserRole> roles,
+                                  Map<String, Pair<BigDecimal, BigDecimal>> rates) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
-        XSSFSheet sheet = workbook.createSheet("Срез балансов кошельков");
+        XSSFSheet sheet = workbook.createSheet("Балансы кошельков за период");
 
         XSSFRow row;
         XSSFCell cell;
@@ -52,8 +60,6 @@ public class ExcelGeneratorUtil {
 
         CellStyle headerStyle = getHeaderStyle(workbook);
         CellStyle body1Style = getBode1Style(workbook);
-//        CellStyle body2Style = getBode2Style(workbook);
-//        CellStyle body3Style = getBode3Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
@@ -75,29 +81,55 @@ public class ExcelGeneratorUtil {
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("Сумма фактического остатка на всех кошельках");
+        cell.setCellValue(String.format("Дата выгрузки: %s", secondCreatedAt.format(FORMATTER_FOR_REPORT)));
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(7, CellType.STRING);
-        cell.setCellValue("Сумма обязательств перед пользователями");
+        cell.setCellValue(String.format("Выбранная дата среза информации: %s", firstCreatedAt.format(FORMATTER_FOR_REPORT)));
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue(String.format("Отклонение на %s", now.format(FORMATTER_FOR_REPORT)));
+        cell.setCellValue(String.format("Динамика изменений на %s", LocalDateTime.now().format(FORMATTER_FOR_REPORT)));
         cell.setCellStyle(headerStyle);
 
         row = sheet.createRow(1);
+
+        cell = row.createCell(4, CellType.STRING);
+        cell.setCellValue("Сумма фактического остатка на всех кошельках");
+        cell.setCellStyle(headerStyle);
+
+        cell = row.createCell(5, CellType.STRING);
+        cell.setCellValue("Сумма обязательств перед пользователями");
+        cell.setCellStyle(headerStyle);
+
+        cell = row.createCell(6, CellType.STRING);
+        cell.setCellValue("Отклонение");
+        cell.setCellStyle(headerStyle);
+
+        cell = row.createCell(7, CellType.STRING);
+        cell.setCellValue("Сумма фактического остатка на всех кошельках");
+        cell.setCellStyle(headerStyle);
+
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("Сумма обязательств перед пользователями");
+        cell.setCellStyle(headerStyle);
+
+        cell = row.createCell(9, CellType.STRING);
+        cell.setCellValue("Отклонение");
+        cell.setCellStyle(headerStyle);
+
+        row = sheet.createRow(2);
 
         cell = row.createCell(4, CellType.STRING);
         cell.setCellValue("К-во монет на кошельках");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(5, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в USD");
+        cell.setCellValue("К-во монет на кошельках");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(6, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в BTC");
+        cell.setCellValue("Количество монет");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(7, CellType.STRING);
@@ -105,11 +137,11 @@ public class ExcelGeneratorUtil {
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(8, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в USD");
+        cell.setCellValue("К-во монет на кошельках");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(9, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в BTC");
+        cell.setCellValue("Количество монет");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(10, CellType.STRING);
@@ -117,20 +149,20 @@ public class ExcelGeneratorUtil {
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(11, CellType.STRING);
-        cell.setCellValue("Сумма в USD");
+        cell.setCellValue("в USD");
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(12, CellType.STRING);
-        cell.setCellValue("Сумма в BTC");
+        cell.setCellValue("в BTC");
         cell.setCellStyle(headerStyle);
 
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 1, 1));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 2, 2));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 3, 3));
+        sheet.addMergedRegion(new CellRangeAddress(0, 2, 0, 0));
+        sheet.addMergedRegion(new CellRangeAddress(0, 2, 1, 1));
+        sheet.addMergedRegion(new CellRangeAddress(0, 2, 2, 2));
+        sheet.addMergedRegion(new CellRangeAddress(0, 2, 3, 3));
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 7, 9));
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 10, 12));
+        sheet.addMergedRegion(new CellRangeAddress(0, 1, 10, 12));
 
         sheet.autoSizeColumn(0, true);
         sheet.setColumnWidth(0, sheet.getColumnWidth(0) + 256);
@@ -160,10 +192,18 @@ public class ExcelGeneratorUtil {
         sheet.autoSizeColumn(12, true);
         sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
 
-        final int bound = balances.size();
+        List<String> currencies;
+        final int bound;
+        if (firstBalances.size() >= secondBalances.size()) {
+            bound = firstBalances.size();
+            currencies = firstBalances.stream().map(WalletBalancesDto::getCurrencyName).collect(toList());
+        } else {
+            bound = secondBalances.size();
+            currencies = secondBalances.stream().map(WalletBalancesDto::getCurrencyName).collect(toList());
+        }
 
         //footer
-        row = sheet.createRow(2);
+        row = sheet.createRow(3);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Итого:");
@@ -185,124 +225,235 @@ public class ExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(5, CellType.NUMERIC);
-        cell.setCellFormula("SUM(F" + 4 + ":F" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(5, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(6, CellType.NUMERIC);
-        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(6, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(7, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(8, CellType.NUMERIC);
-        cell.setCellFormula("SUM(I" + 4 + ":I" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(9, CellType.NUMERIC);
-        cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(9, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(10, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(11, CellType.NUMERIC);
-        cell.setCellFormula("SUM(L" + 4 + ":L" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(L" + 5 + ":L" + ((bound - 1) + 5) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(M" + 5 + ":M" + ((bound - 1) + 5) + ")");
         cell.setCellStyle(footer2Style);
 
         //body
-        for (int i = 0; i < bound; i++) {
-            Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto> triple = balances.get(i);
-            final ExternalWalletBalancesDto exWallet = triple.getLeft();
-            final InternalWalletBalancesDto inWallet = triple.getRight();
+        int i = 0;
+        for (String currency : currencies) {
+            WalletBalancesDto firstBalance = firstBalances.stream()
+                    .filter(wallet -> currency.equals(wallet.getCurrencyName()))
+                    .findFirst()
+                    .orElse(null);
 
-            row = sheet.createRow(i + 3);
+            Integer currencyId1;
+            BigDecimal exWalletTotalBalance1;
+            BigDecimal inWalletsTotalBalance1;
+            if (nonNull(firstBalance)) {
+                ExternalWalletBalancesDto exWallet1 = firstBalance.getExternal();
+                currencyId1 = exWallet1.getCurrencyId();
+                exWalletTotalBalance1 = exWallet1.getTotalBalance();
+
+                List<InternalWalletBalancesDto> inWallets1 = firstBalance.getInternals();
+                inWalletsTotalBalance1 = inWallets1.stream()
+                        .filter(inWallet -> roles.contains(inWallet.getRoleName()))
+                        .map(InternalWalletBalancesDto::getTotalBalance)
+                        .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+            } else {
+                currencyId1 = null;
+                exWalletTotalBalance1 = BigDecimal.ZERO;
+                inWalletsTotalBalance1 = BigDecimal.ZERO;
+            }
+
+            WalletBalancesDto secondBalance = secondBalances.stream()
+                    .filter(wallet -> currency.equals(wallet.getCurrencyName()))
+                    .findFirst()
+                    .orElse(null);
+
+            Integer currencyId2;
+            BigDecimal exWalletTotalBalance2;
+            BigDecimal inWalletsTotalBalance2;
+            if (nonNull(secondBalance)) {
+                ExternalWalletBalancesDto exWallet2 = secondBalance.getExternal();
+                currencyId2 = exWallet2.getCurrencyId();
+                exWalletTotalBalance2 = exWallet2.getTotalBalance();
+
+                List<InternalWalletBalancesDto> inWallets2 = secondBalance.getInternals();
+                inWalletsTotalBalance2 = inWallets2.stream()
+                        .filter(inWallet -> roles.contains(inWallet.getRoleName()))
+                        .map(InternalWalletBalancesDto::getTotalBalance)
+                        .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+            } else {
+                currencyId2 = null;
+                exWalletTotalBalance2 = BigDecimal.ZERO;
+                inWalletsTotalBalance2 = BigDecimal.ZERO;
+            }
+
+            Pair<BigDecimal, BigDecimal> ratePair = rates.get(currency);
+
+            BigDecimal usdRate;
+            BigDecimal btcRate;
+            if (nonNull(ratePair)) {
+                usdRate = ratePair.getLeft();
+                btcRate = ratePair.getRight();
+            } else {
+                usdRate = BigDecimal.ZERO;
+                btcRate = BigDecimal.ZERO;
+            }
+
+            row = sheet.createRow(i + 4);
 
             cell = row.createCell(0, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getCurrencyId());
+            cell.setCellValue(nonNull(currencyId1) ? currencyId1 : currencyId2);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(exWallet.getCurrencyName());
+            cell.setCellValue(currency);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(2, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getUsdRate().doubleValue());
+            cell.setCellValue(usdRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getBtcRate().doubleValue());
+            cell.setCellValue(btcRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(4, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getTotalBalance().doubleValue());
+            cell.setCellValue(exWalletTotalBalance2.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(5, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*E" + (i + 4));
+            cell.setCellValue(inWalletsTotalBalance2.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(6, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*E" + (i + 4));
+            cell.setCellFormula("E" + (i + 5) + "-F" + (i + 5));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(7, CellType.NUMERIC);
-            cell.setCellValue(inWallet.getTotalBalance().doubleValue());
+            cell.setCellValue(exWalletTotalBalance1.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*H" + (i + 4));
+            cell.setCellValue(inWalletsTotalBalance1.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*H" + (i + 4));
+            cell.setCellFormula("H" + (i + 5) + "-I" + (i + 5));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(10, CellType.NUMERIC);
-            cell.setCellFormula("E" + (i + 4) + "-H" + (i + 4));
+            cell.setCellFormula("G" + (i + 5) + "-J" + (i + 5));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(11, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*K" + (i + 4));
+            cell.setCellFormula("C" + (i + 5) + "*K" + (i + 5));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(12, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*K" + (i + 4));
+            cell.setCellFormula("D" + (i + 5) + "*K" + (i + 5));
             cell.setCellStyle(body1Style);
+
+            i++;
         }
 
         SheetConditionalFormatting sheetCF = sheet.getSheetConditionalFormatting();
 
-        ConditionalFormattingRule rule1 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4>0)");
+        ConditionalFormattingRule rule1 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($G5), $G5>0)");
         PatternFormatting fill1 = rule1.createPatternFormatting();
         fill1.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
         fill1.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
 
-        ConditionalFormattingRule rule2 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4<0)");
+        ConditionalFormattingRule rule2 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($G5), $G5<0)");
         PatternFormatting fill2 = rule2.createPatternFormatting();
         fill2.setFillBackgroundColor(IndexedColors.RED.getIndex());
         fill2.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
 
-        ConditionalFormattingRule rule3 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4=0)");
+        ConditionalFormattingRule rule3 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($G5), $G5=0)");
         PatternFormatting fill3 = rule3.createPatternFormatting();
         fill3.setFillBackgroundColor(IndexedColors.WHITE.getIndex());
         fill3.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
 
         ConditionalFormattingRule[] cfRules = new ConditionalFormattingRule[]{rule1, rule2, rule3};
 
-        CellRangeAddress[] regions = new CellRangeAddress[]{new CellRangeAddress(3, (bound - 1) + 3, 10, 12)};
+        CellRangeAddress[] regions = new CellRangeAddress[]{
+                new CellRangeAddress(4, (bound - 1) + 4, 6, 6)
+        };
+
+        sheetCF.addConditionalFormatting(regions, cfRules);
+
+        sheetCF = sheet.getSheetConditionalFormatting();
+
+        rule1 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($J5), $J5>0)");
+        fill1 = rule1.createPatternFormatting();
+        fill1.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+        fill1.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        rule2 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($J5), $J5<0)");
+        fill2 = rule2.createPatternFormatting();
+        fill2.setFillBackgroundColor(IndexedColors.RED.getIndex());
+        fill2.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        rule3 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($J5), $J5=0)");
+        fill3 = rule3.createPatternFormatting();
+        fill3.setFillBackgroundColor(IndexedColors.WHITE.getIndex());
+        fill3.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        cfRules = new ConditionalFormattingRule[]{rule1, rule2, rule3};
+
+        regions = new CellRangeAddress[]{
+                new CellRangeAddress(4, (bound - 1) + 4, 9, 9)
+        };
+
+        sheetCF.addConditionalFormatting(regions, cfRules);
+
+        sheetCF = sheet.getSheetConditionalFormatting();
+
+        rule1 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K5), $K5>0)");
+        fill1 = rule1.createPatternFormatting();
+        fill1.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+        fill1.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        rule2 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K5), $K5<0)");
+        fill2 = rule2.createPatternFormatting();
+        fill2.setFillBackgroundColor(IndexedColors.RED.getIndex());
+        fill2.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        rule3 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K5), $K5=0)");
+        fill3 = rule3.createPatternFormatting();
+        fill3.setFillBackgroundColor(IndexedColors.WHITE.getIndex());
+        fill3.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
+
+        cfRules = new ConditionalFormattingRule[]{rule1, rule2, rule3};
+
+        regions = new CellRangeAddress[]{
+                new CellRangeAddress(4, (bound - 1) + 4, 10, 12)
+        };
 
         sheetCF.addConditionalFormatting(regions, cfRules);
 
         //footer
-        row = sheet.createRow((bound - 1) + 4);
+        row = sheet.createRow((bound - 1) + 5);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Итого:");
@@ -324,51 +475,48 @@ public class ExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(5, CellType.NUMERIC);
-        cell.setCellFormula("SUM(F" + 4 + ":F" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(5, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(6, CellType.NUMERIC);
-        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(6, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(7, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(8, CellType.NUMERIC);
-        cell.setCellFormula("SUM(I" + 4 + ":I" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(9, CellType.NUMERIC);
-        cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(9, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(10, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(11, CellType.NUMERIC);
-        cell.setCellFormula("SUM(L" + 4 + ":L" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(L" + 5 + ":L" + ((bound - 1) + 5) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(M" + 5 + ":M" + ((bound - 1) + 5) + ")");
         cell.setCellStyle(footer2Style);
-
-        final String fileName = String.format("report_balances_%s", now.format(FORMATTER_FOR_NAME));
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             workbook.write(bos);
             bos.close();
 
-//            FileUtils.writeByteArrayToFile(new File(fileName), bos.toByteArray());
+            FileUtils.writeByteArrayToFile(new File("xxx.xlsx"), bos.toByteArray());
         } catch (IOException ex) {
-            log.warn("Problem with convert workbook to byte array. Return empty file");
-            return new BalancesReportDto(fileName, new byte[]{});
+            throw new Exception("Problem with convert workbook to byte array", ex);
         }
-        return new BalancesReportDto(fileName, bos.toByteArray());
+        return bos.toByteArray();
     }
 
     private static CellStyle getHeaderStyle(XSSFWorkbook workbook) {

@@ -31,7 +31,7 @@ public class ExternalWalletBalancesDto {
     private BigDecimal totalBalanceUSD;
     private BigDecimal totalBalanceBTC;
 
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdatedDate;
 }

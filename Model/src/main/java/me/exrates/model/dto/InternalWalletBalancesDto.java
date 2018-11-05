@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -13,13 +14,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class InternalWalletBalancesDto {
 
     private Integer currencyId;
     private String currencyName;
+
+    private Integer roleId;
+    private UserRole roleName;
 
     private BigDecimal usdRate;
     private BigDecimal btcRate;
@@ -28,7 +32,7 @@ public class InternalWalletBalancesDto {
     private BigDecimal totalBalanceUSD;
     private BigDecimal totalBalanceBTC;
 
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdatedDate;
 }

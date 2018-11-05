@@ -6,10 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-@Builder(builderClassName = "Builder")
+@Builder(builderClassName = "Builder", toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class BalancesReportDto {
@@ -22,11 +22,5 @@ public class BalancesReportDto {
     private byte[] content;
 
     @JsonProperty("created_at")
-    private LocalDate createdAt;
-
-    public BalancesReportDto(String fileName,
-                             byte[] content) {
-        this.fileName = fileName;
-        this.content = content;
-    }
+    private LocalDateTime createdAt;
 }
