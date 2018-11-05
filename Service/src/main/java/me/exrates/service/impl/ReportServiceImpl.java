@@ -1,5 +1,7 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -26,6 +28,7 @@ import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.WalletBalancesDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -45,8 +48,11 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
+import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.job.report.ReportMailingJob;
-import me.exrates.service.util.ExcelGeneratorUtil;
+import me.exrates.service.util.ReportFiveExcelGeneratorUtil;
+import me.exrates.service.util.ReportFourExcelGeneratorUtil;
+import me.exrates.service.util.ZipUtil;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -66,6 +72,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -82,13 +89,16 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 /**
  * Created by ValkSam
@@ -96,6 +106,10 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 @Service
 @Log4j2
 public class ReportServiceImpl implements ReportService {
+
+    private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
+
+    private static final Integer TIME_RANGE = 5;
 
     @Autowired
     TransactionService transactionService;
@@ -135,6 +149,12 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     Scheduler reportScheduler;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    ExchangeApi exchangeApi;
 
 
     private final String MAIL_JOB_NAME = "REPORT_MAIL_JOB";
@@ -394,18 +414,6 @@ public class ReportServiceImpl implements ReportService {
         return report;
     }
 
-
-    @Override
-    public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
-        Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
-        List<UserRoleTotalBalancesReportDto<UserRole>> report = walletService.getWalletBalancesSummaryByRoles(roles);
-        //wolper 24.04.18
-        Map<Integer, RatesUSDForReportDto> rates = orderService.getRatesToUSDForReport();
-        report.forEach(s -> s.setRateToUSD(rates.get(s.getCurId()) == null ? BigDecimal.ZERO : rates.get(s.getCurId()).getRate()));
-        //
-        return report;
-    }
-
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
         List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> report = walletService.getWalletBalancesSummaryByGroups();
@@ -525,9 +533,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public void generateWalletBalancesReport() {
+    public void generateWalletBalancesReportObject() {
         StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of generating report #4 start...");
+        log.info("Process of generating report object as byte array start...");
 
         List<String> curNames = currencyService.getAllCurrencies().stream().map(Currency::getName).collect(toList());
 
@@ -535,20 +543,27 @@ public class ReportServiceImpl implements ReportService {
                 .collect(toMap(
                         ExternalWalletBalancesDto::getCurrencyName,
                         Function.identity()));
-        final Map<String, InternalWalletBalancesDto> internalWalletBalances = walletService.getInternalWalletBalances().stream()
-                .collect(toMap(
-                        InternalWalletBalancesDto::getCurrencyName,
-                        Function.identity()));
+        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+                .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
-        List<Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto>> balances = curNames.stream()
-                .map(name -> Pair.of(externalWalletBalances.get(name), internalWalletBalances.get(name)))
-                .filter(pair -> nonNull(pair.getKey()) && nonNull(pair.getValue()))
+        List<WalletBalancesDto> balances = curNames.stream()
+                .map(name -> new WalletBalancesDto(name, externalWalletBalances.get(name), internalWalletBalances.get(name)))
+                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal()) && nonNull(walletBalancesDto.getInternals()))
                 .collect(toList());
 
-        BalancesReportDto balancesReportDto = ExcelGeneratorUtil.generateReportBalances(balances);
+        byte[] zippedBytes;
+        try {
+            byte[] balancesBytes = objectMapper.writeValueAsBytes(balances);
 
-        reportDao.addNewBalancesReport(balancesReportDto);
-        log.info("Process of generating report #4 end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+            zippedBytes = ZipUtil.zip(balancesBytes);
+        } catch (IOException ex) {
+            log.warn("Problem with write balances object to byte array", ex);
+            return;
+        }
+        final String fileName = String.format("report_balances_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME));
+
+        reportDao.addNewBalancesReportObject(zippedBytes, fileName);
+        log.info("Process of generating report object as byte array end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Override
@@ -559,35 +574,42 @@ public class ReportServiceImpl implements ReportService {
                 .collect(toMap(
                         ExternalWalletBalancesDto::getCurrencyName,
                         Function.identity()));
-        final Map<String, InternalWalletBalancesDto> internalWalletBalances = walletService.getInternalWalletBalances().stream()
-                .collect(toMap(
-                        InternalWalletBalancesDto::getCurrencyName,
-                        Function.identity()));
+        final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
+                .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
-        final LocalDateTime lastUpdated = LocalDateTime.now();
+        final LocalDateTime lastUpdated = LocalDateTime.now().withNano(0);
 
         return curNames.stream()
                 .map(name -> {
-                    ExternalWalletBalancesDto externalWalletBalancesDto = externalWalletBalances.get(name);
-                    InternalWalletBalancesDto internalWalletBalancesDto = internalWalletBalances.get(name);
+                    ExternalWalletBalancesDto extWalletBalance = externalWalletBalances.get(name);
+                    List<InternalWalletBalancesDto> intWalletBalances = internalWalletBalances.get(name);
 
-                    if (isNull(externalWalletBalancesDto) || isNull(internalWalletBalancesDto)) {
+                    if (isNull(extWalletBalance) || isEmpty(intWalletBalances)) {
                         return null;
                     }
 
-                    final Integer currencyId = externalWalletBalancesDto.getCurrencyId();
-                    final String currencyName = externalWalletBalancesDto.getCurrencyName();
+                    final Integer currencyId = extWalletBalance.getCurrencyId();
+                    final String currencyName = extWalletBalance.getCurrencyName();
 
-                    final BigDecimal usdRate = externalWalletBalancesDto.getUsdRate();
-                    final BigDecimal btcRate = externalWalletBalancesDto.getBtcRate();
+                    final BigDecimal usdRate = extWalletBalance.getUsdRate();
+                    final BigDecimal btcRate = extWalletBalance.getBtcRate();
 
-                    final BigDecimal externalTotalBalance = externalWalletBalancesDto.getTotalBalance();
-                    final BigDecimal externalTotalBalanceUSD = externalWalletBalancesDto.getTotalBalanceUSD();
-                    final BigDecimal externalTotalBalanceBTC = externalWalletBalancesDto.getTotalBalanceBTC();
+                    final BigDecimal externalTotalBalance = extWalletBalance.getTotalBalance();
+                    final BigDecimal externalTotalBalanceUSD = extWalletBalance.getTotalBalanceUSD();
+                    final BigDecimal externalTotalBalanceBTC = extWalletBalance.getTotalBalanceBTC();
 
-                    final BigDecimal internalTotalBalance = internalWalletBalancesDto.getTotalBalance();
-                    final BigDecimal internalTotalBalanceUSD = internalWalletBalancesDto.getTotalBalanceUSD();
-                    final BigDecimal internalTotalBalanceBTC = internalWalletBalancesDto.getTotalBalanceBTC();
+                    final BigDecimal internalTotalBalance = intWalletBalances.stream()
+                            .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                            .map(InternalWalletBalancesDto::getTotalBalance)
+                            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+                    final BigDecimal internalTotalBalanceUSD = intWalletBalances.stream()
+                            .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                            .map(InternalWalletBalancesDto::getTotalBalanceUSD)
+                            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+                    final BigDecimal internalTotalBalanceBTC = intWalletBalances.stream()
+                            .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                            .map(InternalWalletBalancesDto::getTotalBalanceBTC)
+                            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
                     final BigDecimal deviation = externalTotalBalance.subtract(internalTotalBalance);
                     final BigDecimal deviationUSD = externalTotalBalanceUSD.subtract(internalTotalBalanceUSD);
@@ -617,13 +639,77 @@ public class ReportServiceImpl implements ReportService {
     @Transactional(readOnly = true)
     @Override
     public List<BalancesReportDto> getArchiveBalancesReports(LocalDate date) {
-        return reportDao.getBalancesReportsNames(date);
+        return reportDao.getBalancesReportsNames(date.atTime(LocalTime.MIN), date.atTime(LocalTime.MAX));
     }
 
     @Transactional(readOnly = true)
     @Override
-    public BalancesReportDto getArchiveBalancesReportFile(Integer id) {
-        return reportDao.getBalancesReportById(id);
+    public BalancesReportDto getArchiveBalancesReportFile(Integer id) throws Exception {
+        BalancesReportDto balancesReport = reportDao.getBalancesReportById(id);
+        final byte[] zippedBytes = balancesReport.getContent();
+        final LocalDateTime createdAt = balancesReport.getCreatedAt();
+
+        List<WalletBalancesDto> balances;
+        try {
+            byte[] balancesBytes = ZipUtil.unzip(zippedBytes);
+
+            balances = objectMapper.readValue(balancesBytes, new TypeReference<List<WalletBalancesDto>>() {
+            });
+        } catch (IOException | DataFormatException ex) {
+            throw new Exception("Problem with read balances object from byte array", ex);
+        }
+        return balancesReport.toBuilder()
+                .content(ReportFourExcelGeneratorUtil.generate(balances, createdAt))
+                .build();
+    }
+
+    @Override
+    public BalancesReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
+                                                                 LocalDateTime endTime,
+                                                                 List<UserRole> roles) throws Exception {
+        Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
+
+        //first balance
+        BalancesReportDto firstBalancesReport = reportDao.getBalancesReportByTime(startTime.minusMinutes(TIME_RANGE), startTime.plusMinutes(TIME_RANGE));
+        if (isNull(firstBalancesReport)) {
+            throw new Exception(String.format("No balances report object found for time: %s", startTime.toString()));
+        }
+        byte[] zippedBytes = firstBalancesReport.getContent();
+        final LocalDateTime firstCreatedAt = firstBalancesReport.getCreatedAt();
+
+        List<WalletBalancesDto> firstBalances;
+        try {
+            byte[] balancesBytes = ZipUtil.unzip(zippedBytes);
+
+            firstBalances = objectMapper.readValue(balancesBytes, new TypeReference<List<WalletBalancesDto>>() {
+            });
+        } catch (IOException | DataFormatException ex) {
+            throw new Exception("Problem with read first balances object from byte array", ex);
+        }
+
+        //second balance
+        BalancesReportDto secondBalancesReport = reportDao.getBalancesReportByTime(endTime.minusMinutes(TIME_RANGE), endTime.plusMinutes(TIME_RANGE));
+        if (isNull(secondBalancesReport)) {
+            throw new Exception(String.format("No balances report object found for time: %s", endTime.toString()));
+        }
+        zippedBytes = secondBalancesReport.getContent();
+        final LocalDateTime secondCreatedAt = secondBalancesReport.getCreatedAt();
+
+        List<WalletBalancesDto> secondBalances;
+        try {
+            byte[] balancesBytes = ZipUtil.unzip(zippedBytes);
+
+            secondBalances = objectMapper.readValue(balancesBytes, new TypeReference<List<WalletBalancesDto>>() {
+            });
+        } catch (IOException | DataFormatException ex) {
+            throw new Exception("Problem with read second balances object from byte array", ex);
+        }
+        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+
+        return BalancesReportDto.builder()
+                .fileName(String.format("report_difference_between_balances_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(ReportFiveExcelGeneratorUtil.generate(firstBalances, firstCreatedAt, secondBalances, secondCreatedAt, roles, rates))
+                .build();
     }
 
     private void rescheduleMailJob(LocalTime newMailTime) {

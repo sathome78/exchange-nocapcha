@@ -148,7 +148,7 @@
                                         code="reports.totalBalances"/></label>
                             </div>
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-total-balances" class="blue-box">
+                                <button id="download-wallet-balances-for-period" class="blue-box" onclick="getWalletBalancesForPeriodToDownload()">
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>

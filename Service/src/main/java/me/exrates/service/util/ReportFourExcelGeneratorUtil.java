@@ -3,11 +3,10 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import me.exrates.model.dto.WalletBalancesDto;
+import me.exrates.model.enums.UserRole;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -25,22 +24,20 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
-public class ExcelGeneratorUtil {
+public class ReportFourExcelGeneratorUtil {
 
-    private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
-    public static BalancesReportDto generateReportBalances(List<Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto>> balances) {
-        LocalDateTime now = LocalDateTime.now();
-
+    public static byte[] generate(List<WalletBalancesDto> balances,
+                                  LocalDateTime createdAt) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         XSSFSheet sheet = workbook.createSheet("Срез балансов кошельков");
@@ -83,7 +80,7 @@ public class ExcelGeneratorUtil {
         cell.setCellStyle(headerStyle);
 
         cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue(String.format("Отклонение на %s", now.format(FORMATTER_FOR_REPORT)));
+        cell.setCellValue(String.format("Отклонение на %s", createdAt.format(FORMATTER_FOR_REPORT)));
         cell.setCellStyle(headerStyle);
 
         row = sheet.createRow(1);
@@ -219,9 +216,13 @@ public class ExcelGeneratorUtil {
 
         //body
         for (int i = 0; i < bound; i++) {
-            Pair<ExternalWalletBalancesDto, InternalWalletBalancesDto> triple = balances.get(i);
-            final ExternalWalletBalancesDto exWallet = triple.getLeft();
-            final InternalWalletBalancesDto inWallet = triple.getRight();
+            WalletBalancesDto balance = balances.get(i);
+            final ExternalWalletBalancesDto exWallet = balance.getExternal();
+            final List<InternalWalletBalancesDto> inWallets = balance.getInternals();
+            BigDecimal inWalletsTotalBalance = inWallets.stream()
+                    .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                    .map(InternalWalletBalancesDto::getTotalBalance)
+                    .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
             row = sheet.createRow(i + 3);
 
@@ -254,7 +255,7 @@ public class ExcelGeneratorUtil {
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(7, CellType.NUMERIC);
-            cell.setCellValue(inWallet.getTotalBalance().doubleValue());
+            cell.setCellValue(inWalletsTotalBalance.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
@@ -356,19 +357,14 @@ public class ExcelGeneratorUtil {
         cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-        final String fileName = String.format("report_balances_%s", now.format(FORMATTER_FOR_NAME));
-
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             workbook.write(bos);
             bos.close();
-
-//            FileUtils.writeByteArrayToFile(new File(fileName), bos.toByteArray());
         } catch (IOException ex) {
-            log.warn("Problem with convert workbook to byte array. Return empty file");
-            return new BalancesReportDto(fileName, new byte[]{});
+            throw new Exception("Problem with convert workbook to byte array", ex);
         }
-        return new BalancesReportDto(fileName, bos.toByteArray());
+        return bos.toByteArray();
     }
 
     private static CellStyle getHeaderStyle(XSSFWorkbook workbook) {

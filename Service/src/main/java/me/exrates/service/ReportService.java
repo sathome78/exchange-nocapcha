@@ -57,8 +57,6 @@ public interface ReportService {
     List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                                List<UserRole> roleList);
 
-    List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles);
-
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
     boolean isReportMailingEnabled();
@@ -79,9 +77,13 @@ public interface ReportService {
 
     List<BalancesDto> getBalancesSliceStatistic();
 
-    void generateWalletBalancesReport();
+    void generateWalletBalancesReportObject();
 
     List<BalancesReportDto> getArchiveBalancesReports(LocalDate date);
 
-    BalancesReportDto getArchiveBalancesReportFile(Integer id);
+    BalancesReportDto getArchiveBalancesReportFile(Integer id) throws Exception;
+
+    BalancesReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
+                                                          LocalDateTime endTime,
+                                                          List<UserRole> roles) throws Exception;
 }

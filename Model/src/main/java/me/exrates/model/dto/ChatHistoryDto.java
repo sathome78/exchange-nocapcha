@@ -1,13 +1,8 @@
 package me.exrates.model.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.serializer.LocalDateTimeSerializer;
-import me.exrates.model.util.BigDecimalProcessing;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 @Getter @Setter

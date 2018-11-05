@@ -5,11 +5,13 @@ import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.enums.AdminAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -79,15 +81,39 @@ public class ReportDaoImpl implements ReportDao {
     }
 
     @Override
-    public void addNewBalancesReport(BalancesReportDto balancesReportDto) {
-        final String sql = "INSERT INTO BALANCES_REPORT (file_name, content, created_at) VALUES (:file_name, :content, current_date)";
+    public void addNewBalancesReportObject(byte[] balancesBytes, String fileName) {
+        final String sql = "INSERT INTO BALANCES_REPORT (file_name, content, created_at) VALUES (:file_name, :content, CURRENT_TIMESTAMP)";
+
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
-                put("file_name", balancesReportDto.getFileName());
-                put("content", balancesReportDto.getContent());
+                put("file_name", fileName);
+                put("content", balancesBytes);
             }
         };
         namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public List<BalancesReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate) {
+        String sql = "SELECT br.id, br.file_name" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.created_at BETWEEN :from_date AND :to_date";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("from_date", Timestamp.valueOf(fromDate));
+                put("to_date", Timestamp.valueOf(toDate));
+            }
+        };
+
+        try {
+            return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> BalancesReportDto.builder()
+                    .id(rs.getInt("id"))
+                    .fileName(rs.getString("file_name"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -99,19 +125,31 @@ public class ReportDaoImpl implements ReportDao {
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), (rs, row) -> BalancesReportDto.builder()
                 .fileName(rs.getString("file_name"))
                 .content(rs.getBytes("content"))
-                .createdAt(rs.getDate("created_at").toLocalDate())
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .build());
     }
 
     @Override
-    public List<BalancesReportDto> getBalancesReportsNames(LocalDate date) {
-        String sql = "SELECT br.id, br.file_name" +
+    public BalancesReportDto getBalancesReportByTime(LocalDateTime fromTime, LocalDateTime toTime) {
+        String sql = "SELECT br.content," +
+                "br.created_at" +
                 " FROM BALANCES_REPORT br" +
-                " WHERE br.created_at = :date";
+                " WHERE br.created_at BETWEEN :from_time AND :to_time";
 
-        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("date", date), (rs, row) -> BalancesReportDto.builder()
-                .id(rs.getInt("id"))
-                .fileName(rs.getString("file_name"))
-                .build());
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("from_time", Timestamp.valueOf(fromTime));
+                put("to_time", Timestamp.valueOf(toTime));
+            }
+        };
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, row) -> BalancesReportDto.builder()
+                    .content(rs.getBytes("content"))
+                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return null;
+        }
     }
 }

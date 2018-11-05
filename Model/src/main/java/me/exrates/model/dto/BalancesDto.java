@@ -36,7 +36,7 @@ public class BalancesDto {
     private BigDecimal deviationUSD;
     private BigDecimal deviationBTC;
 
-    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdatedDate;
 }

@@ -1302,6 +1302,8 @@ public class WalletDaoImpl implements WalletDao {
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         String sql = "SELECT iwb.currency_id, " +
                 "cur.name AS currency_name, " +
+                "iwb.role_id, " +
+                "ur.name AS role_name, " +
                 "iwb.usd_rate, " +
                 "iwb.btc_rate, " +
                 "iwb.total_balance, " +
@@ -1309,11 +1311,14 @@ public class WalletDaoImpl implements WalletDao {
                 "iwb.total_balance_btc, " +
                 "iwb.last_updated_at" +
                 " FROM INTERNAL_WALLET_BALANCES iwb" +
-                " JOIN CURRENCY cur on (iwb.currency_id = cur.id AND cur.hidden = 0)" +
-                " ORDER BY iwb.currency_id";
+                " JOIN CURRENCY cur ON (cur.id = iwb.currency_id AND cur.hidden = 0)" +
+                " JOIN USER_ROLE ur ON ur.id = iwb.role_id" +
+                " ORDER BY iwb.currency_id, iwb.role_id";
         return slaveJdbcTemplate.query(sql, (rs, row) -> InternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
+                .roleId(rs.getInt("role_id"))
+                .roleName(UserRole.valueOf(rs.getString("role_name")))
                 .usdRate(rs.getBigDecimal("usd_rate"))
                 .btcRate(rs.getBigDecimal("btc_rate"))
                 .totalBalance(rs.getBigDecimal("total_balance"))
@@ -1332,10 +1337,11 @@ public class WalletDaoImpl implements WalletDao {
                 "iwb.total_balance_usd = iwb.total_balance * iwb.usd_rate, " +
                 "iwb.total_balance_btc = iwb.total_balance * iwb.btc_rate, " +
                 "iwb.last_updated_at = CURRENT_TIMESTAMP" +
-                " WHERE iwb.currency_id = :currency_id";
+                " WHERE iwb.currency_id = :currency_id AND iwb.role_id = :role_id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("currency_id", internalWalletBalancesDto.getCurrencyId());
+                put("role_id", internalWalletBalancesDto.getRoleId());
                 put("usd_rate", internalWalletBalancesDto.getUsdRate());
                 put("btc_rate", internalWalletBalancesDto.getBtcRate());
                 put("total_balance", internalWalletBalancesDto.getTotalBalance());
@@ -1428,16 +1434,23 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<InternalWalletBalancesDto> getWalletBalances() {
-        String sql = "SELECT cur.name AS currency_name, " +
+        String sql = "SELECT cur.id AS currency_id, " +
+                "cur.name AS currency_name, " +
+                "ur.id AS role_id, " +
+                "ur.name AS role_name, " +
                 "SUM(w.active_balance + w.reserved_balance) AS total_balance" +
                 " FROM WALLET w" +
                 " JOIN CURRENCY cur ON cur.id = w.currency_id AND cur.hidden = 0" +
-                " JOIN USER u ON u.id = w.user_id AND u.roleid <> 10" +
-                " GROUP BY w.currency_id" +
-                " ORDER BY w.currency_id";
+                " JOIN USER u ON u.id = w.user_id" +
+                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
+                " GROUP BY cur.name, ur.name" +
+                " ORDER BY cur.name, ur.name";
 
         return slaveJdbcTemplate.query(sql, (rs, row) -> InternalWalletBalancesDto.builder()
+                .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
+                .roleId(rs.getInt("role_id"))
+                .roleName(UserRole.valueOf(rs.getString("role_name")))
                 .totalBalance(rs.getBigDecimal("total_balance"))
                 .build());
     }

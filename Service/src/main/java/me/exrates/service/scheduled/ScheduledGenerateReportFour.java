@@ -21,6 +21,6 @@ public class ScheduledGenerateReportFour {
 
     @Scheduled(cron = "${scheduled.update.report-balances}")
     public void updateExternalWalletBalances() {
-        reportService.generateWalletBalancesReport();
+        reportService.generateWalletBalancesReportObject();
     }
 }

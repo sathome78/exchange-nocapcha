@@ -81,6 +81,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -573,10 +574,8 @@ public class WalletServiceImpl implements WalletService {
         List<Currency> currencies = currencyService.getAllCurrencies();
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, BigDecimal> balances = this.getWalletBalances().stream()
-                .collect(toMap(
-                        InternalWalletBalancesDto::getCurrencyName,
-                        InternalWalletBalancesDto::getTotalBalance));
+        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances().stream()
+                .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         if (rates.isEmpty() || balances.isEmpty()) {
             log.info("Exchange or wallet api did not return data");
@@ -584,7 +583,6 @@ public class WalletServiceImpl implements WalletService {
         }
 
         for (Currency currency : currencies) {
-            final int currencyId = currency.getId();
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
@@ -594,15 +592,15 @@ public class WalletServiceImpl implements WalletService {
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
 
-            final BigDecimal totalBalance = balances.get(currencyName);
+            List<InternalWalletBalancesDto> balancesByCurrency = balances.get(currencyName);
 
-            InternalWalletBalancesDto inWallet = InternalWalletBalancesDto.builder()
-                    .currencyId(currencyId)
-                    .usdRate(usdRate)
-                    .btcRate(btcRate)
-                    .totalBalance(totalBalance)
-                    .build();
-            walletDao.updateInternalWalletBalances(inWallet);
+            for (InternalWalletBalancesDto balance : balancesByCurrency) {
+                balance = balance.toBuilder()
+                        .usdRate(usdRate)
+                        .btcRate(btcRate)
+                        .build();
+                walletDao.updateInternalWalletBalances(balance);
+            }
         }
         log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }

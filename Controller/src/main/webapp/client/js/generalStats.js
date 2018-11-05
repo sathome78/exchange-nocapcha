@@ -80,7 +80,7 @@ $(function () {
     $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
-    $('#download-total-balances').click(getTotalBalancesForRoles);
+    // $('#download-wallet-balances-for-period').click(getWalletBalancesForPeriodToDownload());
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -341,7 +341,7 @@ $(function () {
 });
 
 function getArchiveBalances() {
-    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReports/' + $('#datepicker-balances').val().replace(' ', '_');
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReports?date=' + $('#datepicker-balances').val().replace(' ', '_');
 
     if ($.fn.dataTable.isDataTable('#archive-balances-table')) {
         $('#archive-balances-table').DataTable().ajax.url(url).load();
@@ -365,7 +365,7 @@ function getArchiveBalances() {
                 {
                     "data": "file_name",
                     "render": function (data, type, full, meta) {
-                        return '<a href="javascript:void(0)" onclick="getContentToDownload(' + full.id + ')">' + data + '</a>';
+                        return '<a href="javascript:void(0)" onclick="getWalletBalancesToDownload(' + full.id + ')">' + data + '</a>';
                     }
                 }
             ]
@@ -373,8 +373,24 @@ function getArchiveBalances() {
     }
 }
 
-function getContentToDownload(id) {
+function getWalletBalancesToDownload(id) {
     var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getWalletBalancesForPeriodToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriod?' + getTimeParams() + '&' + getRoleParams();
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.responseType = "blob";
@@ -418,13 +434,6 @@ function getCurrenciesTurnover() {
 
 }
 
-function getTotalBalancesForRoles() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('totalBalances.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
 function getInputOutputSummaryWithCommissions() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
     $.get(fullUrl, function (data) {
@@ -448,17 +457,18 @@ function getUserTotalCommission() {
 }
 
 function getTimeParams() {
-    return 'startTime=' +
-        $('#datetimepicker_start').val().replace(' ', '_') + '&endTime=' +
-        $('#datetimepicker_end').val().replace(' ', '_');
+    var startTime = $('#datetimepicker_start').val().replace(' ', '_');
+    var endTime = $('#datetimepicker_end').val().replace(' ', '_');
+    return 'startTime=' + startTime + '&endTime=' + endTime;
 }
 
 function getRoleParams() {
-    return 'roles=' + $('.roleFilter').filter(function (i, elem) {
+    var roles = $('.roleFilter').filter(function (i, elem) {
         return $(elem).prop('checked')
     }).map(function (i, elem) {
         return $(elem).attr('name')
-    }).toArray().join(',')
+    }).toArray().join(',');
+    return 'roles=' + roles
 }
 
 function refreshMailingTime() {
