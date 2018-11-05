@@ -31,14 +31,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
@@ -63,8 +60,6 @@ public class ReportFiveExcelGeneratorUtil {
 
         CellStyle headerStyle = getHeaderStyle(workbook);
         CellStyle body1Style = getBode1Style(workbook);
-//        CellStyle body2Style = getBode2Style(workbook);
-//        CellStyle body3Style = getBode3Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
@@ -197,17 +192,14 @@ public class ReportFiveExcelGeneratorUtil {
         sheet.autoSizeColumn(12, true);
         sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
 
-        Map<String, WalletBalancesDto> firstMap = firstBalances.stream().collect(toMap(WalletBalancesDto::getCurrencyName, Function.identity()));
-        Map<String, WalletBalancesDto> secondMap = secondBalances.stream().collect(toMap(WalletBalancesDto::getCurrencyName, Function.identity()));
-
-        Set<String> currencies;
+        List<String> currencies;
         final int bound;
-        if (firstMap.size() >= secondMap.size()) {
-            bound = firstMap.size();
-            currencies = firstMap.keySet();
+        if (firstBalances.size() >= secondBalances.size()) {
+            bound = firstBalances.size();
+            currencies = firstBalances.stream().map(WalletBalancesDto::getCurrencyName).collect(toList());
         } else {
-            bound = secondMap.size();
-            currencies = secondMap.keySet();
+            bound = secondBalances.size();
+            currencies = secondBalances.stream().map(WalletBalancesDto::getCurrencyName).collect(toList());
         }
 
         //footer
@@ -268,7 +260,10 @@ public class ReportFiveExcelGeneratorUtil {
         //body
         int i = 0;
         for (String currency : currencies) {
-            WalletBalancesDto firstBalance = firstMap.get(currency);
+            WalletBalancesDto firstBalance = firstBalances.stream()
+                    .filter(wallet -> currency.equals(wallet.getCurrencyName()))
+                    .findFirst()
+                    .orElse(null);
 
             Integer currencyId1;
             BigDecimal exWalletTotalBalance1;
@@ -289,7 +284,10 @@ public class ReportFiveExcelGeneratorUtil {
                 inWalletsTotalBalance1 = BigDecimal.ZERO;
             }
 
-            WalletBalancesDto secondBalance = secondMap.get(currency);
+            WalletBalancesDto secondBalance = secondBalances.stream()
+                    .filter(wallet -> currency.equals(wallet.getCurrencyName()))
+                    .findFirst()
+                    .orElse(null);
 
             Integer currencyId2;
             BigDecimal exWalletTotalBalance2;

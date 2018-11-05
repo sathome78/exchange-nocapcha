@@ -49,8 +49,6 @@ public class ReportFourExcelGeneratorUtil {
 
         CellStyle headerStyle = getHeaderStyle(workbook);
         CellStyle body1Style = getBode1Style(workbook);
-//        CellStyle body2Style = getBode2Style(workbook);
-//        CellStyle body3Style = getBode3Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 

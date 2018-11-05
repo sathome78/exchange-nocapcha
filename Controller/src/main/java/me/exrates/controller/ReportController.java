@@ -22,6 +22,7 @@ import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -55,6 +57,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 @Log4j2
 public class ReportController {
+
+    @Autowired
+    private MessageSource messageSource;
 
     @Autowired
     ReportService reportService;
@@ -319,13 +324,14 @@ public class ReportController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReport/{id}", method = GET)
-    public ResponseEntity getArchiveBalancesReportFile(@PathVariable Integer id) {
-        BalancesReportDto balancesReportDto = null;
+    public ResponseEntity getArchiveBalancesReportFile(@PathVariable Integer id,
+                                                       Locale locale) {
+        BalancesReportDto balancesReportDto;
         try {
             balancesReportDto = reportService.getArchiveBalancesReportFile(id);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
         final byte[] content = balancesReportDto.getContent();
         final String fileName = balancesReportDto.getFileName();
@@ -340,7 +346,7 @@ public class ReportController {
             return new ResponseEntity<>(isr, headers, HttpStatus.OK);
         } catch (IOException e) {
             log.error("Downloaded file is corrupted");
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
     }
 
@@ -348,7 +354,8 @@ public class ReportController {
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriod", method = GET)
     public ResponseEntity getDifferenceBetweenBalancesReportsForPeriod(@RequestParam("startTime") String startTimeString,
                                                                        @RequestParam("endTime") String endTimeString,
-                                                                       @RequestParam("roles") List<UserRole> userRoles) {
+                                                                       @RequestParam("roles") List<UserRole> userRoles,
+                                                                       Locale locale) {
         String dateTimePattern = "yyyy-MM-dd_HH:mm";
         LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
@@ -358,7 +365,7 @@ public class ReportController {
             differenceBalancesReportDto = reportService.getDifferenceBetweenBalancesReports(startTime, endTime, userRoles);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
         final byte[] content = differenceBalancesReportDto.getContent();
         final String fileName = differenceBalancesReportDto.getFileName();
@@ -373,7 +380,7 @@ public class ReportController {
             return new ResponseEntity<>(isr, headers, HttpStatus.OK);
         } catch (IOException ex) {
             log.error("Downloaded file is corrupted");
-            return ResponseEntity.noContent().build();
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
     }
 }
