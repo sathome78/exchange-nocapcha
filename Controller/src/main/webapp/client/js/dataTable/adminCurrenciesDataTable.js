@@ -96,8 +96,7 @@ function updateCurrencyLimitsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currency.id",
-                    "visible": false
+                    "data":"currency.id"
                 },
                 {
                     "data": "currency.name"
