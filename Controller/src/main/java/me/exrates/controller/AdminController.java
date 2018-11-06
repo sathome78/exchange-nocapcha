@@ -177,7 +177,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -405,7 +404,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Future<DataTable<List<OperationViewDto>>> getUserTransactions(
+    public DataTable<List<OperationViewDto>> getUserTransactions(
             AdminTransactionsFilterData filterData,
             @RequestParam Integer id,
             @RequestParam Map<String, String> params,
@@ -414,12 +413,12 @@ public class AdminController {
         filterData.initFilterItems();
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-        return CompletableFuture.supplyAsync(() -> transactionService.showUserOperationHistory(
+        return transactionService.showUserOperationHistory(
                 requesterAdminId,
                 id,
                 filterData,
                 dataTableParams,
-                localeResolver.resolveLocale(request)));
+                localeResolver.resolveLocale(request));
     }
 
 
@@ -494,7 +493,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Future<List<OrderWideListDto>> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
+    public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                                                         final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
         CurrencyPair currencyPair;
@@ -504,9 +503,7 @@ public class AdminController {
             currencyPair = null;
         }
         String email = userService.getUserById(id).getEmail();
-        Map<String, List<OrderWideListDto>> resultMap = new HashMap<>();
-
-        return CompletableFuture.supplyAsync(() -> getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request)));
+        return getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request));
     }
 
     private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {

@@ -47,8 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -261,14 +259,16 @@ public class ReportController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/groupTotalBalances", method = GET)
-    public Future<List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>>> getTotalBalancesReportByGroups() {
-        return CompletableFuture.supplyAsync(() -> reportService.getWalletBalancesSummaryByGroups());
+    public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getTotalBalancesReportByGroups() {
+
+        return reportService.getWalletBalancesSummaryByGroups();
     }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/balancesSliceStatistic", method = GET)
-    public Future<List<BalancesDto>> getBalancesExternalWallets() {
-        return CompletableFuture.supplyAsync(() -> reportService.getBalancesSliceStatistic());
+    public List<BalancesDto> getBalancesExternalWallets() {
+
+        return reportService.getBalancesSliceStatistic();
     }
 
     @ResponseBody
