@@ -15,6 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,7 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @PropertySource("classpath:/merchants/aunit.properties")
 @ClientEndpoint
 @Service
+@Lazy
 public class AunitNodeServiceImpl {
 
     private @Value("${aunit.node.ws}") String wsUrl;
