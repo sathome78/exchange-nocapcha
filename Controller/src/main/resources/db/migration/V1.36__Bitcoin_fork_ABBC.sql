@@ -23,7 +23,7 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'ABBC'));
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'USD'), 'ABBC/USD', 170, 0, 'ABBC/USD');
+VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'USD'), 'ABBC/USD', 170, 1, 'ABBC/USD');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -31,7 +31,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
   JOIN ORDER_TYPE OT where CP.name='ABBC/USD';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'BTC'), 'ABBC/BTC', 160, 0, 'BTC', 'ABBC/BTC');
+VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'BTC'), 'ABBC/BTC', 160, 1, 'BTC', 'ABBC/BTC');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -39,7 +39,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='ABBC/BTC';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'ETH'), 'ABBC/ETH', 160, 0, 'ETH', 'ABBC/ETH');
+VALUES((select id from CURRENCY where name = 'ABBC'), (select id from CURRENCY where name = 'ETH'), 'ABBC/ETH', 160, 1, 'ETH', 'ABBC/ETH');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
