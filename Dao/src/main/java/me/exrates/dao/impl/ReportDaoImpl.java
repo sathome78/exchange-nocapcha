@@ -1,15 +1,21 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.ReportDao;
+import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.enums.AdminAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ReportDaoImpl implements ReportDao {
@@ -20,7 +26,6 @@ public class ReportDaoImpl implements ReportDao {
     @Autowired
     @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
 
 
     @Override
@@ -51,7 +56,7 @@ public class ReportDaoImpl implements ReportDao {
 
     @Override
     public List<String> retrieveReportSubscribersList(boolean selectWithPremissions) {
-        final String premissionsClause =  String.join(" ", " JOIN USER U ON U.email = RS.email ",
+        final String premissionsClause = String.join(" ", " JOIN USER U ON U.email = RS.email ",
                 " JOIN USER_ADMIN_AUTHORITY UAA ON UAA.user_id = U.id ",
                 " WHERE UAA.admin_authority_id = ? AND UAA.enabled = TRUE ");
         String sql = "SELECT RS.email FROM REPORT_SUBSCRIBERS RS ";
@@ -75,5 +80,76 @@ public class ReportDaoImpl implements ReportDao {
         namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", email));
     }
 
+    @Override
+    public void addNewBalancesReportObject(byte[] balancesBytes, String fileName) {
+        final String sql = "INSERT INTO BALANCES_REPORT (file_name, content, created_at) VALUES (:file_name, :content, CURRENT_TIMESTAMP)";
 
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("file_name", fileName);
+                put("content", balancesBytes);
+            }
+        };
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public List<BalancesReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate) {
+        String sql = "SELECT br.id, br.file_name" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.created_at BETWEEN :from_date AND :to_date";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("from_date", Timestamp.valueOf(fromDate));
+                put("to_date", Timestamp.valueOf(toDate));
+            }
+        };
+
+        try {
+            return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> BalancesReportDto.builder()
+                    .id(rs.getInt("id"))
+                    .fileName(rs.getString("file_name"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public BalancesReportDto getBalancesReportById(int id) {
+        String sql = "SELECT br.file_name, br.content, br.created_at" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.id = :id";
+
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), (rs, row) -> BalancesReportDto.builder()
+                .fileName(rs.getString("file_name"))
+                .content(rs.getBytes("content"))
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                .build());
+    }
+
+    @Override
+    public BalancesReportDto getBalancesReportByTime(LocalDateTime fromTime, LocalDateTime toTime) {
+        String sql = "SELECT br.content," +
+                "br.created_at" +
+                " FROM BALANCES_REPORT br" +
+                " WHERE br.created_at BETWEEN :from_time AND :to_time";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("from_time", Timestamp.valueOf(fromTime));
+                put("to_time", Timestamp.valueOf(toTime));
+            }
+        };
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, row) -> BalancesReportDto.builder()
+                    .content(rs.getBytes("content"))
+                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return null;
+        }
+    }
 }
