@@ -25,7 +25,6 @@ public class BotCreateOrderJob implements Job {
         OrderType orderType = OrderType.valueOf(jobExecutionContext.getMergedJobDataMap().getString("orderType"));
         log.debug("Running sequence for CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());
         botService.runOrderCreation(currencyPairId, orderType);
-
     }
 
 
