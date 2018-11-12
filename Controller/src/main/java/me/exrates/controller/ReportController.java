@@ -6,7 +6,7 @@ import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.InputOutputCommissionSummaryDto;
+import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
@@ -230,6 +230,7 @@ public class ReportController {
                 .collect(Collectors.joining("", OrdersCommissionSummaryDto.getTitle(), ""));
     }
 
+    //todo: change
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions", method = GET)
     public String getInputOutputSummaryWithCommissions(@RequestParam("startTime") String startTimeString,
@@ -238,9 +239,9 @@ public class ReportController {
         String dateTimePattern = "yyyy-MM-dd_HH:mm";
         LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        List<InputOutputCommissionSummaryDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
-        return result.stream().map(InputOutputCommissionSummaryDto::toString)
-                .collect(Collectors.joining("", InputOutputCommissionSummaryDto.getTitle(), ""));
+        List<InOutReportDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
+        return result.stream().map(InOutReportDto::toString)
+                .collect(Collectors.joining("", InOutReportDto.getTitle(), ""));
     }
 
 
@@ -363,6 +364,40 @@ public class ReportController {
         BalancesReportDto differenceBalancesReportDto;
         try {
             differenceBalancesReportDto = reportService.getDifferenceBetweenBalancesReports(startTime, endTime, userRoles);
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = differenceBalancesReportDto.getContent();
+        final String fileName = differenceBalancesReportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriodWithInOut", method = GET)
+    public ResponseEntity getDifferenceBetweenBalancesReportsForPeriodWithInOut(@RequestParam("startTime") String startTimeString,
+                                                                                @RequestParam("endTime") String endTimeString,
+                                                                                @RequestParam("roles") List<UserRole> userRoles,
+                                                                                Locale locale) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+
+        BalancesReportDto differenceBalancesReportDto;
+        try {
+            differenceBalancesReportDto = reportService.getDifferenceBetweenBalancesReportsWithInOut(startTime, endTime, userRoles);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);

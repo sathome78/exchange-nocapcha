@@ -32,7 +32,6 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.RatesUSDForReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
@@ -143,7 +142,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1949,50 +1947,34 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoleIdList);
     }
 
-    //wolper 23.04.18
-    //Returns the list of the latest exchange rates for each currency to USD
-    @Override
-    public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
-        return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
+    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
+        orders = Stream.of(
+                orders.stream()
+                        .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
+                orders.stream()
+                        .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
+                .flatMap(p -> p)
+                .collect(Collectors.toList());
+        setStatisitcValues(orders);
+        return orders;
     }
 
-
-    //wolper 24.04.18
-    //Returns the list of the latest exchange rates for each currency to USD
-    @Override
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-    public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
-        return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
+    private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
+        Locale locale = Locale.ENGLISH;
+        ordersList.forEach(e -> {
+            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+            BigDecimal percentChange;
+            if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+                percentChange = BigDecimal.ZERO;
+            } else {
+                percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+            }
+            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+        });
     }
-
-  private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-      orders = Stream.of(
-              orders.stream()
-                      .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
-              orders.stream()
-                      .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
-              .flatMap(p->p)
-              .collect(Collectors.toList());
-      setStatisitcValues(orders);
-      return orders;
-  }
-
-  private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
-      Locale locale = Locale.ENGLISH;
-      ordersList.forEach(e -> {
-          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-          BigDecimal percentChange;
-          if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-              percentChange = BigDecimal.ZERO;
-          }  else {
-              percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-          }
-          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-      });
-  }
 
 
     @Override

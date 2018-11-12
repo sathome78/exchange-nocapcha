@@ -405,6 +405,22 @@ function getWalletBalancesForPeriodToDownload() {
     req.send();
 }
 
+function getWalletBalancesForPeriodWithInOutToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriodWithInOut?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
 function refreshUsersNumber() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/newUsers?' + getTimeParams();
     $.get(fullUrl, function (data) {

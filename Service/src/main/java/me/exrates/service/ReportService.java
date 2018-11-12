@@ -4,7 +4,7 @@ import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.BalancesReportDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.InputOutputCommissionSummaryDto;
+import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
@@ -54,8 +54,8 @@ public interface ReportService {
     List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
                                                                        List<UserRole> roleList);
 
-    List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
-                                                                               List<UserRole> roleList);
+    List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
+                                                              List<UserRole> roleList);
 
     List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups();
 
@@ -86,4 +86,8 @@ public interface ReportService {
     BalancesReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
                                                           LocalDateTime endTime,
                                                           List<UserRole> roles) throws Exception;
+
+    BalancesReportDto getDifferenceBetweenBalancesReportsWithInOut(LocalDateTime startTime,
+                                                                   LocalDateTime endTime,
+                                                                   List<UserRole> userRoles) throws Exception;
 }

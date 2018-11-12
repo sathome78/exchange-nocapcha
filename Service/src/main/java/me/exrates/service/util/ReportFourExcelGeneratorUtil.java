@@ -7,6 +7,7 @@ import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.WalletBalancesDto;
 import me.exrates.model.enums.UserRole;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -29,6 +30,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Objects.isNull;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
@@ -36,8 +41,9 @@ public class ReportFourExcelGeneratorUtil {
 
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
-    public static byte[] generate(List<WalletBalancesDto> balances,
-                                  LocalDateTime createdAt) throws Exception {
+    public static byte[] generate(Map<String, WalletBalancesDto> balancesMap,
+                                  LocalDateTime createdAt,
+                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         XSSFSheet sheet = workbook.createSheet("Срез балансов кошельков");
@@ -135,7 +141,6 @@ public class ReportFourExcelGeneratorUtil {
         sheet.setColumnWidth(2, sheet.getColumnWidth(2) + 256);
         sheet.autoSizeColumn(3, true);
         sheet.setColumnWidth(3, sheet.getColumnWidth(3) + 256);
-
         sheet.autoSizeColumn(4, true);
         sheet.setColumnWidth(4, sheet.getColumnWidth(4) + 256);
         sheet.autoSizeColumn(5, true);
@@ -155,7 +160,8 @@ public class ReportFourExcelGeneratorUtil {
         sheet.autoSizeColumn(12, true);
         sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
 
-        final int bound = balances.size();
+        Set<String> currencies = balancesMap.keySet();
+        final int bound = balancesMap.size();
 
         //footer
         row = sheet.createRow(2);
@@ -213,35 +219,48 @@ public class ReportFourExcelGeneratorUtil {
         cell.setCellStyle(footer2Style);
 
         //body
-        for (int i = 0; i < bound; i++) {
-            WalletBalancesDto balance = balances.get(i);
-            final ExternalWalletBalancesDto exWallet = balance.getExternal();
-            final List<InternalWalletBalancesDto> inWallets = balance.getInternals();
-            BigDecimal inWalletsTotalBalance = inWallets.stream()
+        int i = 0;
+        for (String currency : currencies) {
+            WalletBalancesDto balance = balancesMap.get(currency);
+
+            ExternalWalletBalancesDto exWallet = balance.getExternal();
+            final Integer currencyId = exWallet.getCurrencyId();
+            final BigDecimal exWalletTotalBalance = exWallet.getTotalBalance();
+
+            List<InternalWalletBalancesDto> inWallets = balance.getInternals();
+            final BigDecimal inWalletsTotalBalance = inWallets.stream()
                     .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
                     .map(InternalWalletBalancesDto::getTotalBalance)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
+            if (isNull(ratePair)) {
+                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
+            }
+
+            final BigDecimal usdRate = ratePair.getLeft();
+            final BigDecimal btcRate = ratePair.getRight();
+
             row = sheet.createRow(i + 3);
 
             cell = row.createCell(0, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getCurrencyId());
+            cell.setCellValue(currencyId);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(exWallet.getCurrencyName());
+            cell.setCellValue(currency);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(2, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getUsdRate().doubleValue());
+            cell.setCellValue(usdRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getBtcRate().doubleValue());
+            cell.setCellValue(btcRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(4, CellType.NUMERIC);
-            cell.setCellValue(exWallet.getTotalBalance().doubleValue());
+            cell.setCellValue(exWalletTotalBalance.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(5, CellType.NUMERIC);
@@ -275,6 +294,8 @@ public class ReportFourExcelGeneratorUtil {
             cell = row.createCell(12, CellType.NUMERIC);
             cell.setCellFormula("D" + (i + 4) + "*K" + (i + 4));
             cell.setCellStyle(body1Style);
+
+            i++;
         }
 
         SheetConditionalFormatting sheetCF = sheet.getSheetConditionalFormatting();
@@ -409,50 +430,6 @@ public class ReportFourExcelGeneratorUtil {
 
         return bodyStyle;
     }
-//
-//    private static CellStyle getBode2Style(XSSFWorkbook workbook) {
-//        XSSFDataFormat dataFormat = workbook.createDataFormat();
-//        CellStyle bodyStyle = workbook.createCellStyle();
-//        bodyStyle.setBorderBottom(BorderStyle.THIN);
-//        bodyStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderLeft(BorderStyle.THIN);
-//        bodyStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderRight(BorderStyle.THIN);
-//        bodyStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderTop(BorderStyle.THIN);
-//        bodyStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setAlignment(HorizontalAlignment.CENTER);
-//        bodyStyle.setDataFormat(dataFormat.getFormat("# ### ### ##0"));
-//
-//        XSSFFont font = workbook.createFont();
-//        font.setFontName("Arial");
-//        font.setFontHeight(10);
-//        bodyStyle.setFont(font);
-//
-//        return bodyStyle;
-//    }
-//
-//    private static CellStyle getBode3Style(XSSFWorkbook workbook) {
-//        XSSFDataFormat dataFormat = workbook.createDataFormat();
-//        CellStyle bodyStyle = workbook.createCellStyle();
-//        bodyStyle.setBorderBottom(BorderStyle.THIN);
-//        bodyStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderLeft(BorderStyle.THIN);
-//        bodyStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderRight(BorderStyle.THIN);
-//        bodyStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setBorderTop(BorderStyle.THIN);
-//        bodyStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-//        bodyStyle.setAlignment(HorizontalAlignment.CENTER);
-//        bodyStyle.setDataFormat(dataFormat.getFormat("# ### ### ### ### ### ##0,###"));
-//
-//        XSSFFont font = workbook.createFont();
-//        font.setFontName("Arial");
-//        font.setFontHeight(10);
-//        bodyStyle.setFont(font);
-//
-//        return bodyStyle;
-//    }
 
     private static CellStyle getFooter1Style(XSSFWorkbook workbook) {
         CellStyle footerStyle = workbook.createCellStyle();
