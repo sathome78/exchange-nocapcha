@@ -2,6 +2,7 @@ $(function () {
     const $datetimepickerStart = $('#datetimepicker_start');
     const $datetimepickerEnd = $('#datetimepicker_end');
     const $datepickerBalances = $('#datepicker-balances');
+    const $datepickerInOut = $('#datepicker-inout');
     const $timepickerMailing = $('#timepicker_mailtime');
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
@@ -56,6 +57,16 @@ $(function () {
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
+    $($datepickerInOut).datetimepicker({
+        format: datetimeFormat,
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        changeMonth: true,
+        changeYear: true,
+        pickTime: false,
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
     $($timepickerMailing).datetimepicker({
         datepicker: false,
         format: timeFormat,
@@ -67,6 +78,7 @@ $(function () {
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
     $($datetimepickerStart).val(moment($($datetimepickerStart).datetimepicker('getValue')).format(datetimeFormat));
     $($datepickerBalances).val(moment($($datepickerBalances).datetimepicker('getValue')).format(datetimeFormat));
+    $($datepickerInOut).val(moment($($datepickerInOut).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
     refreshUsersNumber();
     refreshMailingTime();
@@ -74,10 +86,10 @@ $(function () {
 
 
     $('#refresh-users').click(refreshUsersNumber);
-    $('#download-currencies-report').click(getCurrenciesTurnover);
+    // $('#download-currencies-report').click(getCurrenciesTurnover);
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
     $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
-    $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
+    // $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
     // $('#download-wallet-balances-for-period').click(getWalletBalancesForPeriodToDownload());
@@ -389,6 +401,71 @@ function getWalletBalancesToDownload(id) {
     req.send();
 }
 
+function getArchiveInputOutput() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutReports?date=' + $('#datepicker-inout').val().replace(' ', '_');
+
+    if ($.fn.dataTable.isDataTable('#archive-inout-table')) {
+        $('#archive-inout-table').DataTable().ajax.url(url).load();
+    } else {
+        $('#archive-inout-table').DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "id",
+                    "visible": false
+                },
+                {
+                    "data": "file_name",
+                    "render": function (data, type, full, meta) {
+                        return '<a href="javascript:void(0)" onclick="getInOutSummaryToDownload(' + full.id + ')">' + data + '</a>';
+                    }
+                }
+            ]
+        });
+    }
+}
+
+function getInOutSummaryToDownload(id) {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getInOutStatisticByPairsToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutSummaryReportForPeriod?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
 function getWalletBalancesForPeriodToDownload() {
     var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriod?' + getTimeParams() + '&' + getRoleParams();
     var req = new XMLHttpRequest();
@@ -442,21 +519,21 @@ function getCurrencyPairsComissions() {
     })
 }
 
-function getCurrenciesTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
+// function getCurrenciesTurnover() {
+//     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
+//     $.get(fullUrl, function (data) {
+//         saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+//     })
+//
+// }
 
-}
-
-function getInputOutputSummaryWithCommissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-
-}
+// function getInputOutputSummaryWithCommissions() {
+//     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
+//     $.get(fullUrl, function (data) {
+//         saveToDisk(data, extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+//     })
+//
+// }
 
 function getUserActivities() {
     const fullUrl = '/2a8fy7b07dxe44/generalStats/userActivities?' + getTimeParams() + '&' + getRoleParams();

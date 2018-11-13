@@ -3,13 +3,11 @@ package me.exrates.controller;
 import com.google.common.io.ByteSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.BalancesReportDto;
-import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.SummaryInOutReportDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
@@ -231,32 +229,32 @@ public class ReportController {
     }
 
     //todo: change
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions", method = GET)
-    public String getInputOutputSummaryWithCommissions(@RequestParam("startTime") String startTimeString,
-                                                       @RequestParam("endTime") String endTimeString,
-                                                       @RequestParam("roles") List<UserRole> userRoles) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        List<InOutReportDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
-        return result.stream().map(InOutReportDto::toString)
-                .collect(Collectors.joining("", InOutReportDto.getTitle(), ""));
-    }
+//    @ResponseBody
+//    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions", method = GET)
+//    public String getInputOutputSummaryWithCommissions(@RequestParam("startTime") String startTimeString,
+//                                                       @RequestParam("endTime") String endTimeString,
+//                                                       @RequestParam("roles") List<UserRole> userRoles) {
+//        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+//        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+//        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+//        List<InOutReportDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
+//        return result.stream().map(InOutReportDto::toString)
+//                .collect(Collectors.joining("", InOutReportDto.getTitle(), ""));
+//    }
 
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
-    public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
-                                           @RequestParam("endTime") String endTimeString,
-                                           @RequestParam("roles") List<UserRole> userRoles) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRoleList(startTime, endTime, userRoles);
-        return result.stream().map(CurrencyInputOutputSummaryDto::toString)
-                .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-    }
+//    @ResponseBody
+//    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
+//    public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
+//                                           @RequestParam("endTime") String endTimeString,
+//                                           @RequestParam("roles") List<UserRole> userRoles) {
+//        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+//        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+//        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+//        List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRoleList(startTime, endTime, userRoles);
+//        return result.stream().map(CurrencyInputOutputSummaryDto::toString)
+//                .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
+//    }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/groupTotalBalances", method = GET)
@@ -316,7 +314,7 @@ public class ReportController {
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReports", method = GET)
-    public ResponseEntity<List<BalancesReportDto>> getArchiveBalancesReports(@RequestParam("date") String dateString) {
+    public ResponseEntity<List<ReportDto>> getArchiveBalancesReports(@RequestParam("date") String dateString) {
         String dateTimePattern = "yyyy-MM-dd_HH:mm";
         final LocalDate date = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(dateString)).toLocalDate();
 
@@ -327,15 +325,15 @@ public class ReportController {
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReport/{id}", method = GET)
     public ResponseEntity getArchiveBalancesReportFile(@PathVariable Integer id,
                                                        Locale locale) {
-        BalancesReportDto balancesReportDto;
+        ReportDto reportDto;
         try {
-            balancesReportDto = reportService.getArchiveBalancesReportFile(id);
+            reportDto = reportService.getArchiveBalancesReportFile(id);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
-        final byte[] content = balancesReportDto.getContent();
-        final String fileName = balancesReportDto.getFileName();
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -352,6 +350,77 @@ public class ReportController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveInOutReports", method = GET)
+    public ResponseEntity<List<ReportDto>> getArchiveInputOutputReports(@RequestParam("date") String dateString) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        final LocalDate date = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(dateString)).toLocalDate();
+
+        return ResponseEntity.ok(reportService.getArchiveInputOutputReports(date));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveInOutReport/{id}", method = GET)
+    public ResponseEntity getArchiveInputOutputReportFile(@PathVariable Integer id,
+                                                          Locale locale) {
+        ReportDto reportDto;
+        try {
+            reportDto = reportService.getArchiveInputOutputReportFile(id);
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveInOutSummaryReportForPeriod", method = GET)
+    public ResponseEntity getInputOutputSummaryForPeriod(@RequestParam("startTime") String startTimeString,
+                                                         @RequestParam("endTime") String endTimeString,
+                                                         @RequestParam("roles") List<UserRole> userRoles,
+                                                         Locale locale) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+
+        ReportDto reportDto;
+        try {
+            reportDto = reportService.getInputOutputSummaryReport(startTime, endTime, userRoles);
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriod", method = GET)
     public ResponseEntity getDifferenceBetweenBalancesReportsForPeriod(@RequestParam("startTime") String startTimeString,
                                                                        @RequestParam("endTime") String endTimeString,
@@ -361,15 +430,15 @@ public class ReportController {
         LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
 
-        BalancesReportDto differenceBalancesReportDto;
+        ReportDto reportDto;
         try {
-            differenceBalancesReportDto = reportService.getDifferenceBetweenBalancesReports(startTime, endTime, userRoles);
+            reportDto = reportService.getDifferenceBetweenBalancesReports(startTime, endTime, userRoles);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
-        final byte[] content = differenceBalancesReportDto.getContent();
-        final String fileName = differenceBalancesReportDto.getFileName();
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -395,15 +464,15 @@ public class ReportController {
         LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
 
-        BalancesReportDto differenceBalancesReportDto;
+        ReportDto reportDto;
         try {
-            differenceBalancesReportDto = reportService.getDifferenceBetweenBalancesReportsWithInOut(startTime, endTime, userRoles);
+            reportDto = reportService.getDifferenceBetweenBalancesReportsWithInOut(startTime, endTime, userRoles);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
         }
-        final byte[] content = differenceBalancesReportDto.getContent();
-        final String fileName = differenceBalancesReportDto.getFileName();
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));

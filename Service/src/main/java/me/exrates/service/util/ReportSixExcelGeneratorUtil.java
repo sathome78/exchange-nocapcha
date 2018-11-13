@@ -66,7 +66,6 @@ public class ReportSixExcelGeneratorUtil {
         CellStyle header5Style = getHeader5Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
-        CellStyle footer2Style = getFooter2Style(workbook);
 
         //header
         cell = row.createCell(0, CellType.STRING);
@@ -739,29 +738,6 @@ public class ReportSixExcelGeneratorUtil {
         footerStyle.setBorderTop(BorderStyle.THIN);
         footerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
         footerStyle.setFillForegroundColor(IndexedColors.CORAL.getIndex());
-        footerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        footerStyle.setAlignment(HorizontalAlignment.CENTER);
-
-        XSSFFont font = workbook.createFont();
-        font.setFontName("Arial");
-        font.setFontHeight(10);
-        font.setBold(true);
-        footerStyle.setFont(font);
-
-        return footerStyle;
-    }
-
-    private static CellStyle getFooter2Style(XSSFWorkbook workbook) {
-        CellStyle footerStyle = workbook.createCellStyle();
-        footerStyle.setBorderBottom(BorderStyle.THIN);
-        footerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
-        footerStyle.setBorderLeft(BorderStyle.THIN);
-        footerStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-        footerStyle.setBorderRight(BorderStyle.THIN);
-        footerStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
-        footerStyle.setBorderTop(BorderStyle.THIN);
-        footerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
-        footerStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         footerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         footerStyle.setAlignment(HorizontalAlignment.CENTER);
 

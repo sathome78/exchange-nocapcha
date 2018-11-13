@@ -1,7 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.BalancesReportDto;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.InOutReportDto;
@@ -79,15 +79,25 @@ public interface ReportService {
 
     void generateWalletBalancesReportObject();
 
-    List<BalancesReportDto> getArchiveBalancesReports(LocalDate date);
+    List<ReportDto> getArchiveBalancesReports(LocalDate date);
 
-    BalancesReportDto getArchiveBalancesReportFile(Integer id) throws Exception;
+    ReportDto getArchiveBalancesReportFile(Integer id) throws Exception;
 
-    BalancesReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
-                                                          LocalDateTime endTime,
-                                                          List<UserRole> roles) throws Exception;
+    void generateInputOutputSummaryReportObject();
 
-    BalancesReportDto getDifferenceBetweenBalancesReportsWithInOut(LocalDateTime startTime,
-                                                                   LocalDateTime endTime,
-                                                                   List<UserRole> userRoles) throws Exception;
+    List<ReportDto> getArchiveInputOutputReports(LocalDate date);
+
+    ReportDto getArchiveInputOutputReportFile(Integer id) throws Exception;
+
+    ReportDto getInputOutputSummaryReport(LocalDateTime startTime,
+                                          LocalDateTime endTime,
+                                          List<UserRole> userRoles) throws Exception;
+
+    ReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
+                                                  LocalDateTime endTime,
+                                                  List<UserRole> roles) throws Exception;
+
+    ReportDto getDifferenceBetweenBalancesReportsWithInOut(LocalDateTime startTime,
+                                                           LocalDateTime endTime,
+                                                           List<UserRole> userRoles) throws Exception;
 }

@@ -815,7 +815,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
-    public List<InOutReportDto> getInOutInformationByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    public List<InOutReportDto> getInOutInSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         String sql = "SELECT MIN(cur.id) AS currency_id, " +
                 "cur.name AS currency_name, " +
                 "SUM(refill) AS input, " +
