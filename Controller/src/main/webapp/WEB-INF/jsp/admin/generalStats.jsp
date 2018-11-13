@@ -43,6 +43,9 @@
                     <loc:message code="reports.archive.sliceBalances"/>
                 </button>
                 <button class="adminForm-toggler blue-box">
+                    <loc:message code="reports.archive.sliceInOut"/>
+                </button>
+                <button class="adminForm-toggler blue-box">
                     <loc:message code="admin.generalStats.menu.mailing"/>
                 </button>
             </div>
@@ -102,16 +105,16 @@
                         </div>
 
 
-                        <div class="input-block-wrapper">
-                            <div class="col-md-5 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message
-                                        code="admin.generalStats.button.currencies"/></label>
-                            </div>
-                            <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-currencies-report" class="blue-box">
-                                    <loc:message code="admin.stats.download"/></button>
-                            </div>
-                        </div>
+                        <%--<div class="input-block-wrapper">--%>
+                            <%--<div class="col-md-5 input-block-wrapper__label-wrapper">--%>
+                                <%--<label class="input-block-wrapper__label"><loc:message--%>
+                                        <%--code="admin.generalStats.button.currencies"/></label>--%>
+                            <%--</div>--%>
+                            <%--<div class="col-md-7 input-block-wrapper__input-wrapper">--%>
+                                <%--<button id="download-currencies-report" class="blue-box">--%>
+                                    <%--<loc:message code="admin.stats.download"/></button>--%>
+                            <%--</div>--%>
+                        <%--</div>--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label"><loc:message
@@ -138,7 +141,7 @@
                                         code="admin.generalStats.button.currencyPairsInOutComis"/></label>
                             </div>
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-input-output-summary-with-commissions" class="blue-box">
+                                <button id="download-input-output-summary-with-commissions" class="blue-box" onclick="getInOutStatisticByPairsToDownload()">
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
@@ -152,7 +155,16 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
-
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="reports.totalBalancesWithInOut"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-wallet-balances-for-period-with-in-out" class="blue-box" onclick="getWalletBalancesForPeriodWithInOutToDownload()">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -229,6 +241,20 @@
                 </div>
 
                 <div id="panel5" class="tab-pane">
+                    <div class="row text-center" style="margin: 20px">
+                        <h4><loc:message code="reports.archive.sliceInOut"/></h4>
+                    </div>
+
+                    <div class="col-md-6">
+                        <table id="archive-inout-table"></table>
+                    </div>
+                    <div class="col-md-6">
+                        <input id="datepicker-inout" type="text" class="input-block-wrapper__input admin-form-input">
+                        <button id="download-inout-button" onclick="javascript:getArchiveInputOutput();return false;"><loc:message code="admin.generalStats.downloadList"/></button>
+                    </div>
+                </div>
+
+                <div id="panel6" class="tab-pane">
                     <div class="col-md-6 col-md-offset-3">
                         <div class="form_full_height_width " style="margin: 50px 0">
 

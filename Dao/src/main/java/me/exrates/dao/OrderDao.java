@@ -13,7 +13,6 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.RatesUSDForReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -116,8 +115,6 @@ public interface OrderDao {
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
 
     OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
-
-    List<RatesUSDForReportDto> getRatesToUSDForReport();
 
     List<OrderBookItem> getOrderBookItemsForType(Integer currencyPairId, OrderType orderType);
 

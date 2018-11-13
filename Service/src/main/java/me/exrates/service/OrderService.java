@@ -18,7 +18,6 @@ import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.RatesUSDForReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -408,14 +407,6 @@ public interface OrderService {
 
     List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
                                                                          List<Integer> userRoleIdList);
-
-    /**
-     * wolper 24.04.18
-     * Returns the list of the latest exchange rates for each currency to USD
-     */
-    Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
-
-    Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
 
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 

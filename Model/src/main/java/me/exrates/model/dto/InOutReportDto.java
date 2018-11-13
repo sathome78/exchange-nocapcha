@@ -1,25 +1,30 @@
 package me.exrates.model.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Getter @Setter
-public class InputOutputCommissionSummaryDto {
+@Data
+@Builder(builderClassName = "Builder", toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+public class InOutReportDto {
+
     private Integer orderNum;
-    //wolper 19.04.2018
-    //currency id added
-    private int curId;
-    //wolper 24.04.18
-    private BigDecimal rateToUSD;
+
+    private int currencyId;
     private String currencyName;
+
+    private BigDecimal rateToUSD;
     private BigDecimal input;
-    private BigDecimal output;
     private BigDecimal inputCommission;
+    private BigDecimal output;
     private BigDecimal outputCommission;
 
 
@@ -31,7 +36,7 @@ public class InputOutputCommissionSummaryDto {
 
     @Override
     public String toString() {
-        return Stream.of(String.valueOf(orderNum), String.valueOf(curId), currencyName, BigDecimalProcessing.formatNoneComma(rateToUSD, false),
+        return Stream.of(String.valueOf(orderNum), String.valueOf(currencyId), currencyName, BigDecimalProcessing.formatNoneComma(rateToUSD, false),
                 BigDecimalProcessing.formatNoneComma(input, false),
                 BigDecimalProcessing.formatNoneComma(output, false),
                 BigDecimalProcessing.formatNoneComma(inputCommission, false),

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder(builderClassName = "Builder", toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class BalancesReportDto {
+public class ReportDto {
 
     private int id;
 

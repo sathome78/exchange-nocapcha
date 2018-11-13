@@ -1,6 +1,6 @@
 package me.exrates.dao;
 
-import me.exrates.model.dto.BalancesReportDto;
+import me.exrates.model.dto.ReportDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,11 +20,17 @@ public interface ReportDao {
 
     void deleteReportSubscriber(String email);
 
-    void addNewBalancesReportObject(byte[] balancesBytes, String fileName);
+    void addNewBalancesReportObject(byte[] zippedBytes, String fileName);
 
-    List<BalancesReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate);
+    List<ReportDto> getBalancesReportsNames(LocalDateTime fromDate, LocalDateTime toDate);
 
-    BalancesReportDto getBalancesReportById(int id);
+    ReportDto getBalancesReportById(int id);
 
-    BalancesReportDto getBalancesReportByTime(LocalDateTime fromTime, LocalDateTime toTime);
+    ReportDto getBalancesReportByTime(LocalDateTime fromTime, LocalDateTime toTime);
+
+    void addNewInOutReportObject(byte[] zippedBytes, String fileName);
+
+    List<ReportDto> getInOutReportsNames(LocalDateTime fromDate, LocalDateTime toDate);
+
+    ReportDto getInOutReportById(Integer id);
 }

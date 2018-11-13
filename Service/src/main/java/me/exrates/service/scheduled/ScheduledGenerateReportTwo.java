@@ -10,17 +10,17 @@ import org.springframework.stereotype.Service;
 @EnableScheduling
 @PropertySource(value = {"classpath:/scheduler.properties"})
 @Service
-public class ScheduledGenerateReportFour {
+public class ScheduledGenerateReportTwo {
 
     private final ReportService reportService;
 
     @Autowired
-    public ScheduledGenerateReportFour(ReportService reportService) {
+    public ScheduledGenerateReportTwo(ReportService reportService) {
         this.reportService = reportService;
     }
 
     @Scheduled(cron = "${scheduled.update.report}")
     public void updateExternalWalletBalances() {
-        reportService.generateWalletBalancesReportObject();
+        reportService.generateInputOutputSummaryReportObject();
     }
 }

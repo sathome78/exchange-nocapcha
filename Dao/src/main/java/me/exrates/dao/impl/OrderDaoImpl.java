@@ -18,7 +18,6 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.RatesUSDForReportDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -440,39 +439,39 @@ public class OrderDaoImpl implements OrderDao {
         long before = System.currentTimeMillis();
         try {
             String sql =
-                  "SELECT RESULT.currency_pair_name, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order " +
-                  "FROM " +
-                    "((SELECT  " +
-                    "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
-                    "   (SELECT LASTORDER.exrate " +
-                    "       FROM EXORDERS LASTORDER  " +
-                    "       WHERE  " +
-                    "       (LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                    "       (LASTORDER.status_id =AGRIGATE.status_id) " +
-                    "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
-                    "       LIMIT 1) AS last_exrate, " +
-                    "   (SELECT PRED_LASTORDER.exrate " +
-                    "       FROM EXORDERS PRED_LASTORDER  " +
-                    "       WHERE  " +
-                    "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                    "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
-                    "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
-                    "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
-                    " FROM ( " +
-                    "   SELECT DISTINCT" +
-                    "   EXORDERS.status_id AS status_id,  " +
-                    "   EXORDERS.currency_pair_id AS currency_pair_id " +
-                    "   FROM EXORDERS          " +
-                    "   WHERE EXORDERS.status_id = :status_id         " +
-                    "   ) " +
-                    " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
-                    " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
-                    " UNION ALL (" +
-                    "   SELECT CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.type AS type, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
-                    "      FROM CURRENCY_PAIR CP " +
-                    "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
-                    ")) RESULT ";
+                    "SELECT RESULT.currency_pair_name, RESULT.currency_pair_id, RESULT.type, RESULT.last_exrate, RESULT.pred_last_exrate, RESULT.pair_order " +
+                            "FROM " +
+                            "((SELECT  " +
+                            "   CURRENCY_PAIR.name AS currency_pair_name, CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.type AS type, " +
+                            "   (SELECT LASTORDER.exrate " +
+                            "       FROM EXORDERS LASTORDER  " +
+                            "       WHERE  " +
+                            "       (LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
+                            "       (LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
+                            "       LIMIT 1) AS last_exrate, " +
+                            "   (SELECT PRED_LASTORDER.exrate " +
+                            "       FROM EXORDERS PRED_LASTORDER  " +
+                            "       WHERE  " +
+                            "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
+                            "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
+                            "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
+                            " FROM ( " +
+                            "   SELECT DISTINCT" +
+                            "   EXORDERS.status_id AS status_id,  " +
+                            "   EXORDERS.currency_pair_id AS currency_pair_id " +
+                            "   FROM EXORDERS          " +
+                            "   WHERE EXORDERS.status_id = :status_id         " +
+                            "   ) " +
+                            " AGRIGATE " +
+                            " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
+                            " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
+                            " UNION ALL (" +
+                            "   SELECT CP.name AS currency_pair_name, CP.id AS currency_pair_id, CP.type AS type, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
+                            "      FROM CURRENCY_PAIR CP " +
+                            "      WHERE CP.id NOT IN(SELECT DISTINCT EXORDERS.currency_pair_id AS currency_pair_id FROM EXORDERS WHERE EXORDERS.status_id = :status_id) AND CP.hidden = 0 " +
+                            ")) RESULT ";
             Map<String, String> namedParameters = new HashMap<>();
             namedParameters.put("status_id", String.valueOf(3));
             return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
@@ -1236,78 +1235,6 @@ public class OrderDaoImpl implements OrderDao {
             result = null;
         }
         return result;
-    }
-
-    //wolper 24.04.18
-    //query to get the last rates to exchange to USD
-    @Override
-    public List<RatesUSDForReportDto> getRatesToUSDForReport() {
-
-        String sqlBtc = "SELECT EX.exrate AS exrate\n" +
-                " FROM EXORDERS EX\n" +
-                "INNER JOIN\n" +
-                "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                "AND (CP.name LIKE '%BTC/USD')\n" +
-                "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;\n";
-
-        int btc;
-        try {
-            btc = slaveJdbcTemplate.queryForObject(sqlBtc, new HashMap<>(), Integer.class);
-        } catch (EmptyResultDataAccessException e) {
-            btc = 0;
-        }
-
-        String sqlEtc =
-                "SELECT EX.exrate AS exrate\n" +
-                        " FROM EXORDERS EX\n" +
-                        "INNER JOIN\n" +
-                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                        "AND (CP.name LIKE '%ETH/USD')\n" +
-                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate limit 1;";
-
-        int eth;
-        try {
-            eth = slaveJdbcTemplate.queryForObject(sqlEtc, new HashMap<>(), Integer.class);
-        } catch (EmptyResultDataAccessException e) {
-            eth = 0;
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("btc", btc);
-        params.put("eth", eth);
-
-        String sql =
-                " select distinct CWE.currency_id as id, CR.name,  IFNULL(rate, rate_usd_additional) AS rate from \n" +
-                        "(select id, \n" +
-                        "avg(case when name LIKE '%/BTC' then exrate*:btc\n" +
-                        "when name LIKE '%/ETH' then exrate*:eth \n" +
-                        "when name LIKE '%/USD' then exrate end) as rate\n" +
-                        "\n" +
-                        "from (SELECT CP.currency1_id as id, CP.id AS cp_id, CP.name AS name, EX_LAST.max_date_acception AS date, EX.exrate AS exrate \n" +
-                        " FROM EXORDERS EX\n" +
-                        "INNER JOIN\n" +
-                        "(SELECT currency_pair_id, max(date_acception) max_date_acception FROM EXORDERS group by currency_pair_id) EX_LAST\n" +
-                        "ON EX.currency_pair_id = EX_LAST.currency_pair_id\n" +
-                        "AND EX.date_acception = EX_LAST.max_date_acception\n" +
-                        "JOIN CURRENCY_PAIR CP ON (CP.id = EX.currency_pair_id)\n" +
-                        "AND (CP.name LIKE '%/USD' OR CP.name LIKE '%/BTC' OR CP.name LIKE '%/ETH')\n" +
-                        "WHERE  status_id = 3 group by EX.currency_pair_id, EX.exrate) as RATES group by id) as INNER_QUERY\n" +
-                        "right join COMPANY_WALLET_EXTERNAL CWE on (INNER_QUERY.id = CWE.currency_id)\n" +
-                        "join CURRENCY CR on (CWE.currency_id = CR.id);";
-
-        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
-            RatesUSDForReportDto dto = new RatesUSDForReportDto();
-            dto.setId(rs.getInt("id"));
-            dto.setCurrencyName(rs.getString("name"));
-            dto.setRate(rs.getBigDecimal("rate"));
-            return dto;
-        });
     }
 
     @Override

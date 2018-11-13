@@ -540,13 +540,13 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            if (isNull(pairRates)) {
+            BigDecimal mainBalance = balances.get(currencyName);
+
+            if (isNull(pairRates) || isNull(mainBalance)) {
                 continue;
             }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
-
-            final BigDecimal mainBalance = balances.get(currencyName);
 
             ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
@@ -586,15 +586,15 @@ public class WalletServiceImpl implements WalletService {
             final String currencyName = currency.getName();
 
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            if (isNull(pairRates)) {
+            List<InternalWalletBalancesDto> balancesByRoles = balances.get(currencyName);
+
+            if (isNull(pairRates) || isNull(balancesByRoles)) {
                 continue;
             }
             final BigDecimal usdRate = pairRates.getLeft();
             final BigDecimal btcRate = pairRates.getRight();
 
-            List<InternalWalletBalancesDto> balancesByCurrency = balances.get(currencyName);
-
-            for (InternalWalletBalancesDto balance : balancesByCurrency) {
+            for (InternalWalletBalancesDto balance : balancesByRoles) {
                 balance = balance.toBuilder()
                         .usdRate(usdRate)
                         .btcRate(btcRate)
