@@ -283,6 +283,17 @@ public class CryptocurrencyConfig {
         return new BitcoinServiceImpl("merchants/cryp_wallet.properties", "CRYP", "CRYP", 20, 20, false, true);
     }
 
+    @Bean(name = "cbcServiceImpl")
+    public BitcoinService cbcService() {
+        return new BitcoinServiceImpl("merchants/cbc_wallet.properties",
+                "CBC", "CBC", 4, 20, false, false);
+    }
+
+    @Bean(name = "abbcServiceImpl")
+    public BitcoinService abbcService() {
+        return new BitcoinServiceImpl("merchants/abbc_wallet.properties", "ABBC", "ABBC", 4, 20, false, false);
+    }
+
     // LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {

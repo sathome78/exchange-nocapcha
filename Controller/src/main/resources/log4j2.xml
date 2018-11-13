@@ -721,7 +721,7 @@
         <logger name="survey" level="ALL" additivity="false">
             <AppenderRef ref="survey_log"/>
         </logger>
-        <logger name="bot_trader" level="INFO" additivity="false">
+        <logger name="bot_trader" level="ALL" additivity="false">
             <AppenderRef ref="bot_trader_log"/>
         </logger>
         <logger name="admin_log" level="ALL" additivity="false">

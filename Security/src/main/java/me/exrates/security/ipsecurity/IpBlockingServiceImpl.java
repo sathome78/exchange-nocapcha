@@ -49,6 +49,7 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     public void checkIp(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
         synchronized (lock) {
             ConcurrentMap<String, LoginAttemptDto> specificIpChecker = ipchecker.get(ipTypesOfChecking);
+            log.debug("ip checker {} ", specificIpChecker);
             if (specificIpChecker.containsKey(ipAddress)) {
                 LocalDateTime currentTime = LocalDateTime.now();
                 LoginAttemptDto attempt = specificIpChecker.get(ipAddress);

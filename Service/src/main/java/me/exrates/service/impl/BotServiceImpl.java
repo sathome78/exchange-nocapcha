@@ -71,6 +71,7 @@ public class BotServiceImpl implements BotService {
     @PostConstruct
     private void initBot() {
         retrieveBotFromDB().ifPresent(botTrader -> {
+            log.debug("init bot {}", botTrader);
             if (botTrader.isEnabled()) {
                 scheduleJobsForActiveCurrencyPairs(botTrader.getId());
             }
@@ -188,6 +189,7 @@ public class BotServiceImpl implements BotService {
 
     private void runOrderCreationSequence(CurrencyPair currencyPair, OrderType orderType, BotTrader botTrader) {
         botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType).ifPresent(settings -> {
+            log.debug(botTrader.getId() + " cp " + currencyPair.getId() + " type " + orderType + settings);
             BotTradingCalculator calculator = new BotTradingCalculator(settings);
             String userEmail = userService.getEmailById(botTrader.getUserId());
             OperationType operationType = OperationType.valueOf(orderType.name());
@@ -228,6 +230,7 @@ public class BotServiceImpl implements BotService {
     @Transactional(rollbackFor = Exception.class)
     public void enableBotForCurrencyPair(Integer currencyPairId, Locale locale) {
         retrieveBotFromDB().ifPresent(bot -> {
+            log.debug(bot);
             if (bot.isEnabled()) {
                 BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPairId);
                 if (!launchSettings.isEnabledForPair()) {

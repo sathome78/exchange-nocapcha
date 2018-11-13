@@ -74,20 +74,22 @@ public class PublicController {
             LOGGER.debug(String.format("%s: completed : %d ms", ban.getMessage(), getTiming(before)));
             errors.add(ban.getMessage());
             return errors;
+        } catch (Exception e) {
+            LOGGER.error(e);
         }
 
         try {
             if (!userService.ifEmailIsUnique(email)) {
-                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+               /* ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);*/
                 errors.add("emailExists");
             }
-            if (errors.isEmpty()) {
+           /* if (errors.isEmpty()) {
                 ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            }
+            }*/
             LOGGER.debug(String.format("completed... : ms: %d", getTiming(before)));
         } catch (Exception exc) {
             LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, getTiming(before), exc.getMessage()));
-            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+           /* ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);*/
         }
         return errors;
     }
