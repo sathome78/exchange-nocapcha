@@ -559,7 +559,7 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating external wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
         return walletDao.getExternalWalletBalances();
@@ -605,13 +605,13 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         return walletDao.getInternalWalletBalances();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getWalletBalances() {
         return walletDao.getWalletBalances();
@@ -632,19 +632,19 @@ public class WalletServiceImpl implements WalletService {
         walletDao.updateReservedWalletAddress(externalReservedWalletAddressDto);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId) {
         return walletDao.getReservedWalletsByCurrencyId(currencyId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public BigDecimal retrieveSummaryUSD() {
         return walletDao.retrieveSummaryUSD();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public BigDecimal retrieveSummaryBTC() {
         return walletDao.retrieveSummaryBTC();

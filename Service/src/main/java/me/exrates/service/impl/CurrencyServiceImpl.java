@@ -75,6 +75,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.getAllActiveCurrencies();
     }
 
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<Currency> getAllCurrencies() {
         return currencyDao.getAllActiveCurrencies();
