@@ -220,10 +220,15 @@ function removeReservedWallet(elem) {
         var data = $(idReservedWalletsTable).dataTable().fnGetData(row);
 
         $.ajax({
-            url: '/2a8fy7b07dxe44/externalWallets/address/delete/' + data.id,
-            type: 'DELETE',
+            url: '/2a8fy7b07dxe44/externalWallets/address/delete',
+            type: 'POST',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "id": data.id,
+                "currencyId": data.currencyId,
+                "walletAddress": data.walletAddress
             },
             success: function () {
                 updateReservedWallets();

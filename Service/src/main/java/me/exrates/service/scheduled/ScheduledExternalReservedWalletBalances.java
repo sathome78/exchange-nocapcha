@@ -10,17 +10,17 @@ import org.springframework.stereotype.Service;
 @EnableScheduling
 @PropertySource(value = {"classpath:/scheduler.properties"})
 @Service
-public class ScheduledExternalWalletBalances {
+public class ScheduledExternalReservedWalletBalances {
 
     private final WalletService walletService;
 
     @Autowired
-    public ScheduledExternalWalletBalances(WalletService walletService) {
+    public ScheduledExternalReservedWalletBalances(WalletService walletService) {
         this.walletService = walletService;
     }
 
     @Scheduled(cron = "${scheduled.update.external-balances}")
-    public void updateExternalWalletBalances() {
-        walletService.updateExternalWalletBalances();
+    public void update() {
+        walletService.updateExternalReservedWalletBalances();
     }
 }

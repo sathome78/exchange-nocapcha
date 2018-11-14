@@ -58,5 +58,5 @@ public interface TransactionDao {
 
     List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
 
-    List<InOutReportDto> getInOutInSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+    List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 }

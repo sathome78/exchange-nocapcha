@@ -815,7 +815,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
-    public List<InOutReportDto> getInOutInSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         String sql = "SELECT MIN(cur.id) AS currency_id, " +
                 "cur.name AS currency_name, " +
                 "SUM(refill) AS input, " +
@@ -837,7 +837,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 2 AND tx.source_type = 'WITHDRAW' AND tx.datetime BETWEEN :start_time AND :end_time" +
                 ") AGGR" +
-                " JOIN CURRENCY cur ON cur.id = AGGR.currency_id" +
+                " LEFT JOIN CURRENCY cur ON cur.id = AGGR.currency_id" +
                 " GROUP BY currency_name" +
                 " ORDER BY currency_id ASC";
 

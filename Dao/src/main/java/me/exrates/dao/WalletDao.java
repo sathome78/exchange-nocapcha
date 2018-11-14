@@ -103,9 +103,9 @@ public interface WalletDao {
 
     int getWalletIdAndBlock(Integer userId, Integer currencyId);
 
-    List<ExternalWalletBalancesDto> getExternalWalletBalances();
+    List<ExternalWalletBalancesDto> getExternalMainWalletBalances();
 
-    void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto);
+    void updateExternalMainWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto);
 
     List<InternalWalletBalancesDto> getInternalWalletBalances();
 
@@ -113,7 +113,7 @@ public interface WalletDao {
 
     void createReservedWalletAddress(int currencyId);
 
-    void deleteReservedWalletAddress(int currencyId);
+    void deleteReservedWalletAddress(int id, int currencyId);
 
     void updateReservedWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
 
@@ -124,4 +124,6 @@ public interface WalletDao {
     BigDecimal retrieveSummaryUSD();
 
     BigDecimal retrieveSummaryBTC();
+
+    void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance);
 }

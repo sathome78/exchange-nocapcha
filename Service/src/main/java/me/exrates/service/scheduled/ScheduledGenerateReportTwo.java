@@ -20,7 +20,7 @@ public class ScheduledGenerateReportTwo {
     }
 
     @Scheduled(cron = "${scheduled.update.report}")
-    public void updateExternalWalletBalances() {
+    public void update() {
         reportService.generateInputOutputSummaryReportObject();
     }
 }

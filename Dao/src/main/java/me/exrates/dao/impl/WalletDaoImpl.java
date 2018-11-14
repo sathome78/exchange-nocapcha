@@ -1248,7 +1248,7 @@ public class WalletDaoImpl implements WalletDao {
 
 
     @Override
-    public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
+    public List<ExternalWalletBalancesDto> getExternalMainWalletBalances() {
         String sql = "SELECT cewb.currency_id, " +
                 "cur.name AS currency_name, " +
                 "cewb.usd_rate, " +
@@ -1278,7 +1278,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void updateExternalWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto) {
+    public void updateExternalMainWalletBalances(ExternalWalletBalancesDto externalWalletBalancesDto) {
         final String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
                 " SET cewb.usd_rate = :usd_rate, cewb.btc_rate = :btc_rate, " +
                 "cewb.main_balance = IFNULL(:main_balance, 0), " +
@@ -1358,12 +1358,8 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public void deleteReservedWalletAddress(int id) {
-        String sql = "SELECT cwera.currency_id FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE id = :id";
-
-        final Integer currencyId = slaveJdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
-
-        sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS WHERE id = :id";
+    public void deleteReservedWalletAddress(int id, int currencyId) {
+        String sql = "DELETE FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS WHERE id = :id";
 
         jdbcTemplate.update(sql, singletonMap("id", id));
 
@@ -1465,5 +1461,38 @@ public class WalletDaoImpl implements WalletDao {
     public BigDecimal retrieveSummaryBTC() {
         String sql = "SELECT SUM(cewb.total_balance_btc) FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb";
         return slaveJdbcTemplate.queryForObject(sql, Collections.emptyMap(), BigDecimal.class);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance) {
+        String sql = "UPDATE birzha.COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera" +
+                " SET cwera.balance = :balance" +
+                " WHERE cwera.currency_id = :currency_id" +
+                " AND cwera.wallet_address = :wallet_address";
+
+        Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("currency_id", currencyId);
+                put("wallet_address", walletAddress);
+                put("balance", balance);
+            }
+        };
+        jdbcTemplate.update(sql, params);
+
+        sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
+                " SET cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
+                "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
+                "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
+                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
+                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                " WHERE cewb.currency_id = :currency_id";
+
+        params = new HashMap<String, Object>() {
+            {
+                put("currency_id", currencyId);
+            }
+        };
+        jdbcTemplate.update(sql, params);
     }
 }
