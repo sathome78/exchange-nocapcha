@@ -539,7 +539,6 @@ public class ReportServiceImpl implements ReportService {
         });
     }
 
-    @Transactional
     @Override
     public void generateWalletBalancesReportObject() {
         StopWatch stopWatch = StopWatch.createStarted();
@@ -670,7 +669,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional
     @Override
     public void generateInputOutputSummaryReportObject() {
         StopWatch stopWatch = StopWatch.createStarted();
@@ -722,7 +720,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getInputOutputSummaryReport(LocalDateTime startTime,
                                                  LocalDateTime endTime,
@@ -748,7 +745,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getDifferenceBetweenBalancesReports(LocalDateTime startTime,
                                                          LocalDateTime endTime,
@@ -789,7 +785,6 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public ReportDto getDifferenceBetweenBalancesReportsWithInOut(LocalDateTime startTime,
                                                                   LocalDateTime endTime,

@@ -55,6 +55,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 
 @Log4j2
 @Repository
@@ -844,7 +845,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles);
+            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
         }};
 
         try {
