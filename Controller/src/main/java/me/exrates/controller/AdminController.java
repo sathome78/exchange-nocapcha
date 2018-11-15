@@ -1681,10 +1681,12 @@ public class AdminController {
     }
 
     @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/delete", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity deleteWalletAddress(@PathVariable int id) {
-        walletService.deleteWalletAddress(id);
+    public ResponseEntity deleteWalletAddress(@RequestParam int id,
+                                              @RequestParam int currencyId,
+                                              @RequestParam String walletAddress) {
+        walletService.deleteWalletAddress(id, currencyId, walletAddress);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -1703,7 +1705,7 @@ public class AdminController {
                     .walletAddress(walletAddress)
                     .balance(reservedWalletBalance)
                     .build();
-            walletService.updateWalletAddress(externalReservedWalletAddressDto);
+            walletService.updateWalletAddress(externalReservedWalletAddressDto, true);
             return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(messageSource.getMessage("user.settings.changePassword.fail", null, locale), HttpStatus.NOT_FOUND);
@@ -1725,7 +1727,7 @@ public class AdminController {
                 .walletAddress(walletAddress)
                 .balance(reservedWalletBalance)
                 .build();
-        walletService.updateWalletAddress(externalReservedWalletAddressDto);
+        walletService.updateWalletAddress(externalReservedWalletAddressDto, false);
         return ResponseEntity.ok().build();
     }
 

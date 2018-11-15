@@ -521,9 +521,9 @@ public class WalletServiceImpl implements WalletService {
 
     @Transactional
     @Override
-    public void updateExternalWalletBalances() {
+    public void updateExternalMainWalletBalances() {
         StopWatch stopWatch = StopWatch.createStarted();
-        log.info("Process of updating external wallets start...");
+        log.info("Process of updating external main wallets start...");
 
         List<Currency> currencies = currencyService.getAllCurrencies();
 
@@ -531,7 +531,7 @@ public class WalletServiceImpl implements WalletService {
         final Map<String, BigDecimal> balances = walletsApi.getBalances();
 
         if (rates.isEmpty() || balances.isEmpty()) {
-            log.info("Exchange or wallet api did not return data");
+            log.info("Exchange or wallet api did not return any data");
             return;
         }
 
@@ -554,15 +554,43 @@ public class WalletServiceImpl implements WalletService {
                     .btcRate(btcRate)
                     .mainBalance(mainBalance)
                     .build();
-            walletDao.updateExternalWalletBalances(exWallet);
+            walletDao.updateExternalMainWalletBalances(exWallet);
         }
-        log.info("Process of updating external wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+        log.info("Process of updating external main wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+    }
+
+    @Transactional
+    @Override
+    public void updateExternalReservedWalletBalances() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of updating external reserved wallets start...");
+
+        final Map<String, BigDecimal> reservedBalances = walletsApi.getReservedBalances();
+
+        if (reservedBalances.isEmpty()) {
+            log.info("Wallet api did not return any data");
+            return;
+        }
+
+        for (Map.Entry<String, BigDecimal> entry: reservedBalances.entrySet()) {
+            final String compositeKey = entry.getKey();
+            final BigDecimal balance = entry.getValue();
+
+            String[] data = compositeKey.split("\\|\\|");
+            final String currencySymbol = data[0];
+            final String walletAddress = data[1];
+
+            Currency currency = currencyService.findByName(currencySymbol);
+
+            walletDao.updateExternalReservedWalletBalances(currency.getId(), walletAddress, balance);
+        }
+        log.info("Process of updating external reserved wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
-        return walletDao.getExternalWalletBalances();
+        return walletDao.getExternalMainWalletBalances();
     }
 
     @Transactional
@@ -623,13 +651,36 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public void deleteWalletAddress(int currencyId) {
-        walletDao.deleteReservedWalletAddress(currencyId);
+    public void deleteWalletAddress(int id, int currencyId, String walletAddress) {
+        walletDao.deleteReservedWalletAddress(id, currencyId);
+
+        final String currencySymbol = currencyService.getCurrencyName(currencyId);
+
+        boolean deleted = walletsApi.deleteReservedWallet(currencySymbol, walletAddress);
+
+        log.info("External reserved address [{}:{}] {}",
+                currencySymbol,
+                walletAddress,
+                deleted ? "have been deleted" : "have not been deleted");
     }
 
     @Override
-    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto) {
+    public void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto, boolean isSavedAsAddress) {
         walletDao.updateReservedWalletAddress(externalReservedWalletAddressDto);
+
+        if (isSavedAsAddress) {
+            final int currencyId = externalReservedWalletAddressDto.getCurrencyId();
+            final String walletAddress = externalReservedWalletAddressDto.getWalletAddress();
+
+            final String currencySymbol = currencyService.getCurrencyName(currencyId);
+
+            boolean saved = walletsApi.addReservedWallet(currencySymbol, walletAddress);
+
+            log.info("External reserved address [{}:{}] {}",
+                    currencySymbol,
+                    walletAddress,
+                    saved ? "have been saved" : "have not been saved");
+        }
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)

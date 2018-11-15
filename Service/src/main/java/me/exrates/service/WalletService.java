@@ -136,7 +136,9 @@ public interface WalletService {
 
     List<ExternalWalletBalancesDto> getExternalWalletBalances();
 
-    void updateExternalWalletBalances();
+    void updateExternalMainWalletBalances();
+
+    void updateExternalReservedWalletBalances();
 
     List<InternalWalletBalancesDto> getInternalWalletBalances();
 
@@ -146,9 +148,9 @@ public interface WalletService {
 
     void createWalletAddress(int currencyId);
 
-    void deleteWalletAddress(int currencyId);
+    void deleteWalletAddress(int id, int currencyId, String walletAddress);
 
-    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto);
+    void updateWalletAddress(ExternalReservedWalletAddressDto externalReservedWalletAddressDto, boolean isSavedAsAddress);
 
     List<ExternalReservedWalletAddressDto> getReservedWalletsByCurrencyId(String currencyId);
 
