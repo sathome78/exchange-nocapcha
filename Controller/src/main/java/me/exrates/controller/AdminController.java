@@ -43,6 +43,7 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.UserSessionDto;
 import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.WalletFormattedDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -176,7 +177,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -494,7 +494,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
-                                                        final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
+                                                final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
         CurrencyPair currencyPair;
         if (currencyPairId != 0) {
@@ -1522,16 +1522,6 @@ public class AdminController {
         return modelAndView;
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/newUsers", method = GET)
-    public Integer getNewUsersNumber(@RequestParam("startTime") String startTimeString,
-                                     @RequestParam("endTime") String endTimeString) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        return userService.getNewRegisteredUserNumber(startTime, endTime);
-    }
-
     @AdminLoggable
     @GetMapping(value = "/2a8fy7b07dxe44/alerts")
     public String alertsPage(Model model) {
@@ -1729,6 +1719,18 @@ public class AdminController {
                 .build();
         walletService.updateWalletAddress(externalReservedWalletAddressDto, false);
         return ResponseEntity.ok().build();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/usersInfo", method = GET)
+    public ResponseEntity<UsersInfoDto> getUsersInfo(@RequestParam("startTime") String startTimeString,
+                                                     @RequestParam("endTime") String endTimeString,
+                                                     @RequestParam("roles") List<UserRole> userRoles) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+
+        return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
     }
 
 

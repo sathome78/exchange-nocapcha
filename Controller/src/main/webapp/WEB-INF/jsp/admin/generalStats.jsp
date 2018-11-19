@@ -90,20 +90,57 @@
                     </div>
                     <div class="form_full_height_width col-md-8 col-md-offset-2">
                         <div class="input-block-wrapper">
-                            <div class="col-md-5 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message code="admin.users.new"/></label>
+                            <div class="col-md-8 input-block-wrapper__label-wrapper">
+                                <table id="user-info-table-header">
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.new"/></label></th>
+                                    </tr>
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.all"/></label></th>
+                                    </tr>
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.notZeroBalances"/></label></th>
+                                    </tr>
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.active"/></label></th>
+                                    </tr>
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.successInput"/></label></th>
+                                    </tr>
+                                    <tr>
+                                        <th><label class="input-block-wrapper__label"><loc:message code="admin.users.successOutput"/></label></th>
+                                    </tr>
+                                </table>
                             </div>
-                            <div class="col-md-5 input-block-wrapper__input-wrapper">
-                                <span id="new-users-quantity"></span>
+                            <div class="col-md-2 input-block-wrapper__label-wrapper">
+                                <table id="user-info-table-body">
+                                    <tr>
+                                        <th><span id="new-users-quantity"></span></th>
+                                    </tr>
+                                    <tr>
+                                        <th><span id="all-users-quantity"></span></th>
+                                    </tr>
+                                    <tr>
+                                        <th><span id="not-zero-balances-users-quantity"></span></th>
+                                    </tr>
+                                    <tr>
+                                        <th><span id="active-users-quantity"></span></th>
+                                    </tr>
+                                    <tr>
+                                        <th><span id="success-input-users-quantity"></span></th>
+                                    </tr>
+                                    <tr>
+                                        <th><span id="success-output-users-quantity"></span></th>
+                                    </tr>
+                                </table>
                             </div>
                             <div class="col-md-2 input-block-wrapper__input-wrapper">
-                                <button id="refresh-users" class="btn btn-sm btn-default pull-right"
-                                        style="margin-bottom: 10px">
+                                <button id="refresh-users" class="btn btn-sm btn-default pull-right" style="margin-bottom: 10px" onclick="refreshUsersInfo()">
                                     <span class="glyphicon glyphicon-refresh"></span>
                                 </button>
                             </div>
                         </div>
-
+                        <p></p>
 
                         <%--<div class="input-block-wrapper">--%>
                             <%--<div class="col-md-5 input-block-wrapper__label-wrapper">--%>
@@ -135,6 +172,7 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
+                        <%--Выгрузить статистику по вводу-выводу--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label"><loc:message
@@ -145,6 +183,7 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
+                        <%--Выгрузить срез по кошелькам--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label"><loc:message
@@ -155,6 +194,7 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
+                        <%--Выгрузить разбаланс--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label"><loc:message
@@ -162,6 +202,39 @@
                             </div>
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
                                 <button id="download-wallet-balances-for-period-with-in-out" class="blue-box" onclick="getWalletBalancesForPeriodWithInOutToDownload()">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <%--Выгрузить данные--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="wallets.download"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-wallets-data" class="blue-box" onclick="uploadUserWallets()">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <%--Выгрузить ордера--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="wallets.downloadOrders"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-orders" class="blue-box" onclick="uploadUserWalletsOrders()">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <%--Выгрузить свод ввода-вывода--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="wallets.downloadInputOutputReport"/></label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <button id="download-input-output" class="blue-box" onclick="uploadInputOutputSummaryReport()">
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>

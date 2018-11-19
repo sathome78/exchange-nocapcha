@@ -60,11 +60,11 @@ public interface TransactionService {
 
     boolean setStatusById(Integer trasactionId, Integer statusId);
 
-    List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
-
-    List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
-
     List<Transaction> getPayedRefTransactionsByOrderId(int orderId);
 
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
+
+    List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
 }

@@ -80,12 +80,12 @@ $(function () {
     $($datepickerBalances).val(moment($($datepickerBalances).datetimepicker('getValue')).format(datetimeFormat));
     $($datepickerInOut).val(moment($($datepickerInOut).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
-    refreshUsersNumber();
+    // refreshUsersInfo();
     refreshMailingTime();
     refreshMailingStatus();
 
 
-    $('#refresh-users').click(refreshUsersNumber);
+    // $('#refresh-users').click(refreshUsersInfo);
     // $('#download-currencies-report').click(getCurrenciesTurnover);
     $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
     $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
@@ -498,10 +498,63 @@ function getWalletBalancesForPeriodWithInOutToDownload() {
     req.send();
 }
 
-function refreshUsersNumber() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/newUsers?' + getTimeParams();
-    $.get(fullUrl, function (data) {
-        $('#new-users-quantity').text(data)
+function uploadUserWallets() {
+    var url = '/2a8fy7b07dxe44/report/usersWalletsSummary?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadUserWalletsOrders() {
+    var url = '/2a8fy7b07dxe44/report/userSummaryOrders?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadInputOutputSummaryReport() {
+    var url = '/2a8fy7b07dxe44/report/inputOutputSummary?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function refreshUsersInfo() {
+    const url = '/2a8fy7b07dxe44/generalStats/usersInfo?' + getTimeParams() + '&' + getRoleParams();
+    $.get(url, function (data) {
+        $('#new-users-quantity').text(data.newUsers);
+        $('#all-users-quantity').text(data.allUsers);
+        $('#active-users-quantity').text(data.activeUsers);
+        $('#not-zero-balances-users-quantity').text(data.notZeroBalanceUsers);
+        $('#success-input-users-quantity').text(data.oneOrMoreSuccessInputUsers);
+        $('#success-output-users-quantity').text(data.oneOrMoreSuccessOutputUsers);
     })
 }
 

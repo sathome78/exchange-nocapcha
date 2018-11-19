@@ -3,7 +3,8 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.InOutReportDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -20,20 +21,21 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
-public class ReportTwoExcelGeneratorUtil {
+public class ReportEightExcelGeneratorUtil {
 
-    public static byte[] generate(Map<String, InOutReportDto> inOutMap,
+    public static byte[] generate(List<UserSummaryOrdersDto> summaryOrdersData,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
-        XSSFSheet sheet = workbook.createSheet("Статистика по вводу-выводу по валютам");
+        XSSFSheet sheet = workbook.createSheet("Выгрузить ордера");
 
         XSSFRow row;
         XSSFCell cell;
@@ -47,7 +49,7 @@ public class ReportTwoExcelGeneratorUtil {
 
         //header
         cell = row.createCell(0, CellType.STRING);
-        cell.setCellValue("Id монеты");
+        cell.setCellValue("Электронная почта");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(1, CellType.STRING);
@@ -55,51 +57,43 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(2, CellType.STRING);
-        cell.setCellValue("Курс ($)");
+        cell.setCellValue("Роль");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(3, CellType.STRING);
-        cell.setCellValue("Курс (BTC)");
+        cell.setCellValue("Buy");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("Ввод");
+        cell.setCellValue("Buy fee");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(5, CellType.STRING);
-        cell.setCellValue("Вывод");
+        cell.setCellValue("Sell");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(6, CellType.STRING);
-        cell.setCellValue("Разница");
+        cell.setCellValue("Sell fee");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(7, CellType.STRING);
-        cell.setCellValue("Разница в USD");
+        cell.setCellValue("Buy + Sell");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(8, CellType.STRING);
-        cell.setCellValue("Разница в BTC");
+        cell.setCellValue("Buy fee + Sell fee");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(9, CellType.STRING);
-        cell.setCellValue("Комиссия за ввод");
+        cell.setCellValue("Курс ($)");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue("Комиссия за вывод");
+        cell.setCellValue("Buy + Sell к USD");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(11, CellType.STRING);
-        cell.setCellValue("Сумма комиссий");
-        cell.setCellStyle(header1Style);
-
-        cell = row.createCell(12, CellType.STRING);
-        cell.setCellValue("Сумма комиссий в USD");
-        cell.setCellStyle(header1Style);
-
-        cell = row.createCell(13, CellType.STRING);
-        cell.setCellValue("Сумма комиссий в BTC");
+        cell.setCellValue("Buy fee + Sell fee к USD");
         cell.setCellStyle(header1Style);
 
         sheet.autoSizeColumn(0, true);
@@ -126,13 +120,8 @@ public class ReportTwoExcelGeneratorUtil {
         sheet.setColumnWidth(10, sheet.getColumnWidth(10) + 256);
         sheet.autoSizeColumn(11, true);
         sheet.setColumnWidth(11, sheet.getColumnWidth(11) + 256);
-        sheet.autoSizeColumn(12, true);
-        sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
-        sheet.autoSizeColumn(13, true);
-        sheet.setColumnWidth(13, sheet.getColumnWidth(13) + 256);
 
-        Set<String> currencies = inOutMap.keySet();
-        final int bound = inOutMap.size();
+        final int bound = summaryOrdersData.size();
 
         //footer
         row = sheet.createRow(1);
@@ -165,109 +154,91 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(7, CellType.NUMERIC);
-        cell.setCellFormula("SUM(H" + 3 + ":H" + ((bound - 1) + 3) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(7, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(8, CellType.NUMERIC);
-        cell.setCellFormula("SUM(I" + 3 + ":I" + ((bound - 1) + 3) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(9, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
-
-        cell = row.createCell(11, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
-
-        cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 3 + ":M" + ((bound - 1) + 3) + ")");
+        cell = row.createCell(10, CellType.NUMERIC);
+        cell.setCellFormula("SUM(K" + 3 + ":K" + ((bound - 1) + 3) + ")");
         cell.setCellStyle(footer2Style);
 
-        cell = row.createCell(13, CellType.NUMERIC);
-        cell.setCellFormula("SUM(N" + 3 + ":N" + ((bound - 1) + 3) + ")");
+        cell = row.createCell(11, CellType.NUMERIC);
+        cell.setCellFormula("SUM(L" + 3 + ":L" + ((bound - 1) + 3) + ")");
         cell.setCellStyle(footer2Style);
 
         //body
         int i = 0;
-        for (String currency : currencies) {
-            InOutReportDto inOutReportDto = inOutMap.get(currency);
+        for (UserSummaryOrdersDto sod : summaryOrdersData) {
+            final String email = nonNull(sod.getEmail()) ? sod.getEmail() : StringUtils.EMPTY;
+            final String currencyName = sod.getCurrencyName();
+            final String role = sod.getRole();
+            final double amountBuy = nonNull(sod.getAmountBuy()) ? sod.getAmountBuy().doubleValue() : 0;
+            final double amountBuyFee = nonNull(sod.getAmountBuyFee()) ? sod.getAmountBuyFee().doubleValue() : 0;
+            final double amountSell = nonNull(sod.getAmountSell()) ? sod.getAmountSell().doubleValue() : 0;
+            final double amountSellFee = nonNull(sod.getAmountSellFee()) ? sod.getAmountSellFee().doubleValue() : 0;
 
-            final int currencyId = inOutReportDto.getCurrencyId();
-
-            final BigDecimal input = inOutReportDto.getInput();
-            final BigDecimal output = inOutReportDto.getOutput();
-            final BigDecimal inputCommission = inOutReportDto.getInputCommission();
-            final BigDecimal outputCommission = inOutReportDto.getOutputCommission();
-
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
             if (isNull(ratePair)) {
                 ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
             }
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            final double usdRate = ratePair.getLeft().doubleValue();
 
             row = sheet.createRow(i + 2);
 
-            cell = row.createCell(0, CellType.NUMERIC);
-            cell.setCellValue(currencyId);
+            cell = row.createCell(0, CellType.STRING);
+            cell.setCellValue(email);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(currency);
+            cell.setCellValue(currencyName);
             cell.setCellStyle(body1Style);
 
-            cell = row.createCell(2, CellType.NUMERIC);
-            cell.setCellValue(usdRate.doubleValue());
+            cell = row.createCell(2, CellType.STRING);
+            cell.setCellValue(role);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
-            cell.setCellValue(btcRate.doubleValue());
+            cell.setCellValue(amountBuy);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(4, CellType.NUMERIC);
-            cell.setCellValue(input.doubleValue());
+            cell.setCellValue(amountBuyFee);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(5, CellType.NUMERIC);
-            cell.setCellValue(output.doubleValue());
+            cell.setCellValue(amountSell);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(6, CellType.NUMERIC);
-            cell.setCellFormula("E" + (i + 3) + "-F" + (i + 3));
+            cell.setCellValue(amountSellFee);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(7, CellType.NUMERIC);
-            cell.setCellFormula("G" + (i + 3) + "*C" + (i + 3));
+            cell.setCellFormula("D" + (i + 3) + "+F" + (i + 3));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
-            cell.setCellFormula("G" + (i + 3) + "*D" + (i + 3));
+            cell.setCellFormula("E" + (i + 3) + "+G" + (i + 3));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
-            cell.setCellValue(inputCommission.doubleValue());
+            cell.setCellValue(usdRate);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(10, CellType.NUMERIC);
-            cell.setCellValue(outputCommission.doubleValue());
+            cell.setCellFormula("H" + (i + 3) + "*J" + (i + 3));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(11, CellType.NUMERIC);
-            cell.setCellFormula("J" + (i + 3) + "+K" + (i + 3));
-            cell.setCellStyle(body1Style);
-
-            cell = row.createCell(12, CellType.NUMERIC);
-            cell.setCellFormula("L" + (i + 3) + "*C" + (i + 3));
-            cell.setCellStyle(body1Style);
-
-            cell = row.createCell(13, CellType.NUMERIC);
-            cell.setCellFormula("L" + (i + 3) + "*D" + (i + 3));
+            cell.setCellFormula("I" + (i + 3) + "*J" + (i + 3));
             cell.setCellStyle(body1Style);
 
             i++;
@@ -304,32 +275,24 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(7, CellType.NUMERIC);
-        cell.setCellFormula("SUM(H" + 3 + ":H" + ((bound - 1) + 3) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(7, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(8, CellType.NUMERIC);
-        cell.setCellFormula("SUM(I" + 3 + ":I" + ((bound - 1) + 3) + ")");
-        cell.setCellStyle(footer2Style);
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
 
         cell = row.createCell(9, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
-
-        cell = row.createCell(11, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
-
-        cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 3 + ":M" + ((bound - 1) + 3) + ")");
+        cell = row.createCell(10, CellType.NUMERIC);
+        cell.setCellFormula("SUM(K" + 3 + ":K" + ((bound - 1) + 3) + ")");
         cell.setCellStyle(footer2Style);
 
-        cell = row.createCell(13, CellType.NUMERIC);
-        cell.setCellFormula("SUM(N" + 3 + ":N" + ((bound - 1) + 3) + ")");
+        cell = row.createCell(11, CellType.NUMERIC);
+        cell.setCellFormula("SUM(L" + 3 + ":L" + ((bound - 1) + 3) + ")");
         cell.setCellStyle(footer2Style);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

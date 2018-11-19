@@ -47,7 +47,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -680,127 +679,6 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
-    public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
-            Integer requesterUserId,
-            String startDate,
-            String endDate,
-            List<Integer> roleIdList) {
-        String sql =
-                " SELECT  " +
-                        "   USER.nickname as user_nickname,  " +
-                        "   USER.email as user_email,  " +
-                        "   USER.regdate as user_register_date,  " +
-                        "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY -registration_date DESC LIMIT 1) as user_register_ip, " +
-                        "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY last_registration_date DESC LIMIT 1) as user_last_entry_ip, " +
-                        "   CURRENCY.name as currency_name,  " +
-                        "   WALLET.active_balance as active_balance,  " +
-                        "   WALLET.reserved_balance as reserved_balance, " +
-                        "   (SELECT SUM(INPUT.amount) " +
-                        "         FROM TRANSACTION INPUT " +
-                        "         JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-                        "             (IOP.currency_id=INPUT.currency_id) " +
-                        "             AND (IOP.user_id = :requester_user_id) " +
-                        "             AND (IOP.operation_direction='REFILL') " +
-                        "         WHERE (INPUT.user_wallet_id = WALLET.id)  " +
-                        "           AND (INPUT.operation_type_id=1)  " +
-                        "           AND (INPUT.status_id=1)  " +
-                        "           AND (INPUT.provided=1) " +
-                        "           AND (INPUT.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-                        "   AS input_amount,  " +
-                        "   (SELECT SUM(OUTPUT.amount) " +
-                        "         FROM TRANSACTION OUTPUT " +
-                        "         JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-                        "             (IOP.currency_id=OUTPUT.currency_id) " +
-                        "             AND (IOP.user_id = :requester_user_id) " +
-                        "             AND (IOP.operation_direction='WITHDRAW') " +
-                        "         WHERE (OUTPUT.user_wallet_id = WALLET.id)  " +
-                        "           AND (OUTPUT.operation_type_id=2)  " +
-                        "           AND (OUTPUT.status_id=1)  " +
-                        "           AND (OUTPUT.provided=1) " +
-                        "           AND (OUTPUT.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-                        "   AS output_amount," +
-                        "   (SELECT IF (COUNT(*) = 2, 1, 0) " +
-                        "        FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
-                        "        WHERE (IOP.currency_id=CURRENCY.id) " +
-                        "        AND (IOP.user_id = :requester_user_id) ) AS both_permissions_present     " +
-                        " FROM USER  " +
-                        "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
-                        "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
-                        (roleIdList.isEmpty() ? "" :
-                                " AND USER.roleid IN (:role_id_list)") +
-                        " WHERE EXISTS (" +
-                        "       SELECT * " +
-                        "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
-                        "           WHERE (IOP.currency_id=CURRENCY.id " +
-                        "                 AND (IOP.user_id = :requester_user_id)) ) ";
-
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("start_date", startDate);
-        namedParameters.put("end_date", endDate);
-        namedParameters.put("role_id_list", roleIdList);
-        namedParameters.put("requester_user_id", requesterUserId);
-        return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
-            UserSummaryDto userSummaryDto = new UserSummaryDto();
-            userSummaryDto.setUserNickname(rs.getString("user_nickname"));
-            userSummaryDto.setUserEmail(rs.getString("user_email"));
-            userSummaryDto.setCreationDate(rs.getTimestamp("user_register_date") == null ? "" : rs.getTimestamp("user_register_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            userSummaryDto.setRegisteredIp(rs.getString("user_register_ip"));
-            userSummaryDto.setLastIp(rs.getString("user_last_entry_ip"));
-            userSummaryDto.setCurrencyName(rs.getString("currency_name"));
-            userSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-            userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-            userSummaryDto.setInputSummary(rs.getBigDecimal("input_amount"));
-            userSummaryDto.setOutputSummary(rs.getBigDecimal("output_amount"));
-            userSummaryDto.setBothCurrencyPermissionsPresent(rs.getBoolean("both_permissions_present"));
-            return userSummaryDto;
-        });
-    }
-
-    @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList) {
-        String sql = " SELECT USER.email AS email, CURRENCY.name AS currency_name, USER_ROLE.name AS role, " +
-                "     SUM(IF(TX.operation_type_id = 1, TX.amount, 0)) AS amount_buy, " +
-                "     SUM(IF(TX.operation_type_id = 1, TX.commission_amount, 0)) AS amount_buy_fee, " +
-                "     SUM(IF(TX.operation_type_id = 2, TX.amount, 0)) AS amount_sell, " +
-                "     SUM(IF(TX.operation_type_id = 2, TX.commission_amount, 0)) AS amount_sell_fee" +
-                "   FROM WALLET " +
-                "     JOIN USER ON (USER.id=WALLET.user_id) " +
-                (roleIdList.isEmpty() ? "" :
-                        "     AND USER.roleid IN (:role_id_list)") +
-                "     JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
-                "     JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                "     JOIN TRANSACTION TX ON TX.operation_type_id IN (1,2) " +
-                "             and TX.source_type='ORDER' " +
-                "             and TX.user_wallet_id=WALLET.id " +
-                "             and (TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') " +
-                "                                              AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
-                " WHERE EXISTS (" +
-                "       SELECT * " +
-                "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
-                "           WHERE (IOP.currency_id=CURRENCY.id " +
-                "                 AND (IOP.user_id = :requester_user_id)) ) " +
-                " GROUP BY email, currency_name, role  ";
-        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("start_date", startDate);
-            put("end_date", endDate);
-            put("role_id_list", roleIdList);
-            put("requester_user_id", requesterUserId);
-        }};
-        return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
-            UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
-            userSummaryOrdersDto.setUserEmail(rs.getString("email"));
-            userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
-            userSummaryOrdersDto.setRole(rs.getString("role"));
-            userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
-            userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
-            userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
-            userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
-            return userSummaryOrdersDto;
-        });
-    }
-
-
-    @Override
     public List<Transaction> getPayedRefTransactionsByOrderId(int orderId) {
         String sql = " SELECT TRANSACTION.*, CURRENCY.*, COMMISSION.*, COMPANY_WALLET.*, WALLET.* FROM TRANSACTION " +
                 "   JOIN REFERRAL_TRANSACTION RTX ON RTX.ID = TRANSACTION.source_id AND TRANSACTION.source_type = 'REFERRAL' " +
@@ -816,7 +694,9 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
-    public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime,
+                                                                LocalDateTime endTime,
+                                                                List<UserRole> userRoles) {
         String sql = "SELECT MIN(cur.id) AS currency_id, " +
                 "cur.name AS currency_name, " +
                 "SUM(refill) AS input, " +
@@ -829,14 +709,22 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
                 " JOIN USER u ON u.id = w.user_id" +
                 " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " WHERE tx.operation_type_id = 1 AND tx.source_type = 'REFILL' AND tx.datetime BETWEEN :start_time AND :end_time" +
+                " WHERE tx.operation_type_id = 1" +
+                " AND tx.source_type = 'REFILL'" +
+                " AND tx.status_id = 1" +
+                " AND tx.provided = 1" +
+                " AND tx.datetime BETWEEN :start_time AND :end_time" +
                 " UNION ALL" +
                 " SELECT tx.currency_id, 0 AS refill, 0 AS commission_refill, tx.amount AS withdraw, tx.commission_amount AS commission_withdraw" +
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
                 " JOIN USER u ON u.id = w.user_id" +
                 " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " WHERE tx.operation_type_id = 2 AND tx.source_type = 'WITHDRAW' AND tx.datetime BETWEEN :start_time AND :end_time" +
+                " WHERE tx.operation_type_id = 2" +
+                " AND tx.source_type = 'WITHDRAW'" +
+                " AND tx.status_id = 1" +
+                " AND tx.provided = 1" +
+                " AND tx.datetime BETWEEN :start_time AND :end_time" +
                 ") AGGR" +
                 " LEFT JOIN CURRENCY cur ON cur.id = AGGR.currency_id" +
                 " GROUP BY currency_name" +
@@ -857,6 +745,129 @@ public final class TransactionDaoImpl implements TransactionDao {
                     .inputCommission(resultSet.getBigDecimal("commission_in"))
                     .output(resultSet.getBigDecimal("output"))
                     .outputCommission(resultSet.getBigDecimal("commission_out"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<UserSummaryDto> getUsersWalletSummaryDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                          LocalDateTime endTime,
+                                                                          List<UserRole> userRoles,
+                                                                          int requesterId) {
+        String sql = "SELECT u.nickname AS user_nickname, " +
+                "u.email AS user_email, " +
+                "u.regdate AS user_register_date, " +
+                "(SELECT ip FROM USER_IP WHERE user_id = u.id ORDER BY registration_date DESC LIMIT 1) AS user_register_ip, " +
+                "(SELECT last_registration_date FROM USER_IP WHERE user_id = u.id ORDER BY last_registration_date DESC LIMIT 1) AS user_last_entry_login, " +
+                "(SELECT ip FROM USER_IP WHERE user_id = u.id ORDER BY last_registration_date DESC LIMIT 1) AS user_last_entry_ip, " +
+                "cur.name AS currency_name, " +
+                "w.active_balance  AS active_balance, " +
+                "w.reserved_balance AS reserved_balance, " +
+                "" +
+                "(SELECT o.date_acception" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp ON cp.id = o.currency_pair_id" +
+                " WHERE o.user_id = u.id AND o.date_acception IS NOT NULL AND o.status_id = 3 AND (cp.currency1_id = cur.id OR cp.currency2_id = cur.id)" +
+                " ORDER BY o.date_acception DESC LIMIT 1) AS last_accepted_order_date, " +
+                "" +
+                "(SELECT SUM(input.amount)" +
+                " FROM TRANSACTION input" +
+                " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop ON iop.currency_id = input.currency_id AND iop.user_id = :requester_user_id AND iop.operation_direction = 'REFILL'" +
+                " WHERE input.user_wallet_id = w.id AND input.operation_type_id = 1 AND input.status_id = 1 AND input.provided = 1 AND input.datetime BETWEEN :start_time AND :end_time) AS input_amount, " +
+                "" +
+                "(SELECT input.datetime" +
+                " FROM TRANSACTION input" +
+                " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop ON iop.currency_id = input.currency_id AND iop.user_id = :requester_user_id AND iop.operation_direction = 'REFILL'" +
+                " WHERE input.user_wallet_id = w.id AND input.operation_type_id = 1 AND input.status_id = 1 AND input.provided = 1 AND input.datetime BETWEEN :start_time AND :end_time" +
+                " ORDER BY input.datetime DESC LIMIT 1) AS last_input_date, " +
+                "" +
+                "(SELECT SUM(output.amount)" +
+                " FROM TRANSACTION output" +
+                " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop ON iop.currency_id = output.currency_id AND iop.user_id = :requester_user_id AND iop.operation_direction = 'WITHDRAW'" +
+                " WHERE output.user_wallet_id = w.id AND output.operation_type_id = 2 AND output.status_id = 1 AND output.provided = 1 AND output.datetime BETWEEN :start_time AND :end_time) AS output_amount, " +
+                "" +
+                "(SELECT output.datetime" +
+                " FROM TRANSACTION output" +
+                " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop ON iop.currency_id = output.currency_id AND iop.user_id = :requester_user_id AND iop.operation_direction = 'WITHDRAW'" +
+                " WHERE output.user_wallet_id = w.id AND output.operation_type_id = 2 AND output.status_id = 1 AND output.provided = 1 AND output.datetime BETWEEN :start_time AND :end_time" +
+                " ORDER BY output.datetime DESC LIMIT 1) AS last_output_date" +
+                "" +
+                " FROM USER u" +
+                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " LEFT JOIN WALLET w ON w.user_id = u.id" +
+                " JOIN CURRENCY cur ON cur.id = w.currency_id and cur.hidden <> 1" +
+                " WHERE EXISTS(SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryDto.builder()
+                    .nickname(rs.getString("user_nickname"))
+                    .email(rs.getString("user_email"))
+                    .createdAt(rs.getTimestamp("user_register_date").toLocalDateTime())
+                    .registrationIp(rs.getString("user_register_ip"))
+                    .lastEntryDate(rs.getTimestamp("user_last_entry_login").toLocalDateTime())
+                    .lastIp(rs.getString("user_last_entry_ip"))
+                    .currencyName(rs.getString("currency_name"))
+                    .activeBalance(rs.getBigDecimal("active_balance"))
+                    .reservedBalance(rs.getBigDecimal("reserved_balance"))
+                    .lastOrderDate(rs.getTimestamp("last_accepted_order_date").toLocalDateTime())
+                    .inputSummary(rs.getBigDecimal("input_amount"))
+                    .lastInputDate(rs.getTimestamp("last_input_date").toLocalDateTime())
+                    .outputSummary(rs.getBigDecimal("output_amount"))
+                    .lastOutputDate(rs.getTimestamp("last_output_date").toLocalDateTime())
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                               LocalDateTime endTime,
+                                                                               List<UserRole> userRoles,
+                                                                               int requesterId) {
+        String sql = "SELECT u.email AS email, " +
+                "cur.name AS currency_name, " +
+                "ur.name AS role, " +
+                "SUM(IF(tx.operation_type_id = 1, tx.amount, 0)) AS amount_buy, " +
+                "SUM(IF(tx.operation_type_id = 1, tx.commission_amount, 0)) AS amount_buy_fee, " +
+                "SUM(IF(tx.operation_type_id = 2, tx.amount, 0)) AS amount_sell, " +
+                "SUM(IF(tx.operation_type_id = 2, tx.commission_amount, 0)) AS amount_sell_fee" +
+                " FROM WALLET w" +
+                " JOIN USER u ON u.id = w.user_id" +
+                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN CURRENCY cur ON cur.id = w.currency_id" +
+                " JOIN TRANSACTION tx ON tx.operation_type_id IN (1,2)" +
+                " AND tx.source_type = 'ORDER'" +
+                " AND tx.user_wallet_id = w.id" +
+                " AND tx.datetime BETWEEN :start_time AND :end_time" +
+                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
+                " GROUP BY email, currency_name, role";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
+                    .email(rs.getString("email"))
+                    .currencyName(rs.getString("currency_name"))
+                    .role(rs.getString("role"))
+                    .amountBuy(rs.getBigDecimal("amount_buy"))
+                    .amountBuyFee(rs.getBigDecimal("amount_buy_fee"))
+                    .amountSell(rs.getBigDecimal("amount_sell"))
+                    .amountSellFee(rs.getBigDecimal("amount_sell_fee"))
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();

@@ -14,6 +14,7 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -296,15 +297,6 @@ public class RefillServiceImpl implements RefillService {
     String prefix = "user: ";
     invoiceConfirmData.setRemark(remark, prefix);
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
-  }
-
-  @Override
-  public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
-      String startDate,
-      String endDate,
-      List<Integer> roleIdList,
-      List<Integer> currencyList) {
-    return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
   @Override
@@ -1112,4 +1104,12 @@ public class RefillServiceImpl implements RefillService {
     refillRequestDao.invalidateAddress(address, merchantId, currencyId);
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+  @Override
+  public List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                     LocalDateTime endTime,
+                                                                     List<UserRole> roles,
+                                                                     int requesterId) {
+    return refillRequestDao.findAllByPeriodAndRoles(startTime, endTime, roles, requesterId);
+  }
 }
