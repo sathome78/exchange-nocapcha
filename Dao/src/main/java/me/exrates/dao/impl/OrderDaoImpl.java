@@ -1513,8 +1513,8 @@ public class OrderDaoImpl implements OrderDao {
                 "cur.name AS currency, " +
                 "t.datetime AS time, " +
                 "t.operation_type_id, " +
-                "t.status_id AS order_status_id," +
-                "o.status_id AS transaction_status_id" +
+                "t.status_id AS transaction_status_id," +
+                "o.status_id AS order_status_id" +
                 " FROM TRANSACTION t" +
                 " JOIN CURRENCY cur on t.currency_id = cur.id" +
                 " JOIN EXORDERS o on o.id = t.source_id" +
