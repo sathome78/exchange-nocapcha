@@ -234,7 +234,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         try {
             if (isOuterFile) {
                 properties.load(new FileInputStream(dbPropertiesFile));
-            } else {
+            }
+            else {
                 properties.load(getClass().getClassLoader().getResourceAsStream(dbPropertiesFile));
             }
         } catch (Exception e) {
@@ -1491,6 +1492,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "VAI",
                 "VAI", true, ExConvert.Unit.ETHER);
+    }
+    
+    @Bean(name = "uncServiceImpl")
+    public EthTokenService uncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x882fbbe226f293037fa5c06459b1f4e871b70e94");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UNC",
+                "UNC", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
