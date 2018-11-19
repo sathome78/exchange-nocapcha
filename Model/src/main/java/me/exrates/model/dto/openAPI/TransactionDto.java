@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.serializer.BigDecimalToDoubleSerializer;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
@@ -41,6 +42,9 @@ public class TransactionDto {
     @JsonProperty("operation_type")
     private OperationType operationType;
 
+    @JsonProperty("order_status")
+    private OrderStatus orderStatus;
+
     @JsonProperty("transaction_status")
-    private TransactionStatus status;
+    private TransactionStatus transactionStatus;
 }

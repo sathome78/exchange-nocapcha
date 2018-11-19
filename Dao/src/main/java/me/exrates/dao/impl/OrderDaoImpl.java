@@ -79,8 +79,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -1515,22 +1513,20 @@ public class OrderDaoImpl implements OrderDao {
                 "cur.name AS currency, " +
                 "t.datetime AS time, " +
                 "t.operation_type_id, " +
-                "o.status_id" +
+                "t.status_id AS order_status_id," +
+                "o.status_id AS transaction_status_id" +
                 " FROM TRANSACTION t" +
                 " JOIN CURRENCY cur on t.currency_id = cur.id" +
                 " JOIN EXORDERS o on o.id = t.source_id" +
                 " WHERE (o.user_id = :user_id OR o.user_acceptor_id = :user_id)" +
                 " AND t.source_id = :order_id" +
                 " AND t.source_type = :source_type" +
-                " AND (t.operation_type_id = :operation_type_1 OR t.operation_type_id = :operation_type_2)" +
                 " ORDER BY t.id";
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("order_id", orderId);
         params.put("source_type", ORDER.name());
-        params.put("operation_type_1", INPUT.getType());
-        params.put("operation_type_2", OUTPUT.getType());
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> TransactionDto.builder()
                 .transactionId(rs.getInt("id"))
@@ -1540,7 +1536,8 @@ public class OrderDaoImpl implements OrderDao {
                 .currency(rs.getString("currency"))
                 .time(rs.getTimestamp("time").toLocalDateTime())
                 .operationType(OperationType.convert(rs.getInt("operation_type_id")))
-                .status(TransactionStatus.convert(rs.getInt("status_id")))
+                .orderStatus(OrderStatus.convert(rs.getInt("order_status_id")))
+                .transactionStatus(TransactionStatus.convert(rs.getInt("transaction_status_id")))
                 .build());
     }
 }
