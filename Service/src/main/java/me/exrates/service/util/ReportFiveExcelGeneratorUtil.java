@@ -55,7 +55,7 @@ public class ReportFiveExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Балансы кошельков за период");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Балансы кошельков за период");
 
         XSSFRow row;
         XSSFCell cell;

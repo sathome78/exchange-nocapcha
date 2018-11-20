@@ -51,7 +51,7 @@ public class ReportFourExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Срез балансов кошельков");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Срез балансов кошельков");
 
         XSSFRow row;
         XSSFCell cell;

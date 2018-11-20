@@ -40,7 +40,7 @@ public class ReportEightExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Выгрузить ордера");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить ордера");
 
         XSSFRow row;
         XSSFCell cell;

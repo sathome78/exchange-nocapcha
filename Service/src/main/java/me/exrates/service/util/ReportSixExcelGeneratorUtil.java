@@ -60,7 +60,7 @@ public class ReportSixExcelGeneratorUtil {
         CellStyle body1Style = getBode1Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Разбаланс учета монет");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Разбаланс учета монет");
 
         XSSFRow row;
         XSSFCell cell;

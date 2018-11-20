@@ -38,7 +38,7 @@ public class ReportTwoExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Статистика по вводу-выводу по валютам");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Статистика по вводу-выводу по валютам");
 
         XSSFRow row;
         XSSFCell cell;

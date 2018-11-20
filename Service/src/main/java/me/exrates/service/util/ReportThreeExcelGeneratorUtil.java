@@ -23,9 +23,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
@@ -40,12 +42,12 @@ public class ReportThreeExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Статистика оборота по валютным парам (отчет 1)");
+        XSSFSheet sheet1 = workbook.createSheet("Sheet1 - Статистика оборота по валютным парам (отчет 1)");
 
         XSSFRow row;
         XSSFCell cell;
 
-        row = sheet.createRow(0);
+        row = sheet1.createRow(0);
 
         //header
         cell = row.createCell(4, CellType.STRING);
@@ -56,7 +58,7 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellValue("Комиссия");
         cell.setCellStyle(header1Style);
 
-        row = sheet.createRow(1);
+        row = sheet1.createRow(1);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Id пары");
@@ -98,34 +100,38 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellValue("Сумма коммиссий в BTC");
         cell.setCellStyle(header1Style);
 
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 7, 9));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 1, 1, 1));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 1, 2, 2));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 1, 3, 3));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
+        sheet1.addMergedRegion(new CellRangeAddress(0, 0, 7, 9));
 
-        sheet.autoSizeColumn(0, true);
-        sheet.setColumnWidth(0, sheet.getColumnWidth(0) + 256);
-        sheet.autoSizeColumn(1, true);
-        sheet.setColumnWidth(1, sheet.getColumnWidth(1) + 256);
-        sheet.autoSizeColumn(2, true);
-        sheet.setColumnWidth(2, sheet.getColumnWidth(2) + 256);
-        sheet.autoSizeColumn(3, true);
-        sheet.setColumnWidth(3, sheet.getColumnWidth(3) + 256);
-        sheet.autoSizeColumn(4, true);
-        sheet.setColumnWidth(4, sheet.getColumnWidth(4) + 256);
-        sheet.autoSizeColumn(5, true);
-        sheet.setColumnWidth(5, sheet.getColumnWidth(5) + 256);
-        sheet.autoSizeColumn(6, true);
-        sheet.setColumnWidth(6, sheet.getColumnWidth(6) + 256);
-        sheet.autoSizeColumn(7, true);
-        sheet.setColumnWidth(7, sheet.getColumnWidth(7) + 256);
-        sheet.autoSizeColumn(8, true);
-        sheet.setColumnWidth(8, sheet.getColumnWidth(8) + 256);
-        sheet.autoSizeColumn(9, true);
-        sheet.setColumnWidth(9, sheet.getColumnWidth(9) + 256);
+        sheet1.autoSizeColumn(0, true);
+        sheet1.setColumnWidth(0, sheet1.getColumnWidth(0) + 256);
+        sheet1.autoSizeColumn(1, true);
+        sheet1.setColumnWidth(1, sheet1.getColumnWidth(1) + 256);
+        sheet1.autoSizeColumn(2, true);
+        sheet1.setColumnWidth(2, sheet1.getColumnWidth(2) + 256);
+        sheet1.autoSizeColumn(3, true);
+        sheet1.setColumnWidth(3, sheet1.getColumnWidth(3) + 256);
+        sheet1.autoSizeColumn(4, true);
+        sheet1.setColumnWidth(4, sheet1.getColumnWidth(4) + 256);
+        sheet1.autoSizeColumn(5, true);
+        sheet1.setColumnWidth(5, sheet1.getColumnWidth(5) + 256);
+        sheet1.autoSizeColumn(6, true);
+        sheet1.setColumnWidth(6, sheet1.getColumnWidth(6) + 256);
+        sheet1.autoSizeColumn(7, true);
+        sheet1.setColumnWidth(7, sheet1.getColumnWidth(7) + 256);
+        sheet1.autoSizeColumn(8, false);
+        sheet1.setColumnWidth(8, sheet1.getColumnWidth(8) + 256);
+        sheet1.autoSizeColumn(9, true);
+        sheet1.setColumnWidth(9, sheet1.getColumnWidth(9) + 256);
 
         int bound = currencyPairsTurnover.size();
 
         //footer
-        row = sheet.createRow(2);
+        row = sheet1.createRow(2);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Итого:");
@@ -172,19 +178,19 @@ public class ReportThreeExcelGeneratorUtil {
         for (CurrencyPairTurnoverReportDto cpt : currencyPairsTurnover) {
             final int currencyPairId = cpt.getCurrencyPairId();
             final String currencyPairName = cpt.getCurrencyPairName();
-            final String currencyAccountingName = cpt.getCurrencyAccountingName();
+            final String currencyName = cpt.getCurrencyAccountingName();
             final Integer quantity = cpt.getQuantity();
-            final BigDecimal amountConvert = cpt.getAmountConvert();
-            final BigDecimal amountCommission = cpt.getAmountCommission();
+            final BigDecimal amountConvert = nonNull(cpt.getAmountConvert()) ? cpt.getAmountConvert() : BigDecimal.ZERO;
+            final BigDecimal amountCommission = nonNull(cpt.getAmountCommission()) ? cpt.getAmountCommission() : BigDecimal.ZERO;
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyAccountingName);
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyName);
             if (isNull(ratePair)) {
                 ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
             }
             final BigDecimal usdRate = ratePair.getLeft();
             final BigDecimal btcRate = ratePair.getRight();
 
-            row = sheet.createRow(i + 3);
+            row = sheet1.createRow(i + 3);
 
             cell = row.createCell(0, CellType.NUMERIC);
             cell.setCellValue(currencyPairId);
@@ -195,7 +201,7 @@ public class ReportThreeExcelGeneratorUtil {
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(2, CellType.STRING);
-            cell.setCellValue(currencyAccountingName);
+            cell.setCellValue(currencyName);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
@@ -230,7 +236,7 @@ public class ReportThreeExcelGeneratorUtil {
         }
 
         //footer
-        row = sheet.createRow((bound - 1) + 4);
+        row = sheet1.createRow((bound - 1) + 4);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Итого:");
@@ -274,9 +280,9 @@ public class ReportThreeExcelGeneratorUtil {
 
 //      -------------------------------------------------------------------------------
 
-        sheet = workbook.createSheet("Статистика оборота по валютным парам (отчет 2)");
+        XSSFSheet sheet2 = workbook.createSheet("Sheet2 - Статистика оборота по валютным парам (отчет 2)");
 
-        row = sheet.createRow(0);
+        row = sheet2.createRow(0);
 
         //header
         cell = row.createCell(1, CellType.STRING);
@@ -287,7 +293,7 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellValue("Комиссия");
         cell.setCellStyle(header1Style);
 
-        row = sheet.createRow(1);
+        row = sheet2.createRow(1);
 
         cell = row.createCell(0, CellType.STRING);
         cell.setCellValue("Конвертируемая валюта");
@@ -317,23 +323,24 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellValue("Сумма коммиссий в BTC");
         cell.setCellStyle(header1Style);
 
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 3));
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
+        sheet2.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
+        sheet2.addMergedRegion(new CellRangeAddress(0, 0, 1, 3));
+        sheet2.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
 
-        sheet.autoSizeColumn(0, true);
-        sheet.setColumnWidth(0, sheet.getColumnWidth(0) + 256);
-        sheet.autoSizeColumn(1, true);
-        sheet.setColumnWidth(1, sheet.getColumnWidth(1) + 256);
-        sheet.autoSizeColumn(2, true);
-        sheet.setColumnWidth(2, sheet.getColumnWidth(2) + 256);
-        sheet.autoSizeColumn(3, true);
-        sheet.setColumnWidth(3, sheet.getColumnWidth(3) + 256);
-        sheet.autoSizeColumn(4, true);
-        sheet.setColumnWidth(4, sheet.getColumnWidth(4) + 256);
-        sheet.autoSizeColumn(5, true);
-        sheet.setColumnWidth(5, sheet.getColumnWidth(5) + 256);
-        sheet.autoSizeColumn(6, true);
-        sheet.setColumnWidth(6, sheet.getColumnWidth(6) + 256);
+        sheet2.autoSizeColumn(0, true);
+        sheet2.setColumnWidth(0, sheet2.getColumnWidth(0) + 256);
+        sheet2.autoSizeColumn(1, true);
+        sheet2.setColumnWidth(1, sheet2.getColumnWidth(1) + 256);
+        sheet2.autoSizeColumn(2, true);
+        sheet2.setColumnWidth(2, sheet2.getColumnWidth(2) + 256);
+        sheet2.autoSizeColumn(3, true);
+        sheet2.setColumnWidth(3, sheet2.getColumnWidth(3) + 256);
+        sheet2.autoSizeColumn(4, true);
+        sheet2.setColumnWidth(4, sheet2.getColumnWidth(4) + 256);
+        sheet2.autoSizeColumn(5, true);
+        sheet2.setColumnWidth(5, sheet2.getColumnWidth(5) + 256);
+        sheet2.autoSizeColumn(6, true);
+        sheet2.setColumnWidth(6, sheet2.getColumnWidth(6) + 256);
 
         Map<String, List<CurrencyPairTurnoverReportDto>> currencyPairsTurnoverMap = currencyPairsTurnover.stream()
                 .collect(Collectors.groupingBy(CurrencyPairTurnoverReportDto::getCurrencyAccountingName));
@@ -341,10 +348,10 @@ public class ReportThreeExcelGeneratorUtil {
         bound = currencyPairsTurnoverMap.size();
 
         //footer
-        row = sheet.createRow(2);
+        row = sheet2.createRow(2);
 
         cell = row.createCell(0, CellType.STRING);
-        cell.setCellValue("Итого");
+        cell.setCellValue("Итого:");
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(1, CellType.STRING);
@@ -352,11 +359,11 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(2, CellType.NUMERIC);
-        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(C" + 4 + ":C" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(3, CellType.NUMERIC);
-        cell.setCellFormula("SUM(E" + 4 + ":E" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(4, CellType.STRING);
@@ -364,11 +371,11 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(5, CellType.NUMERIC);
-        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(F" + 4 + ":F" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(6, CellType.NUMERIC);
-        cell.setCellFormula("SUM(H" + 4 + ":H" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         //body
@@ -386,14 +393,16 @@ public class ReportThreeExcelGeneratorUtil {
 
             final BigDecimal sumAmountConvert = value.stream()
                     .map(CurrencyPairTurnoverReportDto::getAmountConvert)
+                    .filter(Objects::nonNull)
                     .reduce(BigDecimal::add)
                     .orElse(BigDecimal.ZERO);
             final BigDecimal sumAmountCommission = value.stream()
                     .map(CurrencyPairTurnoverReportDto::getAmountCommission)
+                    .filter(Objects::nonNull)
                     .reduce(BigDecimal::add)
                     .orElse(BigDecimal.ZERO);
 
-            row = sheet.createRow(i + 3);
+            row = sheet2.createRow(i + 3);
 
             cell = row.createCell(0, CellType.STRING);
             cell.setCellValue(key);
@@ -427,10 +436,10 @@ public class ReportThreeExcelGeneratorUtil {
         }
 
         //footer
-        row = sheet.createRow((bound - 1) + 4);
+        row = sheet2.createRow((bound - 1) + 4);
 
         cell = row.createCell(0, CellType.STRING);
-        cell.setCellValue("Итого");
+        cell.setCellValue("Итого:");
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(1, CellType.STRING);
@@ -438,11 +447,11 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(2, CellType.NUMERIC);
-        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(C" + 4 + ":C" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(3, CellType.NUMERIC);
-        cell.setCellFormula("SUM(E" + 4 + ":E" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(4, CellType.STRING);
@@ -450,11 +459,11 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellStyle(footer1Style);
 
         cell = row.createCell(5, CellType.NUMERIC);
-        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(F" + 4 + ":F" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         cell = row.createCell(6, CellType.NUMERIC);
-        cell.setCellFormula("SUM(H" + 4 + ":H" + ((bound - 1) + 4) + ")");
+        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

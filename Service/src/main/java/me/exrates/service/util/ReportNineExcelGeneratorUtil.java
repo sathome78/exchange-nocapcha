@@ -36,7 +36,7 @@ public class ReportNineExcelGeneratorUtil {
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Выгрузить данные по юзерам");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить данные по юзерам");
 
         XSSFRow row;
         XSSFCell cell;
