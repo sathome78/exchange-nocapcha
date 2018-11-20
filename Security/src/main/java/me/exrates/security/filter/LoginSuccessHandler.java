@@ -108,7 +108,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         form.param("username", principal.getUsername());
         form.param("password", cleanPassword);
         form.param("grant_type", "password");
-        JSONObject tokensJson = new JSONObject(client.target(authServiceUrl + "/oauth/token").
+        JSONObject tokensJson = new JSONObject(client.target("http://" + authServiceUrl + "/oauth/token").
                     request().header(HttpHeaders.AUTHORIZATION, "Basic Y3VybF9jbGllbnQxOnVzZXI=").post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE
             )).readEntity(String.class));
 
