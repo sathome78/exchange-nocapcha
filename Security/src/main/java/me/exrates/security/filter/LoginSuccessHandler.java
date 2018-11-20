@@ -97,13 +97,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
     private void setAuthTokens(HttpServletRequest request, User principal) {
         try {
-            String rowPassword = (String) request.getSession().getAttribute("row_password");
-            request.getSession().removeAttribute("row_password");
+            String rawPassword = (String) request.getSession().getAttribute("raw_password");
+            request.getSession().removeAttribute("raw_password");
 
             OkHttpClient cl = new OkHttpClient();
 
             Request req = new Request.Builder()
-                    .url("http://" + authServiceHost + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rowPassword)
+                    .url("http://" + authServiceHost + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rawPassword)
                     .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
                     .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
                     .addHeader("cache-control", "no-cache")

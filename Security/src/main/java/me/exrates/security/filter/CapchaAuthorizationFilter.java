@@ -131,7 +131,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*---------------*/
         Authentication authentication = super.attemptAuthentication(request, response);
         /*-------------------*/
-        session.setAttribute("row_password", request.getParameter("password"));
+        session.setAttribute("raw_password", request.getParameter("password"));
         /*-------------------*/
         secureServiceImpl.checkLoginAuth(request, authentication, this);
         /* old impl
