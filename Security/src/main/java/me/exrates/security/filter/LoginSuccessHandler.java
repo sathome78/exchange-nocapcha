@@ -33,7 +33,7 @@ import java.util.Locale;
  * Created by Valk on 28.04.2016.
  */
 @Log4j2
-@PropertySource({"classpath:/microservices.properties"})
+@PropertySource({"classpath:/auth_server.properties"})
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Autowired
@@ -47,7 +47,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     @Autowired
     private IpBlockingService ipBlockingService;
 
-    @Value("${auth.server.url}")
+    @Value("${auth.server.host}")
     private String authServiceUrl;
 
     @Override
@@ -97,13 +97,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
 
     private void setAuthTokens(HttpServletRequest request, User principal) {
         try {
-            String cleanPassword = (String) request.getSession().getAttribute("clean_password");
-            request.getSession().removeAttribute("clean_password");
+            String rowPassword = (String) request.getSession().getAttribute("row_password");
+            request.getSession().removeAttribute("row_password");
 
             OkHttpClient cl = new OkHttpClient();
 
             Request req = new Request.Builder()
-                    .url("http://" + authServiceUrl + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + cleanPassword)
+                    .url("http://" + authServiceUrl + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rowPassword)
                     .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
                     .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
                     .addHeader("cache-control", "no-cache")
@@ -111,14 +111,13 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                     .build();
 
             Response response = cl.newCall(req).execute();
-
             JSONObject tokensJson = new JSONObject(response.body().string());
 
             log.info(tokensJson.toString());
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
             request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
-        } catch (Throwable e){
+        } catch (Throwable e) {
             log.error(e);
         }
     }
