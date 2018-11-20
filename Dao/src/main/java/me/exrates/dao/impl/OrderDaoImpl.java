@@ -1432,23 +1432,20 @@ public class OrderDaoImpl implements OrderDao {
                 "cur.name AS currency, " +
                 "t.datetime AS time, " +
                 "t.operation_type_id, " +
-                "t.status_id AS order_status_id," +
-                "o.status_id AS transaction_status_id" +
+                "t.status_id AS transaction_status_id," +
+                "o.status_id AS order_status_id" +
                 " FROM TRANSACTION t" +
                 " JOIN CURRENCY cur on t.currency_id = cur.id" +
                 " JOIN EXORDERS o on o.id = t.source_id" +
                 " WHERE (o.user_id = :user_id OR o.user_acceptor_id = :user_id)" +
                 " AND t.source_id = :order_id" +
                 " AND t.source_type = :source_type" +
-                " AND (t.operation_type_id = :operation_type_1 OR t.operation_type_id = :operation_type_2)" +
                 " ORDER BY t.id";
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("order_id", orderId);
         params.put("source_type", ORDER.name());
-        params.put("operation_type_1", INPUT.getType());
-        params.put("operation_type_2", OUTPUT.getType());
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> TransactionDto.builder()
                 .transactionId(rs.getInt("id"))

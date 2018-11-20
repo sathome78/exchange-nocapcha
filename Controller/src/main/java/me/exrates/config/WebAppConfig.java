@@ -234,7 +234,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         try {
             if (isOuterFile) {
                 properties.load(new FileInputStream(dbPropertiesFile));
-            } else {
+            }
+            else {
                 properties.load(getClass().getClassLoader().getResourceAsStream(dbPropertiesFile));
             }
         } catch (Exception e) {
@@ -1481,6 +1482,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "TTP",
                 "TTP", false, ExConvert.Unit.FINNEY);
+    }
+
+    @Bean(name = "vaiServiceImpl")
+    public EthTokenService vaiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd4078bdb652610ad5383a747d130cbe905911102");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "VAI",
+                "VAI", true, ExConvert.Unit.ETHER);
+    }
+    
+    @Bean(name = "uncServiceImpl")
+    public EthTokenService uncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x882fbbe226f293037fa5c06459b1f4e871b70e94");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UNC",
+                "UNC", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
