@@ -12,7 +12,6 @@ import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -110,10 +109,6 @@ public interface OrderDao {
 
     List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
-    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
-
-    List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList);
-
     OrderRoleInfoForDelete getOrderRoleInfo(int orderId);
 
     List<OrderBookItem> getOrderBookItemsForType(Integer currencyPairId, OrderType orderType);
@@ -135,4 +130,6 @@ public interface OrderDao {
     List<ExOrder> getOpenedOrdersByCurrencyPair(Integer userId, String currencyPair);
 
     List<TransactionDto> getOrderTransactions(Integer userId, Integer orderId);
+
+    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> roles);
 }

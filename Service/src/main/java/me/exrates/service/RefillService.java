@@ -9,11 +9,13 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,8 +40,6 @@ public interface RefillService {
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
   void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
-
-  List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
   List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
@@ -145,5 +145,9 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
 
     void invalidateAddress(String address, Integer merchantId, Integer currencyId);
-
+    
+  List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                              LocalDateTime endTime,
+                                                              List<UserRole> roles,
+                                                              int requesterId);
 }

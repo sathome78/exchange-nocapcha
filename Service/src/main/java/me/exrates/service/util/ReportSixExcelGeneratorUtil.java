@@ -52,13 +52,6 @@ public class ReportSixExcelGeneratorUtil {
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
-        XSSFSheet sheet = workbook.createSheet("Разбаланс учета монет");
-
-        XSSFRow row;
-        XSSFCell cell;
-
-        row = sheet.createRow(0);
-
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle header2Style = getHeader2Style(workbook);
         CellStyle header3Style = getHeader3Style(workbook);
@@ -66,6 +59,13 @@ public class ReportSixExcelGeneratorUtil {
         CellStyle header5Style = getHeader5Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
+
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Разбаланс учета монет");
+
+        XSSFRow row;
+        XSSFCell cell;
+
+        row = sheet.createRow(0);
 
         //header
         cell = row.createCell(0, CellType.STRING);

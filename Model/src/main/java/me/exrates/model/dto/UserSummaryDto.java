@@ -1,71 +1,42 @@
 package me.exrates.model.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-/**
- * Created by Valk on 04.05.2016.
- * <p/>
- * class is used for upload data
- */
+import static java.util.Objects.isNull;
 
-@Getter @Setter
+@Data
+@Builder(builderClassName = "Builder", toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserSummaryDto {
-  private String userNickname;
-  private String userEmail;
-  private String creationDate;
-  private String registeredIp;
-  private String lastIp;
-  private String currencyName;
-  private BigDecimal activeBalance;
-  private BigDecimal reservedBalance;
-  private BigDecimal inputSummary;
-  private BigDecimal outputSummary;
-  private Boolean bothCurrencyPermissionsPresent;
 
-  public Boolean isEmpty() {
-    return (activeBalance == null || activeBalance.compareTo(BigDecimal.ZERO) == 0) &&
-        (reservedBalance == null || reservedBalance.compareTo(BigDecimal.ZERO) == 0) &&
-        (inputSummary == null || inputSummary.compareTo(BigDecimal.ZERO) == 0) &&
-        (outputSummary == null || outputSummary.compareTo(BigDecimal.ZERO) == 0);
-  }
+    private String nickname;
+    private String email;
+    private LocalDateTime createdAt;
+    private String registrationIp;
+    private LocalDateTime lastEntryDate;
+    private String lastIp;
+    private String currencyName;
+    private BigDecimal activeBalance;
+    private BigDecimal reservedBalance;
+    private LocalDateTime lastOrderDate;
+    private BigDecimal inputSummary;
+    private LocalDateTime lastInputDate;
+    private BigDecimal outputSummary;
+    private LocalDateTime lastOutputDate;
 
-  public static String getTitle() {
-    return "Name" + ";" +
-        "Email" + ";" +
-        "Creation date" + ";" +
-        "IP" + ";" +
-        "Last IP" + ";" +
-        "Wallet" + ";" +
-        "balance" + ";" +
-        "reserve" + ";" +
-        "input summary" + ";" +
-        "output summary" + ";" +
-        "turnover" +
-        "\r\n";
-  }
-
-  @Override
-  public String toString() {
-    return userNickname + ";" +
-        userEmail + ";" +
-        creationDate + ";" +
-        (registeredIp == null ? "" : registeredIp) + ";" +
-        (lastIp == null ? "" : lastIp) + ";" +
-        (currencyName == null ? "" : currencyName) + ";" +
-        BigDecimalProcessing.formatNoneComma(activeBalance, false) + ";" +
-        BigDecimalProcessing.formatNoneComma(reservedBalance, false) + ";" +
-        BigDecimalProcessing.formatNoneComma(inputSummary, false) + ";" +
-        BigDecimalProcessing.formatNoneComma(outputSummary, false) + ";" +
-        (bothCurrencyPermissionsPresent ?
-            BigDecimalProcessing.formatNoneComma(
-                BigDecimalProcessing.doActionLax(inputSummary, outputSummary, ActionType.SUBTRACT), false) :
-            "Not enough rights") +
-        "\r\n";
-  }
-
+    public Boolean isEmpty() {
+        return (isNull(activeBalance) || activeBalance.compareTo(BigDecimal.ZERO) == 0)
+                && (isNull(reservedBalance) || reservedBalance.compareTo(BigDecimal.ZERO) == 0)
+                && (isNull(inputSummary) || inputSummary.compareTo(BigDecimal.ZERO) == 0)
+                && (isNull(outputSummary) || outputSummary.compareTo(BigDecimal.ZERO) == 0);
+    }
 }

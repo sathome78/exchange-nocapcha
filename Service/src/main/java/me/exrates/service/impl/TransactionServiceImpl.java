@@ -298,22 +298,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.setStatusById(trasactionId, statusId);
     }
 
-    @Override
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-    public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
-            Integer requesterUserId,
-            String startDate,
-            String endDate,
-            List<Integer> roleIdList) {
-        return transactionDao.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, roleIdList);
-    }
-
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-    @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
-        return transactionDao.getUserSummaryOrdersList(requesterUserId, startDate, endDate, roles);
-    }
-
     private List<String> convertTrListToString(List<OperationViewDto> transactions) {
         List<String> transactionsResult = new ArrayList<>();
         transactionsResult.add(getCSVTransactionsHeader());
@@ -362,9 +346,29 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.getPayedRefTransactionsByOrderId(orderId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
-    public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
+    public List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime,
+                                                                LocalDateTime endTime,
+                                                                List<UserRole> userRoles) {
         return transactionDao.getInOutSummaryByPeriodAndRoles(startTime, endTime, userRoles);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime,
+                                                          LocalDateTime endTime,
+                                                          List<UserRole> userRoles,
+                                                          int requesterId) {
+        return transactionDao.getUsersWalletSummaryDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                               LocalDateTime endTime,
+                                                               List<UserRole> userRoles,
+                                                               int requesterId) {
+        return transactionDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
     }
 }

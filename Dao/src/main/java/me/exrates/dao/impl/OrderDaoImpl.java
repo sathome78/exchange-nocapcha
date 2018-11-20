@@ -17,7 +17,6 @@ import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -76,9 +75,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
+import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -811,7 +812,7 @@ public class OrderDaoImpl implements OrderDao {
                 break;
         }
 
-        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
+        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(toList());
         List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
         String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
@@ -1123,88 +1124,6 @@ public class OrderDaoImpl implements OrderDao {
             }
         });
         return result;
-    }
-
-    @Override
-    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, OT.id AS operation_type_id, COUNT(EO.id) AS quantity, " +
-                //wolper 19.04.18
-                // MIN is used for performance reason
-                // as an alternative to additional "group by CP.ID"
-                " MIN(CP.id) " +
-                "AS currency__pair_id, SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert " +
-                "FROM EXORDERS EO " +
-                "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
-                "  JOIN CURRENCY CR ON CP.currency2_id = CR.id " +
-                "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
-                "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
-                "  WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
-                "  AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s')" +
-                "  GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
-        Map<String, Object> params = new HashMap<>();
-        params.put("start_time", Timestamp.valueOf(startTime));
-        params.put("end_time", Timestamp.valueOf(endTime));
-        params.put("user_roles", userRoleIdList);
-
-        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
-            CurrencyPairTurnoverReportDto dto = new CurrencyPairTurnoverReportDto();
-            dto.setOrderNum(row + 1);
-            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            dto.setCurrencyAccountingName(rs.getString("currency_ac_name"));
-            dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
-            dto.setAmountBase(rs.getBigDecimal("amount_base"));
-            dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
-            dto.setQuantity(rs.getInt("quantity"));
-            //wolper 19.04.2018
-            //currency id added
-            dto.setPairId(rs.getInt("currency__pair_id"));
-            return dto;
-        });
-    }
-
-
-    /*maybe add index
-     * CREATE INDEX exorders__status_date_accept ON EXORDERS (status_id, date_acception);
-     * */
-
-    @Override
-    public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
-        String sql = "SELECT CP.name AS currency_pair_name, CR.name as currency_ac_name, " +
-                //wolper 19.04.18
-                // MIN is used for performance reason
-                // as an alternative to additional "group by CUR.ID"
-                " MIN(CP.ID)" +
-                " AS currency_pair_id, OT.id AS operation_type_id, " +
-                "       SUM(EO.amount_base) AS amount_base, SUM(EO.amount_convert) AS amount_convert, " +
-                "  SUM((SELECT SUM(commission_amount) FROM TRANSACTION WHERE source_type = 'ORDER' AND source_id = EO.id AND operation_type_id != 5 )) " +
-                "    AS commission " +
-                "FROM EXORDERS EO " +
-                "  JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
-                "  JOIN CURRENCY CR ON CP.currency2_id = CR.id " +
-                "  JOIN OPERATION_TYPE OT ON EO.operation_type_id = OT.id " +
-                "  JOIN USER U ON EO.user_id = U.id AND U.roleid IN (:user_roles) " +
-                "WHERE EO.status_id = 3 AND EO.date_acception BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
-                "AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') " +
-                "GROUP BY CP.name, OT.id, CR.name ORDER BY CP.name ASC, OT.id ASC";
-        Map<String, Object> params = new HashMap<>();
-        params.put("start_time", Timestamp.valueOf(startTime));
-        params.put("end_time", Timestamp.valueOf(endTime));
-        params.put("user_roles", userRoleIdList);
-
-        return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
-            OrdersCommissionSummaryDto dto = new OrdersCommissionSummaryDto();
-            dto.setOrderNum(row + 1);
-            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            dto.setCurrencyAccountingName(rs.getString("currency_ac_name"));
-            dto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
-            dto.setAmountBase(rs.getBigDecimal("amount_base"));
-            dto.setAmountConvert(rs.getBigDecimal("amount_convert"));
-            dto.setCommissionAmount(rs.getBigDecimal("commission"));
-            //wolper 19.04.2018
-            //added currency id
-            dto.setPairId(rs.getInt("currency_pair_id"));
-            return dto;
-        });
     }
 
     @Override
@@ -1538,6 +1457,39 @@ public class OrderDaoImpl implements OrderDao {
                 .operationType(OperationType.convert(rs.getInt("operation_type_id")))
                 .orderStatus(OrderStatus.convert(rs.getInt("order_status_id")))
                 .transactionStatus(TransactionStatus.convert(rs.getInt("transaction_status_id")))
+                .build());
+    }
+
+    @Override
+    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
+                                                                                       LocalDateTime endTime,
+                                                                                       List<UserRole> roles) {
+        String sql = "SELECT MIN(cp.id) AS currency_pair_id, " +
+                "cp.name AS currency_pair_name, " +
+                "cur.name as convert_currency_name, " +
+                "COUNT(o.id) AS quantity, " +
+                "SUM(o.amount_convert) AS amount_convert," +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS amount_commission" +
+                " FROM EXORDERS o " +
+                " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
+                " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
+                " JOIN USER u ON o.user_id = u.id AND u.roleid IN (:user_roles) " +
+                " WHERE o.status_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY cp.name, cur.name" +
+                " ORDER BY cp.name ASC";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        params.put("user_roles", roles.stream().map(UserRole::getName).collect(toList()));
+
+        return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
+                .currencyPairId(rs.getInt("currency_pair_id"))
+                .currencyPairName(rs.getString("currency_pair_name"))
+                .currencyAccountingName(rs.getString("convert_currency_name"))
+                .quantity(rs.getInt("quantity"))
+                .amountConvert(rs.getBigDecimal("amount_convert"))
+                .amountCommission(rs.getBigDecimal("amount_commission"))
                 .build());
     }
 }

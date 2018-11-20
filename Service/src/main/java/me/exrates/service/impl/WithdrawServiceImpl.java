@@ -11,6 +11,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -106,16 +107,6 @@ public class WithdrawServiceImpl implements WithdrawService {
         merchantCurrencyOptionsDto.getWithdrawAutoEnabled(),
         merchantCurrencyOptionsDto.getWithdrawAutoDelaySeconds(),
         merchantCurrencyOptionsDto.getWithdrawAutoThresholdAmount());
-  }
-
-  @Override
-  @Transactional
-  public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
-      String startDate,
-      String endDate,
-      List<Integer> roleIdList,
-      List<Integer> currencyList) {
-    return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
   @Override
@@ -703,4 +694,12 @@ public class WithdrawServiceImpl implements WithdrawService {
     return notification;
   }
 
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+  @Override
+  public List<WithdrawRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                       LocalDateTime endTime,
+                                                                       List<UserRole> userRoles,
+                                                                       int requesterId) {
+    return withdrawRequestDao.findAllByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+  }
 }

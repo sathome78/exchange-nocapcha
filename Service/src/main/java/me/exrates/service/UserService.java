@@ -192,7 +192,9 @@ public interface UserService {
 
     List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
 
-    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+    UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
     String getUserEmailFromSecurityContext();
 
