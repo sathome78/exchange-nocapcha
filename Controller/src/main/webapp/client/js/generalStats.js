@@ -80,19 +80,11 @@ $(function () {
     $($datepickerBalances).val(moment($($datepickerBalances).datetimepicker('getValue')).format(datetimeFormat));
     $($datepickerInOut).val(moment($($datepickerInOut).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
-    // refreshUsersInfo();
     refreshMailingTime();
     refreshMailingStatus();
 
-
-    // $('#refresh-users').click(refreshUsersInfo);
-    // $('#download-currencies-report').click(getCurrenciesTurnover);
-    $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
-    $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
-    // $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
-    // $('#download-wallet-balances-for-period').click(getWalletBalancesForPeriodToDownload());
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -337,16 +329,6 @@ $(function () {
             }]
         };
 
-        // $($balancesSliceStatisticTable).find('th').filter(function (index) {
-        //     return index > 7
-        // }).map(function () {
-        //     return $.trim($(this).text());
-        // }).get().forEach(function (item) {
-        //     options['columns'].push({
-        //         data: 'balances.' + item
-        //     });
-        // });
-
         balancesExternalWalletsDataTable = $($balancesSliceStatisticTable).DataTable(options);
 
     }
@@ -436,6 +418,26 @@ function getArchiveInputOutput() {
 
 function getInOutSummaryToDownload(id) {
     var url = '/2a8fy7b07dxe44/generalStats/archiveInOutReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getTurnoverStatisticByPairsToDownload() {
+    getCurrencyPairsTurnover();
+}
+
+function getCurrencyPairsTurnover() {
+    var url = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.responseType = "blob";
@@ -558,50 +560,6 @@ function refreshUsersInfo() {
     })
 }
 
-function getCurrencyPairsTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencyPairs.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
-function getCurrencyPairsComissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencyPairsComissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
-// function getCurrenciesTurnover() {
-//     const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
-//     $.get(fullUrl, function (data) {
-//         saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-//     })
-//
-// }
-
-// function getInputOutputSummaryWithCommissions() {
-//     const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
-//     $.get(fullUrl, function (data) {
-//         saveToDisk(data, extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-//     })
-//
-// }
-
-function getUserActivities() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/userActivities?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('userActivities.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
-function getUserTotalCommission() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/userTotalCommission?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('userTotalCommission.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
 function getTimeParams() {
     var startTime = $('#datetimepicker_start').val().replace(' ', '_');
     var endTime = $('#datetimepicker_end').val().replace(' ', '_');
@@ -701,21 +659,6 @@ function deleteSubscriberEmail(email, datatable) {
     }).done(function () {
         datatable.ajax.reload(null, false);
     })
-}
-
-
-function getStartDateFromPicker() {
-    return getDateFromPicker($('#datetimepicker_start'))
-}
-
-
-function getEndDateFromPicker() {
-    return getDateFromPicker($('#datetimepicker_end'))
-}
-
-function getDateFromPicker($datepicker) {
-    var date = $($datepicker).datetimepicker('getValue');
-    return moment(date).format('YYYY-MM-DD HH-mm');
 }
 
 function numbroWithCommas(value) {

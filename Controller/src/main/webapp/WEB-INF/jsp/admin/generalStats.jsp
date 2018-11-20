@@ -88,6 +88,7 @@
 
 
                     </div>
+                    <%--Статистика по пользователям--%>
                     <div class="form_full_height_width col-md-8 col-md-offset-2">
                         <div class="input-block-wrapper">
                             <div class="col-md-8 input-block-wrapper__label-wrapper">
@@ -142,33 +143,14 @@
                         </div>
                         <p></p>
 
-                        <%--<div class="input-block-wrapper">--%>
-                            <%--<div class="col-md-5 input-block-wrapper__label-wrapper">--%>
-                                <%--<label class="input-block-wrapper__label"><loc:message--%>
-                                        <%--code="admin.generalStats.button.currencies"/></label>--%>
-                            <%--</div>--%>
-                            <%--<div class="col-md-7 input-block-wrapper__input-wrapper">--%>
-                                <%--<button id="download-currencies-report" class="blue-box">--%>
-                                    <%--<loc:message code="admin.stats.download"/></button>--%>
-                            <%--</div>--%>
-                        <%--</div>--%>
+                        <%--Статистика оборота по валютным парам--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label"><loc:message
                                         code="admin.generalStats.button.currencyPairs"/></label>
                             </div>
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-currency-pairs-report" class="blue-box">
-                                    <loc:message code="admin.stats.download"/></button>
-                            </div>
-                        </div>
-                        <div class="input-block-wrapper">
-                            <div class="col-md-5 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message
-                                        code="admin.generalStats.button.currencyPairsComissions"/></label>
-                            </div>
-                            <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-currency-pairs-comissions" class="blue-box">
+                                <button id="download-currency-pairs-report" class="blue-box" onclick="getTurnoverStatisticByPairsToDownload()">
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>

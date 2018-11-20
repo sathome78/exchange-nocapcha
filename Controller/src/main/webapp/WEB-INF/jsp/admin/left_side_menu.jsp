@@ -137,7 +137,6 @@
                     <ul>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message code="admin.generalStats.title"/></a></li>
                         <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
-                        <%--<li><a href="<c:url value='/2a8fy7b07dxe44/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>--%>
                     </ul>
                 </div>
 

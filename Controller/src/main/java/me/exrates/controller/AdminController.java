@@ -549,39 +549,6 @@ public class AdminController {
         return result;
     }
 
-    /*todo: Temporary commented for security reasons*/
-    /*@RequestMapping("/2a8fy7b07dxe44/addUser")
-    public ModelAndView addUser(HttpSession httpSession) {
-        ModelAndView model = new ModelAndView();
-
-        model.addObject("roleList", userService.getAllRoles());
-        User user = new User();
-        model.addObject("user", user);
-        model.setViewName("admin/addUser");
-
-        return model;
-    }
-
-    @AdminLoggable
-    @RequestMapping(value = "/2a8fy7b07dxe44/adduser/submit", method = RequestMethod.POST)
-    public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-
-        user.setConfirmPassword(user.getPassword());
-        user.setStatus(UserStatus.ACTIVE);
-        registerFormValidation.validate(user, result, localeResolver.resolveLocale(request));
-        if (result.hasErrors()) {
-            model.addObject("roleList", userService.getAllRoles());
-            model.setViewName("admin/addUser");
-        } else {
-            userService.createUserByAdmin(user);
-            model.setViewName("redirect:/2a8fy7b07dxe44");
-        }
-
-        model.addObject("user", user);
-
-        return model;
-    }*/
-
     @AdminLoggable
     @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
     public ModelAndView editUser(@RequestParam(required = false) Integer id, @RequestParam(required = false) String email, HttpServletRequest request, Principal principal) {
@@ -632,43 +599,6 @@ public class AdminController {
         model.addObject("walletsExtendedInfoRequired", user.getRole().showExtendedOrderInfo());
         return model;
     }
-
-    /*
-     * Commented temporary, for security reasons
-    @AdminLoggable
-    @RequestMapping("/2a8fy7b07dxe44/editUser/submit2faOptions")
-    public RedirectView submitNotificationOptions(@RequestParam int userId, RedirectAttributes redirectAttributes,
-                                                  HttpServletRequest request) {
-        RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=".concat(String.valueOf(userId)));
-        try {
-            Map<Integer, NotificationsUserSetting> settingsMap = notificationsSettingsService.getSettingsMap(userId);
-            settingsMap.forEach((k, v) -> {
-                Integer notificatorId = Integer.parseInt(request.getParameter(k.toString()));
-                if (notificatorId.equals(0)) {
-                    notificatorId = null;
-                }
-                if (v == null) {
-                    NotificationsUserSetting setting = NotificationsUserSetting.builder()
-                            .userId(userId)
-                            .notificatorId(notificatorId)
-                            .notificationMessageEventEnum(NotificationMessageEventEnum.convert(k))
-                            .build();
-                    notificationsSettingsService.createOrUpdate(setting);
-                } else if (v.getNotificatorId() == null || !v.getNotificatorId().equals(notificatorId)) {
-                    v.setNotificatorId(notificatorId);
-                    notificationsSettingsService.createOrUpdate(v);
-                }
-            });
-            redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("message.settings_successfully_saved", null,
-                    localeResolver.resolveLocale(request)));
-        } catch (Exception e) {
-            log.error(e);
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("message.error_saving_settings", null,
-                    localeResolver.resolveLocale(request)));
-            throw e;
-        }
-        return redirectView;
-    }*/
 
     @AdminLoggable
     @ResponseBody
@@ -839,21 +769,6 @@ public class AdminController {
 
     }
 
-    @RequestMapping("/2a8fy7b07dxe44/userswallets")
-    public ModelAndView showUsersWalletsSummary(Principal principal) {
-        Integer requesterUserId = userService.getIdByEmail(principal.getName());
-        ModelAndView model = new ModelAndView();
-        model.setViewName("UsersWallets");
-        Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-            add("ADMIN");
-        }};
-        usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
-        model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
-        List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
-        model.addObject("operationDirectionList", operationDirectionList);
-        return model;
-    }
-
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/walletsSummaryTable", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserWalletSummaryDto> findRequestByStatus(
@@ -862,24 +777,6 @@ public class AdminController {
         Integer requesterUserId = userService.getIdByEmail(principal.getName());
         List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(viewTypeName);
         return walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId, realRoleList);
-    }
-
-    private List<UserWalletSummaryDto> getSublistForRole(List<UserWalletSummaryDto> fullResult, String role) {
-        List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(role);
-        List<UserWalletSummaryDto> roleFiltered = fullResult.stream()
-                .filter(e -> realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
-                .collect(Collectors.toList());
-        List<UserWalletSummaryDto> result = new ArrayList<>();
-        for (UserWalletSummaryDto item : roleFiltered) {
-            if (!result.contains(item)) {
-                result.add(new UserWalletSummaryDto(item));
-            } else {
-                UserWalletSummaryDto storedItem = result.stream().filter(e -> e.equals(item)).findAny().get();
-                storedItem.increment(item);
-            }
-        }
-        result.forEach(UserWalletSummaryDto::calculate);
-        return result;
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
@@ -897,22 +794,9 @@ public class AdminController {
         return transactionService.getAccountStatementForAdmin(walletId, offset, limit, localeResolver.resolveLocale(request));
     }
 
-
- /* @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
-  public ModelAndView invoiceTransactions(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return new ModelAndView("admin/transaction_invoice");
-  }
-*/
-
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
     public ModelAndView bitcoinTransactions() {
         return new ModelAndView("admin/transaction_bitcoin");
-    }
-
-
-    private BitcoinService findAnyBitcoinServiceBean() {
-        return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")

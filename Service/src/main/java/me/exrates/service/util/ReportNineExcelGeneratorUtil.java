@@ -33,15 +33,15 @@ public class ReportNineExcelGeneratorUtil {
     public static byte[] generate(List<UserSummaryDto> summaryData) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
+        CellStyle header1Style = getHeader1Style(workbook);
+        CellStyle body1Style = getBode1Style(workbook);
+
         XSSFSheet sheet = workbook.createSheet("Выгрузить данные по юзерам");
 
         XSSFRow row;
         XSSFCell cell;
 
         row = sheet.createRow(0);
-
-        CellStyle header1Style = getHeader1Style(workbook);
-        CellStyle body1Style = getBode1Style(workbook);
 
         //header
         cell = row.createCell(0, CellType.STRING);

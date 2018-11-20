@@ -3,10 +3,7 @@ package me.exrates.controller;
 import com.google.common.io.ByteSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
@@ -50,47 +47,6 @@ public class ReportController {
     @Autowired
     ReportService reportService;
 
-//    @RequestMapping(value = "/2a8fy7b07dxe44/report/UsersWalletsSummaryInOut", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-//    @ResponseBody
-//    public Map<String, String> getUsersWalletsSummeryInOut(
-//            @RequestParam String startDate,
-//            @RequestParam String endDate,
-//            @RequestParam String role,
-//            @RequestParam(required = false) List<String> currencyList,
-//            Principal principal) {
-//        List<SummaryInOutReportDto> resultList = reportService.getUsersSummaryInOutList(principal.getName(), startDate, endDate, role, currencyList);
-//        String listString = SummaryInOutReportDto.getTitle() +
-//                resultList.stream()
-//                        .map(e -> e.toString())
-//                        .collect(Collectors.joining());
-//        /**/
-//        Map<String, UserSummaryTotalInOutDto> resultMap = reportService.getUsersSummaryInOutMap(resultList);
-//        /**/
-//        String summaryString = UserSummaryTotalInOutDto.getTitle() +
-//                resultMap.values().stream()
-//                        .map(e -> e.toString())
-//                        .collect(Collectors.joining());
-//        return new HashMap<String, String>() {{
-//            put("list", listString);
-//            put("summary", summaryString);
-//        }};
-//    }
-
-//    @RequestMapping(value = "/2a8fy7b07dxe44/report/userSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-//    @ResponseBody
-//    public String getUserSummaryOrdersByCurrencyPairs(
-//            @RequestParam String startDate,
-//            @RequestParam String endDate,
-//            @RequestParam String role,
-//            Principal principal) {
-//        List<UserSummaryOrdersByCurrencyPairsDto> list = reportService.getUserSummaryOrdersByCurrencyPairList(principal.getName(), startDate, endDate, role);
-//        String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
-//                list.stream()
-//                        .map(e -> e.toString())
-//                        .collect(Collectors.joining());
-//        return value;
-//    }
-
     @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadTransactions")
     @ResponseBody
     public String getUserTransactions(
@@ -108,68 +64,6 @@ public class ReportController {
                 .collect(Collectors.joining());
         return value;
     }
-
-//    @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadUserIpInfo", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-//    @ResponseBody
-//    public String getUserIpInfo(@RequestParam(required = false) String role) {
-//        List<UserIpReportDto> result = reportService.getUserIpReport(role);
-//        return result.stream().map(UserIpReportDto::toString)
-//                .collect(Collectors.joining("", UserIpReportDto.getTitle(), ""));
-//    }
-
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyPairTurnover", method = GET)
-    public String getCurrenciesTurnover(@RequestParam("startTime") String startTimeString,
-                                        @RequestParam("endTime") String endTimeString,
-                                        @RequestParam("roles") List<UserRole> userRoles) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        List<CurrencyPairTurnoverReportDto> result = reportService.getCurrencyPairTurnoverForRoleList(startTime, endTime, userRoles);
-        return result.stream().map(CurrencyPairTurnoverReportDto::toString)
-                .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/ordersCommissions", method = GET)
-    public String getCurrencyPairComissions(@RequestParam("startTime") String startTimeString,
-                                            @RequestParam("endTime") String endTimeString,
-                                            @RequestParam("roles") List<UserRole> userRoles) {
-        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-        List<OrdersCommissionSummaryDto> result = reportService.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoles);
-        return result.stream().map(OrdersCommissionSummaryDto::toString)
-                .collect(Collectors.joining("", OrdersCommissionSummaryDto.getTitle(), ""));
-    }
-
-    //todo: change
-//    @ResponseBody
-//    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions", method = GET)
-//    public String getInputOutputSummaryWithCommissions(@RequestParam("startTime") String startTimeString,
-//                                                       @RequestParam("endTime") String endTimeString,
-//                                                       @RequestParam("roles") List<UserRole> userRoles) {
-//        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-//        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-//        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-//        List<InOutReportDto> result = reportService.getInputOutputSummaryWithCommissions(startTime, endTime, userRoles);
-//        return result.stream().map(InOutReportDto::toString)
-//                .collect(Collectors.joining("", InOutReportDto.getTitle(), ""));
-//    }
-
-
-//    @ResponseBody
-//    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyTurnover", method = GET)
-//    public String getCurrencyPairsTurnover(@RequestParam("startTime") String startTimeString,
-//                                           @RequestParam("endTime") String endTimeString,
-//                                           @RequestParam("roles") List<UserRole> userRoles) {
-//        String dateTimePattern = "yyyy-MM-dd_HH:mm";
-//        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
-//        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
-//        List<CurrencyInputOutputSummaryDto> result = reportService.getCurrencyTurnoverForRoleList(startTime, endTime, userRoles);
-//        return result.stream().map(CurrencyInputOutputSummaryDto::toString)
-//                .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-//    }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/groupTotalBalances", method = GET)
@@ -487,6 +381,40 @@ public class ReportController {
         ReportDto reportDto;
         try {
             reportDto = reportService.getInvoiceReport(startTime, endTime, userRoles, principal.getName());
+        } catch (Exception ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+        final byte[] content = reportDto.getContent();
+        final String fileName = reportDto.getFileName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentLength(content.length);
+        headers.setContentDispositionFormData("attachment", fileName);
+
+        try {
+            InputStreamResource isr = new InputStreamResource(ByteSource.wrap(content).openStream());
+            return new ResponseEntity<>(isr, headers, HttpStatus.OK);
+        } catch (IOException ex) {
+            log.error("Downloaded file is corrupted");
+            return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/generalStats/currencyPairTurnover", method = GET)
+    public ResponseEntity getCurrenciesTurnover(@RequestParam("startTime") String startTimeString,
+                                                @RequestParam("endTime") String endTimeString,
+                                                @RequestParam("roles") List<UserRole> userRoles,
+                                                Locale locale) {
+        String dateTimePattern = "yyyy-MM-dd_HH:mm";
+        LocalDateTime startTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(startTimeString));
+        LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
+
+        ReportDto reportDto;
+        try {
+            reportDto = reportService.getCurrenciesTurnover(startTime, endTime, userRoles);
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);

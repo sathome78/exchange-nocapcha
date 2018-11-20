@@ -3,20 +3,14 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import me.exrates.model.dto.ExternalWalletBalancesDto;
-import me.exrates.model.dto.InternalWalletBalancesDto;
-import me.exrates.model.dto.WalletBalancesDto;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.PatternFormatting;
-import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -27,31 +21,26 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.NONE)
-public class ReportFourExcelGeneratorUtil {
+public class ReportThreeExcelGeneratorUtil {
 
-    private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
-
-    public static byte[] generate(Map<String, WalletBalancesDto> balancesMap,
-                                  LocalDateTime createdAt,
+    public static byte[] generate(List<CurrencyPairTurnoverReportDto> currencyPairsTurnover,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
-        CellStyle headerStyle = getHeaderStyle(workbook);
+        CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Срез балансов кошельков");
+        XSSFSheet sheet = workbook.createSheet("Статистика оборота по валютным парам (отчет 1)");
 
         XSSFRow row;
         XSSFCell cell;
@@ -59,79 +48,58 @@ public class ReportFourExcelGeneratorUtil {
         row = sheet.createRow(0);
 
         //header
-        cell = row.createCell(0, CellType.STRING);
-        cell.setCellValue("Id монеты");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(1, CellType.STRING);
-        cell.setCellValue("Название монеты");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(2, CellType.STRING);
-        cell.setCellValue("Курс ($)");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(3, CellType.STRING);
-        cell.setCellValue("Курс (BTC)");
-        cell.setCellStyle(headerStyle);
-
         cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("Сумма фактического остатка на всех кошельках");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Оборот");
+        cell.setCellStyle(header1Style);
 
-        cell = row.createCell(7, CellType.STRING);
-        cell.setCellValue("Сумма обязательств перед пользователями");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue(String.format("Отклонение на %s", createdAt.format(FORMATTER_FOR_REPORT)));
-        cell.setCellStyle(headerStyle);
+        cell = row.createCell(8, CellType.STRING);
+        cell.setCellValue("Комиссия");
+        cell.setCellStyle(header1Style);
 
         row = sheet.createRow(1);
 
+        cell = row.createCell(0, CellType.STRING);
+        cell.setCellValue("Id пары");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(1, CellType.STRING);
+        cell.setCellValue("Валютная пара");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(2, CellType.STRING);
+        cell.setCellValue("Конвертируемая валюта");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(3, CellType.STRING);
+        cell.setCellValue("Количество ордеров");
+        cell.setCellStyle(header1Style);
+
         cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("К-во монет на кошельках");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма в конвертируемой валюте");
+        cell.setCellStyle(header1Style);
 
         cell = row.createCell(5, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в USD");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма оборота в USD");
+        cell.setCellStyle(header1Style);
 
         cell = row.createCell(6, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в BTC");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма оборота в BTC");
+        cell.setCellStyle(header1Style);
 
         cell = row.createCell(7, CellType.STRING);
-        cell.setCellValue("К-во монет на кошельках");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма коммиссий");
+        cell.setCellStyle(header1Style);
 
         cell = row.createCell(8, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в USD");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма коммиссий в USD");
+        cell.setCellStyle(header1Style);
 
         cell = row.createCell(9, CellType.STRING);
-        cell.setCellValue("Сумма монет на кошельках в BTC");
-        cell.setCellStyle(headerStyle);
+        cell.setCellValue("Сумма коммиссий в BTC");
+        cell.setCellStyle(header1Style);
 
-        cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue("Количество монет");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(11, CellType.STRING);
-        cell.setCellValue("Сумма в USD");
-        cell.setCellStyle(headerStyle);
-
-        cell = row.createCell(12, CellType.STRING);
-        cell.setCellValue("Сумма в BTC");
-        cell.setCellStyle(headerStyle);
-
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 0, 0));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 1, 1));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 2, 2));
-        sheet.addMergedRegion(new CellRangeAddress(0, 1, 3, 3));
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 7, 9));
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 10, 12));
 
         sheet.autoSizeColumn(0, true);
         sheet.setColumnWidth(0, sheet.getColumnWidth(0) + 256);
@@ -153,15 +121,8 @@ public class ReportFourExcelGeneratorUtil {
         sheet.setColumnWidth(8, sheet.getColumnWidth(8) + 256);
         sheet.autoSizeColumn(9, true);
         sheet.setColumnWidth(9, sheet.getColumnWidth(9) + 256);
-        sheet.autoSizeColumn(10, true);
-        sheet.setColumnWidth(10, sheet.getColumnWidth(10) + 256);
-        sheet.autoSizeColumn(11, true);
-        sheet.setColumnWidth(11, sheet.getColumnWidth(11) + 256);
-        sheet.autoSizeColumn(12, true);
-        sheet.setColumnWidth(12, sheet.getColumnWidth(12) + 256);
 
-        Set<String> currencies = balancesMap.keySet();
-        final int bound = balancesMap.size();
+        int bound = currencyPairsTurnover.size();
 
         //footer
         row = sheet.createRow(2);
@@ -178,9 +139,9 @@ public class ReportFourExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(3, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(3, CellType.NUMERIC);
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(4, CellType.STRING);
         cell.setCellValue("-");
@@ -206,120 +167,67 @@ public class ReportFourExcelGeneratorUtil {
         cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-        cell = row.createCell(10, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
-
-        cell = row.createCell(11, CellType.NUMERIC);
-        cell.setCellFormula("SUM(L" + 4 + ":L" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
-
-        cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
-        cell.setCellStyle(footer2Style);
-
         //body
         int i = 0;
-        for (String currency : currencies) {
-            WalletBalancesDto balance = balancesMap.get(currency);
+        for (CurrencyPairTurnoverReportDto cpt : currencyPairsTurnover) {
+            final int currencyPairId = cpt.getCurrencyPairId();
+            final String currencyPairName = cpt.getCurrencyPairName();
+            final String currencyAccountingName = cpt.getCurrencyAccountingName();
+            final Integer quantity = cpt.getQuantity();
+            final BigDecimal amountConvert = cpt.getAmountConvert();
+            final BigDecimal amountCommission = cpt.getAmountCommission();
 
-            ExternalWalletBalancesDto exWallet = balance.getExternal();
-            final Integer currencyId = exWallet.getCurrencyId();
-            final BigDecimal exWalletTotalBalance = exWallet.getTotalBalance();
-
-            List<InternalWalletBalancesDto> inWallets = balance.getInternals();
-            final BigDecimal inWalletsTotalBalance = inWallets.stream()
-                    .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
-                    .map(InternalWalletBalancesDto::getTotalBalance)
-                    .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
-
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currencyAccountingName);
             if (isNull(ratePair)) {
                 ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
             }
-
             final BigDecimal usdRate = ratePair.getLeft();
             final BigDecimal btcRate = ratePair.getRight();
 
             row = sheet.createRow(i + 3);
 
             cell = row.createCell(0, CellType.NUMERIC);
-            cell.setCellValue(currencyId);
+            cell.setCellValue(currencyPairId);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(currency);
+            cell.setCellValue(currencyPairName);
             cell.setCellStyle(body1Style);
 
-            cell = row.createCell(2, CellType.NUMERIC);
-            cell.setCellValue(usdRate.doubleValue());
+            cell = row.createCell(2, CellType.STRING);
+            cell.setCellValue(currencyAccountingName);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(3, CellType.NUMERIC);
-            cell.setCellValue(btcRate.doubleValue());
+            cell.setCellValue(quantity);
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(4, CellType.NUMERIC);
-            cell.setCellValue(exWalletTotalBalance.doubleValue());
+            cell.setCellValue(amountConvert.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(5, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*E" + (i + 4));
+            cell.setCellValue(amountConvert.doubleValue() * usdRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(6, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*E" + (i + 4));
+            cell.setCellValue(amountConvert.doubleValue() * btcRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(7, CellType.NUMERIC);
-            cell.setCellValue(inWalletsTotalBalance.doubleValue());
+            cell.setCellValue(amountCommission.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*H" + (i + 4));
+            cell.setCellValue(amountCommission.doubleValue() * usdRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*H" + (i + 4));
-            cell.setCellStyle(body1Style);
-
-            cell = row.createCell(10, CellType.NUMERIC);
-            cell.setCellFormula("E" + (i + 4) + "-H" + (i + 4));
-            cell.setCellStyle(body1Style);
-
-            cell = row.createCell(11, CellType.NUMERIC);
-            cell.setCellFormula("C" + (i + 4) + "*K" + (i + 4));
-            cell.setCellStyle(body1Style);
-
-            cell = row.createCell(12, CellType.NUMERIC);
-            cell.setCellFormula("D" + (i + 4) + "*K" + (i + 4));
+            cell.setCellValue(amountCommission.doubleValue() * btcRate.doubleValue());
             cell.setCellStyle(body1Style);
 
             i++;
         }
-
-        SheetConditionalFormatting sheetCF = sheet.getSheetConditionalFormatting();
-
-        ConditionalFormattingRule rule1 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4>0)");
-        PatternFormatting fill1 = rule1.createPatternFormatting();
-        fill1.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
-        fill1.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
-
-        ConditionalFormattingRule rule2 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4<0)");
-        PatternFormatting fill2 = rule2.createPatternFormatting();
-        fill2.setFillBackgroundColor(IndexedColors.RED.getIndex());
-        fill2.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
-
-        ConditionalFormattingRule rule3 = sheetCF.createConditionalFormattingRule("AND(ISNUMBER($K4), $K4=0)");
-        PatternFormatting fill3 = rule3.createPatternFormatting();
-        fill3.setFillBackgroundColor(IndexedColors.WHITE.getIndex());
-        fill3.setFillPattern(PatternFormatting.SOLID_FOREGROUND);
-
-        ConditionalFormattingRule[] cfRules = new ConditionalFormattingRule[]{rule1, rule2, rule3};
-
-        CellRangeAddress[] regions = new CellRangeAddress[]{new CellRangeAddress(3, (bound - 1) + 3, 10, 12)};
-
-        sheetCF.addConditionalFormatting(regions, cfRules);
 
         //footer
         row = sheet.createRow((bound - 1) + 4);
@@ -336,9 +244,9 @@ public class ReportFourExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(3, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(3, CellType.NUMERIC);
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(4, CellType.STRING);
         cell.setCellValue("-");
@@ -364,16 +272,189 @@ public class ReportFourExcelGeneratorUtil {
         cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-        cell = row.createCell(10, CellType.STRING);
+//      -------------------------------------------------------------------------------
+
+        sheet = workbook.createSheet("Статистика оборота по валютным парам (отчет 2)");
+
+        row = sheet.createRow(0);
+
+        //header
+        cell = row.createCell(1, CellType.STRING);
+        cell.setCellValue("Оборот");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(4, CellType.STRING);
+        cell.setCellValue("Комиссия");
+        cell.setCellStyle(header1Style);
+
+        row = sheet.createRow(1);
+
+        cell = row.createCell(0, CellType.STRING);
+        cell.setCellValue("Конвертируемая валюта");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(1, CellType.STRING);
+        cell.setCellValue("Сумма в конвертируемой валюте");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(2, CellType.STRING);
+        cell.setCellValue("Сумма оборота в USD");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(3, CellType.STRING);
+        cell.setCellValue("Сумма оборота в BTC");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(4, CellType.STRING);
+        cell.setCellValue("Сумма коммиссий");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(5, CellType.STRING);
+        cell.setCellValue("Сумма коммиссий в USD");
+        cell.setCellStyle(header1Style);
+
+        cell = row.createCell(6, CellType.STRING);
+        cell.setCellValue("Сумма коммиссий в BTC");
+        cell.setCellStyle(header1Style);
+
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 1, 3));
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 4, 6));
+
+        sheet.autoSizeColumn(0, true);
+        sheet.setColumnWidth(0, sheet.getColumnWidth(0) + 256);
+        sheet.autoSizeColumn(1, true);
+        sheet.setColumnWidth(1, sheet.getColumnWidth(1) + 256);
+        sheet.autoSizeColumn(2, true);
+        sheet.setColumnWidth(2, sheet.getColumnWidth(2) + 256);
+        sheet.autoSizeColumn(3, true);
+        sheet.setColumnWidth(3, sheet.getColumnWidth(3) + 256);
+        sheet.autoSizeColumn(4, true);
+        sheet.setColumnWidth(4, sheet.getColumnWidth(4) + 256);
+        sheet.autoSizeColumn(5, true);
+        sheet.setColumnWidth(5, sheet.getColumnWidth(5) + 256);
+        sheet.autoSizeColumn(6, true);
+        sheet.setColumnWidth(6, sheet.getColumnWidth(6) + 256);
+
+        Map<String, List<CurrencyPairTurnoverReportDto>> currencyPairsTurnoverMap = currencyPairsTurnover.stream()
+                .collect(Collectors.groupingBy(CurrencyPairTurnoverReportDto::getCurrencyAccountingName));
+
+        bound = currencyPairsTurnoverMap.size();
+
+        //footer
+        row = sheet.createRow(2);
+
+        cell = row.createCell(0, CellType.STRING);
+        cell.setCellValue("Итого");
+        cell.setCellStyle(footer1Style);
+
+        cell = row.createCell(1, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(11, CellType.NUMERIC);
-        cell.setCellFormula("SUM(L" + 4 + ":L" + ((bound - 1) + 4) + ")");
+        cell = row.createCell(2, CellType.NUMERIC);
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-        cell = row.createCell(12, CellType.NUMERIC);
-        cell.setCellFormula("SUM(M" + 4 + ":M" + ((bound - 1) + 4) + ")");
+        cell = row.createCell(3, CellType.NUMERIC);
+        cell.setCellFormula("SUM(E" + 4 + ":E" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        cell = row.createCell(4, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
+
+        cell = row.createCell(5, CellType.NUMERIC);
+        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        cell = row.createCell(6, CellType.NUMERIC);
+        cell.setCellFormula("SUM(H" + 4 + ":H" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        //body
+        i = 0;
+        for (Map.Entry<String, List<CurrencyPairTurnoverReportDto>> cptm : currencyPairsTurnoverMap.entrySet()) {
+            final String key = cptm.getKey();
+            List<CurrencyPairTurnoverReportDto> value = cptm.getValue();
+
+            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(key);
+            if (isNull(ratePair)) {
+                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
+            }
+            final BigDecimal usdRate = ratePair.getLeft();
+            final BigDecimal btcRate = ratePair.getRight();
+
+            final BigDecimal sumAmountConvert = value.stream()
+                    .map(CurrencyPairTurnoverReportDto::getAmountConvert)
+                    .reduce(BigDecimal::add)
+                    .orElse(BigDecimal.ZERO);
+            final BigDecimal sumAmountCommission = value.stream()
+                    .map(CurrencyPairTurnoverReportDto::getAmountCommission)
+                    .reduce(BigDecimal::add)
+                    .orElse(BigDecimal.ZERO);
+
+            row = sheet.createRow(i + 3);
+
+            cell = row.createCell(0, CellType.STRING);
+            cell.setCellValue(key);
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(1, CellType.NUMERIC);
+            cell.setCellValue(sumAmountConvert.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(2, CellType.NUMERIC);
+            cell.setCellValue(sumAmountConvert.doubleValue() * usdRate.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(3, CellType.NUMERIC);
+            cell.setCellValue(sumAmountConvert.doubleValue() * btcRate.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(4, CellType.NUMERIC);
+            cell.setCellValue(sumAmountCommission.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(5, CellType.NUMERIC);
+            cell.setCellValue(sumAmountCommission.doubleValue() * usdRate.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            cell = row.createCell(6, CellType.NUMERIC);
+            cell.setCellValue(sumAmountCommission.doubleValue() * btcRate.doubleValue());
+            cell.setCellStyle(body1Style);
+
+            i++;
+        }
+
+        //footer
+        row = sheet.createRow((bound - 1) + 4);
+
+        cell = row.createCell(0, CellType.STRING);
+        cell.setCellValue("Итого");
+        cell.setCellStyle(footer1Style);
+
+        cell = row.createCell(1, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
+
+        cell = row.createCell(2, CellType.NUMERIC);
+        cell.setCellFormula("SUM(D" + 4 + ":D" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        cell = row.createCell(3, CellType.NUMERIC);
+        cell.setCellFormula("SUM(E" + 4 + ":E" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        cell = row.createCell(4, CellType.STRING);
+        cell.setCellValue("-");
+        cell.setCellStyle(footer1Style);
+
+        cell = row.createCell(5, CellType.NUMERIC);
+        cell.setCellFormula("SUM(G" + 4 + ":G" + ((bound - 1) + 4) + ")");
+        cell.setCellStyle(footer2Style);
+
+        cell = row.createCell(6, CellType.NUMERIC);
+        cell.setCellFormula("SUM(H" + 4 + ":H" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -386,7 +467,7 @@ public class ReportFourExcelGeneratorUtil {
         return bos.toByteArray();
     }
 
-    private static CellStyle getHeaderStyle(XSSFWorkbook workbook) {
+    private static CellStyle getHeader1Style(XSSFWorkbook workbook) {
         CellStyle headerStyle = workbook.createCellStyle();
         headerStyle.setBorderBottom(BorderStyle.THIN);
         headerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());

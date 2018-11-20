@@ -33,17 +33,17 @@ public class ReportTwoExcelGeneratorUtil {
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
+        CellStyle header1Style = getHeader1Style(workbook);
+        CellStyle body1Style = getBode1Style(workbook);
+        CellStyle footer1Style = getFooter1Style(workbook);
+        CellStyle footer2Style = getFooter2Style(workbook);
+
         XSSFSheet sheet = workbook.createSheet("Статистика по вводу-выводу по валютам");
 
         XSSFRow row;
         XSSFCell cell;
 
         row = sheet.createRow(0);
-
-        CellStyle header1Style = getHeader1Style(workbook);
-        CellStyle body1Style = getBode1Style(workbook);
-        CellStyle footer1Style = getFooter1Style(workbook);
-        CellStyle footer2Style = getFooter2Style(workbook);
 
         //header
         cell = row.createCell(0, CellType.STRING);

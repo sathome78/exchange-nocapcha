@@ -35,15 +35,15 @@ public class ReportSevenExcelGeneratorUtil {
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
+        CellStyle header1Style = getHeader1Style(workbook);
+        CellStyle body1Style = getBode1Style(workbook);
+
         XSSFSheet sheet = workbook.createSheet("Выгрузить свод ввода/вывода");
 
         XSSFRow row;
         XSSFCell cell;
 
         row = sheet.createRow(0);
-
-        CellStyle header1Style = getHeader1Style(workbook);
-        CellStyle body1Style = getBode1Style(workbook);
 
         //header
         cell = row.createCell(0, CellType.STRING);

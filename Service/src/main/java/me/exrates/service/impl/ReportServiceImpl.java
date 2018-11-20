@@ -6,16 +6,13 @@ import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
-import me.exrates.model.Email;
 import me.exrates.model.dto.BalancesDto;
-import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.InvoiceReportDto;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
 import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
@@ -48,9 +45,9 @@ import me.exrates.service.util.ReportFourExcelGeneratorUtil;
 import me.exrates.service.util.ReportNineExcelGeneratorUtil;
 import me.exrates.service.util.ReportSevenExcelGeneratorUtil;
 import me.exrates.service.util.ReportSixExcelGeneratorUtil;
+import me.exrates.service.util.ReportThreeExcelGeneratorUtil;
 import me.exrates.service.util.ReportTwoExcelGeneratorUtil;
 import me.exrates.service.util.ZipUtil;
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.CronScheduleBuilder;
@@ -63,7 +60,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,7 +80,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
 import static java.util.Objects.isNull;
@@ -167,96 +162,6 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-//    @Override
-//    public List<SummaryInOutReportDto> getUsersSummaryInOutList(
-//            String requesterUserEmail,
-//            String startDate,
-//            String endDate,
-//            String businessRole,
-//            List<String> currencyList) {
-//        List<InvoiceReportDto> result = getInvoiceReport(
-//                requesterUserEmail,
-//                startDate,
-//                endDate,
-//                businessRole,
-//                "ANY",
-//                currencyList
-//        )
-//                .stream()
-//                .filter(e -> e.getStatusEnum() == null ? "PROVIDED".equals(e.getStatus()) : e.getStatusEnum().isSuccessEndStatus())
-//                .collect(Collectors.toList());
-//        return result.stream()
-//                .map(SummaryInOutReportDto::new)
-//                .collect(Collectors.toList());
-//    }
-
-//    @Override
-//    public Map<String, UserSummaryTotalInOutDto> getUsersSummaryInOutMap(List<SummaryInOutReportDto> resultList) {
-//        Map<String, UserSummaryTotalInOutDto> resultMap = new HashMap<String, UserSummaryTotalInOutDto>() {
-//            @Override
-//            public UserSummaryTotalInOutDto put(String key, UserSummaryTotalInOutDto value) {
-//                if (this.get(key) == null) {
-//                    return super.put(key, value);
-//                } else {
-//                    UserSummaryTotalInOutDto storedValue = this.get(key);
-//                    storedValue.setTotalIn(storedValue.getTotalIn().add(value.getTotalIn()));
-//                    storedValue.setTotalOut(storedValue.getTotalOut().add(value.getTotalOut()));
-//                    return super.put(key, storedValue);
-//                }
-//            }
-//        };
-//        resultList.forEach(e -> resultMap.put(
-//                e.getCurrency(),
-//                new UserSummaryTotalInOutDto(e.getCurrency(), StringUtils.isEmpty(e.getCreationDateIn()) ? BigDecimal.ZERO : e.getAmount(), StringUtils.isEmpty(e.getCreationDateOut()) ? BigDecimal.ZERO : e.getAmount())
-//        ));
-//        return resultMap;
-//    }
-
-//    @Override
-//    public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
-//            String requesterUserEmail,
-//            String startDate,
-//            String endDate,
-//            String businessRole) {
-//        Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
-//        List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
-//        return orderService.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, realRoleIdList);
-//    }
-
-//    @Getter
-//    private class AvailableCurrencies {
-//        private String requesterUserEmail;
-//        private List<String> currencyList;
-//        private List<Integer> currencyListForRefillOperation;
-//        private List<Integer> currencyListForWithdrawOperation;
-//
-//        AvailableCurrencies(String requesterUserEmail, List<String> currencyList) {
-//            this.requesterUserEmail = requesterUserEmail;
-//            this.currencyList = currencyList;
-//            init();
-//        }
-//
-//        private void init() {
-//            Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
-//            /**/
-//            List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList = currencyService.getCurrencyPermittedOperationList(requesterUserId);
-//            if (currencyList.contains("ALL")) {
-//                currencyList.clear();
-//                currencyList.add("ALL");
-//            }
-//            currencyListForRefillOperation = userCurrencyOperationPermissionDtoList.stream()
-//                    .filter(e -> e.getInvoiceOperationDirection() == REFILL
-//                            && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
-//                    .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-//                    .collect(Collectors.toList());
-//            currencyListForWithdrawOperation = userCurrencyOperationPermissionDtoList.stream()
-//                    .filter(e -> e.getInvoiceOperationDirection() == WITHDRAW
-//                            && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
-//                    .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-//                    .collect(Collectors.toList());
-//        }
-//    }
-
     @Override
     public List<OperationViewDto> getTransactionsHistory(
             String requesterUserEmail,
@@ -274,75 +179,6 @@ public class ReportServiceImpl implements ReportService {
                 Locale.ENGLISH);
         return history.getData();
     }
-
-//    @Override
-//    public List<UserIpReportDto> getUserIpReport(String businessRole) {
-//        List<Integer> realUserRoleIds = StringUtils.isEmpty(businessRole) ? Collections.emptyList() :
-//                userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
-//
-//        return userService.getUserIpReportForRoles(realUserRoleIds);
-//    }
-
-//    @Override
-//    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
-//        List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
-//        return getCurrencyPairTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
-//    }
-//
-//    @Override
-//    public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRealMoneyUsers(LocalDateTime startTime, LocalDateTime endTime) {
-//        List<UserRole> realMoneyUsengRoles = userRoleService.getRolesUsingRealMoney();
-//        List<CurrencyInputOutputSummaryDto> report = getCurrencyTurnoverForRoleList(startTime, endTime, realMoneyUsengRoles);
-//
-//        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-//
-//        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrencyName())) ? BigDecimal.ZERO : rates.get(s.getCurrencyName()).getLeft()));
-//        //
-//        return report;
-//    }
-
-    @Override
-    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
-                                                                                  List<UserRole> roleList) {
-        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-        return orderService.getCurrencyPairTurnoverForPeriod(startTime, endTime, roleList.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
-    }
-
-    @Override
-    public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                                List<UserRole> roleList) {
-        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-        return orderService.getOrderCommissionsByPairsForPeriod(startTime, endTime, roleList.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
-    }
-
-    @Override
-    public List<CurrencyInputOutputSummaryDto> getCurrencyTurnoverForRoleList(LocalDateTime startTime, LocalDateTime endTime,
-                                                                              List<UserRole> roleList) {
-        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-        List<CurrencyInputOutputSummaryDto> report = inputOutputService.getInputOutputSummary(startTime, endTime, roleList.stream()
-                .map(UserRole::getRole).collect(Collectors.toList()));
-
-        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-
-        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrencyName())) ? BigDecimal.ZERO : rates.get(s.getCurrencyName()).getLeft()));
-        return report;
-    }
-
-//    @Override
-//    public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
-//                                                                     List<UserRole> roleList) {
-//        Preconditions.checkArgument(!roleList.isEmpty(), "At least one role must be specified");
-//        List<InOutReportDto> report = inputOutputService.getInputOutputSummaryWithCommissions(startTime, endTime, roleList.stream()
-//                .map(UserRole::getRole).collect(Collectors.toList()));
-//
-//        Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-//
-//        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrencyName())) ? BigDecimal.ZERO : rates.get(s.getCurrencyName()).getLeft()));
-//        //
-//        return report;
-//    }
 
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
@@ -414,54 +250,6 @@ public class ReportServiceImpl implements ReportService {
         reportDao.updateReportMailingTime(newMailTimeString);
 
     }
-
-
-//    @Override
-//    public void sendReportMail() {
-//        LocalDateTime endTime = LocalDateTime.now();
-//        LocalDateTime startTime = endTime.minusHours(24L);
-//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm");
-//        String title = String.format("Report for period %s - %s", startTime.format(dateTimeFormatter), endTime.format(dateTimeFormatter));
-//
-//        String message = "New users: " + userService.getNewRegisteredUserNumber(startTime, endTime);
-//
-//        List<CurrencyPairTurnoverReportDto> currencyPairTurnoverList = getCurrencyPairTurnoverForRealMoneyUsers(startTime, endTime);
-//        List<CurrencyInputOutputSummaryDto> currencyIOSummaryList = getCurrencyTurnoverForRealMoneyUsers(startTime, endTime);
-//        List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> balancesList = getWalletBalancesSummaryByGroups();
-//
-//
-//        String currencyPairReportContent = currencyPairTurnoverList.stream().map(CurrencyPairTurnoverReportDto::toString)
-//                .collect(Collectors.joining("", CurrencyPairTurnoverReportDto.getTitle(), ""));
-//        String currencyIOReportContent = currencyIOSummaryList.stream().map(CurrencyInputOutputSummaryDto::toString)
-//                .collect(Collectors.joining("", CurrencyInputOutputSummaryDto.getTitle(), ""));
-//        String balancesReportContent = balancesList.stream().map(UserRoleTotalBalancesReportDto::toString)
-//                .collect(Collectors.joining("", UserRoleTotalBalancesReportDto.getTitle(ReportGroupUserRole.class), ""));
-//
-//        List<Email.Attachment> attachments = Arrays.asList(
-//                new Email.Attachment("currency_pairs.csv",
-//                        new ByteArrayResource(currencyPairReportContent.getBytes(Charsets.UTF_8)), "text/csv"),
-//                new Email.Attachment("currencies.csv",
-//                        new ByteArrayResource(currencyIOReportContent.getBytes(Charsets.UTF_8)), "text/csv"),
-//                new Email.Attachment("balances.csv",
-//                        new ByteArrayResource(balancesReportContent.getBytes(Charsets.UTF_8)), "text/csv")
-//
-//        );
-//
-//
-//        List<String> subscribers = retrieveReportSubscribersList(true);
-//        subscribers.forEach(emailAddress -> {
-//            try {
-//                Email email = new Email();
-//                email.setSubject(title);
-//                email.setMessage(message);
-//                email.setTo(emailAddress);
-//                email.setAttachments(attachments);
-//                sendMailService.sendInfoMail(email);
-//            } catch (Exception e) {
-//                log.error(e);
-//            }
-//        });
-//    }
 
     @Override
     public void generateWalletBalancesReportObject() {
@@ -836,6 +624,28 @@ public class ReportServiceImpl implements ReportService {
                                 .sorted(Comparator.comparing(InvoiceReportDto::getCreationDate))
                                 .collect(toList()),
                         ratesMap))
+                .build();
+    }
+
+    @Override
+    public ReportDto getCurrenciesTurnover(LocalDateTime startTime,
+                                           LocalDateTime endTime,
+                                           List<UserRole> roles) throws Exception {
+        Preconditions.checkArgument(!roles.isEmpty(), "At least one role must be specified");
+
+        List<CurrencyPairTurnoverReportDto> currencyPairsTurnover = orderService.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
+        if (isEmpty(currencyPairsTurnover)) {
+            throw new Exception(String.format("No currency turnover information found for period: [%s, %s] and user roles: [%s]",
+                    startTime.toString(),
+                    endTime.toString(),
+                    roles.stream().map(Enum::name).collect(joining(", "))));
+        }
+
+        final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
+
+        return ReportDto.builder()
+                .fileName(String.format("currency_pairs_turnover_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(ReportThreeExcelGeneratorUtil.generate(currencyPairsTurnover, ratesMap))
                 .build();
     }
 

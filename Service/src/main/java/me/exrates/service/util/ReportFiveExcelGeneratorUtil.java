@@ -50,17 +50,17 @@ public class ReportFiveExcelGeneratorUtil {
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
+        CellStyle headerStyle = getHeaderStyle(workbook);
+        CellStyle body1Style = getBode1Style(workbook);
+        CellStyle footer1Style = getFooter1Style(workbook);
+        CellStyle footer2Style = getFooter2Style(workbook);
+
         XSSFSheet sheet = workbook.createSheet("Балансы кошельков за период");
 
         XSSFRow row;
         XSSFCell cell;
 
         row = sheet.createRow(0);
-
-        CellStyle headerStyle = getHeaderStyle(workbook);
-        CellStyle body1Style = getBode1Style(workbook);
-        CellStyle footer1Style = getFooter1Style(workbook);
-        CellStyle footer2Style = getFooter2Style(workbook);
 
         //header
         cell = row.createCell(0, CellType.STRING);
