@@ -48,7 +48,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
     private IpBlockingService ipBlockingService;
 
     @Value("${auth.server.host}")
-    private String authServiceUrl;
+    private String authServiceHost;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -103,7 +103,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             OkHttpClient cl = new OkHttpClient();
 
             Request req = new Request.Builder()
-                    .url("http://" + authServiceUrl + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rowPassword)
+                    .url("http://" + authServiceHost + "/oauth/token?grant_type=password&username=" + principal.getUsername() + "&password=" + rowPassword)
                     .post(RequestBody.create(com.squareup.okhttp.MediaType.parse(MediaType.APPLICATION_FORM_URLENCODED), ""))
                     .addHeader("authorization", "Basic Y3VybF9jbGllbnQxOnVzZXI=")
                     .addHeader("cache-control", "no-cache")
