@@ -1257,8 +1257,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 "tx.commission_amount AS commission," +
                 "ib.name AS recipient_bank_name, " +
                 "ib.account_number, " +
-                "user.email AS user_email, " +
-                "user.nickname, " +
+                "userr.email AS user_email, " +
+                "userr.nickname, " +
                 "admin.email AS admin_email, " +
                 "m.name AS merchant_name, " +
                 "cur.name AS currency_name" +
@@ -1267,8 +1267,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
                 " LEFT JOIN REFILL_REQUEST_PARAM rrp ON rrp.id = rr.refill_request_param_id" +
                 " JOIN CURRENCY cur ON cur.id = rr.currency_id" +
                 " JOIN MERCHANT m ON m.id = rr.merchant_id" +
-                " JOIN USER user ON user.id = rr.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = user.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER userr ON userr.id = rr.user_id AND userr.roleid IN (:user_roles)" +
                 " LEFT JOIN INVOICE_BANK ib ON ib.id = rrp.recipient_bank_id" +
                 " LEFT JOIN USER admin ON admin.id = rr.admin_holder_id" +
                 " LEFT JOIN TRANSACTION tx ON tx.source_type = 'REFILL' AND tx.source_id = rr.id" +
@@ -1278,7 +1277,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
             put("requester_user_id", requesterId);
         }};
 
