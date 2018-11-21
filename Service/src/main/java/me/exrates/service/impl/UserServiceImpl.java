@@ -806,7 +806,7 @@ public class UserServiceImpl implements UserService {
     public UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles) {
         String startTimeString = startTime.toString();
         String endTimeString = endTime.toString();
-        final String rolesString = userRoles.stream().map(Enum::name).collect(joining("-"));
+        final String rolesString = userRoles.stream().map(UserRole::getName).collect(joining("-"));
 
         String key = String.join("/", startTimeString, endTimeString, rolesString);
 

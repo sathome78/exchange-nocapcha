@@ -441,7 +441,7 @@ public class ReportServiceImpl implements ReportService {
             throw new Exception(String.format("No input/output information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
         final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
 
@@ -522,7 +522,7 @@ public class ReportServiceImpl implements ReportService {
             throw new Exception(String.format("No input/output information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
         final Map<String, InOutReportDto> inOutMap = inOutSummary.stream().collect(toMap(InOutReportDto::getCurrencyName, Function.identity()));
 
@@ -576,7 +576,7 @@ public class ReportServiceImpl implements ReportService {
             throw new Exception(String.format("No user orders information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
@@ -609,7 +609,7 @@ public class ReportServiceImpl implements ReportService {
             throw new Exception(String.format("No input/output information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
@@ -618,7 +618,7 @@ public class ReportServiceImpl implements ReportService {
                 .fileName(String.format("report_input_output_data_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
                 .content(ReportSevenExcelGeneratorUtil.generate(
                         invoiceReportData.stream()
-                                .filter(invoiceReportDto -> !invoiceReportData.isEmpty())
+                                .filter(invoiceReportDto -> !invoiceReportDto.isEmpty())
                                 .sorted(Comparator.comparing(InvoiceReportDto::getCreationDate))
                                 .collect(toList()),
                         ratesMap))
@@ -636,7 +636,7 @@ public class ReportServiceImpl implements ReportService {
             throw new Exception(String.format("No currency turnover information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    roles.stream().map(UserRole::getName).collect(joining(", "))));
         }
 
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();

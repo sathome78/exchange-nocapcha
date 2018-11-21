@@ -708,8 +708,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " SELECT tx.currency_id, tx.amount AS refill, tx.commission_amount AS commission_refill, 0 AS withdraw, 0 AS commission_withdraw" +
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
-                " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER u ON u.id = w.user_id AND u.roleid IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 1" +
                 " AND tx.source_type = 'REFILL'" +
                 " AND tx.status_id = 1" +
@@ -720,7 +719,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
                 " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER u ON u.id = w.user_id AND u.roleid IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 2" +
                 " AND tx.source_type = 'WITHDRAW'" +
                 " AND tx.status_id = 1" +
@@ -734,7 +733,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
         }};
 
         try {
@@ -855,7 +854,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
             put("requester_user_id", requesterId);
         }};
 
