@@ -32,11 +32,4 @@ public class UserSummaryDto {
     private LocalDateTime lastInputDate;
     private BigDecimal outputSummary;
     private LocalDateTime lastOutputDate;
-
-    public Boolean isEmpty() {
-        return (isNull(activeBalance) || activeBalance.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(reservedBalance) || reservedBalance.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(inputSummary) || inputSummary.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(outputSummary) || outputSummary.compareTo(BigDecimal.ZERO) == 0);
-    }
 }

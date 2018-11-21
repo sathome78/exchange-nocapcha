@@ -501,7 +501,7 @@ function getWalletBalancesForPeriodWithInOutToDownload() {
 }
 
 function uploadUserWallets() {
-    var url = '/2a8fy7b07dxe44/report/usersWalletsSummary?' + getTimeParams() + '&' + getRoleParams();
+    var url = '/2a8fy7b07dxe44/report/usersWalletsSummary?' + getTimeParams() + '&' + getUserEmail();
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.responseType = "blob";
@@ -573,6 +573,11 @@ function getRoleParams() {
         return $(elem).attr('name')
     }).toArray().join(',');
     return 'roles=' + roles
+}
+
+function getUserEmail() {
+    var email = $('#user-email').val();
+    return 'userEmail=' + email;
 }
 
 function refreshMailingTime() {

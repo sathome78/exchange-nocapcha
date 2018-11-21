@@ -38,7 +38,7 @@ public class ReportSevenExcelGeneratorUtil {
         CellStyle header1Style = getHeader1Style(workbook);
         CellStyle body1Style = getBode1Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить свод ввода/вывода");
+        XSSFSheet sheet = workbook.createSheet("Sheet1 - Выгрузить свод ввода-вывода");
 
         XSSFRow row;
         XSSFCell cell;

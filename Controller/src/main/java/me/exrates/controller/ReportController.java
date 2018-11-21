@@ -301,7 +301,7 @@ public class ReportController {
     @RequestMapping(value = "/2a8fy7b07dxe44/report/usersWalletsSummary", method = GET)
     public ResponseEntity getUsersWalletsSummaryData(@RequestParam("startTime") String startTimeString,
                                                      @RequestParam("endTime") String endTimeString,
-                                                     @RequestParam("roles") List<UserRole> userRoles,
+                                                     @RequestParam("userEmail") String userEmail,
                                                      Principal principal,
                                                      Locale locale) {
         String dateTimePattern = "yyyy-MM-dd_HH:mm";
@@ -310,7 +310,7 @@ public class ReportController {
 
         ReportDto reportDto;
         try {
-            reportDto = reportService.getUsersWalletSummaryData(startTime, endTime, userRoles, principal.getName());
+            reportDto = reportService.getUsersWalletSummaryData(startTime, endTime, userEmail, principal.getName());
         } catch (Exception ex) {
             log.error("Downloaded file is corrupted");
             return new ResponseEntity<>(messageSource.getMessage("reports.error", null, locale), HttpStatus.NO_CONTENT);

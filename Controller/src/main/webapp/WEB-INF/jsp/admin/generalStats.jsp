@@ -187,17 +187,6 @@
                                     <loc:message code="admin.stats.download"/></button>
                             </div>
                         </div>
-                        <%--Выгрузить данные--%>
-                        <div class="input-block-wrapper">
-                            <div class="col-md-5 input-block-wrapper__label-wrapper">
-                                <label class="input-block-wrapper__label"><loc:message
-                                        code="wallets.download"/></label>
-                            </div>
-                            <div class="col-md-7 input-block-wrapper__input-wrapper">
-                                <button id="download-wallets-data" class="blue-box" onclick="uploadUserWallets()">
-                                    <loc:message code="admin.stats.download"/></button>
-                            </div>
-                        </div>
                         <%--Выгрузить ордера--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
@@ -218,6 +207,25 @@
                             <div class="col-md-7 input-block-wrapper__input-wrapper">
                                 <button id="download-input-output" class="blue-box" onclick="uploadInputOutputSummaryReport()">
                                     <loc:message code="admin.stats.download"/></button>
+                            </div>
+                        </div>
+                        <%--Выгрузить данные--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="wallets.download"/></label>
+                            </div>
+                            <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                <button id="download-wallets-data" class="blue-box" onclick="uploadUserWallets()">
+                                    <loc:message code="admin.stats.download"/></button>
+                            </div>
+                            <div class="col-md-1 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label"><loc:message
+                                        code="admin.email"/></label>
+                            </div>
+                            <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                <input id="user-email" type="text"
+                                       class="input-block-wrapper__input admin-form-input" name="userEmail"/>
                             </div>
                         </div>
                     </div>

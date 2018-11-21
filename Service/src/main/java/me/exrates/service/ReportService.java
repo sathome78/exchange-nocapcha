@@ -60,7 +60,7 @@ public interface ReportService {
 
     ReportDto getUsersWalletSummaryData(LocalDateTime startTime,
                                         LocalDateTime endTime,
-                                        List<UserRole> userRoles,
+                                        String userEmail,
                                         String requesterEmail) throws Exception;
 
     ReportDto getUserSummaryOrdersData(LocalDateTime startTime,

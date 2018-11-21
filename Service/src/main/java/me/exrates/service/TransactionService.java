@@ -64,7 +64,7 @@ public interface TransactionService {
 
     List<InOutReportDto> getInOutSummaryByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
-    List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
+    List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime, LocalDateTime endTime, String userEmail, int requesterId);
 
     List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
 }

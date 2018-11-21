@@ -544,18 +544,16 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportDto getUsersWalletSummaryData(LocalDateTime startTime,
                                                LocalDateTime endTime,
-                                               List<UserRole> roles,
+                                               String userEmail,
                                                String requesterEmail) throws Exception {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
-        List<UserSummaryDto> summaryData = transactionService.getUsersWalletSummaryData(startTime, endTime, roles, requesterId).stream()
-                .filter(userSummaryDto -> !userSummaryDto.isEmpty())
-                .collect(toList());
+        List<UserSummaryDto> summaryData = transactionService.getUsersWalletSummaryData(startTime, endTime, userEmail, requesterId);
         if (isEmpty(summaryData)) {
-            throw new Exception(String.format("No user wallet information found for period: [%s, %s] and user roles: [%s]",
+            throw new Exception(String.format("No user wallet information found for period: [%s, %s] and user email: [%s]",
                     startTime.toString(),
                     endTime.toString(),
-                    roles.stream().map(Enum::name).collect(joining(", "))));
+                    userEmail));
         }
 
         return ReportDto.builder()
