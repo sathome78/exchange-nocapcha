@@ -358,9 +358,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<UserSummaryDto> getUsersWalletSummaryData(LocalDateTime startTime,
                                                           LocalDateTime endTime,
-                                                          List<UserRole> userRoles,
+                                                          String userEmail,
                                                           int requesterId) {
-        return transactionDao.getUsersWalletSummaryDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+        return transactionDao.getUsersWalletSummaryDataByPeriodAndRoles(startTime, endTime, userEmail, requesterId);
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)

@@ -474,16 +474,15 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 "wr.amount, " +
                 "wr.commission, " +
                 "wr.date_creation, " +
-                "user.email AS user_email, " +
-                "user.nickname, " +
+                "userr.email AS user_email, " +
+                "userr.nickname, " +
                 "admin.email AS admin_email, " +
                 "m.name AS merchant_name, " +
                 "cur.name AS currency_name" +
                 " FROM WITHDRAW_REQUEST wr" +
                 " JOIN CURRENCY cur ON cur.id = wr.currency_id" +
                 " JOIN MERCHANT m ON m.id = wr.merchant_id" +
-                " JOIN USER user ON user.id = wr.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = user.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER userr ON userr.id = wr.user_id AND userr.roleid IN (:user_roles)" +
                 " LEFT JOIN USER admin ON admin.id = wr.admin_holder_id" +
                 " WHERE wr.date_creation BETWEEN :start_time AND :end_time" +
                 " AND EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)";
@@ -491,7 +490,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
             put("requester_user_id", requesterId);
         }};
 

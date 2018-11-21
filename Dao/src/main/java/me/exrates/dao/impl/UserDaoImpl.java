@@ -1111,38 +1111,34 @@ public class UserDaoImpl implements UserDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
         }};
 
         String sql = "SELECT u.id AS new_users" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
-                " WHERE u.regdate BETWEEN :start_time AND :end_time AND ur.name IN (:user_roles)";
+                " WHERE u.regdate BETWEEN :start_time AND :end_time AND u.roleid IN (:user_roles)";
 
         final List<Integer> newUsersCount = namedParameterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
 
         sql = "SELECT u.id AS all_users" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
-                " WHERE ur.name IN (:user_roles)";
+                " WHERE u.roleid IN (:user_roles)";
 
         final List<Integer> allUsersCount = namedParameterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
 
         sql = "SELECT u.id AS active_users" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
                 " JOIN EXORDERS o ON o.user_id = u.id" +
-                " WHERE ur.name IN (:user_roles) AND o.status_id = 3 AND o.date_acception IS NOT NULL AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " WHERE u.roleid IN (:user_roles) AND o.status_id = 3 AND o.date_acception IS NOT NULL AND o.date_acception BETWEEN :start_time AND :end_time" +
                 " GROUP BY u.id";
 
         final List<Integer> activeUsers = namedParameterJdbcTemplate.queryForList(sql, namedParameters, Integer.class);
 
         sql = "SELECT u.id AS one_or_more_success_input_users" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
                 " JOIN WALLET w ON w.user_id = u.id" +
                 " JOIN TRANSACTION input ON input.user_wallet_id = w.id" +
-                " WHERE ur.name IN (:user_roles) AND input.source_type = 'REFILL' AND input.operation_type_id = 1 AND input.status_id = 1" +
+                " WHERE u.roleid IN (:user_roles) AND input.source_type = 'REFILL' AND input.operation_type_id = 1 AND input.status_id = 1" +
                 " AND input.provided = 1 AND input.datetime BETWEEN :start_time AND :end_time" +
                 " GROUP BY u.id";
 
@@ -1150,10 +1146,9 @@ public class UserDaoImpl implements UserDao {
 
         sql = "SELECT u.id AS one_or_more_success_output_users" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
                 " JOIN WALLET w ON w.user_id = u.id" +
                 " JOIN TRANSACTION output ON output.user_wallet_id = w.id" +
-                " WHERE ur.name IN (:user_roles) AND output.source_type = 'WITHDRAW' AND output.operation_type_id = 2 AND output.status_id = 1" +
+                " WHERE u.roleid IN (:user_roles) AND output.source_type = 'WITHDRAW' AND output.operation_type_id = 2 AND output.status_id = 1" +
                 " AND output.provided = 1 AND output.datetime BETWEEN :start_time AND :end_time" +
                 " GROUP BY u.id";
 
@@ -1175,13 +1170,12 @@ public class UserDaoImpl implements UserDao {
                 "w.active_balance, " +
                 "w.reserved_balance" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid" +
                 " JOIN WALLET w ON w.user_id = u.id" +
                 " JOIN CURRENCY cur on cur.id = w.currency_id" +
-                " WHERE ur.name IN (:user_roles) AND w.active_balance IS NOT NULL AND w.reserved_balance IS NOT NULL AND (w.active_balance <> 0 OR w.reserved_balance <> 0)";
+                " WHERE u.roleid IN (:user_roles) AND w.active_balance IS NOT NULL AND w.reserved_balance IS NOT NULL AND (w.active_balance <> 0 OR w.reserved_balance <> 0)";
 
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
         }};
         return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserBalancesDto.builder()
                 .userId(rs.getInt("user_id"))

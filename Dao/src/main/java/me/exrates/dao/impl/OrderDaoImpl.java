@@ -1481,7 +1481,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
-        params.put("user_roles", roles.stream().map(UserRole::getName).collect(toList()));
+        params.put("user_roles", roles.stream().map(UserRole::getRole).collect(toList()));
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))

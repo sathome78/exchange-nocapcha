@@ -54,6 +54,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 
 @Log4j2
@@ -707,8 +708,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " SELECT tx.currency_id, tx.amount AS refill, tx.commission_amount AS commission_refill, 0 AS withdraw, 0 AS commission_withdraw" +
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
-                " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER u ON u.id = w.user_id AND u.roleid IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 1" +
                 " AND tx.source_type = 'REFILL'" +
                 " AND tx.status_id = 1" +
@@ -719,7 +719,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
                 " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN USER u ON u.id = w.user_id AND u.roleid IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 2" +
                 " AND tx.source_type = 'WITHDRAW'" +
                 " AND tx.status_id = 1" +
@@ -733,7 +733,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getRole).collect(toList()));
         }};
 
         try {
@@ -754,7 +754,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public List<UserSummaryDto> getUsersWalletSummaryDataByPeriodAndRoles(LocalDateTime startTime,
                                                                           LocalDateTime endTime,
-                                                                          List<UserRole> userRoles,
+                                                                          String userEmail,
                                                                           int requesterId) {
         String sql = "SELECT u.nickname AS user_nickname, " +
                 "u.email AS user_email, " +
@@ -795,15 +795,14 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " ORDER BY output.datetime DESC LIMIT 1) AS last_output_date" +
                 "" +
                 " FROM USER u" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
                 " LEFT JOIN WALLET w ON w.user_id = u.id" +
                 " JOIN CURRENCY cur ON cur.id = w.currency_id and cur.hidden <> 1" +
-                " WHERE EXISTS(SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)";
+                " WHERE u.email = :user_email AND EXISTS(SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)";
 
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_email", userEmail);
             put("requester_user_id", requesterId);
         }};
 
@@ -811,18 +810,18 @@ public final class TransactionDaoImpl implements TransactionDao {
             return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryDto.builder()
                     .nickname(rs.getString("user_nickname"))
                     .email(rs.getString("user_email"))
-                    .createdAt(rs.getTimestamp("user_register_date").toLocalDateTime())
+                    .createdAt(nonNull(rs.getTimestamp("user_register_date")) ? rs.getTimestamp("user_register_date").toLocalDateTime() : null)
                     .registrationIp(rs.getString("user_register_ip"))
-                    .lastEntryDate(rs.getTimestamp("user_last_entry_login").toLocalDateTime())
+                    .lastEntryDate(nonNull(rs.getTimestamp("user_last_entry_login")) ? rs.getTimestamp("user_last_entry_login").toLocalDateTime() : null)
                     .lastIp(rs.getString("user_last_entry_ip"))
                     .currencyName(rs.getString("currency_name"))
-                    .activeBalance(rs.getBigDecimal("active_balance"))
-                    .reservedBalance(rs.getBigDecimal("reserved_balance"))
-                    .lastOrderDate(rs.getTimestamp("last_accepted_order_date").toLocalDateTime())
-                    .inputSummary(rs.getBigDecimal("input_amount"))
-                    .lastInputDate(rs.getTimestamp("last_input_date").toLocalDateTime())
-                    .outputSummary(rs.getBigDecimal("output_amount"))
-                    .lastOutputDate(rs.getTimestamp("last_output_date").toLocalDateTime())
+                    .activeBalance(nonNull(rs.getBigDecimal("active_balance")) ? rs.getBigDecimal("active_balance") : BigDecimal.ZERO)
+                    .reservedBalance(nonNull(rs.getBigDecimal("reserved_balance")) ? rs.getBigDecimal("reserved_balance") : BigDecimal.ZERO)
+                    .lastOrderDate(nonNull(rs.getTimestamp("last_accepted_order_date")) ? rs.getTimestamp("last_accepted_order_date").toLocalDateTime() : null)
+                    .inputSummary(nonNull(rs.getBigDecimal("input_amount")) ? rs.getBigDecimal("input_amount") : BigDecimal.ZERO)
+                    .lastInputDate(nonNull(rs.getTimestamp("last_input_date")) ? rs.getTimestamp("last_input_date").toLocalDateTime() : null)
+                    .outputSummary(nonNull(rs.getBigDecimal("output_amount")) ? rs.getBigDecimal("output_amount") : BigDecimal.ZERO)
+                    .lastOutputDate(nonNull(rs.getTimestamp("last_output_date")) ? rs.getTimestamp("last_output_date").toLocalDateTime() : null)
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
@@ -855,7 +854,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(Enum::name).collect(toList()));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
             put("requester_user_id", requesterId);
         }};
 
