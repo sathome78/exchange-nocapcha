@@ -33,7 +33,7 @@ import java.util.Locale;
  * Created by Valk on 28.04.2016.
  */
 @Log4j2
-@PropertySource({"classpath:/auth_server.properties"})
+@PropertySource("classpath:/auth_server.properties")
 public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Autowired
@@ -113,7 +113,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             Response response = cl.newCall(req).execute();
             JSONObject tokensJson = new JSONObject(response.body().string());
 
-            log.info(tokensJson.toString());
+            System.out.println(tokensJson);
+            log.info("User " + principal.getUsername() + " getted tokens");
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
             request.getSession().setAttribute("refresh_token", tokensJson.getString("refresh_token"));
