@@ -113,7 +113,6 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             Response response = cl.newCall(req).execute();
             JSONObject tokensJson = new JSONObject(response.body().string());
 
-            System.out.println(tokensJson);
             log.info("User " + principal.getUsername() + " getted tokens");
 
             request.getSession().setAttribute("access_token", tokensJson.getString("access_token"));
