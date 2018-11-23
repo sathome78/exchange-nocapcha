@@ -718,7 +718,6 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " SELECT tx.currency_id, 0 AS refill, 0 AS commission_refill, tx.amount AS withdraw, tx.commission_amount AS commission_withdraw" +
                 " FROM TRANSACTION tx" +
                 " JOIN WALLET w ON w.id = tx.user_wallet_id" +
-                " JOIN USER u ON u.id = w.user_id" +
                 " JOIN USER u ON u.id = w.user_id AND u.roleid IN (:user_roles)" +
                 " WHERE tx.operation_type_id = 2" +
                 " AND tx.source_type = 'WITHDRAW'" +
