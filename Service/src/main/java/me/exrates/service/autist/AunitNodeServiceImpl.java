@@ -27,9 +27,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -233,7 +231,7 @@ public class AunitNodeServiceImpl {
         try {
             String memoText = decryptBTSmemo(privateKey, memo.toString());
             if (lisfOfMemo.contains(memoText)) {
-                BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getInt("amount"));
+                BigDecimal amount = reduceAmount(transaction.getJSONObject("amount").getString("amount"));
 
                 prepareAndProcessTx(Hashing.sha256()
                         .hashString(memo.toString(), StandardCharsets.UTF_8)
@@ -259,7 +257,7 @@ public class AunitNodeServiceImpl {
         }
     }
 
-    private BigDecimal reduceAmount(int amount) {
+    private BigDecimal reduceAmount(String amount) {
         return new BigDecimal(amount).multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
