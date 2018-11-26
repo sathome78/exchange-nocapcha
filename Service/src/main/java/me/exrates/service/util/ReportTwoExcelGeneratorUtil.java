@@ -67,7 +67,7 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(5, CellType.STRING);
-        cell.setCellValue("Ввод");
+        cell.setCellValue("Сумма (ввод)");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(6, CellType.STRING);
@@ -75,7 +75,7 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(7, CellType.STRING);
-        cell.setCellValue("Вывод");
+        cell.setCellValue("Сумма (вывод)");
         cell.setCellStyle(header1Style);
 
         cell = row.createCell(8, CellType.STRING);
