@@ -258,7 +258,7 @@ public class AunitNodeServiceImpl {
     }
 
     private BigDecimal reduceAmount(BigDecimal amount) {
-        return new BigDecimal(amount.byteValueExact()).multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
+        return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
     private void setIrreversableBlock(String msg) {
