@@ -165,17 +165,17 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(4, CellType.NUMERIC);
+        cell.setCellFormula("SUM(E" + 3 + ":E" + ((bound - 1) + 3) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(5, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(6, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(6, CellType.NUMERIC);
+        cell.setCellFormula("SUM(G" + 3 + ":G" + ((bound - 1) + 3) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(7, CellType.STRING);
         cell.setCellValue("-");
@@ -322,17 +322,17 @@ public class ReportTwoExcelGeneratorUtil {
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(4, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(4, CellType.NUMERIC);
+        cell.setCellFormula("SUM(E" + 3 + ":E" + ((bound - 1) + 3) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(5, CellType.STRING);
         cell.setCellValue("-");
         cell.setCellStyle(footer1Style);
 
-        cell = row.createCell(6, CellType.STRING);
-        cell.setCellValue("-");
-        cell.setCellStyle(footer1Style);
+        cell = row.createCell(6, CellType.NUMERIC);
+        cell.setCellFormula("SUM(G" + 3 + ":G" + ((bound - 1) + 3) + ")");
+        cell.setCellStyle(footer2Style);
 
         cell = row.createCell(7, CellType.STRING);
         cell.setCellValue("-");
