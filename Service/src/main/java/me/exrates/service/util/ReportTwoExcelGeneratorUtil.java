@@ -269,7 +269,7 @@ public class ReportTwoExcelGeneratorUtil {
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(8, CellType.NUMERIC);
-            cell.setCellFormula("E" + (i + 3) + "-G" + (i + 3));
+            cell.setCellFormula("F" + (i + 3) + "-H" + (i + 3));
             cell.setCellStyle(body1Style);
 
             cell = row.createCell(9, CellType.NUMERIC);
