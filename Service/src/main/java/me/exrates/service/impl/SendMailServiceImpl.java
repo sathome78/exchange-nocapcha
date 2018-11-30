@@ -72,6 +72,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void sendMailMandrill(Email email){
+		System.out.println(email.getMessage());
 		supportMailExecutors.execute(() -> {
 			try {
 				sendByType(email, EmailSenderType.valueOf(mailType));
@@ -98,6 +99,7 @@ public class SendMailServiceImpl implements SendMailService{
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	@Override
 	public void sendInfoMail(Email email) {
+		System.out.println(email.getMessage());
 		if (allowedOnly) {
 			String[] allowedEmails = allowedEmailsList.split(",");
 			if (Stream.of(allowedEmails).noneMatch(mail -> mail.equals(email.getTo()))) {
