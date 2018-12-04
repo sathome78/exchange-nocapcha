@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -130,6 +131,11 @@ public class OnlineRestController {
 
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+
+    @GetMapping("/adsffefe/csrf")
+    public CsrfToken csrf(CsrfToken token) {
+        return token;
+    }
 
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
