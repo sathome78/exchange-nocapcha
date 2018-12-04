@@ -36,11 +36,11 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/app/charts/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/charts2/*/*").permitAll()
                 .simpSubscribeDestMatchers("/app/trades/*").permitAll()
+                .simpSubscribeDestMatchers("/app/orders/sfwfrf442fewdf/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/personal/*").permitAll()
                 .simpDestMatchers("/app/ev/*").permitAll()
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .anyMessage().denyAll();
-
     }
 
 }
