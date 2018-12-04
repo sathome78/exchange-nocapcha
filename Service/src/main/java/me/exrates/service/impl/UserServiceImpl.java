@@ -66,16 +66,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -510,6 +501,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getCallBackUrlByEmail(String email) {
+        try {
+            return userSettingService.getCallbackURL(getIdByEmail(email));
+        } catch (EmptyResultDataAccessException ex){
+            return null;
+        }
+    }
+
+    @Override
     public String getPreferedLang(int userId) {
         return userDao.getPreferredLang(userId);
     }
@@ -908,5 +908,7 @@ public class UserServiceImpl implements UserService {
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
     }
+
+
 
 }

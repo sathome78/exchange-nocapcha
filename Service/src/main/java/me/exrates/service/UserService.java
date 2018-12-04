@@ -209,4 +209,6 @@ public interface UserService {
     boolean checkPassword(int userId, String password);
 
     long countUserIps(String userEmail);
+
+    String getCallBackUrlByEmail(String email);
 }

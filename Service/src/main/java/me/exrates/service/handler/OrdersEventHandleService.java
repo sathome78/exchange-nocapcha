@@ -1,17 +1,24 @@
 package me.exrates.service.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
+import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +34,10 @@ public class OrdersEventHandleService  {
     private ExchangeRatesHolder ratesHolder;
     @Autowired
     private CurrencyStatisticsHandler currencyStatisticsHandler;
-
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private UserService userService;
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -63,6 +73,20 @@ public class OrdersEventHandleService  {
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
+    @Async
+    @TransactionalEventListener
+    void handleCallback(AcceptOrderEvent event) throws JsonProcessingException {
+//        log.debug("new thr accept {} ", Thread.currentThread().getName());
+        ExOrder order = (ExOrder)event.getSource();
+
+        String url = userService.getCallBackUrlByEmail((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+        if(url != null){
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, new ObjectMapper().writeValueAsString(order), String.class);
+            System.out.println(responseEntity);
+
+        }
+    }
 
     private void onOrdersEvent(Integer pairId, OperationType operationType) {
         Map<Integer, OrdersEventsHandler> mapForWork;
