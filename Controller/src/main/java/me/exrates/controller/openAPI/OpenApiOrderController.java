@@ -1,6 +1,8 @@
 package me.exrates.controller.openAPI;
 
+import com.google.common.base.Strings;
 import me.exrates.controller.model.BaseResponse;
+import me.exrates.model.dto.CallbackURL;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.openAPI.OpenOrderDto;
 import me.exrates.model.dto.openAPI.OrderCreationResultOpenApiDto;
@@ -33,10 +35,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
 import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
@@ -86,7 +85,7 @@ public class OpenApiOrderController {
         int userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
-        if(!accessToOperationForUser) {
+        if (!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
         }
         OrderCreationResultDto resultDto = orderService.prepareAndCreateOrderRest(currencyPairName, orderParamsDto.getOrderType().getOperationType(),
@@ -139,11 +138,44 @@ public class OpenApiOrderController {
         int userId = userService.getIdByEmail(userEmail);
         Locale locale = new Locale(userService.getPreferedLang(userId));
         boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(userId, UserOperationAuthority.TRADING);
-        if(!accessToOperationForUser) {
+        if (!accessToOperationForUser) {
             throw new UserOperationAccessException(messageSource.getMessage("merchant.operationNotAvailable", null, locale));
         }
         orderService.acceptOrder(userEmail, orderId);
         return Collections.singletonMap("success", true);
+    }
+
+
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) {
+        Map<String, Object> responseBody = new HashMap<>();
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
+            responseBody.put("status", "false");
+            responseBody.put("error", " Callback url is null or empty");
+            return responseBody;
+        }
+        int affectedRowCount = userService.setCallbackURL(userId, callbackUrl.getCallbackURL());
+        responseBody.put("status", affectedRowCount != 0);
+        return responseBody;
+    }
+
+    @PreAuthorize("hasAuthority('TRADE')")
+    @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Object> updateallback(@RequestBody CallbackURL callbackUrl) {
+        Map<String, Object> responseBody = new HashMap<>();
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        int userId = userService.getIdByEmail(userEmail);
+        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
+            responseBody.put("status", "false");
+            responseBody.put("error", " Callback url is null or empty");
+            return responseBody;
+        }
+        int affectedRowCount = userService.updateCallbackURL(userId, callbackUrl.getCallbackURL());
+        responseBody.put("status", affectedRowCount != 0);
+        return responseBody;
     }
 
     /**

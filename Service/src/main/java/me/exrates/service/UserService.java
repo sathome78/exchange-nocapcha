@@ -92,6 +92,10 @@ public interface UserService {
 
     void updateCommonReferralRoot(int userId);
 
+    int setCallbackURL(int userId, String callbackURL);
+
+    int updateCallbackURL(int userId, String callbackURL);
+
     /**
      * Returns preferred locale for user stored in DB
      *

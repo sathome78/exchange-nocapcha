@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
@@ -29,10 +30,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.service.NotificationService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
@@ -135,6 +133,8 @@ public class UserServiceImpl implements UserService {
     private G2faService g2faService;
     @Autowired
     private ExchangeApi exchangeApi;
+    @Autowired
+    private UserSettingService userSettingService;
 
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -494,6 +494,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateCommonReferralRoot(final int userId) {
         userDao.updateCommonReferralRoot(userId);
+    }
+
+    @Override
+    public int setCallbackURL(final int userId, final String callbackURL) {
+        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId))) {
+            throw new RuntimeException("Callback already present");
+        }
+        return userSettingService.addCallbackURL(userId, callbackURL);
+    }
+
+    @Override
+    public int updateCallbackURL(final int userId, final String callbackURL) {
+        return userSettingService.updateCallbackURL(userId, callbackURL);
     }
 
     @Override
