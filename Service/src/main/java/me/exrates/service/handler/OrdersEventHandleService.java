@@ -98,14 +98,18 @@ public class OrdersEventHandleService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email);
 
-        CallBackLogDto callBackLogDto = makeCallBack(order, url);
-        callBackLogDto.setRequestJson(new ObjectMapper().writeValueAsString(event));
-        callBackLogDto.setUserId(userService.getIdByEmail(email));
-        log.info(callBackLogDto);
-        orderService.logCallBackData(callBackLogDto);
+        if(url != null){
+            CallBackLogDto callBackLogDto = makeCallBack(order, url);
+            callBackLogDto.setRequestJson(new ObjectMapper().writeValueAsString(event));
+            callBackLogDto.setUserId(userService.getIdByEmail(email));
+            orderService.logCallBackData(callBackLogDto);
+            log.info("*** Callback. User email:"+email+" | Callback:"+callBackLogDto);
+        } else {
+            log.info("*** Callback url wasn't set. User email:"+email);
+        }
     }
 
-    public static boolean userHasAuthority(String authority)
+    private boolean userHasAuthority(String authority)
     {
         List<GrantedAuthority> authorities = (List<GrantedAuthority>) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
 
@@ -120,12 +124,11 @@ public class OrdersEventHandleService {
 
     private CallBackLogDto makeCallBack(ExOrder order, String url) throws JsonProcessingException {
         CallBackLogDto callbackLog = new CallBackLogDto();
-        callbackLog.setRequestDate(LocalDateTime.now().toString());
+        callbackLog.setRequestDate(LocalDateTime.now());
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, new ObjectMapper().writeValueAsString(order), String.class);
         callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
         callbackLog.setResponseJson(responseEntity.getBody());
-        callbackLog.setResponseDate(LocalDateTime.now().toString());
-        callbackLog.setResponseCode(responseEntity.getStatusCode().value());
+        callbackLog.setResponseDate(LocalDateTime.now());
         return callbackLog;
     }
 
