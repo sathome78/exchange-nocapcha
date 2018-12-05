@@ -94,12 +94,15 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     void handleCallback(AcceptOrderEvent event) throws JsonProcessingException {
         if(!userHasAuthority(CALL_BACK_AUTHRORITY)) return;
-        ExOrder order = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email);
 
+        processCallBackUrl(event, email, url);
+    }
+
+    private void processCallBackUrl(AcceptOrderEvent event, String email, String url) throws JsonProcessingException {
         if(url != null){
-            CallBackLogDto callBackLogDto = makeCallBack(order, url);
+            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url);
             callBackLogDto.setRequestJson(new ObjectMapper().writeValueAsString(event));
             callBackLogDto.setUserId(userService.getIdByEmail(email));
             orderService.logCallBackData(callBackLogDto);
