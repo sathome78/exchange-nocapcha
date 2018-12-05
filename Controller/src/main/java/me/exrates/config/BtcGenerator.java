@@ -96,7 +96,8 @@ public class BtcGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TCR');";
 
-    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
+    private static final String WALLET_SCRIPT_PROPERTIES =
+            "backup.folder=/data/backup/\n" +
             "node.propertySource=node_config/node_config_zalupa.properties\n" +
             "node.zmqEnabled=isZmq\n" +
             "node.supportInstantSend=false\n" +
@@ -211,6 +212,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("Q", "Quick", 20, true, false, "172.10.13.245", 8333, 12345);
+        generate("DIME", "DimeCoin", 20, true, false, "172.31.4.13", 8090, 11301);
     }
 }
