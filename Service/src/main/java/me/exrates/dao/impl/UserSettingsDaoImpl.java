@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -38,8 +39,8 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
         String getCallbackURL = "SELECT CALLBACK_URL FROM CALLBACK_SETTINGS WHERE USER_ID=:userId";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);
-        return namedParameterJdbcTemplate.
-                query(getCallbackURL, queryParams, (resultSet, i) -> resultSet.getString("CALLBACK_URL")).
-                get(0);
+
+        List<String> result = namedParameterJdbcTemplate.query(getCallbackURL, queryParams, (resultSet, i) -> resultSet.getString("CALLBACK_URL"));
+        return result.size() > 0 ? result.get(0) : null;
     }
 }

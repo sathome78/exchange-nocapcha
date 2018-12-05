@@ -502,11 +502,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getCallBackUrlByEmail(String email) {
-        try {
-            return userSettingService.getCallbackURL(getIdByEmail(email));
-        } catch (EmptyResultDataAccessException ex){
-            return null;
-        }
+        return userSettingService.getCallbackURL(getIdByEmail(email));
     }
 
     @Override
