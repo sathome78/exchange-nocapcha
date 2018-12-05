@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class BtcGenerator {
     private static final String SQL_PATCH = "INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)\n" +
-            "VALUES ('zalupaCoin', 'TCR', 2, 'tickerServiceImpl', 'CRYPTO');\n" +
+            "VALUES ('zalupaCoin', 'TCR', 2, 'beannameServiceImpl', 'CRYPTO');\n" +
             "INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)\n" +
             "VALUES ('TCR', 'zalupaCoin', 0, 8, 8, 8);\n" +
             "\n" +
@@ -155,7 +155,7 @@ public class BtcGenerator {
         if(!newMigration.createNewFile()) throw new RuntimeException("Can not create file with pass " + newMigration.getAbsolutePath() + "\n maybe have not permission!");
 
         FileWriter writer = new FileWriter(newMigration);
-        writer.append(SQL_PATCH.replace("TCR", ticker).replace("ticker", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
+        writer.append(SQL_PATCH.replace("TCR", ticker).replace("beanname", ticker.toLowerCase()).replace("zalupaCoin", description)).flush();
     }
 
     private static String getSqlName(String ticker){
