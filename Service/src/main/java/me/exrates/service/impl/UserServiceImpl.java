@@ -32,16 +32,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.*;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.AuthenticationNotAvailableException;
-import me.exrates.service.exception.CommentNonEditableException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.ResetPasswordExpirationException;
-import me.exrates.service.exception.TokenNotFoundException;
-import me.exrates.service.exception.UnRegisteredUserDeleteException;
-import me.exrates.service.exception.UserCommentNotFoundException;
-import me.exrates.service.exception.WrongFinPasswordException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
@@ -488,9 +479,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int setCallbackURL(final int userId, final String callbackURL) {
+    public int setCallbackURL(final int userId, final String callbackURL) throws CallBackUrlAlreadyExistException {
         if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId))) {
-            throw new RuntimeException("Callback already present");
+            throw new CallBackUrlAlreadyExistException("Callback already present");
         }
         return userSettingService.addCallbackURL(userId, callbackURL);
     }

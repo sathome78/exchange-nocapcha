@@ -8,7 +8,7 @@ import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.userOperation.UserOperationAuthorityOption;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,7 +92,7 @@ public interface UserService {
 
     void updateCommonReferralRoot(int userId);
 
-    int setCallbackURL(int userId, String callbackURL);
+    int setCallbackURL(int userId, String callbackURL) throws CallBackUrlAlreadyExistException;
 
     int updateCallbackURL(int userId, String callbackURL);
 
