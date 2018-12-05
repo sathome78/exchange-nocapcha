@@ -96,7 +96,8 @@ public class BtcGenerator {
             "FROM CURRENCY cur\n" +
             "WHERE cur.name IN ('TCR');";
 
-    private static final String WALLET_SCRIPT_PROPERTIES = "backup.folder=/data/.zalupa/zalupa_backup/\n" +
+    private static final String WALLET_SCRIPT_PROPERTIES =
+            "backup.folder=/data/backup/\n" +
             "node.propertySource=node_config/node_config_zalupa.properties\n" +
             "node.zmqEnabled=isZmq\n" +
             "node.supportInstantSend=false\n" +
