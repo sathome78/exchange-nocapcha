@@ -17,7 +17,7 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public int addCallBackUrl(final int userId, final String callbackURL) {
-        String addCallbackQuery = "INSERT INTO CALLBACK_SETTINGS VALUES(:userId,:callbackUrl)";
+        String addCallbackQuery = "INSERT INTO CALLBACK_SETTINGS VALUES(:userId,:callbackURL)";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);
         queryParams.put("callbackURL", callbackURL);
@@ -25,7 +25,7 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
     }
 
     public int updateCallbackURL(final int userId, final String callbackURL) {
-        String updateCallbackQuery = "UPDATE CALLBACK_SETTINGS SET CALLBACK_URL=:callbackUrl WHERE USER_ID=:userId";
+        String updateCallbackQuery = "UPDATE CALLBACK_SETTINGS SET CALLBACK_URL=:callbackURL WHERE USER_ID=:userId";
 
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);

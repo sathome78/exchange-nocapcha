@@ -11,10 +11,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.AlreadyAcceptedOrderException;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.OrderNotFoundException;
-import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
@@ -148,7 +145,7 @@ public class OpenApiOrderController {
 
     @PreAuthorize("hasAuthority('TRADE')")
     @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) {
+    public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) throws CallBackUrlAlreadyExistException {
         Map<String, Object> responseBody = new HashMap<>();
         String userEmail = userService.getUserEmailFromSecurityContext();
         int userId = userService.getIdByEmail(userEmail);
@@ -228,6 +225,13 @@ public class OpenApiOrderController {
     @ResponseBody
     public OpenApiError missingServletRequestParameterHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(CallBackUrlAlreadyExistException.class)
+    @ResponseBody
+    public OpenApiError callBackExistException(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.CALL_BACK_URL_ALREADY_EXISTS, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(NOT_ACCEPTABLE)
