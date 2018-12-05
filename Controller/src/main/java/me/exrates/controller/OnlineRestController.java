@@ -137,6 +137,12 @@ public class OnlineRestController {
         return token;
     }
 
+    @GetMapping("/trade_pairs")
+    public Map<String, Integer> getAllAvailableMainPairs() {
+        return currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN).stream().collect(Collectors.toMap(CurrencyPair::getName, CurrencyPair::getId));
+    }
+
+
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
         UserRole userRole = userService.getUserRoleFromSecurityContext();
@@ -152,7 +158,6 @@ public class OnlineRestController {
         } finally {
         }
     }
-
 
     @OnlineMethod
     @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
