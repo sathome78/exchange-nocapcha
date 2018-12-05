@@ -8,3 +8,6 @@ INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency
 
 INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'Interkassa'), '/client/img/merchants/mir.png', 'Mir Payment', (SELECT id FROM CURRENCY WHERE name = 'USD'));
+
+INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
+  ((SELECT id FROM MERCHANT WHERE name = 'Interkassa'), '/client/img/merchants/qiwi.png', 'Qiwi Payment', (SELECT id FROM CURRENCY WHERE name = 'USD'));
