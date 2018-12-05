@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.UserSettingsDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -38,8 +39,10 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
         String getCallbackURL = "SELECT CALLBACK_URL FROM CALLBACK_SETTINGS WHERE USER_ID=:userId";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);
-        return namedParameterJdbcTemplate.
-                query(getCallbackURL, queryParams, (resultSet, i) -> resultSet.getString("CALLBACK_URL")).
-                get(0);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(getCallbackURL, queryParams, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }
