@@ -26,9 +26,6 @@ import java.util.Map;
 @PropertySource("classpath:/merchants/qiwi.properties")
 public class QiwiServiceImpl implements QiwiService {
 
-    @Value("${qiwi.account.address}")
-    private String mainAddress;
-
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -37,11 +34,15 @@ public class QiwiServiceImpl implements QiwiService {
     private RefillService refillService;
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private QiwiExternalService qiwiExternalService;
 
+    @Value("${qiwi.account.address}")
+    private String mainAddress;
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = genrateDefaultMemo(request.getUserId());/*mock impl*/
+        String destinationTag = qiwiExternalService.generateUniqMemo(request.getUserId());
         String message = messageSource.getMessage("merchants.refill.qiwi",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -49,10 +50,6 @@ public class QiwiServiceImpl implements QiwiService {
             put("message", message);
             put("qr", mainAddress);
         }};
-    }
-
-    private String genrateDefaultMemo(int userId) {
-       return CryptoUtils.generateDestinationTag(userId, 12);
     }
 
     @Override
@@ -82,7 +79,7 @@ public class QiwiServiceImpl implements QiwiService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        throw new RuntimeException("Not implemented for qiwi");
+        throw new RuntimeException("Not implemented for qiwi.");
     }
 
     @Override
