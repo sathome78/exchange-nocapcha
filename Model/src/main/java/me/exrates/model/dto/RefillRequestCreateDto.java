@@ -79,7 +79,6 @@ public class RefillRequestCreateDto {
     this.status = status;
     /**/
     this.locale = locale;
-    this.childMerchant = paramsDto.getChildMerchant();
   }
 
   public void setMerchantRequestSign(String sign){
