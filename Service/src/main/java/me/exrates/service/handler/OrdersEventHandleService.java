@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
@@ -54,7 +55,6 @@ public class OrdersEventHandleService {
     @Autowired
     private OrderService orderService;
 
-    private static final String CALL_BACK_AUTHRORITY = "TRADER";
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -93,7 +93,7 @@ public class OrdersEventHandleService {
     @Async
     @TransactionalEventListener
     void handleCallback(AcceptOrderEvent event) throws JsonProcessingException {
-        if(!userHasAuthority(CALL_BACK_AUTHRORITY)) return;
+        if (!userHasAuthority(UserRole.TRADER)) return;
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email);
 
@@ -101,23 +101,22 @@ public class OrdersEventHandleService {
     }
 
     private void processCallBackUrl(AcceptOrderEvent event, String email, String url) throws JsonProcessingException {
-        if(url != null){
+        if (url != null) {
             CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url);
             callBackLogDto.setRequestJson(new ObjectMapper().writeValueAsString(event));
             callBackLogDto.setUserId(userService.getIdByEmail(email));
             orderService.logCallBackData(callBackLogDto);
-            log.info("*** Callback. User email:"+email+" | Callback:"+callBackLogDto);
+            log.info("*** Callback. User email:" + email + " | Callback:" + callBackLogDto);
         } else {
-            log.info("*** Callback url wasn't set. User email:"+email);
+            log.info("*** Callback url wasn't set. User email:" + email);
         }
     }
 
-    private boolean userHasAuthority(String authority)
-    {
+    private boolean userHasAuthority(UserRole authority) {
         List<GrantedAuthority> authorities = (List<GrantedAuthority>) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
 
         for (GrantedAuthority grantedAuthority : authorities) {
-            if (authority.equals(grantedAuthority.getAuthority())) {
+            if (authority.toString().equals(grantedAuthority.getAuthority())) {
                 return true;
             }
         }
