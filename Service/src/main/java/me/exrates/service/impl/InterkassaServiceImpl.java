@@ -114,7 +114,7 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         map.put("ik_sign", getSignature(map));
 
-        String actionUrl = getActionUrl(map);
+        final String actionUrl = getActionUrl(map);
 
         return generateFullUrlMap(actionUrl, "GET", new Properties());
     }
