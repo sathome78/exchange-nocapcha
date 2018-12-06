@@ -59,10 +59,10 @@ $(function refillCreation() {
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
-        childMerchant = $(button).data("merchant-child-merchant");
         merchantIsSimpleInvoice = $(button).data("process_type") == "INVOICE";
         merchantIsCrypto = $(button).data("process_type") == "CRYPTO";
         amount = parseFloat($amountHolder.val());
+        childMerchant = $(button).data("merchant-child-merchant");
         if (merchantIsCrypto || checkAmount()) {
             fillModalWindow();
             showRefillDialog();
@@ -172,7 +172,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
-            merchantNewColumn : merchantNewColumn,
+            childMerchant : childMerchant,
             operationType: operationType
         };
         if (merchantIsSimpleInvoice) {

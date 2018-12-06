@@ -95,7 +95,8 @@
                               data-process_type="${merchantCurrency.processType}"
                               data-is-amount-input-needed="${isAmountInputNeeded}"
                               data-merchant-image-d="${merchantImage.id}"
-                              data-merchant-child-merchant="${merchantImage.childMerchant}"><loc:message code="merchants.deposit"/>
+                              data-merchant-child-merchant="${merchantImage.childMerchant}">
+                        <loc:message code="merchants.deposit"/>
                       </button>
                     </c:when>
                     <c:otherwise>
