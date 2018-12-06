@@ -234,8 +234,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         try {
             if (isOuterFile) {
                 properties.load(new FileInputStream(dbPropertiesFile));
-            }
-            else {
+            } else {
                 properties.load(getClass().getClassLoader().getResourceAsStream(dbPropertiesFile));
             }
         } catch (Exception e) {
@@ -1493,7 +1492,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "VAI",
                 "VAI", true, ExConvert.Unit.ETHER);
     }
-    
+
     @Bean(name = "uncServiceImpl")
     public EthTokenService uncService() {
         List<String> tokensList = new ArrayList<>();
