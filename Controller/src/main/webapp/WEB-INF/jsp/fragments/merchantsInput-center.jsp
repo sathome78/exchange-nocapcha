@@ -100,9 +100,9 @@
                     <c:otherwise>
                       <div style="overflow:auto; ">
                         <div>
-                          <div class="alert alert-warning"><loc:message code="message.additional.deposit.warning" arguments="${currency.getName()}"/></div>
+                          <div class="alert alert-warning"><loc:message code="message.additional.deposit.warning" arguments="${currency.name}"/></div>
                           <c:choose>
-                            <c:when test="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}">
+                            <c:when test="${merchantCurrency.additionalTagForRefillIsUsed}">
                           <div class="alert alert-success">
                             <loc:message code="refill.messageAboutCurrentAddressSimple"/>
                               <div id="address-to-pay" <%--style="font-size:16px"--%>>

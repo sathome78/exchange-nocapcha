@@ -38,10 +38,17 @@ public class QiwiServiceImpl implements QiwiService {
     @Autowired
     private MessageSource messageSource;
 
+    private String merchantName = "QIWI";
+
+
+    @Override
+    public String getMainAddress() {
+        return mainAddress;
+    }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = genrateDefaultMemo(request.getUserId());/*mock impl*/
+        String destinationTag = generateDefaultMemo(request.getUserId());/*mock impl*/
         String message = messageSource.getMessage("merchants.refill.qiwi",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -51,7 +58,7 @@ public class QiwiServiceImpl implements QiwiService {
         }};
     }
 
-    private String genrateDefaultMemo(int userId) {
+    private String generateDefaultMemo(int userId) {
        return CryptoUtils.generateDestinationTag(userId, 12);
     }
 
@@ -60,7 +67,7 @@ public class QiwiServiceImpl implements QiwiService {
         String address = params.get("address");
         String hash = params.get("hash");
         Currency currency = currencyService.findByName(params.get("currency"));
-        Merchant merchant = merchantService.findByName(params.get("merchant"));
+        Merchant merchant = merchantService.findByName(merchantName);
         BigDecimal amount = new BigDecimal(params.get("amount"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
