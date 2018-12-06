@@ -44,7 +44,6 @@ public class RefillRequestCreateDto {
   private Locale locale;
   private RefillRequestParam refillRequestParam = new RefillRequestParam();
   private String txHash;
-  private String childMerchant;
 
 
   public RefillRequestCreateDto(RefillRequestParamsDto paramsDto, CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
@@ -98,11 +97,11 @@ public class RefillRequestCreateDto {
 
     public boolean isEmpty() {
       return this.recipientBankId == null &&
-          this.recipientBankCode == null &&
-          this.recipientBankName == null &&
-          this.recipient == null &&
-          this.userFullName == null &&
-          this.merchantRequestSign == null;
+              this.recipientBankCode == null &&
+              this.recipientBankName == null &&
+              this.recipient == null &&
+              this.userFullName == null &&
+              this.merchantRequestSign == null;
     }
   }
 
