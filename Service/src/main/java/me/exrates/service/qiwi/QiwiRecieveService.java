@@ -38,19 +38,20 @@ public class QiwiRecieveService {
     @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60)
     private void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
-        try {
-            qiwiExternalService.getLastTransactions().stream()
-                    .filter(trans -> trans.getTx_type().equals(TRANSACTION_TYPE)
-                            && trans.getTx_status().equals(TRANSACTION_STATUS)).forEach(transaction -> {
-                log.debug("*** Qiwi *** Process transaction");
+
+        qiwiExternalService.getLastTransactions().stream()
+                .filter(trans -> trans.getTx_type().equals(TRANSACTION_TYPE)
+                        && trans.getTx_status().equals(TRANSACTION_STATUS)).forEach(transaction -> {
+            try {
+                log.info("*** Qiwi *** Process transaction");
                 qiwiService.onTransactionReceive(transaction, transaction.getAmount(), transaction.getCurrency(), transaction.getProvider());
                 // Record the paging token so we can start from here next time.
-                log.debug("*** Qiwi *** transaction - currency:"+transaction.getProvider()+" | hash:"+ transaction.get_id()+" Saved");
-            });
-        }catch (Exception ex){
-            ex.getStackTrace();
-            log.error(ex.getMessage());
-        }
+                log.info("*** Qiwi *** transaction - currency:"+transaction.getProvider()+" | hash:"+ transaction.get_id()+" Saved");
+            }catch (Exception ex){
+                ex.getStackTrace();
+                log.error(ex.getMessage());
+            }
+        });
         log.info("*** Qiwi ** Get transactions for process");
     }
 

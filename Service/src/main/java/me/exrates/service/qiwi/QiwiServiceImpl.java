@@ -8,6 +8,8 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,7 +78,7 @@ public class QiwiServiceImpl implements QiwiService {
 
     @Override
     public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
-        log.debug("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
+        log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
         if (checkTransactionForDuplicate(transaction)) {
             try {
                 throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(transaction.get_id());
@@ -86,7 +89,7 @@ public class QiwiServiceImpl implements QiwiService {
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
-        String memo = transaction.getNote();
+        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":")+1);
         if(memo == null) {
             log.warn("*** Qiwi *** Memo is null");
             return;
@@ -113,12 +116,13 @@ public class QiwiServiceImpl implements QiwiService {
         String hash = params.get("hash");
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
-        BigDecimal amount = new BigDecimal(params.get("amount"));
+        BigDecimal fullAmount = new BigDecimal(params.get("amount"));
+        BigDecimal comissionValue = BigDecimalProcessing.doAction(fullAmount, new BigDecimal("1"), ActionType.MULTIPLY_PERCENT, RoundingMode.HALF_UP);
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(amount)
+                .amount(fullAmount.subtract(comissionValue).setScale(2, RoundingMode.HALF_DOWN))
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
