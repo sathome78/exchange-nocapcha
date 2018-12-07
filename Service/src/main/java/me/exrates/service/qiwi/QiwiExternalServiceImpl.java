@@ -13,12 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Service
 @Log4j
 public class QiwiExternalServiceImpl implements QiwiExternalService{
 
     @Autowired
-    @Qualifier("qiwiRestTemplate")
     private RestTemplate qiwiRestTemplate;
 
     public String generateUniqMemo(int userId) {
@@ -33,10 +35,8 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
         return response.getBody().getResponseData().getComment();
     }
 
-    public QiwiResponseTransaction[] getLastTransactions() {
-        QiwiRequestHeader requestHeader = new QiwiRequestHeader("txName");
-        String[] status = {"CREATED", "PENDING", "APPROVED", "REJECTED"};
-        String[] type = {"CREATED", "PENDING", "APPROVED", "REJECTED"};
+    public List<QiwiResponseTransaction> getLastTransactions() {
+        QiwiRequestHeader requestHeader = new QiwiRequestHeader("fetchMerchTx");
         QiwiRequestGetTransactions requestBody = new QiwiRequestGetTransactions();
 
         QiwiRequest request = new QiwiRequest(requestHeader, requestBody);
@@ -45,10 +45,12 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
 
         QiwiResponseTransaction[] trans = response.getBody().getResponseData().getTransactions();
 
+        List<QiwiResponseTransaction> listLastTransactions = Arrays.asList(trans);
+
         for (QiwiResponseTransaction element: trans) {
             System.out.println(element.get_id());
         }
 
-        return response.getBody().getResponseData().getTransactions();
+        return listLastTransactions;
     }
 }

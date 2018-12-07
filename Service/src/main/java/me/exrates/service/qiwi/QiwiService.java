@@ -1,5 +1,6 @@
 package me.exrates.service.qiwi;
 
+import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 
@@ -54,4 +55,6 @@ public interface QiwiService extends IRefillable, IWithdrawable {
     default boolean specificWithdrawMerchantCommissionCountNeeded() {
         return true;
     }
+
+    void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant);
 }

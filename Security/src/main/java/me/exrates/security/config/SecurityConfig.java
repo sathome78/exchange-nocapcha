@@ -237,7 +237,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/com/captcha/botdetect/**").permitAll()
             .antMatchers(POST, "/captchaSubmit").permitAll()
             .antMatchers(POST, "/news/addNewsVariant").authenticated()
-            .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
+            .antMatchers("/yandex_4b3a16d69d4869cb.html", "/tx").permitAll()
             .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
             .antMatchers("/payeer_510814850.txt").permitAll()
             .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners", "/api_docs").permitAll()
