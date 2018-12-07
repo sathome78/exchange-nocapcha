@@ -93,7 +93,6 @@ public class OrdersEventHandleService {
     @Async
     @TransactionalEventListener
     void handleCallback(AcceptOrderEvent event) throws JsonProcessingException {
-        if (!userHasAuthority(UserRole.TRADER)) return;
         ExOrder source = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email,source.getCurrencyPairId());
