@@ -222,7 +222,8 @@ public class RefillServiceImpl implements RefillService {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable)merchantService).additionalTagForWithdrawAddressIsUsed());
-      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+      e.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
+      if (e.getAdditionalTagForWithdrawAddressIsUsed() || e.getAdditionalTagForRefillIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
       }

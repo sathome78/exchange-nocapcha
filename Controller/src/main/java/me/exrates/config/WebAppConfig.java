@@ -56,6 +56,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -127,7 +128,8 @@ import java.util.stream.Collectors;
         "classpath:/twitter.properties",
         "classpath:/angular.properties",
         "classpath:/merchants/stellar.properties",
-        "classpath:/geetest.properties"})
+        "classpath:/geetest.properties",
+        "classpath:/merchants/qiwi.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -214,6 +216,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String gtPrivateKey;
     @Value("${geetest.newFailback}")
     private String gtNewFailback;
+
+    @Value("${qiwi.client.id}")
+    private String qiwiClientId = "AcOjrtX4almBGId8";
+    @Value("${qiwi.client.secret}")
+    private String qiwiClientSecret = "KTx6Tco4oOFc8g0S8HqtP376XPSQSG";
 
     private String dbMasterUser;
     private String dbMasterPassword;
@@ -1620,7 +1627,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setConnectionRequestTimeout(25000);
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
-        return new RestTemplate();
+
+        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
+        return restTemplate;
+    }
+
+    @Bean("qiwiRestTemplate")
+    public RestTemplate qiwiRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+
+        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
+        return restTemplate;
     }
 
     @Bean
