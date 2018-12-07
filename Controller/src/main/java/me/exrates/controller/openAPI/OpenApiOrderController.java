@@ -154,7 +154,7 @@ public class OpenApiOrderController {
             responseBody.put("error", " Callback url is null or empty");
             return responseBody;
         }
-        int affectedRowCount = userService.setCallbackURL(userId, callbackUrl.getCallbackURL());
+        int affectedRowCount = userService.setCallbackURL(userId, callbackUrl);
         responseBody.put("status", affectedRowCount != 0);
         return responseBody;
     }
@@ -165,12 +165,12 @@ public class OpenApiOrderController {
         Map<String, Object> responseBody = new HashMap<>();
         String userEmail = userService.getUserEmailFromSecurityContext();
         int userId = userService.getIdByEmail(userEmail);
-        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL())) {
+        if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL()) && callbackUrl.getPairId() != null) {
             responseBody.put("status", "false");
             responseBody.put("error", " Callback url is null or empty");
             return responseBody;
         }
-        int affectedRowCount = userService.updateCallbackURL(userId, callbackUrl.getCallbackURL());
+        int affectedRowCount = userService.updateCallbackURL(userId, callbackUrl);
         responseBody.put("status", affectedRowCount != 0);
         return responseBody;
     }
