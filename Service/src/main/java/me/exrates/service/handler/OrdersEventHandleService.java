@@ -127,7 +127,15 @@ public class OrdersEventHandleService {
     private CallBackLogDto makeCallBack(ExOrder order, String url) throws JsonProcessingException {
         CallBackLogDto callbackLog = new CallBackLogDto();
         callbackLog.setRequestDate(LocalDateTime.now());
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, new ObjectMapper().writeValueAsString(order), String.class);
+        ResponseEntity<String> responseEntity = null;
+        try{
+            restTemplate.postForEntity(url, new ObjectMapper().writeValueAsString(order), String.class);
+        } catch (Exception e){
+            callbackLog.setResponseCode(999);
+            callbackLog.setResponseJson(e.toString());
+            callbackLog.setResponseDate(LocalDateTime.now());
+            return callbackLog;
+        }
         callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
         callbackLog.setResponseJson(responseEntity.getBody());
         callbackLog.setResponseDate(LocalDateTime.now());
