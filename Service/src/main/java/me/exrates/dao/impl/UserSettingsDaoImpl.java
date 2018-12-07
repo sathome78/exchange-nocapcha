@@ -21,7 +21,7 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
         String addCallbackQuery = "INSERT INTO CALLBACK_SETTINGS VALUES(:userId,:callbackURL,:pairId)";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);
-        queryParams.put("callbackURL", callbackURL);
+        queryParams.put("callbackURL", callbackURL.getCallbackURL());
         queryParams.put("pairId", callbackURL.getPairId());
 
         return namedParameterJdbcTemplate.update(addCallbackQuery, queryParams);
@@ -32,7 +32,7 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
 
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("userId", userId);
-        queryParams.put("callbackURL", callbackURL);
+        queryParams.put("callbackURL", callbackURL.getCallbackURL());
         queryParams.put("pairId", callbackURL.getPairId());
 
         return namedParameterJdbcTemplate.update(updateCallbackQuery, queryParams);
