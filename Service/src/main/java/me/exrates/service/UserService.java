@@ -25,7 +25,7 @@ public interface UserService {
 
     int getIdByNickname(String nickname);
 
-    boolean setNickname(String newNickName,String userEmail);
+    boolean setNickname(String newNickName, String userEmail);
 
     boolean hasNickname(String userEmail);
 
@@ -92,9 +92,9 @@ public interface UserService {
 
     void updateCommonReferralRoot(int userId);
 
-    int setCallbackURL(int userId, String callbackURL) throws CallBackUrlAlreadyExistException;
+    int setCallbackURL(int userId, CallbackURL callbackURL) throws CallBackUrlAlreadyExistException;
 
-    int updateCallbackURL(int userId, String callbackURL);
+    int updateCallbackURL(int userId, CallbackURL callbackURL);
 
     /**
      * Returns preferred locale for user stored in DB
@@ -210,5 +210,5 @@ public interface UserService {
 
     long countUserIps(String userEmail);
 
-    String getCallBackUrlByEmail(String email);
+    String getCallBackUrlByEmail(String email, Integer currencyPairId);
 }
