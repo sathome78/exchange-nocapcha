@@ -38,6 +38,7 @@ $(function refillCreation() {
     var totalAmount;
     var bankDataList;
     var merchantWarningList;
+    var childMerchant;
 
     $container.find(".start-refill").on('click', function () {
         startRefill(this);
@@ -61,6 +62,7 @@ $(function refillCreation() {
         merchantIsSimpleInvoice = $(button).data("process_type") == "INVOICE";
         merchantIsCrypto = $(button).data("process_type") == "CRYPTO";
         amount = parseFloat($amountHolder.val());
+        childMerchant = $(button).data("merchant-child-merchant");
         if (merchantIsCrypto || checkAmount()) {
             fillModalWindow();
             showRefillDialog();
@@ -143,9 +145,9 @@ $(function refillCreation() {
             $refillParamsDialog.find('#payment-qr').html('');
             $refillParamsDialog.find("#continue-btn").off('click').on('click', function () {
 
-            $("#warning-remporary-validity-refill-request-merchant").modal({
-                backdrop: 'static'
-            });
+                $("#warning-remporary-validity-refill-request-merchant").modal({
+                    backdrop: 'static'
+                });
 
                 window.open("about:blank","newwin");
                 if (!checkRefillParamsEnter()) {
@@ -170,6 +172,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
+            childMerchant : childMerchant,
             operationType: operationType
         };
         if (merchantIsSimpleInvoice) {
@@ -372,5 +375,3 @@ $(function refillCreation() {
     }
 
 });
-
-

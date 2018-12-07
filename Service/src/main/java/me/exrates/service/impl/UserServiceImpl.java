@@ -12,14 +12,7 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserBalancesDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -479,21 +472,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int setCallbackURL(final int userId, final String callbackURL) throws CallBackUrlAlreadyExistException {
-        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId))) {
+    public int setCallbackURL(final int userId, final CallbackURL callbackURL) throws CallBackUrlAlreadyExistException {
+        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId, callbackURL.getPairId()))) {
             throw new CallBackUrlAlreadyExistException("Callback already present");
         }
         return userSettingService.addCallbackURL(userId, callbackURL);
     }
 
     @Override
-    public int updateCallbackURL(final int userId, final String callbackURL) {
+    public int updateCallbackURL(final int userId, final CallbackURL callbackURL) {
         return userSettingService.updateCallbackURL(userId, callbackURL);
     }
 
     @Override
-    public String getCallBackUrlByEmail(String email) {
-        return userSettingService.getCallbackURL(getIdByEmail(email));
+    public String getCallBackUrlByEmail(String email, Integer currencyPairId) {
+        return userSettingService.getCallbackURL(getIdByEmail(email), currencyPairId);
     }
 
     @Override
@@ -895,7 +888,6 @@ public class UserServiceImpl implements UserService {
     public long countUserIps(String userEmail) {
         return userDao.countUserEntrance(userEmail);
     }
-
 
 
 }
