@@ -119,12 +119,11 @@ public class QiwiServiceImpl implements QiwiService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal fullAmount = new BigDecimal(params.get("amount"));
-        BigDecimal comissionValue = BigDecimalProcessing.doAction(fullAmount, new BigDecimal("1"), ActionType.MULTIPLY_PERCENT, RoundingMode.HALF_UP);
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(fullAmount.subtract(comissionValue).setScale(2, RoundingMode.HALF_DOWN))
+                .amount(fullAmount)
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();

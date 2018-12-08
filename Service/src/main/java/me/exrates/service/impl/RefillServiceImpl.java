@@ -11,6 +11,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -50,6 +51,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -646,6 +648,10 @@ public class RefillServiceImpl implements RefillService {
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+      Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
+      if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getCommissionId(), refillRequest.getMerchantId()));
+      }
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();
