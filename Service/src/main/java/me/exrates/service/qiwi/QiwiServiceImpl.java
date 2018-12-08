@@ -1,5 +1,6 @@
 package me.exrates.service.qiwi;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
@@ -76,6 +77,7 @@ public class QiwiServiceImpl implements QiwiService {
         return mainAddress;
     }
 
+    @Synchronized
     @Override
     public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
         log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
@@ -106,8 +108,8 @@ public class QiwiServiceImpl implements QiwiService {
     }
 
     private boolean checkTransactionForDuplicate(QiwiResponseTransaction transaction) {
-        return StringUtils.isEmpty(transaction.getNote()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
-                transaction.getNote()).isPresent();
+        return StringUtils.isEmpty(transaction.getNote()) || StringUtils.isEmpty(transaction.get_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                transaction.get_id()).isPresent();
     }
 
     @Override
