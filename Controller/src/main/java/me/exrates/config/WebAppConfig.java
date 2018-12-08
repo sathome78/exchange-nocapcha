@@ -218,9 +218,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String gtNewFailback;
 
     @Value("${qiwi.client.id}")
-    private String qiwiClientId = "AcOjrtX4almBGId8";
+    private String qiwiClientId;
     @Value("${qiwi.client.secret}")
-    private String qiwiClientSecret = "KTx6Tco4oOFc8g0S8HqtP376XPSQSG";
+    private String qiwiClientSecret;
 
     private String dbMasterUser;
     private String dbMasterPassword;
@@ -1627,22 +1627,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setConnectionRequestTimeout(25000);
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
-
-        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
         return restTemplate;
     }
 
     @Bean("qiwiRestTemplate")
     public RestTemplate qiwiRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
-
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
         return restTemplate;
     }
 
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
-
         QuartzJobFactory jobFactory = new QuartzJobFactory();
         jobFactory.setApplicationContext(applicationContext);
         return jobFactory;

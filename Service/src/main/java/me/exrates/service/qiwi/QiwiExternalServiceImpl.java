@@ -1,6 +1,6 @@
 package me.exrates.service.qiwi;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.qiwi.request.QiwiRequest;
 import me.exrates.model.dto.qiwi.request.QiwiRequestGetTransactions;
 import me.exrates.model.dto.qiwi.request.QiwiRequestHeader;
@@ -17,9 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Log4j
+@Log4j2(topic = "Qiwi")
 public class QiwiExternalServiceImpl implements QiwiExternalService{
 
+    @Qualifier(value = "qiwiRestTemplate")
     @Autowired
     private RestTemplate qiwiRestTemplate;
 
