@@ -78,12 +78,8 @@ public class QiwiServiceImpl implements QiwiService {
     public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
         log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
         if (checkTransactionForDuplicate(transaction)) {
-            try {
-                throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(transaction.get_id());
-            } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
                 log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
                 return;
-            }
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
