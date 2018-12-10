@@ -80,29 +80,6 @@ public class OrderControllerRest {
     @Autowired
     StopOrderService stopOrderService;
 
-
-    @Autowired
-    private RestTemplate qiwiRestTemplate;
-
-    @RequestMapping("/tx")
-    public List<QiwiResponseTransaction> write() {
-        QiwiRequestHeader requestHeader = new QiwiRequestHeader("txName");
-        QiwiRequestGetTransactions requestBody = new QiwiRequestGetTransactions();
-
-        QiwiRequest request = new QiwiRequest(requestHeader, requestBody);
-
-        ResponseEntity<QiwiResponse> response = qiwiRestTemplate.postForEntity("https://api.adgroup.finance/transfer/get-merchant-tx", request , QiwiResponse.class );
-
-        QiwiResponseTransaction[] trans = response.getBody().getResponseData().getTransactions();
-
-        List<QiwiResponseTransaction> listLastTransactions = Arrays.asList(trans);
-
-        listLastTransactions.stream().filter
-                (transs -> transs.getTx_status().equals("APPROVED")).forEach(transs -> System.out.println(transs.get_id()));
-
-        return listLastTransactions.stream().filter(transs -> transs.getTx_status().equals("APPROVED")).collect(Collectors.toList());
-    }
-
     @CheckActiveUserStatus
     @RequestMapping("/order/submitnew/{orderType}")
     public OrderCreateSummaryDto newOrderToSell(@PathVariable OperationType orderType,

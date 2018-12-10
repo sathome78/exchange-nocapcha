@@ -29,6 +29,11 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
     @Value("${qiwi.base.production.url}")
     private String baseUrl;
 
+    @Value("${qiwi.transaction.position.start}")
+    private int startPosition;
+    @Value("${qiwi.transaction.limit}")
+    private int limit;
+
     @Qualifier(value = "qiwiRestTemplate")
     @Autowired
     private RestTemplate qiwiRestTemplate;
@@ -47,7 +52,7 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
 
     public List<QiwiResponseTransaction> getLastTransactions() {
         QiwiRequestHeader requestHeader = new QiwiRequestHeader("fetchMerchTx");
-        QiwiRequestGetTransactions requestBody = new QiwiRequestGetTransactions();
+        QiwiRequestGetTransactions requestBody = new QiwiRequestGetTransactions(startPosition, limit);
 
         QiwiRequest request = new QiwiRequest(requestHeader, requestBody);
 
