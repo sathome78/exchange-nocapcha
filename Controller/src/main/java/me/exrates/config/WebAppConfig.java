@@ -1628,7 +1628,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
 
-        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
         return restTemplate;
     }
 
