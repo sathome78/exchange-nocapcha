@@ -441,11 +441,11 @@ public class EntryController {
                         localeResolver.resolveLocale(request)));
             } catch (Exception e) {
                 log.error("error", e);
-                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.invalid", null,
+                redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.invalid", null,
                         localeResolver.resolveLocale(request)));
             }
         } else {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+            redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("session.settings.time.invalid", null,
                     localeResolver.resolveLocale(request)));
         }
         redirectAttributes.addFlashAttribute("activeTabId", "session-options-wrapper");

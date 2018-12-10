@@ -35,7 +35,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
     private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
     private static final int MIN_SESSION_TIME_MINUTES = 5;
-    private static final int MAX_SESSION_TIME_MINUTES = 1440;
+    private static final int MAX_SESSION_TIME_MINUTES = 120;
 
     @Autowired
     private SessionParamsDao sessionParamsDao;
