@@ -1,5 +1,6 @@
 package me.exrates.service.qiwi;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
@@ -8,13 +9,10 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.CryptoUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -24,7 +22,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,16 +73,13 @@ public class QiwiServiceImpl implements QiwiService {
         return mainAddress;
     }
 
+    @Synchronized
     @Override
     public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
         log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
         if (checkTransactionForDuplicate(transaction)) {
-            try {
-                throw new DuplicatedMerchantTransactionIdOrAttemptToRewriteException(transaction.get_id());
-            } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
                 log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
                 return;
-            }
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
@@ -106,8 +100,8 @@ public class QiwiServiceImpl implements QiwiService {
     }
 
     private boolean checkTransactionForDuplicate(QiwiResponseTransaction transaction) {
-        return StringUtils.isEmpty(transaction.getNote()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
-                transaction.getNote()).isPresent();
+        return StringUtils.isEmpty(transaction.getNote()) || StringUtils.isEmpty(transaction.get_id()) || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchant.getId(), currency.getId(),
+                transaction.get_id()).isPresent();
     }
 
     @Override
@@ -117,12 +111,11 @@ public class QiwiServiceImpl implements QiwiService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal fullAmount = new BigDecimal(params.get("amount"));
-        BigDecimal comissionValue = BigDecimalProcessing.doAction(fullAmount, new BigDecimal("1"), ActionType.MULTIPLY_PERCENT, RoundingMode.HALF_UP);
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(fullAmount.subtract(comissionValue).setScale(2, RoundingMode.HALF_DOWN))
+                .amount(fullAmount)
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();

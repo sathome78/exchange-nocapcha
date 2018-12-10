@@ -1,24 +1,16 @@
 package me.exrates.service.qiwi;
 
-import lombok.extern.log4j.Log4j;
-import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
-@Log4j
-@PropertySource("classpath:/merchants/qiwi.properties")
+@Log4j2(topic = "Qiwi")
 public class QiwiRecieveService {
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -26,8 +18,6 @@ public class QiwiRecieveService {
     private static final String TRANSACTION_TYPE = "EXTERNAL-MERCHANT";
     private static final String TRANSACTION_STATUS = "APPROVED";
 
-//    @Value("stellar.horizon.url")
-    private String as;
 
     @Autowired
     private QiwiExternalService qiwiExternalService;
@@ -35,7 +25,7 @@ public class QiwiRecieveService {
     @Autowired
     private QiwiService qiwiService;
 
-    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60)
+    @Scheduled(initialDelay = 10 * 1000, fixedDelay = 1000 * 60 * 2)
     private void checkIncomePayment() {
         log.info("*** Qiwi *** Scheduler start");
 

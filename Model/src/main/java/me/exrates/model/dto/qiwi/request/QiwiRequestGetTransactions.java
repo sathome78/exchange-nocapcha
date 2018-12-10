@@ -1,9 +1,12 @@
 package me.exrates.model.dto.qiwi.request;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter @Setter
+@AllArgsConstructor
 public class QiwiRequestGetTransactions {
-    private int start=0;
-    private int limit=100;
+    private int start;
+    private int limit;
 }
