@@ -5,16 +5,30 @@
 
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
-<div class="banner">
-    <div class="banner__graph">
-        <img src="graph.png">
+<div class="banner" id="banner">
+    <div class="banner__logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 39.88 38" width="30" height="26">
+            <defs>
+                <style>.cls-1 {
+                    fill: #fff;
+                }</style>
+            </defs>
+            <title>Ресурс 1logo-exrates</title>
+            <g id="Слой_2" data-name="Слой 2">
+                <g id="Слой_1-2" data-name="Слой 1">
+                    <path class="cls-1"
+                          d="M20.76,38a19.24,19.24,0,0,1-5.51-.8,1,1,0,0,1,.6-2A17.08,17.08,0,0,0,37.81,19,17.08,17.08,0,0,0,15.69,2.82a1,1,0,0,1-.76-.1A1,1,0,0,1,15.07.85,19.15,19.15,0,0,1,39.88,19,19.08,19.08,0,0,1,20.76,38ZM.41,14.89a20.83,20.83,0,0,0,0,8.22H22.46l4-4V18.9l-4-4ZM11.68,4.18l8.27,8.22H1.08A20.78,20.78,0,0,1,6.26,4.18ZM6.26,33.83h5.42l8.27-8.22H1.08A20.78,20.78,0,0,0,6.26,33.83Z"/>
+                </g>
+            </g>
+        </svg>
+        <div class="text">Exrates lab</div>
     </div>
-    <div class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</div>
-    <a href="https://t.me/exrates_official" target="_blank" class="banner__link">Show</a>
+    <div class="banner__text" >Get the pump-and-dump monthly prediction of BTC rate</div>
+    <a href="https://t.me/exrates_official" target="_blank" class="banner__link">Join</a>
     <div class="banner__nommo">
-        <img src="nommo.png">
+        <img src="/client/img/nommo.png">
     </div>
-    <button class="banner__btn">Close
+    <button class="banner__btn" onclick="document.getElementById('banner').style.display='none';return false;">Close
         <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="12px" height="13px">
                 <path fill-rule="evenodd" fill="rgb(255, 255, 255)"
@@ -119,13 +133,32 @@
         display: flex;
         align-items: center;
         height: 32px;
-        min-width: 990px;
+        min-width: 1220px;
         position: relative;
-        background-image: url(bg.png);
+        background-image: url(/client/img/bg.png);
         background-size: 100% 100%;
         background-repeat: no-repeat;
         background-position: top center;
         font-family: 'Montserrat';
+    }
+
+    .banner__logo {
+        display: flex;
+        align-items: center;
+        margin-left: 30px;
+    }
+
+    .banner__logo .logo {
+        width: 26px;
+        height: 26px;
+    }
+
+    .banner__logo .text {
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 8px;
+        text-transform: uppercase;
+        color: #fff;
     }
 
     .banner__text {
@@ -157,10 +190,6 @@
     .banner__nommo {
         margin-left: 40px;
         height: 100%;
-        background-image: url(nommo.png);
-        -webkit-background-size: cover;
-        background-size: cover;
-        background-repeat: no-repeat;
     }
 
     .banner__btn {
@@ -173,6 +202,7 @@
         background-color: transparent;
         border: none;
     }
+
     .banner__btn:hover {
         cursor: pointer;
     }
@@ -184,4 +214,22 @@
         margin-left: 10px;
         vertical-align: middle;
     }
+    /*.predictions{*/
+        /*position: relative;*/
+    /*}*/
+    /*.predictions:after{*/
+        /*position: absolute;*/
+        /*top: 0;*/
+        /*right: 0;*/
+        /*content:'New';*/
+        /*display: inline-block;*/
+        /*background-color: #34b646;*/
+        /*padding: 4px 8px;*/
+        /*-webkit-border-radius: 11px;*/
+        /*-moz-border-radius: 11px;*/
+        /*border-radius: 11px;*/
+        /*text-transform: uppercase;*/
+        /*color:#fff;*/
+        /*font-size: 14px;*/
+    /*}*/
 </style>
