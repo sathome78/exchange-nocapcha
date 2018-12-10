@@ -650,7 +650,7 @@ public class RefillServiceImpl implements RefillService {
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
       Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
       if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
-        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getCommissionId(), refillRequest.getMerchantId()));
+        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
       }
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/

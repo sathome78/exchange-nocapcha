@@ -29,7 +29,9 @@ public class QiwiExternalServiceImpl implements QiwiExternalService{
     @Value("${qiwi.base.production.url}")
     private String baseUrl;
 
-    @Qualifier(value = "qiwiRestTemplate")
+/*    @Qualifier(value = "qiwiRestTemplate")
+    @Autowired
+    private RestTemplate qiwiRestTemplate;*/
     @Autowired
     private RestTemplate qiwiRestTemplate;
 
