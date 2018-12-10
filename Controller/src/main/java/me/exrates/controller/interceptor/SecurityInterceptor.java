@@ -5,6 +5,7 @@ import me.exrates.service.session.UserSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -22,9 +23,10 @@ public class SecurityInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+        SessionInformation information = userSessionService.getSessionInfo(request.getSession(true).getId());
+        if (information != null && information.getPrincipal() != null) {
             String securityContextUserEmail = auth.getName();
-            String sessionRegistryUserEmail = ((UserDetails) userSessionService.getSessionInfo(request.getSession().getId()).getPrincipal()).getUsername();
+            String sessionRegistryUserEmail = ((UserDetails)information.getPrincipal()).getUsername();
             if (!securityContextUserEmail.equalsIgnoreCase(sessionRegistryUserEmail)) {
                 request.getSession().invalidate();
                 auth.setAuthenticated(false);
