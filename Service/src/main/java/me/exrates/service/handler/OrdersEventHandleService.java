@@ -10,9 +10,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.CreateOrderEvent;
-import me.exrates.service.events.OrderEvent;
+import me.exrates.service.events.*;
 import me.exrates.service.vo.*;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,16 +64,11 @@ public class OrdersEventHandleService {
 
     @Async
     @TransactionalEventListener
-    void handleOrderEventAsync(OrderEvent event) {
+    void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         log.debug("order event {} ", exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-    }
-
-    @Async
-    @TransactionalEventListener
-    void handleOrderEventAsync(CreateOrderEvent event) {
-        log.debug("new thr create {} ", Thread.currentThread().getName());
+        handleCallBack(event);
     }
 
     @Async
@@ -90,9 +83,7 @@ public class OrdersEventHandleService {
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
-    @Async
-    @TransactionalEventListener
-    void handleCallback(AcceptOrderEvent event) throws JsonProcessingException {
+    private void handleCallBack(OrderEvent event) throws JsonProcessingException {
         ExOrder source = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email,source.getCurrencyPairId());
@@ -100,11 +91,9 @@ public class OrdersEventHandleService {
         processCallBackUrl(event, email, url);
     }
 
-    private void processCallBackUrl(AcceptOrderEvent event, String email, String url) throws JsonProcessingException {
+    private void processCallBackUrl(OrderEvent event, String email, String url) throws JsonProcessingException {
         if (url != null) {
-            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url);
-            callBackLogDto.setRequestJson(new ObjectMapper().writeValueAsString(event));
-            callBackLogDto.setUserId(userService.getIdByEmail(email));
+            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, email);
             orderService.logCallBackData(callBackLogDto);
             log.info("*** Callback. User email:" + email + " | Callback:" + callBackLogDto);
         } else {
@@ -124,12 +113,15 @@ public class OrdersEventHandleService {
         return false;
     }
 
-    private CallBackLogDto makeCallBack(ExOrder order, String url) throws JsonProcessingException {
+    private CallBackLogDto makeCallBack(ExOrder order, String url, String email) throws JsonProcessingException {
         CallBackLogDto callbackLog = new CallBackLogDto();
+        callbackLog.setRequestJson(new ObjectMapper().writeValueAsString(order));
         callbackLog.setRequestDate(LocalDateTime.now());
-        ResponseEntity<String> responseEntity = null;
+        callbackLog.setUserId(userService.getIdByEmail(email));
+
+        ResponseEntity<String> responseEntity;
         try{
-            restTemplate.postForEntity(url, new ObjectMapper().writeValueAsString(order), String.class);
+            responseEntity = restTemplate.postForEntity(url, callbackLog.getRequestJson(), String.class);
         } catch (Exception e){
             callbackLog.setResponseCode(999);
             callbackLog.setResponseJson(e.toString());
