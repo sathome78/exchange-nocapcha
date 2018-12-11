@@ -12,12 +12,12 @@ import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.*;
 import me.exrates.service.vo.*;
+import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -122,7 +122,11 @@ public class OrdersEventHandleService {
 
         ResponseEntity<String> responseEntity;
         try{
-            responseEntity = restTemplate.postForEntity(url, callbackLog.getRequestJson(), String.class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
+
+            responseEntity = restTemplate.postForEntity(url, entity, String.class);
         } catch (Exception e){
             e.printStackTrace();
             callbackLog.setResponseCode(999);
