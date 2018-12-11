@@ -84,6 +84,7 @@ public class OrdersEventHandleService {
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
+        //TODO check if user have TRADER authority, use userHasAuthority method in this case
         ExOrder source = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email,source.getCurrencyPairId());
@@ -123,8 +124,9 @@ public class OrdersEventHandleService {
         try{
             responseEntity = restTemplate.postForEntity(url, callbackLog.getRequestJson(), String.class);
         } catch (Exception e){
+            e.printStackTrace();
             callbackLog.setResponseCode(999);
-            callbackLog.setResponseJson(e.toString());
+            callbackLog.setResponseJson(e.getMessage());
             callbackLog.setResponseDate(LocalDateTime.now());
             return callbackLog;
         }
