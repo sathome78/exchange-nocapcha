@@ -84,6 +84,7 @@ public class OrdersEventHandleService {
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
+        //TODO check if user have TRADER authority, use userHasAuthority method in this case
         ExOrder source = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String url = userService.getCallBackUrlByEmail(email,source.getCurrencyPairId());
