@@ -123,8 +123,9 @@ public class OrdersEventHandleService {
         try{
             responseEntity = restTemplate.postForEntity(url, callbackLog.getRequestJson(), String.class);
         } catch (Exception e){
+            e.printStackTrace();
             callbackLog.setResponseCode(999);
-            callbackLog.setResponseJson(e.toString());
+            callbackLog.setResponseJson(e.getMessage());
             callbackLog.setResponseDate(LocalDateTime.now());
             return callbackLog;
         }
