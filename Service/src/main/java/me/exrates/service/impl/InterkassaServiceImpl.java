@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.InterkassaActionUrlDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
@@ -37,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -47,6 +49,10 @@ import static java.util.Objects.isNull;
 @Service
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
+
+    private static final String ADVCASH = "advcash";
+    private static final String RUB = "rub";
+    private static final String RUR = "rur";
 
     private static final String POST = "post";
 
@@ -114,12 +120,18 @@ public class InterkassaServiceImpl implements InterkassaService {
 
         map.put("ik_sign", getSignature(map));
 
-        final String actionUrl = getActionUrl(map);
+        final InterkassaActionUrlDto actionUrlDto = getActionUrlDto(map);
 
-        return generateFullUrlMap(actionUrl, "GET", new Properties());
+        Properties properties = new Properties();
+        properties.putAll(actionUrlDto.getParameters());
+
+        return generateFullUrlMap(actionUrlDto.getActionURL(), actionUrlDto.getMethod(), properties);
     }
 
     private String getInterkassaMerchantId(RefillRequestCreateDto request) {
+        String childMerchant = request.getChildMerchant();
+        String currencyName = request.getCurrencyName();
+
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(interkassaUsername, interkassaPassword));
 
@@ -140,18 +152,21 @@ public class InterkassaServiceImpl implements InterkassaService {
 
             JSONObject interkassaMerchantObject = dataObject.getJSONObject(interkassaMerchantId);
 
-            if (interkassaMerchantObject.getString("ser").equalsIgnoreCase(request.getChildMerchant())
-                    && interkassaMerchantObject.getString("curAls").equalsIgnoreCase(request.getCurrencyName())) {
+            if (ADVCASH.equalsIgnoreCase(childMerchant) && RUB.equalsIgnoreCase(currencyName)) {
+                currencyName = RUR;
+            }
+            if (interkassaMerchantObject.getString("ser").equalsIgnoreCase(childMerchant)
+                    && interkassaMerchantObject.getString("curAls").equalsIgnoreCase(currencyName)) {
                 return interkassaMerchantId;
             }
         }
         throw new InterKassaMerchantNotFoundException(
                 String.format("Attention! Currency %s is not available for merchant %s",
-                        request.getCurrencyName(),
-                        request.getChildMerchant()));
+                        currencyName,
+                        childMerchant));
     }
 
-    private String getActionUrl(Map<String, String> map) {
+    private InterkassaActionUrlDto getActionUrlDto(Map<String, String> map) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -168,11 +183,28 @@ public class InterkassaServiceImpl implements InterkassaService {
                             responseEntity.getStatusCode().getReasonPhrase(),
                             responseEntity.getStatusCodeValue()));
         }
-        String actionUrl = new JSONObject(responseEntity.getBody())
+        JSONObject paymentFormObject = new JSONObject(responseEntity.getBody())
                 .getJSONObject("resultData")
-                .getJSONObject("paymentForm")
-                .getString("action");
-        return actionUrl.replace("\\", "");
+                .getJSONObject("paymentForm");
+        String actionUrl = paymentFormObject.getString("action").replace("\\", "");
+        String method = paymentFormObject.getString("method").toUpperCase();
+        JSONObject parametersObject = paymentFormObject.getJSONObject("parameters");
+
+        Iterator<String> keys = parametersObject.keys();
+
+        Map<String, Object> parameters = new HashMap<>();
+        while (keys.hasNext()) {
+            final String key = keys.next();
+
+            Object value = parametersObject.get(key);
+
+            parameters.put(key, value);
+        }
+        return InterkassaActionUrlDto.builder()
+                .actionURL(actionUrl)
+                .method(method)
+                .parameters(parameters)
+                .build();
     }
 
     @Override

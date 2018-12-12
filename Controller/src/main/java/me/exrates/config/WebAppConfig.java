@@ -283,11 +283,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
         DataSource dataSource = new HikariDataSource(hikariConfig);
-//        Flyway flyway = new Flyway();
-//        flyway.setDataSource(dataSource);
-//        flyway.setBaselineOnMigrate(true);
-//        flyway.repair();
-//        flyway.migrate();
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
+        flyway.setBaselineOnMigrate(true);
+        flyway.repair();
+        flyway.migrate();
         return dataSource;
     }
 
@@ -1382,15 +1382,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     //todo: disable to debug
-    @Bean(name = "retServiceImpl")
-    public EthTokenService retService() {
-        List<String> tokensList = new ArrayList<>();
-        tokensList.add("0xd7394087e1dbbe477fe4f1cf373b9ac9459565ff");
-        return new EthTokenServiceImpl(
-                tokensList,
-                "RET",
-                "RET", true, ExConvert.Unit.AIWEI);
-    }
+//    @Bean(name = "retServiceImpl")
+//    public EthTokenService retService() {
+//        List<String> tokensList = new ArrayList<>();
+//        tokensList.add("0xd7394087e1dbbe477fe4f1cf373b9ac9459565ff");
+//        return new EthTokenServiceImpl(
+//                tokensList,
+//                "RET",
+//                "RET", true, ExConvert.Unit.AIWEI);
+//    }
 
     @Bean(name = "mftuServiceImpl")
     public EthTokenService mftuService() {
