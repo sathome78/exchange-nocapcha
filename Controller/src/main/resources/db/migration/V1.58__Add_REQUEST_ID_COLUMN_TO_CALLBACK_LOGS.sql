@@ -1,4 +1,3 @@
-alter table CALLBACK_LOGS modify REQUEST_ID int auto_increment first;
 
 SET @dbname = DATABASE();
 SET @tablename = 'CALLBACK_LOGS';
@@ -17,3 +16,6 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
+
+
+alter table CALLBACK_LOGS modify REQUEST_ID int auto_increment first;
