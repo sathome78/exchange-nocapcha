@@ -3,11 +3,11 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.model.dto.CurrencyRateDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
 import me.exrates.model.dto.WalletBalancesDto;
 import me.exrates.model.enums.UserRole;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
@@ -42,8 +42,7 @@ public class ReportFourExcelGeneratorUtil {
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
     public static byte[] generate(Map<String, WalletBalancesDto> balancesMap,
-                                  LocalDateTime createdAt,
-                                  Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
+                                  LocalDateTime createdAt) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         CellStyle headerStyle = getHeaderStyle(workbook);
@@ -222,6 +221,9 @@ public class ReportFourExcelGeneratorUtil {
         int i = 0;
         for (String currency : currencies) {
             WalletBalancesDto balance = balancesMap.get(currency);
+            if (isNull(balance)) {
+                continue;
+            }
 
             ExternalWalletBalancesDto exWallet = balance.getExternal();
             final Integer currencyId = exWallet.getCurrencyId();
@@ -233,13 +235,13 @@ public class ReportFourExcelGeneratorUtil {
                     .map(InternalWalletBalancesDto::getTotalBalance)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
-            Pair<BigDecimal, BigDecimal> ratePair = ratesMap.get(currency);
-            if (isNull(ratePair)) {
-                ratePair = Pair.of(BigDecimal.ZERO, BigDecimal.ZERO);
+            CurrencyRateDto rate = balance.getRate();
+            if (isNull(rate)) {
+                rate = new CurrencyRateDto(BigDecimal.ZERO, BigDecimal.ZERO);
             }
 
-            final BigDecimal usdRate = ratePair.getLeft();
-            final BigDecimal btcRate = ratePair.getRight();
+            final BigDecimal usdRate = rate.getUsdRate();
+            final BigDecimal btcRate = rate.getBtcRate();
 
             row = sheet.createRow(i + 3);
 
