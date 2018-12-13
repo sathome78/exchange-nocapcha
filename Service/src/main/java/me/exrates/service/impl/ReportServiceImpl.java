@@ -8,6 +8,7 @@ import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.CurrencyRateDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
@@ -265,9 +266,22 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
+        final Map<String, CurrencyRateDto> ratesMap = exchangeApi.getRates().entrySet().stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        entry -> new CurrencyRateDto(entry.getValue().getLeft(), entry.getValue().getRight())
+                ));
+
         List<WalletBalancesDto> balances = curNames.stream()
-                .map(name -> new WalletBalancesDto(name, externalWalletBalances.get(name), internalWalletBalances.get(name)))
-                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal()) && nonNull(walletBalancesDto.getInternals()))
+                .map(name -> WalletBalancesDto.builder()
+                        .currencyName(name)
+                        .external(externalWalletBalances.get(name))
+                        .internals(internalWalletBalances.get(name))
+                        .rate(ratesMap.get(name))
+                        .build())
+                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal())
+                        && nonNull(walletBalancesDto.getInternals())
+                        && nonNull(walletBalancesDto.getRate()))
                 .collect(toList());
 
         byte[] zippedBytes;
@@ -371,13 +385,10 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, WalletBalancesDto> balancesMap = getWalletBalances(zippedBytes);
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
-
         return balancesReport.toBuilder()
                 .content(ReportFourExcelGeneratorUtil.generate(
                         new TreeMap<>(balancesMap),
-                        createdAt,
-                        ratesMap))
+                        createdAt))
                 .build();
     }
 
