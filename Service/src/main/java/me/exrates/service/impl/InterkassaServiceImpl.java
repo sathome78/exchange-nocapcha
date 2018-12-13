@@ -50,10 +50,6 @@ import static java.util.Objects.isNull;
 @PropertySource("classpath:/merchants/interkassa.properties")
 public class InterkassaServiceImpl implements InterkassaService {
 
-    private static final String ADVCASH = "advcash";
-    private static final String RUB = "rub";
-    private static final String RUR = "rur";
-
     private static final String POST = "post";
 
     @Value("${interkassa.url}")
@@ -129,8 +125,8 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     private String getInterkassaMerchantId(RefillRequestCreateDto request) {
-        String childMerchant = request.getChildMerchant();
-        String currencyName = request.getCurrencyName();
+        final String childMerchant = request.getChildMerchant();
+        final String currencyName = request.getCurrencyName();
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(interkassaUsername, interkassaPassword));
@@ -152,9 +148,6 @@ public class InterkassaServiceImpl implements InterkassaService {
 
             JSONObject interkassaMerchantObject = dataObject.getJSONObject(interkassaMerchantId);
 
-            if (ADVCASH.equalsIgnoreCase(childMerchant) && RUB.equalsIgnoreCase(currencyName)) {
-                currencyName = RUR;
-            }
             if (interkassaMerchantObject.getString("ser").equalsIgnoreCase(childMerchant)
                     && interkassaMerchantObject.getString("curAls").equalsIgnoreCase(currencyName)) {
                 return interkassaMerchantId;
