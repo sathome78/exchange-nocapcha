@@ -45,7 +45,7 @@
                       <c:choose>
                         <c:when test="${currency.name == 'B2X'}">
                           <c:choose>
-                            <c:when test="${balance>=3000}">
+                            <c:when test="${balance >= 3000}">
                               data-max-amount="3000"
                             </c:when>
                             <c:otherwise>
