@@ -27,30 +27,17 @@
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
 <sec:authorize access="isAuthenticated()" var="isAuth"/>
 
-<div class="banner" id="banner">
-    <div class="banner__logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 39.88 38" width="30" height="26">
-            <defs>
-                <style>.cls-1 {
-                    fill: #fff;
-                }</style>
-            </defs>
-            <title>Ресурс 1logo-exrates</title>
-            <g id="Слой_2" data-name="Слой 2">
-                <g id="Слой_1-2" data-name="Слой 1">
-                    <path class="cls-1"
-                          d="M20.76,38a19.24,19.24,0,0,1-5.51-.8,1,1,0,0,1,.6-2A17.08,17.08,0,0,0,37.81,19,17.08,17.08,0,0,0,15.69,2.82a1,1,0,0,1-.76-.1A1,1,0,0,1,15.07.85,19.15,19.15,0,0,1,39.88,19,19.08,19.08,0,0,1,20.76,38ZM.41,14.89a20.83,20.83,0,0,0,0,8.22H22.46l4-4V18.9l-4-4ZM11.68,4.18l8.27,8.22H1.08A20.78,20.78,0,0,1,6.26,4.18ZM6.26,33.83h5.42l8.27-8.22H1.08A20.78,20.78,0,0,0,6.26,33.83Z"/>
-                </g>
-            </g>
-        </svg>
-        <div class="logo-text">Exrates lab</div>
-    </div>
-    <div class="banner__text" >Get the pump-and-dump monthly prediction of BTC rate</div>
-    <a href="https://t.me/exrates_official" target="_blank" class="banner__link">Join</a>
-    <div class="banner__nommo">
-        <img src="/client/img/nommo.png">
-    </div>
-    <button class="banner__btn" onclick="document.getElementById('banner').style.display='none';return false;">Close
+<a href="https://t.me/exrates_official" target="_blank" class="banner-wrap" id="banner">
+    <span class="banner">
+        <span class="banner__logo">
+        <div class="text">Exrates lab</div>
+    </span>
+    <span class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</span>
+    <span class="banner__link">Join</span>
+    <span class="banner__nommo">
+        <img src="nommo.png">
+    </span>
+    <button class="banner__btn"onclick="document.getElementById('banner').style.display='none';return false;">Close
         <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="12px" height="13px">
                 <path fill-rule="evenodd" fill="rgb(255, 255, 255)"
@@ -58,8 +45,8 @@
             </svg>
         </span>
     </button>
-
-</div>
+    </span>
+</a>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -158,6 +145,9 @@
 <input type="hidden" class="s_csrf" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
 <style>
+    .banner-wrap{
+        text-decoration: none;
+    }
     .banner {
         display: flex;
         align-items: center;
