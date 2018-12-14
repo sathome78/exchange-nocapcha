@@ -580,7 +580,7 @@ public class ReportServiceImpl implements ReportService {
                                               String requesterEmail) throws Exception {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
-        List<UserSummaryOrdersDto> summaryOrdersData = transactionService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
+        List<UserSummaryOrdersDto> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
                 .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
                 .collect(toList());
         if (isEmpty(summaryOrdersData)) {

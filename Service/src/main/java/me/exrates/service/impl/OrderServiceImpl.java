@@ -2002,6 +2002,15 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
     }
 
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                               LocalDateTime endTime,
+                                                               List<UserRole> userRoles,
+                                                               int requesterId) {
+        return orderDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+    }
+
     @Override
     public void logCallBackData(CallBackLogDto callBackLogDto) {
         callBackDao.logCallBackData(callBackLogDto);
