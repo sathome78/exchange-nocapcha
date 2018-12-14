@@ -41,6 +41,21 @@
             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
               <input id="sum"
                      class="form-control input-block-wrapper__input numericInputField"
+                      <c:choose>
+                        <c:when test="${currency.name == 'B2X'}">
+                          <c:choose>
+                            <c:when test="${balance>=3000}">
+                              data-max-amount="3000"
+                            </c:when>
+                            <c:otherwise>
+                              data-max-amount="${balance}"
+                            </c:otherwise>
+                          </c:choose>
+                        </c:when>
+                        <c:otherwise>
+                          data-max-amount="${balance}"
+                        </c:otherwise>
+                      </c:choose>
                      data-currency-name="${currency.name}"
                      data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
                      data-min-amount
