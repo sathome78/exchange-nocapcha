@@ -35,12 +35,12 @@
 <a href="https://t.me/exrates_official" target="_blank" class="banner-wrap" id="banner">
     <span class="banner">
         <span class="banner__logo">
-        <div class="text">Exrates lab</div>
+        <div class="logo-text">Exrates lab</div>
     </span>
     <span class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</span>
     <span class="banner__link">Join</span>
     <span class="banner__nommo">
-        <img src="nommo.png">
+        <img src="/client/img/nommo.png">
     </span>
     <button class="banner__btn"onclick="document.getElementById('banner').style.display='none';return false;">Close
         <span>
