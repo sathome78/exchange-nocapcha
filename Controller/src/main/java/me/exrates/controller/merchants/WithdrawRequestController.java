@@ -95,9 +95,10 @@ public class WithdrawRequestController {
       merchantService.checkDestinationTag(requestParamsDto.getMerchant(), requestParamsDto.getDestinationTag());
     }
     //TO DO (temporary) | for B2X coin, because coin has problem with transaction with large amount on withdraw
-    if(merchantService.findById(requestParamsDto.getMerchant()).getName().equals("B2X") && requestParamsDto.getSum().doubleValue()>=3000){
+    if(merchantService.findById(requestParamsDto.getMerchant()).getName().equals("B2X") && requestParamsDto.getSum().doubleValue()>3000){
         throw new WithdrawAmountLargeException("Withdraw amount very large for this coin");
     }
+    //TO DO | End
     WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
     Payment payment = new Payment(OUTPUT);
     payment.setCurrency(requestParamsDto.getCurrency());
