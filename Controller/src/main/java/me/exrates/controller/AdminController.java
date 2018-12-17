@@ -1565,6 +1565,20 @@ public class AdminController {
     }
 
     @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/certainty/update", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity updateSignOfCertaintyForCurrency(@RequestParam int currencyId,
+                                                           @RequestParam boolean signOfCertainty){
+/*        if(walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty)) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else{
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }*/
+        walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/address/saveAsAddress/submit", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> submitWalletAddressAsAddress(@RequestParam int id,

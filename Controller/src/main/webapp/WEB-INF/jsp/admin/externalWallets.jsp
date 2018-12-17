@@ -66,6 +66,7 @@
             </div>
             <div class="modal-body" style="height: content-box;">
                 <label id="currencyIdForPopUp" style="display: none"></label>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-6">
                             <label><loc:message code="admin.rate.to.usd"/></label>
@@ -90,6 +91,15 @@
                             <label id="main-balance-label"></label>
                         </div>
                     </div>
+                <div class="input-block-wrapper">
+                    <div class="col-md-6">
+                        <label><loc:message code="admin.report.currency.certainty"/></label>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="checkbox" id="certainty" name="signOfCertainty"/>
+                    </div>
+                </div>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-12">
                             <label id="labelReservedWalletBalance"><loc:message code="admin.externalWallets.reservedWalletsBalances"/></label>
