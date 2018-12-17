@@ -830,49 +830,4 @@ public final class TransactionDaoImpl implements TransactionDao {
             return Collections.emptyList();
         }
     }
-
-    @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime,
-                                                                               LocalDateTime endTime,
-                                                                               List<UserRole> userRoles,
-                                                                               int requesterId) {
-        String sql = "SELECT u.email AS email, " +
-                "cur.name AS currency_name, " +
-                "ur.name AS role, " +
-                "SUM(IF(tx.operation_type_id = 1, tx.amount, 0)) AS amount_buy, " +
-                "SUM(IF(tx.operation_type_id = 1, tx.commission_amount, 0)) AS amount_buy_fee, " +
-                "SUM(IF(tx.operation_type_id = 2, tx.amount, 0)) AS amount_sell, " +
-                "SUM(IF(tx.operation_type_id = 2, tx.commission_amount, 0)) AS amount_sell_fee" +
-                " FROM WALLET w" +
-                " JOIN USER u ON u.id = w.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " JOIN CURRENCY cur ON cur.id = w.currency_id" +
-                " JOIN TRANSACTION tx ON tx.operation_type_id IN (1,2)" +
-                " AND tx.source_type = 'ORDER'" +
-                " AND tx.user_wallet_id = w.id" +
-                " AND tx.datetime BETWEEN :start_time AND :end_time" +
-                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
-                " GROUP BY email, currency_name, role";
-
-        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
-            put("start_time", Timestamp.valueOf(startTime));
-            put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
-            put("requester_user_id", requesterId);
-        }};
-
-        try {
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
-                    .email(rs.getString("email"))
-                    .currencyName(rs.getString("currency_name"))
-                    .role(rs.getString("role"))
-                    .amountBuy(rs.getBigDecimal("amount_buy"))
-                    .amountBuyFee(rs.getBigDecimal("amount_buy_fee"))
-                    .amountSell(rs.getBigDecimal("amount_sell"))
-                    .amountSellFee(rs.getBigDecimal("amount_sell_fee"))
-                    .build());
-        } catch (EmptyResultDataAccessException ex) {
-            return Collections.emptyList();
-        }
-    }
 }
