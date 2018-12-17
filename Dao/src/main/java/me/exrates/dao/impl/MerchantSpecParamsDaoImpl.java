@@ -42,6 +42,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
                 return dto;
             });
         } catch (DataAccessException e) {
+            log.error(e);
             return null;
         }
     }
@@ -64,6 +65,7 @@ public class MerchantSpecParamsDaoImpl implements MerchantSpecParamsDao {
                 return dto;
             });
         } catch (DataAccessException e) {
+            log.error(e);
             return null;
         }
     }

@@ -344,8 +344,10 @@ function updateOrderTable() {
 
             } );
 
-        $('#order-info-table').find('tbody').on('click', 'tr td:not(:first-child)', function () {
+        $('#order-info-table').on('click', 'tr', function () {
+
             var currentRow = orderDataTable.row( this );
+
             getOrderDetailedInfo(currentRow.data().id, true);
         } );
 

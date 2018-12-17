@@ -7,6 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
+import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -56,6 +57,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.support.BasicAuthorizationInterceptor;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -127,7 +129,8 @@ import java.util.stream.Collectors;
         "classpath:/twitter.properties",
         "classpath:/angular.properties",
         "classpath:/merchants/stellar.properties",
-        "classpath:/geetest.properties"})
+        "classpath:/geetest.properties",
+        "classpath:/merchants/qiwi.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -215,6 +218,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${geetest.newFailback}")
     private String gtNewFailback;
 
+    @Value("${qiwi.client.id}")
+    private String qiwiClientId;
+    @Value("${qiwi.client.secret}")
+    private String qiwiClientSecret;
+
     private String dbMasterUser;
     private String dbMasterPassword;
     private String dbMasterUrl;
@@ -234,8 +242,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         try {
             if (isOuterFile) {
                 properties.load(new FileInputStream(dbPropertiesFile));
-            }
-            else {
+            } else {
                 properties.load(getClass().getClassLoader().getResourceAsStream(dbPropertiesFile));
             }
         } catch (Exception e) {
@@ -390,8 +397,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
-        registry.addInterceptor(new FinPassCheckInterceptor());
+        registry.addInterceptor(new SecurityInterceptor());
     }
+
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -1373,6 +1381,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "PHI", true, ExConvert.Unit.ETHER);
     }
 
+    //todo: disable to debug
     @Bean(name = "retServiceImpl")
     public EthTokenService retService() {
         List<String> tokensList = new ArrayList<>();
@@ -1493,6 +1502,36 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MGX", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "vaiServiceImpl")
+    public EthTokenService vaiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xd4078bdb652610ad5383a747d130cbe905911102");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "VAI",
+                "VAI", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "uncServiceImpl")
+    public EthTokenService uncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x882fbbe226f293037fa5c06459b1f4e871b70e94");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "UNC",
+                "UNC", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "modlServiceImpl")
+    public EthTokenService modlService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x2dc059881eef90b12e4d770364f4b14af82c5b9c");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MODL",
+                "MODL", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1600,12 +1639,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         requestFactory.setConnectionRequestTimeout(25000);
         requestFactory.setReadTimeout(25000);
         restTemplate.setRequestFactory(requestFactory);
-        return new RestTemplate();
+
+        return restTemplate;
+    }
+
+    @Bean("qiwiRestTemplate")
+    public RestTemplate qiwiRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(qiwiClientId, qiwiClientSecret));
+        return restTemplate;
     }
 
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
-
         QuartzJobFactory jobFactory = new QuartzJobFactory();
         jobFactory.setApplicationContext(applicationContext);
         return jobFactory;

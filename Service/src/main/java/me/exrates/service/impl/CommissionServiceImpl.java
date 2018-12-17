@@ -255,4 +255,11 @@ public class CommissionServiceImpl implements CommissionService {
     return BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT);
   }
 
+  @Override
+  @Transactional
+  public BigDecimal calculateMerchantCommissionForRefillAmount(BigDecimal amount, int merchantId, int currencyId) {
+    BigDecimal merchantCommissionPercent = getCommissionMerchant(merchantId, currencyId, INPUT);
+    return BigDecimalProcessing.doAction(amount, merchantCommissionPercent, MULTIPLY_PERCENT);
+  }
+
 }

@@ -6,21 +6,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.RatesUSDForReportDto;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -63,8 +49,6 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum);
 
     List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds);
-
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType);
 
@@ -403,20 +387,6 @@ public interface OrderService {
 
     Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyId);
 
-    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                         List<Integer> userRoleIdList);
-
-    List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                         List<Integer> userRoleIdList);
-
-    /**
-     * wolper 24.04.18
-     * Returns the list of the latest exchange rates for each currency to USD
-     */
-    Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport();
-
-    Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName();
-
     Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType);
 
     List<TradeHistoryDto> getTradeHistory(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
@@ -432,4 +402,10 @@ public interface OrderService {
     List<UserTradeHistoryDto> getUserTradeHistoryByCurrencyPair(String currencyPairName, LocalDate fromDate, LocalDate toDate, Integer limit);
 
     List<TransactionDto> getOrderTransactions(Integer orderId);
+
+    List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
+                                                                                LocalDateTime endTime,
+                                                                                List<UserRole> roles);
+    void logCallBackData(CallBackLogDto callBackLogDto);
+
 }

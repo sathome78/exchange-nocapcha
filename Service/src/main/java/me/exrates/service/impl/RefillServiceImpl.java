@@ -11,9 +11,11 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -49,6 +51,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -131,13 +134,12 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      merchantService.refill(request).entrySet().forEach(e ->
-      {
-        if (e.getKey().startsWith("$__")) {
-          result.put(e.getKey().replace("$__", ""), e.getValue());
-        } else {
-          ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
-        }
+      merchantService.refill(request).forEach((key, value) -> {
+          if (key.startsWith("$__")) {
+              result.put(key.replace("$__", ""), value);
+          } else {
+              ((Map<String, String>) result.get("params")).put(key, value);
+          }
       });
       String merchantRequestSign = (String) result.get("sign");
       request.setMerchantRequestSign(merchantRequestSign);
@@ -196,6 +198,11 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findLastValidAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
+    @Override
+    public List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId) {
+        return refillRequestDao.getListOfValidAddressByMerchantIdAndCurrency(merchantId, currencyId);
+    }
+
   @Override
   @Transactional(readOnly = true)
   public Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId) {
@@ -217,7 +224,8 @@ public class RefillServiceImpl implements RefillService {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable)merchantService).additionalTagForWithdrawAddressIsUsed());
-      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+      e.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
+      if (e.getAdditionalTagForWithdrawAddressIsUsed() || e.getAdditionalTagForRefillIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
       }
@@ -294,15 +302,6 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  public List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
-      String startDate,
-      String endDate,
-      List<Integer> roleIdList,
-      List<Integer> currencyList) {
-    return refillRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
-  }
-
-  @Override
   public Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
       String address,
       Integer merchantId,
@@ -356,7 +355,6 @@ public class RefillServiceImpl implements RefillService {
         currencyId,
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
-
   /**
    * findUnpaidBtcPayments
    */
@@ -650,6 +648,10 @@ public class RefillServiceImpl implements RefillService {
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+      Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
+      if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
+      }
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();
@@ -1106,5 +1108,14 @@ public class RefillServiceImpl implements RefillService {
   @Override
   public void invalidateAddress(String address, Integer merchantId, Integer currencyId) {
     refillRequestDao.invalidateAddress(address, merchantId, currencyId);
+  }
+
+  @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+  @Override
+  public List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                     LocalDateTime endTime,
+                                                                     List<UserRole> roles,
+                                                                     int requesterId) {
+    return refillRequestDao.findAllByPeriodAndRoles(startTime, endTime, roles, requesterId);
   }
 }

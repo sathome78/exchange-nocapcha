@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.CallBackLogDao;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.Commission;
@@ -17,26 +18,7 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairLimitDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersCommissionSummaryDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.RatesUSDForReportDto;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -143,7 +125,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -182,6 +163,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderDao orderDao;
+
+    @Autowired
+    private CallBackLogDao callBackDao;
 
     @Autowired
     private CommissionDao commissionDao;
@@ -322,26 +306,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
-      /*Boolean evictEhCache = cacheData.getForceUpdate() && false;
-      List<ExOrderStatisticsShortByPairsDto> result = serviceCacheableProxy.getOrdersStatisticByPairs(evictEhCache);
-      if (Cache.checkCache(cacheData, result)) {
-        result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
-          add(new ExOrderStatisticsShortByPairsDto(false));
-        }};
-      } else {
-        result = result.stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
-        result.forEach(e -> {
-                  BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-                  BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-                  e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-                  e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-                  BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-                  e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-                }
-        );
-      }*/
         List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
         result = result.stream()
                 .map(ExOrderStatisticsShortByPairsDto::new)
@@ -391,22 +355,6 @@ public class OrderServiceImpl implements OrderService {
         return dto;
     }
 
-    @Transactional
-    @Override
-    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
-        List<ExOrderStatisticsShortByPairsDto> result = exchangeRatesHolder.getAllRates();
-        result.forEach(e -> {
-                    BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-                    BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-                    e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-                    e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-                    BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-                    e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-                }
-        );
-        return result;
-    }
-
     @Override
     public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, OrderBaseType baseType) {
         return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null, baseType);
@@ -432,7 +380,8 @@ public class OrderServiceImpl implements OrderService {
         orderCreateDto.setSourceId(sourceId);
         orderCreateDto.setOrderBaseType(baseType);
         /*todo get 0 comission values from db*/
-        if (baseType == OrderBaseType.ICO) {
+        /*todo 0 comission for the edr pairs, temporary*/
+        if (baseType == OrderBaseType.ICO || orderCreateDto.getCurrencyPair().getName().contains("EDR")) {
             walletsAndCommissions.setCommissionValue(BigDecimal.ZERO);
             walletsAndCommissions.setCommissionId(24);
         }
@@ -958,7 +907,16 @@ public class OrderServiceImpl implements OrderService {
             comissionForCreator.setId(exOrder.getComissionId());
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
             OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
-            Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
+            Commission comissionForAcceptor;
+            /*todo: zero comissions from db*/
+            CurrencyPair cp = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+            exOrder.setCurrencyPair(cp);
+            if (exOrder.getOrderBaseType() == OrderBaseType.ICO || exOrder.getCurrencyPair().getName().contains("EDR")) {
+                comissionForAcceptor = Commission.zeroComission();
+            } else {
+                comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromDB(userAcceptorId));
+            }
+            /*-------------------------*/
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;
@@ -1376,27 +1334,6 @@ public class OrderServiceImpl implements OrderService {
                                                                    String email,
                                                                    BackDealInterval backDealInterval,
                                                                    Integer limit, CurrencyPair currencyPair, Locale locale) {
-    /*Boolean evictEhCache = cacheData.getForceUpdate() && false;
-    List<OrderAcceptedHistoryDto> result = serviceCacheableProxy.getOrderAcceptedForPeriod(
-        email,
-        backDealInterval,
-        limit,
-        currencyPair,
-        evictEhCache);
-    result = new ArrayList<>(result);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<OrderAcceptedHistoryDto>() {{
-        add(new OrderAcceptedHistoryDto(false));
-      }};
-    } else {
-      result = result.stream()
-          .map(OrderAcceptedHistoryDto::new)
-          .collect(toList());
-      result.forEach(e -> {
-        e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
-        e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
-      });
-    }*/
         List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
         result = result.stream()
                 .map(OrderAcceptedHistoryDto::new)
@@ -1927,62 +1864,34 @@ public class OrderServiceImpl implements OrderService {
         return res;
     }
 
-    @Override
-    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                                List<Integer> userRoleIdList) {
-        return orderDao.getCurrencyPairTurnoverForPeriod(startTime, endTime, userRoleIdList);
+    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
+        orders = Stream.of(
+                orders.stream()
+                        .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
+                orders.stream()
+                        .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
+                .flatMap(p -> p)
+                .collect(Collectors.toList());
+        setStatisitcValues(orders);
+        return orders;
     }
 
-    @Override
-    public List<OrdersCommissionSummaryDto> getOrderCommissionsByPairsForPeriod(LocalDateTime startTime, LocalDateTime endTime,
-                                                                                List<Integer> userRoleIdList) {
-        return orderDao.getOrderCommissionsByPairsForPeriod(startTime, endTime, userRoleIdList);
+    private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
+        Locale locale = Locale.ENGLISH;
+        ordersList.forEach(e -> {
+            BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
+            BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
+            e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+            e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+            BigDecimal percentChange;
+            if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
+                percentChange = BigDecimal.ZERO;
+            } else {
+                percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
+            }
+            e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+        });
     }
-
-    //wolper 23.04.18
-    //Returns the list of the latest exchange rates for each currency to USD
-    @Override
-    public Map<Integer, RatesUSDForReportDto> getRatesToUSDForReport() {
-        return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getId, Function.identity()));
-    }
-
-
-    //wolper 24.04.18
-    //Returns the list of the latest exchange rates for each currency to USD
-    @Override
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
-    public Map<String, RatesUSDForReportDto> getRatesToUSDForReportByCurName() {
-        return orderDao.getRatesToUSDForReport().stream().collect(Collectors.toMap(RatesUSDForReportDto::getName, Function.identity()));
-    }
-
-  private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> orders) {
-      orders = Stream.of(
-              orders.stream()
-                      .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
-              orders.stream()
-                      .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
-              .flatMap(p->p)
-              .collect(Collectors.toList());
-      setStatisitcValues(orders);
-      return orders;
-  }
-
-  private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
-      Locale locale = Locale.ENGLISH;
-      ordersList.forEach(e -> {
-          BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
-          BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
-          e.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-          e.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-          BigDecimal percentChange;
-          if (predLastRate.compareTo(BigDecimal.ZERO) == 0) {
-              percentChange = BigDecimal.ZERO;
-          }  else {
-              percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
-          }
-          e.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
-      });
-  }
 
 
     @Override
@@ -2083,6 +1992,19 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         return orderDao.getOrderTransactions(userId, orderId);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
+                                                                                       LocalDateTime endTime,
+                                                                                       List<UserRole> roles) {
+        return orderDao.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
+    }
+
+    @Override
+    public void logCallBackData(CallBackLogDto callBackLogDto) {
+        callBackDao.logCallBackData(callBackLogDto);
     }
 }
 

@@ -2,7 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
-import me.exrates.model.dto.InputOutputCommissionSummaryDto;
+import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -356,7 +356,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
 
 
   @Override
-  public List<InputOutputCommissionSummaryDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
+  public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime, List<Integer> userRoleIdList) {
     String sql = "SELECT CUR.name AS currency_name, "+
             //wolper 19.04.18
             // MIN is used for performance reason
@@ -391,7 +391,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
     params.put("user_roles", userRoleIdList);
 
     return jdbcTemplate.query(sql, params, (rs, row) -> {
-      InputOutputCommissionSummaryDto dto = new InputOutputCommissionSummaryDto();
+      InOutReportDto dto = new InOutReportDto();
       dto.setOrderNum(row + 1);
       dto.setCurrencyName(rs.getString("currency_name"));
       dto.setInput(rs.getBigDecimal("input"));
@@ -400,7 +400,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
       dto.setOutputCommission(rs.getBigDecimal("commission_out"));
       //wolper 19.04.18
       //currency id added
-      dto.setCurId(rs.getInt("currency_id"));
+      dto.setCurrencyId(rs.getInt("currency_id"));
       return dto;
     });
   }
