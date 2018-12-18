@@ -1569,11 +1569,6 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity updateSignOfCertaintyForCurrency(@RequestParam int currencyId,
                                                            @RequestParam boolean signOfCertainty){
-/*        if(walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty)) {
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else{
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }*/
         walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
         return new ResponseEntity<>(HttpStatus.OK);
     }
