@@ -303,6 +303,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new HikariDataSource(hikariConfig);
     }
 
+    @Bean(name = "slaveForReportsDataSource")
+    public DataSource slaveForReportsDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbSlaveClassname);
+        hikariConfig.setJdbcUrl(dbSlaveUrl);
+        hikariConfig.setUsername(dbSlaveUser);
+        hikariConfig.setPassword(dbSlavePassword);
+        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setReadOnly(true);
+        return new HikariDataSource(hikariConfig);
+    }
+
     @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
@@ -313,6 +325,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @DependsOn("slaveForReportsDataSource")
+    @Bean(name = "slaveForReportsTemplate")
+    public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
@@ -332,6 +350,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
         return new DataSourceTransactionManager(slaveHikariDataSource());
+    }
+
+    @Bean(name = "transactionManagerForReports")
+    public PlatformTransactionManager transactionManagerForReports() {
+        return new DataSourceTransactionManager(slaveForReportsDataSource());
     }
 
     @Bean
