@@ -1258,10 +1258,11 @@ public class WalletDaoImpl implements WalletDao {
                 "cewb.total_balance, " +
                 "cewb.total_balance_usd, " +
                 "cewb.total_balance_btc, " +
-                "cewb.last_updated_at" +
-                " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
-                " JOIN CURRENCY cur on (cewb.currency_id = cur.id AND cur.hidden = 0)" +
-                " ORDER BY cewb.currency_id";
+                "cewb.last_updated_at, " +
+                "cewb.sign_of_certainty " +
+                "FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb " +
+                "JOIN CURRENCY cur on (cewb.currency_id = cur.id AND cur.hidden = 0) " +
+                "ORDER BY cewb.currency_id";
         return slaveJdbcTemplate.query(sql, (rs, row) -> ExternalWalletBalancesDto.builder()
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
@@ -1273,6 +1274,7 @@ public class WalletDaoImpl implements WalletDao {
                 .totalBalanceUSD(rs.getBigDecimal("total_balance_usd"))
                 .totalBalanceBTC(rs.getBigDecimal("total_balance_btc"))
                 .lastUpdatedDate(rs.getTimestamp("last_updated_at").toLocalDateTime())
+                .signOfCertainty(rs.getBoolean("sign_of_certainty"))
                 .build());
     }
 
