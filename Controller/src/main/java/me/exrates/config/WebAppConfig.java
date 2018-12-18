@@ -231,6 +231,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlavePassword;
     private String dbSlaveUrl;
     private String dbSlaveClassname;
+    private String dbSlaveForReportsUser;
+    private String dbSlaveForReportsPassword;
+    private String dbSlaveForReportsUrl;
+    private String dbSlaveForReportsClassname;
 
 
     @PostConstruct
@@ -256,6 +260,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlavePassword = properties.getProperty("db.slave.password");
         dbSlaveUrl = properties.getProperty("db.slave.url");
         dbSlaveClassname = properties.getProperty("db.slave.classname");
+        dbSlaveForReportsUser = properties.getProperty("db.slave.user");
+        dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
+        dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
+        dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
     }
 
 
@@ -306,10 +314,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "slaveForReportsDataSource")
     public DataSource slaveForReportsDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setDriverClassName(dbSlaveClassname);
-        hikariConfig.setJdbcUrl(dbSlaveUrl);
-        hikariConfig.setUsername(dbSlaveUser);
-        hikariConfig.setPassword(dbSlavePassword);
+        hikariConfig.setDriverClassName(dbSlaveForReportsClassname);
+        hikariConfig.setJdbcUrl(dbSlaveForReportsUrl);
+        hikariConfig.setUsername(dbSlaveForReportsUser);
+        hikariConfig.setPassword(dbSlaveForReportsPassword);
         hikariConfig.setMaximumPoolSize(50);
         hikariConfig.setReadOnly(true);
         return new HikariDataSource(hikariConfig);
