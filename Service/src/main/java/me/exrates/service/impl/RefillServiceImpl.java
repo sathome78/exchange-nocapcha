@@ -51,6 +51,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -133,13 +134,12 @@ public class RefillServiceImpl implements RefillService {
         request.setId(requestId);
       }
       profileData.setTime1();
-      merchantService.refill(request).entrySet().forEach(e ->
-      {
-        if (e.getKey().startsWith("$__")) {
-          result.put(e.getKey().replace("$__", ""), e.getValue());
-        } else {
-          ((Map<String, String>) result.get("params")).put(e.getKey(), e.getValue());
-        }
+      merchantService.refill(request).forEach((key, value) -> {
+          if (key.startsWith("$__")) {
+              result.put(key.replace("$__", ""), value);
+          } else {
+              ((Map<String, String>) result.get("params")).put(key, value);
+          }
       });
       String merchantRequestSign = (String) result.get("sign");
       request.setMerchantRequestSign(merchantRequestSign);
@@ -224,7 +224,8 @@ public class RefillServiceImpl implements RefillService {
       IRefillable merchantService = (IRefillable)merchantServiceContext.getMerchantService(e.getMerchantId());
       e.setGenerateAdditionalRefillAddressAvailable(merchantService.generatingAdditionalRefillAddressAvailable());
       e.setAdditionalTagForWithdrawAddressIsUsed(((IWithdrawable)merchantService).additionalTagForWithdrawAddressIsUsed());
-      if (e.getAdditionalTagForWithdrawAddressIsUsed()) {
+      e.setAdditionalTagForRefillIsUsed(merchantService.additionalFieldForRefillIsUsed());
+      if (e.getAdditionalTagForWithdrawAddressIsUsed() || e.getAdditionalTagForRefillIsUsed()) {
         e.setMainAddress(merchantService.getMainAddress());
         e.setAdditionalFieldName(merchantService.additionalRefillFieldName());
       }
@@ -647,6 +648,10 @@ public class RefillServiceImpl implements RefillService {
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+      Merchant merchant = merchantDao.findById(refillRequest.getMerchantId());
+      if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+        commission = commission.add(commissionService.calculateMerchantCommissionForRefillAmount(factAmount, refillRequest.getMerchantId(), refillRequest.getCurrencyId()));
+      }
       BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();

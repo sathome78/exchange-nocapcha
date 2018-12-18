@@ -16,4 +16,5 @@ public class WalletBalancesDto {
     private String currencyName;
     private ExternalWalletBalancesDto external;
     private List<InternalWalletBalancesDto> internals;
+    private CurrencyRateDto rate;
 }

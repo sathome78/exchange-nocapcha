@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.CallBackLogDao;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.Commission;
@@ -17,24 +18,7 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairLimitDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -179,6 +163,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderDao orderDao;
+
+    @Autowired
+    private CallBackLogDao callBackDao;
 
     @Autowired
     private CommissionDao commissionDao;
@@ -2013,6 +2000,20 @@ public class OrderServiceImpl implements OrderService {
                                                                                        LocalDateTime endTime,
                                                                                        List<UserRole> roles) {
         return orderDao.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                               LocalDateTime endTime,
+                                                               List<UserRole> userRoles,
+                                                               int requesterId) {
+        return orderDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+    }
+
+    @Override
+    public void logCallBackData(CallBackLogDto callBackLogDto) {
+        callBackDao.logCallBackData(callBackLogDto);
     }
 }
 
