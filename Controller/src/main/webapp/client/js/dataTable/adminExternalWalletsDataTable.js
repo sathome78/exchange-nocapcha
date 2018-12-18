@@ -37,8 +37,6 @@ $(document).ready(function () {
         $($editExternalWalletsForm).find('input[name="reservedBalance"]').val(reservedBalance);
 
         $('#editBalanceModal').modal();
-
-        alert(certainty);
     });
 
     $(window).on('shown.bs.modal', function () {
