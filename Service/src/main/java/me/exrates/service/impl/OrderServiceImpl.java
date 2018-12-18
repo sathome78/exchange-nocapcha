@@ -1307,8 +1307,8 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
         }
-        notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
+        /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
+                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
         return (Integer) result;
     }
 
