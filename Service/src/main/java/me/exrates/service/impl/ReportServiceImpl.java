@@ -333,6 +333,7 @@ public class ReportServiceImpl implements ReportService {
 
                     final Integer currencyId = extWalletBalance.getCurrencyId();
                     final String currencyName = extWalletBalance.getCurrencyName();
+                    final boolean signOfCertainty = extWalletBalance.isSignOfCertainty();
 
                     final BigDecimal externalTotalBalance = extWalletBalance.getTotalBalance();
                     final BigDecimal externalTotalBalanceUSD = externalTotalBalance.multiply(usdRate);
@@ -345,13 +346,14 @@ public class ReportServiceImpl implements ReportService {
                     final BigDecimal internalTotalBalanceUSD = internalTotalBalance.multiply(usdRate);
                     final BigDecimal internalTotalBalanceBTC = internalTotalBalance.multiply(btcRate);
 
-                    final BigDecimal deviation = externalTotalBalance.subtract(internalTotalBalance);
+                    final BigDecimal deviation = signOfCertainty ? externalTotalBalance.subtract(internalTotalBalance) : BigDecimal.ZERO;
                     final BigDecimal deviationUSD = deviation.multiply(usdRate);
                     final BigDecimal deviationBTC = deviation.multiply(btcRate);
 
                     return BalancesDto.builder()
                             .currencyId(currencyId)
                             .currencyName(currencyName)
+                            .signOfCertainty(signOfCertainty)
                             .usdRate(usdRate)
                             .btcRate(btcRate)
                             .totalWalletBalance(externalTotalBalance)
