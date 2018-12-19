@@ -21,7 +21,7 @@ UPDATE IGNORE CURRENCY_PAIR SET name='EDR/BCH-old', ticker_name='EDR/BCH-old' WH
 
 #Part 2 | Rename Bitcoin Cash ABC (BCHABC) - Bitcoin Cash (BCH)
 
-UPDATE IGNORE MERCHANT SET name='BCH', description='Bitcoin Cash' WHERE name='BCHABC';
+UPDATE IGNORE MERCHANT SET name='BCH', description='Bitcoin Cash', service_bean_name='bchServiceImpl' WHERE name='BCHABC';
 
 UPDATE IGNORE CURRENCY SET name='BCH', description='Bitcoin Cash' WHERE name='BCHABC';
 
