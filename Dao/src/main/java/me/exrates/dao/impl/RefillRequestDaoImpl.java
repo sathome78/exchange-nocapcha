@@ -142,6 +142,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+
 
     @Override
     public Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
@@ -1287,7 +1291,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         }};
 
         try {
-            return slaveJdbcTemplate.query(sql, namedParameters, (rs, i) -> RefillRequestFlatForReportDto.builder()
+            return slaveForReportsTemplate.query(sql, namedParameters, (rs, i) -> RefillRequestFlatForReportDto.builder()
                     .invoiceId(rs.getInt("invoice_id"))
                     .wallet(nonNull(rs.getString("address")) ? rs.getString("address") : rs.getString("account_number"))
                     .recipientBank(rs.getString("recipient_bank_name"))
