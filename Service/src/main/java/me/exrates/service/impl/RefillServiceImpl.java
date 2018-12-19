@@ -910,6 +910,9 @@ public class RefillServiceImpl implements RefillService {
   }
 
   private Optional<Integer> createRefill(RefillRequestCreateDto request) {
+    if (!checkforDuplicate(request)) {
+      throw new RuntimeException("Error, please try again");
+    }
     if (request.getNeedToCreateRefillRequestRecord()) {
       RefillStatusEnum currentStatus = request.getStatus();
       Merchant merchant = merchantDao.findById(request.getMerchantId());
@@ -918,6 +921,20 @@ public class RefillServiceImpl implements RefillService {
       request.setStatus(newStatus);
     }
     return refillRequestDao.create(request);
+  }
+
+  private boolean checkforDuplicate(RefillRequestCreateDto request) {
+    Merchant merchant = merchantService.findById(request.getMerchantId());
+    if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
+      List<RefillRequestAddressDto> addresses = refillRequestDao.findByAddress(request.getAddress());
+      return addresses.stream().noneMatch(p ->
+              (p.getCurrencyId().equals(request.getCurrencyId()))
+                      ||
+                      (p.getTokenParentId() != null && (p.getTokenParentId().equals(merchant.getTokensParrentId()) || p.getTokenParentId().equals(merchant.getId())))
+                      ||
+                      (merchant.getTokensParrentId() != null && (merchant.getTokensParrentId().equals(p.getTokenParentId()) || merchant.getTokensParrentId().equals(p.getMerchantId()))));
+    }
+    return true;
   }
 
   @Transactional
