@@ -1,7 +1,7 @@
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('EurocoinToken', 'ECT', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
-VALUES ('ECT', 'EurocoinToken', 0, 8, 8, 8);
+VALUES ('ECT', 'EurocoinToken', 1, 8, 8, 8);
 
 INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='ECT'));
 
@@ -22,7 +22,7 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'ECT'));
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'USD'), 'ECT/USD', 170, 0, 'ECT/USD');
+VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'USD'), 'ECT/USD', 170, 1, 'ECT/USD');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -30,7 +30,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
   JOIN ORDER_TYPE OT where CP.name='ECT/USD';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'BTC'), 'ECT/BTC', 160, 0, 'BTC', 'ECT/BTC');
+VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'BTC'), 'ECT/BTC', 160, 1, 'BTC', 'ECT/BTC');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -38,7 +38,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='ECT/BTC';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'ETH'), 'ECT/ETH', 160, 0, 'ETH', 'ECT/ETH');
+VALUES((select id from CURRENCY where name = 'ECT'), (select id from CURRENCY where name = 'ETH'), 'ECT/ETH', 160, 1, 'ETH', 'ECT/ETH');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
