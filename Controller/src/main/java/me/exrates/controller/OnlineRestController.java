@@ -140,8 +140,6 @@ public class OnlineRestController {
     @Autowired
     private RefillService refillService;
 
-    @Value("${pass.encode.key}")
-    private String PASS_ENCODE_KEY;
     private final String HEADER_SECURITY = "username";
 
     @PostMapping(value = "/afgssr/call/refill", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -150,10 +148,11 @@ public class OnlineRestController {
             Preconditions.checkNotNull(requestDto.getServiceBeanName(), "wrong params");
             String usernameHeader = servletRequest.getHeader(HEADER_SECURITY);
             Preconditions.checkArgument(!StringUtils.isEmpty(usernameHeader), "invalid request");
-            String username = RestApiUtils.decodePassword(usernameHeader, PASS_ENCODE_KEY);
+            String username = new String(Base64.getDecoder().decode(usernameHeader.getBytes()));
             Preconditions.checkArgument(username.equals(requestDto.getUserEmail()) && userService.findByEmail(username) != null, "user not found or wrong user");
             return refillService.callRefillIRefillable(requestDto);
         } catch (Exception e) {
+            log.error(e);
             throw new RefillRequestMerchantException(e.getMessage());
         }
     }
@@ -163,9 +162,9 @@ public class OnlineRestController {
             RefillRequestMerchantException.class,
     })
     @ResponseBody
-    public ErrorInfo RefillException(HttpServletRequest req, InvalidAccountException exception) {
+    public ErrorInfo RefillException(HttpServletRequest req, Exception exception) {
         log.error(exception);
-        return new ErrorInfo(req.getRequestURL(), exception, exception.getReason());
+        return new ErrorInfo(req.getRequestURL(), exception, exception.getMessage());
     }
 
     @GetMapping("/adsffefe/csrf")
