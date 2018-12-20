@@ -1258,7 +1258,7 @@ public class WalletDaoImpl implements WalletDao {
                 "if(cur.hidden or cewb.total_balance is null, 0, cewb.total_balance) as total_balance, " +
                 "if(cur.hidden or cewb.total_balance_usd is null, 0, cewb.total_balance_usd) as total_balance_usd, " +
                 "if(cur.hidden or cewb.total_balance_btc is null, 0, cewb.total_balance_btc) as total_balance_btc, " +
-                "cewb.last_updated_at", +
+                "cewb.last_updated_at, " +
                 "cewb.sign_of_certainty " +
                 " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
                 " RIGHT JOIN CURRENCY cur on cewb.currency_id = cur.id" +
