@@ -99,6 +99,9 @@ public class OrderDaoImpl implements OrderDao {
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
     @Autowired
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+
+    @Autowired
     CommissionDao commissionDao;
 
     @Autowired
@@ -837,7 +840,7 @@ public class OrderDaoImpl implements OrderDao {
         } else {
             namedParameters.put("operation_type_id", operationTypesIds);
         }
-        return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+        return slaveForReportsTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OrderWideListDto orderWideListDto = new OrderWideListDto();
@@ -994,8 +997,8 @@ public class OrderDaoImpl implements OrderDao {
         LOGGER.debug(selectCountQuery);
 
         PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
-
-        List<OrderBasicInfoDto> infoDtoList = slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
+        //
+        List<OrderBasicInfoDto> infoDtoList = slaveForReportsTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
             OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
             OrderBaseType baseType = OrderBaseType.convert(rs.getString("base_type"));
             infoDto.setId(rs.getInt("id"));
@@ -1483,7 +1486,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", roles.stream().map(UserRole::getRole).collect(toList()));
-
+        //TODO
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .currencyPairName(rs.getString("currency_pair_name"))

@@ -296,6 +296,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
 
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
+
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
@@ -404,18 +408,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         final PagingData<List<Transaction>> result = new PagingData<>();
         log.debug("count sql {}", selectAllCountSql);
         long start = System.currentTimeMillis();
-        final int total = slaveJdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+        final int total = slaveForReportsTemplate.queryForObject(selectAllCountSql, params, Integer.class);
         log.debug("count in {}", System.currentTimeMillis() - start);
 
         if (total == 0) {
             result.setData(Collections.emptyList());
         } else {
             start = System.currentTimeMillis();
-            List<Integer> transactionIds = slaveJdbcTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
+            List<Integer> transactionIds = slaveForReportsTemplate.queryForList(selectLimitedIdsSql, params, Integer.class);
             String selectAllFilterClause = "WHERE TRANSACTION.id IN (:transaction_ids)";
             final String selectLimitedAllSql = String.join(" ", SELECT_ALL, selectAllFilterClause, orderByClause);
             log.debug("data sql {}", selectLimitedAllSql);
-            result.setData(slaveJdbcTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
+            result.setData(slaveForReportsTemplate.query(selectLimitedAllSql, Collections.singletonMap("transaction_ids", transactionIds), transactionRowMapper));
             log.debug("data in {}", System.currentTimeMillis() - start);
         }
 
