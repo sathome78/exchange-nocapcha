@@ -64,9 +64,23 @@ $(function refillCreation() {
         amount = parseFloat($amountHolder.val());
         childMerchant = $(button).data("merchant-child-merchant");
         if (merchantIsCrypto || checkAmount()) {
+            fillInterkassaInputCommission();
             fillModalWindow();
             showRefillDialog();
         }
+    }
+
+    function fillInterkassaInputCommission() {
+        $.ajax({
+            type: "GET",
+            url: "/2a8fy7b07dxe44/getMerchantInputCommissionNotification?merchant_id=" + merchant + "&currency_id=" + currency + "&child_merchant=" + childMerchant,
+            success: function (data) {
+                $('#merchant-warnings').text(data['message']);
+            },
+            error: function (data) {
+                alert('Something happened wrong: ' + data.statusText);
+            }
+        });
     }
 
     function fillModalWindow() {
@@ -149,7 +163,7 @@ $(function refillCreation() {
                     backdrop: 'static'
                 });
 
-                window.open("about:blank","newwin");
+                window.open("about:blank", "newwin");
                 if (!checkRefillParamsEnter()) {
                     return;
                 }
@@ -172,7 +186,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
-            childMerchant : childMerchant,
+            childMerchant: childMerchant,
             operationType: operationType
         };
         if (merchantIsSimpleInvoice) {
@@ -241,7 +255,7 @@ $(function refillCreation() {
         $.each(params["params"], function (key, value) {
             formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
         });
-        var $form = $('<form id=temp-form-for-redirection target="newwin" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
+        var $form = $('<form id=temp-form-for-redirection target="newwin" action=' + url + ' method=' + params["method"] + '>' + formFields + '</form>');
         $("body").append($form);
         $form.submit();
         $("#temp-form-for-redirection").remove();

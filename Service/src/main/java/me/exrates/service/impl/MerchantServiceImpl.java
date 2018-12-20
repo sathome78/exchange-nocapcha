@@ -530,4 +530,10 @@ public class MerchantServiceImpl implements MerchantService {
     public List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId) {
         return merchantDao.findTokenMerchantsByParentId(parentId);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant) {
+        return merchantDao.getMerchantInputCommission(merchantId, currencyId, childMerchant);
+    }
 }
