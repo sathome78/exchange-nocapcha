@@ -69,9 +69,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.CancelOrderEvent;
-import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.*;
 import me.exrates.service.exception.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
@@ -761,6 +759,9 @@ public class OrderServiceImpl implements OrderService {
         int acceptedId = createOrder(accepted, CREATE);
         createOrder(remainder, CREATE_SPLIT);
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
+
+        eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
+
    /* TODO temporary disable
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
@@ -769,6 +770,10 @@ public class OrderServiceImpl implements OrderService {
         return amountForPartialAccept;
     }
 
+    private OrderEvent partiallyAcceptedOrder(ExOrder orderForPartialAccept, BigDecimal amountForPartialAccept) {
+        orderForPartialAccept.setPartiallyAcceptedAmount(amountForPartialAccept);
+        return new PartiallyAcceptedOrder(orderForPartialAccept);
+    }
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(CacheData cacheData,
@@ -1075,6 +1080,8 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+
+
     private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
         UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
         UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
@@ -1307,8 +1314,8 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
         }
-        notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
+        /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
+                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
         return (Integer) result;
     }
 
@@ -2000,6 +2007,15 @@ public class OrderServiceImpl implements OrderService {
                                                                                        LocalDateTime endTime,
                                                                                        List<UserRole> roles) {
         return orderDao.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                               LocalDateTime endTime,
+                                                               List<UserRole> userRoles,
+                                                               int requesterId) {
+        return orderDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
     }
 
     @Override

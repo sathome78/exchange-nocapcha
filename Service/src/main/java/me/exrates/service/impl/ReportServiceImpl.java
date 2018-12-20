@@ -8,6 +8,7 @@ import me.exrates.dao.ReportDao;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.BalancesDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.CurrencyRateDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
@@ -265,9 +266,22 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, List<InternalWalletBalancesDto>> internalWalletBalances = walletService.getInternalWalletBalances().stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
+        final Map<String, CurrencyRateDto> ratesMap = exchangeApi.getRates().entrySet().stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        entry -> new CurrencyRateDto(entry.getValue().getLeft(), entry.getValue().getRight())
+                ));
+
         List<WalletBalancesDto> balances = curNames.stream()
-                .map(name -> new WalletBalancesDto(name, externalWalletBalances.get(name), internalWalletBalances.get(name)))
-                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal()) && nonNull(walletBalancesDto.getInternals()))
+                .map(name -> WalletBalancesDto.builder()
+                        .currencyName(name)
+                        .external(externalWalletBalances.get(name))
+                        .internals(internalWalletBalances.get(name))
+                        .rate(ratesMap.get(name))
+                        .build())
+                .filter(walletBalancesDto -> nonNull(walletBalancesDto.getExternal())
+                        && nonNull(walletBalancesDto.getInternals())
+                        && nonNull(walletBalancesDto.getRate()))
                 .collect(toList());
 
         byte[] zippedBytes;
@@ -319,6 +333,7 @@ public class ReportServiceImpl implements ReportService {
 
                     final Integer currencyId = extWalletBalance.getCurrencyId();
                     final String currencyName = extWalletBalance.getCurrencyName();
+                    final boolean signOfCertainty = extWalletBalance.isSignOfCertainty();
 
                     final BigDecimal externalTotalBalance = extWalletBalance.getTotalBalance();
                     final BigDecimal externalTotalBalanceUSD = externalTotalBalance.multiply(usdRate);
@@ -331,13 +346,14 @@ public class ReportServiceImpl implements ReportService {
                     final BigDecimal internalTotalBalanceUSD = internalTotalBalance.multiply(usdRate);
                     final BigDecimal internalTotalBalanceBTC = internalTotalBalance.multiply(btcRate);
 
-                    final BigDecimal deviation = externalTotalBalance.subtract(internalTotalBalance);
+                    final BigDecimal deviation = signOfCertainty ? externalTotalBalance.subtract(internalTotalBalance) : BigDecimal.ZERO;
                     final BigDecimal deviationUSD = deviation.multiply(usdRate);
                     final BigDecimal deviationBTC = deviation.multiply(btcRate);
 
                     return BalancesDto.builder()
                             .currencyId(currencyId)
                             .currencyName(currencyName)
+                            .signOfCertainty(signOfCertainty)
                             .usdRate(usdRate)
                             .btcRate(btcRate)
                             .totalWalletBalance(externalTotalBalance)
@@ -371,13 +387,10 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, WalletBalancesDto> balancesMap = getWalletBalances(zippedBytes);
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
-
         return balancesReport.toBuilder()
                 .content(ReportFourExcelGeneratorUtil.generate(
                         new TreeMap<>(balancesMap),
-                        createdAt,
-                        ratesMap))
+                        createdAt))
                 .build();
     }
 
@@ -448,7 +461,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("input_output_summary_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("input_output_summary_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportTwoExcelGeneratorUtil.generate(new TreeMap<>(inOutMap), ratesMap))
                 .build();
     }
@@ -482,7 +495,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("report_difference_between_balances_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("report_difference_between_balances_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportFiveExcelGeneratorUtil.generate(
                         new TreeMap<>(firstBalancesMap),
                         firstCreatedAt,
@@ -529,7 +542,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("report_imbalance_of_coins_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("report_imbalance_of_coins_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportSixExcelGeneratorUtil.generate(
                         new TreeMap<>(firstBalancesMap),
                         firstCreatedAt,
@@ -557,7 +570,7 @@ public class ReportServiceImpl implements ReportService {
         }
 
         return ReportDto.builder()
-                .fileName(String.format("report_user_wallet_summary_data_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("report_user_wallet_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportNineExcelGeneratorUtil.generate(summaryData))
                 .build();
     }
@@ -569,7 +582,7 @@ public class ReportServiceImpl implements ReportService {
                                               String requesterEmail) throws Exception {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
-        List<UserSummaryOrdersDto> summaryOrdersData = transactionService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
+        List<UserSummaryOrdersDto> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
                 .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
                 .collect(toList());
         if (isEmpty(summaryOrdersData)) {
@@ -582,7 +595,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("report_user_orders_summary_data_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("report_user_orders_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportEightExcelGeneratorUtil.generate(summaryOrdersData, ratesMap))
                 .build();
     }
@@ -615,7 +628,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("report_input_output_data_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("report_input_output_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportSevenExcelGeneratorUtil.generate(
                         invoiceReportData.stream()
                                 .filter(invoiceReportDto -> !invoiceReportDto.isEmpty())
@@ -642,7 +655,7 @@ public class ReportServiceImpl implements ReportService {
         final Map<String, Pair<BigDecimal, BigDecimal>> ratesMap = exchangeApi.getRates();
 
         return ReportDto.builder()
-                .fileName(String.format("currency_pairs_turnover_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .fileName(String.format("currency_pairs_turnover_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportThreeExcelGeneratorUtil.generate(currencyPairsTurnover, ratesMap))
                 .build();
     }

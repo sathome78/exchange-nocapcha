@@ -18,6 +18,7 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -96,6 +97,9 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     @Qualifier(value = "slaveTemplate")
     private NamedParameterJdbcTemplate slaveJdbcTemplate;
+
+    @Autowired
+    private NamedParameterJdbcTemplate slaveForReportsTemplate;
 
     @Autowired
     CommissionDao commissionDao;
@@ -836,7 +840,7 @@ public class OrderDaoImpl implements OrderDao {
         } else {
             namedParameters.put("operation_type_id", operationTypesIds);
         }
-        return slaveJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+        return slaveForReportsTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
             public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                 OrderWideListDto orderWideListDto = new OrderWideListDto();
@@ -993,8 +997,8 @@ public class OrderDaoImpl implements OrderDao {
         LOGGER.debug(selectCountQuery);
 
         PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
-
-        List<OrderBasicInfoDto> infoDtoList = slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
+        //
+        List<OrderBasicInfoDto> infoDtoList = slaveForReportsTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
             OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
             OrderBaseType baseType = OrderBaseType.convert(rs.getString("base_type"));
             infoDto.setId(rs.getInt("id"));
@@ -1469,12 +1473,12 @@ public class OrderDaoImpl implements OrderDao {
                 "cur.name as convert_currency_name, " +
                 "COUNT(o.id) AS quantity, " +
                 "SUM(o.amount_convert) AS amount_convert," +
-                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS amount_commission" +
+                "SUM(o.commission_fixed_amount) AS amount_commission" +
                 " FROM EXORDERS o " +
                 " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
                 " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
                 " JOIN USER u ON o.user_id = u.id AND u.roleid IN (:user_roles) " +
-                " WHERE o.status_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " WHERE o.status_id = 3 AND o.operation_type_id IN (3, 4) AND o.date_acception BETWEEN :start_time AND :end_time" +
                 " GROUP BY cp.name, cur.name" +
                 " ORDER BY cp.name ASC";
 
@@ -1482,7 +1486,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", roles.stream().map(UserRole::getRole).collect(toList()));
-
+        //TODO
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .currencyPairName(rs.getString("currency_pair_name"))
@@ -1491,5 +1495,57 @@ public class OrderDaoImpl implements OrderDao {
                 .amountConvert(rs.getBigDecimal("amount_convert"))
                 .amountCommission(rs.getBigDecimal("amount_commission"))
                 .build());
+    }
+
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                               LocalDateTime endTime,
+                                                                               List<UserRole> userRoles,
+                                                                               int requesterId) {
+        String sql = "SELECT u.email AS user_email, " +
+                "ur.name AS user_role, " +
+                "cp.name AS currency_pair_name, " +
+                "cur.name AS currency_name, " +
+                "SUM(IF(aggr.amount_buy IS NOT NULL, aggr.amount_buy, 0)) AS amount_buy, " +
+                "SUM(IF(aggr.amount_buy_fee IS NOT NULL, aggr.amount_buy_fee, 0)) AS amount_buy_fee, " +
+                "SUM(IF(aggr.amount_sell IS NOT NULL, aggr.amount_sell, 0)) AS amount_sell, " +
+                "SUM(IF(aggr.amount_sell_fee IS NOT NULL, aggr.amount_sell_fee, 0)) AS amount_sell_fee" +
+                " FROM (" +
+                " SELECT o.currency_pair_id AS currency_pair_id, o.user_id, o.amount_convert AS amount_buy, o.commission_fixed_amount AS amount_buy_fee, 0 AS amount_sell, 0 AS amount_sell_fee" +
+                " FROM EXORDERS o" +
+                " WHERE o.status_id = 3 AND o.operation_type_id = 4 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " UNION ALL " +
+                " SELECT o.currency_pair_id AS currency_pair_id, o.user_id, 0 AS amount_buy, 0 AS amount_buy_fee, o.amount_convert AS amount_sell, o.commission_fixed_amount AS amount_sell_fee" +
+                " FROM EXORDERS o" +
+                " WHERE o.status_id = 3 AND o.operation_type_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                ") aggr" +
+                " JOIN USER u ON u.id = aggr.user_id" +
+                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN CURRENCY_PAIR cp ON cp.id = aggr.currency_pair_id" +
+                " JOIN CURRENCY cur ON cur.id = cp.currency2_id" +
+                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
+                " GROUP BY user_email, user_role, currency_name, currency_pair_name";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
+                    .email(rs.getString("user_email"))
+                    .role(rs.getString("user_role"))
+                    .currencyPairName(rs.getString("currency_pair_name"))
+                    .currencyName(rs.getString("currency_name"))
+                    .amountBuy(rs.getBigDecimal("amount_buy"))
+                    .amountBuyFee(rs.getBigDecimal("amount_buy_fee"))
+                    .amountSell(rs.getBigDecimal("amount_sell"))
+                    .amountSellFee(rs.getBigDecimal("amount_sell_fee"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
     }
 }

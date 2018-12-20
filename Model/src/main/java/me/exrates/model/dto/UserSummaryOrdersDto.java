@@ -16,8 +16,9 @@ import static java.util.Objects.isNull;
 public class UserSummaryOrdersDto {
 
     private String email;
-    private String currencyName;
     private String role;
+    private String currencyName;
+    private String currencyPairName;
     private BigDecimal amountBuy;
     private BigDecimal amountBuyFee;
     private BigDecimal amountSell;

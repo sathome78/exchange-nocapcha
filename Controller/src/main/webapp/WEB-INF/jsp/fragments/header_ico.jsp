@@ -33,16 +33,17 @@
         banner.style.display = "none"
     }
 </script>
-<div class="banner" id="banner">
-    <div class="banner__graph">
-        <img src="/client/img/graph.png">
-    </div>
-    <div class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</div>
-    <a href="https://t.me/exrates_official" target="_blank" class="banner__link">Join</a>
-    <div class="banner__nommo">
+<a href="https://t.me/exrates_official" target="_blank" class="banner-wrap" id="banner">
+    <span class="banner">
+        <span class="banner__logo">
+        <div class="logo-text">Exrates lab</div>
+    </span>
+    <span class="banner__text">Get the pump-and-dump monthly prediction of BTC rate</span>
+    <span class="banner__link">Join</span>
+    <span class="banner__nommo">
         <img src="/client/img/nommo.png">
-    </div>
-    <button class="banner__btn" type="button" onclick="document.getElementById('banner').style.display='none';return false;">Close
+    </span>
+    <button class="banner__btn"onclick="document.getElementById('banner').style.display='none';return false;">Close
         <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="12px" height="13px">
                 <path fill-rule="evenodd" fill="rgb(255, 255, 255)"
@@ -50,8 +51,8 @@
             </svg>
         </span>
     </button>
-
-</div>
+    </span>
+</a>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -363,17 +364,40 @@
 </c:if>
 
 <style>
+    .banner-wrap{
+        text-decoration: none;
+    }
     .banner {
         display: flex;
         align-items: center;
         height: 32px;
-        min-width: 990px;
+        min-width: 1220px;
         position: relative;
         background-image: url(/client/img/bg.png);
         background-size: 100% 100%;
         background-repeat: no-repeat;
         background-position: top center;
         font-family: 'Montserrat';
+    }
+
+    .banner__logo {
+        display: flex;
+        align-items: center;
+        margin-left: 30px;
+
+    }
+
+    .banner__logo>.logo {
+        width: 26px;
+        height: 26px;
+    }
+
+    .banner__logo>.logo-text {
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 8px;
+        text-transform: uppercase;
+        color: #fff;
     }
 
     .banner__text {
@@ -405,10 +429,6 @@
     .banner__nommo {
         margin-left: 40px;
         height: 100%;
-        background-image: url(/client/img/nommo.png);
-        -webkit-background-size: cover;
-        background-size: cover;
-        background-repeat: no-repeat;
     }
 
     .banner__btn {
@@ -421,6 +441,7 @@
         background-color: transparent;
         border: none;
     }
+
     .banner__btn:hover {
         cursor: pointer;
     }
@@ -432,5 +453,28 @@
         margin-left: 10px;
         vertical-align: middle;
     }
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
 </style>
-

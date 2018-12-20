@@ -731,7 +731,7 @@ public class AdminController {
     public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                  @RequestParam Map<String, String> params,
                                                                  HttpServletRequest request) {
-
+        //
         try {
             adminOrderFilterData.initFilterItems();
             DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
@@ -1561,6 +1561,15 @@ public class AdminController {
                                               @RequestParam int currencyId,
                                               @RequestParam String walletAddress) {
         walletService.deleteWalletAddress(id, currencyId, walletAddress);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/externalWallets/certainty/update", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity updateSignOfCertaintyForCurrency(@RequestParam int currencyId,
+                                                           @RequestParam boolean signOfCertainty){
+        walletService.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
