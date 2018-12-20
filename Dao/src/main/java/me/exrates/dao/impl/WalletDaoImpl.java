@@ -1258,7 +1258,8 @@ public class WalletDaoImpl implements WalletDao {
                 "if(cur.hidden or cewb.total_balance is null, 0, cewb.total_balance) as total_balance, " +
                 "if(cur.hidden or cewb.total_balance_usd is null, 0, cewb.total_balance_usd) as total_balance_usd, " +
                 "if(cur.hidden or cewb.total_balance_btc is null, 0, cewb.total_balance_btc) as total_balance_btc, " +
-                "cewb.last_updated_at" +
+                "cewb.last_updated_at", +
+                "cewb.sign_of_certainty " +
                 " FROM COMPANY_EXTERNAL_WALLET_BALANCES cewb" +
                 " RIGHT JOIN CURRENCY cur on cewb.currency_id = cur.id" +
                 " ORDER BY currency_id";
@@ -1273,6 +1274,7 @@ public class WalletDaoImpl implements WalletDao {
                 .totalBalanceUSD(rs.getBigDecimal("total_balance_usd"))
                 .totalBalanceBTC(rs.getBigDecimal("total_balance_btc"))
                 .lastUpdatedDate(rs.getTimestamp("last_updated_at").toLocalDateTime())
+                .signOfCertainty(rs.getBoolean("sign_of_certainty"))
                 .build());
     }
 
@@ -1409,6 +1411,20 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty){
+        String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES SET sign_of_certainty = :sign_of_certainty " +
+                "WHERE currency_id = :currency_id";
+
+        Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("sign_of_certainty", signOfCertainty);
+                put("currency_id", currencyId);
+            }
+        };
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     @Override

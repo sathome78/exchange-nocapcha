@@ -406,6 +406,11 @@ public interface OrderService {
     List<CurrencyPairTurnoverReportDto> getCurrencyPairTurnoverByPeriodAndRoles(LocalDateTime startTime,
                                                                                 LocalDateTime endTime,
                                                                                 List<UserRole> roles);
+
+    List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                        LocalDateTime endTime,
+                                                        List<UserRole> userRoles, int requesterId);
+
     void logCallBackData(CallBackLogDto callBackLogDto);
 
 }

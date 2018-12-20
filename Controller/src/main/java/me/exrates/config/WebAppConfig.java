@@ -231,6 +231,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlavePassword;
     private String dbSlaveUrl;
     private String dbSlaveClassname;
+    private String dbSlaveForReportsUser;
+    private String dbSlaveForReportsPassword;
+    private String dbSlaveForReportsUrl;
+    private String dbSlaveForReportsClassname;
 
 
     @PostConstruct
@@ -256,6 +260,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlavePassword = properties.getProperty("db.slave.password");
         dbSlaveUrl = properties.getProperty("db.slave.url");
         dbSlaveClassname = properties.getProperty("db.slave.classname");
+        dbSlaveForReportsUser = properties.getProperty("db.slave.user");
+        dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
+        dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
+        dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
     }
 
 
@@ -303,6 +311,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new HikariDataSource(hikariConfig);
     }
 
+    @Bean(name = "slaveForReportsDataSource")
+    public DataSource slaveForReportsDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbSlaveForReportsClassname);
+        hikariConfig.setJdbcUrl(dbSlaveForReportsUrl);
+        hikariConfig.setUsername(dbSlaveForReportsUser);
+        hikariConfig.setPassword(dbSlaveForReportsPassword);
+        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setReadOnly(true);
+        return new HikariDataSource(hikariConfig);
+    }
+
     @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
@@ -313,6 +333,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @DependsOn("slaveForReportsDataSource")
+    @Bean(name = "slaveForReportsTemplate")
+    public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
@@ -332,6 +358,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
         return new DataSourceTransactionManager(slaveHikariDataSource());
+    }
+
+    @Bean(name = "transactionManagerForReports")
+    public PlatformTransactionManager transactionManagerForReports() {
+        return new DataSourceTransactionManager(slaveForReportsDataSource());
     }
 
     @Bean
@@ -1530,6 +1561,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "MODL",
                 "MODL", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mncServiceImpl")
+    public EthTokenService mncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f0f1be08591ab7d990faf910b38ed5d60e4d5bf");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MNC",
+                "MNC", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:

@@ -1307,8 +1307,8 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
         }
-        notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
-                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
+        /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
+                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
         return (Integer) result;
     }
 
@@ -2000,6 +2000,15 @@ public class OrderServiceImpl implements OrderService {
                                                                                        LocalDateTime endTime,
                                                                                        List<UserRole> roles) {
         return orderDao.getCurrencyPairTurnoverByPeriodAndRoles(startTime, endTime, roles);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                               LocalDateTime endTime,
+                                                               List<UserRole> userRoles,
+                                                               int requesterId) {
+        return orderDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
     }
 
     @Override

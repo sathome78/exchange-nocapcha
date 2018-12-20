@@ -35,6 +35,8 @@ public class ExternalWalletBalancesDto {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime lastUpdatedDate;
 
+    private boolean signOfCertainty;
+
 
     public static ExternalWalletBalancesDto getZeroBalances(Integer currencyId, String currencyName) {
         return ExternalWalletBalancesDto
