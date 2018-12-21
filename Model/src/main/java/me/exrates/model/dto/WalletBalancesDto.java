@@ -21,7 +21,7 @@ public class WalletBalancesDto {
     private List<InternalWalletBalancesDto> internals;
     private CurrencyRateDto rate;
 
-    public static WalletBalancesDto buildForhiddenCurrency(int currencyId, String currencyName) {
+    public static WalletBalancesDto buildForHiddenCurrency(int currencyId, String currencyName) {
         return WalletBalancesDto
                 .builder()
                 .currencyId(currencyId)
