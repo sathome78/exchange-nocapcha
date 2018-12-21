@@ -78,7 +78,7 @@ $(function refillCreation() {
                 $('#merchant-warnings').text(data['message']);
             },
             error: function (data) {
-                alert('Something happened wrong: ' + data.statusText);
+                // alert('Something happened wrong: ' + data.statusText);
             }
         });
     }
