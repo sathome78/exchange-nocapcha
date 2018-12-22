@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import me.exrates.service.RabbitMqService;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
