@@ -62,6 +62,7 @@ import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
+import me.exrates.service.RabbitMqService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
@@ -213,6 +214,8 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private RabbitMqService rabbitMqService;
 
     @PostConstruct
     public void init() {
@@ -585,6 +588,8 @@ public class OrderServiceImpl implements OrderService {
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
+                InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
+                rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
                 return createdOrderId;
 
             } else {

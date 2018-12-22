@@ -79,7 +79,7 @@ public class OrdersEventHandleService {
         handleAllTrades(order);
         handleMyTrades(order);
         handleChart(order);
-        ratesHolder.onRatesChange(order.getCurrencyPairId(), order.getExRate());
+        ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
     }
 
