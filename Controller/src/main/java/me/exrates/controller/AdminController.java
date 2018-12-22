@@ -1625,25 +1625,6 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
     }
 
-    @AdminLoggable
-    @GetMapping(value = "/2a8fy7b07dxe44/getMerchantInputCommissionNotification")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> getMerchantInputCommissionNotification(@RequestParam("merchant_id") int merchantId,
-                                                                         @RequestParam("currency_id") int currencyId,
-                                                                         @RequestParam("child_merchant") String childMerchant,
-                                                                         Locale locale) {
-        if (isNull(childMerchant)) {
-            childMerchant = StringUtils.EMPTY;
-        }
-        BigDecimal commissionPercents = merchantService.getMerchantInputCommission(merchantId, currencyId, childMerchant);
-
-        String message = BigDecimal.ZERO.compareTo(commissionPercents) == 0
-                ? messageSource.getMessage("merchant.commission.warning", null, locale)
-                : messageSource.getMessage("merchant.commission.interkassa-attention", new String[]{commissionPercents.toString()}, locale);
-        return ResponseEntity.ok(Collections.singletonMap("message", message));
-    }
-
-
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
             OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,

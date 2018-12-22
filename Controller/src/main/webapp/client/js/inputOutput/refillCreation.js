@@ -73,12 +73,12 @@ $(function refillCreation() {
     function fillInterkassaInputCommission() {
         $.ajax({
             type: "GET",
-            url: "/2a8fy7b07dxe44/getMerchantInputCommissionNotification?merchant_id=" + merchant + "&currency_id=" + currency + "&child_merchant=" + childMerchant,
+            url: "/getMerchantInputCommissionNotification?merchant_id=" + merchant + "&currency_id=" + currency + "&child_merchant=" + childMerchant,
             success: function (data) {
                 $('#merchant-warnings').text(data['message']);
             },
             error: function (data) {
-                // alert('Something happened wrong: ' + data.statusText);
+                alert('Something happened wrong: ' + data.statusText);
             }
         });
     }
