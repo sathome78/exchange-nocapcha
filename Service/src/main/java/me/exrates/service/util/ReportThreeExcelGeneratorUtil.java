@@ -278,7 +278,7 @@ public class ReportThreeExcelGeneratorUtil {
         cell.setCellFormula("SUM(J" + 4 + ":J" + ((bound - 1) + 4) + ")");
         cell.setCellStyle(footer2Style);
 
-//      -------------------------------------------------------------------------------
+        //      -------------------------------------------------------------------------------
 
         XSSFSheet sheet2 = workbook.createSheet("Sheet2 - Статистика оборота по валютным парам (отчет 2)");
 

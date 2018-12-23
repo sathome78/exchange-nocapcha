@@ -89,6 +89,8 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static me.exrates.service.impl.OrderServiceImpl.BUY;
+import static me.exrates.service.impl.OrderServiceImpl.SELL;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 
@@ -607,10 +609,11 @@ public class ReportServiceImpl implements ReportService {
                                               String requesterEmail) throws Exception {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
-        List<UserSummaryOrdersDto> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
-                .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
-                .collect(toList());
-        if (isEmpty(summaryOrdersData)) {
+        Map<String, List<UserSummaryOrdersDto>> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId);
+        final List<UserSummaryOrdersDto> buyOrdersData = summaryOrdersData.get(BUY);
+        final List<UserSummaryOrdersDto> sellOrdersData = summaryOrdersData.get(SELL);
+
+        if (isEmpty(buyOrdersData) && isEmpty(sellOrdersData)) {
             throw new Exception(String.format("No user orders information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
@@ -621,7 +624,10 @@ public class ReportServiceImpl implements ReportService {
 
         return ReportDto.builder()
                 .fileName(String.format("report_user_orders_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
-                .content(ReportEightExcelGeneratorUtil.generate(summaryOrdersData, ratesMap))
+                .content(ReportEightExcelGeneratorUtil.generate(
+                        buyOrdersData,
+                        sellOrdersData,
+                        ratesMap))
                 .build();
     }
 

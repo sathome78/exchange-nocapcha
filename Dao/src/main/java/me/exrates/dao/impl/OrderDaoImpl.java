@@ -79,8 +79,6 @@ import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 
@@ -1473,7 +1471,7 @@ public class OrderDaoImpl implements OrderDao {
                 "cur.name as convert_currency_name, " +
                 "COUNT(o.id) AS quantity, " +
                 "SUM(o.amount_convert) AS amount_convert," +
-                "SUM(o.commission_fixed_amount) AS amount_commission" +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS amount_commission" +
                 " FROM EXORDERS o " +
                 " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
                 " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
@@ -1498,33 +1496,29 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersDataByPeriodAndRoles(LocalDateTime startTime,
-                                                                               LocalDateTime endTime,
-                                                                               List<UserRole> userRoles,
-                                                                               int requesterId) {
+    public List<UserSummaryOrdersDto> getUserBuyOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                           LocalDateTime endTime,
+                                                                           List<UserRole> userRoles,
+                                                                           int requesterId) {
         String sql = "SELECT u.email AS user_email, " +
                 "ur.name AS user_role, " +
                 "cp.name AS currency_pair_name, " +
                 "cur.name AS currency_name, " +
-                "SUM(IF(aggr.amount_buy IS NOT NULL, aggr.amount_buy, 0)) AS amount_buy, " +
-                "SUM(IF(aggr.amount_buy_fee IS NOT NULL, aggr.amount_buy_fee, 0)) AS amount_buy_fee, " +
-                "SUM(IF(aggr.amount_sell IS NOT NULL, aggr.amount_sell, 0)) AS amount_sell, " +
-                "SUM(IF(aggr.amount_sell_fee IS NOT NULL, aggr.amount_sell_fee, 0)) AS amount_sell_fee" +
-                " FROM (" +
-                " SELECT o.currency_pair_id AS currency_pair_id, o.user_id, o.amount_convert AS amount_buy, o.commission_fixed_amount AS amount_buy_fee, 0 AS amount_sell, 0 AS amount_sell_fee" +
-                " FROM EXORDERS o" +
-                " WHERE o.status_id = 3 AND o.operation_type_id = 4 AND o.date_acception BETWEEN :start_time AND :end_time" +
-                " UNION ALL " +
-                " SELECT o.currency_pair_id AS currency_pair_id, o.user_id, 0 AS amount_buy, 0 AS amount_buy_fee, o.amount_convert AS amount_sell, o.commission_fixed_amount AS amount_sell_fee" +
-                " FROM EXORDERS o" +
-                " WHERE o.status_id = 3 AND o.operation_type_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
-                ") aggr" +
-                " JOIN USER u ON u.id = aggr.user_id" +
-                " JOIN USER_ROLE ur ON ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " JOIN CURRENCY_PAIR cp ON cp.id = aggr.currency_pair_id" +
-                " JOIN CURRENCY cur ON cur.id = cp.currency2_id" +
+                "SUM(tr.amount) AS amount_buy, " +
+                "SUM(tr.commission_amount) AS amount_buy_fee" +
+                " FROM TRANSACTION tr" +
+                " JOIN EXORDERS o on o.id = tr.source_id" +
+                " JOIN WALLET w on w.id = tr.user_wallet_id" +
+                " JOIN USER u on u.id = w.user_id" +
+                " JOIN USER_ROLE ur on ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN CURRENCY cur on cur.id = tr.currency_id" +
+                " JOIN CURRENCY_PAIR cp on cp.id = o.currency_pair_id AND cp.currency2_id = cur.id" +
                 " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
-                " GROUP BY user_email, user_role, currency_name, currency_pair_name";
+                " AND tr.datetime BETWEEN :start_time AND :end_time" +
+                " AND tr.source_type = 'ORDER'" +
+                " AND tr.status_id = 1" +
+                " AND tr.operation_type_id = 1" +
+                " GROUP BY user_email, user_role, currency_pair_name, currency_name";
 
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
@@ -1539,10 +1533,54 @@ public class OrderDaoImpl implements OrderDao {
                     .role(rs.getString("user_role"))
                     .currencyPairName(rs.getString("currency_pair_name"))
                     .currencyName(rs.getString("currency_name"))
-                    .amountBuy(rs.getBigDecimal("amount_buy"))
-                    .amountBuyFee(rs.getBigDecimal("amount_buy_fee"))
-                    .amountSell(rs.getBigDecimal("amount_sell"))
-                    .amountSellFee(rs.getBigDecimal("amount_sell_fee"))
+                    .amount(rs.getBigDecimal("amount_buy"))
+                    .commission(rs.getBigDecimal("amount_buy_fee"))
+                    .build());
+        } catch (EmptyResultDataAccessException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<UserSummaryOrdersDto> getUserSellOrdersDataByPeriodAndRoles(LocalDateTime startTime,
+                                                                            LocalDateTime endTime,
+                                                                            List<UserRole> userRoles,
+                                                                            int requesterId) {
+        String sql = "SELECT u.email AS user_email, " +
+                "ur.name AS user_role, " +
+                "cp.name AS currency_pair_name, " +
+                "cur.name AS currency_name, " +
+                "SUM(tr.amount) AS amount_sell, " +
+                "SUM(tr.commission_amount) AS amount_sell_fee" +
+                " FROM TRANSACTION tr" +
+                " JOIN EXORDERS o on o.id = tr.source_id" +
+                " JOIN WALLET w on w.id = tr.user_wallet_id" +
+                " JOIN USER u on u.id = w.user_id" +
+                " JOIN USER_ROLE ur on ur.id = u.roleid AND ur.name IN (:user_roles)" +
+                " JOIN CURRENCY cur on cur.id = tr.currency_id" +
+                " JOIN CURRENCY_PAIR cp on cp.id = o.currency_pair_id AND cp.currency2_id = cur.id" +
+                " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
+                " AND tr.datetime BETWEEN :start_time AND :end_time" +
+                " AND tr.source_type = 'ORDER'" +
+                " AND tr.status_id = 1" +
+                " AND tr.operation_type_id = 2" +
+                " GROUP BY user_email, user_role, currency_pair_name, currency_name";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("start_time", Timestamp.valueOf(startTime));
+            put("end_time", Timestamp.valueOf(endTime));
+            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("requester_user_id", requesterId);
+        }};
+
+        try {
+            return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
+                    .email(rs.getString("user_email"))
+                    .role(rs.getString("user_role"))
+                    .currencyPairName(rs.getString("currency_pair_name"))
+                    .currencyName(rs.getString("currency_name"))
+                    .amount(rs.getBigDecimal("amount_sell"))
+                    .commission(rs.getBigDecimal("amount_sell_fee"))
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
