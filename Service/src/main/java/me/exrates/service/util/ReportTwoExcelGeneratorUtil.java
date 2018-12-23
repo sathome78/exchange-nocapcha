@@ -31,6 +31,8 @@ import static java.util.Objects.isNull;
 @NoArgsConstructor(access = AccessLevel.NONE)
 public class ReportTwoExcelGeneratorUtil {
 
+    private static final String SHEET1_NAME = "Sheet1 - Статистика по вводу-выводу по валютам";
+
     public static byte[] generate(List<Currency> currencies,
                                   Map<String, InOutReportDto> inOutMap,
                                   Map<String, Pair<BigDecimal, BigDecimal>> ratesMap) throws Exception {
@@ -41,7 +43,7 @@ public class ReportTwoExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Статистика по вводу-выводу по валютам");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;

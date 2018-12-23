@@ -42,6 +42,8 @@ public class ReportFiveExcelGeneratorUtil {
 
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
+    private static final String SHEET1_NAME = "Sheet1 - Балансы кошельков за период";
+
     public static byte[] generate(List<Currency> currencies,
                                   Map<String, WalletBalancesDto> firstBalancesMap,
                                   LocalDateTime firstCreatedAt,
@@ -56,7 +58,7 @@ public class ReportFiveExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Балансы кошельков за период");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;

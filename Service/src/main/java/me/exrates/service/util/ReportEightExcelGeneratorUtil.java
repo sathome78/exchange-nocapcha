@@ -33,6 +33,7 @@ public class ReportEightExcelGeneratorUtil {
 
     private static final String SHEET1_NAME = "Sheet1 - Выгрузить buy ордера";
     private static final String SHEET2_NAME = "Sheet2 - Выгрузить sell ордера";
+    private static final String SHEET3_NAME = "Sheet3 - Итого";
 
     public static byte[] generate(List<UserSummaryOrdersDto> buyOrdersData,
                                   List<UserSummaryOrdersDto> sellOrdersData,
@@ -445,7 +446,7 @@ public class ReportEightExcelGeneratorUtil {
 
         //      -------------------------------------------------------------------------------
 
-        XSSFSheet sheet3 = workbook.createSheet("Sheet3 - Summary");
+        XSSFSheet sheet3 = workbook.createSheet(SHEET3_NAME);
 
         row = sheet3.createRow(0);
 
