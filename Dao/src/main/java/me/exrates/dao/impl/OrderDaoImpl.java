@@ -1470,28 +1470,29 @@ public class OrderDaoImpl implements OrderDao {
                 "cp.name AS currency_pair_name, " +
                 "cur.name as convert_currency_name, " +
                 "COUNT(o.id) AS quantity, " +
-                "SUM(o.amount_convert) AS amount_convert," +
-                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS amount_commission" +
+                "SUM(o.amount_convert) AS convert_amount," +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
                 " FROM EXORDERS o " +
                 " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id " +
                 " JOIN CURRENCY cur ON cp.currency2_id = cur.id " +
-                " JOIN USER u ON o.user_id = u.id AND u.roleid IN (:user_roles) " +
+                " JOIN USER creator ON creator.id = o.user_id AND creator.roleid IN (:user_roles) " +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id AND acceptor.roleid IN (:user_roles) " +
                 " WHERE o.status_id = 3 AND o.operation_type_id IN (3, 4) AND o.date_acception BETWEEN :start_time AND :end_time" +
-                " GROUP BY cp.name, cur.name" +
-                " ORDER BY cp.name ASC";
+                " GROUP BY currency_pair_name, convert_currency_name" +
+                " ORDER BY currency_pair_name ASC";
 
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
         params.put("user_roles", roles.stream().map(UserRole::getRole).collect(toList()));
-        //TODO
+
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
                 .currencyPairName(rs.getString("currency_pair_name"))
                 .currencyAccountingName(rs.getString("convert_currency_name"))
                 .quantity(rs.getInt("quantity"))
-                .amountConvert(rs.getBigDecimal("amount_convert"))
-                .amountCommission(rs.getBigDecimal("amount_commission"))
+                .amountConvert(rs.getBigDecimal("convert_amount"))
+                .amountCommission(rs.getBigDecimal("commission_amount"))
                 .build());
     }
 
@@ -1500,25 +1501,24 @@ public class OrderDaoImpl implements OrderDao {
                                                                            LocalDateTime endTime,
                                                                            List<UserRole> userRoles,
                                                                            int requesterId) {
-        String sql = "SELECT u.email AS user_email, " +
-                "ur.name AS user_role, " +
+        String sql = "SELECT creator.email AS creator_email, " +
+                "creator_role.name AS creator_role, " +
+                "acceptor.email AS acceptor_email, " +
+                "acceptor_role.name AS acceptor_role, " +
                 "cp.name AS currency_pair_name, " +
-                "cur.name AS currency_name, " +
-                "SUM(tr.amount) AS amount_buy, " +
-                "SUM(tr.commission_amount) AS amount_buy_fee" +
-                " FROM TRANSACTION tr" +
-                " JOIN EXORDERS o on o.id = tr.source_id" +
-                " JOIN WALLET w on w.id = tr.user_wallet_id" +
-                " JOIN USER u on u.id = w.user_id" +
-                " JOIN USER_ROLE ur on ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " JOIN CURRENCY cur on cur.id = tr.currency_id" +
-                " JOIN CURRENCY_PAIR cp on cp.id = o.currency_pair_id AND cp.currency2_id = cur.id" +
+                "cur.name as convert_currency_name, " +
+                "SUM(o.amount_convert) AS convert_amount, " +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id" +
+                " JOIN CURRENCY cur ON cp.currency2_id = cur.id" +
+                " JOIN USER creator ON creator.id = o.user_id" +
+                " JOIN USER_ROLE creator_role on creator_role.id = creator.roleid AND creator_role.name IN (:user_roles)" +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id" +
+                " JOIN USER_ROLE acceptor_role on acceptor_role.id = acceptor.roleid AND acceptor_role.name IN (:user_roles)" +
                 " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
-                " AND tr.datetime BETWEEN :start_time AND :end_time" +
-                " AND tr.source_type = 'ORDER'" +
-                " AND tr.status_id = 1" +
-                " AND tr.operation_type_id = 1" +
-                " GROUP BY user_email, user_role, currency_pair_name, currency_name";
+                " AND o.status_id = 3 AND o.operation_type_id = 4 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY creator_email, acceptor_email, currency_pair_name, convert_currency_name";
 
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
@@ -1529,12 +1529,14 @@ public class OrderDaoImpl implements OrderDao {
 
         try {
             return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
-                    .email(rs.getString("user_email"))
-                    .role(rs.getString("user_role"))
+                    .creatorEmail(rs.getString("creator_email"))
+                    .creatorRole(rs.getString("creator_role"))
+                    .acceptorEmail(rs.getString("acceptor_email"))
+                    .acceptorRole(rs.getString("acceptor_role"))
                     .currencyPairName(rs.getString("currency_pair_name"))
-                    .currencyName(rs.getString("currency_name"))
-                    .amount(rs.getBigDecimal("amount_buy"))
-                    .commission(rs.getBigDecimal("amount_buy_fee"))
+                    .currencyName(rs.getString("convert_currency_name"))
+                    .amount(rs.getBigDecimal("convert_amount"))
+                    .commission(rs.getBigDecimal("commission_amount"))
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();
@@ -1546,25 +1548,24 @@ public class OrderDaoImpl implements OrderDao {
                                                                             LocalDateTime endTime,
                                                                             List<UserRole> userRoles,
                                                                             int requesterId) {
-        String sql = "SELECT u.email AS user_email, " +
-                "ur.name AS user_role, " +
+        String sql = "SELECT creator.email AS creator_email, " +
+                "creator_role.name AS creator_role, " +
+                "acceptor.email AS acceptor_email, " +
+                "acceptor_role.name AS acceptor_role, " +
                 "cp.name AS currency_pair_name, " +
-                "cur.name AS currency_name, " +
-                "SUM(tr.amount) AS amount_sell, " +
-                "SUM(tr.commission_amount) AS amount_sell_fee" +
-                " FROM TRANSACTION tr" +
-                " JOIN EXORDERS o on o.id = tr.source_id" +
-                " JOIN WALLET w on w.id = tr.user_wallet_id" +
-                " JOIN USER u on u.id = w.user_id" +
-                " JOIN USER_ROLE ur on ur.id = u.roleid AND ur.name IN (:user_roles)" +
-                " JOIN CURRENCY cur on cur.id = tr.currency_id" +
-                " JOIN CURRENCY_PAIR cp on cp.id = o.currency_pair_id AND cp.currency2_id = cur.id" +
+                "cur.name as convert_currency_name, " +
+                "SUM(o.amount_convert) AS convert_amount, " +
+                "SUM((SELECT SUM(t.commission_amount) FROM TRANSACTION t WHERE t.source_type = 'ORDER' AND t.source_id = o.id AND t.operation_type_id <> 5)) AS commission_amount" +
+                " FROM EXORDERS o" +
+                " JOIN CURRENCY_PAIR cp ON o.currency_pair_id = cp.id" +
+                " JOIN CURRENCY cur ON cp.currency2_id = cur.id" +
+                " JOIN USER creator ON creator.id = o.user_id" +
+                " JOIN USER_ROLE creator_role on creator_role.id = creator.roleid AND creator_role.name IN (:user_roles)" +
+                " JOIN USER acceptor ON acceptor.id = o.user_acceptor_id" +
+                " JOIN USER_ROLE acceptor_role on acceptor_role.id = acceptor.roleid AND acceptor_role.name IN (:user_roles)" +
                 " WHERE EXISTS (SELECT * FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION iop WHERE iop.currency_id = cur.id AND iop.user_id = :requester_user_id)" +
-                " AND tr.datetime BETWEEN :start_time AND :end_time" +
-                " AND tr.source_type = 'ORDER'" +
-                " AND tr.status_id = 1" +
-                " AND tr.operation_type_id = 2" +
-                " GROUP BY user_email, user_role, currency_pair_name, currency_name";
+                " AND o.status_id = 3 AND o.operation_type_id = 3 AND o.date_acception BETWEEN :start_time AND :end_time" +
+                " GROUP BY creator_email, acceptor_email, currency_pair_name, convert_currency_name";
 
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
@@ -1575,12 +1576,14 @@ public class OrderDaoImpl implements OrderDao {
 
         try {
             return slaveJdbcTemplate.query(sql, namedParameters, (rs, idx) -> UserSummaryOrdersDto.builder()
-                    .email(rs.getString("user_email"))
-                    .role(rs.getString("user_role"))
+                    .creatorEmail(rs.getString("creator_email"))
+                    .creatorRole(rs.getString("creator_role"))
+                    .acceptorEmail(rs.getString("acceptor_email"))
+                    .acceptorRole(rs.getString("acceptor_role"))
                     .currencyPairName(rs.getString("currency_pair_name"))
-                    .currencyName(rs.getString("currency_name"))
-                    .amount(rs.getBigDecimal("amount_sell"))
-                    .commission(rs.getBigDecimal("amount_sell_fee"))
+                    .currencyName(rs.getString("convert_currency_name"))
+                    .amount(rs.getBigDecimal("convert_amount"))
+                    .commission(rs.getBigDecimal("commission_amount"))
                     .build());
         } catch (EmptyResultDataAccessException ex) {
             return Collections.emptyList();

@@ -77,7 +77,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.zip.DataFormatException;
@@ -89,8 +88,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static me.exrates.service.impl.OrderServiceImpl.BUY;
-import static me.exrates.service.impl.OrderServiceImpl.SELL;
 import static me.exrates.service.util.CollectionUtil.isEmpty;
 import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 
@@ -610,10 +607,8 @@ public class ReportServiceImpl implements ReportService {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
         Map<String, List<UserSummaryOrdersDto>> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId);
-        final List<UserSummaryOrdersDto> buyOrdersData = summaryOrdersData.get(BUY);
-        final List<UserSummaryOrdersDto> sellOrdersData = summaryOrdersData.get(SELL);
 
-        if (isEmpty(buyOrdersData) && isEmpty(sellOrdersData)) {
+        if (summaryOrdersData.values().stream().mapToLong(List::size).sum() <= 0) {
             throw new Exception(String.format("No user orders information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
@@ -625,8 +620,7 @@ public class ReportServiceImpl implements ReportService {
         return ReportDto.builder()
                 .fileName(String.format("report_user_orders_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
                 .content(ReportEightExcelGeneratorUtil.generate(
-                        buyOrdersData,
-                        sellOrdersData,
+                        summaryOrdersData,
                         ratesMap))
                 .build();
     }

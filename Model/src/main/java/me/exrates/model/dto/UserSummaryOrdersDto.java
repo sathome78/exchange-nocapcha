@@ -15,10 +15,12 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 public class UserSummaryOrdersDto {
 
-    private String email;
-    private String role;
-    private String currencyName;
+    private String creatorEmail;
+    private String creatorRole;
+    private String acceptorEmail;
+    private String acceptorRole;
     private String currencyPairName;
+    private String currencyName;
     private BigDecimal amount;
     private BigDecimal commission;
 
