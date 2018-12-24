@@ -1,6 +1,8 @@
 package me.exrates.model.dto;
 
 import me.exrates.model.ExOrder;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -41,9 +43,18 @@ public class InputCreateOrderDto {
         dto.setAmount(exOrder.getAmountBase());
         dto.setBaseType(exOrder.getOrderBaseType().toString());
         dto.setCurrencyPairId(exOrder.getCurrencyPairId());
-        dto.setOrderType(exOrder.getOrderBaseType().toString());
+        dto.setOrderType(exOrder.getOperationType().toString());
         dto.setRate(exOrder.getExRate());
         return dto;
+    }
+
+    public ExOrder toExorder() {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setAmountBase(this.getAmount());
+        exOrder.setOrderBaseType(OrderBaseType.valueOf(this.getBaseType()));
+        exOrder.setCurrencyPairId(this.getCurrencyPairId());
+        exOrder.setOperationType(OperationType.of(this.getOrderType()));
+        return exOrder;
     }
 
 

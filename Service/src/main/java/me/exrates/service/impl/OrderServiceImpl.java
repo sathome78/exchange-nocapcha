@@ -214,8 +214,6 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
-    @Autowired
-    private RabbitMqService rabbitMqService;
 
     @PostConstruct
     public void init() {
@@ -588,8 +586,6 @@ public class OrderServiceImpl implements OrderService {
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
-                InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-                rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
                 return createdOrderId;
 
             } else {

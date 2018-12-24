@@ -1,37 +1,30 @@
 package me.exrates.service;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.InputCreateOrderDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import me.exrates.service.handler.OrdersEventHandleService;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @EnableRabbit
 @Component
 public class OrderMessageJspListener {
 
-    static final Logger logger = LoggerFactory.getLogger(OrderMessageJspListener.class);
+
+    @Autowired
+    private OrdersEventHandleService ordersEventHandleService;
+
 
     /*
     * This method is triggered if rabbit exchange receives message ({order}) from counterpart application
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
     public void processOrder(InputCreateOrderDto order) {
-        // todo update cache or do something else useful
-
-        // these lines are used for angular to send ws event to frontend, please, implement in your way
-//        try {
-//            String orderJson = objectMapper.writeValueAsString(order);
-//            Message message = MessageBuilder
-//                    .withBody(orderJson.getBytes())
-//                    .setContentType(MessageProperties.CONTENT_TYPE_JSON)
-//                    .build();
-//            this.messagingTemplate.convertAndSend("/topic/rabbit", message);
-//        } catch (JsonProcessingException e) {
-//            logger.error("Failed to redirect to rabbit topic", e);
-//        }
-        logger.debug("Order Received: " + order);
+        log.debug("Order Received: " + order);
+        ordersEventHandleService.handleOrderEventOnMessage(order);
     }
 
     // uncomment for testing as this order will be sent from this application

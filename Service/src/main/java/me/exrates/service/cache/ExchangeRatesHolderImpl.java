@@ -22,13 +22,10 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<Integer, ExOrderStatisticsShortByPairsDto> ratesMap = new ConcurrentHashMap<>();
 
     private final OrderDao orderDao;
-    private final RabbitMqService rabbitMqService;
 
     @Autowired
-    public ExchangeRatesHolderImpl(OrderDao orderDao,
-                                   RabbitMqService rabbitMqService) {
+    public ExchangeRatesHolderImpl(OrderDao orderDao) {
         this.orderDao = orderDao;
-        this.rabbitMqService = rabbitMqService;
     }
 
     @PostConstruct
@@ -40,8 +37,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @Override
     public void onRatesChange(ExOrder exOrder) {
         setRates(exOrder.getCurrencyPairId(), exOrder.getExRate());
-        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     private synchronized void setRates(Integer pairId, BigDecimal rate) {
