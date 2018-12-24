@@ -18,7 +18,26 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -39,7 +58,6 @@ import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
@@ -69,7 +87,11 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.events.*;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.CancelOrderEvent;
+import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.OrderEvent;
+import me.exrates.service.events.PartiallyAcceptedOrder;
 import me.exrates.service.exception.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
@@ -139,6 +161,9 @@ import static me.exrates.model.enums.OrderActionEnum.DELETE_SPLIT;
 @Log4j2
 @Service
 public class OrderServiceImpl implements OrderService {
+
+    public static final String BUY = "BUY";
+    public static final String SELL = "SELL";
 
     public static final String SCOPE = "ALL";
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
@@ -1081,7 +1106,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
     private void checkAcceptPermissionForUser(Integer acceptorId, Integer creatorId, Locale locale) {
         UserRole acceptorRole = userService.getUserRoleFromDB(acceptorId);
         UserRole creatorRole = userService.getUserRoleFromDB(creatorId);
@@ -2012,11 +2036,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersData(LocalDateTime startTime,
-                                                               LocalDateTime endTime,
-                                                               List<UserRole> userRoles,
-                                                               int requesterId) {
-        return orderDao.getUserSummaryOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId);
+    public Map<String, List<UserSummaryOrdersDto>> getUserSummaryOrdersData(LocalDateTime startTime,
+                                                                            LocalDateTime endTime,
+                                                                            List<UserRole> userRoles,
+                                                                            int requesterId) {
+        Map<String, List<UserSummaryOrdersDto>> summary = new HashMap<>();
+        summary.put(BUY, orderDao.getUserBuyOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId).stream()
+                .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
+                .collect(toList()));
+        summary.put(SELL, orderDao.getUserSellOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId).stream()
+                .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
+                .collect(toList()));
+        return summary;
     }
 
     @Override

@@ -77,7 +77,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.zip.DataFormatException;
@@ -607,10 +606,9 @@ public class ReportServiceImpl implements ReportService {
                                               String requesterEmail) throws Exception {
         final int requesterId = userService.getIdByEmail(requesterEmail);
 
-        List<UserSummaryOrdersDto> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId).stream()
-                .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
-                .collect(toList());
-        if (isEmpty(summaryOrdersData)) {
+        Map<String, List<UserSummaryOrdersDto>> summaryOrdersData = orderService.getUserSummaryOrdersData(startTime, endTime, roles, requesterId);
+
+        if (summaryOrdersData.values().stream().mapToLong(List::size).sum() <= 0) {
             throw new Exception(String.format("No user orders information found for period: [%s, %s] and user roles: [%s]",
                     startTime.toString(),
                     endTime.toString(),
@@ -621,7 +619,9 @@ public class ReportServiceImpl implements ReportService {
 
         return ReportDto.builder()
                 .fileName(String.format("report_user_orders_summary_data_%s-%s", startTime.format(FORMATTER_FOR_NAME), endTime.format(FORMATTER_FOR_NAME)))
-                .content(ReportEightExcelGeneratorUtil.generate(summaryOrdersData, ratesMap))
+                .content(ReportEightExcelGeneratorUtil.generate(
+                        summaryOrdersData,
+                        ratesMap))
                 .build();
     }
 
