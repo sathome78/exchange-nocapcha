@@ -91,6 +91,30 @@ public class OpenApiOrderController {
     }
 
     /**
+     * @api {get} /openapi/v1/orders/accept Accept order
+     * @apiName Accept order
+     * @apiGroup Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Accepts order
+     * @apiParam {Integer} order_id Id of order to be accepted
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/accept
+     * RequestBody: Map{order_id=123}
+     * @apiSuccess {Map} success=true Acceptance result
+     */
+    @PreAuthorize("hasAuthority('TRADE') and hasAuthority('ACCEPT_BY_ID')")
+    @RequestMapping(value = "/accept", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Map<String, Boolean> acceptOrder(@RequestBody Map<String, String> params) {
+        String orderIdString = retrieveParamFormBody(params, "order_id", true);
+        Integer orderId = Integer.parseInt(orderIdString);
+        String userEmail = userService.getUserEmailFromSecurityContext();
+        orderService.acceptOrder(userEmail, orderId);
+        return Collections.singletonMap("success", true);
+    }
+
+    /**
      * @api {post} /openapi/v1/orders/cancel Cancel order by order id
      * @apiName Cancel order by order id
      * @apiGroup Order API
