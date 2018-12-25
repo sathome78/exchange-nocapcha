@@ -304,6 +304,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/dime_wallet.properties","DIME","DIME", 20, 20, false, true);
 	}
 
+	@Bean(name = "ctxServiceImpl")
+	public BitcoinService ctxServiceImpl() {
+		return new BitcoinServiceImpl("merchants/ctx_wallet.properties","CTX","CTX", 20, 20, false, true);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {

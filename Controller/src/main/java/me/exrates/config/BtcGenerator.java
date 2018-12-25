@@ -212,6 +212,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("DIME", "DimeCoin", 20, true, false, "172.31.4.13", 8090, 11301);
+        generate("CTX", "Centauri", 20, true, true, "172.10.13.128", 8332, 11801);
     }
 }
