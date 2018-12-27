@@ -504,6 +504,23 @@ public class RefillServiceImpl implements RefillService {
     }
   }
 
+  @Transactional
+  @Override
+  public void createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+    int requestId = createRefillRequestByFact(requestAcceptDto);
+    requestAcceptDto.setRequestId(requestId);
+    RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+    /**/
+    Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+    String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+    String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+            new Integer[]{requestId},
+            locale);
+    String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+    userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+  }
+
   @Override
   @Transactional
   public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {

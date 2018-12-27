@@ -87,4 +87,6 @@ public interface MerchantDao {
     Optional<String> getCoreWalletPassword(String merchantName, String currencyName);
 
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
+
+    BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant);
 }

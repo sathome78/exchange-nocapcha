@@ -62,7 +62,7 @@
             </div>
 
             <div class="field field--btn__new">
-                <input id="pass_submit" class="btn__new btn__new--form" type="submit" value="Update password" disabled>
+                <input id="pass_submit" onclick="sendUpdatePassword()" class="btn__new btn__new--form" type="submit" value="Update password" disabled>
             </div>
         </form>
     </div>

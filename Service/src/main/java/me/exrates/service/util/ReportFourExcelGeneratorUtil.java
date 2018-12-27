@@ -3,6 +3,7 @@ package me.exrates.service.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.CurrencyRateDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
@@ -31,7 +32,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Objects.isNull;
 
@@ -41,7 +41,10 @@ public class ReportFourExcelGeneratorUtil {
 
     private static final DateTimeFormatter FORMATTER_FOR_REPORT = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH-mm");
 
-    public static byte[] generate(Map<String, WalletBalancesDto> balancesMap,
+    private static final String SHEET1_NAME = "Sheet1 - Срез балансов кошельков";
+
+    public static byte[] generate(List<Currency> currencies,
+                                  Map<String, WalletBalancesDto> balancesMap,
                                   LocalDateTime createdAt) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
 
@@ -51,7 +54,7 @@ public class ReportFourExcelGeneratorUtil {
         CellStyle footer1Style = getFooter1Style(workbook);
         CellStyle footer2Style = getFooter2Style(workbook);
 
-        XSSFSheet sheet = workbook.createSheet("Sheet1 - Срез балансов кошельков");
+        XSSFSheet sheet = workbook.createSheet(SHEET1_NAME);
 
         XSSFRow row;
         XSSFCell cell;
@@ -167,7 +170,6 @@ public class ReportFourExcelGeneratorUtil {
         sheet.autoSizeColumn(13, true);
         sheet.setColumnWidth(13, sheet.getColumnWidth(13) + 256);
 
-        Set<String> currencies = balancesMap.keySet();
         final int bound = balancesMap.size();
 
         //footer
@@ -231,14 +233,16 @@ public class ReportFourExcelGeneratorUtil {
 
         //body
         int i = 0;
-        for (String currency : currencies) {
-            WalletBalancesDto balance = balancesMap.get(currency);
+        for (Currency currency : currencies) {
+            final int currencyId = currency.getId();
+            final String currencyName = currency.getName();
+
+            WalletBalancesDto balance = balancesMap.get(currencyName);
             if (isNull(balance)) {
                 continue;
             }
 
             ExternalWalletBalancesDto exWallet = balance.getExternal();
-            final Integer currencyId = exWallet.getCurrencyId();
             final boolean signOfCertainty = exWallet.isSignOfCertainty();
             final BigDecimal exWalletTotalBalance = exWallet.getTotalBalance();
 
@@ -264,7 +268,7 @@ public class ReportFourExcelGeneratorUtil {
             cell.setCellStyle(style);
 
             cell = row.createCell(1, CellType.STRING);
-            cell.setCellValue(currency);
+            cell.setCellValue(currencyName);
             cell.setCellStyle(style);
 
             cell = row.createCell(2, CellType.NUMERIC);

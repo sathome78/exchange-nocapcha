@@ -15,19 +15,17 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 public class UserSummaryOrdersDto {
 
-    private String email;
-    private String role;
-    private String currencyName;
+    private String creatorEmail;
+    private String creatorRole;
+    private String acceptorEmail;
+    private String acceptorRole;
     private String currencyPairName;
-    private BigDecimal amountBuy;
-    private BigDecimal amountBuyFee;
-    private BigDecimal amountSell;
-    private BigDecimal amountSellFee;
+    private String currencyName;
+    private BigDecimal amount;
+    private BigDecimal commission;
 
     public Boolean isEmpty() {
-        return (isNull(amountBuy) || amountBuy.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(amountBuyFee) || amountBuyFee.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(amountSell) || amountSell.compareTo(BigDecimal.ZERO) == 0)
-                && (isNull(amountSellFee) || amountSellFee.compareTo(BigDecimal.ZERO) == 0);
+        return (isNull(amount) || amount.compareTo(BigDecimal.ZERO) == 0)
+                && (isNull(commission) || commission.compareTo(BigDecimal.ZERO) == 0);
     }
 }
