@@ -3,8 +3,6 @@ package me.exrates.service.aidos;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.MerchantSpecParamDto;
@@ -12,10 +10,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
-import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.RefillService;
-import me.exrates.service.exception.BtcPaymentNotFoundException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
