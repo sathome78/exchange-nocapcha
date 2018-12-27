@@ -11,6 +11,7 @@ import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.model.dto.merchants.neo.NeoTransaction;
 import me.exrates.model.dto.merchants.neo.NeoVout;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.NeoApiException;
@@ -57,6 +58,8 @@ public class NeoServiceImpl implements NeoService {
     private ObjectMapper objectMapper;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private String mainAccount;
     private Integer minConfirmations;
@@ -275,6 +278,9 @@ public class NeoServiceImpl implements NeoService {
                             .build();
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
+
+                    log.debug("Process of sending data to Google Analytics...");
+                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName());
                 }
             }
         } catch (RefillRequestAppropriateNotFoundException e) {

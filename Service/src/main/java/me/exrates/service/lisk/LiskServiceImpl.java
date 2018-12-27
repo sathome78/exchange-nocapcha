@@ -13,6 +13,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.LiskCreateAddressException;
@@ -48,19 +49,18 @@ public class LiskServiceImpl implements LiskService {
 
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
-
-    private LiskRestClient liskRestClient;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
+
+    private LiskRestClient liskRestClient;
 
     private LiskSpecialMethodService liskSpecialMethodService;
 
@@ -182,7 +182,6 @@ public class LiskServiceImpl implements LiskService {
                     .hash(txId)
                     .blockhash(transaction.getBlockId()).build());
         }
-
     }
 
     private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
@@ -194,11 +193,13 @@ public class LiskServiceImpl implements LiskService {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
                 RefillRequestFlatDto flatDto = refillService.getFlatById(dto.getRequestId());
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
+
+                log.debug("Process of sending data to Google Analytics...");
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName);
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);
         }
-
     }
 
 

@@ -7,6 +7,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.ethereum.ethTokensWrappers.ethTokenERC20;
@@ -84,10 +85,11 @@ public class EthTokenServiceImpl implements EthTokenService {
     private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
-
     @Qualifier(value = "ethereumServiceImpl")
     @Autowired
     private EthereumCommonService ethereumCommonService;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Integer currencyId() {
@@ -252,10 +254,11 @@ public class EthTokenServiceImpl implements EthTokenService {
 
             refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchant.getId(), currency.getId(), true);
 
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName());
         } catch (Exception e) {
             log.error(e);
         }
-
     }
 
     private void transferFundsToMainAccount(){

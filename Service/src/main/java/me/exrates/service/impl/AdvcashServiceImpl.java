@@ -41,26 +41,20 @@ public class AdvcashServiceImpl implements AdvcashService{
     private @Value("${advcash.EURAccount}") String eurCompanyAccount;
     private @Value("${advcash.payeePassword}") String payeePassword;
 
-
-    private static final Logger logger = LogManager.getLogger("merchant");
-
     @Autowired
     private AlgorithmService algorithmService;
-
     @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -98,7 +92,6 @@ public class AdvcashServiceImpl implements AdvcashService{
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
         Integer requestId = Integer.valueOf(params.get("ac_order_id"));
         String merchantTransactionId = params.get("ac_transfer");
         Currency currency = currencyService.findByName(params.get("ac_merchant_currency"));
@@ -111,7 +104,6 @@ public class AdvcashServiceImpl implements AdvcashService{
         if (params.get("ac_transaction_status").equals("COMPLETED")
                 && refillRequest.getMerchantRequestSign().equals(params.get("transaction_hash"))
                 && refillRequest.getAmount().equals(amount) ) {
-
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(requestId)
                     .merchantId(merchant.getId())
@@ -121,6 +113,9 @@ public class AdvcashServiceImpl implements AdvcashService{
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName());
         }
     }
 

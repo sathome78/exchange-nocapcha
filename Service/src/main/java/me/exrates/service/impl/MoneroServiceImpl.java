@@ -6,6 +6,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.RefillService;
@@ -41,18 +42,16 @@ public class MoneroServiceImpl implements MoneroService {
 
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private String HOST;
     private String PORT;
@@ -109,7 +108,6 @@ public class MoneroServiceImpl implements MoneroService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
         BigDecimal amount = new BigDecimal(params.get("amount"));
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -123,6 +121,9 @@ public class MoneroServiceImpl implements MoneroService {
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     @Override

@@ -44,7 +44,6 @@ public class GtagServiceImpl implements GtagService {
         String transactionId = sendTransactionHit(userName, coinsCount, price);
 
         sendItemHit(userName, transactionId, tiker, coinsCount, price);
-
     }
 
     private String sendTransactionHit(String userName, String coinsCount, String price) {

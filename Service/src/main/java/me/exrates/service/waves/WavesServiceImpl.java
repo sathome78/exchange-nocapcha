@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
@@ -35,24 +36,20 @@ public class WavesServiceImpl implements WavesService {
 
     @Autowired
     private WavesRestClient restClient;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private SendMailService sendMailService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private Integer minConfirmations;
     private String mainAccount;
@@ -281,6 +278,9 @@ public class WavesServiceImpl implements WavesService {
             log.debug("Providing transaction!");
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyBase.getName());
         } catch (Exception e) {
             log.error(e);
         }

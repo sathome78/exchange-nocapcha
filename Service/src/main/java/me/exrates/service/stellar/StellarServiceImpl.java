@@ -9,6 +9,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
@@ -58,6 +59,8 @@ public class StellarServiceImpl implements StellarService {
     private StellarTransactionService stellarTransactionService;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private Merchant merchant;
     private Currency currency;
@@ -170,6 +173,7 @@ public class StellarServiceImpl implements StellarService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(params.get("merchant"));
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -186,6 +190,8 @@ public class StellarServiceImpl implements StellarService {
             requestAcceptDto.setRequestId(requestId);
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     @Override

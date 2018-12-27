@@ -14,6 +14,7 @@ import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.IotaService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
@@ -45,23 +46,6 @@ import java.util.concurrent.TimeUnit;
 @PropertySource("classpath:/merchants/iota.properties")
 public class IotaServiceImpl implements IotaService {
 
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private RefillService refillService;
-
-    @Autowired
-    private MerchantService merchantService;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
-
-    private IotaAPI iotaClient;
-
     private @Value("${iota.protocol}")String PROTOCOL;
     private @Value("${iota.host}")String HOST;
     private @Value("${iota.port}")String PORT;
@@ -69,6 +53,22 @@ public class IotaServiceImpl implements IotaService {
     private @Value("${iota.message}")String MESSAGE;
     private @Value("${iota.tag}")String TAG;
     private @Value("${iota.mode}")String MODE;
+
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private RefillService refillService;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
+
+    private IotaAPI iotaClient;
+
 
     private static List<String> ADDRESSES = new ArrayList<>();
 
@@ -85,7 +85,6 @@ public class IotaServiceImpl implements IotaService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
         BigDecimal amount = BigDecimal.valueOf(IotaUnitConverter.convertAmountTo(Long.parseLong(params.get("amount")), IotaUnits.MEGA_IOTA));
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -99,6 +98,9 @@ public class IotaServiceImpl implements IotaService {
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     @Override

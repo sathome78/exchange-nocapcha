@@ -10,9 +10,11 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -33,6 +35,8 @@ public class QiwiServiceImpl implements QiwiService {
     private final static String MERCHANT_NAME = "QIWI";
     private final static String CURRENCY_NAME = "RUB";
 
+    private static final Logger logger = org.apache.log4j.LogManager.getLogger(QiwiServiceImpl.class);
+
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -43,6 +47,8 @@ public class QiwiServiceImpl implements QiwiService {
     private MessageSource messageSource;
     @Autowired
     private QiwiExternalService qiwiExternalService;
+    @Autowired
+    private GtagService gtagService;
 
     private Merchant merchant;
     private Currency currency;
@@ -111,6 +117,7 @@ public class QiwiServiceImpl implements QiwiService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal fullAmount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -127,6 +134,8 @@ public class QiwiServiceImpl implements QiwiService {
             requestAcceptDto.setRequestId(requestId);
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        logger.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName());
     }
 
     @Override

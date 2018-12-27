@@ -8,6 +8,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
@@ -50,6 +51,8 @@ public class RippleServiceImpl implements RippleService {
   private RefillService refillService;
   @Autowired
   private WithdrawUtils withdrawUtils;
+  @Autowired
+  private GtagService gtagService;
 
   private static final String XRP_MERCHANT = "Ripple";
 
@@ -129,6 +132,7 @@ public class RippleServiceImpl implements RippleService {
     Currency currency = currencyService.findByName("XRP");
     Merchant merchant = merchantService.findByName(XRP_MERCHANT);
     BigDecimal amount = rippleTransactionService.normalizeAmountToDecimal(params.get("amount"));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
         .address(address)
         .merchantId(merchant.getId())
@@ -138,6 +142,9 @@ public class RippleServiceImpl implements RippleService {
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
     refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
+
+    log.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName());
   }
 
   @Override

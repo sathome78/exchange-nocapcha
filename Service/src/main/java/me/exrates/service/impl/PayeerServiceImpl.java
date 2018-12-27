@@ -36,18 +36,16 @@ public class PayeerServiceImpl implements PayeerService {
 
   @Autowired
   private AlgorithmService algorithmService;
-
   @Autowired
   private RefillService refillService;
-
   @Autowired
   private MerchantService merchantService;
-
   @Autowired
   private CurrencyService currencyService;
-
   @Autowired
   private WithdrawUtils withdrawUtils;
+  @Autowired
+  private GtagService gtagService;
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -88,6 +86,7 @@ public class PayeerServiceImpl implements PayeerService {
     Currency currency = currencyService.findByName(params.get("m_curr"));
     Merchant merchant = merchantService.findByName("Payeer");
     BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("m_amount")));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
         .requestId(requestId)
         .merchantId(merchant.getId())
@@ -97,6 +96,9 @@ public class PayeerServiceImpl implements PayeerService {
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
     refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+    logger.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName());
   }
 
   private void checkSign(Map<String, String> params) {

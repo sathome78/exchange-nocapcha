@@ -44,21 +44,18 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Autowired
     private AlgorithmService algorithmService;
-
     @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -90,7 +87,6 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
         Integer requestId = Integer.valueOf(params.get("PAYMENT_ID"));
         String merchantTransactionId = params.get("PAYMENT_BATCH_NUM");
         Currency currency = params.get("PAYEE_ACCOUNT").equals(usdCompanyAccount) ? currencyService.findByName("USD") : currencyService.findByName("EUR");
@@ -111,8 +107,10 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
             refillService.autoAcceptRefillRequest(requestAcceptDto);
-        }
 
+            logger.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        }
     }
 
     private String computePaymentHash(Map<String, String> params) {
