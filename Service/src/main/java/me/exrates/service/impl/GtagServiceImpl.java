@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,6 +22,7 @@ import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 @Service("gtagService")
 @PropertySource(value = "classpath:/analytics.properties")
+@Log4j2
 public class GtagServiceImpl implements GtagService {
 
     @Value("${google.analytics.host}")
@@ -38,12 +40,16 @@ public class GtagServiceImpl implements GtagService {
 
     public void sendGtagEvents(String coinsCount, String tiker) {
         if (!enable) return;
-        Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
-        String userName = getContext().getAuthentication().getName();
-        String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
-        String transactionId = sendTransactionHit(userName, coinsCount, price);
+        try {
+            Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
+            String userName = getContext().getAuthentication().getName();
+            String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
+            String transactionId = sendTransactionHit(userName, coinsCount, price);
 
-        sendItemHit(userName, transactionId, tiker, coinsCount, price);
+            sendItemHit(userName, transactionId, tiker, coinsCount, price);
+        } catch (Throwable exception) {
+            log.warn("Unable to send statistic to gtag ", exception);
+        }
     }
 
     private String sendTransactionHit(String userName, String coinsCount, String price) {
