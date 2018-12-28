@@ -44,7 +44,7 @@ public class GtagServiceImpl implements GtagService {
             Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
             String userName = getContext().getAuthentication().getName();
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
-            String transactionId = sendTransactionHit(userName, coinsCount, price);
+            String transactionId = sendTransactionHit(userName, coinsCount, price, tiker);
 
             sendItemHit(userName, transactionId, tiker, coinsCount, price);
         } catch (Throwable exception) {
@@ -52,7 +52,7 @@ public class GtagServiceImpl implements GtagService {
         }
     }
 
-    private String sendTransactionHit(String userName, String coinsCount, String price) {
+    private String sendTransactionHit(String userName, String coinsCount, String price, String tiker) {
         String transactionId = UUID.randomUUID().toString();
         String revenue = new BigDecimal(coinsCount).multiply(new BigDecimal(price)).toPlainString();
 
@@ -62,9 +62,10 @@ public class GtagServiceImpl implements GtagService {
         formData.add("cid", userName);
         formData.add("tid", "GTM-TPR6SBC");
         formData.add("t", "transaction");
-        formData.add("ta", transactionId);
+        formData.add("in", tiker);
         formData.add("cu", "USD");
         formData.add("tr", revenue);
+        formData.add("ti", transactionId);
 
         Response response = client.target(googleAnalyticsHost).request().post(Entity.form(formData));
         return transactionId;
