@@ -15,6 +15,7 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDetailedDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.BtcPaymentNotFoundException;
@@ -24,7 +25,6 @@ import me.exrates.service.util.WithdrawUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,6 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -58,6 +57,8 @@ public class AdkServiceImpl implements AdkService {
     private final MerchantService merchantService;
     private final CurrencyService currencyService;
     private final RefillService refillService;
+    private final GtagService gtagService;
+    private final WithdrawUtils withdrawUtils;
 
     private static final String CURRENCY_NAME = "ADK";
     private static final String MERCHANT_NAME = "ADK";
@@ -68,16 +69,21 @@ public class AdkServiceImpl implements AdkService {
     private static final String PASS_PATH = "/opt/properties/Aidos_pass.properties";
 
     @Autowired
-    public AdkServiceImpl(AidosNodeService aidosNodeService, MessageSource messageSource, MerchantService merchantService, CurrencyService currencyService, RefillService refillService) {
+    public AdkServiceImpl(AidosNodeService aidosNodeService,
+                          MessageSource messageSource,
+                          MerchantService merchantService,
+                          CurrencyService currencyService,
+                          RefillService refillService,
+                          GtagService gtagService,
+                          WithdrawUtils withdrawUtils) {
         this.aidosNodeService = aidosNodeService;
         this.messageSource = messageSource;
         this.merchantService = merchantService;
         this.currencyService = currencyService;
         this.refillService = refillService;
+        this.gtagService = gtagService;
+        this.withdrawUtils = withdrawUtils;
     }
-
-    @Autowired
-    private WithdrawUtils withdrawUtils;
 
     @PostConstruct
     private void inti() {
@@ -109,6 +115,7 @@ public class AdkServiceImpl implements AdkService {
         String address = params.get("address");
         String hash = params.get("txId");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -118,6 +125,9 @@ public class AdkServiceImpl implements AdkService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     @Override

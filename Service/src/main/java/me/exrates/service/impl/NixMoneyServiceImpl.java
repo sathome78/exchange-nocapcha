@@ -42,21 +42,18 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
     @Autowired
     private AlgorithmService algorithmService;
-
     @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -107,7 +104,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
                 + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
                 + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
 
-        if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)){
+        if (V2_HASH.equals(params.get("V2_HASH")) && refillRequest.getAmount().equals(amount)) {
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .requestId(requestId)
                     .merchantId(merchant.getId())
@@ -116,8 +113,11 @@ public class NixMoneyServiceImpl implements NixMoneyService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
-            refillService.autoAcceptRefillRequest(requestAcceptDto);        }
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+            logger.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
@@ -62,6 +63,8 @@ public class NemServiceImpl implements NemService {
     private MerchantSpecParamsDao specParamsDao;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
@@ -177,6 +180,9 @@ public class NemServiceImpl implements NemService {
             }
         } else {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName());
         }
     }
 
@@ -194,6 +200,7 @@ public class NemServiceImpl implements NemService {
                 return;
             }
             BigDecimal amount = p.getQuantity().divide(BigDecimal.valueOf(mosaicService.getDecimals()));
+
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                     .address(address)
                     .merchantId(merchantService.findByName(mosaicService.getMerchantName()).getId())
@@ -221,6 +228,9 @@ public class NemServiceImpl implements NemService {
             } else {
                 try {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+                    log.debug("Process of sending data to Google Analytics...");
+                    gtagService.sendGtagEvents(amount.toString(), currency.getName());
                 } catch (RefillRequestAppropriateNotFoundException e) {
                     log.error(e);
                 }
@@ -250,6 +260,9 @@ public class NemServiceImpl implements NemService {
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName());
         } else {
             log.debug("transaction {} not confirmed yet", dto.getId());
         }

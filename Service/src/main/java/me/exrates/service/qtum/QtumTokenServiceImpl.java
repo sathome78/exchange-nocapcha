@@ -9,6 +9,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.merchants.qtum.QtumTokenTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.ethereum.ExConvert;
@@ -39,31 +40,23 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:/merchants/qtum.properties")
 public class QtumTokenServiceImpl implements QtumTokenService {
 
+    private @Value("${qtum.min.confirmations}") Integer minConfirmations;
+    private @Value("${qtum.min.transfer.amount}") BigDecimal minTransferAmount;
+    private @Value("${qtum.main.address.for.transfer}") String mainAddressForTransfer;
+    private @Value("${qtum.node.endpoint}") String endpoint;
+
     @Autowired
     private QtumNodeService qtumNodeService;
-
-    @Autowired
-    private MessageSource messageSource;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
     @Autowired
     private RefillService refillService;
-
-    private @Value("${qtum.min.confirmations}") Integer minConfirmations;
-
-    private @Value("${qtum.min.transfer.amount}") BigDecimal minTransferAmount;
-
-    private @Value("${qtum.main.address.for.transfer}") String mainAddressForTransfer;
-
-    private @Value("${qtum.node.endpoint}") String endpoint;
+    @Autowired
+    private GtagService gtagService;
 
     private List<String> contractAddress;
 
@@ -157,12 +150,13 @@ public class QtumTokenServiceImpl implements QtumTokenService {
     }
 
     public void processPayment(Map<String, Object> params) throws RefillRequestAppropriateNotFoundException {
+        final BigDecimal amount = (BigDecimal) params.get("amount");
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(String.valueOf(params.get("address")))
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount((BigDecimal) params.get("amount"))
+                .amount(amount)
                 .merchantTransactionId((String) params.get("hash"))
                 .build();
 
@@ -172,6 +166,8 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         refillService.updateAddressNeedTransfer(String.valueOf(params.get("address")), merchant.getId(),
                 currency.getId(), true);
 
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     private void checkBalanceAndTransfer(){

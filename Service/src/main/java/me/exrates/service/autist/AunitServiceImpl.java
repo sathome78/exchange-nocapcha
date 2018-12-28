@@ -8,6 +8,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
@@ -37,20 +38,24 @@ public class AunitServiceImpl implements AunitService {
 
     private final MessageSource messageSource;
     private final RefillService refillService;
-
+    private final Merchant merchant;
+    private final Currency currency;
+    private final GtagService gtagService;
 
     static final String AUNIT_CURRENCY = "AUNIT";
     static final String AUNIT_MERCHANT = "AUNIT";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    private final Merchant merchant;
-    private final Currency currency;
 
     @Autowired
-    public AunitServiceImpl(MerchantService merchantService, CurrencyService currencyService, MessageSource messageSource, RefillService refillService) {
+    public AunitServiceImpl(MerchantService merchantService,
+                            CurrencyService currencyService,
+                            MessageSource messageSource,
+                            RefillService refillService, GtagService gtagService) {
         this.messageSource = messageSource;
         this.refillService = refillService;
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
+        this.gtagService = gtagService;
     }
 
     @Override
@@ -103,6 +108,7 @@ public class AunitServiceImpl implements AunitService {
         String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -116,6 +122,8 @@ public class AunitServiceImpl implements AunitService {
         } catch (RefillRequestAppropriateNotFoundException e) {
             setIdAndAccept(requestAcceptDto);
         }
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {

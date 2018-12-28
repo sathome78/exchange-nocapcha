@@ -44,28 +44,23 @@ public class EDCServiceImpl implements EDCService {
   private @Value("${edcmerchant.history}") String history;
 
   @Autowired
-  TransactionService transactionService;
-
+  private TransactionService transactionService;
   @Autowired
-  EDCAccountDao edcAccountDao;
-
+  private EDCAccountDao edcAccountDao;
   @Autowired
   private MessageSource messageSource;
-
   @Autowired
   private RefillService refillService;
-
   @Autowired
   private MerchantService merchantService;
-
   @Autowired
   private CurrencyService currencyService;
-
   @Autowired
   private WithdrawUtils withdrawUtils;
-
   @Autowired
-  EDCServiceNode edcServiceNode;
+  private EDCServiceNode edcServiceNode;
+  @Autowired
+  private GtagService gtagService;
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -97,6 +92,7 @@ public class EDCServiceImpl implements EDCService {
     Currency currency = currencyService.findByName("EDR");
     Merchant merchant = merchantService.findByName("EDC");
     BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
         .address(address)
         .merchantId(merchant.getId())
@@ -121,6 +117,8 @@ public class EDCServiceImpl implements EDCService {
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     }
+    log.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName());
   }
 
   private void checkTransactionByHistory(Map<String, String> params) {

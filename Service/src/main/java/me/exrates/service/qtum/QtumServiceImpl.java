@@ -10,6 +10,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.qtum.QtumTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -38,34 +39,27 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:/merchants/qtum.properties")
 public class QtumServiceImpl implements QtumService {
 
+    private @Value("${qtum.min.confirmations}") Integer minConfirmations;
+    private @Value("${qtum.min.transfer.amount}") BigDecimal minTransferAmount;
+    private @Value("${qtum.main.address.for.transfer}") String mainAddressForTransfer;
+    private @Value("${qtum.node.endpoint}") String endpoint;
+
     @Autowired
     private QtumNodeService qtumNodeService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
-
-    private @Value("${qtum.min.confirmations}") Integer minConfirmations;
-
-    private @Value("${qtum.min.transfer.amount}") BigDecimal minTransferAmount;
-
-    private @Value("${qtum.main.address.for.transfer}") String mainAddressForTransfer;
-
-    private @Value("${qtum.node.endpoint}") String endpoint;
+    @Autowired
+    private GtagService gtagService;
 
     private Merchant merchant;
 
@@ -123,18 +117,22 @@ public class QtumServiceImpl implements QtumService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+        final BigDecimal amount = new BigDecimal(params.get("amount"));
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(params.get("address"))
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
-                .amount(new BigDecimal(params.get("amount")))
+                .amount(amount)
                 .merchantTransactionId(params.get("hash"))
                 .build();
 
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName());
     }
 
     @Override

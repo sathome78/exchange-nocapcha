@@ -39,22 +39,17 @@ public class OkPayServiceImpl implements OkPayService {
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
-    private AlgorithmService algorithmService;
-
-    @Autowired
     private RefillRequestDao refillRequestDao;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -86,11 +81,9 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-
         if (!sendReturnRequest(params)){
             throw new RefillRequestAppropriateNotFoundException(params.toString());
         }
-
         Integer requestId = Integer.valueOf(params.get("ok_invoice"));
         String merchantTransactionId = params.get("ok_txn_id");
         Currency currency = currencyService.findByName(params.get("ok_txn_currency"));
@@ -119,6 +112,9 @@ public class OkPayServiceImpl implements OkPayService {
             logger.info("Okpay processPayment: after requestAcceptDto");
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             logger.info("Okpay processPayment: after autoAcceptRefillRequest");
+
+            logger.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName());
         }
 
     }
