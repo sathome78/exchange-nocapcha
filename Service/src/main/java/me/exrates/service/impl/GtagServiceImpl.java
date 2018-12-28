@@ -60,7 +60,7 @@ public class GtagServiceImpl implements GtagService {
 
         formData.add("v", "1");
         formData.add("cid", userName);
-        formData.add("tid", UUID.randomUUID().toString());
+        formData.add("tid", "GTM-TPR6SBC");
         formData.add("t", "transaction");
         formData.add("ta", transactionId);
         formData.add("cu", "USD");
@@ -76,7 +76,7 @@ public class GtagServiceImpl implements GtagService {
 
         formData.add("v", "1");
         formData.add("cid", userName);
-        formData.add("tid", UUID.randomUUID().toString());
+        formData.add("tid", "GTM-TPR6SBC");
         formData.add("t", "item");
         formData.add("ti", transactionId);
         formData.add("in", tiker);
