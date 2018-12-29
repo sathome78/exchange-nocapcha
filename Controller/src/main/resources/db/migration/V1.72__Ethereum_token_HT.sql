@@ -81,4 +81,4 @@ ORDER BY cur.id, ur.id;
 INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
 SELECT cur.id
 FROM CURRENCY cur
-WHERE cur.name IN ('HT');                                                                              
+WHERE cur.name IN ('HT');

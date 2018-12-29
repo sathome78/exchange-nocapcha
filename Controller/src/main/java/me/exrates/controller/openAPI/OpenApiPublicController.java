@@ -12,6 +12,7 @@ import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.OrderService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.api.ErrorCode;
@@ -54,6 +55,9 @@ public class OpenApiPublicController {
 
     @Autowired
     private CurrencyService currencyService;
+
+    @Autowired
+    private GtagService gtagService;
 
     /**
      * @api {get} /openapi/v1/public/ticker?currency_pair Ticker Info
@@ -187,6 +191,7 @@ public class OpenApiPublicController {
      */
     @RequestMapping("/currency_pairs")
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
+        gtagService.sendGtagEvents("10","BTC");
         return currencyService.findActiveCurrencyPairs();
     }
 
