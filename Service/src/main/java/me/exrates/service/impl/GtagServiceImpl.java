@@ -19,9 +19,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.UUID;
-
-import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 @Service("gtagService")
 @PropertySource(value = "classpath:/analytics.properties")
@@ -46,8 +45,8 @@ public class GtagServiceImpl implements GtagService {
         try {
             Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
             HttpServletRequest curRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-//            String userName = getContext().getAuthentication().getName(); //TODO nullpointer exception
-            String userName = curRequest.getUserPrincipal().getName(); // This shoudn't
+            Principal userPrincipal = curRequest.getUserPrincipal();
+            String userName = userPrincipal != null ? userPrincipal.getName() : "";
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(userName, coinsCount, price, tiker);
             log.info("Successfully send transaction hit to gtag");
