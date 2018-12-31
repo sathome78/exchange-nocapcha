@@ -56,9 +56,6 @@ public class OpenApiPublicController {
     @Autowired
     private CurrencyService currencyService;
 
-    @Autowired
-    private GtagService gtagService;
-
     /**
      * @api {get} /openapi/v1/public/ticker?currency_pair Ticker Info
      * @apiName Ticker
@@ -191,7 +188,6 @@ public class OpenApiPublicController {
      */
     @RequestMapping("/currency_pairs")
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
-        gtagService.sendGtagEvents("10","BTC");
         return currencyService.findActiveCurrencyPairs();
     }
 
