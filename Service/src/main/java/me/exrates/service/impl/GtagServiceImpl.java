@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -16,9 +19,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.UUID;
-
-import static org.springframework.security.core.context.SecurityContextHolder.*;
 
 @Service("gtagService")
 @PropertySource(value = "classpath:/analytics.properties")
@@ -42,11 +44,15 @@ public class GtagServiceImpl implements GtagService {
         if (!enable) return;
         try {
             Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
-            String userName = getContext().getAuthentication().getName();
+            HttpServletRequest curRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+            Principal userPrincipal = curRequest.getUserPrincipal();
+            String userName = userPrincipal != null ? userPrincipal.getName() : "";
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(userName, coinsCount, price, tiker);
-
+            log.info("Successfully send transaction hit to gtag");
             sendItemHit(userName, transactionId, tiker, coinsCount, price);
+            log.info("Successfully send item hit to gtag");
+            log.info("Send all analytics");
         } catch (Throwable exception) {
             log.warn("Unable to send statistic to gtag ", exception);
         }
