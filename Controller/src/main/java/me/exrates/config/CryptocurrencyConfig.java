@@ -55,12 +55,6 @@ public class CryptocurrencyConfig {
                 "ATB", "ATB", 20, 20, false);
     }
 
-/*    @Bean(name = "bitcoinCashServiceImpl")
-    public BitcoinService bchService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 12, 20, false);
-    }*/
-
     @Bean(name = "dogecoinServiceImpl")
     public BitcoinService dogeService() {
         return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
