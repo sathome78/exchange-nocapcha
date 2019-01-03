@@ -34,8 +34,10 @@ import java.util.Optional;
 @Service
 public class ApolloServiceImpl implements ApolloService {
 
-    private @Value("${apollo.url}")String SEVER_URL;
-    private @Value("${apollo.main_address}")String MAIN_ADDRESS;
+    private @Value("${apollo.url}")
+    String SEVER_URL;
+    private @Value("${apollo.main_address}")
+    String MAIN_ADDRESS;
     private static final String APOLLO_MERCHANT_CURRENCY = "APL";
     private Merchant merchant;
     private Currency currency;
@@ -67,7 +69,7 @@ public class ApolloServiceImpl implements ApolloService {
         String message = messageSource.getMessage("merchants.refill.apl",
                 new Object[]{MAIN_ADDRESS, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  destinationTag);
+            put("address", destinationTag);
             put("message", message);
             put("qr", MAIN_ADDRESS);
         }};
@@ -134,10 +136,16 @@ public class ApolloServiceImpl implements ApolloService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId = refillService.getRequestId(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+        final String username = refillService.getUsernameByRequestId(requestId);
+
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override

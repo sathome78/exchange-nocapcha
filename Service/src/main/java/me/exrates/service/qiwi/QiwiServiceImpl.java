@@ -2,7 +2,6 @@ package me.exrates.service.qiwi;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -68,29 +67,29 @@ public class QiwiServiceImpl implements QiwiService {
         String message = messageSource.getMessage("merchants.refill.qiwi",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  destinationTag);
+            put("address", destinationTag);
             put("message", message);
             put("qr", mainAddress);
         }};
     }
 
     @Override
-    public String getMainAddress(){
+    public String getMainAddress() {
         return mainAddress;
     }
 
     @Synchronized
     @Override
-    public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
+    public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant) {
         log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
         if (checkTransactionForDuplicate(transaction)) {
-                log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
-                return;
+            log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
+            return;
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
-        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":")+1);
-        if(memo == null) {
+        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":") + 1);
+        if (memo == null) {
             log.warn("*** Qiwi *** Memo is null");
             return;
         }
@@ -126,16 +125,24 @@ public class QiwiServiceImpl implements QiwiService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
         logger.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName());
+        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName(), username);
     }
 
     @Override

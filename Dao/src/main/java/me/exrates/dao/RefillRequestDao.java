@@ -145,4 +145,8 @@ public interface RefillRequestDao {
                                                                 int requesterId);
 
     List<RefillRequestAddressDto> findByAddress(String address);
+
+    String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
+
+    String getUsernameByRequestId(int requestId);
 }

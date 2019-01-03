@@ -34,7 +34,8 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
-    private @Value("${aunit.mainAddress}")String systemAddress;
+    private @Value("${aunit.mainAddress}")
+    String systemAddress;
 
     private final MessageSource messageSource;
     private final RefillService refillService;
@@ -117,21 +118,30 @@ public class AunitServiceImpl implements AunitService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            setIdAndAccept(requestAcceptDto);
+            requestId = setIdAndAccept(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
-    private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
-        try{
+    private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (Exception e){
+            return requestId;
+        } catch (Exception e) {
             log.error(e);
             throw e;
         }
@@ -195,7 +205,7 @@ public class AunitServiceImpl implements AunitService {
 
     //Example for decrypting memo
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv","{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
 
         System.out.println(s);
     }

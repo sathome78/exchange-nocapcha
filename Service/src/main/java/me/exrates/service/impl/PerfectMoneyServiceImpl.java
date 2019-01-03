@@ -7,7 +7,12 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.*;
+import me.exrates.service.AlgorithmService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.PerfectMoneyService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestNotFoundException;
@@ -29,16 +34,26 @@ import java.util.Properties;
 @PropertySource("classpath:/merchants/perfectmoney.properties")
 public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
-    private @Value("${perfectmoney.url}") String url;
-    private @Value("${perfectmoney.accountId}") String accountId;
-    private @Value("${perfectmoney.accountPass}") String accountPass;
-    private @Value("${perfectmoney.payeeName}") String payeeName;
-    private @Value("${perfectmoney.paymentSuccess}") String paymentSuccess;
-    private @Value("${perfectmoney.paymentFailure}") String paymentFailure;
-    private @Value("${perfectmoney.paymentStatus}") String paymentStatus;
-    private @Value("${perfectmoney.USDAccount}") String usdCompanyAccount;
-    private @Value("${perfectmoney.EURAccount}") String eurCompanyAccount;
-    private @Value("${perfectmoney.alternatePassphrase}") String alternatePassphrase;
+    private @Value("${perfectmoney.url}")
+    String url;
+    private @Value("${perfectmoney.accountId}")
+    String accountId;
+    private @Value("${perfectmoney.accountPass}")
+    String accountPass;
+    private @Value("${perfectmoney.payeeName}")
+    String payeeName;
+    private @Value("${perfectmoney.paymentSuccess}")
+    String paymentSuccess;
+    private @Value("${perfectmoney.paymentFailure}")
+    String paymentFailure;
+    private @Value("${perfectmoney.paymentStatus}")
+    String paymentStatus;
+    private @Value("${perfectmoney.USDAccount}")
+    String usdCompanyAccount;
+    private @Value("${perfectmoney.EURAccount}")
+    String eurCompanyAccount;
+    private @Value("${perfectmoney.alternatePassphrase}")
+    String alternatePassphrase;
 
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(PerfectMoneyServiceImpl.class);
 
@@ -59,17 +74,18 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
     }
 
     @Override
-    public Map<String, String> refill(RefillRequestCreateDto request){
+    public Map<String, String> refill(RefillRequestCreateDto request) {
         Integer orderId = request.getId();
         BigDecimal sum = request.getAmount();
         String currency = request.getCurrencyName();
         Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         /**/
-        Properties properties = new Properties() {{
+        Properties properties = new Properties() {
+            {
                 put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
                 put("PAYEE_NAME", payeeName);
                 put("PAYMENT_AMOUNT", amountToPay);
@@ -106,23 +122,26 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+            final String username = refillService.getUsernameByRequestId(requestId);
+
             logger.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName());
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
         }
     }
 
     private String computePaymentHash(Map<String, String> params) {
         final String passpphraseHash = algorithmService.computeMD5Hash(alternatePassphrase).toUpperCase();
         final String hashParams = params.get("PAYMENT_ID") +
-                ":"+params.get("PAYEE_ACCOUNT") +
-                ":"+params.get("PAYMENT_AMOUNT") +
-                ":"+params.get("PAYMENT_UNITS") +
-                ":"+params.get("PAYMENT_BATCH_NUM") +
-                ":"+params.get("PAYER_ACCOUNT") +
-                ":"+passpphraseHash +
-                ":"+params.get("TIMESTAMPGMT");
+                ":" + params.get("PAYEE_ACCOUNT") +
+                ":" + params.get("PAYMENT_AMOUNT") +
+                ":" + params.get("PAYMENT_UNITS") +
+                ":" + params.get("PAYMENT_BATCH_NUM") +
+                ":" + params.get("PAYER_ACCOUNT") +
+                ":" + passpphraseHash +
+                ":" + params.get("TIMESTAMPGMT");
         return algorithmService.computeMD5Hash(hashParams).toUpperCase();
     }
 

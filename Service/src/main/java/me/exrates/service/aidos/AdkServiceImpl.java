@@ -44,7 +44,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.StreamSupport;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 
 @Log4j2(topic = "adk_log")
@@ -124,10 +125,16 @@ public class AdkServiceImpl implements AdkService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId = refillService.getRequestId(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+        final String username = refillService.getUsernameByRequestId(requestId);
+
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override
@@ -203,21 +210,21 @@ public class AdkServiceImpl implements AdkService {
                 .map(transaction -> dtoMapper((JSONObject) transaction))
                 .collect(groupingBy(BtcTransactionHistoryDto::getTxId));
         List<BtcTransactionHistoryDto> resultList = new ArrayList<>();
-        map.forEach((k,v) -> {
-                    if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
-                        List<BtcTransactionHistoryDto> dtos = v.stream().filter(p -> !p.getCategory().equals("send") && adresses.contains(p.getAddress())).collect(toList());
-                        resultList.addAll(dtos);
-                        v.removeAll(dtos);
-                        if (!v.isEmpty()) {
-                            resultList.add(v.stream()
-                                    .reduce((a, b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
-                                            new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
-                                            a.getConfirmations(), a.getTime()))
-                                    .orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
-                        }
-                    } else {
-                        resultList.addAll(v);
-                    }
+        map.forEach((k, v) -> {
+            if (v.stream().anyMatch(p -> Double.valueOf(p.getAmount()) < 0)) {
+                List<BtcTransactionHistoryDto> dtos = v.stream().filter(p -> !p.getCategory().equals("send") && adresses.contains(p.getAddress())).collect(toList());
+                resultList.addAll(dtos);
+                v.removeAll(dtos);
+                if (!v.isEmpty()) {
+                    resultList.add(v.stream()
+                            .reduce((a, b) -> new BtcTransactionHistoryDto(a.getTxId(), "", "send",
+                                    new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount())).setScale(8, RoundingMode.HALF_DOWN).toPlainString(),
+                                    a.getConfirmations(), a.getTime()))
+                            .orElse(new BtcTransactionHistoryDto(v.get(0).getTxId())));
+                }
+            } else {
+                resultList.addAll(v);
+            }
         });
         return resultList;
         /* to return list without transformations

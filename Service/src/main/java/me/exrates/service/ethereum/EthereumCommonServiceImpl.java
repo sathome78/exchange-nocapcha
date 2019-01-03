@@ -1,6 +1,5 @@
 package me.exrates.service.ethereum;
 
-import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -16,7 +15,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -24,9 +22,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
@@ -55,6 +51,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -458,21 +455,30 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
             log.debug("Providing transaction!");
+            Integer requestId = refillRequestInfoDto.get().getId();
+
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                    .requestId(refillRequestInfoDto.get().getId())
                     .address(refillRequestInfoDto.get().getAddress())
                     .amount(refillRequestInfoDto.get().getAmount())
                     .currencyId(currencyService.findByName(currencyName).getId())
                     .merchantId(merchantService.findByName(merchantName).getId())
                     .merchantTransactionId(merchantTransactionId)
                     .build();
+
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             log.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
             refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
 
+            final String username = refillService.getUsernameByRequestId(requestId);
+
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName);
+            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, username);
         } catch (Exception e) {
             log.error(e);
         }

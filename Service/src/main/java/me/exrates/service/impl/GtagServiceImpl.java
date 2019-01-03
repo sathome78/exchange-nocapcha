@@ -40,13 +40,10 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private ExchangeApi exchangeApi;
 
-    public void sendGtagEvents(String coinsCount, String tiker) {
+    public void sendGtagEvents(String coinsCount, String tiker, String userName) {
         if (!enable) return;
         try {
             Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
-            HttpServletRequest curRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-            Principal userPrincipal = curRequest.getUserPrincipal();
-            String userName = userPrincipal != null ? userPrincipal.getName() : "";
             String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
             String transactionId = sendTransactionHit(userName, coinsCount, price, tiker);
             log.info("Successfully send transaction hit to gtag");

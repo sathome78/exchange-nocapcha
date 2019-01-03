@@ -5,14 +5,16 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.model.dto.merchants.neo.NeoTransaction;
 import me.exrates.model.dto.merchants.neo.NeoVout;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
-import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.NeoApiException;
 import me.exrates.service.exception.NeoPaymentProcessingException;
@@ -24,17 +26,21 @@ import me.exrates.service.util.ParamMapUtils;
 import me.exrates.service.util.WithdrawUtils;
 import me.exrates.service.vo.ProfileData;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -130,15 +136,14 @@ public class NeoServiceImpl implements NeoService {
             NeoTransaction neoTransaction = neoNodeService.sendToAddress(asset, withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, mainAccount);
             return Collections.singletonMap("hash", neoTransaction.getTxid());
         } catch (NeoApiException e) {
-           if (e.getCode() == -300) {
-               throw new InsufficientCostsInWalletException();
-           } else if (e.getCode() == -2146233033) {
-               throw new InvalidAccountException();
-           } else {
-               throw new MerchantException(e.getMessage());
-           }
-        }
-        catch (Exception e) {
+            if (e.getCode() == -300) {
+                throw new InsufficientCostsInWalletException();
+            } else if (e.getCode() == -2146233033) {
+                throw new InvalidAccountException();
+            } else {
+                throw new MerchantException(e.getMessage());
+            }
+        } catch (Exception e) {
             throw new MerchantException(e);
         }
     }
@@ -182,7 +187,7 @@ public class NeoServiceImpl implements NeoService {
         log.debug("Check and update existing payments");
         neoAssetMap.forEach((key, value) ->
                 refillService.getInExamineByMerchantIdAndCurrencyIdList(value.getMerchant().getId(), value.getCurrency().getId())
-        .stream().flatMap(dto -> Stream.of(neoNodeService.getTransactionById(dto.getMerchantTransactionId())).filter(Optional::isPresent).map(Optional::get)
+                        .stream().flatMap(dto -> Stream.of(neoNodeService.getTransactionById(dto.getMerchantTransactionId())).filter(Optional::isPresent).map(Optional::get)
                         .flatMap(tx -> tx.getVout().stream().filter(vout -> dto.getAddress().equals(vout.getAddress())).peek(vout -> {
                             try {
                                 changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto.builder()
@@ -225,12 +230,12 @@ public class NeoServiceImpl implements NeoService {
             Optional<Integer> refillRequestIdResult = refillService.getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
                     address, merchantId, currencyId);
             Integer requestId = refillRequestIdResult.orElseGet(() -> {
-                        RefillRequestAcceptDto refillRequestAcceptDto = RefillRequestAcceptDto.builder()
-                                .address(address)
-                                .amount(amount)
-                                .merchantId(merchantId)
-                                .currencyId(currencyId)
-                                .merchantTransactionId(txId).build();
+                RefillRequestAcceptDto refillRequestAcceptDto = RefillRequestAcceptDto.builder()
+                        .address(address)
+                        .amount(amount)
+                        .merchantId(merchantId)
+                        .currencyId(currencyId)
+                        .merchantTransactionId(txId).build();
 
                 log.debug("Create request by fact! : " + refillRequestAcceptDto);
                 return refillService.createRefillRequestByFact(refillRequestAcceptDto);
@@ -262,25 +267,34 @@ public class NeoServiceImpl implements NeoService {
         }
     }
 
-    void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
+    private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
         try {
             if (dto.getConfirmations() != null) {
                 refillService.setConfirmationCollectedNumber(dto);
                 if (dto.getConfirmations() >= minConfirmations) {
                     log.debug("Providing transaction!");
+                    Integer requestId = dto.getRequestId();
+
                     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                            .requestId(dto.getRequestId())
                             .address(dto.getAddress())
                             .amount(dto.getAmount())
                             .currencyId(dto.getCurrencyId())
                             .merchantId(dto.getMerchantId())
                             .merchantTransactionId(dto.getHash())
                             .build();
+
+                    if (Objects.isNull(requestId)) {
+                        requestId = refillService.getRequestId(requestAcceptDto);
+                    }
+                    requestAcceptDto.setRequestId(requestId);
+
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
 
+                    final String username = refillService.getUsernameByRequestId(requestId);
+
                     log.debug("Process of sending data to Google Analytics...");
-                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName());
+                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), username);
                 }
             }
         } catch (RefillRequestAppropriateNotFoundException e) {

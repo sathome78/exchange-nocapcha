@@ -95,10 +95,13 @@ public class PayeerServiceImpl implements PayeerService {
         .merchantTransactionId(merchantTransactionId)
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
+
     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+    final String username = refillService.getUsernameByRequestId(requestId);
+
     logger.debug("Process of sending data to Google Analytics...");
-    gtagService.sendGtagEvents(amount.toString(), currency.getName());
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
   }
 
   private void checkSign(Map<String, String> params) {
