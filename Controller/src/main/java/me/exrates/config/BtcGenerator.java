@@ -212,6 +212,6 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("CTX", "Centauri", 20, true, true, "172.10.13.128", 8332, 11801);
+        generate("BCH", "Bitcoin Cash", 20, true, true, "172.10.13.22", 8332, 11601);
     }
 }

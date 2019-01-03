@@ -55,12 +55,6 @@ public class CryptocurrencyConfig {
                 "ATB", "ATB", 20, 20, false);
     }
 
-    @Bean(name = "bitcoinCashServiceImpl")
-    public BitcoinService bchService() {
-        return new BitcoinServiceImpl("merchants/bitcoin_cash_wallet.properties",
-                "Bitcoin Cash", "BCH", 12, 20, false);
-    }
-
     @Bean(name = "dogecoinServiceImpl")
     public BitcoinService dogeService() {
         return new BitcoinServiceImpl("merchants/dogecoin_wallet.properties",
@@ -303,6 +297,16 @@ public class CryptocurrencyConfig {
 	public BitcoinService dimeServiceImpl() {
 		return new BitcoinServiceImpl("merchants/dime_wallet.properties","DIME","DIME", 20, 20, false, true);
 	}
+
+	@Bean(name = "bsvServiceImpl")
+	public BitcoinService bsvServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bsv_wallet.properties","BSV","BSV", 20, 20, false, true);
+	}
+
+	@Bean(name = "bchServiceImpl")
+	public BitcoinService bchServiceImpl() {
+		return new BitcoinServiceImpl("merchants/bch_wallet.properties","BCH","BCH", 20, 20, false, true);
+  }
 
 	@Bean(name = "ctxServiceImpl")
 	public BitcoinService ctxServiceImpl() {
