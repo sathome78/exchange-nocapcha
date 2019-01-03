@@ -6,7 +6,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -90,6 +89,8 @@ import org.zeromq.ZMQ;
 import javax.annotation.PostConstruct;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -1295,11 +1296,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "tusdServiceImpl")
     public EthTokenService tusdService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x8dd5fbce2f6a956c3022ba3663759011dd51e73e");
+        tokensList.add("0x0000000000085d4780b73119b644ae5ecd22b376");
         return new EthTokenServiceImpl(
                 tokensList,
                 "TUSD",
-                "TUSD", true, ExConvert.Unit.ETHER);
+                "TUSD", false, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "fpwrServiceImpl")
@@ -1593,6 +1594,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MNC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "htServiceImpl")
+    public EthTokenService htService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6f259637dcd74c767781e37bc6133cd6a68aa161");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HT",
+                "HT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "edtServiceImpl")
+    public EthTokenService edtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x3766a0d0c661094c02d5f11c74f2aa92228b1548");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "EDT",
+                "EDT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1776,6 +1797,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public GeetestLib geetest() {
         return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
+    }
+
+    @Bean
+    public Client client() {
+        return ClientBuilder.newBuilder().build();
     }
 
 }
