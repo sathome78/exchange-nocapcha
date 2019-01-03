@@ -122,6 +122,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
             final String username = refillService.getUsernameByRequestId(requestId);
