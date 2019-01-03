@@ -64,9 +64,23 @@ $(function refillCreation() {
         amount = parseFloat($amountHolder.val());
         childMerchant = $(button).data("merchant-child-merchant");
         if (merchantIsCrypto || checkAmount()) {
+            fillInterkassaInputCommission();
             fillModalWindow();
             showRefillDialog();
         }
+    }
+
+    function fillInterkassaInputCommission() {
+        $.ajax({
+            type: "GET",
+            url: "/getMerchantInputCommissionNotification?merchant_id=" + merchant + "&currency_id=" + currency + "&child_merchant=" + childMerchant,
+            success: function (data) {
+                $('#merchant-warnings').text(data['message']);
+            },
+            error: function (data) {
+                alert('Something happened wrong: ' + data.statusText);
+            }
+        });
     }
 
     function fillModalWindow() {
@@ -149,7 +163,7 @@ $(function refillCreation() {
                     backdrop: 'static'
                 });
 
-                window.open("about:blank","newwin");
+                window.open("about:blank", "newwin");
                 if (!checkRefillParamsEnter()) {
                     return;
                 }
@@ -172,7 +186,7 @@ $(function refillCreation() {
             merchant: merchant,
             sum: amount,
             merchantImage: merchantImageId,
-            childMerchant : childMerchant,
+            childMerchant: childMerchant,
             operationType: operationType
         };
         if (merchantIsSimpleInvoice) {
@@ -213,6 +227,7 @@ $(function refillCreation() {
                 data: JSON.stringify(data)
             }).success(function (result) {
                 console.log(result);
+                gtag('event', 'recharge-ballance', {'event_category': 'recharge-ballance', 'event_label': ""+data.currency+""});
                 if (!result || !result['redirectionUrl']) {
                     var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['params']['qr'] + "'/>" : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
@@ -241,7 +256,7 @@ $(function refillCreation() {
         $.each(params["params"], function (key, value) {
             formFields += '<input type="hidden" name="' + key + '" value="' + value + '">';
         });
-        var $form = $('<form id=temp-form-for-redirection target="newwin" action=' + url + ' method='+params["method"]+'>' + formFields + '</form>');
+        var $form = $('<form id=temp-form-for-redirection target="newwin" action=' + url + ' method=' + params["method"] + '>' + formFields + '</form>');
         $("body").append($form);
         $form.submit();
         $("#temp-form-for-redirection").remove();

@@ -154,6 +154,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a href="#" class="language">KO</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -293,7 +294,7 @@
                     <br>
 
                     <div class="field field--btn__new">
-                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
+                        <input id="pin_2fa_login_submit" onclick="sendLoginSuccessGtag()" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
                     </div>
                 </form>
             </div>

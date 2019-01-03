@@ -12,6 +12,7 @@ import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.OrderService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.api.ErrorCode;

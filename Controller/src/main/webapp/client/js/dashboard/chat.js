@@ -91,6 +91,7 @@ $(function () {
     var listLang = $("#language").text().toLowerCase().trim();
     changeChatLocale(listLang == 'id' ? 'in' : listLang);
     var bchat = document.getElementById('bchat'+(listLang == 'id' ? 'in' : listLang));
+
     bchat.className += " active";
 
     var btnContainer = document.getElementById("chatLangButtons");

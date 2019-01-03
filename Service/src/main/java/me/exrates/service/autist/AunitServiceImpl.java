@@ -8,10 +8,12 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,24 +35,33 @@ import static me.exrates.service.autist.MemoDecryptor.decryptBTSmemo;
 @Log4j2(topic = "aunit")
 public class AunitServiceImpl implements AunitService {
 
-    private @Value("${aunit.mainAddress}")String systemAddress;
+    private @Value("${aunit.mainAddress}")
+    String systemAddress;
 
     private final MessageSource messageSource;
     private final RefillService refillService;
-
+    private final Merchant merchant;
+    private final Currency currency;
+    private final WithdrawUtils withdrawUtils;
+    private final GtagService gtagService;
 
     static final String AUNIT_CURRENCY = "AUNIT";
     static final String AUNIT_MERCHANT = "AUNIT";
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    private final Merchant merchant;
-    private final Currency currency;
 
     @Autowired
-    public AunitServiceImpl(MerchantService merchantService, CurrencyService currencyService, MessageSource messageSource, RefillService refillService) {
+    public AunitServiceImpl(MerchantService merchantService,
+                            CurrencyService currencyService,
+                            MessageSource messageSource,
+                            RefillService refillService,
+                            WithdrawUtils withdrawUtils,
+                            GtagService gtagService) {
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.withdrawUtils = withdrawUtils;
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
+        this.gtagService = gtagService;
     }
 
     @Override
@@ -103,6 +114,7 @@ public class AunitServiceImpl implements AunitService {
         String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -111,19 +123,30 @@ public class AunitServiceImpl implements AunitService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            setIdAndAccept(requestAcceptDto);
+            requestId = setIdAndAccept(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
-    private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
-        try{
+    private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (Exception e){
+            return requestId;
+        } catch (Exception e) {
             log.error(e);
             throw e;
         }
@@ -180,6 +203,11 @@ public class AunitServiceImpl implements AunitService {
         return systemAddress;
     }
 
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 //    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
 //        return StringUtils.isEmpty(hash)
 //                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
@@ -187,7 +215,7 @@ public class AunitServiceImpl implements AunitService {
 
     //Example for decrypting memo
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv","{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
+        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
 
         System.out.println(s);
     }

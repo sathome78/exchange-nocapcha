@@ -4,10 +4,16 @@ import com.mysql.jdbc.StringUtils;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.LiskCreateAddressException;
@@ -26,7 +32,13 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,19 +50,18 @@ public class LiskServiceImpl implements LiskService {
 
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private CurrencyService currencyService;
     @Autowired
     private MerchantService merchantService;
-
-    private LiskRestClient liskRestClient;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
+
+    private LiskRestClient liskRestClient;
 
     private LiskSpecialMethodService liskSpecialMethodService;
 
@@ -103,17 +114,16 @@ public class LiskServiceImpl implements LiskService {
             String message = messageSource.getMessage("merchants.refill.btc",
                     new Object[]{address}, request.getLocale());
             Map<String, String> result = new HashMap<String, String>() {{
-               put("message", message);
-               put("address", address);
-               put("pubKey", account.getPublicKey());
-               put("brainPrivKey", secret);
-               put("qr", address);
+                put("message", message);
+                put("address", address);
+                put("pubKey", account.getPublicKey());
+                put("brainPrivKey", secret);
+                put("qr", address);
             }};
             return result;
         } catch (MnemonicException.MnemonicLengthException e) {
             throw new LiskCreateAddressException(e);
         }
-
 
 
     }
@@ -173,7 +183,6 @@ public class LiskServiceImpl implements LiskService {
                     .hash(txId)
                     .blockhash(transaction.getBlockId()).build());
         }
-
     }
 
     private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto) {
@@ -181,15 +190,33 @@ public class LiskServiceImpl implements LiskService {
             refillService.setConfirmationCollectedNumber(dto);
             if (dto.getConfirmations() >= minConfirmations) {
                 log.debug("Providing transaction!");
-                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+                Integer requestId = dto.getRequestId();
+
+                RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                        .address(dto.getAddress())
+                        .amount(dto.getAmount())
+                        .currencyId(dto.getCurrencyId())
+                        .merchantId(dto.getMerchantId())
+                        .merchantTransactionId(dto.getHash())
+                        .build();
+
+                if (Objects.isNull(requestId)) {
+                    requestId = refillService.getRequestId(requestAcceptDto);
+                }
+                requestAcceptDto.setRequestId(requestId);
+
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
-                RefillRequestFlatDto flatDto = refillService.getFlatById(dto.getRequestId());
+                RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
+
+                final String username = refillService.getUsernameByRequestId(requestId);
+
+                log.debug("Process of sending data to Google Analytics...");
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);
         }
-
     }
 
 
@@ -276,10 +303,9 @@ public class LiskServiceImpl implements LiskService {
     }
 
 
-
     @Override
     public LiskAccount createNewLiskAccount(String secret) {
-       return liskSpecialMethodService.createAccount(secret);
+        return liskSpecialMethodService.createAccount(secret);
     }
 
     @Override

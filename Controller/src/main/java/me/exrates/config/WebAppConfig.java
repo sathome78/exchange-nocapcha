@@ -6,7 +6,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
@@ -90,6 +89,8 @@ import org.zeromq.ZMQ;
 import javax.annotation.PostConstruct;
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -231,6 +232,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlavePassword;
     private String dbSlaveUrl;
     private String dbSlaveClassname;
+    private String dbSlaveForReportsUser;
+    private String dbSlaveForReportsPassword;
+    private String dbSlaveForReportsUrl;
+    private String dbSlaveForReportsClassname;
 
 
     @PostConstruct
@@ -256,6 +261,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dbSlavePassword = properties.getProperty("db.slave.password");
         dbSlaveUrl = properties.getProperty("db.slave.url");
         dbSlaveClassname = properties.getProperty("db.slave.classname");
+        dbSlaveForReportsUser = properties.getProperty("db.slave.user");
+        dbSlaveForReportsPassword = properties.getProperty("db.slave.password");
+        dbSlaveForReportsUrl = properties.getProperty("db.slave.url");
+        dbSlaveForReportsClassname = properties.getProperty("db.slave.classname");
     }
 
 
@@ -303,6 +312,18 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new HikariDataSource(hikariConfig);
     }
 
+    @Bean(name = "slaveForReportsDataSource")
+    public DataSource slaveForReportsDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbSlaveForReportsClassname);
+        hikariConfig.setJdbcUrl(dbSlaveForReportsUrl);
+        hikariConfig.setUsername(dbSlaveForReportsUser);
+        hikariConfig.setPassword(dbSlaveForReportsPassword);
+        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setReadOnly(true);
+        return new HikariDataSource(hikariConfig);
+    }
+
     @Primary
     @DependsOn("masterHikariDataSource")
     @Bean(name = "masterTemplate")
@@ -313,6 +334,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @DependsOn("slaveHikariDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @DependsOn("slaveForReportsDataSource")
+    @Bean(name = "slaveForReportsTemplate")
+    public NamedParameterJdbcTemplate slaveForReportsTemplate(@Qualifier("slaveForReportsDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
@@ -332,6 +359,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "slaveTxManager")
     public PlatformTransactionManager slavePlatformTransactionManager() {
         return new DataSourceTransactionManager(slaveHikariDataSource());
+    }
+
+    @Bean(name = "transactionManagerForReports")
+    public PlatformTransactionManager transactionManagerForReports() {
+        return new DataSourceTransactionManager(slaveForReportsDataSource());
     }
 
     @Bean
@@ -1264,11 +1296,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "tusdServiceImpl")
     public EthTokenService tusdService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x8dd5fbce2f6a956c3022ba3663759011dd51e73e");
+        tokensList.add("0x0000000000085d4780b73119b644ae5ecd22b376");
         return new EthTokenServiceImpl(
                 tokensList,
                 "TUSD",
-                "TUSD", true, ExConvert.Unit.ETHER);
+                "TUSD", false, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "fpwrServiceImpl")
@@ -1532,6 +1564,56 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MODL", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "ectServiceImpl")
+    public EthTokenService ectService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ECT",
+                "ECT", true, ExConvert.Unit.WEI);
+    }
+
+    @Bean(name = "s4fServiceImpl")
+    public EthTokenService s4fService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaec7d1069e3a914a3eb50f0bfb1796751f2ce48a");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "S4F",
+                "S4F", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mncServiceImpl")
+    public EthTokenService mncService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9f0f1be08591ab7d990faf910b38ed5d60e4d5bf");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MNC",
+                "MNC", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "htServiceImpl")
+    public EthTokenService htService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6f259637dcd74c767781e37bc6133cd6a68aa161");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "HT",
+                "HT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "edtServiceImpl")
+    public EthTokenService edtService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x3766a0d0c661094c02d5f11c74f2aa92228b1548");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "EDT",
+                "EDT", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
@@ -1715,6 +1797,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public GeetestLib geetest() {
         return new GeetestLib(gtCaptchaId, gtPrivateKey, Boolean.valueOf(gtNewFailback));
+    }
+
+    @Bean
+    public Client client() {
+        return ClientBuilder.newBuilder().build();
     }
 
 }

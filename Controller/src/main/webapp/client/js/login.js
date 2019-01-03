@@ -53,3 +53,7 @@ function close() {
     console.log(banner);
     banner.style.display = "none"
 }
+
+function sendLoginSuccessGtag() {
+    gtag('event', 'login-success', {'event_category': 'login-form','event_label': 'login-success'});
+}

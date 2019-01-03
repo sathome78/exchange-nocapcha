@@ -143,4 +143,10 @@ public interface RefillRequestDao {
                                                                 LocalDateTime endTime,
                                                                 List<UserRole> roles,
                                                                 int requesterId);
+
+    List<RefillRequestAddressDto> findByAddress(String address);
+
+    String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
+
+    String getUsernameByRequestId(int requestId);
 }

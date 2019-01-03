@@ -4,10 +4,17 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
@@ -27,38 +34,45 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "waves_log")
 public class WavesServiceImpl implements WavesService {
 
     @Autowired
     private WavesRestClient restClient;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private SendMailService sendMailService;
-
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private Integer minConfirmations;
     private String mainAccount;
     private String feeAccount;
     private String notifyEmail;
-    private  final Locale notifyEmailLocale = new Locale("RU");
+    private final Locale notifyEmailLocale = new Locale("RU");
 
     private final int WAVES_AMOUNT_SCALE = 8;
     private final long WAVES_DEFAULT_FEE = 100000L;
@@ -279,8 +293,27 @@ public class WavesServiceImpl implements WavesService {
         try {
             sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
             log.debug("Providing transaction!");
-            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+            Integer requestId = dto.getRequestId();
+
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .address(dto.getAddress())
+                    .amount(dto.getAmount())
+                    .currencyId(dto.getCurrencyId())
+                    .merchantId(dto.getMerchantId())
+                    .merchantTransactionId(dto.getHash())
+                    .build();
+
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            final String username = refillService.getUsernameByRequestId(requestId);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyBase.getName(), username);
         } catch (Exception e) {
             log.error(e);
         }
@@ -304,12 +337,12 @@ public class WavesServiceImpl implements WavesService {
             email.setTo(notifyEmail);
             email.setSubject(messageSource.getMessage("fee.wallet.insufficientCosts.title", null,
                     notifyEmailLocale));
-            email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[] {currencyBase.getName(),
+            email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[]{currencyBase.getName(),
                     feeAccount}, notifyEmailLocale));
 
             sendMailService.sendInfoMail(email);
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error(e);
         }
     }
@@ -333,7 +366,7 @@ public class WavesServiceImpl implements WavesService {
         payment.setRecipient(recipientAddress);
         payment.setAmount(unscaleToLong(amount, scale));
         payment.setFee(WAVES_DEFAULT_FEE);
-  //      payment.setFeeAssetId(assetId);
+        //      payment.setFeeAssetId(assetId);
         return restClient.transferCosts(payment);
     }
 
