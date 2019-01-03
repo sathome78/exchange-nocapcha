@@ -13,6 +13,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,7 @@ public class AunitServiceImpl implements AunitService {
     private final RefillService refillService;
     private final Merchant merchant;
     private final Currency currency;
+    private final WithdrawUtils withdrawUtils;
     private final GtagService gtagService;
 
     static final String AUNIT_CURRENCY = "AUNIT";
@@ -51,9 +53,12 @@ public class AunitServiceImpl implements AunitService {
     public AunitServiceImpl(MerchantService merchantService,
                             CurrencyService currencyService,
                             MessageSource messageSource,
-                            RefillService refillService, GtagService gtagService) {
+                            RefillService refillService,
+                            WithdrawUtils withdrawUtils,
+                            GtagService gtagService) {
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.withdrawUtils = withdrawUtils;
         currency = currencyService.findByName(AUNIT_CURRENCY);
         merchant = merchantService.findByName(AUNIT_MERCHANT);
         this.gtagService = gtagService;
@@ -196,6 +201,11 @@ public class AunitServiceImpl implements AunitService {
     @Override
     public String getMainAddress() {
         return systemAddress;
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 //    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
