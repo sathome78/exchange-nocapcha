@@ -121,7 +121,8 @@ public class AunitServiceImpl implements AunitService {
 
         Integer requestId;
         try {
-            requestId = requestAcceptDto.getRequestId();
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
@@ -137,8 +138,8 @@ public class AunitServiceImpl implements AunitService {
         try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
-            refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
             return requestId;
         } catch (Exception e) {
             log.error(e);

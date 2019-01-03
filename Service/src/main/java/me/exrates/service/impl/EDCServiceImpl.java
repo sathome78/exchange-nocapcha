@@ -114,21 +114,15 @@ public class EDCServiceImpl implements EDCService {
 
         Integer requestId;
         try {
-      /*
-      Образец
-      Predicate<RefillRequestFlatDto> predicate = (request) -> {
-        return
-            request.getMerchantId() == merchant.getId()
-                && request.getCurrencyId() == currency.getId();
-      };
-      requestAcceptDto.setPredicate(predicate);*/
-            requestId = requestAcceptDto.getRequestId();
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestAppropriateNotFoundException: " + params);
             requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
         final String username = refillService.getUsernameByRequestId(requestId);

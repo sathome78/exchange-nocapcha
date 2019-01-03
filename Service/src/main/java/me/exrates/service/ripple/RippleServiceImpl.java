@@ -146,6 +146,7 @@ public class RippleServiceImpl implements RippleService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
         int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
         final String username = refillService.getUsernameByRequestId(requestId);

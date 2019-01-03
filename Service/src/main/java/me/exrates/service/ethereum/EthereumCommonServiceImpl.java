@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -454,20 +455,27 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
             log.debug("Providing transaction!");
+            Integer requestId = refillRequestInfoDto.get().getId();
+
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                    .requestId(refillRequestInfoDto.get().getId())
                     .address(refillRequestInfoDto.get().getAddress())
                     .amount(refillRequestInfoDto.get().getAmount())
                     .currencyId(currencyService.findByName(currencyName).getId())
                     .merchantId(merchantService.findByName(merchantName).getId())
                     .merchantTransactionId(merchantTransactionId)
                     .build();
+
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             log.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
 
             refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
 
-            final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+            final String username = refillService.getUsernameByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, username);

@@ -55,6 +55,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -410,17 +411,24 @@ public class BitcoinServiceImpl implements BitcoinService {
             refillService.setConfirmationCollectedNumber(dto);
             if (dto.getConfirmations() >= minConfirmations) {
                 log.info("Providing transaction {}", dto.getHash());
+                Integer requestId = dto.getRequestId();
+
                 RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                        .requestId(dto.getRequestId())
                         .address(dto.getAddress())
                         .amount(dto.getAmount())
                         .currencyId(dto.getCurrencyId())
                         .merchantId(dto.getMerchantId())
                         .merchantTransactionId(dto.getHash())
                         .build();
+
+                if (Objects.isNull(requestId)) {
+                    requestId = refillService.getRequestId(requestAcceptDto);
+                }
+                requestAcceptDto.setRequestId(requestId);
+
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-                final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+                final String username = refillService.getUsernameByRequestId(requestId);
 
                 log.debug("Process of sending data to Google Analytics...");
                 gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);

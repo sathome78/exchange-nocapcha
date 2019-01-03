@@ -236,6 +236,7 @@ public class InterkassaServiceImpl implements InterkassaService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
             final String username = refillService.getUsernameByRequestId(requestId);

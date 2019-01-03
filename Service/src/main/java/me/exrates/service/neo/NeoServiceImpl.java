@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -266,24 +267,31 @@ public class NeoServiceImpl implements NeoService {
         }
     }
 
-    void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
+    private void changeConfirmationsOrProvide(RefillRequestSetConfirmationsNumberDto dto, String assetId) {
         try {
             if (dto.getConfirmations() != null) {
                 refillService.setConfirmationCollectedNumber(dto);
                 if (dto.getConfirmations() >= minConfirmations) {
                     log.debug("Providing transaction!");
+                    Integer requestId = dto.getRequestId();
+
                     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                            .requestId(dto.getRequestId())
                             .address(dto.getAddress())
                             .amount(dto.getAmount())
                             .currencyId(dto.getCurrencyId())
                             .merchantId(dto.getMerchantId())
                             .merchantTransactionId(dto.getHash())
                             .build();
+
+                    if (Objects.isNull(requestId)) {
+                        requestId = refillService.getRequestId(requestAcceptDto);
+                    }
+                    requestAcceptDto.setRequestId(requestId);
+
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
 
-                    final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+                    final String username = refillService.getUsernameByRequestId(requestId);
 
                     log.debug("Process of sending data to Google Analytics...");
                     gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), username);

@@ -174,6 +174,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
 
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
         refillService.updateAddressNeedTransfer(String.valueOf(params.get("address")), merchant.getId(),
                 currency.getId(), true);

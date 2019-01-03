@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -292,10 +293,24 @@ public class WavesServiceImpl implements WavesService {
         try {
             sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
             log.debug("Providing transaction!");
-            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+            Integer requestId = dto.getRequestId();
+
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .address(dto.getAddress())
+                    .amount(dto.getAmount())
+                    .currencyId(dto.getCurrencyId())
+                    .merchantId(dto.getMerchantId())
+                    .merchantTransactionId(dto.getHash())
+                    .build();
+
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+            final String username = refillService.getUsernameByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyBase.getName(), username);

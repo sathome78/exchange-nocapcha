@@ -191,13 +191,15 @@ public class StellarServiceImpl implements StellarService {
 
         Integer requestId;
         try {
-            requestId = requestAcceptDto.getRequestId();
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
             requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
 

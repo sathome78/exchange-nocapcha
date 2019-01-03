@@ -106,12 +106,15 @@ public class AchainServiceImpl implements AchainService {
         Integer requestId;
         log.info("try to accept payment {}", requestAcceptDto);
         try {
-            requestId = requestAcceptDto.getRequestId();
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
             requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
         final String username = refillService.getUsernameByRequestId(requestId);

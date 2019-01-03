@@ -571,6 +571,7 @@ public class RefillServiceImpl implements RefillService {
     public Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
         Integer requestId = createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
+
         RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
         /**/
         Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
@@ -589,30 +590,18 @@ public class RefillServiceImpl implements RefillService {
     @Transactional
     public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         Integer requestId = requestAcceptDto.getRequestId();
-        if (requestId == null) {
-            Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
-                    requestAcceptDto.getAddress(),
-                    requestAcceptDto.getMerchantId(),
-                    requestAcceptDto.getCurrencyId());
-            if (requestIdOptional.isPresent()) {
-                requestId = requestIdOptional.get();
-            }
-        }
-        if (requestId != null) {
-            requestAcceptDto.setRequestId(requestId);
-            RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
-            /**/
-            Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
-            String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
-            String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
-                    new Integer[]{requestId},
-                    locale);
-            String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
-            userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
-            notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
-        } else {
-            throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
-        }
+
+        requestAcceptDto.setRequestId(requestId);
+        RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
+        /**/
+        Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+        String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+        String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+                new Integer[]{requestId},
+                locale);
+        String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+        userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+        notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
     }
 
     @Override
@@ -1234,5 +1223,19 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public String getUsernameByRequestId(int requestId) {
         return refillRequestDao.getUsernameByRequestId(requestId);
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+        Optional<Integer> requestIdOptional = getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
+                requestAcceptDto.getAddress(),
+                requestAcceptDto.getMerchantId(),
+                requestAcceptDto.getCurrencyId());
+        if (requestIdOptional.isPresent()) {
+            return requestIdOptional.get();
+        } else {
+            throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
+        }
     }
 }

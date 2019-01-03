@@ -116,13 +116,15 @@ public class DecredServiceImpl implements DecredService {
 
         Integer requestId;
         try {
-            requestId = requestAcceptDto.getRequestId();
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestAppropriateNotFoundException: " + params);
             requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
         final String username = refillService.getUsernameByRequestId(requestId);

@@ -125,9 +125,13 @@ public class AdkServiceImpl implements AdkService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId = refillService.getRequestId(requestAcceptDto);
+        requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+        final String username = refillService.getUsernameByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);

@@ -95,6 +95,7 @@ public class PayeerServiceImpl implements PayeerService {
         .merchantTransactionId(merchantTransactionId)
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
+
     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
     final String username = refillService.getUsernameByRequestId(requestId);

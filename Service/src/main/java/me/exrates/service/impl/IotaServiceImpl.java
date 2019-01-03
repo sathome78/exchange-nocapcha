@@ -107,6 +107,7 @@ public class IotaServiceImpl implements IotaService {
 
         Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
         requestAcceptDto.setRequestId(requestId);
+
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
         final String username = refillService.getUsernameByRequestId(requestId);

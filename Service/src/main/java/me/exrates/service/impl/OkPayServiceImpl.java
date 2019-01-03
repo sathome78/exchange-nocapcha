@@ -123,6 +123,7 @@ public class OkPayServiceImpl implements OkPayService {
                     .merchantTransactionId(merchantTransactionId)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             logger.info("Okpay processPayment: after requestAcceptDto");
             refillService.autoAcceptRefillRequest(requestAcceptDto);
             logger.info("Okpay processPayment: after autoAcceptRefillRequest");
