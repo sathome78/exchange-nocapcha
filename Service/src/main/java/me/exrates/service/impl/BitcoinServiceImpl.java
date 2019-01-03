@@ -420,8 +420,10 @@ public class BitcoinServiceImpl implements BitcoinService {
                         .build();
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+                final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+
                 log.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName);
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
             }
         } catch (Exception e) {
             log.error(e);

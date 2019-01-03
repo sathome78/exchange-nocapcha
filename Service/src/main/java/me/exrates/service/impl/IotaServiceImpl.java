@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import jota.IotaAPI;
-import jota.dto.response.GetNodeInfoResponse;
 import jota.model.Transfer;
 import jota.utils.Checksum;
 import jota.utils.IotaUnitConverter;
@@ -32,7 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -46,13 +49,20 @@ import java.util.concurrent.TimeUnit;
 @PropertySource("classpath:/merchants/iota.properties")
 public class IotaServiceImpl implements IotaService {
 
-    private @Value("${iota.protocol}")String PROTOCOL;
-    private @Value("${iota.host}")String HOST;
-    private @Value("${iota.port}")String PORT;
-    private @Value("${iota.seed}")String SEED;
-    private @Value("${iota.message}")String MESSAGE;
-    private @Value("${iota.tag}")String TAG;
-    private @Value("${iota.mode}")String MODE;
+    private @Value("${iota.protocol}")
+    String PROTOCOL;
+    private @Value("${iota.host}")
+    String HOST;
+    private @Value("${iota.port}")
+    String PORT;
+    private @Value("${iota.seed}")
+    String SEED;
+    private @Value("${iota.message}")
+    String MESSAGE;
+    private @Value("${iota.tag}")
+    String TAG;
+    private @Value("${iota.mode}")
+    String MODE;
 
     @Autowired
     private MessageSource messageSource;
@@ -99,8 +109,10 @@ public class IotaServiceImpl implements IotaService {
         requestAcceptDto.setRequestId(requestId);
         refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+        final String username = refillService.getUsernameByRequestId(requestId);
+
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName());
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override
@@ -108,7 +120,7 @@ public class IotaServiceImpl implements IotaService {
     public Map<String, String> refill(RefillRequestCreateDto request) {
 
         Optional<String> oldAddress = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(merchant.getId(), currency.getId(), request.getUserId());
-        if (oldAddress.isPresent()){
+        if (oldAddress.isPresent()) {
             if (!refillService.existsClosedRefillRequestForAddress(oldAddress.get(), merchant.getId(), currency.getId())) {
                 throw new AddressUnusedException("Can`t generate, previous address unused!");
             }
@@ -128,7 +140,7 @@ public class IotaServiceImpl implements IotaService {
         }
 
         List<RefillRequestAddressDto> addressList = refillService.findByAddressMerchantAndCurrency(address, merchant.getId(), currency.getId());
-        if (!addressList.isEmpty()){
+        if (!addressList.isEmpty()) {
             throw new RefillRequestGeneratingAdditionalAddressNotAvailableException("Need generete new address!");
         }
 
@@ -143,14 +155,14 @@ public class IotaServiceImpl implements IotaService {
     }
 
     @PostConstruct
-    public void init(){
+    public void init() {
 
         currency = currencyService.findByName("IOTA");
         merchant = merchantService.findByName("IOTA");
 
         ADDRESSES = refillService.findAllAddresses(merchant.getId(), currency.getId());
 
-        if (MODE.equals("main")){
+        if (MODE.equals("main")) {
             log.info("Iota starting...");
             try {
                 iotaClient = new IotaAPI.Builder()
@@ -167,15 +179,15 @@ public class IotaServiceImpl implements IotaService {
                         checkIncomingTransactions();
                     }
                 }, 3, 120, TimeUnit.MINUTES);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e);
             }
-        }else {
+        } else {
             log.info("Iota test mode...");
         }
     }
 
-    private void checkIncomingTransactions(){
+    private void checkIncomingTransactions() {
         try {
             log.info("Checking IOTA transactions...");
             log.info(new java.util.Date());
@@ -186,15 +198,15 @@ public class IotaServiceImpl implements IotaService {
                     .filter(t -> {
                         try {
                             return !refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(Checksum.addChecksum(t.getAddress())
-                                    ,merchant.getId(),currency.getId(),t.getHash()).isPresent();
-                        }catch (Exception e){
+                                    , merchant.getId(), currency.getId(), t.getHash()).isPresent();
+                        } catch (Exception e) {
                             return false;
                         }
                     })
                     .filter(t -> {
                         try {
                             return ADDRESSES.contains(Checksum.addChecksum(t.getAddress()));
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             return false;
                         }
                     })
@@ -217,12 +229,12 @@ public class IotaServiceImpl implements IotaService {
                             mapPayment.put("amount", String.valueOf(transaction.getValue()));
 
                             processPayment(mapPayment);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             log.error(e);
                         }
 
                         log.info("IOTA transaction hash-" + transaction.getHash() + ", sum-" + transaction.getValue() + " provided!");
-            });
+                    });
 
             log.info(new java.util.Date());
 

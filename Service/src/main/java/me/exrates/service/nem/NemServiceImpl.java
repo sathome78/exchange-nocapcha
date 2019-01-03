@@ -5,7 +5,13 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.dto.NemMosaicTransferDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
@@ -33,7 +39,11 @@ import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by maks on 18.07.2017.
@@ -88,9 +98,12 @@ public class NemServiceImpl implements NemService {
     }
 
 
-    private @Value("${nem.address}")String address;
-    private @Value("${nem.private.key}")String privateKey;
-    private @Value("${nem.public.key}")String publicKey;
+    private @Value("${nem.address}")
+    String address;
+    private @Value("${nem.private.key}")
+    String privateKey;
+    private @Value("${nem.public.key}")
+    String publicKey;
 
     private static final String DESTINATION_TAG_ERR_MSG = "message.nem.tagError";
 
@@ -118,7 +131,7 @@ public class NemServiceImpl implements NemService {
         String message = messageSource.getMessage("merchants.refill.XEM",
                 new Object[]{address, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  destinationTag);
+            put("address", destinationTag);
             put("message", message);
         }};
     }
@@ -140,7 +153,7 @@ public class NemServiceImpl implements NemService {
     }
 
     private String generateDestinationTag(String id) {
-       return algorithmService.sha256(String.valueOf(id)).substring(0, 8);
+        return algorithmService.sha256(String.valueOf(id)).substring(0, 8);
     }
 
 
@@ -168,21 +181,23 @@ public class NemServiceImpl implements NemService {
             try {
                 refillService.putOnBchExamRefillRequest(
                         RefillRequestPutOnBchExamDto.builder()
-                        .requestId(requestId)
-                        .merchantId(requestAcceptDto.getMerchantId())
-                        .currencyId(requestAcceptDto.getCurrencyId())
-                        .address(requestAcceptDto.getAddress())
-                        .amount(requestAcceptDto.getAmount())
-                        .hash(requestAcceptDto.getMerchantTransactionId())
-                        .build());
+                                .requestId(requestId)
+                                .merchantId(requestAcceptDto.getMerchantId())
+                                .currencyId(requestAcceptDto.getCurrencyId())
+                                .address(requestAcceptDto.getAddress())
+                                .amount(requestAcceptDto.getAmount())
+                                .hash(requestAcceptDto.getMerchantTransactionId())
+                                .build());
             } catch (RefillRequestAppropriateNotFoundException e) {
                 log.error(e);
             }
         } else {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+            final String username = refillService.getUsernameByRequestId(requestId);
+
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName());
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
         }
     }
 
@@ -196,7 +211,7 @@ public class NemServiceImpl implements NemService {
             Currency currency = currencyService.findByName(mosaicService.getCurrencyName());
             Merchant merchant = merchantService.findByName(mosaicService.getMerchantName());
             if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-                log.warn("{} tx duplicated {}", p.getMosaicIdDto().getNamespaceId(),hash);
+                log.warn("{} tx duplicated {}", p.getMosaicIdDto().getNamespaceId(), hash);
                 return;
             }
             BigDecimal amount = p.getQuantity().divide(BigDecimal.valueOf(mosaicService.getDecimals()));
@@ -209,8 +224,10 @@ public class NemServiceImpl implements NemService {
                     .merchantTransactionId(hash)
                     .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                     .build();
+
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             if (!nemTransactionsService.checkIsConfirmed(new JSONObject(params.get("transaction")), CONFIRMATIONS_COUNT_REFILL)) {
                 try {
                     refillService.putOnBchExamRefillRequest(
@@ -229,8 +246,10 @@ public class NemServiceImpl implements NemService {
                 try {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+                    final String username = refillService.getUsernameByRequestId(requestId);
+
                     log.debug("Process of sending data to Google Analytics...");
-                    gtagService.sendGtagEvents(amount.toString(), currency.getName());
+                    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
                 } catch (RefillRequestAppropriateNotFoundException e) {
                     log.error(e);
                 }
@@ -244,8 +263,6 @@ public class NemServiceImpl implements NemService {
         return StringUtils.isEmpty(hash)
                 || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
-
-
 
     @Override
     public void checkRecievedTransaction(RefillRequestFlatDto dto) throws RefillRequestAppropriateNotFoundException {
@@ -261,8 +278,10 @@ public class NemServiceImpl implements NemService {
                     .build();
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
+            final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName());
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName(), username);
         } else {
             log.debug("transaction {} not confirmed yet", dto.getId());
         }
@@ -301,7 +320,7 @@ public class NemServiceImpl implements NemService {
         BigDecimal feeForAmountInXem = countFeeForAmountInXem(amount, service);
 
         BigDecimal baseFeesInToken = BigDecimalProcessing.doAction(BigDecimalProcessing.doAction(feeForTagInXem, feeForAmountInXem, ActionType.ADD),
-                                                                    exrate, ActionType.DEVIDE);
+                exrate, ActionType.DEVIDE);
         log.debug("fees - levy {}, forTag in nem {}, for quantity in nem {} exrate {}, basefees in token {}",
                 tokenLevy, feeForTagInXem, feeForAmountInXem, exrate, baseFeesInToken);
         return BigDecimalProcessing.doAction(tokenLevy, baseFeesInToken, ActionType.ADD).setScale(service.getDivisibility(), RoundingMode.HALF_UP);
@@ -311,7 +330,7 @@ public class NemServiceImpl implements NemService {
         if (service.getLevyFee().getRaw() == 0) {
             return BigDecimal.ZERO;
         }
-        double feeFromMosaicInMosaicToken = (quantity * service.getLevyFee().getRaw() / 10000D)/service.getDecimals();
+        double feeFromMosaicInMosaicToken = (quantity * service.getLevyFee().getRaw() / 10000D) / service.getDecimals();
         return BigDecimal.valueOf(feeFromMosaicInMosaicToken);
     }
 
@@ -330,7 +349,7 @@ public class NemServiceImpl implements NemService {
                 .doAction(maxMosiacQuantity, totalMosiacQuantity, ActionType.DEVIDE)
                 .doubleValue())).setScale(0, RoundingMode.HALF_EVEN);
         BigDecimal xemEqu = BigDecimalProcessing.doAction(BigDecimalProcessing.doAction(xemMaxQuantity,
-                    BigDecimalProcessing.doAction(amount, new BigDecimal(service.getDecimals()), ActionType.MULTIPLY),
+                BigDecimalProcessing.doAction(amount, new BigDecimal(service.getDecimals()), ActionType.MULTIPLY),
                 ActionType.MULTIPLY), totalMosiacQuantity, ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);
         BigDecimal xemFee = BigDecimalProcessing.doAction(xemEqu,
                 BigDecimal.valueOf(10000), ActionType.DEVIDE).setScale(0, RoundingMode.DOWN);

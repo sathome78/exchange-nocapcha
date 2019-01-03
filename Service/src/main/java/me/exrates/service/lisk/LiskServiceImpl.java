@@ -194,8 +194,10 @@ public class LiskServiceImpl implements LiskService {
                 RefillRequestFlatDto flatDto = refillService.getFlatById(dto.getRequestId());
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
 
+                final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+
                 log.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName);
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);

@@ -1,6 +1,5 @@
 package me.exrates.service.ethereum;
 
-import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -16,7 +15,6 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -24,9 +22,7 @@ import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
@@ -471,8 +467,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
             refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
 
+            final String username = refillService.getUsernameByRequestId(requestAcceptDto.getRequestId());
+
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName);
+            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, username);
         } catch (Exception e) {
             log.error(e);
         }
