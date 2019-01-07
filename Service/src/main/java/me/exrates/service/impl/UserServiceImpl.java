@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -464,6 +465,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @Async
     public Integer updateGaTag(String gatag, String userName) {
       return userDao.updateGaTag(gatag, userName);
     }
