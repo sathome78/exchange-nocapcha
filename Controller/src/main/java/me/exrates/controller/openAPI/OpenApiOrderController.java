@@ -12,6 +12,7 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
+import me.exrates.service.exception.api.CancelOrderException;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
 import me.exrates.service.exception.api.OpenApiError;
@@ -261,6 +262,13 @@ public class OpenApiOrderController {
     @ResponseBody
     public OpenApiError userOperationAccessExceptionHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.BLOCED_TRADING, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NO_CONTENT)
+    @ExceptionHandler(CancelOrderException.class)
+    @ResponseBody
+    public OpenApiError CancelOrderExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new OpenApiError(ErrorCode.NOT_CANCELLED, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
