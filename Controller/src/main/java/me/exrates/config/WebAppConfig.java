@@ -1621,6 +1621,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "zilServiceImpl")
+    public EthTokenService zilService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ZIL",
+                "ZIL", true, ExConvert.Unit.SZABO);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
