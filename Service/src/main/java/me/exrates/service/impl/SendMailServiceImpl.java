@@ -74,6 +74,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public void sendMailMandrill(Email email){
+		System.out.println(email.getMessage());
 		supportMailExecutors.execute(() -> {
 			try {
 				sendByType(email, EmailSenderType.valueOf(mailType));
