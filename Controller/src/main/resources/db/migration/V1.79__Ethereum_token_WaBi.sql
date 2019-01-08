@@ -1,15 +1,14 @@
-INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('WaBi', 'WaBi', 2, 'exoServiceImpl', 'CRYPTO');
+INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('WaBi', 'WaBi', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('WaBi', 'WaBi', 0, 8, 8, 8);
 
 INSERT IGNORE INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENCY WHERE name='WaBi'));
 
-
-INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
+INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, refill_block, withdraw_block)
   VALUES ((SELECT id from MERCHANT WHERE name='WaBi'),
           (SELECT id from CURRENCY WHERE name='WaBi'),
-          0.0001);
+          0.00000001, TRUE, TRUE);
 
 INSERT IGNORE INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='WaBi')
 , '/client/img/merchants/WaBi.png', 'WaBi', (SELECT id from CURRENCY WHERE name='WaBi'));
@@ -47,13 +46,13 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='WaBi/ETH';
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum, withdraw_block, refill_block, transfer_block)
-VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.0001, 1, 1, 0);
+VALUES ((SELECT id FROM MERCHANT WHERE name = 'VoucherFreeTransfer'), (select id from CURRENCY where name = 'WaBi'), 0.000001, 1, 1, 0);
 
 INSERT IGNORE INTO MERCHANT_IMAGE (merchant_id, image_path, image_name, currency_id) VALUES
   ((SELECT id FROM MERCHANT WHERE name = 'SimpleTransfer'), '/client/img/merchants/transfer.png', 'Transfer', (select id from CURRENCY where name = 'WaBi'));
@@ -73,9 +72,6 @@ INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
     JOIN ORDER_TYPE OT
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('WaBi/USD', 'WaBi/BTC', 'WaBi/ETH'));
 
-INSERT IGNORE INTO CRYPTO_CORE_WALLET(merchant_id, currency_id, CRYPTO_CORE_WALLET.title_code, passphrase)
-VALUES ((SELECT id from MERCHANT WHERE name='WaBi'), (select id from CURRENCY where name='WaBi'), 'CRYPWallet.title', 'pass123');
-
 INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
 SELECT cur.id AS currency_id, ur.id AS role_id
 FROM CURRENCY cur CROSS JOIN USER_ROLE ur
@@ -85,4 +81,4 @@ ORDER BY cur.id, ur.id;
 INSERT IGNORE INTO COMPANY_EXTERNAL_WALLET_BALANCES (currency_id)
 SELECT cur.id
 FROM CURRENCY cur
-WHERE cur.name IN ('WaBi');
+WHERE cur.name IN ('WaBi');                                                                              
