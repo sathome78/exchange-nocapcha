@@ -1601,7 +1601,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MNC", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "htServiceImpl")
+    /*@Bean(name = "htServiceImpl")
     public EthTokenService htService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x6f259637dcd74c767781e37bc6133cd6a68aa161");
@@ -1609,9 +1609,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "HT",
                 "HT", true, ExConvert.Unit.ETHER);
-    }
+    }*/
 
-    @Bean(name = "edtServiceImpl")
+    /*@Bean(name = "edtServiceImpl")
     public EthTokenService edtService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x3766a0d0c661094c02d5f11c74f2aa92228b1548");
@@ -1619,7 +1619,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "EDT",
                 "EDT", true, ExConvert.Unit.ETHER);
-    }
+    }*/
 
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
