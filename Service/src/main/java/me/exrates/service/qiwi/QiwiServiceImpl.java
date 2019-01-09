@@ -2,7 +2,6 @@ package me.exrates.service.qiwi;
 
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
@@ -10,9 +9,11 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.qiwi.response.QiwiResponseTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -33,6 +34,8 @@ public class QiwiServiceImpl implements QiwiService {
     private final static String MERCHANT_NAME = "QIWI";
     private final static String CURRENCY_NAME = "RUB";
 
+    private static final Logger logger = org.apache.log4j.LogManager.getLogger(QiwiServiceImpl.class);
+
     @Autowired
     private MerchantService merchantService;
     @Autowired
@@ -43,6 +46,8 @@ public class QiwiServiceImpl implements QiwiService {
     private MessageSource messageSource;
     @Autowired
     private QiwiExternalService qiwiExternalService;
+    @Autowired
+    private GtagService gtagService;
 
     private Merchant merchant;
     private Currency currency;
@@ -62,29 +67,29 @@ public class QiwiServiceImpl implements QiwiService {
         String message = messageSource.getMessage("merchants.refill.qiwi",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  destinationTag);
+            put("address", destinationTag);
             put("message", message);
             put("qr", mainAddress);
         }};
     }
 
     @Override
-    public String getMainAddress(){
+    public String getMainAddress() {
         return mainAddress;
     }
 
     @Synchronized
     @Override
-    public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant){
+    public void onTransactionReceive(QiwiResponseTransaction transaction, String amount, String currencyName, String merchant) {
         log.info("*** Qiwi *** Income transaction {} ", transaction.getNote() + " " + amount);
         if (checkTransactionForDuplicate(transaction)) {
-                log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
-                return;
+            log.warn("*** Qiwi *** transaction {} already accepted", transaction.get_id());
+            return;
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.get_id());
-        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":")+1);
-        if(memo == null) {
+        String memo = transaction.getNote().substring(transaction.getNote().indexOf(":") + 1);
+        if (memo == null) {
             log.warn("*** Qiwi *** Memo is null");
             return;
         }
@@ -111,6 +116,7 @@ public class QiwiServiceImpl implements QiwiService {
         Currency currency = currencyService.findByName(params.get("currency"));
         Merchant merchant = merchantService.findByName(MERCHANT_NAME);
         BigDecimal fullAmount = new BigDecimal(params.get("amount"));
+
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(address)
                 .merchantId(merchant.getId())
@@ -119,14 +125,24 @@ public class QiwiServiceImpl implements QiwiService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        logger.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(fullAmount.toString(), currency.getName(), username);
     }
 
     @Override
