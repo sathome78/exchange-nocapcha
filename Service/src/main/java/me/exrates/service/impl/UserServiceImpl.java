@@ -488,8 +488,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String getCallBackUrlByEmail(String email, Integer currencyPairId) {
-        return userSettingService.getCallbackURL(getIdByEmail(email), currencyPairId);
+    public String getCallBackUrlById(int userId, Integer currencyPairId) {
+        return userSettingService.getCallbackURL(userId, currencyPairId);
     }
 
     @Override

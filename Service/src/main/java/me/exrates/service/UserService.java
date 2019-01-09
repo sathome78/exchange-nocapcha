@@ -210,7 +210,7 @@ public interface UserService {
 
     long countUserIps(String userEmail);
 
-    String getCallBackUrlByEmail(String email, Integer currencyPairId);
+    String getCallBackUrlById(int userId, Integer currencyPairId);
 
     String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
 

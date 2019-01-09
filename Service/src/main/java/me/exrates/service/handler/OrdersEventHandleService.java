@@ -15,24 +15,17 @@ import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.*;
 import me.exrates.service.vo.*;
-import org.apache.http.entity.ContentType;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,9 +127,8 @@ public class OrdersEventHandleService {
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
         //TODO check if user have TRADER authority, use userHasAuthority method in this case
         ExOrder source = (ExOrder) event.getSource();
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         int userId = source.getUserId();
-        String url = userService.getCallBackUrlByEmail(userId, source.getCurrencyPairId());
+        String url = userService.getCallBackUrlById(userId, source.getCurrencyPairId());
 
         processCallBackUrl(event, userId, url);
     }
