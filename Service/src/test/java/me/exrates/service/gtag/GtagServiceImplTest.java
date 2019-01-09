@@ -17,8 +17,8 @@ public class GtagServiceImplTest {
         client.register(new LoggingFilter());
 
         GtagServiceImpl gtagService = new GtagServiceImpl();
-        gtagService.setClient(client);
-        gtagService.setGoogleAnalyticsHost("https://www.google-analytics.com/collect");
+//        gtagService.setClient(client);
+//        gtagService.setGoogleAnalyticsHost("https://www.google-analytics.com/collect");
 //        gtagService.sendTransactionHit("username","10","100","BTC");
 //        gtagService.sendItemHit("username","10","BTC","10","10");
     }
