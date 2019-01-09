@@ -1601,6 +1601,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MNC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tcatServiceImpl")
+    public EthTokenService tcatService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaff84e86d72edb971341a6a66eb2da209446fa14");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TCAT",
+                "TCAT", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "htServiceImpl")
     public EthTokenService htService() {
         List<String> tokensList = new ArrayList<>();
