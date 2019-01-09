@@ -1601,6 +1601,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "MNC", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "tcatServiceImpl")
+    public EthTokenService tcatService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xaff84e86d72edb971341a6a66eb2da209446fa14");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "TCAT",
+                "TCAT", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "htServiceImpl")
     public EthTokenService htService() {
         List<String> tokensList = new ArrayList<>();
@@ -1621,6 +1631,36 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "poa20ServiceImpl")
+    public EthTokenService poa20Service() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "POA20",
+                "POA20", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mcoServiceImpl")
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "zilServiceImpl")
+    public EthTokenService zilService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ZIL",
+                "ZIL", true, ExConvert.Unit.SZABO);
+    }
+
     @Bean(name = "manaServiceImpl")
     public EthTokenService manaService() {
         List<String> tokensList = new ArrayList<>();
@@ -1629,6 +1669,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "MANA",
                 "MANA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "wabiServiceImpl")
+    public EthTokenService wabiService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "WaBi",
+                "WaBi", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
