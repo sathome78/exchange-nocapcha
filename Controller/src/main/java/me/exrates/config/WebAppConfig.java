@@ -1631,7 +1631,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "poaServiceImpl")
+/*    @Bean(name = "poaServiceImpl")
     public EthTokenService poaService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
@@ -1639,7 +1639,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 tokensList,
                 "POA",
                 "POA", false, ExConvert.Unit.ETHER);
-    }
+    }*/
 
     @Bean(name = "mcoServiceImpl")
     public EthTokenService mcoService() {
