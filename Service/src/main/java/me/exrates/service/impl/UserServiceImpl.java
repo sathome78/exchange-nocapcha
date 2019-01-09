@@ -52,6 +52,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -465,9 +466,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @Async
+    /*@Async*/
     public Integer updateGaTag(String gatag, String userName) {
-      return userDao.updateGaTag(gatag, userName);
+        return userDao.updateGaTag(gatag, userName);
     }
 
     @Override
