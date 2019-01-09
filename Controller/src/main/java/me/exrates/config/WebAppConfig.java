@@ -1628,7 +1628,37 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(
                 tokensList,
                 "POA20",
-                "POA20", true, ExConvert.Unit.ETHER);
+                "POA20", false, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "mcoServiceImpl")
+    public EthTokenService mcoService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xb63b606ac810a52cca15e44bb630fd42d8d1d83d");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MCO",
+                "MCO", true, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "zilServiceImpl")
+    public EthTokenService zilService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "ZIL",
+                "ZIL", true, ExConvert.Unit.SZABO);
+    }
+
+    @Bean(name = "manaServiceImpl")
+    public EthTokenService manaService() {
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x0f5d2fb29fb7d3cfee444a200298f468908cc942");
+        return new EthTokenServiceImpl(
+                tokensList,
+                "MANA",
+                "MANA", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
