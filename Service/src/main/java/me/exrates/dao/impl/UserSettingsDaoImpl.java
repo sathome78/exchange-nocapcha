@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserSettingsDao;
 import me.exrates.model.dto.CallbackURL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,10 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    @Qualifier(value = "slaveForReportsTemplate")
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplateslaveForReports;
 
     public int addCallBackUrl(final int userId, final CallbackURL callbackURL) {
         String addCallbackQuery = "INSERT INTO CALLBACK_SETTINGS VALUES(:userId,:callbackURL,:pairId)";
@@ -45,7 +50,7 @@ public class UserSettingsDaoImpl implements UserSettingsDao {
         queryParams.put("userId", userId);
         queryParams.put("pairId", pairId);
         try {
-            return namedParameterJdbcTemplate.queryForObject(getCallbackURL, queryParams, String.class);
+            return namedParameterJdbcTemplateslaveForReports.queryForObject(getCallbackURL, queryParams, String.class);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
