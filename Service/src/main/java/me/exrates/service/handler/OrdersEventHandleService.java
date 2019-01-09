@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -100,7 +101,20 @@ public class OrdersEventHandleService {
         log.debug("order event {} ", exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         handleCallBack(event);
+        if (exOrder.getUserAcceptorId() != 0) {
+            handleAcceptorUserId(exOrder);
+        }
     }
+
+    private void handleAcceptorUserId(ExOrder exOrder) {
+        String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
+        try {
+            makeCallBackForAcceptor(exOrder, url, exOrder.getUserAcceptorId());
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Async
     @TransactionalEventListener
@@ -120,7 +134,7 @@ public class OrdersEventHandleService {
         //TODO check if user have TRADER authority, use userHasAuthority method in this case
         ExOrder source = (ExOrder) event.getSource();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String url = userService.getCallBackUrlByEmail(email,source.getCurrencyPairId());
+        String url = userService.getCallBackUrlByEmail(email, source.getCurrencyPairId());
 
         processCallBackUrl(event, email, url);
     }
@@ -154,13 +168,49 @@ public class OrdersEventHandleService {
         callbackLog.setUserId(userService.getIdByEmail(email));
 
         ResponseEntity<String> responseEntity;
-        try{
+        try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
 
             responseEntity = restTemplate.postForEntity(url, entity, String.class);
-        } catch (Exception e){
+        } catch (Exception e) {
+            e.printStackTrace();
+            callbackLog.setResponseCode(999);
+            callbackLog.setResponseJson(e.getMessage());
+            callbackLog.setResponseDate(LocalDateTime.now());
+            return callbackLog;
+        }
+        callbackLog.setResponseCode(responseEntity.getStatusCodeValue());
+        callbackLog.setResponseJson(responseEntity.getBody());
+        callbackLog.setResponseDate(LocalDateTime.now());
+        return callbackLog;
+    }
+
+    private CallBackLogDto makeCallBackForAcceptor(ExOrder order, String url, int id) throws JsonProcessingException {
+        CallBackLogDto callbackLog = new CallBackLogDto();
+
+        callbackLog.setRequestJson(new ObjectMapper().
+                writeValueAsString(
+                        ExOrderWrapperDTO.
+                                builder()
+                                .exOrder(order)
+                                .message("Your order has been processed")
+                                .userId(id)
+                                .build()))
+        ;
+
+        callbackLog.setRequestDate(LocalDateTime.now());
+        callbackLog.setUserId(id);
+
+        ResponseEntity<String> responseEntity;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(callbackLog.getRequestJson(), headers);
+
+            responseEntity = restTemplate.postForEntity(url, entity, String.class);
+        } catch (Exception e) {
             e.printStackTrace();
             callbackLog.setResponseCode(999);
             callbackLog.setResponseJson(e.getMessage());
