@@ -109,7 +109,8 @@ public class OrdersEventHandleService {
     private void handleAcceptorUserId(ExOrder exOrder) {
         String url = userService.getCallBackUrlByUserAcceptorId(exOrder.getUserAcceptorId(), exOrder.getCurrencyPairId());
         try {
-            makeCallBackForAcceptor(exOrder, url, exOrder.getUserAcceptorId());
+            CallBackLogDto callBackLogDto = makeCallBackForAcceptor(exOrder, url, exOrder.getUserAcceptorId());
+            orderService.logCallBackData(callBackLogDto);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -133,19 +134,20 @@ public class OrdersEventHandleService {
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
         //TODO check if user have TRADER authority, use userHasAuthority method in this case
         ExOrder source = (ExOrder) event.getSource();
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        String url = userService.getCallBackUrlByEmail(email, source.getCurrencyPairId());
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        int userId = source.getUserId();
+        String url = userService.getCallBackUrlByEmail(userId, source.getCurrencyPairId());
 
-        processCallBackUrl(event, email, url);
+        processCallBackUrl(event, userId, url);
     }
 
-    private void processCallBackUrl(OrderEvent event, String email, String url) throws JsonProcessingException {
+    private void processCallBackUrl(OrderEvent event, int userId, String url) throws JsonProcessingException {
         if (url != null) {
-            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, email);
+            CallBackLogDto callBackLogDto = makeCallBack((ExOrder) event.getSource(), url, userId);
             orderService.logCallBackData(callBackLogDto);
-            log.info("*** Callback. User email:" + email + " | Callback:" + callBackLogDto);
+            log.info("*** Callback. User userId:" + userId + " | Callback:" + callBackLogDto);
         } else {
-            log.info("*** Callback url wasn't set. User email:" + email);
+            log.info("*** Callback url wasn't set. User userId:" + userId);
         }
     }
 
@@ -161,11 +163,11 @@ public class OrdersEventHandleService {
         return false;
     }
 
-    private CallBackLogDto makeCallBack(ExOrder order, String url, String email) throws JsonProcessingException {
+    private CallBackLogDto makeCallBack(ExOrder order, String url, int userId) throws JsonProcessingException {
         CallBackLogDto callbackLog = new CallBackLogDto();
         callbackLog.setRequestJson(new ObjectMapper().writeValueAsString(order));
         callbackLog.setRequestDate(LocalDateTime.now());
-        callbackLog.setUserId(userService.getIdByEmail(email));
+        callbackLog.setUserId(userId);
 
         ResponseEntity<String> responseEntity;
         try {
