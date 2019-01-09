@@ -570,7 +570,7 @@ public class UserServiceImpl implements UserService {
             creator = findByEmail(auth.getName());
             comment.setCreator(creator);
         } catch (Exception e) {
-            LOGGER.error(e);
+//            LOGGER.error(e);
         }
         boolean success = userDao.addUserComment(comment);
 
