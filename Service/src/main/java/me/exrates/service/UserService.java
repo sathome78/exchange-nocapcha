@@ -188,8 +188,6 @@ public interface UserService {
 
     boolean checkPassword(int userId, String password);
 
-    long countUserIps(String userEmail);
-
     String getCallBackUrlById(int userId, Integer currencyPairId);
 
     String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
