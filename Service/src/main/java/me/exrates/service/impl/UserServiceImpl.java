@@ -207,6 +207,8 @@ public class UserServiceImpl implements UserService {
         return userDao.getIdByEmail(email);
     }
 
+
+
     @Override
     public int getIdByNickname(String nickname) {
         return userDao.getIdByNickname(nickname);
@@ -460,8 +462,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String getCallBackUrlByEmail(String email, Integer currencyPairId) {
-        return userSettingService.getCallbackURL(getIdByEmail(email), currencyPairId);
+    public String getCallBackUrlById(int userId, Integer currencyPairId) {
+        return userSettingService.getCallbackURL(userId, currencyPairId);
+    }
+
+    @Override
+    public String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId) {
+        return userSettingService.getCallbackURL(userAcceptorId, currencyPairId);
     }
 
     @Override
