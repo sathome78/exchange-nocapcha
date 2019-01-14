@@ -325,7 +325,7 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "grsServiceImpl")
 	public BitcoinService grsServiceImpl() {
-		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 20, 20, false, true);
+		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 30, 20, false, true);
 	}
 
 	// LISK-like cryptos
