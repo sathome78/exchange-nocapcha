@@ -118,7 +118,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "lccServiceImpl")
     public BitcoinService lccService() {
         return new BitcoinServiceImpl("merchants/lcc_wallet.properties",
-                "LCC", "LCC", 30, 20, false);
+                "LCC", "LCC", 2000, 20, false);
     }
 
     @Bean(name = "bitcoinAtomServiceImpl")
