@@ -318,6 +318,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/rime_wallet.properties","RIME","RIME", 30, 20, false, true);
 	}
 
+	@Bean(name = "exoServiceImpl")
+	public BitcoinService exoServiceImpl() {
+		return new BitcoinServiceImpl("merchants/exo_wallet.properties","EXO","EXO", 20, 20, false, true);
+	}
+
 	@Bean(name = "grsServiceImpl")
 	public BitcoinService grsServiceImpl() {
 		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 20, 20, false, true);

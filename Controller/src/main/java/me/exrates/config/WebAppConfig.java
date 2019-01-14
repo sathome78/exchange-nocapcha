@@ -1574,11 +1574,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "ectServiceImpl")
     public EthTokenService ectService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x117c3385bb0f1ddb762d48cc24626f9529c42148");
+        tokensList.add("0xe9fa21e671bcfb04e6868784b89c19d5aa2424ea");
         return new EthTokenServiceImpl(
                 tokensList,
-                "ECT",
-                "ECT", true, ExConvert.Unit.WEI);
+                "ECTE",
+                "ECTE", true, ExConvert.Unit.WEI);
     }
 
     @Bean(name = "s4fServiceImpl")
@@ -1631,14 +1631,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "EDT", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "poa20ServiceImpl")
-    public EthTokenService poa20Service() {
+    @Bean(name = "poaServiceImpl")
+    public EthTokenService poaService() {
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x6758b7d441a9739b98552b373703d8d3d14f9e62");
         return new EthTokenServiceImpl(
                 tokensList,
-                "POA20",
-                "POA20", false, ExConvert.Unit.ETHER);
+                "POA",
+                "POA", false, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "mcoServiceImpl")

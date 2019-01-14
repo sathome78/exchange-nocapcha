@@ -227,7 +227,7 @@ $(function refillCreation() {
                 data: JSON.stringify(data)
             }).success(function (result) {
                 console.log(result);
-                gtag('event', 'recharge-ballance', {'event_category': 'recharge-ballance', 'event_label': ""+data.currency+""});
+                // gtag('event', 'recharge-ballance', {'event_category': 'recharge-ballance', 'event_label': ""+data.currency+""});
                 if (!result || !result['redirectionUrl']) {
                     var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['params']['qr'] + "'/>" : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
