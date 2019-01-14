@@ -323,6 +323,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/exo_wallet.properties","EXO","EXO", 20, 20, false, true);
 	}
 
+	@Bean(name = "grsServiceImpl")
+	public BitcoinService grsServiceImpl() {
+		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 30, 20, false, true);
+	}
+
 	@Bean(name = "kodServiceImpl")
 	public BitcoinService kodServiceImpl() {
 		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 20, 20, false, false);
