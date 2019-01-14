@@ -330,7 +330,7 @@ public class CryptocurrencyConfig {
 
 	@Bean(name = "kodServiceImpl")
 	public BitcoinService kodServiceImpl() {
-		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 20, 20, false, false);
+		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 30, 20, false, false);
 	}
 
 	// LISK-like cryptos
