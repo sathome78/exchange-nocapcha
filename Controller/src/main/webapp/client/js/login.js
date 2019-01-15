@@ -57,3 +57,9 @@ function close() {
 function sendLoginSuccessGtag() {
     gtag('event', 'login-success', {'event_category': 'login-form','event_label': 'login-success'});
 }
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'GA_TRACKING_ID');
