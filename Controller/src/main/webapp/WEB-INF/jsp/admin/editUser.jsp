@@ -466,6 +466,8 @@
                 <div class="col-md-12">
                     <button class="blue-box" id="wallets-table-init">
                         <loc:message code="admin.datatable.showData"/></button>
+                  <button class="blue-box" id="wallets-table-balances-only">
+                    <loc:message code="admin.datatable.showBalances"/></button>
                 </div>
                 <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
@@ -477,13 +479,13 @@
                     <tr>
                         <th></th>
                         <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
                         <th><loc:message code="mywallets.reservedonorders"/></th>
                         <th><loc:message code="mywallets.reservedonwithdraw"/></th>
                         <th><loc:message code="userWallet.input"/></th>
                         <th><loc:message code="userWallet.sell"/></th>
                         <th><loc:message code="userWallet.buy"/></th>
                         <th><loc:message code="userWallet.output"/></th>
-                        <th><loc:message code="mywallets.rbalance"/></th>
                     </tr>
                     </thead>
                 </c:when>
