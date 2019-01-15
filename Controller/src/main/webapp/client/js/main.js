@@ -779,3 +779,10 @@ function parseNumber(numberStr) {
 function sendGtag() {
     gtag('event', 'password-correct', {'event_category': 'password-confirm', 'event_label': 'finish-registration'});
 }
+
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'GA_TRACKING_ID');

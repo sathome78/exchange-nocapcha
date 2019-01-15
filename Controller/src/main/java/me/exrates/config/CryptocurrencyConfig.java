@@ -118,7 +118,7 @@ public class CryptocurrencyConfig {
     @Bean(name = "lccServiceImpl")
     public BitcoinService lccService() {
         return new BitcoinServiceImpl("merchants/lcc_wallet.properties",
-                "LCC", "LCC", 30, 20, false);
+                "LCC", "LCC", 2000, 20, false);
     }
 
     @Bean(name = "bitcoinAtomServiceImpl")
@@ -321,6 +321,16 @@ public class CryptocurrencyConfig {
 	@Bean(name = "exoServiceImpl")
 	public BitcoinService exoServiceImpl() {
 		return new BitcoinServiceImpl("merchants/exo_wallet.properties","EXO","EXO", 20, 20, false, true);
+	}
+
+	@Bean(name = "grsServiceImpl")
+	public BitcoinService grsServiceImpl() {
+		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 30, 20, false, true);
+	}
+
+	@Bean(name = "kodServiceImpl")
+	public BitcoinService kodServiceImpl() {
+		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 30, 20, false, false);
 	}
 
 	// LISK-like cryptos
