@@ -424,9 +424,9 @@ public class AdminController {
     @AdminLoggable
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
+    public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id, @RequestParam(defaultValue = "false") Boolean onlyBalances) {
         boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
-        return getExtendedInfo ? walletService.getAllUserWalletsForAdminDetailed(id) :
+        return getExtendedInfo && !onlyBalances ? walletService.getAllUserWalletsForAdminDetailed(id) :
                 walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
     }
 

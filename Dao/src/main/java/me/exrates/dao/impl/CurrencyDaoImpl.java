@@ -233,6 +233,20 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return jdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
     }
 
+    @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
+        String typeClause = "";
+        if (type != null && type != CurrencyPairType.ALL) {
+            typeClause = " WHERE type =:pairType ";
+        }
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+                " FROM CURRENCY_PAIR " + typeClause +
+                " ORDER BY -pair_order DESC";
+        return jdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+    }
+
 
     @Override
     public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {

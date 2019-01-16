@@ -41,7 +41,7 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     /*----methods-----*/
     @PostConstruct
     public void init() {
-        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs(CurrencyPairType.MAIN);
+        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
         List<StopOrder> activeOrders = stopOrderService
                 .getActiveStopOrdersByCurrencyPairsId(currencyPairs.stream().map(CurrencyPair::getId).collect(Collectors.toList()));
         currencyPairs.forEach(p->{
@@ -105,7 +105,7 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
                 throw new RuntimeException("wrong order operation type! ".concat(summaryDto.toString()));
             }
         }
-        if (!thisOrdersSet.contains(summaryDto)) {;
+        if (!thisOrdersSet.contains(summaryDto)) {
             throw new RuntimeException("map not conatins this order! ".concat(summaryDto.toString()));
         }
         log.debug("delete, before: {}", thisOrdersSet.size());
