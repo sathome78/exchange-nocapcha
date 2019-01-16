@@ -265,7 +265,7 @@ public class OrderControllerRest {
             boolean result;
             switch (orderCreateDto.getOrderBaseType()) {
                 case STOP_LIMIT: {
-                    result = stopOrderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    result = stopOrderService.cancelOrder(orderCreateDto.getOrderId(), localeResolver.resolveLocale(request));
                     break;
                 }
                 default: {

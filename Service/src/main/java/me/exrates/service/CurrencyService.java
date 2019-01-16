@@ -48,6 +48,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
+
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
     CurrencyPair findCurrencyPairById(int currencyPairId);
