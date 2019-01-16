@@ -68,7 +68,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Autowired
     private CurrencyService currencyService;
 
-    private final static int THREADS_NUMBER = 50;
+    private final static int THREADS_NUMBER = 10;
     private final static ExecutorService checkExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
     private ConcurrentMap<Integer, Object> buyLocks = new ConcurrentHashMap<>();
     private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
@@ -101,12 +101,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     public void proceedStopOrders(int pairId, NavigableSet<StopOrderSummaryDto> orders) {
            orders.forEach(p->{
                try {
-                   ordersExecutors.execute(new Runnable() {
-                       @Override
-                       public void run() {
-                           proceedStopOrderAndRemove(p.getOrderId());
-                       }
-                   });
+                   ordersExecutors.execute(() -> proceedStopOrderAndRemove(p.getOrderId()));
                } catch (Exception e) {
                    log.error("error processing stop order {}", e);
                }
@@ -125,6 +120,8 @@ public class StopOrderServiceImpl implements StopOrderService {
                 new StopOrderSummaryDto(stopOrderId, stopOrder.getStop(), stopOrder.getOperationType()));
         try {
             this.proceedStopOrder(new ExOrder(stopOrder));
+        } catch (OrderCancellingException e) {
+            log.error("order not acceptable, error processing stop-order  {}", e);
         } catch (Exception e) {
             log.error("error processing stop-order  {}", e);
             stopOrdersHolder.addOrder(new ExOrder(stopOrder));
@@ -174,12 +171,23 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     @Transactional
-    public boolean cancelOrder(ExOrder exOrder, Locale locale) {
+    public boolean cancelOrder(int orderId, Locale locale) {
+        OrderCreateDto orderCreateDto = this.getOrderById(orderId, true);
+        if (orderCreateDto.getStatus() != OrderStatus.OPENED) {
+            throw new OrderCancellingException(messageSource.getMessage("order.cannotcancel", null, locale));
+        }
+        ExOrder exOrder = new ExOrder(orderCreateDto);
         boolean res;
         cancelCostsReserveForStopOrder(exOrder, locale, OrderActionEnum.CANCEL);
         res = this.setStatus(exOrder.getId(), OrderStatus.CANCELLED);
-        stopOrdersHolder.delete(exOrder.getCurrencyPairId(),
-                    new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+        if (res) {
+            try {
+                stopOrdersHolder.delete(exOrder.getCurrencyPairId(),
+                        new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return res;
     }
 
@@ -337,9 +345,7 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     public Object deleteOrderByAdmin(int id, Locale locale) {
-        OrderCreateDto orderCreateDto = this.getOrderById(id, true);
-        log.debug("order {}", orderCreateDto);
-        return this.cancelOrder(new ExOrder(orderCreateDto), locale);
+        return this.cancelOrder(id, locale);
     }
 
     @PreDestroy

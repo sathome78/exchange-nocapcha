@@ -47,6 +47,8 @@ public interface CurrencyDao {
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
+
     CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
     CurrencyPair findCurrencyPairById(int currencyPairId);
