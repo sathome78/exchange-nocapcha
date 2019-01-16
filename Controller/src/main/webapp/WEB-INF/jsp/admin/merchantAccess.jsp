@@ -96,12 +96,12 @@
                 <div id="panel3" class="tab-pane">
                     <div class="col-sm-8 col-sm-offset-2">
 
-                        <table id="currency-pairs-options-table">
+                        <table id="currency-pairs-visibility-options-table">
                             <thead>
                             <tr>
-                                <th><loc:message code="withdrawal.merchant"/> </th>
-                                <th><loc:message code="withdrawal.currency"/> </th>
-                                <th data-operationtype="USER_TRANSFER"><loc:message code="merchants.transfer"/></th>
+                                <th><loc:message code="admin.currency.pair.id"/> </th>
+                                <th><loc:message code="title.hide.currency.pair"/> </th>
+                                <th><loc:message code="title.visibility"/></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -113,12 +113,13 @@
                 <div id="panel4" class="tab-pane">
                     <div class="col-sm-8 col-sm-offset-2">
 
-                        <table id="currency-visability-options-table">
+                        <table id="currency-visibility-options-table">
                             <thead>
                             <tr>
-                                <th><loc:message code="withdrawal.merchant"/> </th>
+                                <th><loc:message code="admin.currency.id"/> </th>
+                                <th><loc:message code="admin.currencyLimits.description"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th data-operationtype="USER_TRANSFER"><loc:message code="merchants.transfer"/></th>
+                                <th><loc:message code="title.visibility"/></th>
                             </tr>
                             </thead>
                             <tbody>
