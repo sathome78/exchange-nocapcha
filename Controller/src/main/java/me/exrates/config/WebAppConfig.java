@@ -25,6 +25,7 @@ import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
+import me.exrates.service.impl.HCXPServiceImpl;
 import me.exrates.service.impl.MoneroServiceImpl;
 import me.exrates.service.job.QuartzJobFactory;
 import me.exrates.service.nem.XemMosaicService;
@@ -1723,7 +1724,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean(name = "hcxpServiceImpl")
     public MoneroService hcxpService() {
-        return new MoneroServiceImpl("merchants/hcxp.properties",
+        return new HCXPServiceImpl("merchants/hcxp.properties",
                 "HCXP", "HCXP", 10, 6);
     }
 
