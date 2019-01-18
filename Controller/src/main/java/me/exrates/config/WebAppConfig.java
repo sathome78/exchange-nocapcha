@@ -439,7 +439,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
 //        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
-        registry.addInterceptor(new TokenInterceptor("MOCK_TEST")).addPathPatterns("/nodes/**");
         registry.addInterceptor(new MDCInterceptor());
     }
 
