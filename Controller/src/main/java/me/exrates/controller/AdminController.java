@@ -80,24 +80,7 @@ import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.BotService;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
-import me.exrates.service.PhraseTemplateService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserRoleService;
-import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
-import me.exrates.service.UsersAlertsService;
-import me.exrates.service.WalletService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.NotCreatableOrderException;
@@ -106,6 +89,7 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.impl.EDCServiceNodeImpl;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
@@ -259,7 +243,7 @@ public class AdminController {
     @Autowired
     private NotificatorsService notificatorsService;
     @Autowired
-    private NotificationsSettingsService notificationsSettingsService;
+    private EDCServiceNode edcServiceNode;
     @Autowired
     private UsersAlertsService alertsService;
     @Autowired
@@ -1246,12 +1230,18 @@ public class AdminController {
 
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
-                                                                              @RequestParam("token") String token) {
+                                                                              @RequestParam("token") String token, @RequestParam("address") String address) throws IOException {
 
         if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
             throw new RuntimeException("Some unexpected exception");
         }
-        Currency byName = currencyService.findByName(currencyName);
+        if(currencyName.equals("EDR")){
+            String balance = edcServiceNode.extractBalance(address, 0);
+            Map<String,String> response = new HashMap<>();
+            response.put("EDR",balance);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+            Currency byName = currencyService.findByName(currencyName);
 
         List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
         List<Merchant> collect = allByCurrency.stream().
