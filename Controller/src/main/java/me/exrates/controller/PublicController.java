@@ -69,7 +69,7 @@ public class PublicController {
         String clientIpAddress = IpUtils.getClientIpAddress(request);
         List<String> errors = new ArrayList<>();
         try {
-            ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+//            ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
         } catch (BannedIpException ban) {
             LOGGER.debug(String.format("%s: completed : %d ms", ban.getMessage(), getTiming(before)));
             errors.add(ban.getMessage());
