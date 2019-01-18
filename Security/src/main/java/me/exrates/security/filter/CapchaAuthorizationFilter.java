@@ -65,7 +65,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
         /*----------------------------*/
         String ipAddress = IpUtils.getClientIpAddress(request);
         try {
-            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
+//            ipBlockingService.checkIp(ipAddress, IpTypesOfChecking.LOGIN);
         } catch (BannedIpException e) {
             long banDuration = e.getBanDurationSeconds();
             String durationMessage;
