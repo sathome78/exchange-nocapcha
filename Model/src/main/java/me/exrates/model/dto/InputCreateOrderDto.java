@@ -34,6 +34,7 @@ public class InputCreateOrderDto {
     private BigDecimal stop;
 
     private String status;
+    private int userId;
 
     public InputCreateOrderDto() {
     }
@@ -151,4 +152,13 @@ public class InputCreateOrderDto {
         sb.append('}');
         return sb.toString();
     }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
 }

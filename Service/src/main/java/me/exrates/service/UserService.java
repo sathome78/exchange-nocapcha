@@ -193,4 +193,6 @@ public interface UserService {
     String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
 
     Integer updateGaTag(String gatag, String userName);
+
+    String findById(int id);
 }
