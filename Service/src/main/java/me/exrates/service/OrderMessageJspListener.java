@@ -33,7 +33,7 @@ public class OrderMessageJspListener {
     public void processOrder(InputCreateOrderDto order) {
         log.debug("Order Received: " + order);
         ordersEventHandleService.handleOrderEventOnMessage(order);
-        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), String.valueOf(order.getCurrencyPairId()), order.getStop());
+        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), order.getCurrencyPair(), order.getStop());
         orderServiceDemoListener.recordOrderToDB(order,orderCreateSummaryDto.getOrderCreateDto());
     }
 
