@@ -1685,7 +1685,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WaBi", true, ExConvert.Unit.ETHER);
     }
 
-    @Bean(name = "qkcServiceImpl")
+	@Bean(name = "npxsServiceImpl")
+	public EthTokenService npxsServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xa15c7ebe1f07caf6bff097d8a589fb8ac49ae5b3");
+		return new EthTokenServiceImpl(tokensList, "NPXS","NPXS", true, ExConvert.Unit.ETHER);
+	}
+
+  @Bean(name = "qkcServiceImpl")
 	public EthTokenService qkcServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xea26c4ac16d4a5a106820bc8aee85fd0b7b2b664");
