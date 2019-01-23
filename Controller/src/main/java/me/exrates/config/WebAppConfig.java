@@ -1685,7 +1685,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 "WaBi", true, ExConvert.Unit.ETHER);
     }
 
-    //    Qtum tokens:
     @Bean(name = "qkcServiceImpl")
 	public EthTokenService qkcServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
@@ -1693,6 +1692,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "QKC","QKC", true, ExConvert.Unit.ETHER);
 	}
 
+    //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
         List<String> tokensList = new ArrayList<>();
