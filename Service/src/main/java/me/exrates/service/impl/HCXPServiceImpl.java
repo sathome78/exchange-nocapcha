@@ -178,11 +178,10 @@ public class HCXPServiceImpl implements MoneroService {
                         checkIncomingTransactions();
                     }
                 }, 3, 30, TimeUnit.MINUTES);
-                }, 3, 3, TimeUnit.MINUTES);
 
                 scheduler.scheduleAtFixedRate(() ->  {
                     sendToMainAccount();
-                }, 0, 12, TimeUnit.SECONDS); //todo change to HOURS
+                }, 0, 12, TimeUnit.HOURS);
             }catch (Exception e){
                 log.error(e);
             }
@@ -192,11 +191,16 @@ public class HCXPServiceImpl implements MoneroService {
     }
 
     private void sendToMainAccount() {
-        BigInteger balance = wallet.getBalance();
-        BigInteger currentFee = new BigInteger("1000000");
-        balance = balance.min(currentFee);
-        wallet.send(mainAccount, balance, "", 0, 10);
+        try {
+            BigInteger balance = wallet.getBalance();
+            BigInteger currentFee = new BigInteger("1000000"); // usual commission is ~0.008906
+            balance = balance.min(currentFee);
 
+            log.info("Starting send to main account " + mainAccount + "  amount = " + balance);
+            wallet.send(mainAccount, balance, "", 0, 10);
+        } catch (Exception e){
+            log.error(e);
+        }
     }
 
     private void checkIncomingTransactions(){
