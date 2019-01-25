@@ -194,7 +194,7 @@ public class HCXPServiceImpl implements MoneroService {
         try {
             BigInteger balance = wallet.getBalance();
             BigInteger currentFee = new BigInteger("1000000"); // usual commission is ~0.008906
-            balance = balance.min(currentFee);
+            balance = balance.subtract(currentFee);
 
             log.info("Starting send to main account " + mainAccount + "  amount = " + balance);
             wallet.send(mainAccount, balance, "", 0, 10);
