@@ -1,9 +1,7 @@
 package me.exrates.config;
 
-import info.blockchain.api.exchangerates.Currency;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
@@ -11,13 +9,10 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
-import me.exrates.service.nem.XemMosaicService;
-import me.exrates.service.nem.XemMosaicServiceImpl;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
-import org.nem.core.model.primitive.Supply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -409,19 +404,6 @@ public class CryptocurrencyConfig {
             put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
         }};
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
-    }
-
-
-    @Bean(name = "digicServiceImpl")
-    public XemMosaicService npxsService() {
-        return new XemMosaicServiceImpl(
-                "DIGIT",
-                "DIGIT",
-                new MosaicIdDto("digit", "coin"),
-                1000000,
-                6,
-                new Supply(8999999999L),
-                10);
     }
 }
 
