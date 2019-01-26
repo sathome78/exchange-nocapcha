@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 @Log4j2
 @EnableScheduling
@@ -115,7 +116,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                         .subtract(BigDecimal.valueOf(100));
 
                 ratesRedisRepository.update(dto.toBuilder()
-                        .currencyPairId(pairId)
                         .lastOrderRate(lastOrderRate.toString())
                         .predLastOrderRate(preLastOrderRate.toString())
                         .percentChange(percentChange.toString())
@@ -161,7 +161,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getCurrenciesRates(List<Integer> id) {
-        if (id == null || id.isEmpty()) {
+        if (isEmpty(id)) {
             return Collections.emptyList();
         }
         return ratesRedisRepository.getByListId(id);

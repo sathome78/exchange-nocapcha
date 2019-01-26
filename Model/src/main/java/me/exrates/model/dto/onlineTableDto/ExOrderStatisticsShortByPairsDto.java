@@ -62,5 +62,4 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
         result = 31 * result + (predLastOrderRate != null ? predLastOrderRate.hashCode() : 0);
         return result;
     }
-
 }
