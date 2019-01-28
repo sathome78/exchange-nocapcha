@@ -10,16 +10,16 @@ INSERT INTO USER_ROLE_SETTINGS (user_role_id, order_acception_same_role_only, ma
 VALUES (@new_role_id, 1, 0, 0, 1, 0);
 
 
-INSERT INTO COMMISSION (operation_type, value, user_role, unit_value) VALUES
- (1, 0, @new_role_id, 0),
- (2, 0.2, @new_role_id, 0),
- (3, 0.2, @new_role_id, 0),
- (4, 0.2, @new_role_id, 0),
- (5, 0, @new_role_id, 0),
- (6, 0, @new_role_id, 0),
- (7, 0, @new_role_id, 0),
- (8, 0, @new_role_id, 0),
- (9, 1, @new_role_id, 0);
+INSERT INTO COMMISSION (operation_type, value, user_role) VALUES
+ (1, 0, @new_role_id),
+ (2, 0.2, @new_role_id),
+ (3, 0.2, @new_role_id),
+ (4, 0.2, @new_role_id),
+ (5, 0, @new_role_id),
+ (6, 0, @new_role_id),
+ (7, 0, @new_role_id),
+ (8, 0, @new_role_id),
+ (9, 1, @new_role_id);
 
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
 SELECT CP.id, @new_role_id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
