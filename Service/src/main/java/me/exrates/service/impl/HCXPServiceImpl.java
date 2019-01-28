@@ -76,7 +76,7 @@ public class HCXPServiceImpl implements MoneroService {
 
     private String mainAccount;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private static final int INTEGRATED_ADDRESS_DIGITS = 16;
 
