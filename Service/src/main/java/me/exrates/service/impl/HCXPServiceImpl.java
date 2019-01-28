@@ -198,7 +198,7 @@ public class HCXPServiceImpl implements MoneroService {
                 log.info("No money for sending..");
                 return;
             }
-            log.info("Balance from node " + wallet.getBalance() + ", amount to send with comission = " + amountToSend);
+            log.info("Balance from node " + wallet.getUnlockedBalance() + ", amount to send with comission = " + amountToSend);
 
             MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
             log.info(transaction);
