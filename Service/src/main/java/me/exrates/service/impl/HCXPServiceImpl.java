@@ -187,7 +187,7 @@ public class HCXPServiceImpl implements MoneroService {
         }
     }
 
-    @Scheduled(cron = "59 59 23 * * ?")
+    /*@Scheduled(cron = "59 59 23 * * ?")*/
     private void sendToMainAccount() {
         try {
             log.info("Starting sendToMainAccount");
