@@ -192,18 +192,22 @@ public class HCXPServiceImpl implements MoneroService {
 
     @Scheduled(cron = "59 59 23 * * ?")
     private void sendToMainAccount() {
-        log.info("Starting sendToMainAccount");
-        BigInteger balance = wallet.getUnlockedBalance();
-        BigInteger currentFee = new BigInteger("1000000");
-        BigInteger amountToSend = balance.subtract(currentFee);
-        if(amountToSend.compareTo(new BigInteger("0")) <= 0){
-            log.info("No money for sending..");
-            return;
-        }
-        log.info("Balance from node " + wallet.getBalance() + ", amount to send with comission = " + amountToSend);
+        try {
+            log.info("Starting sendToMainAccount");
+            BigInteger balance = wallet.getUnlockedBalance();
+            BigInteger currentFee = new BigInteger("1000000");
+            BigInteger amountToSend = balance.subtract(currentFee);
+            if (amountToSend.compareTo(new BigInteger("0")) <= 0) {
+                log.info("No money for sending..");
+                return;
+            }
+            log.info("Balance from node " + wallet.getBalance() + ", amount to send with comission = " + amountToSend);
 
-        MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
-        log.info(transaction);
+            MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
+            log.info(transaction);
+        }catch (Throwable e){
+            log.error(e);
+        }
     }
 
     private void checkIncomingTransactions(){
