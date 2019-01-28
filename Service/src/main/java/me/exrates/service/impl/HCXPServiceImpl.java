@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 import wallet.MoneroTransaction;
 
@@ -178,7 +179,6 @@ public class HCXPServiceImpl implements MoneroService {
                         checkIncomingTransactions();
                     }
                 }, 3, 30, TimeUnit.MINUTES);
-
                 scheduler.scheduleAtFixedRate(() ->  {
                     sendToMainAccount();
                 }, 0, 12, TimeUnit.HOURS);
@@ -190,9 +190,10 @@ public class HCXPServiceImpl implements MoneroService {
         }
     }
 
+    @Scheduled(cron = "59 59 23 * * ?")
     private void sendToMainAccount() {
         log.info("Starting sendToMainAccount");
-        BigInteger balance = wallet.getBalance();
+        BigInteger balance = wallet.getUnlockedBalance();
         BigInteger currentFee = new BigInteger("1000000");
         BigInteger amountToSend = balance.subtract(currentFee);
         if(amountToSend.compareTo(new BigInteger("0")) <= 0){
@@ -200,6 +201,7 @@ public class HCXPServiceImpl implements MoneroService {
             return;
         }
         log.info("Balance from node " + wallet.getBalance() + ", amout to send with comission = " + amountToSend);
+
         MoneroTransaction transaction = wallet.send(mainAccount, amountToSend, "", 0, 10);
         log.info(transaction);
     }
