@@ -1727,34 +1727,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
 	}
 
-	@Bean(name = "renServiceImpl")
-	public EthTokenService renServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x408e41876cccdc0f92210600ef50372656052a38");
-		return new EthTokenServiceImpl(tokensList, "REN","REN", true, ExConvert.Unit.ETHER);
-	}
-
-	@Bean(name = "metServiceImpl")
-	public EthTokenService metServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0xa3d58c4e56fedcae3a7c43a725aee9a71f0ece4e");
-		return new EthTokenServiceImpl(tokensList, "MET","MET", true, ExConvert.Unit.ETHER);
-	}
-
-	@Bean(name = "wabiServiceImpl")
-	public EthTokenService wabiServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x286bda1413a2df81731d4930ce2f862a35a609fe");
-		return new EthTokenServiceImpl(tokensList, "WaBi","WaBi", false, ExConvert.Unit.ETHER);
-	}
-
-	@Bean(name = "eltServiceImpl")
-	public EthTokenService eltServiceImpl(){
-		List<String> tokensList = new ArrayList<>();
-		tokensList.add("0x45d0bdfdfbfd62e14b64b0ea67dc6eac75f95d4d");
-		return new EthTokenServiceImpl(tokensList, "ELT","ELT", false, ExConvert.Unit.AIWEI);
-	}
-
 	@Bean(name = "hniServiceImpl")
 	public EthTokenService hniServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
