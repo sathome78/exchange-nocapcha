@@ -1,5 +1,5 @@
-INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
-VALUES ('DIGIT coin', 'DIGIT', 2, 'nemServiceImpl', 'CRYPTO');
+INSERT INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+VALUES ('DIGIT coin', 'DIGIT', 2, 'nemServiceImpl', 'CRYPTO', 33);
 INSERT INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('DIGIT', 'DIGIT coin', 0, 6, 6, 6);
 
@@ -8,7 +8,7 @@ INSERT INTO COMPANY_WALLET_EXTERNAL(currency_id) VALUES ((SELECT id from CURRENC
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name='DIGIT'),
           (SELECT id from CURRENCY WHERE name='DIGIT'),
-          0.00000001);
+          0.000001);
 
 INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='DIGIT')
 , '/client/img/merchants/DIGIT.png', 'DIGIT', (SELECT id from CURRENCY WHERE name='DIGIT'));
