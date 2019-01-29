@@ -37,4 +37,17 @@ public interface IRefillable extends IMerchantService{
   };
 
   default boolean concatAdditionalToMainAddress() { return false; }
+
+  default String getMerchantName(){
+    return "Not defined";
+  }
+
+  default long getBlocksCount() throws BitcoindException, CommunicationException {
+    throw new NotImplimentedMethod("Not implemented yet");
+  }
+
+  default Long getLastBlockTime() throws BitcoindException, CommunicationException {
+    throw new NotImplimentedMethod("Not implemented yet");
+  }
+
 }

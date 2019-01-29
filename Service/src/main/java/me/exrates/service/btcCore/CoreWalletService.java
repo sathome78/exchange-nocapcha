@@ -70,4 +70,8 @@ public interface CoreWalletService {
   String getLastBlockHash();
 
   BtcBlockDto getBlockByHash(String blockHash);
+
+    long getBlocksCount() throws BitcoindException, CommunicationException;
+
+    Long getLastBlockTime() throws BitcoindException, CommunicationException;
 }
