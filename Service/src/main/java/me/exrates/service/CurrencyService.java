@@ -117,4 +117,6 @@ public interface CurrencyService {
     List<CurrencyPair> findAllCurrencyPair();
 
     boolean updateVisibilityCurrencyPairById(int currencyPairId);
+
+    boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 }
