@@ -394,4 +394,4 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 
-gtag('config', 'GTM-TPR6SBC');
+gtag('config', 'UA-75711135-1');
