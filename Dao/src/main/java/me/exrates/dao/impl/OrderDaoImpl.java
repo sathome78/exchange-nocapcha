@@ -1037,7 +1037,7 @@ public class OrderDaoImpl implements OrderDao {
 
         LOGGER.debug(selectQuery);
 
-        return namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, row) -> {
+        return slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, row) -> {
             OrderReportInfoDto orderReportInfoDto = new OrderReportInfoDto();
             orderReportInfoDto.setId(rs.getInt("id"));
             orderReportInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
