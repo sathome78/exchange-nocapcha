@@ -38,15 +38,19 @@ public class OrderMessageJspListener {
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
     public void processOrder(String orderJson) {
+        log.info("Starting processing order {}", orderJson);
         InputCreateOrderDto order;
         try {
             order = objectMapper.readValue(orderJson, InputCreateOrderDto.class);
+            log.info("Received order from demo {}", order);
         } catch (IOException e) {
             log.error("Failed read orderJson {}, e {}", orderJson, e);
             throw new RabbitMqException("Failed read orderJson " + orderJson + "e {}" + e.getLocalizedMessage());
         }
         OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), order.getCurrencyPairId(), order.getStop());
-        orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
+        log.info("Creating OrderCreateSummaryDto {}", orderCreateSummaryDto);
+        String orderToDB = orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
+        log.info("Recorder to DB {}", orderToDB);
         ordersEventHandleService.handleOrderEventOnMessage(order);
         log.info("Order saved: " + order);
     }
