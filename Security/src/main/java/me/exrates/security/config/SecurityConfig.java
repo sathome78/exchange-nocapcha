@@ -148,6 +148,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
                     "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update",
                     "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update",
+                    "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update",
                     "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
             .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
@@ -269,7 +270,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/getMerchantInputCommissionNotification").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()
             .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-            UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
+            UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name(), UserRole.OUTER_MARKET_BOT.name())
             /*user withdraw action ...*/
             .antMatchers(POST, "/withdraw/request/**").authenticated()
             /*... user withdraw action*/
