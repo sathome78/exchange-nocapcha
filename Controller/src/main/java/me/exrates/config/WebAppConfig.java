@@ -1727,6 +1727,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "RDN","RDN", true, ExConvert.Unit.ETHER);
 	}
 
+	@Bean(name = "hniServiceImpl")
+	public EthTokenService hniServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xd6cb175719365a2ea630f266c53ddfbe4e468e25");
+		return new EthTokenServiceImpl(tokensList, "HNI","HNI", true, ExConvert.Unit.ETHER);
+  }
+
 	@Bean(name = "eltServiceImpl")
 	public EthTokenService eltServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
