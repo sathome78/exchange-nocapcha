@@ -200,7 +200,7 @@ public class OmniTransactionServiceImpl implements OmniTransactionService {
             throw new RuntimeException("error transfer");
         }
         String innerTXHash = res.getString("result");
-        refillService.setInnerTransferHash(dto.getId(), innerTXHash);
+        /*refillService.setInnerTransferHash(dto.getId(), innerTXHash);*/ /*todo set hash to request, not to address*/
         log.debug("tx hash {}", innerTXHash);
     }
 
