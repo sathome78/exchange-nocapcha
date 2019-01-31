@@ -35,7 +35,7 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'USDT'));
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'BTC'), (select id from CURRENCY where name = 'USDT'), 'BTC/USDT', 160, 1, 'USDT', 'BTC/USDT');
+VALUES((select id from CURRENCY where name = 'BTC'), (select id from CURRENCY where name = 'USDT'), 'BTC/USDT', 160, 0, 'USDT', 'BTC/USDT');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -43,7 +43,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='BTC/USDT';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'ETH'), (select id from CURRENCY where name = 'USDT'), 'ETH/USDT', 160, 1, 'USDT', 'ETH/USDT');
+VALUES((select id from CURRENCY where name = 'ETH'), (select id from CURRENCY where name = 'USDT'), 'ETH/USDT', 160, 0, 'USDT', 'ETH/USDT');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
