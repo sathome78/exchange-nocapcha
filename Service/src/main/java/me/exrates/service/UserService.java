@@ -195,4 +195,6 @@ public interface UserService {
     Integer updateGaTag(String gatag, String userName);
 
     String findEmailById(int id);
+
+    void blockUserByRequest(int userId);
 }
