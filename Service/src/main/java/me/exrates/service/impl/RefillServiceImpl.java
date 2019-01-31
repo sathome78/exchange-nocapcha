@@ -1276,7 +1276,7 @@ public class RefillServiceImpl implements RefillService {
     public int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto) {
         int requestId = createRefillRequestByFact(requestAcceptDto);
         try {
-            this.setHashByReqestId(requestId, requestAcceptDto.getMerchantTransactionId());
+            this.setHashByRequestId(requestId, requestAcceptDto.getMerchantTransactionId());
         } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
             log.error(e);
             throw new RuntimeException(e);
@@ -1286,7 +1286,7 @@ public class RefillServiceImpl implements RefillService {
 
     @Transactional
     @Override
-    public void setHashByReqestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
+    public void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
         refillRequestDao.setMerchantTransactionIdById(requestId, hash);
     }
 

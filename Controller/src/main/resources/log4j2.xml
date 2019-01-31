@@ -618,8 +618,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="omni_log" fileName="${sys:catalina.home}/logs/merchants/omni.log"
-                     filePattern="${sys:catalina.home}/logs/merchants/omni_log%d_%i.log" append="true">
+        <RollingFile name="omni_log" fileName="${sys:catalina.home}/logs/crypto/omni.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/omni_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -886,7 +886,7 @@
         <logger name="Qiwi" level="ALL" additivity="false">
             <AppenderRef ref="qiwi_log"/>
         </logger>
-        <logger name="Omni" level="ALL" additivity="false">
+        <logger name="omni_log" level="ALL" additivity="false">
             <AppenderRef ref="omni_log"/>
         </logger>
         <Root level="INFO">

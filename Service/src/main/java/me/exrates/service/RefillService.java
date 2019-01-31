@@ -185,7 +185,7 @@ public interface RefillService {
     int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto);
 
     @Transactional
-    void setHashByReqestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+    void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 
     @Transactional
     void setInnerTransferHash(int requestId, String hash);

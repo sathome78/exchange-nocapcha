@@ -70,7 +70,7 @@ public class OmniServiceImpl implements OmniService {
     }
 
     @PostConstruct
-    private void inti() {
+    private void init() {
         currency = currencyService.findByName(CURRENCY_NAME);
         merchant = merchantService.findByName(MERCHANT_NAME);
     }
