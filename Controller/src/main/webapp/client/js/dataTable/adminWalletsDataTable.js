@@ -24,14 +24,17 @@ $(function () {
     $('#exclude-zero-balances').prop('checked', true);
     $('#walletsTable').hide();
     $('#wallets-table-init').click(function () {
-        loadWalletsTable();
+        loadWalletsTable(false);
+    });
+
+    $('#wallets-table-balances-only').click(function () {
+        loadWalletsTable(true);
     });
 
 
-    function loadWalletsTable() {
+    function loadWalletsTable(onlyBalances) {
         var id = $("#user-id").val();
-        var url = '/2a8fy7b07dxe44/wallets?id=' + id;
-
+        var url = '/2a8fy7b07dxe44/wallets?id=' + id + '&onlyBalances=' + onlyBalances;
         if ($.fn.dataTable.isDataTable('#walletsTable')) {
             walletsDataTable = $('#walletsTable').DataTable();
             walletsDataTable.ajax.url(url).load()
@@ -54,6 +57,12 @@ $(function () {
                         },
                         {
                             "data": "activeBalance",
+                            "render": function (data, type, row) {
+                                return formatDecimalValue(data);
+                            }
+                        },
+                        {
+                            "data": "reservedBalance",
                             "render": function (data, type, row) {
                                 return formatDecimalValue(data);
                             }
@@ -90,12 +99,6 @@ $(function () {
                         },
                         {
                             "data": "totalOutput",
-                            "render": function (data, type, row) {
-                                return formatDecimalValue(data);
-                            }
-                        },
-                        {
-                            "data": "reservedBalance",
                             "render": function (data, type, row) {
                                 return formatDecimalValue(data);
                             }

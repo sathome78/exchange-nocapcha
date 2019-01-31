@@ -1326,6 +1326,44 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
+    public String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId) {
+        final String sql = "SELECT u.email" +
+                " FROM REFILL_REQUEST_ADDRESS rra" +
+                " JOIN USER u on u.id = rra.user_id " +
+                " WHERE rra.address = :address AND rra.currency_id = :currencyId AND rra.merchant_id = :merchantId";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("address", address);
+            put("currencyId", currencyId);
+            put("merchantId", merchantId);
+        }};
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+        } catch (Exception ex) {
+            log.debug("Username (email) not found by address: {}, currency id: {} and merchant id: {}", address, currencyId, merchantId);
+            return null;
+        }
+    }
+
+    @Override
+    public String getGaTagByRequestId(int requestId) {
+        final String sql = "SELECT u.GA" +
+                " FROM REFILL_REQUEST rr" +
+                " JOIN USER u on u.id = rr.user_id " +
+                " WHERE rr.id = :requestId";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("requestId", requestId);
+        }};
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+        } catch (Exception ex) {
+            log.debug("Username (email) not found by request id: {}", requestId);
+            return null;
+        }
+    }
+
+    @Override
     public boolean setAddressBlocked(String address, int merchantId, int currencyId, boolean blocked) {
         String sql = "UPDATE REFILL_REQUEST_ADDRESS SET blocked = :blocked WHERE address = :address" +
                 " AND merchant_id = :merchant_id AND currency_id = :currency_id";

@@ -62,11 +62,29 @@
             </div>
 
             <div class="field field--btn__new">
-                <input id="pass_submit" class="btn__new btn__new--form" type="submit" value="Update password" disabled>
+                <input id="pass_submit" onclick="sendUpdatePassword()" class="btn__new btn__new--form" type="submit"
+                       value="Update password" disabled>
             </div>
         </form>
     </div>
 </div>
 </body>
+<script>
+
+
+    function sendUpdatePassword() {
+        dataLayer.push({'event': 'Pass-recover', 'eventCategory': 'Pass-recover'})
+    }
+
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'UA-75711135-1');
+</script>
 </html>
 

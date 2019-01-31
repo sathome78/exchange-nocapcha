@@ -18,26 +18,7 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairLimitDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -80,7 +61,6 @@ import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
-import me.exrates.service.RabbitMqService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
@@ -103,7 +83,9 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.OrderNotFoundException;
 import me.exrates.service.exception.WalletCreationException;
+import me.exrates.service.exception.api.CancelOrderException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -1162,9 +1144,17 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public void cancelOrder(Integer orderId) {
-        ExOrder exOrder = getOrderById(orderId);
-
-        cancelOrder(exOrder);
+        ExOrder exOrder;
+        try {
+            exOrder = getOrderById(orderId);
+            if (isNull(exOrder)) {
+                throw new OrderNotFoundException(String.format("Order: %s not found", orderId));
+            }
+            cancelOrder(exOrder);
+        } catch (Exception ex) {
+            logger.error("Error while cancelling order: {}", ex.getLocalizedMessage());
+            throw new CancelOrderException(ex);
+        }
     }
 
     @Transactional
@@ -1187,8 +1177,8 @@ public class OrderServiceImpl implements OrderService {
         openedOrders.forEach(this::cancelOrder);
     }
 
-    private boolean cancelOrder(ExOrder exOrder) {
-        return cancelOrder(exOrder, null);
+    private void cancelOrder(ExOrder exOrder) {
+        cancelOrder(exOrder, null);
     }
 
     @Transactional(rollbackFor = {Exception.class})
@@ -1197,42 +1187,38 @@ public class OrderServiceImpl implements OrderService {
         if (isNull(locale)) {
             final String currentUserEmail = getUserEmailFromSecurityContext();
 
-            final String creatorEmail = userService.getEmailById(exOrder.getUserId());
+            final int userId = exOrder.getUserId();
+
+            final String creatorEmail = userService.getEmailById(userId);
             if (!currentUserEmail.equals(creatorEmail)) {
                 throw new IncorrectCurrentUserException(String.format("Creator email: %s and currentUser email: %s are different", creatorEmail, currentUserEmail));
             }
-
             locale = userService.getUserLocaleForMobile(currentUserEmail);
         }
-        try {
-            WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
-                    exOrder.getId(),
-                    exOrder.getOperationType());
-            OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
-            if (currentStatus != OrderStatus.OPENED) {
-                throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
-            }
-            String description = transactionDescription.get(currentStatus, CANCEL);
-            WalletTransferStatus transferResult = walletService.walletInnerTransfer(
-                    walletsForOrderCancelDto.getWalletId(),
-                    walletsForOrderCancelDto.getReservedAmount(),
-                    TransactionSourceType.ORDER,
-                    exOrder.getId(),
-                    description);
-            if (transferResult != WalletTransferStatus.SUCCESS) {
-                throw new OrderCancellingException(transferResult.toString());
-            }
+        WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
+                exOrder.getId(),
+                exOrder.getOperationType());
 
-            boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
-            if (result) {
-                exOrder.setStatus(OrderStatus.CANCELLED);
-                eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
-            }
-            return result;
-        } catch (Exception e) {
-            logger.error("Error while cancelling order " + exOrder.getId() + " , " + e.getLocalizedMessage());
-            throw e;
+        OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
+        if (currentStatus != OrderStatus.OPENED) {
+            throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
         }
+        String description = transactionDescription.get(currentStatus, CANCEL);
+        WalletTransferStatus transferResult = walletService.walletInnerTransfer(
+                walletsForOrderCancelDto.getWalletId(),
+                walletsForOrderCancelDto.getReservedAmount(),
+                TransactionSourceType.ORDER,
+                exOrder.getId(),
+                description);
+        if (transferResult != WalletTransferStatus.SUCCESS) {
+            throw new OrderCancellingException(transferResult.toString());
+        }
+        boolean result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
+        if (result) {
+            exOrder.setStatus(OrderStatus.CANCELLED);
+            eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
+        }
+        return result;
     }
 
 
@@ -1554,6 +1540,12 @@ public class OrderServiceImpl implements OrderService {
         output.setRecordsTotal(searchResult.getTotal());
         output.setRecordsFiltered(searchResult.getFiltered());
         return output;
+    }
+
+    @Override
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+        adminOrderFilterData.initFilterItems();
+        return orderDao.getOrdersForReport(adminOrderFilterData);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.exrates.model.dto;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
@@ -34,6 +35,8 @@ public class InputCreateOrderDto {
     private BigDecimal stop;
 
     private String status;
+    private int userId;
+    private CurrencyPair currencyPair;
 
     public InputCreateOrderDto() {
     }
@@ -45,6 +48,7 @@ public class InputCreateOrderDto {
         dto.setCurrencyPairId(exOrder.getCurrencyPairId());
         dto.setOrderType(exOrder.getOperationType().toString());
         dto.setRate(exOrder.getExRate());
+        dto.setCurrencyPair(exOrder.getCurrencyPair());
         return dto;
     }
 
@@ -150,5 +154,21 @@ public class InputCreateOrderDto {
         sb.append(", stop=").append(stop);
         sb.append('}');
         return sb.toString();
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public CurrencyPair getCurrencyPair() {
+        return currencyPair;
+    }
+
+    public void setCurrencyPair(CurrencyPair currencyPair) {
+        this.currencyPair = currencyPair;
     }
 }

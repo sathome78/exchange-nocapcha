@@ -1,6 +1,7 @@
 package me.exrates.service.apollo;
 
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -10,6 +11,7 @@ import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -33,8 +35,10 @@ import java.util.Optional;
 @Service
 public class ApolloServiceImpl implements ApolloService {
 
-    private @Value("${apollo.url}")String SEVER_URL;
-    private @Value("${apollo.main_address}")String MAIN_ADDRESS;
+    private @Value("${apollo.url}")
+    String SEVER_URL;
+    private @Value("${apollo.main_address}")
+    String MAIN_ADDRESS;
     private static final String APOLLO_MERCHANT_CURRENCY = "APL";
     private Merchant merchant;
     private Currency currency;
@@ -51,6 +55,8 @@ public class ApolloServiceImpl implements ApolloService {
     private AlgorithmService algorithmService;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     @PostConstruct
     public void init() {
@@ -64,7 +70,7 @@ public class ApolloServiceImpl implements ApolloService {
         String message = messageSource.getMessage("merchants.refill.apl",
                 new Object[]{MAIN_ADDRESS, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  destinationTag);
+            put("address", destinationTag);
             put("message", message);
             put("qr", MAIN_ADDRESS);
         }};
@@ -117,12 +123,15 @@ public class ApolloServiceImpl implements ApolloService {
         }
     }
 
+    @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
         String hash = params.get("hash");
         BigDecimal amount = new BigDecimal(params.get("amount"));
+        int id = Integer.parseInt(params.get("id"));
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                .requestId(id)
                 .address(address)
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
@@ -131,6 +140,9 @@ public class ApolloServiceImpl implements ApolloService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
+        final String username = refillService.getUsernameByRequestId(id);
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override

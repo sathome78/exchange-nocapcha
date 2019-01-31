@@ -7,10 +7,10 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 @Getter
 @ToString
 public class OpenApiError {
+
     private final ErrorCode errorCode;
     private final String url;
     public final String detail;
-
 
     public OpenApiError(ErrorCode errorCode, CharSequence url, Exception ex) {
         this.errorCode = errorCode;

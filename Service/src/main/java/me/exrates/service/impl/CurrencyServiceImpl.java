@@ -144,6 +144,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
+        return currencyDao.getAllCurrencyPairs(type);
+    }
+
+    @Override
     public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
         List<CurrencyPair> result = currencyDao.getAllCurrencyPairs(type);
         result.sort(Comparator.comparing(CurrencyPair::getName));
@@ -334,5 +339,30 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         return currencyDao.findActiveCurrencyPairs();
+    }
+
+    @Override
+    public List<Currency> findAllCurrency(){
+        return currencyDao.findAllCurrency();
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyById(int currencyId){
+        return currencyDao.updateVisibilityCurrencyById(currencyId);
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrencyPair(){
+        return currencyDao.findAllCurrencyPair();
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyPairById(int currencyPairId){
+        return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
+    }
+
+    @Override
+    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
+        return currencyDao.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
     }
 }

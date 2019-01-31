@@ -1,6 +1,3 @@
-
-
-
 $(function () {
     var $pinInput = $('#pin');
     var $pinSendButton = $('#send_pin');
@@ -12,22 +9,22 @@ $(function () {
     });
 
     function checkPinInput() {
-       if ($pinInput.val().length > 3 && $pinInput.val().length < 20) {
-           $pinSendButton.prop('disabled', false);
-       } else {
-           $pinSendButton.prop('disabled', true);
-       }
+        if ($pinInput.val().length > 3 && $pinInput.val().length < 20) {
+            $pinSendButton.prop('disabled', false);
+        } else {
+            $pinSendButton.prop('disabled', true);
+        }
     }
 
-    $sendAgainButton.on('click', function(e) {
+    $sendAgainButton.on('click', function (e) {
         var $this = $(this);
 
         $this.addClass('disabled');
 
         // разблокировка
-        setTimeout(function() {
+        setTimeout(function () {
             $this.removeClass('disabled');
-        }, 15*1000);
+        }, 15 * 1000);
     });
 
     $sendAgainButton.on('click', function () {
@@ -41,7 +38,7 @@ $(function () {
             $('#res').text(response);
             $resultBlock.text('ok');
         }).fail(function (error, jqXHR, textStatus) {
-           $resultBlock.text(error.responseText).css('color', 'red');
+            $resultBlock.text(error.responseText).css('color', 'red');
         });
     });
 
@@ -53,3 +50,17 @@ function close() {
     console.log(banner);
     banner.style.display = "none"
 }
+
+function sendLoginSuccessGtag() {
+    dataLayer.push({'event': 'Login', 'eventCategory': 'Login_correct'})
+}
+
+window.dataLayer = window.dataLayer || [];
+
+function gtag() {
+    dataLayer.push(arguments);
+}
+
+gtag('js', new Date());
+
+gtag('config', 'UA-75711135-1');

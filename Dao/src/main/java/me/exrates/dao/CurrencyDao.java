@@ -47,6 +47,8 @@ public interface CurrencyDao {
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
+
     CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
     CurrencyPair findCurrencyPairById(int currencyPairId);
@@ -89,4 +91,14 @@ public interface CurrencyDao {
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
 
     Optional<Integer> findOpenCurrencyPairIdByName(String pairName);
+
+    List<Currency> findAllCurrency();
+
+    boolean updateVisibilityCurrencyById(int currencyId);
+
+    List<CurrencyPair> findAllCurrencyPair();
+
+    boolean updateVisibilityCurrencyPairById(int currencyPairId);
+
+    boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 }

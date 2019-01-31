@@ -81,24 +81,7 @@ import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.BotService;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
-import me.exrates.service.PhraseTemplateService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.RefillService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserRoleService;
-import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
-import me.exrates.service.UsersAlertsService;
-import me.exrates.service.WalletService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.NotCreatableOrderException;
@@ -107,6 +90,7 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.impl.EDCServiceNodeImpl;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
@@ -116,6 +100,7 @@ import me.exrates.service.omni.OmniServiceImpl;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -186,6 +171,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
+import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
@@ -261,7 +247,7 @@ public class AdminController {
     @Autowired
     private NotificatorsService notificatorsService;
     @Autowired
-    private NotificationsSettingsService notificationsSettingsService;
+    private EDCServiceNode edcServiceNode;
     @Autowired
     private UsersAlertsService alertsService;
     @Autowired
@@ -402,7 +388,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllAdmins() {
         List<UserRole> adminRoles = userRoleService.getRealUserRoleByGroupRoleList(ADMINS);
-        return userSecureService.getUsersByRoles(adminRoles);
+        List<UserRole> botRoles = userRoleService.getRealUserRoleByGroupRoleList(BOT);
+        return userSecureService.getUsersByRoles(new ArrayList<>(CollectionUtils.union(adminRoles, botRoles)));
     }
 
     @ResponseBody
@@ -428,9 +415,9 @@ public class AdminController {
     @AdminLoggable
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
+    public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id, @RequestParam(defaultValue = "false") Boolean onlyBalances) {
         boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
-        return getExtendedInfo ? walletService.getAllUserWalletsForAdminDetailed(id) :
+        return getExtendedInfo && !onlyBalances ? walletService.getAllUserWalletsForAdminDetailed(id) :
                 walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
     }
 
@@ -1038,6 +1025,38 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrency")
+    public List<Currency> getCurrency() {
+        return currencyService.findAllCurrency();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update")
+    public ResponseEntity<Void> updateVisibilityCurrencyById(@RequestParam("currencyId") int currencyId) {
+        currencyService.updateVisibilityCurrencyById(currencyId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/2a8fy7b07dxe44/merchantAccess/getCurrencyPairs")
+    public List<CurrencyPair> getCurrencyPairs() {
+        return currencyService.findAllCurrencyPair();
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
+    public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateVisibilityCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update")
+    public ResponseEntity<Void> updateAccessToDirectLinkCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -1279,12 +1298,19 @@ public class AdminController {
 
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
-                                                                              @RequestParam("token") String token) {
+                                                                              @RequestParam("token") String token,
+                                                                              @RequestParam(value = "address", required = false) String address) throws IOException {
 
         if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
             throw new RuntimeException("Some unexpected exception");
         }
-        Currency byName = currencyService.findByName(currencyName);
+        if(currencyName.equals("EDR")){
+            String balance = edcServiceNode.extractBalance(address, 0);
+            Map<String,String> response = new HashMap<>();
+            response.put("EDR",balance);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+            Currency byName = currencyService.findByName(currencyName);
 
         List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
         List<Merchant> collect = allByCurrency.stream().

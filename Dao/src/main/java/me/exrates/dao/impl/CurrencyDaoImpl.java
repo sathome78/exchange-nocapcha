@@ -233,6 +233,20 @@ public class CurrencyDaoImpl implements CurrencyDao {
         return jdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
     }
 
+    @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
+        String typeClause = "";
+        if (type != null && type != CurrencyPairType.ALL) {
+            typeClause = " WHERE type =:pairType ";
+        }
+        String sql = "SELECT id, currency1_id, currency2_id, name, market, type, " +
+                "(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+                "(select name from CURRENCY where id = currency2_id) as currency2_name " +
+                " FROM CURRENCY_PAIR " + typeClause +
+                " ORDER BY -pair_order DESC";
+        return jdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+    }
+
 
     @Override
     public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
@@ -556,6 +570,56 @@ public class CurrencyDaoImpl implements CurrencyDao {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
-
     }
+
+    @Override
+    public List<Currency> findAllCurrency() {
+        String sql = "SELECT id, name, description, hidden FROM CURRENCY";
+        return jdbcTemplate.query(sql, (rs, i) -> {
+            Currency result = new Currency();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setDescription(rs.getString("description"));
+            result.setHidden(rs.getBoolean("hidden"));
+            return result;
+        });
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyById(int currencyId) {
+        String sql = "UPDATE CURRENCY SET hidden = !hidden WHERE id = :currency_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_id", currencyId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrencyPair() {
+        String sql = "SELECT id, name, hidden, permitted_link FROM CURRENCY_PAIR";
+        return jdbcTemplate.query(sql, (rs, i) -> {
+            CurrencyPair result = new CurrencyPair();
+            result.setId(rs.getInt("id"));
+            result.setName(rs.getString("name"));
+            result.setHidden(rs.getBoolean("hidden"));
+            result.setPermittedLink(rs.getBoolean("permitted_link"));
+            return result;
+        });
+    }
+
+    @Override
+    public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
+        String sql = "UPDATE CURRENCY_PAIR SET hidden = !hidden WHERE id = :currency_pair_id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("currency_pair_id", currencyPairId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
+        String sql = "UPDATE CURRENCY_PAIR SET permitted_link = !permitted_link WHERE id = :currency_pair_id";
+            Map<String, Object> params = new HashMap<>();
+            params.put("currency_pair_id", currencyPairId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
 }

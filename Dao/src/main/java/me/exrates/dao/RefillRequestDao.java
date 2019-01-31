@@ -146,6 +146,10 @@ public interface RefillRequestDao {
 
     List<RefillRequestAddressDto> findByAddress(String address);
 
+    String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
+
+    String getGaTagByRequestId(int requestId);
+
     boolean setAddressBlocked(String address, int merchantId, int currencyId, boolean blocked);
 
     List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);

@@ -227,6 +227,7 @@ $(function refillCreation() {
                 data: JSON.stringify(data)
             }).success(function (result) {
                 console.log(result);
+                dataLayer.push({'event':'Refill','eventCategory':'Refill_coin','EventLabel':""+data.currency+""});
                 if (!result || !result['redirectionUrl']) {
                     var qrTag = result['params']['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['params']['qr'] + "'/>" : '';
                     showRefillDialogAfterCreation(result['params']['message'], qrTag, result['requestId']);
@@ -387,5 +388,10 @@ $(function refillCreation() {
             }
         });
     }
-
 });
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'UA-75711135-1');

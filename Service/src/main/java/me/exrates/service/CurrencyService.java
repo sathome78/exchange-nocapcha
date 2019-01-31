@@ -48,6 +48,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
+
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
     CurrencyPair findCurrencyPairById(int currencyPairId);
@@ -107,4 +109,14 @@ public interface CurrencyService {
     boolean isIco(Integer currencyId);
 
     List<CurrencyPairInfoItem> findActiveCurrencyPairs();
+
+    List<Currency> findAllCurrency();
+
+    boolean updateVisibilityCurrencyById(int currencyId);
+
+    List<CurrencyPair> findAllCurrencyPair();
+
+    boolean updateVisibilityCurrencyPairById(int currencyPairId);
+
+    boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 }

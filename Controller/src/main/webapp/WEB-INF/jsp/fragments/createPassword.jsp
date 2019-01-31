@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="field field--btn__new">
-                    <input id="pass_submit" class="btn__new btn__new--form" type="submit" value="Finish registration" disabled>
+                    <input id="pass_submit" onclick="sendConfirmRegistrationGtag()" class="btn__new btn__new--form" type="submit" value="Finish registration" disabled>
                 </div>
             </form>
         </div>

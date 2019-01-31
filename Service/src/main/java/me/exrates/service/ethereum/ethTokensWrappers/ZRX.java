@@ -8,7 +8,6 @@ import java.util.List;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
 import org.web3j.abi.datatypes.Event;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.Type;
@@ -36,42 +35,24 @@ import rx.functions.Func1;
  *
  * <p>Generated with web3j version 3.4.0.
  */
-public class ECT extends Contract implements ethTokenERC20{
-    private static final String BINARY = "60806040526305f5e1006000556101f460019081556002805460ff1916909117905534801561002d57600080fd5b5060028054749f58eea92d1d1c6ec647d933c273830fa13231080061010060a860020a0319909116179081905560008054610100909204600160a060020a03168152600360205260409020556109a2806100886000396000f3006080604052600436106100fb5763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166306fdde038114610105578063095ea7b31461018f5780630ced8c69146101c757806318160ddd146101dc5780632095f2d41461020357806323b872dd146102185780632a8092df14610242578063313ce567146102575780633eaaf86b146102825780635c07ac9414610297578063664e9704146102af5780636d1b229d146102c457806370a08231146102dc5780638da5cb5b146102fd57806395d89b411461032e578063a9059cbb14610343578063b4427263146100fb578063dd62ed3e14610367575b61010361038e565b005b34801561011157600080fd5b5061011a61045c565b6040805160208082528351818301528351919283929083019185019080838360005b8381101561015457818101518382015260200161013c565b50505050905090810190601f1680156101815780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561019b57600080fd5b506101b3600160a060020a0360043516602435610493565b604080519115158252519081900360200190f35b3480156101d357600080fd5b5061011a6104f9565b3480156101e857600080fd5b506101f1610559565b60408051918252519081900360200190f35b34801561020f57600080fd5b5061010361055f565b34801561022457600080fd5b506101b3600160a060020a0360043581169060243516604435610587565b34801561024e57600080fd5b506101b36106f6565b34801561026357600080fd5b5061026c6106ff565b6040805160ff9092168252519081900360200190f35b34801561028e57600080fd5b506101f1610704565b3480156102a357600080fd5b5061010360043561070a565b3480156102bb57600080fd5b506101f161072b565b3480156102d057600080fd5b50610103600435610731565b3480156102e857600080fd5b506101f1600160a060020a03600435166107bf565b34801561030957600080fd5b506103126107da565b60408051600160a060020a039092168252519081900360200190f35b34801561033a57600080fd5b5061011a6107ee565b34801561034f57600080fd5b506101b3600160a060020a0360043516602435610825565b34801561037357600080fd5b506101f1600160a060020a03600435811690602435166108ff565b60025460009060ff1615156001141561045457600034116103ae57600080fd5b6001546103c290349063ffffffff61092a16565b336000908152600360205260409020549091506103e5908263ffffffff61095516565b3360009081526003602052604081209190915554610409908263ffffffff61095516565b6000908155600254604051600160a060020a0361010090920491909116913480156108fc02929091818181858888f1935050505015801561044e573d6000803e3d6000fd5b50610459565b600080fd5b50565b60408051808201909152600d81527f4575726f636f696e546f6b656e00000000000000000000000000000000000000602082015281565b336000818152600460209081526040808320600160a060020a038716808552908352818420869055815186815291519394909390927f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925928290030190a350600192915050565b606060405190810160405280603781526020017f4575726f636f696e546f6b656e202d2020546f6b656e202d20204575726f636f81526020017f696e706179202d204f66696369616c204552433230202000000000000000000081525081565b60005490565b6002546101009004600160a060020a0316331461057b57600080fd5b6002805460ff19169055565b600160a060020a038316600090815260046020908152604080832033845290915281205482118015906105d25750600160a060020a0384166000908152600360205260409020548211155b80156105de5750600082115b15156105e957600080fd5b600160a060020a038416600090815260036020526040902054610612908363ffffffff61096416565b600160a060020a038086166000908152600360205260408082209390935590851681522054610647908363ffffffff61095516565b600160a060020a03808516600090815260036020908152604080832094909455918716815260048252828120338252909152205461068b908363ffffffff61096416565b600160a060020a03808616600081815260046020908152604080832033845282529182902094909455805186815290519287169391927fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef929181900390910190a35060019392505050565b60025460ff1681565b600081565b60005481565b6002546101009004600160a060020a0316331461072657600080fd5b600155565b60015481565b6002546101009004600160a060020a0316331461074d57600080fd5b33600090815260036020526040902054811180159061076c5750600081115b151561077757600080fd5b60005461078a908263ffffffff61096416565b6000908155338152600360205260409020546107ac908263ffffffff61096416565b3360009081526003602052604090205550565b600160a060020a031660009081526003602052604090205490565b6002546101009004600160a060020a031681565b60408051808201909152600381527f4543540000000000000000000000000000000000000000000000000000000000602082015281565b3360009081526003602052604081205482118015906108445750600082115b151561084f57600080fd5b3360009081526003602052604090205461086f908363ffffffff61096416565b3360009081526003602052604080822092909255600160a060020a038516815220546108a1908363ffffffff61095516565b600160a060020a0384166000818152600360209081526040918290209390935580518581529051919233927fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9281900390910190a350600192915050565b600160a060020a03918216600090815260046020908152604080832093909416825291909152205490565b6000828202831580610946575082848281151561094357fe5b04145b151561094e57fe5b9392505050565b60008282018381101561094e57fe5b60008282111561097057fe5b509003905600a165627a7a72305820f3a01c9c5af18665bbf1240c8ff6827c7ac243070f0b6ebafc03337c7aaedd580029\n";
+public class ZRX extends Contract implements ethTokenERC20 {
+    private static final String BINARY = "60606040526b033b2e3c9fd0803ce8000000600355341561001c57fe5b5b600354600060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055505b5b610b82806100746000396000f30060606040523615610097576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806306fdde0314610099578063095ea7b31461013257806318160ddd1461018957806323b872dd146101af578063313ce5671461022557806370a082311461025157806395d89b411461029b578063a9059cbb14610334578063dd62ed3e1461038b575bfe5b34156100a157fe5b6100a96103f4565b60405180806020018281038252838181518152602001915080519060200190808383600083146100f8575b8051825260208311156100f8576020820191506020810190506020830392506100d4565b505050905090810190601f1680156101245780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b341561013a57fe5b61016f600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803590602001909190505061042e565b604051808215151515815260200191505060405180910390f35b341561019157fe5b610199610521565b6040518082815260200191505060405180910390f35b34156101b757fe5b61020b600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091908035906020019091905050610527565b604051808215151515815260200191505060405180910390f35b341561022d57fe5b610235610857565b604051808260ff1660ff16815260200191505060405180910390f35b341561025957fe5b610285600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061085c565b6040518082815260200191505060405180910390f35b34156102a357fe5b6102ab6108a6565b60405180806020018281038252838181518152602001915080519060200190808383600083146102fa575b8051825260208311156102fa576020820191506020810190506020830392506102d6565b505050905090810190601f1680156103265780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b341561033c57fe5b610371600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919080359060200190919050506108e0565b604051808215151515815260200191505060405180910390f35b341561039357fe5b6103de600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610ace565b6040518082815260200191505060405180910390f35b604060405190810160405280601181526020017f30782050726f746f636f6c20546f6b656e00000000000000000000000000000081525081565b600081600160003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925846040518082815260200191505060405180910390a3600190505b92915050565b60035481565b60006000600160008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905082600060008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054101580156105f95750828110155b80156106855750600060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205483600060008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020540110155b156108455782600060008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254019250508190555082600060008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600082825403925050819055507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8110156107d75782600160008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600082825403925050819055505b8373ffffffffffffffffffffffffffffffffffffffff168573ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef856040518082815260200191505060405180910390a36001915061084f565b6000915061084f565b5b509392505050565b601281565b6000600060008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205490505b919050565b604060405190810160405280600381526020017f5a5258000000000000000000000000000000000000000000000000000000000081525081565b600081600060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054101580156109b15750600060008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205482600060008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020540110155b15610abe5781600060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254039250508190555081600060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600082825401925050819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a360019050610ac8565b60009050610ac8565b5b92915050565b6000600160008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205490505b929150505600a165627a7a72305820d31ec12b6fe4e3204b5bdd3a3cafc924f0101471e7aa3e9460b81496e9067ec70029\n";
 
     public static final String FUNC_NAME = "name";
 
     public static final String FUNC_APPROVE = "approve";
 
-    public static final String FUNC_GENERATEDBY = "generatedBy";
-
     public static final String FUNC_TOTALSUPPLY = "totalSupply";
-
-    public static final String FUNC_ENDCROWDSALE = "endCrowdsale";
 
     public static final String FUNC_TRANSFERFROM = "transferFrom";
 
-    public static final String FUNC_ISMINTING = "isMinting";
-
     public static final String FUNC_DECIMALS = "decimals";
 
-    public static final String FUNC__TOTALSUPPLY = "_totalSupply";
-
-    public static final String FUNC_CHANGECROWDSALERATE = "changeCrowdsaleRate";
-
-    public static final String FUNC_RATE = "RATE";
-
-    public static final String FUNC_BURNTOKENS = "burnTokens";
-
     public static final String FUNC_BALANCEOF = "balanceOf";
-
-    public static final String FUNC_OWNER = "owner";
 
     public static final String FUNC_SYMBOL = "symbol";
 
     public static final String FUNC_TRANSFER = "transfer";
-
-    public static final String FUNC_CREATETOKENS = "createTokens";
 
     public static final String FUNC_ALLOWANCE = "allowance";
 
@@ -85,11 +66,11 @@ public class ECT extends Contract implements ethTokenERC20{
             Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
     ;
 
-    protected ECT(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+    protected ZRX(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    protected ECT(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+    protected ZRX(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
         super(BINARY, contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
@@ -109,26 +90,11 @@ public class ECT extends Contract implements ethTokenERC20{
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<String> generatedBy() {
-        final Function function = new Function(FUNC_GENERATEDBY, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
-    }
-
     public RemoteCall<BigInteger> totalSupply() {
         final Function function = new Function(FUNC_TOTALSUPPLY, 
                 Arrays.<Type>asList(), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteCall<TransactionReceipt> endCrowdsale() {
-        final Function function = new Function(
-                FUNC_ENDCROWDSALE, 
-                Arrays.<Type>asList(), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
     }
 
     public RemoteCall<TransactionReceipt> transferFrom(String _from, String _to, BigInteger _value) {
@@ -141,13 +107,6 @@ public class ECT extends Contract implements ethTokenERC20{
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<Boolean> isMinting() {
-        final Function function = new Function(FUNC_ISMINTING, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
-        return executeRemoteCallSingleValueReturn(function, Boolean.class);
-    }
-
     public RemoteCall<BigInteger> decimals() {
         final Function function = new Function(FUNC_DECIMALS, 
                 Arrays.<Type>asList(), 
@@ -155,48 +114,11 @@ public class ECT extends Contract implements ethTokenERC20{
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public RemoteCall<BigInteger> _totalSupply() {
-        final Function function = new Function(FUNC__TOTALSUPPLY, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteCall<TransactionReceipt> changeCrowdsaleRate(BigInteger _value) {
-        final Function function = new Function(
-                FUNC_CHANGECROWDSALERATE, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_value)), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
-    public RemoteCall<BigInteger> RATE() {
-        final Function function = new Function(FUNC_RATE, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
-        return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteCall<TransactionReceipt> burnTokens(BigInteger _value) {
-        final Function function = new Function(
-                FUNC_BURNTOKENS, 
-                Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Uint256(_value)), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function);
-    }
-
     public RemoteCall<BigInteger> balanceOf(String _owner) {
         final Function function = new Function(FUNC_BALANCEOF, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_owner)), 
                 Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}));
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
-    }
-
-    public RemoteCall<String> owner() {
-        final Function function = new Function(FUNC_OWNER, 
-                Arrays.<Type>asList(), 
-                Arrays.<TypeReference<?>>asList(new TypeReference<Address>() {}));
-        return executeRemoteCallSingleValueReturn(function, String.class);
     }
 
     public RemoteCall<String> symbol() {
@@ -215,14 +137,6 @@ public class ECT extends Contract implements ethTokenERC20{
         return executeRemoteCallTransaction(function);
     }
 
-    public RemoteCall<TransactionReceipt> createTokens(BigInteger weiValue) {
-        final Function function = new Function(
-                FUNC_CREATETOKENS, 
-                Arrays.<Type>asList(), 
-                Collections.<TypeReference<?>>emptyList());
-        return executeRemoteCallTransaction(function, weiValue);
-    }
-
     public RemoteCall<BigInteger> allowance(String _owner, String _spender) {
         final Function function = new Function(FUNC_ALLOWANCE, 
                 Arrays.<Type>asList(new org.web3j.abi.datatypes.Address(_owner), 
@@ -231,12 +145,12 @@ public class ECT extends Contract implements ethTokenERC20{
         return executeRemoteCallSingleValueReturn(function, BigInteger.class);
     }
 
-    public static RemoteCall<ECT> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(ECT.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
+    public static RemoteCall<ZRX> deploy(Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(ZRX.class, web3j, credentials, gasPrice, gasLimit, BINARY, "");
     }
 
-    public static RemoteCall<ECT> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return deployRemoteCall(ECT.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
+    public static RemoteCall<ZRX> deploy(Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return deployRemoteCall(ZRX.class, web3j, transactionManager, gasPrice, gasLimit, BINARY, "");
     }
 
     public List<TransferEventResponse> getTransferEvents(TransactionReceipt transactionReceipt) {
@@ -309,12 +223,12 @@ public class ECT extends Contract implements ethTokenERC20{
         return approvalEventObservable(filter);
     }
 
-    public static ECT load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
-        return new ECT(contractAddress, web3j, credentials, gasPrice, gasLimit);
+    public static ZRX load(String contractAddress, Web3j web3j, Credentials credentials, BigInteger gasPrice, BigInteger gasLimit) {
+        return new ZRX(contractAddress, web3j, credentials, gasPrice, gasLimit);
     }
 
-    public static ECT load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
-        return new ECT(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
+    public static ZRX load(String contractAddress, Web3j web3j, TransactionManager transactionManager, BigInteger gasPrice, BigInteger gasLimit) {
+        return new ZRX(contractAddress, web3j, transactionManager, gasPrice, gasLimit);
     }
 
     public static class TransferEventResponse {

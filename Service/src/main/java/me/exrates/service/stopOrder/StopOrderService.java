@@ -41,7 +41,7 @@ public interface StopOrderService {
     List<StopOrder> getActiveStopOrdersByCurrencyPairsId(List<Integer> pairIds);
 
     @Transactional
-    boolean cancelOrder(ExOrder exOrder, Locale locale);
+    boolean cancelOrder(int orderId, Locale locale);
 
     @Transactional
     boolean setStatus(int orderId, OrderStatus status);
