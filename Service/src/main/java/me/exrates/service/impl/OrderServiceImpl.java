@@ -18,7 +18,27 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -408,7 +428,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto) {
+    public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, boolean fromDemo, User user) {
         OrderValidationDto orderValidationDto = new OrderValidationDto();
         Map<String, Object> errors = orderValidationDto.getErrors();
         Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
@@ -419,8 +439,15 @@ public class OrderServiceImpl implements OrderService {
             errors.put("exrate_" + errors.size(), "order.fillfield");
         }
 
-        CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
-                orderCreateDto.getOperationType());
+        CurrencyPairLimitDto currencyPairLimit;
+        if (!fromDemo) {
+            currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
+                    orderCreateDto.getOperationType());
+        } else {
+            currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndTypeAndUser(orderCreateDto.getCurrencyPair().getId(),
+                    orderCreateDto.getOperationType(), user);
+        }
+
         if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
             if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
                 errors.put("stop_" + errors.size(), "order.fillfield");
@@ -621,7 +648,7 @@ public class OrderServiceImpl implements OrderService {
         OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
         log.debug("Order prepared" + orderCreateDto);
-        OrderValidationDto orderValidationDto = validateOrder(orderCreateDto);
+        OrderValidationDto orderValidationDto = validateOrder(orderCreateDto, false, null);
         Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), locale));

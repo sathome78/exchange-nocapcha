@@ -4,6 +4,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
@@ -261,6 +262,14 @@ public class CurrencyServiceImpl implements CurrencyService {
         UserRole userRole = userService.getUserRoleFromSecurityContext();
         OrderType orderType = OrderType.convert(operationType.name());
         return currencyDao.findCurrencyPairLimitForRoleByPairAndType(currencyPairId, userRole.getRole(), orderType.getType());
+    }
+
+    @Override
+    public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndTypeAndUser(Integer currencyPairId, OperationType operationType, User user) {
+        UserRole userRole = user.getRole();
+        OrderType orderType = OrderType.convert(operationType.name());
+        return currencyDao.findCurrencyPairLimitForRoleByPairAndType(currencyPairId, userRole.getRole(), orderType.getType());
+
     }
 
     @Override

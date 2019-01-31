@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.exception.RabbitMqException;
 import me.exrates.service.exception.RabbitMqException;
 import me.exrates.service.handler.OrdersEventHandleService;
@@ -32,12 +33,11 @@ public class OrderMessageJspListener {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     /*
      * This method is triggered if rabbit exchange receives message ({order}) from counterpart application
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
-    public void processOrder(String orderJson) {
+    public String processOrder(String orderJson) {
         log.info("Starting processing order {}", orderJson);
         InputCreateOrderDto order;
         try {
@@ -47,12 +47,18 @@ public class OrderMessageJspListener {
             log.error("Failed read orderJson {}, e {}", orderJson, e);
             throw new RabbitMqException("Failed read orderJson " + orderJson + "e {}" + e.getLocalizedMessage());
         }
-        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), order.getCurrencyPairId(), order.getStop());
+        OperationType orderType = OperationType.valueOf(order.getOrderType());
+        OrderBaseType baseType = convert(order.getBaseType());
+
+        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(orderType, order.getUserId(),
+                order.getAmount(), order.getRate(), baseType, order.getCurrencyPairId(), order.getStop());
+
         log.info("Creating OrderCreateSummaryDto {}", orderCreateSummaryDto);
         String orderToDB = orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
         log.info("Recorder to DB {}", orderToDB);
         ordersEventHandleService.handleOrderEventOnMessage(order);
         log.info("Order saved: " + order);
+        return "success";
     }
 
     // uncomment for testing as this order will be sent from this application

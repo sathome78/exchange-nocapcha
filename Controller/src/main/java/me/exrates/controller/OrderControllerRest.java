@@ -108,7 +108,7 @@ public class OrderControllerRest {
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/
-            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, false, null);
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
             if (!errorMap.isEmpty()) {
