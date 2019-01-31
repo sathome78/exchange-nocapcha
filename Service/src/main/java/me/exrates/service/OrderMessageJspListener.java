@@ -8,13 +8,15 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.exception.RabbitMqException;
 import me.exrates.service.handler.OrdersEventHandleService;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageBuilder;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import static me.exrates.model.enums.OrderBaseType.convert;
 
@@ -37,16 +39,16 @@ public class OrderMessageJspListener {
      * This method is triggered if rabbit exchange receives message ({order}) from counterpart application
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
-    public String processOrder(String orderJson) {
-        String processId = UUID.randomUUID().toString();
-        log.info("{} Starting processing order {}", processId, orderJson);
-        InputCreateOrderDto order;
+    public Message processOrder(Message message) {
+        String processId = (String) message.getMessageProperties().getHeaders().get("process-id");
+        log.info("{} ProcessId from demo Received:", processId);
+        InputCreateOrderDto order = null;
         try {
-            order = objectMapper.readValue(orderJson, InputCreateOrderDto.class);
+            order = objectMapper.readValue(message.getBody(), InputCreateOrderDto.class);
             log.info("{} Received order from demo {}", processId, order);
         } catch (IOException e) {
-            log.error("{} Failed read orderJson {}, e {}", processId ,orderJson, e);
-            throw new RabbitMqException("Failed read orderJson " + orderJson + "e {}" + e.getLocalizedMessage());
+            log.error("{} Failed read orderJson, e {}", processId, e);
+            throw new RabbitMqException("Failed read orderJson e {}" + e.getLocalizedMessage());
         }
         OperationType orderType = OperationType.valueOf(order.getOrderType());
         OrderBaseType baseType = convert(order.getBaseType());
@@ -55,11 +57,21 @@ public class OrderMessageJspListener {
                 order.getAmount(), order.getRate(), baseType, order.getCurrencyPairId(), order.getStop());
 
         log.info("{} Creating OrderCreateSummaryDto {}", processId, orderCreateSummaryDto);
+
         String orderToDB = orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
         log.info("{} Recorder to DB {}", processId, orderToDB);
+
         ordersEventHandleService.handleOrderEventOnMessage(order);
         log.info("{} Order saved: {}", processId, order);
-        return "success";
+
+        String success = "success";
+        Message messageBack = MessageBuilder
+                .withBody(success.getBytes())
+                .setHeader("process-id", processId)
+                .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+                .build();
+
+        return messageBack;
     }
 
     // uncomment for testing as this order will be sent from this application
