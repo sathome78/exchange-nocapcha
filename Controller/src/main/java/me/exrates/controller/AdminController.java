@@ -1165,7 +1165,7 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/createTransaction", method = RequestMethod.POST)
     @ResponseBody
-    public void getOmniBlockedAddressses(@RequestParam Map<String, String> params) {
+    public void getOmniCreateRefill(@RequestParam Map<String, String> params) {
         omniService.createRefillRequestAdmin(params);
     }
 
