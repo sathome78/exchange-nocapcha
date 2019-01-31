@@ -7,7 +7,6 @@ import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.exception.RabbitMqException;
-import me.exrates.service.exception.RabbitMqException;
 import me.exrates.service.handler.OrdersEventHandleService;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static me.exrates.model.enums.OrderBaseType.convert;
 
@@ -38,13 +38,14 @@ public class OrderMessageJspListener {
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
     public String processOrder(String orderJson) {
-        log.info("Starting processing order {}", orderJson);
+        String processId = UUID.randomUUID().toString();
+        log.info("{} Starting processing order {}", processId, orderJson);
         InputCreateOrderDto order;
         try {
             order = objectMapper.readValue(orderJson, InputCreateOrderDto.class);
-            log.info("Received order from demo {}", order);
+            log.info("{} Received order from demo {}", processId, order);
         } catch (IOException e) {
-            log.error("Failed read orderJson {}, e {}", orderJson, e);
+            log.error("{} Failed read orderJson {}, e {}", processId ,orderJson, e);
             throw new RabbitMqException("Failed read orderJson " + orderJson + "e {}" + e.getLocalizedMessage());
         }
         OperationType orderType = OperationType.valueOf(order.getOrderType());
@@ -53,11 +54,11 @@ public class OrderMessageJspListener {
         OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(orderType, order.getUserId(),
                 order.getAmount(), order.getRate(), baseType, order.getCurrencyPairId(), order.getStop());
 
-        log.info("Creating OrderCreateSummaryDto {}", orderCreateSummaryDto);
+        log.info("{} Creating OrderCreateSummaryDto {}", processId, orderCreateSummaryDto);
         String orderToDB = orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
-        log.info("Recorder to DB {}", orderToDB);
+        log.info("{} Recorder to DB {}", processId, orderToDB);
         ordersEventHandleService.handleOrderEventOnMessage(order);
-        log.info("Order saved: " + order);
+        log.info("{} Order saved: {}", processId, order);
         return "success";
     }
 
