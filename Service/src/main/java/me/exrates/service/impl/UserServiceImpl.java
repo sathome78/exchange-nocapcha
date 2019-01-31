@@ -479,7 +479,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String findById(int userId) {
+    public String findEmailById(int userId) {
         return userDao.getUserById(userId).getEmail();
     }
 

@@ -194,5 +194,5 @@ public interface UserService {
 
     Integer updateGaTag(String gatag, String userName);
 
-    String findById(int id);
+    String findEmailById(int id);
 }
