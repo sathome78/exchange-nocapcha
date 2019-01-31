@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.User;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.*;
@@ -54,7 +55,7 @@ public interface OrderService {
 
     OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId, OrderBaseType baseType);
 
-    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
+    OrderValidationDto validateOrder(OrderCreateDto orderCreateDto, boolean fromDemo, User user);
 
     @Transactional
     String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale);

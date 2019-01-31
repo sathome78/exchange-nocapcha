@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.exception.RabbitMqException;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.exception.RabbitMqException;
 import me.exrates.service.handler.OrdersEventHandleService;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static me.exrates.model.enums.OrderBaseType.convert;
 
@@ -32,23 +33,33 @@ public class OrderMessageJspListener {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     /*
      * This method is triggered if rabbit exchange receives message ({order}) from counterpart application
      */
     @RabbitListener(queues = RabbitMqService.JSP_QUEUE)
-    public void processOrder(String orderJson) {
+    public String processOrder(String orderJson) {
+        String processId = UUID.randomUUID().toString();
+        log.info("{} Starting processing order {}", processId, orderJson);
         InputCreateOrderDto order;
         try {
             order = objectMapper.readValue(orderJson, InputCreateOrderDto.class);
+            log.info("{} Received order from demo {}", processId, order);
         } catch (IOException e) {
-            log.error("Failed read orderJson {}, e {}", orderJson, e);
+            log.error("{} Failed read orderJson {}, e {}", processId ,orderJson, e);
             throw new RabbitMqException("Failed read orderJson " + orderJson + "e {}" + e.getLocalizedMessage());
         }
-        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(OperationType.valueOf(order.getOrderType()), order.getUserId(), order.getAmount(), order.getRate(), convert(order.getBaseType()), order.getCurrencyPairId(), order.getStop());
-        orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
+        OperationType orderType = OperationType.valueOf(order.getOrderType());
+        OrderBaseType baseType = convert(order.getBaseType());
+
+        OrderCreateSummaryDto orderCreateSummaryDto = orderServiceDemoListener.newOrderToSell(orderType, order.getUserId(),
+                order.getAmount(), order.getRate(), baseType, order.getCurrencyPairId(), order.getStop());
+
+        log.info("{} Creating OrderCreateSummaryDto {}", processId, orderCreateSummaryDto);
+        String orderToDB = orderServiceDemoListener.recordOrderToDB(order, orderCreateSummaryDto.getOrderCreateDto());
+        log.info("{} Recorder to DB {}", processId, orderToDB);
         ordersEventHandleService.handleOrderEventOnMessage(order);
-        log.info("Order saved: " + order);
+        log.info("{} Order saved: {}", processId, order);
+        return "success";
     }
 
     // uncomment for testing as this order will be sent from this application

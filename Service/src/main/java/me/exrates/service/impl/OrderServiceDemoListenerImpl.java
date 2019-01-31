@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
@@ -79,11 +80,12 @@ public class OrderServiceDemoListenerImpl implements OrderServiceDemoListener {
             if (baseType == OrderBaseType.STOP_LIMIT && stop == null) {
                 throw new RuntimeException("Try to create stop-order without stop rate");
             }
-            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, userService.findById(userId), amount, rate, baseType);
+            User user = userService.getUserById(userId);
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, user.getEmail(), amount, rate, baseType);
             orderCreateDto.setOrderBaseType(baseType);
             orderCreateDto.setStop(stop);
             /**/
-            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto, true, user);
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, Locale.ENGLISH);
             if (!errorMap.isEmpty()) {
