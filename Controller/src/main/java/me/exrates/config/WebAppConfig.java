@@ -302,11 +302,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setPassword(dbMasterPassword);
         hikariConfig.setMaximumPoolSize(50);
         DataSource dataSource = new HikariDataSource(hikariConfig);
-        Flyway flyway = new Flyway();
+/*        Flyway flyway = new Flyway();
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-        flyway.migrate();
+        flyway.migrate();*/
         return dataSource;
     }
 
@@ -1706,7 +1706,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new EthTokenServiceImpl(tokensList, "HOT","HOT", true, ExConvert.Unit.ETHER);
 	}
 
-	@Bean(name = "zrxServiceImpl")
+/*	@Bean(name = "zrxServiceImpl")
 	public EthTokenService zrxServiceImpl(){
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xe41d2489571d322189246dafa5ebde1f4699f498");
@@ -1753,7 +1753,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xa3d58c4e56fedcae3a7c43a725aee9a71f0ece4e");
 		return new EthTokenServiceImpl(tokensList, "MET","MET", true, ExConvert.Unit.ETHER);
-	}
+	}*/
 
 	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
