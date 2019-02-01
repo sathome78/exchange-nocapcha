@@ -58,6 +58,9 @@ public class InputCreateOrderDto {
         exOrder.setOrderBaseType(OrderBaseType.valueOf(this.getBaseType()));
         exOrder.setCurrencyPairId(this.getCurrencyPairId());
         exOrder.setOperationType(OperationType.of(this.getOrderType()));
+        exOrder.setUserId(this.userId);
+        exOrder.setCommissionFixedAmount(this.commission);
+        exOrder.setExRate(this.getRate());
         return exOrder;
     }
 
