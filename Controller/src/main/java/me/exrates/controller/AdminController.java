@@ -98,6 +98,7 @@ import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -168,6 +169,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
+import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
@@ -382,7 +384,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllAdmins() {
         List<UserRole> adminRoles = userRoleService.getRealUserRoleByGroupRoleList(ADMINS);
-        return userSecureService.getUsersByRoles(adminRoles);
+        List<UserRole> botRoles = userRoleService.getRealUserRoleByGroupRoleList(BOT);
+        return userSecureService.getUsersByRoles(new ArrayList<>(CollectionUtils.union(adminRoles, botRoles)));
     }
 
     @ResponseBody
@@ -1041,6 +1044,13 @@ public class AdminController {
     @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update")
     public ResponseEntity<Void> updateVisibilityCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
         currencyService.updateVisibilityCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update")
+    public ResponseEntity<Void> updateAccessToDirectLinkCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

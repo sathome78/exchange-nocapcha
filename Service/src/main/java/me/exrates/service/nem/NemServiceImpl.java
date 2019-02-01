@@ -127,7 +127,7 @@ public class NemServiceImpl implements NemService {
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = generateUniqDestinationTag(request.getUserId());
+        String destinationTag = generateUniqDestinationTag(request.getUserId(), request.getMerchantId(), request.getCurrencyId());
         String message = messageSource.getMessage("merchants.refill.XEM",
                 new Object[]{address, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -136,16 +136,13 @@ public class NemServiceImpl implements NemService {
         }};
     }
 
-    private String generateUniqDestinationTag(int userId) {
+    private String generateUniqDestinationTag(int userId, int merchantId, int currencyId) {
         Optional<Integer> id = null;
         String destinationTag;
         int counter = 0;
         do {
             destinationTag = generateDestinationTag(String.valueOf(userId).concat(String.valueOf(counter)));
-            id = refillService.getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(
-                    destinationTag,
-                    currency.getId(),
-                    merchant.getId());
+            id = refillService.getUserIdByAddressAndMerchantIdAndCurrencyId(destinationTag, merchantId, currencyId);
             counter = counter + 8;
         } while (id.isPresent());
         log.debug("tag is {}", destinationTag);
