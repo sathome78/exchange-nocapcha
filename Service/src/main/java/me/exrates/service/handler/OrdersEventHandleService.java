@@ -63,7 +63,7 @@ public class OrdersEventHandleService {
         ExOrder order = orderDto.toExorder();
         onOrdersEvent(order.getCurrencyPairId(), order.getOperationType());
         handleAllTrades(order);
-        handleMyTrades(order);
+//        handleMyTrades(order);
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
