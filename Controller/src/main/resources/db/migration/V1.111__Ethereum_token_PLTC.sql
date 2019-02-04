@@ -22,8 +22,8 @@ INSERT IGNORE INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, 
 
 INSERT IGNORE INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'PLTC'));
 
-INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, ticker_name)
-VALUES((select id from CURRENCY where name = 'PLTC'), (select id from CURRENCY where name = 'USD'), 'PLTC/USD', 170, 0, 'PLTC/USD');
+INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market, ticker_name)
+VALUES((select id from CURRENCY where name = 'PLTC'), (select id from CURRENCY where name = 'USD'), 'PLTC/USD', 170, 0, 'USD', 'PLTC/USD');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
