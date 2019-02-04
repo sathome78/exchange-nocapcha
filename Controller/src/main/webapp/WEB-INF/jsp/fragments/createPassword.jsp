@@ -41,7 +41,7 @@
                 Now, we need to create strong password.
             </div>
 
-            <form action="/createPasswordConfirm" class="form" method="post">
+            <form action="/createPasswordConfirm"  class="form" method="post">
                 <input type="hidden"  class="csrfC" name="_csrf" value="${_csrf.token}"/>
                 <input type="hidden"  name="view" value="${view}"/>
                 <input name="email" hidden value='${user.email}'>
@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="field field--btn__new">
-                    <input id="pass_submit" onclick="sendConfirmRegistrationGtag()" class="btn__new btn__new--form" type="submit" value="Finish registration" disabled>
+                    <input id="pass_submit" onclick="return sendConfirmRegistrationGtag()" class="btn__new btn__new--form" type="submit" value="Finish registration" disabled>
                 </div>
             </form>
         </div>
