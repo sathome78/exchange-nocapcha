@@ -1242,7 +1242,9 @@ public class OrderDaoImpl implements OrderDao {
                                                  LocalDateTime toDate,
                                                  Integer limit,
                                                  String direction) {
-        String directionSql = " ORDER BY o.date_acception :direction";
+        String directionSql = "ASC".equalsIgnoreCase(direction)
+                ? " ORDER BY o.date_acception ASC"
+                : " ORDER BY o.date_acception DESC";
         String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
 
         String sql = "SELECT o.id as order_id, " +
@@ -1266,7 +1268,6 @@ public class OrderDaoImpl implements OrderDao {
         params.put("start_date", fromDate);
         params.put("end_date", toDate);
         params.put("limit", limit);
-        params.put("direction", direction);
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             TradeHistoryDto tradeHistoryDto = new TradeHistoryDto();
