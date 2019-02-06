@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -189,4 +190,6 @@ public interface RefillService {
 
     @Transactional
     void setInnerTransferHash(int requestId, String hash);
+
+    List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
 }

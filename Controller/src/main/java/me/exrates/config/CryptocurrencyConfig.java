@@ -11,6 +11,7 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
+import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -404,6 +405,16 @@ public class CryptocurrencyConfig {
             put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
         }};
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
+    }
+
+   /* @Bean(name = "bitTorrentServiceImpl")
+    public TronTrc10Token bitTorrentService() {
+       return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
+    }*/
+
+    @Bean(name = "bitTorrentServiceImpl")
+    public TronTrc10Token bitTorrentService() {
+        return new TronTrc10Token("BTT", "BTT", 0, "1000491", "31303030343931", "1000491");
     }
 }
 

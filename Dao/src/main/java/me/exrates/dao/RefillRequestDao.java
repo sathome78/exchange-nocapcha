@@ -155,4 +155,6 @@ public interface RefillRequestDao {
     List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
 
     void setInnerTransferHash(int requestId, String hash);
+
+    List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId);
 }
