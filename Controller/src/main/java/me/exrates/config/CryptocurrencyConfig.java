@@ -407,14 +407,14 @@ public class CryptocurrencyConfig {
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
     }
 
-   /* @Bean(name = "bitTorrentServiceImpl")
-    public TronTrc10Token bitTorrentService() {
-       return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
-    }*/
-
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
-        return new TronTrc10Token("BTT", "BTT", 0, "1000491", "31303030343931", "1000491");
+       return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
     }
+
+    /*@Bean(name = "bitTorrentServiceImpl")
+    public TronTrc10Token bitTorrentService() {
+        return new TronTrc10Token("BTT", "BTT", 0, "1000491", "31303030343931", "1000491");
+    }*/
 }
 

@@ -50,10 +50,10 @@ public class TronReceiveServiceImpl {
     }
 
 
-    /*@PostConstruct
+    @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkBlocks, 5, 10, TimeUnit.MINUTES);
-    }*/
+        scheduler.scheduleAtFixedRate(this::checkBlocks, 5, 5, TimeUnit.MINUTES);
+    }
 
     private void checkBlocks() {
         try {

@@ -52,9 +52,9 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 5, 5, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 5, 20, TimeUnit.MINUTES);
-        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 0, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkUnconfirmedJob, 5, 2, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferToMainAccountJob, 5, 30, TimeUnit.MINUTES);
+        transferScheduler.scheduleAtFixedRate(this::transferTokensToMainAccountJob, 5, 30, TimeUnit.MINUTES);
     }
 
     private void checkUnconfirmedJob() {
@@ -90,7 +90,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
         listRefillRequestAddressDto.forEach(p->{
             try {
                 TronTrc10Token token = tronTokenContext.getByCurrencyId(p.getCurrencyId());
-                transferTokenToMainAccount(p, token.getNameTx(), token.getBlockchainName());
+                transferTokenToMainAccount(p, token.getNameDescription(), token.getBlockchainName());
                 refillService.updateAddressNeedTransfer(p.getAddress(), p.getMerchantId(), p.getCurrencyId(), false);
             } catch (Exception e) {
                 log.error(e);
