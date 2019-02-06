@@ -20,7 +20,7 @@ public class NodeController {
         this.nodeCheckerService = nodeCheckerService;
     }
 
-    @GetMapping("/listOfCoins") //todo make return all coins that implements IRefillable
+    @GetMapping("/listOfCoins")
     public List<String> listOfBitcoinServicesNames(){
         return nodeCheckerService.listOfRefillableServicesNames();
     }
