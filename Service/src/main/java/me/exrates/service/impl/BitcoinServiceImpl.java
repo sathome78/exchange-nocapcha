@@ -652,11 +652,6 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
 
   @Override
-  public void setConfirmationNeededCount(int confirmationNeededCount) {
-    this.minConfirmations = confirmationNeededCount;
-  }
-
-  @Override
   public Long getLastBlockTime() throws BitcoindException, CommunicationException {
     return bitcoinWalletService.getLastBlockTime();
   }

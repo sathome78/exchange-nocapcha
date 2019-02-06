@@ -306,7 +306,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-        flyway.migrate();
+//        flyway.migrate();
         return dataSource;
     }
 
@@ -440,7 +440,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-//        registry.addInterceptor(new TokenInterceptor(ssmGetter.lookup(nodeApiToken))).addPathPatterns("/nodes/**");
+//        registry.addInterceptor(new TokenInterceptor().addPathPatterns("/nodes/**"); TODO
         registry.addInterceptor(new MDCInterceptor());
     }
 
