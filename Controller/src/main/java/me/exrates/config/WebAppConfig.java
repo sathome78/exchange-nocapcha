@@ -119,6 +119,8 @@ import java.util.stream.Collectors;
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 
+    public static final String nodeTokenValue = "TEMPO_TOKEN";
+
     @Value("${db.properties.file}")
     private String dbPropertiesFile;
 
@@ -414,7 +416,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        registry.addInterceptor(new TokenInterceptor("TEMPO_TEST")).addPathPatterns("/nodes/**");
+        registry.addInterceptor(new TokenInterceptor(nodeTokenValue)).addPathPatterns("/nodes/**");
         registry.addInterceptor(new MDCInterceptor());
     }
 
