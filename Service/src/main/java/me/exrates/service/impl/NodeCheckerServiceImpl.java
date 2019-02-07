@@ -12,10 +12,9 @@ import java.util.stream.Collectors;
 @Service
 public class NodeCheckerServiceImpl implements NodeCheckerService {
 
-    private final Map<String, IRefillable> merchantNodeMap;
+    private final Map<String, IRefillable> merchantNodeMap = new HashMap<>();;
 
     public NodeCheckerServiceImpl(Map<String, IRefillable> bitcoinServiceMap) {
-        merchantNodeMap = new HashMap<>();
         for (Map.Entry<String, IRefillable> entry : bitcoinServiceMap.entrySet()) {
             merchantNodeMap.put(entry.getValue().getMerchantName(), entry.getValue());
         }
