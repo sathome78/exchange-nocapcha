@@ -61,8 +61,8 @@ public class AdkServiceImpl implements AdkService {
     private final GtagService gtagService;
     private final WithdrawUtils withdrawUtils;
 
-    private static final String CURRENCY_NAME = "ADK";
-    private static final String MERCHANT_NAME = "ADK";
+    public static final String CURRENCY_NAME = "ADK";
+    public static final String MERCHANT_NAME = "ADK";
     private Merchant merchant;
     private Currency currency;
     private static final Integer SECONDDS_TO_UNLOCK_WALLET = 60;
@@ -301,7 +301,8 @@ public class AdkServiceImpl implements AdkService {
         return CURRENCY_NAME;
     }
 
-    public static String getMerchantName() {
+    @Override
+    public String getMerchantName() {
         return MERCHANT_NAME;
     }
 
