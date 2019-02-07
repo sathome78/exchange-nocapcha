@@ -16,7 +16,8 @@ public enum BusinessUserRoleEnum {
   VIP_USER,
   TRADER,
   BOT,
-  MARKET_MAKER;
+  MARKET_MAKER,
+  OUTER_MARKET_BOT;
 
 
   public static BusinessUserRoleEnum convert(String name) {

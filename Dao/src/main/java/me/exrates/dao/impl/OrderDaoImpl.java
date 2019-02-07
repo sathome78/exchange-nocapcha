@@ -9,7 +9,18 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -272,7 +283,6 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("user_acceptor_id", String.valueOf(exOrder.getUserAcceptorId()));
         namedParameters.put("status_id", String.valueOf(exOrder.getStatus().getStatus()));
-//        namedParameters.put("date_acception", String.valueOf(exOrder.getDateAcception()));
         namedParameters.put("id", String.valueOf(exOrder.getId()));
         int result = namedParameterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
@@ -313,18 +323,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, LocalDateTime startTime, LocalDateTime endTime, int resolutionValue, String resolutionType) {
-
-        int resolution = resolutionValue;
-//        if (resolution == 240 || resolution == 720 || !"MINUTE".equals(resolutionType)) {
-//            startTime = startTime.with(LocalTime.MIN);
-//            endTime = endTime.with(LocalTime.MIN);
-//        }
-//
-//        LocalDateTime start = startTime.truncatedTo(ChronoUnit.HOURS)
-//                .plusMinutes(resolution * (startTime.getMinute() / resolution));
-//        LocalDateTime end = endTime.truncatedTo(ChronoUnit.HOURS)
-//                .plusMinutes(resolution * (startTime.getMinute() / resolution));
-
         String startTimeString = startTime.format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String endTimeString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT_PATTERN));
         String sql = "{call GET_DATA_FOR_CANDLE_RANGE(" +
@@ -357,7 +355,6 @@ public class OrderDaoImpl implements OrderDao {
             return list;
         });
     }
-
 
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
@@ -528,7 +525,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
-        List<CoinmarketApiDto> result = namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
+        return namedParameterJdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
             @Override
             public List<CoinmarketApiDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
                 ResultSet rs = ps.executeQuery();
@@ -553,7 +550,6 @@ public class OrderDaoImpl implements OrderDao {
                 return list;
             }
         });
-        return result;
     }
 
     @Override
@@ -683,18 +679,15 @@ public class OrderDaoImpl implements OrderDao {
             put("status", 3);
             put("currency_pair_id", currencyPair.getId());
         }};
-        return slaveJdbcTemplate.query(sql, params, new RowMapper<OrderAcceptedHistoryDto>() {
-            @Override
-            public OrderAcceptedHistoryDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
-                orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
-                orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
-                orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
-                orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
-                orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
-                orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
-                return orderAcceptedHistoryDto;
-            }
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
+            orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
+            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+            orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
+            orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
+            orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
+            orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            return orderAcceptedHistoryDto;
         });
     }
 
@@ -786,7 +779,6 @@ public class OrderDaoImpl implements OrderDao {
                                                        OperationType operationType,
                                                        String scope, Integer offset, Integer limit, Locale locale) {
         String userFilterClause;
-        String joinClause = "";
 
         if (scope == null || scope.isEmpty()) {
             scope = "OTHER";
@@ -795,7 +787,6 @@ public class OrderDaoImpl implements OrderDao {
         switch (scope) {
             case "ALL":
                 userFilterClause = " AND (EXORDERS.user_id = :user_id OR EXORDERS.user_acceptor_id = :user_id) ";
-                joinClause = " LEFT JOIN EXORDERS EX2 ON EXORDERS.id = EX2.counter_order_id ";
                 break;
             case "ACCEPTED":
                 userFilterClause = " AND EXORDERS.user_acceptor_id = :user_id ";
@@ -1013,7 +1004,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData) {
         //Need, because table EXORDERS has many data
         String limit = "LIMIT 100000";
 
@@ -1028,8 +1019,7 @@ public class OrderDaoImpl implements OrderDao {
                 "JOIN USER as CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
                 "LEFT JOIN USER as ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id)";
 
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.putAll(adminOrderFilterData.getNamedParams());
+        Map<String, Object> namedParameters = new HashMap<>(adminOrderFilterData.getNamedParams());
 
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
@@ -1038,7 +1028,7 @@ public class OrderDaoImpl implements OrderDao {
 
         LOGGER.debug(selectQuery);
 
-        return slaveForReportsTemplate.query(selectQuery, namedParameters, (rs, row) -> {
+        return slaveJdbcTemplate.query(selectQuery, namedParameters, (rs, row) -> {
             OrderReportInfoDto orderReportInfoDto = new OrderReportInfoDto();
             orderReportInfoDto.setId(rs.getInt("id"));
             orderReportInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
@@ -1145,7 +1135,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("roles", roles);
         namedParameters.put("requester_user_id", requesterUserId);
 
-        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+        return (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
             @Override
             public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
@@ -1162,7 +1152,6 @@ public class OrderDaoImpl implements OrderDao {
                 return userSummaryOrdersByCurrencyPairsDto;
             }
         });
-        return result;
     }
 
     @Override
@@ -1254,7 +1243,11 @@ public class OrderDaoImpl implements OrderDao {
     public List<TradeHistoryDto> getTradeHistory(Integer currencyPairId,
                                                  LocalDateTime fromDate,
                                                  LocalDateTime toDate,
-                                                 Integer limit) {
+                                                 Integer limit,
+                                                 String direction) {
+        String directionSql = "ASC".equalsIgnoreCase(direction)
+                ? " ORDER BY o.date_acception ASC"
+                : " ORDER BY o.date_acception DESC";
         String limitSql = nonNull(limit) ? " LIMIT :limit" : StringUtils.EMPTY;
 
         String sql = "SELECT o.id as order_id, " +
@@ -1268,8 +1261,8 @@ public class OrderDaoImpl implements OrderDao {
                 " FROM EXORDERS o" +
                 " JOIN COMMISSION c on o.commission_id = c.id" +
                 " WHERE o.currency_pair_id=:currency_pair_id AND o.status_id=:status_id" +
-                " AND o.date_acception BETWEEN :start_date AND :end_date" +
-                " ORDER BY o.date_acception ASC"
+                " AND o.date_acception BETWEEN :start_date AND :end_date"
+                + directionSql
                 + limitSql;
 
         Map<String, Object> params = new HashMap<>();

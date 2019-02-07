@@ -116,6 +116,8 @@ public interface UserDao {
 
     List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
+    boolean updateUserStatus(User user);
+
     List<TemporalToken> getAllTokens();
 
     boolean delete(User user);

@@ -479,6 +479,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String findEmailById(int userId) {
+        return userDao.getUserById(userId).getEmail();
+    }
+
+    @Override
     public String getPreferedLang(int userId) {
         return userDao.getPreferredLang(userId);
     }
@@ -794,5 +799,13 @@ public class UserServiceImpl implements UserService {
         return passwordEncoder.matches(password, userDao.getPassword(userId));
     }
 
+    @Override
+    public void blockUserByRequest(int userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setStatus(UserStatus.DELETED);
+        userDao.updateUserStatus(user);
+        userSessionService.invalidateUserSessionExceptSpecific(getEmailById(userId), null);
+    }
 
 }

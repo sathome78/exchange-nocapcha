@@ -56,6 +56,7 @@ import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
+import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
@@ -95,9 +96,11 @@ import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.omni.OmniServiceImpl;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -168,6 +171,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
+import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
@@ -250,6 +254,8 @@ public class AdminController {
     private UserSessionService userSessionService;
     @Autowired
     private AdkService adkService;
+    @Autowired
+    private OmniServiceImpl omniService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -382,7 +388,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllAdmins() {
         List<UserRole> adminRoles = userRoleService.getRealUserRoleByGroupRoleList(ADMINS);
-        return userSecureService.getUsersByRoles(adminRoles);
+        List<UserRole> botRoles = userRoleService.getRealUserRoleByGroupRoleList(BOT);
+        return userSecureService.getUsersByRoles(new ArrayList<>(CollectionUtils.union(adminRoles, botRoles)));
     }
 
     @ResponseBody
@@ -1045,6 +1052,13 @@ public class AdminController {
     }
 
     @ResponseBody
+    @PostMapping(value = "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update")
+    public ResponseEntity<Void> updateAccessToDirectLinkCurrencyPairById(@RequestParam("currencyPairId") int currencyPairId) {
+        currencyService.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, List<String>> getPhrases(
             @PathVariable String topic,
@@ -1113,10 +1127,21 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
     public ModelAndView adkWallet() {
         ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
-        modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
-        modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
+        modelAndView.addObject("merchant", AdkServiceImpl.MERCHANT_NAME);
+        modelAndView.addObject("currency", AdkServiceImpl.CURRENCY_NAME);
         modelAndView.addObject("title", "ADK Wallet");
         modelAndView.addObject("balance", adkService.getBalance());
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/usdtWallet", method = RequestMethod.GET)
+    public ModelAndView usdtWallet() {
+        ModelAndView modelAndView = new ModelAndView("/admin/usdtWallet");
+        modelAndView.addObject("merchant", omniService.getMerchant().getName());
+        modelAndView.addObject("currency", omniService.getCurrency().getName());
+        modelAndView.addObject("title", "USDT Wallet");
+        modelAndView.addObject("btcBalance", omniService.getBtcBalance());
+        modelAndView.addObject("usdtBalances", omniService.getUsdtBalances());
         return modelAndView;
     }
 
@@ -1124,6 +1149,24 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<OmniTxDto> getOmniTransactions() {
+        return omniService.getAllTransactions();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getBlockedAddersses", method = RequestMethod.GET)
+    @ResponseBody
+    public List<RefillRequestAddressShortDto> getOmniBlockedAddressses() {
+        return omniService.getBlockedAddressesOmni();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/createTransaction", method = RequestMethod.POST)
+    @ResponseBody
+    public void getOmniCreateRefill(@RequestParam Map<String, String> params) {
+        omniService.createRefillRequestAdmin(params);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)
@@ -1416,6 +1459,7 @@ public class AdminController {
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
         modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
+        modelAndView.addObject("currencyList", currencyService.findAllCurrency());
 
 
         return modelAndView;

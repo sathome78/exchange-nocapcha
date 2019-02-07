@@ -8,6 +8,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
 import me.exrates.model.dto.RefillRequestManualDto;
@@ -96,6 +97,9 @@ public interface RefillService {
 
     void finalizeAcceptRefillRequest(Integer requestId);
 
+    @Transactional
+    void declineMerchantRefillRequest(Integer requestId);
+
     RefillRequestFlatDto getFlatById(Integer id);
 
     void revokeRefillRequest(int requestId);
@@ -119,6 +123,8 @@ public interface RefillService {
     Boolean existsClosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
     RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+
+    RefillRequestFlatAdditionalDataDto getAdditionalData(int requestId);
 
     @Transactional
     Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
@@ -170,4 +176,17 @@ public interface RefillService {
     String getUsernameByRequestId(int requestId);
 
     Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+
+    void blockUserByFrozeTx(String address, int merchantId, int currencyId);
+
+    List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
+
+    @Transactional
+    int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto);
+
+    @Transactional
+    void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+
+    @Transactional
+    void setInnerTransferHash(int requestId, String hash);
 }

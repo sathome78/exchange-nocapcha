@@ -149,4 +149,10 @@ public interface RefillRequestDao {
     String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
 
     String getGaTagByRequestId(int requestId);
+
+    boolean setAddressBlocked(String address, int merchantId, int currencyId, boolean blocked);
+
+    List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
+
+    void setInnerTransferHash(int requestId, String hash);
 }

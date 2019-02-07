@@ -640,6 +640,14 @@ public class UserDaoImpl implements UserDao {
         return result;
     }
 
+    @Override
+    public boolean updateUserStatus(User user) {
+        String sql = "update USER set status=:status where id=:id";
+        Map<String, String> namedParameters = new HashMap<String, String>();
+        namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+        namedParameters.put("id", String.valueOf(user.getId()));
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
 
     public List<TemporalToken> getAllTokens() {
         String sql = "SELECT * FROM TEMPORAL_TOKEN";
@@ -1060,5 +1068,7 @@ public class UserDaoImpl implements UserDao {
         }};
         return namedParameterJdbcTemplate.update(sql, namedParameters);
     }
+
+
 
 }

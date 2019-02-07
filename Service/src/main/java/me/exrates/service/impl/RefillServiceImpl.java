@@ -21,6 +21,7 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
 import me.exrates.model.dto.RefillRequestManualDto;
@@ -113,6 +114,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_FACT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE_HOLDED;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.DECLINE_MERCHANT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.EXPIRE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REQUEST_INNER_TRANSFER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.RETURN_FROM_WORK;
@@ -507,19 +509,19 @@ public class RefillServiceImpl implements RefillService {
         BigDecimal amount = onBchExamDto.getAmount();
         String blockhash = onBchExamDto.getBlockhash();
         RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+            .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
         RefillStatusEnum currentStatus = refillRequest.getStatus();
         InvoiceActionTypeEnum action = START_BCH_EXAMINE;
         RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
         refillRequestDao.setStatusById(requestId, newStatus);
         try {
-            refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+          refillRequestDao.setMerchantTransactionIdById(requestId, hash);
         } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
-            throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
+          throw new RefillRequestDuplicatedMerchantTransactionIdOrAttemptToRewriteException(onBchExamDto.toString());
         }
         refillRequest.setStatus(newStatus);
         refillRequest.setMerchantTransactionId(hash);
-        refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0, blockhash);
+        refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, onBchExamDto.getConfirmations(), blockhash);
         return refillRequest;
     }
 
@@ -670,6 +672,20 @@ public class RefillServiceImpl implements RefillService {
             }
         } catch (Exception e) {
             throw new WithdrawRequestPostException(refillRequestFlatDto.toString());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void declineMerchantRefillRequest(Integer requestId) {
+        RefillRequestFlatDto refillRequestFlatDto = refillRequestDao.getFlatByIdAndBlock(requestId)
+                .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
+        try {
+            RefillStatusEnum currentStatus = refillRequestFlatDto.getStatus();
+            RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(DECLINE_MERCHANT);
+            refillRequestDao.setStatusById(requestId, newStatus);
+        } catch (Exception e) {
+            throw new RefillRequestIllegalStatusException(refillRequestFlatDto.toString());
         }
     }
 
@@ -985,6 +1001,12 @@ public class RefillServiceImpl implements RefillService {
         return new RefillRequestsAdminTableDto(withdraw, refillRequestDao.getAdditionalDataForId(withdraw.getId()));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public RefillRequestFlatAdditionalDataDto getAdditionalData(int requestId) {
+        return refillRequestDao.getAdditionalDataForId(requestId);
+    }
+
     private Optional<Integer> createRefill(RefillRequestCreateDto request) {
         if (!checkforDuplicate(request)) {
             throw new RuntimeException("Error, please try again");
@@ -1002,14 +1024,8 @@ public class RefillServiceImpl implements RefillService {
     private boolean checkforDuplicate(RefillRequestCreateDto request) {
         Merchant merchant = merchantService.findById(request.getMerchantId());
         if (merchant.getProcessType().equals(MerchantProcessType.CRYPTO)) {
-            List<RefillRequestAddressDto> addresses = refillRequestDao.findByAddress(request.getAddress());
-            return addresses.stream().noneMatch(p ->
-                    (p.getCurrencyId().equals(request.getCurrencyId()))
-                            ||
-                            (p.getTokenParentId() != null && (p.getTokenParentId().equals(merchant.getTokensParrentId()) || p.getTokenParentId().equals(merchant.getId())))
-                            ||
-                            (merchant.getTokensParrentId() != null && (merchant.getTokensParrentId().equals(p.getTokenParentId()) || merchant.getTokensParrentId().equals(p.getMerchantId()))));
-        }
+            return !getUserIdByAddressAndMerchantIdAndCurrencyId(request.getAddress(), request.getMerchantId(), request.getCurrencyId()).isPresent();
+         }
         return true;
     }
 
@@ -1237,5 +1253,45 @@ public class RefillServiceImpl implements RefillService {
         } else {
             throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
         }
+    }
+
+    @Override
+    public void blockUserByFrozeTx(String address, int merchantId, int currencyId) {
+        refillRequestDao.setAddressBlocked(address, merchantId, currencyId, true);
+        System.out.println("addr blocked");
+        List<RefillRequestAddressDto> addresses = refillRequestDao.findByAddressMerchantAndCurrency(address, merchantId, currencyId);
+        addresses.forEach(p -> {
+            System.out.println("block user " + p.getUserId());
+            userService.blockUserByRequest(p.getUserId());
+        });
+    }
+
+    @Override
+    public List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId) {
+        return refillRequestDao.getBlockedAddresses(merchantId, currencyId);
+    }
+
+    @Transactional(rollbackFor = RuntimeException.class)
+    @Override
+    public int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto) {
+        int requestId = createRefillRequestByFact(requestAcceptDto);
+        try {
+            this.setHashByRequestId(requestId, requestAcceptDto.getMerchantTransactionId());
+        } catch (DuplicatedMerchantTransactionIdOrAttemptToRewriteException e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+        return requestId;
+    }
+
+    @Transactional
+    @Override
+    public void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException {
+        refillRequestDao.setMerchantTransactionIdById(requestId, hash);
+    }
+
+    @Override
+    public void setInnerTransferHash(int requestId, String hash) {
+        refillRequestDao.setInnerTransferHash(requestId, hash);
     }
 }

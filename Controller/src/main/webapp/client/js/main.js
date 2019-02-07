@@ -776,8 +776,10 @@ function parseNumber(numberStr) {
     return parseFloat(numberStr);
 }
 
-function sendGtag() {
-    gtag('event', 'password-correct', {'event_category': 'password-confirm', 'event_label': 'finish-registration'});
+function sendConfirmRegistrationGtag() {
+    console.log("Send confirm registration analytics")
+    dataLayer.push({'event': 'Registration','eventCategory': 'Registration'})
+    console.log("Send confirm registration analytics success")
 }
 
 
@@ -785,4 +787,4 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 
-gtag('config', 'GTM-TPR6SBC');
+gtag('config', 'UA-75711135-1');
