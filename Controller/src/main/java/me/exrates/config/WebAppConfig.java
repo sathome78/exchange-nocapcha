@@ -119,7 +119,7 @@ import java.util.stream.Collectors;
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 
-    public static final String nodeTokenValue = "TEMPO_TOKEN";
+    public static final String NODE_TOKEN = "TEMPO_TOKEN";
 
     @Value("${db.properties.file}")
     private String dbPropertiesFile;
@@ -282,7 +282,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         flyway.setDataSource(dataSource);
         flyway.setBaselineOnMigrate(true);
         flyway.repair();
-//        flyway.migrate();
+        flyway.migrate();
         return dataSource;
     }
 
@@ -416,7 +416,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        registry.addInterceptor(new TokenInterceptor(nodeTokenValue)).addPathPatterns("/nodes/**");
+        registry.addInterceptor(new TokenInterceptor(NODE_TOKEN)).addPathPatterns("/nodes/**");
         registry.addInterceptor(new MDCInterceptor());
     }
 
