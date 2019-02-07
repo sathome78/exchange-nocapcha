@@ -6,6 +6,7 @@ import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
@@ -373,5 +374,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId){
         return currencyDao.updateAccessToDirectLinkCurrencyPairById(currencyPairId);
+    }
+
+    @Override
+    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId){
+        return currencyDao.getStatsByCoin(currencyId);
     }
 }
