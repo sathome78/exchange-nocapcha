@@ -107,6 +107,7 @@ public class TronNodeServiceImpl implements TronNodeService {
     private String performRequest(RequestEntity requestEntity) {
         ResponseEntity<String> responseEntity;
         try {
+            log.debug("trx request {}", requestEntity.getUrl());
             responseEntity = restTemplate.exchange(requestEntity, String.class);
             log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
             return new String(responseEntity.getBody().getBytes(),"utf-8");
