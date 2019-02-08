@@ -295,6 +295,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public boolean setStatusById(Integer trasactionId, Integer statusId) {
+        if(trasactionId == null) return true;
         return transactionDao.setStatusById(trasactionId, statusId);
     }
 
