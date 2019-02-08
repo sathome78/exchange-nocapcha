@@ -165,34 +165,4 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
             throw new RuntimeException("error transfer to main account");
         }
     }
-
-
-    /*
-    interface CommonConstant {
-        byte ADD_PRE_FIX_BYTE_MAINNET = (byte) 0x41;   //41 + address
-        byte ADD_PRE_FIX_BYTE_TESTNET = (byte) 0xa0;   //a0 + address
-        int ADDRESS_SIZE = 21;
-    }
-
-    private static boolean addressValid(byte[] address) {
-        if (ArrayUtils.isEmpty(address)) {
-            log.warn("Warning: Address is empty !!");
-            return false;
-        }
-        if (address.length != CommonConstant.ADDRESS_SIZE) {
-            log.warn(
-                    "Warning: Address length need " + CommonConstant.ADDRESS_SIZE + " but " + address.length
-                            + " !!");
-            return false;
-        }
-        byte preFixbyte = address[0];
-        if (preFixbyte != CommonConstant.ADD_PRE_FIX_BYTE_MAINNET) {
-            log.warn("Warning: Address need prefix with " + CommonConstant.ADD_PRE_FIX_BYTE_MAINNET + " but "
-                            + preFixbyte + " !!");
-            return false;
-        }
-        //Other rule;
-        return true;
-    }*/
-
 }

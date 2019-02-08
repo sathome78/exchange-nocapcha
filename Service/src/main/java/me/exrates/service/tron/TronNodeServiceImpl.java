@@ -115,43 +115,4 @@ public class TronNodeServiceImpl implements TronNodeService {
             throw new RuntimeException(e);
         }
     }
-
-    public static void main(String[] args) throws URISyntaxException {
-        callFullNode();
-        /*callSolidityNode();*/
-
-    }
-
-    private static void callFullNode() throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity;
-        String url = "https://api.trongrid.io".concat("/wallet/getaccount");
-        JSONObject object = new JSONObject() {{put("address", "41F7D868FC162AD0C7C7D210B7D36114DBC459C29D"); }};
-        RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
-        try {
-            responseEntity = restTemplate.exchange(requestEntity, String.class);
-            log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
-            String response = new String(responseEntity.getBody().getBytes(),"utf-8");
-        } catch (Exception e) {
-            log.error("trx request {} {} {}", requestEntity.getUrl(), requestEntity.getMethod(), e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void callSolidityNode() throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity;
-        String url = "https://api.trongrid.io".concat("/walletsolidity/gettransactionbyid");
-        JSONObject object = new JSONObject() {{put("value", "4021722aadb0a087051b4ebf81da6627f8a6073f891cac0db028710acf9bf8fc"); }};
-        RequestEntity<String> requestEntity = new RequestEntity<>(object.toString(), HttpMethod.POST, new URI(url));
-        try {
-            responseEntity = restTemplate.exchange(requestEntity, String.class);
-            log.debug("trx response to url {} - {}", requestEntity.getUrl(), responseEntity);
-            String response = new String(responseEntity.getBody().getBytes(),"utf-8");
-        } catch (Exception e) {
-            log.error("trx request {} {} {}", requestEntity.getUrl(), requestEntity.getMethod(), e);
-            throw new RuntimeException(e);
-        }
-    }
-
 }

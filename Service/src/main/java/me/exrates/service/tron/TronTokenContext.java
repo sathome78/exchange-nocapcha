@@ -12,14 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TronTokenContext {
 
     @Autowired
-    private Map<String, TronTrc10Token> tokensMap = new ConcurrentHashMap<>();
+    private Map<String, TronTrc10Token> tokensMap;
 
     TronTrc10Token getByNameTx(String nameTx) {
         return tokensMap.values().stream().filter(p->p.getNameTx().equals(nameTx)).findFirst().orElseThrow(RuntimeException::new);
-    }
-
-    TronTrc10Token getByNameDescription(String nameDescription) {
-        return tokensMap.values().stream().filter(p->p.getNameDescription().equals(nameDescription)).findFirst().orElseThrow(RuntimeException::new);
     }
 
     TronTrc10Token getByCurrencyId(int currencyId) {
