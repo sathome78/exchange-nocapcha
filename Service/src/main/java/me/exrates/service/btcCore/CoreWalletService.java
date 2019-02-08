@@ -1,5 +1,7 @@
 package me.exrates.service.btcCore;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -70,4 +72,8 @@ public interface CoreWalletService {
   String getLastBlockHash();
 
   BtcBlockDto getBlockByHash(String blockHash);
+
+    long getBlocksCount() throws BitcoindException, CommunicationException;
+
+    Long getLastBlockTime() throws BitcoindException, CommunicationException;
 }

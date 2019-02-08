@@ -42,7 +42,7 @@ public class OrderMessageJspListener {
     public Message processOrder(Message message) {
         String processId = (String) message.getMessageProperties().getHeaders().get("process-id");
         log.info("{} ProcessId from demo Received:", processId);
-        InputCreateOrderDto order = null;
+        InputCreateOrderDto order;
         try {
             order = objectMapper.readValue(message.getBody(), InputCreateOrderDto.class);
             log.info("{} Received order from demo {}", processId, order);
@@ -79,4 +79,4 @@ public class OrderMessageJspListener {
 //    public void processOrderSelf(InputCreateOrderDto order) {
 //        logger.debug("Order Received: " + order);
 //    }
-} 
+}

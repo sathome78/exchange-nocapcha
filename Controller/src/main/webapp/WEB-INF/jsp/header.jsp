@@ -37,7 +37,6 @@
 <%--</body>--%>
 <%--</html>--%>
 
-
 <header class="header">
     <%@include file="../jsp/tools/google_head.jsp"%>
 

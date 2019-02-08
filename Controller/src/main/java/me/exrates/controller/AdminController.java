@@ -1127,8 +1127,8 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/adkWallet", method = RequestMethod.GET)
     public ModelAndView adkWallet() {
         ModelAndView modelAndView = new ModelAndView("/admin/adkWallet");
-        modelAndView.addObject("merchant", AdkServiceImpl.getMerchantName());
-        modelAndView.addObject("currency", AdkServiceImpl.getCurrencyName());
+        modelAndView.addObject("merchant", AdkServiceImpl.MERCHANT_NAME);
+        modelAndView.addObject("currency", AdkServiceImpl.CURRENCY_NAME);
         modelAndView.addObject("title", "ADK Wallet");
         modelAndView.addObject("balance", adkService.getBalance());
         return modelAndView;
@@ -1459,6 +1459,7 @@ public class AdminController {
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
         modelAndView.addObject("roleGroups", Arrays.asList(ReportGroupUserRole.values()));
+        modelAndView.addObject("currencyList", currencyService.findAllCurrency());
 
 
         return modelAndView;
