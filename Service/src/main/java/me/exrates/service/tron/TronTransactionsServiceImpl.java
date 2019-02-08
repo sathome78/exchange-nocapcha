@@ -155,7 +155,7 @@ public class TronTransactionsServiceImpl implements TronTransactionsService {
     }
 
     private void easyTransferAssetByPrivate(String pk, String addressTo, long amount, String tokenName) {
-        System.out.println("transfer tokens to main");
+        log.debug("transfer token {} to main account {}", tokenName, addressTo);
         Preconditions.checkArgument(amount > 0, "invalid amount " + amount);
         Preconditions.checkNotNull(tokenName);
         TronTransferDto tronTransferDto = new TronTransferDto(pk, addressTo, amount, tokenName);
