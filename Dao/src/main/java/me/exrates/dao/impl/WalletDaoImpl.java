@@ -52,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1287,7 +1288,7 @@ public class WalletDaoImpl implements WalletDao {
                 "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
                 "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
                 "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
-                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                "cewb.last_updated_at = IFNULL(:last_updated_at, cewb.last_updated_at)" +
                 " WHERE cewb.currency_id = :currency_id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -1295,6 +1296,7 @@ public class WalletDaoImpl implements WalletDao {
                 put("usd_rate", externalWalletBalancesDto.getUsdRate());
                 put("btc_rate", externalWalletBalancesDto.getBtcRate());
                 put("main_balance", externalWalletBalancesDto.getMainBalance());
+                put("last_updated_at", externalWalletBalancesDto.getLastUpdatedDate());
             }
         };
         jdbcTemplate.update(sql, params);
@@ -1369,8 +1371,7 @@ public class WalletDaoImpl implements WalletDao {
                 " SET cewb.reserved_balance = IFNULL((SELECT SUM(cwera.balance) FROM COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera WHERE cwera.currency_id = :currency_id GROUP BY cwera.currency_id), 0), " +
                 "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
                 "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
-                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
-                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate" +
                 " WHERE cewb.currency_id = :currency_id";
 
         jdbcTemplate.update(sql, singletonMap("currency_id", currencyId));
@@ -1414,7 +1415,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty){
+    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty) {
         String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES SET sign_of_certainty = :sign_of_certainty " +
                 "WHERE currency_id = :currency_id";
 
@@ -1481,7 +1482,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance) {
+    public void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance, LocalDateTime lastReservedBalanceUpdate) {
         String sql = "UPDATE birzha.COMPANY_WALLET_EXTERNAL_RESERVED_ADDRESS cwera" +
                 " SET cwera.balance = :balance" +
                 " WHERE cwera.currency_id = :currency_id" +
@@ -1501,12 +1502,13 @@ public class WalletDaoImpl implements WalletDao {
                 "cewb.total_balance = cewb.main_balance + cewb.reserved_balance, " +
                 "cewb.total_balance_usd = cewb.total_balance * cewb.usd_rate, " +
                 "cewb.total_balance_btc = cewb.total_balance * cewb.btc_rate, " +
-                "cewb.last_updated_at = CURRENT_TIMESTAMP" +
+                "cewb.last_updated_at = IFNULL(:last_updated_at, cewb.last_updated_at)" +
                 " WHERE cewb.currency_id = :currency_id";
 
         params = new HashMap<String, Object>() {
             {
                 put("currency_id", currencyId);
+                put("last_updated_at", lastReservedBalanceUpdate);
             }
         };
         jdbcTemplate.update(sql, params);
