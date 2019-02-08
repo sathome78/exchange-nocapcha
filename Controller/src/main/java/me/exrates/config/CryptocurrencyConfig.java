@@ -333,6 +333,12 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 30, 20, false, false);
 	}
 
+
+@Bean(name = "diviServiceImpl")
+	public BitcoinService diviServiceImpl() {
+		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 4, 20, false, false);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
