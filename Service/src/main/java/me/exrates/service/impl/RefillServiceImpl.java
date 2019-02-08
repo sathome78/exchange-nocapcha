@@ -1294,4 +1294,9 @@ public class RefillServiceImpl implements RefillService {
     public void setInnerTransferHash(int requestId, String hash) {
         refillRequestDao.setInnerTransferHash(requestId, hash);
     }
+
+    @Override
+    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+        return refillRequestDao.findAllAddressesByMerchantWithChilds(merchantId);
+    }
 }

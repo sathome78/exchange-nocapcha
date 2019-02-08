@@ -77,7 +77,7 @@ public class TronServiceImpl implements TronService {
     private void init() {
         merchantId = merchantService.findByName(MERCHANT_NAME).getId();
         currencyId = currencyService.findByName(CURRENCY_NAME).getId();
-        addressesHEX.addAll(refillService.findAddressDtos(merchantId, currencyId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
+        addressesHEX.addAll(refillService.findAddressDtosWithMerchantChild(merchantId).stream().map(RefillRequestAddressDto::getPubKey).collect(Collectors.toList()));
     }
 
 
@@ -104,8 +104,8 @@ public class TronServiceImpl implements TronService {
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(dto.getAddressBase58())
-                .merchantId(merchantId)
-                .currencyId(currencyId)
+                .merchantId(dto.getMerchantId())
+                .currencyId(dto.getCurrencyId())
                 .amount(new BigDecimal(dto.getAmount()))
                 .merchantTransactionId(dto.getHash())
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
@@ -121,8 +121,8 @@ public class TronServiceImpl implements TronService {
             refillService.putOnBchExamRefillRequest(
                     RefillRequestPutOnBchExamDto.builder()
                             .requestId(requestAcceptDto.getRequestId())
-                            .merchantId(merchantId)
-                            .currencyId(currencyId)
+                            .merchantId(requestAcceptDto.getMerchantId())
+                            .currencyId(requestAcceptDto.getCurrencyId())
                             .address(requestAcceptDto.getAddress())
                             .amount(requestAcceptDto.getAmount())
                             .hash(requestAcceptDto.getMerchantTransactionId())
@@ -138,10 +138,11 @@ public class TronServiceImpl implements TronService {
         String address = params.get("address");
         String hash = params.get("hash");
         Integer id = Integer.parseInt(params.get("id"));
-        Currency currency = currencyService.findByName(CURRENCY_NAME);
-        Merchant merchant = merchantService.findByName(MERCHANT_NAME);
+        Integer merchantId = Integer.valueOf(params.get("merchant"));
+        Integer currencyId = Integer.valueOf(params.get("currency"));
+        Currency currency = currencyService.findById(currencyId);
+        Merchant merchant = merchantService.findById(merchantId);
         BigDecimal amount = new BigDecimal(params.get("amount"));
-
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .requestId(id)
                 .address(address)
@@ -153,7 +154,6 @@ public class TronServiceImpl implements TronService {
                 .build();
         refillService.autoAcceptRefillRequest(requestAcceptDto);
         final String username = refillService.getUsernameByRequestId(id);
-
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
@@ -188,5 +188,4 @@ public class TronServiceImpl implements TronService {
 
         return withdrawUtils.isValidDestinationAddress(address);
     }
-
 }
