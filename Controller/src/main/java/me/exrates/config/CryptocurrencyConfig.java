@@ -7,6 +7,8 @@ import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.bitshares.BitsharesService;
+import me.exrates.service.bitshares.BitsharesServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
@@ -416,6 +418,17 @@ public class CryptocurrencyConfig {
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
+    }
+    //Bitshares
+    @Bean(name = "PPYServiceImpl")
+    public BitsharesService bitsharesService(){
+        return new BitsharesServiceImpl("PPY", "PPY", "merchants/ppy.properties", 1);
+    }
+
+    //TODO check aunit
+    @Bean(name = "AUNITServiceImpl")
+    public BitsharesService bitsharesService(){
+        return new BitsharesServiceImpl("PPY", "PPY", "merchants/ppy.properties", 1);
     }
 }
 
