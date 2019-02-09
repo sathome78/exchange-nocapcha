@@ -420,6 +420,7 @@ public class CryptocurrencyConfig {
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
     }
+
     //Bitshares
     @Bean(name = "ppyServiceImpl")
     public BitsharesService bitsharesService(){
@@ -431,10 +432,5 @@ public class CryptocurrencyConfig {
         return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 100);
     }
 
-    //TODO check aunit
-    @Bean(name = "AUNITServiceImpl")
-    public BitsharesService bitsharesService(){
-        return new BitsharesServiceImpl("PPY", "PPY", "merchants/ppy.properties", 1);
-    }
 }
 
