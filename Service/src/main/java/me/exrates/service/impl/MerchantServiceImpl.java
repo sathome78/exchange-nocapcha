@@ -19,6 +19,7 @@ import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -535,5 +536,15 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant) {
         return merchantDao.getMerchantInputCommission(merchantId, currencyId, childMerchant);
+    }
+
+    @Override
+    public boolean checkAvailableRefill(Integer currencyId, Integer merchantId) {
+        return merchantDao.checkAvailable(currencyId, merchantId);
+    }
+
+    @Override
+    public MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType) {
+        return merchantDao.getMerchantByCurrencyForVoucher(currencyId, transferType);
     }
 }

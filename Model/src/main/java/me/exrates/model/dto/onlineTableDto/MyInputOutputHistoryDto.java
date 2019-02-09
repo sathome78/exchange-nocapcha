@@ -22,7 +22,8 @@ import static me.exrates.model.enums.TransactionSourceType.*;
  * Created by Ajet on 23.07.2016.
  */
 @Log4j2
-@Getter @Setter
+@Getter
+@Setter
 @ToString
 public class MyInputOutputHistoryDto extends OnlineTableDto {
   @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -40,6 +41,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private Integer userId;
   private String bankAccount;
   private InvoiceStatus status;
+  @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime statusUpdateDate;
   private String summaryStatus;
   private String userFullName;
@@ -47,10 +49,12 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private TransactionSourceType sourceType;
   private Integer sourceId;
   private Integer confirmation;
+  private Integer neededConfirmations;
   private Integer adminHolderId;
   private Integer authorisedUserId;
   private List<Map<String, Object>> buttons;
   private String transactionHash;
+  private String market;
 
 
   public MyInputOutputHistoryDto() {

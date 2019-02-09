@@ -15,6 +15,7 @@ import me.exrates.model.dto.RefillRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -1402,6 +1403,40 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         params.put("id", requestId);
         params.put("hash", hash);
         namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId) {
+        final String sql = "SELECT RR.amount as amount, RR.merchant_transaction_id as hash, RRA.address as address, RRQ.confirmation_number as collectedConfirmations, RR.merchant_id as merchantId " +
+                "FROM REFILL_REQUEST RR " +
+                "JOIN REFILL_REQUEST_CONFIRMATION RRQ ON RRQ.id = (SELECT MAX(RRQ_sub.id) FROM REFILL_REQUEST_CONFIRMATION RRQ_sub WHERE RRQ_sub.refill_request_id = RR.id) " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON RRA.id = RR.refill_request_address_id " +
+                "WHERE RR.currency_id = :currency AND RR.status_id = :status AND RR.user_id = :user_id";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("currency", currencyId);
+            put("user_id", userId);
+            put("status", RefillStatusEnum.ON_BCH_EXAM.getCode());
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, (rs, i) -> {
+            RefillOnConfirmationDto dto = new RefillOnConfirmationDto();
+            dto.setAddress(rs.getString("address"));
+            dto.setHash(rs.getString("hash"));
+            dto.setAmount(rs.getBigDecimal("amount"));
+            dto.setCollectedConfirmations(rs.getInt("collectedConfirmations"));
+            dto.setMerchantId(rs.getInt("merchantId"));
+            return dto;
+        });
+    }
+
+    @Override
+    public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
+        String sql = "SELECT RRA.* FROM MERCHANT M " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
+                "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
     }
 }
 

@@ -1,11 +1,17 @@
 package me.exrates.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.core.io.Resource;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder(builderClassName = "Builder", toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class Email {
 
@@ -14,9 +20,6 @@ public class Email {
 	private String message;
 	private String subject;
 	private List<Attachment> attachments = new ArrayList<>();
-
-
-
 
 	public static class Attachment {
 		private String name;

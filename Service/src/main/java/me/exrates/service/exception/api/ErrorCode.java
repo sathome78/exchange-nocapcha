@@ -53,4 +53,5 @@ public enum ErrorCode {
     BLOCED_TRADING,
     CALL_BACK_URL_ALREADY_EXISTS,
     NOT_CANCELLED;
+
 }

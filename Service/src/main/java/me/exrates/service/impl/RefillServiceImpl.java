@@ -34,6 +34,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
@@ -1293,5 +1294,25 @@ public class RefillServiceImpl implements RefillService {
     @Override
     public void setInnerTransferHash(int requestId, String hash) {
         refillRequestDao.setInnerTransferHash(requestId, hash);
+    }
+
+    @Override
+    public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
+        Integer userId = userService.getIdByEmail(email);
+        if (userId == 0) {
+            return Collections.emptyList();
+        }
+        List<RefillOnConfirmationDto> dtos = refillRequestDao.getOnConfirmationDtos(userId, currencyId);
+        dtos.forEach(p -> {
+            IRefillable merchant = (IRefillable) merchantServiceContext
+                    .getMerchantService(p.getMerchantId());
+            p.setNeededConfirmations(merchant.minConfirmationsRefill());
+        });
+        return dtos;
+    }
+
+    @Override
+    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+        return refillRequestDao.findAllAddressesByMerchantWithChilds(merchantId);
     }
 }

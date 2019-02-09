@@ -119,7 +119,6 @@ public class IotaServiceImpl implements IotaService {
     @Override
     @Transactional
     public Map<String, String> refill(RefillRequestCreateDto request) {
-
         Optional<String> oldAddress = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(merchant.getId(), currency.getId(), request.getUserId());
         if (oldAddress.isPresent()) {
             if (!refillService.existsClosedRefillRequestForAddress(oldAddress.get(), merchant.getId(), currency.getId())) {
@@ -131,6 +130,7 @@ public class IotaServiceImpl implements IotaService {
         String address = "";
         try {
             address = iotaClient.getNewAddress(SEED, 2, 0, true, 0, false).getAddresses().get(0);
+            log.info("Iota generated address = " + address);
             List<Transfer> transfers = new ArrayList<>();
             transfers.add(new jota.model.Transfer(address, 0, MESSAGE, TAG));
             iotaClient.sendTransfer(SEED, 2, 9, 15, transfers, null, null, true);

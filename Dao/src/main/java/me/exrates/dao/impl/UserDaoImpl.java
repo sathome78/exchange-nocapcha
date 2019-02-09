@@ -607,6 +607,14 @@ public class UserDaoImpl implements UserDao {
         return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
     }
 
+    @Override
+    public boolean deleteTemporalToken(String tempToken) {
+        String sql = "delete from TEMPORAL_TOKEN where value = :token";
+        Map<String, String> namedParameters = new HashMap<>(1);
+        namedParameters.put("token", tempToken);
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
     public boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token) {
         if (token == null) {
             return false;
@@ -1069,6 +1077,211 @@ public class UserDaoImpl implements UserDao {
         return namedParameterJdbcTemplate.update(sql, namedParameters);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public int getVerificationStep(String userEmail) {
+        String sql = "SELECT u.kyc_verification_step FROM USER u WHERE u.email =:email";
 
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", userEmail), Integer.class);
+    }
+
+    @Override
+    public boolean userExistByEmail(String email) {
+        return this.jdbcTemplate.queryForObject("SELECT CASE WHEN count(id) > 0 THEN TRUE ELSE FALSE END FROM USER WHERE email = ?", Boolean.class, email);
+    }
+
+    @Override
+    public String getAvatarPath(Integer userId) {
+        String sql = "SELECT avatar_path FROM USER where id = :id";
+        Map<String, Integer> params = Collections.singletonMap("id", userId);
+        return namedParameterJdbcTemplate.queryForObject(sql, params, (resultSet, row) -> resultSet.getString("avatar_path"));
+    }
+
+    @Override
+    public List<Integer> findFavouriteCurrencyPairsById(int userId) {
+        String sql = "SELECT currency_pair_id FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("userId", userId);
+        }};
+        return namedParameterJdbcTemplate.queryForList(sql, params, Integer.class);
+    }
+
+    @Override
+    public boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete) {
+        String sql = "INSERT IGNORE INTO USER_FAVORITE_CURRENCY_PAIRS (user_id, currency_pair_id) " +
+                " VALUES(:userId, :currencyPairId)";
+        if (delete) {
+            sql = "DELETE FROM USER_FAVORITE_CURRENCY_PAIRS WHERE user_id = :userId AND currency_pair_id = :currencyPairId";
+        }
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("userId", userId);
+            put("currencyPairId", currencyPairId);
+        }};
+        return namedParameterJdbcTemplate.update(sql, params) >= 0;
+    }
+
+    @Transactional
+    @Override
+    public int updateReferenceId(String referenceId, String userEmail) {
+        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference WHERE email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("kyc_reference", referenceId);
+            put("email", userEmail);
+        }};
+        return namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public String getReferenceIdByUserEmail(String userEmail) {
+        String sql = "SELECT u.kyc_reference FROM USER u WHERE u.email =:email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", userEmail);
+        }};
+        return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public String getEmailByReferenceId(String referenceId) {
+        String sql = "SELECT u.email FROM USER u WHERE u.kyc_reference =:kyc_reference";
+
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("kyc_reference", referenceId), String.class);
+    }
+
+    @Transactional
+    @Override
+    public int updateVerificationStep(String userEmail) {
+        final String sql = "UPDATE USER SET kyc_verification_step = kyc_verification_step + 1 WHERE email = :email";
+
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("email", userEmail));
+    }
+
+    @Override
+    public TemporaryPasswordDto getTemporaryPasswordById(Long id) {
+        String sql = "SELECT id, user_id, password, date_creation, temporal_token_id FROM API_TEMP_PASSWORD WHERE id = :id";
+        Map<String, Long> namedParameters = Collections.singletonMap("id", id);
+        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (resultSet, row) -> {
+            TemporaryPasswordDto dto = new TemporaryPasswordDto();
+            dto.setId(resultSet.getLong("id"));
+            dto.setUserId(resultSet.getInt("user_id"));
+            dto.setPassword(resultSet.getString("password"));
+            dto.setDateCreation(resultSet.getTimestamp("date_creation").toLocalDateTime());
+            dto.setTemporalTokenId(resultSet.getInt("user_id"));
+            return dto;
+        });
+
+    }
+
+    @Override
+    public boolean updateUserPasswordFromTemporary(Long tempPassId) {
+        String sql = "UPDATE USER SET USER.password = " +
+                "(SELECT password FROM API_TEMP_PASSWORD WHERE id = :tempPassId) " +
+                "WHERE USER.id = (SELECT user_id FROM API_TEMP_PASSWORD WHERE id = :tempPassId);\n";
+        Map<String, Long> namedParameters = Collections.singletonMap("tempPassId", tempPassId);
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public boolean tempDeleteUserWallets(int userId) {
+        String sql = "DELETE FROM WALLET WHERE user_id = :id; ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", userId);
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public boolean tempDeleteUser(int id) {
+        String sql = "DELETE FROM USER WHERE USER.id = :id; ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public Integer retrieveNicknameSearchLimit() {
+        String sql = "SELECT param_value FROM API_PARAMS WHERE param_name = 'NICKNAME_SEARCH_LIMIT'";
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, Integer.class);
+    }
+
+    @Override
+    public List<String> findNicknamesByPart(String part, Integer limit) {
+        String sql = "SELECT DISTINCT nickname FROM " +
+                "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
+                "  UNION " +
+                "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
+                "  LIMIT :lim ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("part_begin", part + "%");
+        params.put("part_middle", "%" + part + "%");
+        params.put("lim", limit);
+        try {
+            return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.EMPTY_LIST;
+        }
+    }
+
+    @Override
+    public boolean updateLast2faNotifyDate(String email) {
+        String sql = "UPDATE USER SET USER.2fa_last_notify_date =:date " +
+                "WHERE USER.email = :email";
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("email", email);
+            put("date", LocalDate.now());
+        }};
+        return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList) {
+
+        String sql = "SELECT U.id, U.nickname, U.email, U.regdate, f_ip.ip AS first_ip, l_ip.ip AS last_ip, l_ip.last_registration_date " +
+                "FROM USER U " +
+                "    JOIN (SELECT user_id, MAX(last_registration_date) AS last_date, MIN(registration_date) AS first_date " +
+                "            FROM USER_IP GROUP BY user_id) AS agg ON U.id = agg.user_id " +
+                "JOIN USER_IP f_ip ON U.id = f_ip.user_id AND f_ip.registration_date = agg.first_date " +
+                "LEFT JOIN USER_IP l_ip ON U.id = l_ip.user_id AND l_ip.last_registration_date = agg.last_date ";
+        String whereClause = "";
+        Map<String, Object> params = new HashMap<>();
+        if (userRoleList.size() > 0) {
+            whereClause = "WHERE U.roleid IN (:roles)";
+            params.put("roles", userRoleList);
+        }
+        return namedParameterJdbcTemplate.query(sql + whereClause, params, (rs, rowNum) -> {
+            UserIpReportDto dto = new UserIpReportDto();
+            dto.setOrderNum(rowNum + 1);
+            dto.setId(rs.getInt("id"));
+            dto.setEmail(rs.getString("email"));
+            dto.setNickname(rs.getString("nickname"));
+            Timestamp creationTime = rs.getTimestamp("regdate");
+            dto.setCreationTime(creationTime == null ? null : creationTime.toLocalDateTime());
+            dto.setFirstIp(rs.getString("first_ip"));
+            dto.setLastIp(rs.getString("last_ip"));
+            Timestamp lastLoginTime = rs.getTimestamp("last_registration_date");
+            dto.setLastLoginTime(lastLoginTime == null ? null : lastLoginTime.toLocalDateTime());
+            return dto;
+        });
+
+    }
+
+    @Override
+    public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
+        String sql = "SELECT COUNT(*) FROM USER WHERE regdate BETWEEN STR_TO_DATE(:start_time, '%Y-%m-%d %H:%i:%s') " +
+                "   AND STR_TO_DATE(:end_time, '%Y-%m-%d %H:%i:%s') ";
+        Map<String, Timestamp> params = new HashMap<>();
+        params.put("start_time", Timestamp.valueOf(startTime));
+        params.put("end_time", Timestamp.valueOf(endTime));
+        return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+    }
+
+    @Override
+    public long countUserEntrance(String email) {
+        final String sql = "SELECT COUNT(UI.user_id) FROM USER_IP UI JOIN USER U ON U.id=UI.user_id WHERE U.email =:email";
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("email", email);
+        }};
+        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Long.class);
+    }
 
 }
