@@ -578,7 +578,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 40);
+                "B2G", "B2G", 100);
     }
 
     @Bean(name = "golServiceImpl")
