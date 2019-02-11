@@ -3,8 +3,11 @@ package me.exrates.service.cache;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.TradeMarket;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +15,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -31,13 +35,16 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         this.ratesRedisRepository = ratesRedisRepository;
     }
 
-    @PostConstruct
+//    @PostConstruct
     private void init() {
         log.info("Start init ExchangeRatesHolder");
         List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs();
         ratesRedisRepository.batchUpdate(list);
         log.info("Finish init ExchangeRatesHolder");
         list.forEach(o -> {
+            processPercentChange(o);
+            calculateCurrencyVolume(o);
+            calculatePriceInUSD(o);
             if (o.getCurrencyPairName().equalsIgnoreCase("BTC/USD")) {
                 BTC_USD_ID = o.getCurrencyPairId();
             } else if (o.getCurrencyPairName().equalsIgnoreCase("ETH/USD")) {
@@ -61,6 +68,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             ExOrderStatisticsShortByPairsDto dto = ratesRedisRepository.get(pairId);
             dto.setPredLastOrderRate(dto.getLastOrderRate());
             dto.setLastOrderRate(rate.toPlainString());
+            calculatePriceInUSD(dto);
             ratesRedisRepository.update(dto);
         } else {
             ratesRedisRepository.put(orderDao.getOrderStatisticForSomePairs(Collections.singletonList(pairId)).get(0));
@@ -115,5 +123,22 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             return lastRate.multiply(dealPrice).toPlainString();
         }
         return null;
+    }
+
+    private void processPercentChange(ExOrderStatisticsShortByPairsDto o) {
+        BigDecimal lastExrate = new BigDecimal(o.getLastOrderRate());
+        BigDecimal predLast = o.getPredLastOrderRate() != null ? new BigDecimal(o.getPredLastOrderRate()) : BigDecimal.ZERO;
+        BigDecimal percentChange = BigDecimal.ZERO;
+        if (BigDecimalProcessing.moreThanZero(lastExrate) && BigDecimalProcessing.moreThanZero(predLast)) {
+            percentChange = BigDecimalProcessing.doAction(predLast, lastExrate, ActionType.PERCENT_GROWTH);
+        }
+        o.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, Locale.ENGLISH, 2));
+    }
+
+    private void calculateCurrencyVolume(ExOrderStatisticsShortByPairsDto dto) {
+        BigDecimal lastOrderRate = new BigDecimal(dto.getLastOrderRate());
+        BigDecimal volume = new BigDecimal(dto.getVolume());
+        BigDecimal currencyVolume = BigDecimalProcessing.doAction(volume, lastOrderRate, ActionType.MULTIPLY);
+        dto.setCurrencyVolume(currencyVolume.toPlainString());
     }
 }
