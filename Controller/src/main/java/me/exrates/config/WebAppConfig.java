@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.xml.internal.bind.v2.TODO;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
