@@ -38,14 +38,12 @@ import java.util.concurrent.TimeUnit;
 import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
 
 
-//@PropertySource("classpath:/merchants/aunit.properties")
-//@Log4j2(topic = "aunit")
 @Data
 @ClientEndpoint
-public class BitsharesServiceImpl implements BitsharesService {
+public abstract class BitsharesServiceImpl implements BitsharesService {
 
     public static final long PERIOD = 5L;
-    private Logger log;
+    protected Logger log;
 
     @Autowired
     private MessageSource messageSource;
@@ -58,25 +56,25 @@ public class BitsharesServiceImpl implements BitsharesService {
     @Autowired
     private MerchantService merchantService;
     @Autowired
-    private MerchantSpecParamsDao merchantSpecParamsDao;
+    protected MerchantSpecParamsDao merchantSpecParamsDao;
     @Autowired
     private GtagService gtagService;
 
     private String mainAddress;
     private String mainAddressId;
-    private String merchantName;
+    protected String merchantName;
     private String currencyName;
     private String wsUrl;
     private static final int MAX_TAG_DESTINATION_DIGITS = 9;
-    private int lastIrreversibleBlockValue; //
+    protected int lastIrreversibleBlockValue; //
     private String privateKey;
 
-    private Merchant merchant;
+    protected Merchant merchant;
     private Currency currency;
     private URI WS_SERVER_URL;
     private volatile Session session;
-    private volatile RemoteEndpoint.Basic endpoint;
-    private final String lastIrreversebleBlockParam = "last_irreversible_block_num";
+    protected volatile RemoteEndpoint.Basic endpoint;
+    protected final String lastIrreversebleBlockParam = "last_irreversible_block_num";
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
@@ -285,7 +283,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-    private void subscribeToTransactions() throws IOException {
+    public void subscribeToTransactions() throws IOException {
         JSONObject login = new JSONObject();
         login.put("id", 0);
         login.put("method", "call");
@@ -347,7 +345,6 @@ public class BitsharesServiceImpl implements BitsharesService {
 
     @OnMessage
     public void onMessage(String msg) {
-        System.out.println(msg);
         try {
             if (msg.contains("notice")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
@@ -359,7 +356,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     }
 
     @SneakyThrows
-    private void getBlock(int blockNum) {
+    protected void getBlock(int blockNum) {
         JSONObject block = new JSONObject();
         block.put("id", 10);
         block.put("method", "call");
@@ -367,7 +364,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(block.toString());
     }
 
-    private void processIrreversebleBlock(String trx) {
+    protected void processIrreversebleBlock(String trx) {
         JSONObject block = new JSONObject(trx);
         if (block.getJSONObject("result").getJSONArray("transactions").length() == 0) return;
         JSONArray transactions = block.getJSONObject("result").getJSONArray("transactions");
@@ -424,7 +421,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         return amount.multiply(new BigDecimal(Math.pow(10, -5))).setScale(5, RoundingMode.HALF_DOWN);
     }
 
-    private void setIrreversableBlock(String msg) {
+    protected void setIrreversableBlock(String msg) {
         JSONObject message = new JSONObject(msg);
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(0).getInt(lastIrreversebleBlockParam);
         synchronized (this) {
