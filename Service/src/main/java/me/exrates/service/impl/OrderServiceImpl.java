@@ -1570,7 +1570,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData) {
         adminOrderFilterData.initFilterItems();
         return orderDao.getOrdersForReport(adminOrderFilterData);
     }
@@ -2012,6 +2012,17 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getUserOrdersByStatus(userId, currencyPairId, OrderStatus.CANCELLED, queryLimit, queryOffset);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                                @Null Integer limit,
+                                                @Null Integer offset) {
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
+        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
+        int queryOffset = offset == null ? 0 : offset;
+        return orderDao.getUserOrders(userId, currencyPairId, queryLimit, queryOffset);
+    }
 
     private String getUserEmailFromSecurityContext() {
         return userService.getUserEmailFromSecurityContext();

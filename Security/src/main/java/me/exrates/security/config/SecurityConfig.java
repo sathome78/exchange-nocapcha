@@ -231,6 +231,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/public/**").permitAll()
             .antMatchers("/info/public/**").permitAll()
             .antMatchers(GET, "/openapi/v1/public/**").permitAll()
+            .antMatchers(GET, "/api/v1/public/**").permitAll()
             .antMatchers(GET, "/favicon.ico").permitAll()
             .antMatchers(GET, "/news/**").permitAll()
             .antMatchers(GET, "/pageMaterials/**").permitAll()
