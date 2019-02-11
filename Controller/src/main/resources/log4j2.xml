@@ -591,8 +591,17 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="aunit_log" fileName="${sys:catalina.home}/logs/crypto/aunit.log"
+        <RollingFile name="aunit" fileName="${sys:catalina.home}/logs/crypto/aunit.log"
                      filePattern="${sys:catalina.home}/logs/crypto/aunit%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ppy" fileName="${sys:catalina.home}/logs/crypto/ppy.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/ppy%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -878,7 +887,10 @@
             <AppenderRef ref="apollo_log"/>
         </logger>
         <logger name="aunit" level="ALL" additivity="false">
-            <AppenderRef ref="aunit_log"/>
+            <AppenderRef ref="aunit"/>
+        </logger>
+        <logger name="ppy" level="ALL" additivity="false">
+            <AppenderRef ref="ppy"/>
         </logger>
         <logger name="email_log" level="ALL" additivity="false">
             <AppenderRef ref="email_log"/>
