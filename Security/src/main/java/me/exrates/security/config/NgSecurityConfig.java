@@ -11,6 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,7 +29,7 @@ import java.util.Arrays;
  * Created by Maks on 09.02.2018.
  */
 @Configuration
-@Order(value = 2)
+@Order(value = 3)
 @EnableWebSecurity
 @PropertySource("classpath:angular.properties")
 public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -92,6 +93,11 @@ public class NgSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .httpBasic();
+    }
+
+    @Override
+    public void configure(WebSecurity web)  {
+        web.ignoring().antMatchers("/info/public/**");
     }
 
 }
