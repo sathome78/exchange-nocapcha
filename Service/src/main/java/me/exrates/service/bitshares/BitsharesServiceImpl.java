@@ -8,6 +8,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.MerchantInternalException;
@@ -58,6 +59,8 @@ public class BitsharesServiceImpl implements BitsharesService {
     private MerchantService merchantService;
     @Autowired
     private MerchantSpecParamsDao merchantSpecParamsDao;
+    @Autowired
+    private GtagService gtagService;
 
     private String mainAddress;
     private String mainAddressId;
@@ -116,7 +119,6 @@ public class BitsharesServiceImpl implements BitsharesService {
             }
         }
     }
-
     @Override
     public Merchant getMerchant() {
         return merchant;
@@ -139,6 +141,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         }};
     }
 
+
     private Integer generateUniqDestinationTag(int userId) {
         Optional<Integer> id;
         int destinationTag;
@@ -154,7 +157,7 @@ public class BitsharesServiceImpl implements BitsharesService {
         String idInString = String.valueOf(userId);
         int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
         if (randomNumberLength < 0) {
-            throw new MerchantInternalException("Error generating new destination tag for " + merchantName + " for user with id " + userId);
+            throw new MerchantInternalException("error generating new destination tag for aunit" + userId);
         }
         String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
@@ -187,6 +190,8 @@ public class BitsharesServiceImpl implements BitsharesService {
         }
         final String username = refillService.getUsernameByRequestId(requestId);
 
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
@@ -205,7 +210,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-            log.error("aunit transaction allready received!!! " + hash);
+            log.error("aunit transaction allready received!!! {}" + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()

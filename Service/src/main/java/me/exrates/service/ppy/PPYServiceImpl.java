@@ -9,6 +9,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.*;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.bitshares.BitsharesService;
@@ -58,6 +59,8 @@ public class PPYServiceImpl implements BitsharesService {
     private MerchantService merchantService;
     @Autowired
     private MerchantSpecParamsDao merchantSpecParamsDao;
+    @Autowired
+    private GtagService gtagService;
 
     private String mainAddress;
     private String mainAddressId;
@@ -117,7 +120,6 @@ public class PPYServiceImpl implements BitsharesService {
             }
         }
     }
-
     @Override
     public Merchant getMerchant() {
         return merchant;
@@ -140,6 +142,7 @@ public class PPYServiceImpl implements BitsharesService {
         }};
     }
 
+
     private Integer generateUniqDestinationTag(int userId) {
         Optional<Integer> id;
         int destinationTag;
@@ -155,7 +158,7 @@ public class PPYServiceImpl implements BitsharesService {
         String idInString = String.valueOf(userId);
         int randomNumberLength = MAX_TAG_DESTINATION_DIGITS - idInString.length();
         if (randomNumberLength < 0) {
-            throw new MerchantInternalException("Error generating new destination tag for " + merchantName + " for user with id " + userId);
+            throw new MerchantInternalException("error generating new destination tag for aunit" + userId);
         }
         String randomIntInstring = String.valueOf(100000000 + new Random().nextInt(100000000));
         return Integer.valueOf(idInString.concat(randomIntInstring.substring(0, randomNumberLength)));
@@ -176,18 +179,29 @@ public class PPYServiceImpl implements BitsharesService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            setIdAndAccept(requestAcceptDto);
+            requestId = setIdAndAccept(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
-    private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+    private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+            return requestId;
         } catch (Exception e) {
             log.error(e);
             throw e;
@@ -197,7 +211,7 @@ public class PPYServiceImpl implements BitsharesService {
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-            log.error(merchantName + " transaction allready received!!! " + hash);
+            log.error("aunit transaction allready received!!! {}" + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
