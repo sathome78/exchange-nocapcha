@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -113,6 +115,10 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
+    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairId}")
+    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) {
+        return orderService.getOpenOrdersForWs(currencyPairId);
+    }
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
@@ -126,5 +132,7 @@ public class WsContorller {
                 (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair)));
         return objectsArray.toString();
     }
+
+
 
 }

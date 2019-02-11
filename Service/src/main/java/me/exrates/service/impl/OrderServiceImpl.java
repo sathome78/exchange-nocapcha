@@ -11,6 +11,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
@@ -1455,12 +1456,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
         result = new ArrayList<>(result);
         result = result.stream()
-                .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                    @Override
-                    public int compare(OrderListDto o1, OrderListDto o2) {
-                        return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
-                    }
-                })
+                .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate())))
                 .collect(toList());
         result.forEach(e -> {
             e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
@@ -1537,6 +1533,21 @@ public class OrderServiceImpl implements OrderService {
                     amountConverted.toString(), operationType, forceUpdate));
         });
         return resultList;
+    }
+
+    @Override
+    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        return Arrays.asList(sellOrders, buyOrders);
     }
 
     @Transactional(readOnly = true)
@@ -1714,7 +1725,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         if (currentOrderStatus.equals(OrderStatus.OPENED)) {
-            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
+            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true, true));
         }
         return processedRows;
     }
