@@ -3,6 +3,7 @@ package me.exrates.service.ppy;
 import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -33,18 +34,16 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
 
 
-//@PropertySource("classpath:/merchants/aunit.properties")
-//@Log4j2(topic = "aunit")
 @Data
 @ClientEndpoint
 public class PPYServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 3L;
-    private long SCANING_INITIAL_DELAY;
+    public static final long PERIOD = 5L;
     private Logger log;
 
     @Autowired
@@ -78,19 +77,16 @@ public class PPYServiceImpl implements BitsharesService {
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public PPYServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
-        System.out.println("PPY constructor");
         this.merchantName = merchantName;
         this.currencyName = currencyName;
-        log = Logger.getLogger(merchantName);
+        log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
             props.load(this.getClass().getClassLoader().getResourceAsStream(propertySource));
             mainAddress = props.getProperty("mainAddress");
             mainAddressId = props.getProperty("mainAddressId");
             wsUrl = props.getProperty("wsUrl");
-            this.SCANING_INITIAL_DELAY = SCANING_INITIAL_DELAY;
-//            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
-            connectAndSubscribe();
+            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
         } catch (Exception e){
             log.error(e);
         }
@@ -110,16 +106,17 @@ public class PPYServiceImpl implements BitsharesService {
         }
     }
 
-//    private void reconnect() {
-//        System.out.println("RECONNECT");
-//        if (!session.isOpen()) {
-//            try {
-//                connectAndSubscribe();
-//            } catch (Exception e) {
-//                log.error(e);
-//            }
-//        }
-//    }
+    private void reconnect() {
+        log.info("Bitshares reconnect()");
+
+        if (session == null || !session.isOpen()) {
+            try {
+                connectAndSubscribe();
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+    }
 
     @Override
     public Merchant getMerchant() {
@@ -258,7 +255,7 @@ public class PPYServiceImpl implements BitsharesService {
         return merchantName;
     }
 
-    private void connectAndSubscribe() {
+    public void connectAndSubscribe() {
         System.out.println("PPY connectAndSubscribe");
 
         try {
@@ -277,7 +274,7 @@ public class PPYServiceImpl implements BitsharesService {
     }
 
     private void subscribeToTransactions() throws IOException {
-        System.out.println("PPY subscribeToTransactions");
+        log.info("PPY subscribeToTransactions");
 
         JSONObject login = new JSONObject();
         login.put("id", 0);
@@ -335,18 +332,18 @@ public class PPYServiceImpl implements BitsharesService {
         endpoint.sendText(subscribe.toString());
 
         endpoint.sendText(get_object.toString());
-        System.out.println("PPY subscribeToTransactions done");
+        log.info("PPY subscribeToTransactions done");
 
 
     }
 
     @OnMessage
     public void onMessage(String msg) {
-        System.out.println(msg);
+        log.info(msg);
         try {
             if (msg.contains("last_irreversible_block_num")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
-            else log.info("unrecogrinzed msg from aunit \n" + msg);
+            else log.info("unrecogrinzed msg from " + merchantName + "\n" + msg);
         } catch (Exception e) {
             log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
         }
@@ -433,7 +430,7 @@ public class PPYServiceImpl implements BitsharesService {
     }
 
 
-    //Example for decrypting memo
+    //Example for decrypting memo don't delete
     public static void main(String[] args) throws NoSuchAlgorithmException {
 //        String s = decryptBTSmemo("5Js88n7mstj3oetaWvmr2s6aYdd8Tfp6P55sCAidkDdaxFhzAAv", "{\"from\":\"AUNIT7k3nL56J7hh2yGHgWTUk9bGdjG2LL1S7egQDJYZ71MQtU3CqB5\",\"to\":\"AUNIT83A7sYcCZvVMphurvQPbGtw6BFHFxPFDZfKCJDqzcAeSfPrSgR\",\"nonce\":\"394474453593373\",\"message\":\"a3a22532efe98f3ab7d31d50761079d6\"}");
 //

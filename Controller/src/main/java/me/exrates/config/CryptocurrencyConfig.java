@@ -424,12 +424,12 @@ public class CryptocurrencyConfig {
     //Bitshares
     @Bean(name = "ppyServiceImpl")
     public BitsharesService bitsharesService(){
-        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 0);
+        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 6);
     }
 
     @Bean(name = "aunitServiceImpl")
     public BitsharesService aunitServiceImpl(){
-        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 100);
+        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 5);
     }
 
 }

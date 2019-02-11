@@ -43,8 +43,7 @@ import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
 @ClientEndpoint
 public class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 3L;
-    private long SCANING_INITIAL_DELAY;
+    public static final long PERIOD = 5L;
     private Logger log;
 
     @Autowired
@@ -75,21 +74,19 @@ public class BitsharesServiceImpl implements BitsharesService {
     private volatile Session session;
     private volatile RemoteEndpoint.Basic endpoint;
     private final String lastIrreversebleBlockParam = "last_irreversible_block_num";
-    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public BitsharesServiceImpl(String merchantName, String currencyName, String propertySource, long SCANING_INITIAL_DELAY) {
         this.merchantName = merchantName;
         this.currencyName = currencyName;
-        log = Logger.getLogger(merchantName);
+        log = Logger.getLogger(merchantName.toLowerCase());
         Properties props = new Properties();
         try {
             props.load(this.getClass().getClassLoader().getResourceAsStream(propertySource));
             mainAddress = props.getProperty("mainAddress");
             mainAddressId = props.getProperty("mainAddressId");
             wsUrl = props.getProperty("wsUrl");
-            this.SCANING_INITIAL_DELAY = SCANING_INITIAL_DELAY;
-//            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
-            connectAndSubscribe();
+            scheduler.scheduleAtFixedRate(this::reconnect, SCANING_INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
         } catch (IOException e){
             log.error(e);
         }
@@ -109,16 +106,16 @@ public class BitsharesServiceImpl implements BitsharesService {
         }
     }
 
-//    private void reconnect() {
-//        System.out.println("RECONNECT");
-//        if (!session.isOpen()) {
-//            try {
-//                connectAndSubscribe();
-//            } catch (Exception e) {
-//                log.error(e);
-//            }
-//        }
-//    }
+    private void reconnect() {
+        log.info("Bitshares reconnect()");
+        if (session == null || !session.isOpen()) {
+            try {
+                connectAndSubscribe();
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+    }
 
     @Override
     public Merchant getMerchant() {
@@ -178,18 +175,27 @@ public class BitsharesServiceImpl implements BitsharesService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
-            setIdAndAccept(requestAcceptDto);
+            requestId = setIdAndAccept(requestAcceptDto);
         }
+        final String username = refillService.getUsernameByRequestId(requestId);
+
     }
 
-    private void setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
+    private Integer setIdAndAccept(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
         try {
             Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+            return requestId;
         } catch (Exception e) {
             log.error(e);
             throw e;
@@ -199,7 +205,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     @Override
     public RefillRequestAcceptDto createRequest(String hash, String address, BigDecimal amount) {
         if (isTransactionDuplicate(hash, currency.getId(), merchant.getId())) {
-            log.error(merchantName + " transaction allready received!!! " + hash);
+            log.error("aunit transaction allready received!!! " + hash);
             throw new RuntimeException("aunit transaction allready received!!!");
         }
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -241,6 +247,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new RuntimeException("Not supported");
     }
+
 
     @Override
     public String getMainAddress() {
@@ -426,7 +433,7 @@ public class BitsharesServiceImpl implements BitsharesService {
     }
 
 
-    //Example for decrypting memo
+    //Example for decrypting memo don't delete
     public static void main(String[] args) throws NoSuchAlgorithmException {
         String s = decryptBTSmemo("5KJbFnkWbfqZFVdTVo1BfBRj7vFFaGv2irkDfCfpDyHJiSgNK3k", "{\"from\":\"PPY6xkszYqrmwwBeCrwg8FmJM3NLN2DLuDFz8jwb7wZZfUcku5aPP\",\"to\":\"PPY8VikXsDhYu42VQkMECGGrj7pZUxk34GWPH3MVLTgdzjvXgnEtQ\",\"nonce\":\"396729669771043\",\"message\":\"895066dc7b1e53df553b801d7e86a45d\"}", "PPY");
 
