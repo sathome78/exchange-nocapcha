@@ -4,7 +4,6 @@
 <article class="banner-wr">
 	<link href='https://fonts.googleapis.com/css?family=Roboto:700,600,500,400,200,100' rel='stylesheet' type='text/css'>
 	<style>
-
 		.banner-wr{
 			width: 100%;
 			font-size: 20px;
@@ -15,6 +14,10 @@
 			padding-right: 20px;
 			height: 3em;
 			overflow: hidden;
+
+		}
+		.banner-wr p {
+			margin: 0;
 		}
 
 		.banner-wr .banner-content-inner:nth-child(1){
@@ -99,7 +102,7 @@
 			opacity: 0.3;
 			color: #ffffff;
 			font-size: .8em;
-			padding-top: 4px;
+			padding-top: 2px;
 		}
 		@media(max-width: 768px){
 			.banner-wr{
@@ -112,30 +115,30 @@
 	</style>
 	<div class="banner-content">
 		<div class="banner-content-inner active">
-			<a href="https://youtu.be/6ei8Cr-jMBU" target="blank"></a>
+			<a href="https://youtu.be/4Mx86-dtoNY" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic1.png"/>" alt=""/>
+				<img src="../../assets/img/b-pic1.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="../../assets/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #78 - Edge Cryptocurrency Wallet + Blockchain Platform — insights</p>
 			</div>
 		</div>
 		<div class="banner-content-inner">
-			<a href="https://youtu.be/K1yCJtkf3hk" target="blank"></a>
+			<a href="https://youtu.be/4Mx86-dtoNY" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic2.png"/>" alt=""/>
+				<img src="../../assets/img/b-pic2.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="../../assets/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #79 - BTC $3.500 | No BTC ETF - SEC | Lose $8 Million in Crypto Scam</p>
@@ -144,13 +147,13 @@
 		<div class="banner-content-inner">
 			<a href="https://youtu.be/4Mx86-dtoNY" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic3.png"/>" alt=""/>
+				<img src="../../assets/img/b-pic3.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="../../assets/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #80 - Bitcoin SV creator Craig Wright — the real Satoshi Nakamoto?</p>
