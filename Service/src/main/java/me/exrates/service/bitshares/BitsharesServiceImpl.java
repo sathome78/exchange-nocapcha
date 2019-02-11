@@ -95,15 +95,19 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
     @PostConstruct
     public void setUp() {
-        privateKey = merchantService.getPassMerchantProperties(merchantName).getProperty("privateKey");
-        currency = currencyService.findByName(currencyName);
-        merchant = merchantService.findByName(merchantName);
-        MerchantSpecParamDto merchantSpecParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlockParam);
-        if(merchantSpecParam == null){
-            log.error("Can not find merchant spec param with merchantId = " + merchant.getId() + " and param name = " + lastIrreversebleBlockParam + ", using default value = 0");
-            lastIrreversibleBlockValue = 0;
-        } else {
-            lastIrreversibleBlockValue = Integer.valueOf(merchantSpecParam.getParamValue());
+        try {
+            privateKey = merchantService.getPassMerchantProperties(merchantName).getProperty("privateKey");
+            currency = currencyService.findByName(currencyName);
+            merchant = merchantService.findByName(merchantName);
+            MerchantSpecParamDto merchantSpecParam = merchantSpecParamsDao.getByMerchantIdAndParamName(merchant.getId(), lastIrreversebleBlockParam);
+            if(merchantSpecParam == null){
+                log.error("Can not find merchant spec param with merchantId = " + merchant.getId() + " and param name = " + lastIrreversebleBlockParam + ", using default value = 0");
+                lastIrreversibleBlockValue = 0;
+            } else {
+                lastIrreversibleBlockValue = Integer.valueOf(merchantSpecParam.getParamValue());
+            }
+        }catch (Exception ex){
+            log.error(ex);
         }
     }
 
