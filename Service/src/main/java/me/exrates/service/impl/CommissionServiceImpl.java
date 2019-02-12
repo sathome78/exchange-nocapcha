@@ -141,14 +141,18 @@ public class CommissionServiceImpl implements CommissionService {
         result.put("amount", commissionData.getAmount().toPlainString());
         if (!commissionData.getSpecificMerchantComissionCount()) {
 
-            String merchantCommissionRate = messageSource.getMessage("merchant.commission.rateWithLimit",
-                    new Object[]{BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false)
-                            + commissionData.getMerchantCommissionUnit(),
-                            String.join("", BigDecimalProcessing.formatLocale(commissionData.getMinMerchantCommissionAmount(), locale, false),
-                                    " ", currencyService.getCurrencyName(currencyId))}, locale);
-
+            String merchantCommissionRate;
+            if(type.equals(INPUT)){
+                merchantCommissionRate = BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false)
+                                                + commissionData.getMerchantCommissionUnit();
+            } else {
+                merchantCommissionRate = messageSource.getMessage("merchant.commission.rateWithLimit",
+                        new Object[]{BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false)
+                                + commissionData.getMerchantCommissionUnit(),
+                                String.join("", BigDecimalProcessing.formatLocale(commissionData.getMinMerchantCommissionAmount(), locale, false),
+                                        " ", currencyService.getCurrencyName(currencyId))}, locale);
+            }
             result.put("merchantCommissionRate", String.join("", "(", merchantCommissionRate, ")"));
-
         } else {
             result.put("merchantCommissionRate", "");
         }
