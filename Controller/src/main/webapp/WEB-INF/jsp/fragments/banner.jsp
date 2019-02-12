@@ -1,3 +1,4 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 
@@ -16,7 +17,9 @@
 			height: 3em;
 			overflow: hidden;
 		}
-
+		.banner-wr p{
+			margin: 0;
+		}
 		.banner-wr .banner-content-inner:nth-child(1){
 			transform: translateY(5.2em);
 			/*animation: 20s an1 10s infinite;*/
@@ -114,13 +117,13 @@
 		<div class="banner-content-inner active">
 			<a href="https://youtu.be/6ei8Cr-jMBU" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic1.png"/>" alt=""/>
+				<img src="/client/img/b-pic1.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="/client/imgyoutube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #78 - Edge Cryptocurrency Wallet + Blockchain Platform — insights</p>
@@ -129,13 +132,13 @@
 		<div class="banner-content-inner">
 			<a href="https://youtu.be/K1yCJtkf3hk" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic2.png"/>" alt=""/>
+				<img src="/client/img/b-pic2.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="/client/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #79 - BTC $3.500 | No BTC ETF - SEC | Lose $8 Million in Crypto Scam</p>
@@ -144,13 +147,13 @@
 		<div class="banner-content-inner">
 			<a href="https://youtu.be/4Mx86-dtoNY" target="blank"></a>
 			<div class="banner-img">
-				<img src="<c:url value="/client/img/b-pic3.png"/>" alt=""/>
+				<img src="/client/img/b-pic3.png" alt="">
 			</div>
 			<div class="banner-name">
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="<c:url value="/client/img/youtube-pic.png"/>" alt=""/>
+				<img src="/client/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #80 - Bitcoin SV creator Craig Wright — the real Satoshi Nakamoto?</p>
