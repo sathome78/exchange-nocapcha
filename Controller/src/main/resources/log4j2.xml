@@ -636,10 +636,19 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="jdbc_log" fileName="${sys:catalina.home}/logs/jdbc/jdbc_log.log"
+                     filePattern="${sys:catalina.home}/logs/jdbc/jdbc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 K"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="jdbc_logger" level="ALL" additivity="false">
-            <appender-ref ref="Console" />
+            <appender-ref ref="jdbc_log" />
         </Logger>
         <Logger name="merchant" level="DEBUG" additivity="false">
             <AppenderRef ref="Merchants"/>
