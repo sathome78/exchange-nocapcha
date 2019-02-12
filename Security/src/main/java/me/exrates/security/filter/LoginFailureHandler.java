@@ -40,6 +40,7 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         }
         HttpSession session = request.getSession(false);
         session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
+        LOGGER.debug("redirect to login page");
         response.sendRedirect("/login?error");
     }
 }

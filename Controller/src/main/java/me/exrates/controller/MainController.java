@@ -32,6 +32,7 @@ import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
+import org.apache.axis.utils.SessionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -328,9 +329,9 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        ModelAndView model = new ModelAndView();
-        if (error != null) {
-            if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
+        logger.debug("login controller ");
+        if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
+            logger.debug("last exception not null");
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
                 if (exceptionClass.equals("DisabledException")) {
@@ -341,6 +342,7 @@ public class MainController {
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
+                    logger.debug("pin needed");
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
@@ -359,7 +361,7 @@ public class MainController {
                 } else {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
-            }
+                httpSession.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", null);
         }
 
         return new ModelAndView(new RedirectView("/dashboard"));

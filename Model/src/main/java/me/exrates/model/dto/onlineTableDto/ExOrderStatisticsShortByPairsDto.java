@@ -19,7 +19,6 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   private String market;
   private String volume;
   private String priceInUSD;
-  @JsonIgnore
   private CurrencyPairType type;
   @JsonIgnore
   private Integer pairOrder;
