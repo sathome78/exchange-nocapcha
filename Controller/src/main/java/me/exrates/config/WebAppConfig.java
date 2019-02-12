@@ -578,7 +578,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 40);
+                "B2G", "B2G", 200);
     }
 
     @Bean(name = "golServiceImpl")
@@ -1736,6 +1736,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0x0c6e8a8358cbde54f8e4cd7f07d5ac38aec8c5a4");
 		return new EthTokenServiceImpl(tokensList, "PLTC","PLTC", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "vrbsServiceImpl")
+	public EthTokenService vrbsServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
+		return new EthTokenServiceImpl(tokensList, "VRBS","VRBS", false, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "zubeServiceImpl")
+	public EthTokenService zubeServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
+		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
 	}
 
 	//    Qtum tokens:

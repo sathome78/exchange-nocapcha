@@ -35,6 +35,7 @@ import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -332,6 +333,8 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
+    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+
     /**
      * Returns data of
      * - userId by email,
@@ -416,5 +419,9 @@ public interface OrderService {
                                                                      int requesterId);
 
     void logCallBackData(CallBackLogDto callBackLogDto);
+
+    List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                         @Null Integer limit,
+                                         @Null Integer offset);
 
 }

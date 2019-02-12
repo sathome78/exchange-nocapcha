@@ -11,6 +11,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
@@ -1455,12 +1456,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
         result = new ArrayList<>(result);
         result = result.stream()
-                .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                    @Override
-                    public int compare(OrderListDto o1, OrderListDto o2) {
-                        return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
-                    }
-                })
+                .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate())))
                 .collect(toList());
         result.forEach(e -> {
             e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
@@ -1539,6 +1535,21 @@ public class OrderServiceImpl implements OrderService {
         return resultList;
     }
 
+    @Override
+    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        return Arrays.asList(sellOrders, buyOrders);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
@@ -1570,7 +1581,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData){
+    public List<OrderReportInfoDto> getOrdersForReport(AdminOrderFilterData adminOrderFilterData) {
         adminOrderFilterData.initFilterItems();
         return orderDao.getOrdersForReport(adminOrderFilterData);
     }
@@ -1714,7 +1725,7 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         if (currentOrderStatus.equals(OrderStatus.OPENED)) {
-            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true));
+            eventPublisher.publishEvent(new CancelOrderEvent(getOrderById(orderId), true, true));
         }
         return processedRows;
     }
@@ -2012,6 +2023,17 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getUserOrdersByStatus(userId, currencyPairId, OrderStatus.CANCELLED, queryLimit, queryOffset);
     }
 
+    @Transactional(readOnly = true)
+    public List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                                @Null Integer limit,
+                                                @Null Integer offset) {
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+
+        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
+        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
+        int queryOffset = offset == null ? 0 : offset;
+        return orderDao.getUserOrders(userId, currencyPairId, queryLimit, queryOffset);
+    }
 
     private String getUserEmailFromSecurityContext() {
         return userService.getUserEmailFromSecurityContext();
