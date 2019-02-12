@@ -123,7 +123,7 @@
 				<p>NakamotoJedi</p>
 			</div>
 			<div class="youtube-pic">
-				<img src="/client/imgyoutube-pic.png" alt="">
+				<img src="/client/img/youtube-pic.png" alt="">
 			</div>
 			<div class="banner-discription">
 				<p>Episode #78 - Edge Cryptocurrency Wallet + Blockchain Platform — insights</p>
