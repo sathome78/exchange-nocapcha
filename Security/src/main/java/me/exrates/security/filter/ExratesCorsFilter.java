@@ -1,5 +1,7 @@
 package me.exrates.security.filter;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -12,7 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@PropertySource("classpath:angular.properties")
 public class ExratesCorsFilter implements Filter {
+
+    @Value("${front-host}")
+    private String origin;
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) {
@@ -26,7 +32,7 @@ public class ExratesCorsFilter implements Filter {
 //        response.setHeader("Access-Control-Allow-Origin", "http://dev6.exapp");
 
         // todo uncomment if current branch is angular-master, otherwise should be commented
-        response.setHeader("Access-Control-Allow-Origin", "https://demo.exrates.me");
+        response.setHeader("Access-Control-Allow-Origin", origin);
 
 
         response.setHeader("Access-control-Allow-Methods", "POST, PUT, PATCH, GET, OPTIONS, DELETE");
