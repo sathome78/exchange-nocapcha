@@ -249,6 +249,7 @@ public class ReportFourExcelGeneratorUtil {
             List<InternalWalletBalancesDto> inWallets = balance.getInternals();
             final BigDecimal inWalletsTotalBalance = inWallets.stream()
                     .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                    .filter(inWallet -> inWallet.getRoleName() != UserRole.OUTER_MARKET_BOT)
                     .map(InternalWalletBalancesDto::getTotalBalance)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
