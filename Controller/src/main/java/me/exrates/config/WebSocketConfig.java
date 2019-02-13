@@ -40,7 +40,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
-        String[] origins = allowedOrigins.split(",");
+        String [] origins = allowedOrigins.contains(",")
+                ? allowedOrigins.split(",")
+                : new String[]{allowedOrigins};
         registry.addHandler(handlers.get(EN), "/chat-en").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
         registry.addHandler(handlers.get(RU), "/chat-ru").setAllowedOrigins(origins).withSockJS()

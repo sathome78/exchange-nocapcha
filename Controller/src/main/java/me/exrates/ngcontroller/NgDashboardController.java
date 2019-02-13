@@ -67,7 +67,7 @@ import java.util.Map;
 import static java.util.Objects.nonNull;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/dashboard",
+@RequestMapping(value = "/api/private/v2/dashboard",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgDashboardController {

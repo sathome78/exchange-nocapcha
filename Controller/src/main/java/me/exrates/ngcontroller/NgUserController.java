@@ -57,7 +57,7 @@ import java.util.Optional;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 @RestController
-@RequestMapping(value = "/info/public/v2/users",
+@RequestMapping(value = "/api/public/v2/users",
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE
 )

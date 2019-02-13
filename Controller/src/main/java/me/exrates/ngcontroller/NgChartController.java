@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/info/public/v2/graph")
+@RequestMapping(value = "/api/public/v2/graph")
 public class NgChartController {
 
     private final CurrencyService currencyService;

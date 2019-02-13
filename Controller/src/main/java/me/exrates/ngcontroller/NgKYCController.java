@@ -41,8 +41,8 @@ import static me.exrates.service.impl.ShuftiProKYCService.SIGNATURE;
 )
 public class NgKYCController {
 
-    private final static String PUBLIC_KYC = "/info/public/v2/shufti-pro";
-    private final static String PRIVATE_KYC = "/info/private/v2/shufti-pro/";
+    private final static String PUBLIC_KYC = "/api/public/v2/shufti-pro";
+    private final static String PRIVATE_KYC = "/api/private/v2/shufti-pro/";
     private final UserService userService;
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;

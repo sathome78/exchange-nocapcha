@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/2FaOptions/",
+@RequestMapping(value = "/api/private/v2/2FaOptions/",
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE
 )

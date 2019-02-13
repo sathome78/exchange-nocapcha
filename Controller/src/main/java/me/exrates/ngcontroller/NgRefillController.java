@@ -61,7 +61,7 @@ import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNIN
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/balances/refill",
+@RequestMapping(value = "/api/private/v2/balances/refill",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgRefillController {

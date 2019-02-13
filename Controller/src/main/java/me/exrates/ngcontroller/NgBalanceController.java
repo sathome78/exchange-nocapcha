@@ -54,7 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/balances",
+@RequestMapping(value = "/api/private/v2/balances",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Log4j
