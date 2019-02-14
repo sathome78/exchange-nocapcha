@@ -596,7 +596,7 @@ function sendToReserveAddress() {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         }
     }).done(function () {
-        alert("Success");
+        alert("Done");
     })
 }
 

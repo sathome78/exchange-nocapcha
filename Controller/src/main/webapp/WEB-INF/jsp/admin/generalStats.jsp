@@ -402,7 +402,7 @@
                     </div>
 
                     <div class="col-md-12">
-                        <button onclick="sendToReserveAddress()" class="btn btn-danger"><loc:message code="admin.stats.download"/></button>
+                        <button onclick="sendToReserveAddress()" class="btn btn-danger">Start</button>
                     </div>
                 </div>
             </div>
