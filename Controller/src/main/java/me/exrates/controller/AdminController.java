@@ -90,6 +90,7 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.impl.B2XTransferToReserveAccount;
 import me.exrates.service.impl.EDCServiceNodeImpl;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -256,6 +257,9 @@ public class AdminController {
     private AdkService adkService;
     @Autowired
     private OmniServiceImpl omniService;
+
+    @Autowired
+    private B2XTransferToReserveAccount b2XTransferToReserveAccount;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -1683,6 +1687,14 @@ public class AdminController {
         LocalDateTime endTime = LocalDateTime.from(DateTimeFormatter.ofPattern(dateTimePattern).parse(endTimeString));
 
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve", method = POST)
+    public ResponseEntity sendMoneyToReserveAddress(@RequestParam("transactionCount") int transactionCount,
+                                       @RequestParam("transactionAmount") String amount) {
+        b2XTransferToReserveAccount.transferToReserveAccountFromNode(transactionCount, amount);
+        return ResponseEntity.ok().build();
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

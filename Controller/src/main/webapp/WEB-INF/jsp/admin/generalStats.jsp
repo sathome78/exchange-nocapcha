@@ -380,6 +380,30 @@
                     <div class="col-md-6">
                         <button onclick="uploadReportStatsByCoin()" class="btn btn-warning"><loc:message code="admin.stats.download"/></button>
                     </div>
+
+                    <br>
+
+                    <div class="row text-center" style="margin: 20px">
+                        <h4>Send to reserve address</h4>
+                    </div>
+
+                    <div class="col-md-5 input-block-wrapper__label-wrapper">
+                        <label class="input-block-wrapper__label">Transaction count: </label>
+                    </div>
+                    <div class="col-md-7 input-block-wrapper__input-wrapper">
+                        <input id="send-to-reserve-address-count" class="input-block-wrapper__input admin-form-input" type="text" name="transactionCount"/>
+                    </div>
+
+                    <div class="col-md-5 input-block-wrapper__label-wrapper">
+                        <label class="input-block-wrapper__label">Transaction amount: </label>
+                    </div>
+                    <div class="col-md-7 input-block-wrapper__input-wrapper">
+                        <input id="send-to-reserve-address-amount" class="input-block-wrapper__input admin-form-input" name="transactionAmount"/>
+                    </div>
+
+                    <div class="col-md-12">
+                        <button onclick="sendToReserveAddress()" class="btn btn-danger"><loc:message code="admin.stats.download"/></button>
+                    </div>
                 </div>
             </div>
 

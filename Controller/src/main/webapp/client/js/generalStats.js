@@ -584,6 +584,22 @@ function uploadReportStatsByCoin() {
     xhr.send(params);
 }
 
+function sendToReserveAddress() {
+    var data = {
+        transactionCount: $("#send-to-reserve-address-count").val(),
+        transactionAmount: $("#send-to-reserve-address-amount").val()
+    };
+    $.ajax('/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve', {
+        data: data,
+        type: 'POST',
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        }
+    }).done(function () {
+        alert("Success");
+    })
+}
+
 function refreshUsersInfo() {
     const url = '/2a8fy7b07dxe44/generalStats/usersInfo?' + getTimeParams() + '&' + getRoleParams();
     $.get(url, function (data) {
