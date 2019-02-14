@@ -15,22 +15,68 @@ $(document).ready(function () {
     $('#roleName-pair, #orderType').change(updateCurrencyPairLimitsDataTable);
     updateCurrencyLimitsDataTable();
     updateCurrencyPairLimitsDataTable();
-    $($currencyLimitsTable).find('tbody').on('click', 'tr', function () {
-        var rowData = currencyLimitDataTable.row(this).data();
-        var currencyId = rowData.currency.id;
-        var currencyName = rowData.currency.name;
-        var currentMinLimit = rowData.minSum;
-        var currentMaxDailyRequest = rowData.maxDailyRequest;
-        var operationType = $('#operationType').val();
-        var userRole = $('#roleName').val();
-        $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
-        $('#currency-name').val(currencyName);
-        $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
-        $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
-        $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
-        $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
-        $('#editLimitModal').modal();
+    $($currencyLimitsTable).find('tbody').on('click', 'tr', function (event) {
+        var target = $(event.target);
+        if(!target.is('input#chkbox')) {
+            var rowData = currencyLimitDataTable.row(this).data();
+            var currencyId = rowData.currency.id;
+            var currencyName = rowData.currency.name;
+            var currentMinLimit = rowData.minSum;
+            var currentMinUsdLimit = rowData.minSumUsdRate;
+            var currentUsdRate = rowData.currencyUsdRate;
+            var currentMaxDailyRequest = rowData.maxDailyRequest;
+            var operationType = $('#operationType').val();
+            var userRole = $('#roleName').val();
+
+            $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
+            $('#currency-name').val(currencyName);
+            $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
+            $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
+            $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
+            $($editCurrencyLimitForm).find('input[name="minAmountUSD"]').val(currentMinUsdLimit);
+            $($editCurrencyLimitForm).find('input[name="usdRate"]').val(currentUsdRate);
+            $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
+            $('#editLimitModal').modal();
+        }
     });
+
+    $('input#minAmount').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() * usdRate;
+
+        $('input#minAmountUSD').val(amount);
+    });
+
+    $('input#minAmountUSD').keyup(function() {
+        var usdRate = $('#usdRate').val();
+        var amount = $(this).val() / usdRate;
+
+        if (amount === Infinity || isNaN(amount)) {
+            $('input#minAmount').val('0');
+        } else {
+            formatMinAmount(amount);
+        }
+    });
+
+    function formatMinAmount(amount) {
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum',
+            type: 'GET',
+            data: {
+                "minSum": amount
+            },
+            success: function (data) {
+                $('input#minAmount').val(data);
+            },
+            error: function (error) {
+                console.log(error);
+                $('input#minAmount').val('0');
+            }
+        });
+    }
 
     $($currencyPairLimitsTable).find('tbody').on('click', 'tr', function () {
         var rowData = currencyPairLimitDataTable.row(this).data();
@@ -54,21 +100,15 @@ $(document).ready(function () {
     });
 
 
-
-
-
-    $('#submitNewLimit').click(function(e) {
+    $('#submitNewLimit').click(function (e) {
         e.preventDefault();
         submitNewLimit()
     });
 
-    $('#submitNewPairLimit').click(function(e) {
+    $('#submitNewPairLimit').click(function (e) {
         e.preventDefault();
         submitNewPairLimit();
     });
-
-
-
 
 
 });
@@ -96,7 +136,7 @@ function updateCurrencyLimitsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currency.id"
+                    "data": "currency.id"
                 },
                 {
                     "data": "currency.name"
@@ -130,10 +170,51 @@ function updateCurrencyLimitsDataTable() {
                 },
                 {
                     "data": "maxDailyRequest"
+                },
+                {
+                    "data": "recalculateToUsd",
+                    "render": function (data, type, row) {
+                        var currencyId = row.currency.id;
+                        var operationType = $('#operationType').val();
+                        var userRole = $('#roleName').val();
+
+                        var checkbox;
+                        if (data) {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setPropertyRecalculateLimitToUsd(this, ' + currencyId + ', \'' + operationType + '\', \'' + userRole + '\')" checked />';
+                        } else {
+                            checkbox = '<input id="chkbox" type="checkbox" name="chkbox" ' +
+                                'onchange="setPropertyRecalculateLimitToUsd(this, ' + currencyId + ', \'' + operationType + '\', \'' + userRole + '\')"/>';
+                        }
+                        return checkbox;
+                    }
                 }
             ]
         });
     }
+}
+
+function setPropertyRecalculateLimitToUsd(elem, currencyId, operationType, roleName) {
+    $('#editLimitModal').modal('hide');
+    $.ajax({
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        url: '/2a8fy7b07dxe44/editCurrencyLimits/recalculate-limit-to-usd',
+        type: 'POST',
+        data: {
+            "currencyId": currencyId,
+            "operationType": operationType,
+            "roleName": roleName,
+            "recalculateToUsd": elem.checked
+        },
+        success: function () {
+            updateCurrencyLimitsDataTable();
+        },
+        error: function (error) {
+            console.log(error);
+        }
+    });
 }
 
 function updateCurrencyPairLimitsDataTable() {
@@ -159,7 +240,7 @@ function updateCurrencyPairLimitsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data":"currencyPairId",
+                    "data": "currencyPairId",
                     "visible": false
                 },
                 {
@@ -208,7 +289,7 @@ function updateCurrencyPairLimitsDataTable() {
 
 
 function submitNewLimit() {
-    var formData =  $('#edit-currency-limit-form').serialize();
+    var formData = $('#edit-currency-limit-form').serialize();
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -228,7 +309,7 @@ function submitNewLimit() {
 }
 
 function submitNewPairLimit() {
-    var formData =  $('#edit-currency-pair-limit-form').serialize();
+    var formData = $('#edit-currency-pair-limit-form').serialize();
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
