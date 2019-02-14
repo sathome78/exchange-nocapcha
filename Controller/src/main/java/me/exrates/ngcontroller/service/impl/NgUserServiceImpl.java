@@ -54,7 +54,7 @@ public class NgUserServiceImpl implements NgUserService {
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
-    @Value("${front-host}")
+    @Value("${angular.allowed.origins}")
     private String HOST;
 
     @Autowired

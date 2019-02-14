@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @RestController
-@RequestMapping(value = "/info/public/v2",
+@RequestMapping(value = "/api/public/v2",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )

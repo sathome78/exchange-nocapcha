@@ -60,7 +60,7 @@ import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
 @RestController
-@RequestMapping(value = "/info/private/v2/balances/withdraw",
+@RequestMapping(value = "/api/private/v2/balances/withdraw",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class NgWithdrawController {

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/info/public/v2/listing")
+@RequestMapping("/api/public/v2/listing")
 public class NgMailingController {
 
     private final SendMailService sendMailService;

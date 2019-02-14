@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
-@RequestMapping("/info/private/v2/download/")
+@RequestMapping("/api/private/v2/download/")
 @RestController
 public class NgDownloadController {
 

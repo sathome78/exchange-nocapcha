@@ -1,6 +1,8 @@
 package me.exrates.config;
 
 import me.exrates.controller.interceptor.WsHandshakeInterceptor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,8 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.Arrays;
+
 /**
  * Created by Maks on 24.08.2017.
  */
@@ -20,8 +24,13 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 @EnableWebSocketMessageBroker
 public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
+    private static final Logger logger = LogManager.getLogger(StompWsConfig.class);
+
     @Value("${ws.origin}")
-    private String allowedOrigins;
+    private String[] allowedOrigins;
+
+    @Value("${ws.lib.url}")
+    private String sockJSLibUrl;
 
     @Bean
     public HandshakeInterceptor wsHandshakeInterceptor() {
@@ -35,12 +44,11 @@ public class StompWsConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] origins = allowedOrigins.split(",");
         registry
                 .addEndpoint("/public_socket")
-                .setAllowedOrigins("*")
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS()
-                .setClientLibraryUrl("//cdn.jsdelivr.net/sockjs/1/sockjs.min.js")
+                .setClientLibraryUrl(sockJSLibUrl)
                 .setInterceptors(wsHandshakeInterceptor());
     }
 
