@@ -416,7 +416,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        registry.addInterceptor(new TokenInterceptor(NODE_TOKEN)).addPathPatterns("/nodes/**");
         registry.addInterceptor(new MDCInterceptor());
     }
 
