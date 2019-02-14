@@ -467,4 +467,5 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
+    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
 }
