@@ -81,7 +81,25 @@ import me.exrates.model.form.UserOperationAuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.BotService;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.EDCServiceNode;
+import me.exrates.service.MerchantService;
+import me.exrates.service.NotificationService;
+import me.exrates.service.OrderService;
+import me.exrates.service.PhraseTemplateService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.RefillService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
+import me.exrates.service.UserTransferService;
+import me.exrates.service.UsersAlertsService;
+import me.exrates.service.WalletService;
+import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
 import me.exrates.service.exception.NotCreatableOrderException;
@@ -90,16 +108,15 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.impl.EDCServiceNodeImpl;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
 import me.exrates.service.omni.OmniServiceImpl;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
+import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -167,7 +184,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
@@ -828,18 +844,38 @@ public class AdminController {
     @AdminLoggable
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
-                                                  @RequestParam OperationType operationType,
-                                                  @RequestParam String roleName,
-                                                  @RequestParam BigDecimal minAmount,
-                                                  @RequestParam Integer maxDailyRequest,
-                                                  @RequestParam(required = false) Object allRolesEdit) {
-        if (allRolesEdit != null) {
-            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, maxDailyRequest);
+    public ResponseEntity editCurrencyLimit(@RequestParam int currencyId,
+                                            @RequestParam OperationType operationType,
+                                            @RequestParam String roleName,
+                                            @RequestParam(defaultValue = "0") BigDecimal minAmount,
+                                            @RequestParam(defaultValue = "0") BigDecimal minAmountUSD,
+                                            @RequestParam Integer maxDailyRequest,
+                                            @RequestParam(required = false) Object allRolesEdit) {
+        if (nonNull(allRolesEdit)) {
+            currencyService.updateCurrencyLimit(currencyId, operationType, minAmount, minAmountUSD, maxDailyRequest);
         } else {
-            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
+            currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, minAmountUSD, maxDailyRequest);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/recalculate-limit-to-usd", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity setPropertyRecalculateLimitToUsd(@RequestParam int currencyId,
+                                                           @RequestParam OperationType operationType,
+                                                           @RequestParam String roleName,
+                                                           @RequestParam Boolean recalculateToUsd) {
+        return currencyService.setPropertyCalculateLimitToUsd(currencyId, operationType, roleName, recalculateToUsd)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
+    @AdminLoggable
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<BigDecimal> convertMinSum(@RequestParam BigDecimal minSum) {
+        return ResponseEntity.ok(BigDecimalConverter.convert(minSum));
     }
 
     @AdminLoggable
@@ -1304,13 +1340,13 @@ public class AdminController {
         if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
             throw new RuntimeException("Some unexpected exception");
         }
-        if(currencyName.equals("EDR")){
+        if (currencyName.equals("EDR")) {
             String balance = edcServiceNode.extractBalance(address, 0);
-            Map<String,String> response = new HashMap<>();
-            response.put("EDR",balance);
+            Map<String, String> response = new HashMap<>();
+            response.put("EDR", balance);
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-            Currency byName = currencyService.findByName(currencyName);
+        Currency byName = currencyService.findByName(currencyName);
 
         List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
         List<Merchant> collect = allByCurrency.stream().
