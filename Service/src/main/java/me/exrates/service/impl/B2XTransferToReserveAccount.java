@@ -15,17 +15,17 @@ import java.util.Map;
 @Service
 public class B2XTransferToReserveAccount {
 
+    private final static String RESERVE_ADDRESS = "1P6fgfBhPtcuLPrG2tScVY4QG5owiHnzst";
+
     @Autowired
     @Qualifier("b2xServiceImpl")
     private BitcoinService bitcoinService;
 
     public void transferToReserveAccountFromNode(int countTransactions, String amount){
-        String reserveAddress = "1P6fgfBhPtcuLPrG2tScVY4QG5owiHnzst";
-
         try {
             List<String> allTx = new ArrayList<>();
             for (int i = 0; i < countTransactions; i++) {
-                Map<String, String> txId = bitcoinService.withdraw(WithdrawMerchantOperationDto.builder().accountTo(reserveAddress).amount(amount).build());
+                Map<String, String> txId = bitcoinService.withdraw(WithdrawMerchantOperationDto.builder().accountTo(RESERVE_ADDRESS).amount(amount).build());
                 allTx.add(txId.get("hash"));
             }
 
