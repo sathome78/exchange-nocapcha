@@ -329,10 +329,11 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        System.out.println("last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION"));
+        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION"));
         if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
+                logger.info("login(), exceptionClass {}", exceptionClass);
                 if (exceptionClass.equals("DisabledException")) {
                     attr.addFlashAttribute("blockedUser", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("contactsUrl", "/contacts");

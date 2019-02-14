@@ -102,6 +102,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
             String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
 
             int gt_server_status_code = (Integer) request.getSession().getAttribute(geetest.gtServerStatusSessionKey);
+            logger.info("gt_server_status_code " + gt_server_status_code);
             String userid = (String)request.getSession().getAttribute("userid");
 
             HashMap<String, String> param = new HashMap<>();
@@ -112,7 +113,7 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
 
             if (gt_server_status_code == 1) {
                 gtResult = geetest.enhencedValidateRequest(challenge, validate, seccode, param);
-                logger.error(gtResult);
+                logger.error("gtResult " +  gtResult);
             } else {
                 logger.error("failback:use your own server captcha validate");
                 gtResult = geetest.failbackValidateRequest(challenge, validate, seccode);
