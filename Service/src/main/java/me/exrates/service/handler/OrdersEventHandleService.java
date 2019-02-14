@@ -22,6 +22,7 @@ import me.exrates.service.vo.MyTradesHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.TradesEventsHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -44,8 +45,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @Component
-@PropertySource(value = {"classpath:/job.properties"})
+@PropertySource(value = {"classpath:/job.properties", "classpath:/angular.properties"})
 public class OrdersEventHandleService {
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     private ExchangeRatesHolder ratesHolder;
@@ -98,9 +102,11 @@ public class OrdersEventHandleService {
         ExOrder exOrder = (ExOrder) event.getSource();
         log.debug("order event {} ", exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-        handleCallBack(event);
-        if (exOrder.getUserAcceptorId() != 0) {
-            handleAcceptorUserId(exOrder);
+        if (!DEV_MODE) {
+            handleCallBack(event);
+            if (exOrder.getUserAcceptorId() != 0) {
+                handleAcceptorUserId(exOrder);
+            }
         }
     }
 

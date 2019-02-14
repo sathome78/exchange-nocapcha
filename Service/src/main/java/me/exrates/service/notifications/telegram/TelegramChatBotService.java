@@ -47,6 +47,9 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
     private String botName;
     @Value("${telegram.chat_bot.chat.id}")
     private String chatCommunityId;
+    @Value("${enable}")
+    private boolean enable;
+
 
     @Autowired
     public TelegramChatBotService(SimpMessagingTemplate messagingTemplate, TelegramChatDao telegramChatDao) {
@@ -58,6 +61,7 @@ public class TelegramChatBotService extends TelegramLongPollingBot {
 
     @PostConstruct
     private void initBot() {
+        if (!enable) return;
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
             telegramBotsApi.registerBot(this);
