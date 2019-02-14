@@ -38,16 +38,6 @@ public class B2XTransferToReserveAccount {
 
     }
 
-    public void getBlockForBitcoin(){
-        log.debug("***** B2X TRANSFER | ACTUAL FEE: {}", bitcoinService.getActualFee());
-
-        log.debug("***** B2X TRANSFER | BALANCE: {} | какой-то там баланс №1: {} | какой-то там баланс №2: {} | TRANSACTION COUNT: {}",
-                bitcoinService.getWalletInfo().getBalance(), bitcoinService.getWalletInfo().getUnconfirmedBalance(),
-                bitcoinService.getWalletInfo().getConfirmedNonSpendableBalance(), bitcoinService.getWalletInfo().getTransactionCount());
-
-        log.debug("***** BITCOIN | NEW ADDRESS: {}", bitcoinService.getNewAddressForAdmin());
-    }
-
     private void saveToExcelFile(List<String> transactionsId){
         try {
             B2XTransferReportTransactionId.generate(transactionsId);
