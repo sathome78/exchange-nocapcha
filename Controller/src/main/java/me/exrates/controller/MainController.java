@@ -171,8 +171,10 @@ public class MainController {
 
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto, @RequestParam(required = false) String source,
-                                        BindingResult result, HttpServletRequest request) {
+    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto,
+                                        @RequestParam(required = false) String source,
+                                        BindingResult result,
+                                        HttpServletRequest request) {
         String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
         String validate = request.getParameter(GeetestLib.fn_geetest_validate);
         String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
