@@ -2,12 +2,15 @@ package me.exrates.service.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
+import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -16,6 +19,7 @@ import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.events.OrderEvent;
+import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.ChartRefreshHandler;
 import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
@@ -61,6 +65,10 @@ public class OrdersEventHandleService {
     private UserService userService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private StompMessenger stompMessenger;
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
@@ -69,6 +77,7 @@ public class OrdersEventHandleService {
     private Map<Integer, TradesEventsHandler> mapTrades = new ConcurrentHashMap<>();
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
+    private Map<Integer, OrdersReFreshHandler> mapOrders = new ConcurrentHashMap<>();
 
     public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
         ExOrder order = orderDto.toExorder();
@@ -100,7 +109,9 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
+        handleOrdersDetailed(exOrder, event.getOrderEventEnum());
         log.debug("order event {} ", exOrder);
+        System.out.println("event " + event.getOrderEventEnum() + exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         if (!DEV_MODE) {
             handleCallBack(event);
@@ -239,6 +250,14 @@ public class OrdersEventHandleService {
         OrdersEventsHandler handler = mapForWork
                 .computeIfAbsent(pairId, k -> OrdersEventsHandler.init(pairId, operationType));
         handler.onOrderEvent();
+    }
+
+    @Async
+    void handleOrdersDetailed(ExOrder exOrder, OrderEventEnum orderEvent) {
+        Integer pairId = exOrder.getCurrencyPairId();
+        OrdersReFreshHandler handler = mapOrders
+                .computeIfAbsent(pairId, k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairId));
+        handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
     }
 
     @Async

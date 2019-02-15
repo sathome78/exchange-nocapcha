@@ -44,7 +44,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -68,7 +75,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -431,7 +443,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
         registry.addInterceptor(new SecurityInterceptor());
-        registry.addInterceptor(new TokenInterceptor(NODE_TOKEN)).addPathPatterns("/nodes/**");
         registry.addInterceptor(new MDCInterceptor());
     }
 
@@ -593,7 +604,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 40);
+                "B2G", "B2G", 200);
     }
 
     @Bean(name = "golServiceImpl")
@@ -1753,7 +1764,21 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "PLTC", "PLTC", true, ExConvert.Unit.ETHER);
     }
 
-    //    Qtum tokens:
+	@Bean(name = "vrbsServiceImpl")
+	public EthTokenService vrbsServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x0e08b02d89ca66cf157c6658c02933ef0bc38cb6");
+		return new EthTokenServiceImpl(tokensList, "VRBS","VRBS", false, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "zubeServiceImpl")
+	public EthTokenService zubeServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
+		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
+	}
+
+	//    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     public QtumTokenService spcService() {
         List<String> tokensList = new ArrayList<>();
