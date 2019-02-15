@@ -1529,7 +1529,7 @@ public class OrderDaoImpl implements OrderDao {
                 "o.status_id, " +
                 "o.base_type" +
                 " FROM EXORDERS o" +
-                " WHERE o.user_id = :user_id AND o.status_id = : status_id";
+                " WHERE o.user_id = :user_id AND o.status_id = :status_id";
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
@@ -1537,7 +1537,7 @@ public class OrderDaoImpl implements OrderDao {
 
         return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
             ExOrder exOrder = new ExOrder();
-            exOrder.setId(rs.getInt("id"));
+            exOrder.setId(rs.getInt("order_id"));
             exOrder.setUserId(userId);
             exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
             exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
