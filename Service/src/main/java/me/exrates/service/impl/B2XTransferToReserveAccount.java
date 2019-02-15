@@ -25,8 +25,12 @@ public class B2XTransferToReserveAccount {
         try {
             List<String> allTx = new ArrayList<>();
             for (int i = 0; i < countTransactions; i++) {
-                Map<String, String> txId = bitcoinService.withdraw(WithdrawMerchantOperationDto.builder().accountTo(RESERVE_ADDRESS).amount(amount).build());
-                allTx.add(txId.get("hash"));
+                try {
+                    Map<String, String> txId = bitcoinService.withdraw(WithdrawMerchantOperationDto.builder().accountTo(RESERVE_ADDRESS).amount(amount).build());
+                    allTx.add(txId.get("hash"));
+                }catch(Exception e){
+                    log.error("B2X TRANSFER | TRANSACTION ERROR {}", e);
+                }
             }
 
             saveToExcelFile(allTx);
