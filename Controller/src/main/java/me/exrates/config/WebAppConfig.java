@@ -381,7 +381,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 .addMapping("/api/**")
                 .allowedOrigins(angularAllowedOrigins)
                 .allowedMethods(angularAllowedMethods)
-                .allowedHeaders("*");
+                .allowedHeaders(angularAllowedHeaders);
     }
 
     @Bean

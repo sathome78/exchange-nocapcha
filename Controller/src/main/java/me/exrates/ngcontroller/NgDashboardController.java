@@ -135,35 +135,37 @@ public class NgDashboardController {
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 
-        if (inputOrder.getOrderId() == null) {
-            throw new OrderParamsWrongException();
-        }
+        throw new NgDashboardException("Update orders is not supported");
 
-        String userName = userService.getUserEmailFromSecurityContext();
-        User user = userService.findByEmail(userName);
-
-        OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
-        boolean result;
-
-        switch (baseType) {
-            case STOP_LIMIT:
-                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
-                break;
-            case LIMIT:
-                result = ngOrderService.processUpdateOrder(user, inputOrder);
-                break;
-            case ICO:
-                throw new NgDashboardException("Not supported type - ICO");
-            default:
-                throw new NgDashboardException("Unknown type - " + baseType);
-        }
-
-        if (result) {
-            String destination = "/topic/myorders/".concat(userName);
-            messagingTemplate.convertAndSend(destination, fromResult(result));
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+//        if (inputOrder.getOrderId() == null) {
+//            throw new OrderParamsWrongException();
+//        }
+//
+//        String userName = userService.getUserEmailFromSecurityContext();
+//        User user = userService.findByEmail(userName);
+//
+//        OrderBaseType baseType = OrderBaseType.convert(inputOrder.getBaseType());
+//        boolean result;
+//
+//        switch (baseType) {
+//            case STOP_LIMIT:
+//                result = ngOrderService.processUpdateStopOrder(user, inputOrder);
+//                break;
+//            case LIMIT:
+//                result = ngOrderService.processUpdateOrder(user, inputOrder);
+//                break;
+//            case ICO:
+//                throw new NgDashboardException("Not supported type - ICO");
+//            default:
+//                throw new NgDashboardException("Unknown type - " + baseType);
+//        }
+//
+//        if (result) {
+//            String destination = "/topic/myorders/".concat(userName);
+//            messagingTemplate.convertAndSend(destination, fromResult(result));
+//            return ResponseEntity.ok().build();
+//        }
+//        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/balance/{currency}")
