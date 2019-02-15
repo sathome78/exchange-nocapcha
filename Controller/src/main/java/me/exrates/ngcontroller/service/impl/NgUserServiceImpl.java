@@ -256,7 +256,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        host + confirmationUrl +
+                        host + "/" +  confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
