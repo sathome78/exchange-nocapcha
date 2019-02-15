@@ -47,7 +47,7 @@ public interface MerchantDao {
 
     List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes);
 
-    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+    void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
@@ -94,4 +94,10 @@ public interface MerchantDao {
     boolean checkAvailable(Integer currencyId, Integer merchantId);
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
+
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits();
+
+    void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits);
 }

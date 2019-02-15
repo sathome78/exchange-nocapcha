@@ -55,7 +55,7 @@ public interface MerchantService {
 
     Map<String, String> formatResponseMessage(Transaction transaction);
 
-    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+    void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
@@ -106,6 +106,10 @@ public interface MerchantService {
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
     BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant);
+
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    void updateMerchantCommissionsLimits();
 
     boolean checkAvailableRefill(Integer currencyId, Integer merchantId);
 
