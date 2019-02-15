@@ -31,7 +31,7 @@ import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
 
 @RequestMapping("/info/private/v2/apinew")
 @RestController
-public class OpenApiPrivateV1Controller {
+public class OpenApiPrivateV1ControllerNg {
 
 
     private final WalletService walletService;
@@ -49,7 +49,7 @@ public class OpenApiPrivateV1Controller {
     private OrderService orderService;
 
     @Autowired
-    public OpenApiPrivateV1Controller(WalletService walletService) {
+    public OpenApiPrivateV1ControllerNg(WalletService walletService) {
         this.walletService = walletService;
     }
 
