@@ -25,6 +25,9 @@ import me.exrates.service.vo.CurrencyStatisticsHandler;
 import me.exrates.service.vo.MyTradesHandler;
 import me.exrates.service.vo.OrdersEventsHandler;
 import me.exrates.service.vo.TradesEventsHandler;
+import me.exrates.service.events.*;
+import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -69,7 +72,6 @@ public class OrdersEventHandleService {
     private StompMessenger stompMessenger;
     @Autowired
     private ObjectMapper objectMapper;
-
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();

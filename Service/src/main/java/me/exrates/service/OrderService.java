@@ -55,6 +55,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
@@ -447,6 +448,7 @@ public interface OrderService {
     List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
                                          @Null Integer limit,
                                          @Null Integer offset);
+
 
     @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);

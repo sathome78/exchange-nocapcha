@@ -111,6 +111,10 @@ public interface MerchantService {
 
     void updateMerchantCommissionsLimits();
 
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    void updateMerchantCommissionsLimits();
+
     boolean checkAvailableRefill(Integer currencyId, Integer merchantId);
 
     MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType);

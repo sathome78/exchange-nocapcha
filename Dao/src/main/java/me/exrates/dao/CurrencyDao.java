@@ -103,6 +103,14 @@ public interface CurrencyDao {
 
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 
+    List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
+
+    boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, List<Integer> roleIds, Boolean recalculateToUsd);
+
+    List<CurrencyLimit> getAllCurrencyLimits();
+
+    void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
+
     List<Currency> getCurrencies(MerchantProcessType ... processType);
 
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);

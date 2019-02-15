@@ -91,6 +91,12 @@ public interface MerchantDao {
 
     BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant);
 
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits();
+
+    void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits);
+
     boolean checkAvailable(Integer currencyId, Integer merchantId);
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);

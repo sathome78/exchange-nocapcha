@@ -690,6 +690,73 @@ public class MerchantDaoImpl implements MerchantDao {
         return slaveJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
+    @Transactional
+    @Override
+    public boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd) {
+        String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET recalculate_to_usd = :recalculate_to_usd " +
+                "WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+                "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("merchant_name", merchantName);
+        params.put("currency_name", currencyName);
+        params.put("recalculate_to_usd", recalculateToUsd);
+
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits() {
+        String sql = "SELECT " +
+                "MERCHANT_CURRENCY.merchant_id, " +
+                "MERCHANT_CURRENCY.currency_id, " +
+                "CURRENCY.name AS currency_name, " +
+                "MERCHANT_CURRENCY.merchant_fixed_commission, " +
+                "MERCHANT_CURRENCY.merchant_fixed_commission_usd, " +
+                "MERCHANT_CURRENCY.usd_rate, " +
+                "MERCHANT_CURRENCY.recalculate_to_usd " +
+                "FROM MERCHANT_CURRENCY " +
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id";
+
+        return masterJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
+                .merchantId(rs.getInt("merchant_id"))
+                .currencyId(rs.getInt("currency_id"))
+                .currencyName(rs.getString("currency_name"))
+                .minFixedCommission(rs.getBigDecimal("merchant_fixed_commission"))
+                .minFixedCommissionUsdRate(rs.getBigDecimal("merchant_fixed_commission_usd"))
+                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
+                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .build());
+    }
+
+    @Transactional
+    @Override
+    public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
+        String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET merchant_fixed_commission = ?, merchant_fixed_commission_usd = ?, usd_rate = ? " +
+                "WHERE merchant_id = ? AND currency_id = ?";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                MerchantCurrencyOptionsDto dto = merchantCommissionsLimits.get(i);
+                ps.setBigDecimal(1, dto.getMinFixedCommission());
+                ps.setBigDecimal(2, dto.getMinFixedCommissionUsdRate());
+                ps.setBigDecimal(3, dto.getCurrencyUsdRate());
+                ps.setInt(4, dto.getMerchantId());
+                ps.setInt(5, dto.getCurrencyId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return merchantCommissionsLimits.size();
+            }
+        });
+    }
+
     @Override
     public boolean checkAvailable(Integer currencyId, Integer merchantId) {
         String sql = "SELECT refill_block FROM MERCHANT_CURRENCY WHERE currency_id = :currency_id AND merchant_id = :merchant_id";

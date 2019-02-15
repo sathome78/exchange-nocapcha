@@ -373,6 +373,57 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public List<CurrencyReportInfoDto> getStatsByCoin(int currencyId) {
+        return currencyDao.getStatsByCoin(currencyId);
+    }
+
+    @Override
+    public boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd) {
+        return currencyDao.setPropertyCalculateLimitToUsd(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), recalculateToUsd);
+    }
+
+    @Override
+    public void updateWithdrawLimits() {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.info("Process of updating withdraw limits start...");
+
+        List<CurrencyLimit> currencyLimits = currencyDao.getAllCurrencyLimits();
+
+        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
+
+        if (rates.isEmpty()) {
+            log.info("Exchange api did not return data");
+            return;
+        }
+
+        for (CurrencyLimit currencyLimit : currencyLimits) {
+            final String currencyName = currencyLimit.getCurrency().getName();
+            final boolean recalculateToUsd = currencyLimit.isRecalculateToUsd();
+            BigDecimal minSumUsdRate = currencyLimit.getMinSumUsdRate();
+            BigDecimal minSum = currencyLimit.getMinSum();
+
+            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+
+            if (isNull(pairRates)) {
+                continue;
+            }
+            final BigDecimal usdRate = pairRates.getLeft();
+            currencyLimit.setCurrencyUsdRate(usdRate);
+
+            if (recalculateToUsd) {
+                minSum = BigDecimalConverter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                currencyLimit.setMinSum(minSum);
+            } else {
+                minSumUsdRate = minSum.multiply(usdRate);
+                currencyLimit.setMinSumUsdRate(minSumUsdRate);
+            }
+        }
+        currencyDao.updateWithdrawLimits(currencyLimits);
+
+        log.info("Process of updating withdraw limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+    }
+
+    @Override
     public boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd) {
         return currencyDao.setPropertyCalculateLimitToUsd(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), recalculateToUsd);
     }
