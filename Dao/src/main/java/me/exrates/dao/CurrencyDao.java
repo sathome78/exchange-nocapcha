@@ -116,12 +116,4 @@ public interface CurrencyDao {
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
-
-    List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
-
-    boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, List<Integer> roleIds, Boolean recalculateToUsd);
-
-    List<CurrencyLimit> getAllCurrencyLimits();
-
-    void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
 }

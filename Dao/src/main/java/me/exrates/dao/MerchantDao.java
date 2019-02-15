@@ -101,9 +101,4 @@ public interface MerchantDao {
 
     MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
 
-    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
-
-    List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits();
-
-    void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits);
 }

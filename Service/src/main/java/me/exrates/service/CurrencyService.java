@@ -136,9 +136,4 @@ public interface CurrencyService {
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
 
-    List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
-
-    boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd);
-
-    void updateWithdrawLimits();
 }

@@ -137,10 +137,6 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
 
-
-    List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
-
-
     Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto);
 
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,

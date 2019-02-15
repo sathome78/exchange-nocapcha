@@ -1977,12 +1977,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return ZMQ.context(1);
     }
 
-    @Bean
-    public Map<String, String> angularProperties() {
-        Map<String, String> props = new HashMap<>();
-        props.put("angularAllowedOrigin", angularAllowedOrigin);
-        return props;
-    }
 
     @Bean
     public Twitter twitter() {
