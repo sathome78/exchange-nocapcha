@@ -27,6 +27,8 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
 import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.CurrencyProcessType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
@@ -63,6 +65,7 @@ import java.util.Set;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OperationType.SELL;
 
 @Repository
@@ -617,6 +620,11 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale) {
         return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, withdrawStatusIds, locale);
+    }
+
+    @Override
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale, List<MerchantProcessType> processType) {
+        return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, withdrawStatusIds, locale, processType);
     }
 
     @Override
@@ -1512,5 +1520,142 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         jdbcTemplate.update(sql, params);
+    }
+
+    @SuppressWarnings("Duplicates")
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale, List<MerchantProcessType> merchantProcessType) {
+        final String currencyFilterClause = currencyIds.isEmpty() ? StringUtils.EMPTY : " AND WALLET.currency_id IN (:currencyIds)";
+        final List<String> currencyTypes = merchantProcessType
+                .stream()
+                .map(MerchantProcessType::toCurrencyProcessType)
+                .map(CurrencyProcessType::toString)
+                .collect(toList());
+
+        final String sql =
+                " SELECT wallet_id, user_id, W.currency_id, currency_name, currency_description, active_balance, reserved_balance, " +
+                        "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
+                        "   SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
+                        "   SUM(input_confirmation_amount+input_confirmation_commission) AS on_input_cofirmation, " +
+                        "   SUM(input_confirmation_stage) AS input_confirmation_stage, SUM(input_count) AS input_count" +
+                        " FROM " +
+                        " ( " +
+                        " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, CURRENCY.description AS currency_description, " +
+                        "WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+                        " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount, " +
+                        " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
+                        " 0 AS input_confirmation_amount, 0 AS input_confirmation_commission, 0 AS input_confirmation_stage, 0 AS input_count  " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+                        " LEFT JOIN EXORDERS SELL ON (SELL.operation_type_id=3) AND (SELL.user_id=USER.id) AND (SELL.currency_pair_id = CP1.id) AND (SELL.status_id = 2) " +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, " +
+                        " WALLET.reserved_balance,   " +
+                        " IFNULL(SOSELL.amount_base,0), 0, 0, " +
+                        " 0, 0,  " +
+                        " 0, 0, 0, 0  " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+                        " LEFT JOIN STOP_ORDERS SOSELL ON (SOSELL.operation_type_id=3) AND (SOSELL.user_id=USER.id) AND (SOSELL.currency_pair_id = CP1.id) AND (SOSELL.status_id = 2) " +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, IFNULL(SOBUY.amount_convert,0), IFNULL(SOBUY.commission_fixed_amount,0), " +
+                        " 0, 0, " +
+                        " 0, 0, 0, 0 " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+                        " LEFT JOIN STOP_ORDERS SOBUY ON (SOBUY.operation_type_id=4) AND (SOBUY.user_id=USER.id) AND (SOBUY.currency_pair_id = CP2.id) AND (SOBUY.status_id = 2) " +
+                        " WHERE USER.email =  :email  AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0), " +
+                        " 0, 0, " +
+                        " 0, 0, 0, 0 " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+                        " LEFT JOIN EXORDERS BUY ON (BUY.operation_type_id=4) AND (BUY.user_id=USER.id) AND (BUY.currency_pair_id = CP2.id) AND (BUY.status_id = 2) " +
+                        " WHERE USER.email =  :email  AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, 0, 0, " +
+                        " IFNULL(WITHDRAW_REQUEST.amount, 0), IFNULL(WITHDRAW_REQUEST.commission, 0), " +
+                        " 0, 0, 0, 0 " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.user_id = USER.id AND WITHDRAW_REQUEST.currency_id = WALLET.currency_id AND WITHDRAW_REQUEST.status_id NOT IN (:status_id_list) " +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, CURRENCY.description, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, 0, 0, " +
+                        " IFNULL(TRANSFER_REQUEST.amount, 0), IFNULL(TRANSFER_REQUEST.commission, 0), " +
+                        " 0, 0, 0, 0 " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " JOIN TRANSFER_REQUEST ON TRANSFER_REQUEST.user_id = USER.id AND TRANSFER_REQUEST.currency_id = WALLET.currency_id AND TRANSFER_REQUEST.status_id = 4 " +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, CURRENCY.description AS currency_description, " +
+                        " WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+                        " 0 AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
+                        " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
+                        " SUM(RR.amount), 0, 0, COUNT(RR.id) " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id AND CURRENCY.process_type IN (:processTypes)) " +
+                        " JOIN REFILL_REQUEST RR ON RR.user_id = USER.id AND RR.currency_id = CURRENCY.id AND RR.status_id = 6 " +
+                        " WHERE USER.email =  :email  AND CURRENCY.hidden != 1" + currencyFilterClause +
+                        " GROUP BY wallet_id, user_id, currency_id, currency_name,  active_balance, reserved_balance, " +
+                        "          amount_base, amount_convert, commission_fixed_amount, " +
+                        "          withdraw_amount, withdraw_commission " +
+                        " ) W " +
+                        " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance" +
+                        " ORDER BY currency_name ASC ";
+
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("email", email);
+            put("currencyIds", currencyIds);
+            put("status_id_list", withdrawStatusIds);
+            put("processTypes", currencyTypes);
+        }};
+
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
+            myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
+            myWalletsDetailedDto.setUserId(rs.getInt("user_id"));
+            myWalletsDetailedDto.setCurrencyId(rs.getInt("currency_id"));
+            myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
+            myWalletsDetailedDto.setCurrencyDescription(rs.getString("currency_description"));
+            myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
+            myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
+            myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));
+            myWalletsDetailedDto.setOnConfirmationCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_count"), locale, 0));
+            myWalletsDetailedDto.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), locale, 2));
+            myWalletsDetailedDto.setReservedByOrders(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_orders"), locale, 2));
+            myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_withdraw"), locale, 2));
+            return myWalletsDetailedDto;
+        });
     }
 }

@@ -129,4 +129,11 @@ public interface CurrencyService {
     boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd);
 
     void updateWithdrawLimits();
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
+
+    List<CurrencyPair> getPairsByFirstPartName(String partName);
+
+    List<CurrencyPair> getPairsBySecondPartName(String partName);
+
 }

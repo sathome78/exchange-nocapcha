@@ -13,15 +13,28 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
-import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.CancelOrderEvent;
+import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.OrderEvent;
+import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.vo.ChartRefreshHandler;
+import me.exrates.service.vo.CurrencyStatisticsHandler;
+import me.exrates.service.vo.MyTradesHandler;
+import me.exrates.service.vo.OrdersEventsHandler;
+import me.exrates.service.vo.TradesEventsHandler;
 import me.exrates.service.events.*;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,8 +52,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @Component
-@PropertySource(value = {"classpath:/job.properties"})
+@PropertySource(value = {"classpath:/job.properties", "classpath:/angular.properties"})
 public class OrdersEventHandleService {
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     private ExchangeRatesHolder ratesHolder;
@@ -53,12 +69,9 @@ public class OrdersEventHandleService {
     @Autowired
     private OrderService orderService;
     @Autowired
-    private RabbitMqService rabbitMqService;
-    @Autowired
     private StompMessenger stompMessenger;
     @Autowired
     private ObjectMapper objectMapper;
-
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -84,7 +97,6 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     @Async
@@ -92,7 +104,6 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
 
@@ -104,9 +115,11 @@ public class OrdersEventHandleService {
         log.debug("order event {} ", exOrder);
         System.out.println("event " + event.getOrderEventEnum() + exOrder);
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-        handleCallBack(event);
-        if (exOrder.getUserAcceptorId() != 0) {
-            handleAcceptorUserId(exOrder);
+        if (!DEV_MODE) {
+            handleCallBack(event);
+            if (exOrder.getUserAcceptorId() != 0) {
+                handleAcceptorUserId(exOrder);
+            }
         }
     }
 
@@ -131,8 +144,6 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(order);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {

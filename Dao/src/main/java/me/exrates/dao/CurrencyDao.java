@@ -110,4 +110,10 @@ public interface CurrencyDao {
     List<CurrencyLimit> getAllCurrencyLimits();
 
     void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
+
+    List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
+
+    List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
 }

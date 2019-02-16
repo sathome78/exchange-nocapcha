@@ -119,36 +119,36 @@ public class DashboardController {
       return model;
   }
 
-  @RequestMapping(value = "/resetPasswordConfirm")
-  public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
-      ModelAndView model = new ModelAndView();
-      try {
-          TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
-          if (dbToken != null && !dbToken.isAlreadyUsed()) {
-              User user = userService.getUserById(dbToken.getUserId());
+    @RequestMapping(value = "/resetPasswordConfirm")
+    public ModelAndView resetPasswordConfirm(@RequestParam("token") String token, @RequestParam("email") String email, RedirectAttributes attr, HttpServletRequest request) {
+        ModelAndView model = new ModelAndView();
+        try {
+            TemporalToken dbToken = userService.verifyUserEmailForForgetPassword(token);
+            if (dbToken != null && !dbToken.isAlreadyUsed()) {
+                User user = userService.getUserById(dbToken.getUserId());
 
-              attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
-                      null, localeResolver.resolveLocale(request)));
-              attr.addFlashAttribute("user", user);
-              attr.addFlashAttribute("token", dbToken);
+                attr.addFlashAttribute("recoveryConfirm", messageSource.getMessage("register.successfullyproved",
+                        null, localeResolver.resolveLocale(request)));
+                attr.addFlashAttribute("user", user);
+                attr.addFlashAttribute("token", dbToken);
 
-              model.setViewName("redirect:/passwordRecovery");
-              temporalTokenService.updateTemporalToken(dbToken);
-          } else {
-              if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
-                  attr.addFlashAttribute("userEmail", email);
-                  attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
-              } else {
-                  attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
-              }
-              return new ModelAndView(new RedirectView("/dashboard"));
-          }
-      } catch (Exception e) {
-          model.setViewName("DBError");
-          e.printStackTrace();
-      }
-      return model;
-  }
+                model.setViewName("redirect:/passwordRecovery");
+                temporalTokenService.updateTemporalToken(dbToken);
+            } else {
+                if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") || request.isUserInRole(UserRole.ROLE_CHANGE_PASSWORD.name())) {
+                    attr.addFlashAttribute("userEmail", email);
+                    attr.addFlashAttribute("recoveryError", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
+                } else {
+                    attr.addFlashAttribute("errorNoty", messageSource.getMessage("dashboard.resetPasswordDoubleClick", null, localeResolver.resolveLocale(request)));
+                }
+                return new ModelAndView(new RedirectView("/dashboard"));
+            }
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
     @ResponseBody

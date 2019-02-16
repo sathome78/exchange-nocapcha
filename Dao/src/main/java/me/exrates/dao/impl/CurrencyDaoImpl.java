@@ -26,6 +26,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,12 +34,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -70,6 +75,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
         return currencyPair;
 
+    };
+
+    protected static RowMapper<CurrencyPair> currencyPairRowShort = (rs, row) -> {
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(rs.getInt("id"));
+        currencyPair.setName(rs.getString("name"));
+        currencyPair.setPairType(CurrencyPairType.valueOf(rs.getString("type")));
+        currencyPair.setMarket(rs.getString("market"));
+        return currencyPair;
     };
 
     public List<Currency> getAllActiveCurrencies() {
@@ -714,6 +728,48 @@ public class CurrencyDaoImpl implements CurrencyDao {
                     .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
                     .build();
         });
+    }
+
+    @Override
+    public List<Currency> getCurrencies(MerchantProcessType... types) {
+        String sql = "SELECT C.id, C.name, C.description FROM CURRENCY C " +
+                "       JOIN MERCHANT_CURRENCY ON MERCHANT_CURRENCY.currency_id = C.id " +
+                "       JOIN MERCHANT M on MERCHANT_CURRENCY.merchant_id = M.id " +
+                "       WHERE M.process_type IN (:processTypes) and C.hidden = 0 " +
+                "       GROUP BY C.id, C.name, C.description ORDER BY C.name ASC";
+        List<String> processTypes = Arrays
+                .stream(types)
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+        MapSqlParameterSource params = new MapSqlParameterSource("processTypes", processTypes);
+        return npJdbcTemplate.query(sql, params, getCurrencyRowMapper());
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName) {
+        final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT(:part, '/%') AND hidden = 0 order by name";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("part", partName.toUpperCase());
+        }};
+        return npJdbcTemplate.query(sql, params, currencyPairRowShort);
+    }
+
+    @Override
+    public List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName) {
+        final String sql = "SELECT * FROM CURRENCY_PAIR WHERE name LIKE CONCAT('%/', :part) AND hidden = 0 order by name";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("part", partName.toUpperCase());
+        }};
+        return npJdbcTemplate.query(sql, params, currencyPairRowShort);
+    }
+
+    private RowMapper<Currency> getCurrencyRowMapper() {
+        return (rs, rowNum) -> Currency
+                .builder()
+                .id(rs.getInt("C.id"))
+                .name(rs.getString("C.name"))
+                .description(rs.getString("C.description"))
+                .build();
     }
 
     @Transactional

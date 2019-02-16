@@ -18,6 +18,7 @@ import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -588,5 +589,15 @@ public class MerchantServiceImpl implements MerchantService {
         merchantDao.updateMerchantCommissionsLimits(merchantCommissionsLimits);
 
         LOG.info("Process of updating merchant commissions limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
+    }
+
+    @Override
+    public boolean checkAvailableRefill(Integer currencyId, Integer merchantId) {
+        return merchantDao.checkAvailable(currencyId, merchantId);
+    }
+
+    @Override
+    public MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType) {
+        return merchantDao.getMerchantByCurrencyForVoucher(currencyId, transferType);
     }
 }

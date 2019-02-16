@@ -422,4 +422,19 @@ public class CurrencyServiceImpl implements CurrencyService {
 
         log.info("Process of updating withdraw limits end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
+
+    @Override
+    public List<Currency> getCurrencies(MerchantProcessType... processType) {
+        return currencyDao.getCurrencies(processType);
+    }
+
+    @Override
+    public List<CurrencyPair> getPairsByFirstPartName(String partName) {
+        return currencyDao.findAllCurrenciesByFirstPartName(partName);
+    }
+
+    @Override
+    public List<CurrencyPair> getPairsBySecondPartName(String partName) {
+        return currencyDao.findAllCurrenciesBySecondPartName(partName);
+    }
 }

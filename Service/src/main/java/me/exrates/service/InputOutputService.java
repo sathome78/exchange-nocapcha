@@ -10,6 +10,7 @@ import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.PaginationWrapper;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -35,4 +36,10 @@ public interface InputOutputService {
 
     List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                               List<Integer> userRoleIdList);
+
+  Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale);
+
+  List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
+                                                          LocalDate dateFrom, LocalDate dateTo, int currencyId,
+                                                          Locale locale);
 }

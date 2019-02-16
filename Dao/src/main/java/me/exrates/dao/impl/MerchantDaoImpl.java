@@ -16,7 +16,9 @@ import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -727,6 +729,65 @@ public class MerchantDaoImpl implements MerchantDao {
                 .currencyUsdRate(rs.getBigDecimal("usd_rate"))
                 .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
                 .build());
+    }
+
+    @Override
+    public boolean checkAvailable(Integer currencyId, Integer merchantId) {
+        String sql = "SELECT refill_block FROM MERCHANT_CURRENCY WHERE currency_id = :currency_id AND merchant_id = :merchant_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        return masterJdbcTemplate.queryForObject(sql, params, Integer.class) == 0;
+    }
+
+    @Override
+    public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType) {
+        String blockClause;
+
+        switch (transferType) {
+            case INNER_VOUCHER:
+                blockClause = "AND MERCHANT.name = 'VoucherTransfer'";
+                break;
+            case VOUCHER:
+                blockClause = "AND MERCHANT.name = 'VoucherFreeTransfer'";
+                break;
+            case TRANSFER:
+                blockClause = "AND MERCHANT.name = 'SimpleTransfer'";
+                break;
+            default:
+                throw new UnsupportedTransferProcessTypeException("Error transfer type - " + transferType);
+        }
+
+        String sql = "SELECT" +
+                "  MERCHANT.id as merchant_id," +
+                "  MERCHANT.name," +
+                "  MERCHANT.description," +
+                "  MERCHANT.process_type," +
+                "  MERCHANT_CURRENCY.min_sum," +
+                "  MERCHANT_CURRENCY.currency_id," +
+                "  MERCHANT_CURRENCY.merchant_input_commission," +
+                "  MERCHANT_CURRENCY.merchant_output_commission," +
+                "  MERCHANT_CURRENCY.merchant_fixed_commission" +
+                " FROM MERCHANT" +
+                "  JOIN MERCHANT_CURRENCY" +
+                "    ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id" +
+                " WHERE MERCHANT_CURRENCY.currency_id in (:currency_id)" +
+                "      AND MERCHANT_CURRENCY.transfer_block = 0 "
+                + blockClause;
+
+        return masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), (resultSet, i) -> {
+            MerchantCurrency merchantCurrency = new MerchantCurrency();
+            merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+            merchantCurrency.setName(resultSet.getString("name"));
+            merchantCurrency.setDescription(resultSet.getString("description"));
+            merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+            merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+            merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+            merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+            merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+            merchantCurrency.setProcessType(resultSet.getString("process_type"));
+            return merchantCurrency;
+        });
     }
 
     @Transactional

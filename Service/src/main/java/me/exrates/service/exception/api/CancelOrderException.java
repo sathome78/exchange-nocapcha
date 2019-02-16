@@ -2,6 +2,7 @@ package me.exrates.service.exception.api;
 
 public class CancelOrderException extends RuntimeException {
 
+
     public CancelOrderException(String message) {
         super(message);
     }

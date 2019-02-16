@@ -10,4 +10,6 @@ public interface G2faDao {
     void setEnable2faGoogleAuth(Integer userId, Boolean connection);
 
     boolean isGoogleAuthenticatorEnable(Integer userId);
+
+    void setGoogleAuthSecretCode(Integer userId, String secretCode);
 }

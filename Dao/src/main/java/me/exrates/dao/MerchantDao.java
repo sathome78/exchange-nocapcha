@@ -11,6 +11,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
@@ -95,4 +96,9 @@ public interface MerchantDao {
     List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits();
 
     void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits);
+
+    boolean checkAvailable(Integer currencyId, Integer merchantId);
+
+    MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType);
+
 }

@@ -364,5 +364,9 @@ public class BigDecimalProcessing {
     return parseLocale(bigDecimal, Locale.ENGLISH, false);
   }
 
+  public static boolean moreThanZero(BigDecimal value) {
+    return value.compareTo(BigDecimal.ZERO) > 0;
+  }
+
 
 }
