@@ -35,7 +35,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         this.ratesRedisRepository = ratesRedisRepository;
     }
 
-//    @PostConstruct
+    @PostConstruct
     private void init() {
         log.info("Start init ExchangeRatesHolder");
         List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs();
