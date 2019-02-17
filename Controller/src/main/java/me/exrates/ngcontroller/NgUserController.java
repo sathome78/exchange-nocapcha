@@ -221,14 +221,14 @@ public class NgUserController {
                 ":" + request.getServerPort() + "/rest";
     }
 
-    @PostMapping("/createPassword")
+    @PostMapping("/password/create")
     public ResponseEntity savePassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
                                        HttpServletRequest request) {
         AuthTokenDto tokenDto = ngUserService.createPassword(passwordCreateDto, request);
         return new ResponseEntity<>(tokenDto, HttpStatus.OK);
     }
 
-    @PostMapping("/recoveryPassword")
+    @PostMapping("/password/recovery/reset")
     @CheckIp(value = IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD)
     public ResponseEntity requestForRecoveryPassword(@RequestBody @Valid UserEmailDto userEmailDto,
                                                      HttpServletRequest request) {
@@ -240,7 +240,7 @@ public class NgUserController {
         return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
-    @PostMapping("/createRecoveryPassword")
+    @PostMapping("/password/recovery/create")
     @CheckIp(value = IpTypesOfChecking.CREATE_RECOVERY_PASSWORD)
     public ResponseEntity createRecoveryPassword(@RequestBody @Valid PasswordCreateDto passwordCreateDto,
                                                  HttpServletRequest request) {

@@ -192,7 +192,7 @@ public interface RefillService {
     @Transactional
     void setInnerTransferHash(int requestId, String hash);
 
-    List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
-
     List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
+
+    List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
 }

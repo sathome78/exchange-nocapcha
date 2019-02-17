@@ -1297,6 +1297,11 @@ public class RefillServiceImpl implements RefillService {
     }
 
     @Override
+    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
+        return refillRequestDao.findAllAddressesByMerchantWithChilds(merchantId);
+    }
+
+    @Override
     public List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId) {
         Integer userId = userService.getIdByEmail(email);
         if (userId == 0) {
@@ -1311,8 +1316,4 @@ public class RefillServiceImpl implements RefillService {
         return dtos;
     }
 
-    @Override
-    public List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId) {
-        return refillRequestDao.findAllAddressesByMerchantWithChilds(merchantId);
-    }
 }

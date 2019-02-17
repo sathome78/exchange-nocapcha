@@ -16,6 +16,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Currency {
+
     private int id;
     private String name;
     @JsonInclude(JsonInclude.Include.NON_NULL)

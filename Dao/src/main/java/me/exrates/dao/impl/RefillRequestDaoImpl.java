@@ -1406,6 +1406,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }
 
     @Override
+    public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
+        String sql = "SELECT RRA.* FROM MERCHANT M " +
+                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
+                "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+        }};
+        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
+    }
+
+    @Override
     public List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId) {
         final String sql = "SELECT RR.amount as amount, RR.merchant_transaction_id as hash, RRA.address as address, RRQ.confirmation_number as collectedConfirmations, RR.merchant_id as merchantId " +
                 "FROM REFILL_REQUEST RR " +
@@ -1426,17 +1437,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             dto.setMerchantId(rs.getInt("merchantId"));
             return dto;
         });
-    }
-
-    @Override
-    public List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId) {
-        String sql = "SELECT RRA.* FROM MERCHANT M " +
-                "JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.merchant_id = M.id)" +
-                "where M.id = :merchant_id OR M.tokens_parrent_id = :merchant_id ";
-        Map<String, Object> params = new HashMap<String, Object>() {{
-            put("merchant_id", merchantId);
-        }};
-        return namedParameterJdbcTemplate.query(sql, params, refillRequestAddressRowMapper);
     }
 }
 

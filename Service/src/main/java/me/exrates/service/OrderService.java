@@ -21,6 +21,7 @@ import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
@@ -54,7 +55,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -355,6 +358,8 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
+    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+
     /**
      * Returns data of
      * - userId by email,
@@ -439,6 +444,11 @@ public interface OrderService {
                                                                      int requesterId);
 
     void logCallBackData(CallBackLogDto callBackLogDto);
+
+    List<UserOrdersDto> getAllUserOrders(@Null String currencyPairName,
+                                         @Null Integer limit,
+                                         @Null Integer offset);
+
 
     @Transactional(readOnly = true)
     Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale);

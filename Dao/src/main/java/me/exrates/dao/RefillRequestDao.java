@@ -157,7 +157,7 @@ public interface RefillRequestDao {
 
     void setInnerTransferHash(int requestId, String hash);
 
-    List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
-
     List<RefillRequestAddressDto> findAllAddressesByMerchantWithChilds(int merchantId);
+
+    List<RefillOnConfirmationDto> getOnConfirmationDtos(Integer userId, int currencyId);
 }
