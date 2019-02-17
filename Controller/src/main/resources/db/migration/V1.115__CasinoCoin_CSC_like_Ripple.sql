@@ -31,7 +31,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
   JOIN ORDER_TYPE OT where CP.name='CSC/USD';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'CSC'), (select id from CURRENCY where name = 'CSC'), 'CSC/BTC', 160, 0, 'BTC', 'CSC/BTC');
+VALUES((select id from CURRENCY where name = 'CSC'), (select id from CURRENCY where name = 'BTC'), 'CSC/BTC', 160, 0, 'BTC', 'CSC/BTC');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
@@ -39,7 +39,7 @@ INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_ty
     JOIN ORDER_TYPE OT where CP.name='CSC/BTC';
 
 INSERT IGNORE INTO CURRENCY_PAIR (currency1_id, currency2_id, name, pair_order, hidden, market ,ticker_name)
-VALUES((select id from CURRENCY where name = 'CSC'), (select id from CURRENCY where name = 'CSC'), 'CSC/ETH', 160, 0, 'ETH', 'CSC/ETH');
+VALUES((select id from CURRENCY where name = 'CSC'), (select id from CURRENCY where name = 'ETH'), 'CSC/ETH', 160, 0, 'ETH', 'CSC/ETH');
 
 INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
