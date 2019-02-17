@@ -11,8 +11,10 @@ import me.exrates.model.enums.CurrencyPairType;
  */
 @Getter @Setter @ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
+
   private Integer currencyPairId;
   private String currencyPairName;
+  private Integer currencyPairScale;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
@@ -35,15 +37,16 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   }
 
   public ExOrderStatisticsShortByPairsDto(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
-    this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
-    this.page = exOrderStatisticsShortByPairsDto.page;
-    this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
-    this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
-    this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
-    this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
-    this.type = exOrderStatisticsShortByPairsDto.type;
-    this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
-    this.pairOrder = exOrderStatisticsShortByPairsDto.pairOrder;
+    this.needRefresh = exOrderStatisticsShortByPairsDto.isNeedRefresh();
+    this.page = exOrderStatisticsShortByPairsDto.getPage();
+    this.currencyPairName = exOrderStatisticsShortByPairsDto.getCurrencyPairName();
+    this.currencyPairScale = exOrderStatisticsShortByPairsDto.getCurrencyPairScale();
+    this.lastOrderRate = exOrderStatisticsShortByPairsDto.getLastOrderRate();
+    this.predLastOrderRate = exOrderStatisticsShortByPairsDto.getPredLastOrderRate();
+    this.percentChange = exOrderStatisticsShortByPairsDto.getPercentChange();
+    this.type = exOrderStatisticsShortByPairsDto.getType();
+    this.currencyPairId = exOrderStatisticsShortByPairsDto.getCurrencyPairId();
+    this.pairOrder = exOrderStatisticsShortByPairsDto.getPairOrder();
   }
 
   @Override

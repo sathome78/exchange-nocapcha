@@ -10,12 +10,15 @@ import java.util.Locale;
  * Created by Valk
  */
 public class ExOrderStatisticsShortByPairsApiDto {
+
     private String currencyPairName;
+    private Integer currencyPairScale;
     private BigDecimal lastOrderRate;
     private BigDecimal predLastOrderRate;
 
     public ExOrderStatisticsShortByPairsApiDto(ExOrderStatisticsShortByPairsDto dto, Locale locale) {
         this.currencyPairName = dto.getCurrencyPairName();
+        this.currencyPairScale = dto.getCurrencyPairScale();
         this.lastOrderRate = BigDecimalProcessing.parseLocale(dto.getLastOrderRate(), locale, true);
         this.predLastOrderRate = BigDecimalProcessing.parseLocale(dto.getPredLastOrderRate(), locale, true);
     }
