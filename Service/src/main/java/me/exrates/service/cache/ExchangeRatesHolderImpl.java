@@ -3,7 +3,6 @@ package me.exrates.service.cache;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.ExOrder;
-import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.TradeMarket;
@@ -91,7 +90,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @Override
     public Map<Integer, String> getRatesForMarket(TradeMarket market) {
         return getAllRates().stream()
-                .filter(p->p.getMarket().equals(market.name()))
+                .filter(p -> p.getMarket().equals(market.name()))
                 .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
     }
 
