@@ -9,7 +9,6 @@ import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -235,7 +234,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
 
-
     @PostConstruct
     public void init() {
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
@@ -439,7 +437,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new SecurityInterceptor());
         registry.addInterceptor(new MDCInterceptor());
     }
-
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -1770,6 +1767,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
 		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "elcServiceImpl")
+	public EthTokenService elcServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
+		return new EthTokenServiceImpl(tokensList, "ELC","ELC", false, ExConvert.Unit.AIWEI);
 	}
 
 	//    Qtum tokens:
