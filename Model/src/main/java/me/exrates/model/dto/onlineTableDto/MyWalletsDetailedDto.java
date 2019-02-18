@@ -12,7 +12,7 @@ public class MyWalletsDetailedDto extends OnlineTableDto {
     private Integer id;
     private Integer userId;
     private Integer currencyId;
-    private Integer currencyScale;
+    private Integer currencyPrecision;
     private String currencyName;
     private String currencyDescription;
     private String activeBalance;

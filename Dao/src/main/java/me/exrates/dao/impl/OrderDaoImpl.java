@@ -582,7 +582,7 @@ public class OrderDaoImpl implements OrderDao {
         ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
         exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
         exOrderStatisticsDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-        exOrderStatisticsDto.setCurrencyPairScale(rs.getInt("currency_pair_scale"));
+        exOrderStatisticsDto.setCurrencyPairPrecision(rs.getInt("currency_pair_scale"));
         exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
         exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
         exOrderStatisticsDto.setType(CurrencyPairType.valueOf(rs.getString("type")));
