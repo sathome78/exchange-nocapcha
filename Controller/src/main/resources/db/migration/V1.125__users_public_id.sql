@@ -6,7 +6,7 @@ create trigger TRANSACTION_BEFORE_UPD_TR
   for each row
   BEGIN
     IF (NEW.pub_id  IS NULL) THEN
-      SET new.pub_id = substring(md5(NEW.email), 1, 20));
+      SET new.pub_id = substring(md5(NEW.email), 1, 20);
     END IF;
   END;
 
