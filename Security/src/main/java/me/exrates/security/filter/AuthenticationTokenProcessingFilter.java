@@ -86,5 +86,4 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
     public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         super.setAuthenticationManager(authenticationManager);
     }
-
-    }
+}
