@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.model;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class SimpleOrderBookItem {
 
     private Integer currencyPairId;
+    private String currencyPairName;
 
     private OrderType orderType;
 

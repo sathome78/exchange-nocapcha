@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -2036,16 +2037,20 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> findAllByOrderTypeAndCurrencyId(OrderType orderType, Integer currencyId) {
+    public List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType ... orderTypes) {
+        String orderTypeIds = Arrays.stream(orderTypes)
+                .map(orderType -> String.valueOf(orderType.getOperationType().getType()))
+                .collect(Collectors.joining(", "));
+
         String sql = "SELECT id, currency_pair_id, operation_type_id, exrate, amount_base, " +
                 " amount_convert, commission_fixed_amount, date_creation, date_acception" +
                 "  FROM EXORDERS " +
-                "  WHERE status_id = 2 AND operation_type_id = :operationTypeId AND currency_pair_id=:currency_pair_id" +
+                "  WHERE status_id = 2 AND operation_type_id IN (:operationTypeIds) AND currency_pair_id=:currency_pair_id" +
 //                "  AND date_creation >= (DATE_SUB(CURDATE(), INTERVAL 10 DAY))" +
                 "  ORDER BY exrate ASC";
-        Map<String, Integer> namedParameters = new HashMap<>();
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyId);
-        namedParameters.put("operationTypeId", orderType.getOperationType().getType());
+        namedParameters.put("operationTypeIds", orderTypeIds);
         return slaveJdbcTemplate.query(sql, namedParameters, openOrderListDtoRowMapper());
     }
 

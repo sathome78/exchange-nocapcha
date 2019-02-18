@@ -779,7 +779,11 @@ public class UserServiceImpl implements UserService {
         if (setting.getNotificatorId().equals(NotificationTypeEnum.GOOGLE2FA.getCode())) {
             return g2faService.checkGoogle2faVerifyCode(pin, userId);
         }
-        return passwordEncoder.matches(pin, getPinForEvent(email, event));
+        boolean matches = passwordEncoder.matches(pin, getPinForEvent(email, event));
+        if (matches) {
+            userDao.updatePinByUserEmail(email, "", event);
+        }
+        return matches;
     }
 
     private String getPinForEvent(String email, NotificationMessageEventEnum event) {
@@ -1003,7 +1007,6 @@ public class UserServiceImpl implements UserService {
     public TemporalToken verifyUserEmailForForgetPassword(String token) {
         return userDao.verifyToken(token);
     }
-
 
 
 }

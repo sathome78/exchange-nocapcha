@@ -151,6 +151,7 @@ public class SecureServiceImpl implements SecureService {
         Locale locale = localeResolver.resolveLocale(request);
         String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
         String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        System.out.println("LOGIN pin code: " + pin);
         String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
                 new String[] {pin, ipAddress}, locale);
         return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);

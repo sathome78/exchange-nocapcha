@@ -19,7 +19,6 @@ public class UserAuthenticationDto {
     private String email;
     @NotNull(message = "Password is missing")
     private String password;
-    @NotNull(message = "Application key is missing")
     private String appKey;
 
     private String clientIp;

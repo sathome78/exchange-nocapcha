@@ -12,7 +12,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
-import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
@@ -23,7 +23,6 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.exception.NgResponseException;
-import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
@@ -201,8 +200,8 @@ public class NgPublicController {
     @ResponseBody
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
-                ngOrderService.findAllOrderBookItems(OrderType.BUY, pairId, precision),
-                ngOrderService.findAllOrderBookItems(OrderType.SELL, pairId, precision));
+                orderService.findAllOrderBookItems(pairId, precision, OrderType.BUY),
+                orderService.findAllOrderBookItems(pairId, precision, OrderType.BUY));
     }
 
     @GetMapping("/info/{currencyPairId}")
