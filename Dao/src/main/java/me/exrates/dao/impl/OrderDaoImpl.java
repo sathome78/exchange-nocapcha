@@ -498,15 +498,15 @@ public class OrderDaoImpl implements OrderDao {
                             "   (SELECT LASTORDER.exrate " +
                             "       FROM EXORDERS LASTORDER  " +
                             "       WHERE  " +
-                            "       (LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                            "       (LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       (LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id)  AND  " +
+                            "       (LASTORDER.status_id = AGRIGATE.status_id) " +
                             "       ORDER BY LASTORDER.date_acception DESC, LASTORDER.id DESC " +
                             "       LIMIT 1) AS last_exrate, " +
                             "   (SELECT PRED_LASTORDER.exrate " +
                             "       FROM EXORDERS PRED_LASTORDER  " +
                             "       WHERE  " +
-                            "       (PRED_LASTORDER.currency_pair_id =AGRIGATE.currency_pair_id)  AND  " +
-                            "       (PRED_LASTORDER.status_id =AGRIGATE.status_id) " +
+                            "       (PRED_LASTORDER.currency_pair_id = AGRIGATE.currency_pair_id)  AND  " +
+                            "       (PRED_LASTORDER.status_id = AGRIGATE.status_id) " +
                             "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
                             "       LIMIT 1,1) AS pred_last_exrate, CURRENCY_PAIR.pair_order  " +
                             " FROM ( " +
@@ -518,7 +518,7 @@ public class OrderDaoImpl implements OrderDao {
                             "   ) " +
                             " AGRIGATE " +
                             " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
-                            " ORDER BY -CURRENCY_PAIR.pair_order DESC)" +
+                            " ORDER BY CURRENCY_PAIR.pair_order DESC)" +
                             " UNION ALL (" +
                             "   SELECT CP.currency1_id AS currency1_id, CP.name AS currency_pair_name, CP.market AS market, CP.scale AS currency_pair_scale, CP.id AS currency_pair_id, CP.type AS type, 0 AS volume, 0 AS last_exrate, 0 AS pred_last_exrate, CP.pair_order " +
                             "      FROM CURRENCY_PAIR CP " +
@@ -526,7 +526,7 @@ public class OrderDaoImpl implements OrderDao {
                             ")) RESULT ";
 
             Map<String, String> namedParameters = new HashMap<>();
-            namedParameters.put("status_id", String.valueOf(3));
+            namedParameters.put("status_id", "3");
 
             return slaveJdbcTemplate.query(sql, namedParameters, exchangeRatesRowMapper);
         } catch (Exception e) {

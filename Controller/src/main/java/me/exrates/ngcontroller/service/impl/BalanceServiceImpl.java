@@ -123,7 +123,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
-        setBtcUsdAmoun(detailsPage.getItems());
+        setBtcUsdAmount(detailsPage.getItems());
 
         return detailsPage;
     }
@@ -137,7 +137,7 @@ public class BalanceServiceImpl implements BalanceService {
                 .findFirst();
     }
 
-    private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
+    private void setBtcUsdAmount(List<MyWalletsDetailedDto> walletsDetails) {
         Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
         Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
 

@@ -596,7 +596,7 @@ public class WalletDaoImpl implements WalletDao {
                         "          amount_base, amount_convert, commission_fixed_amount, " +
                         "          withdraw_amount, withdraw_commission " +
                         " ) W " +
-                        " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance " +
+                        " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, currency_scale, active_balance, reserved_balance " +
                         " ORDER BY currency_name ASC ";
 
         final Map<String, Object> params = new HashMap<String, Object>() {{
@@ -1536,6 +1536,7 @@ public class WalletDaoImpl implements WalletDao {
                 .stream()
                 .map(MerchantProcessType::toCurrencyProcessType)
                 .map(CurrencyProcessType::toString)
+                .distinct()
                 .collect(toList());
 
         final String sql =
@@ -1643,7 +1644,7 @@ public class WalletDaoImpl implements WalletDao {
                         "          amount_base, amount_convert, commission_fixed_amount, " +
                         "          withdraw_amount, withdraw_commission " +
                         " ) W " +
-                        " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, active_balance, reserved_balance" +
+                        " GROUP BY wallet_id, user_id, currency_id, currency_name, currency_description, currency_scale, active_balance, reserved_balance" +
                         " ORDER BY currency_name ASC ";
 
         final Map<String, Object> params = new HashMap<String, Object>() {{
