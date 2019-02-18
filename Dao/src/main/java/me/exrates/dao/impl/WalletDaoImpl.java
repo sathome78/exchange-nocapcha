@@ -612,7 +612,7 @@ public class WalletDaoImpl implements WalletDao {
             myWalletsDetailedDto.setCurrencyId(rs.getInt("currency_id"));
             myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
             myWalletsDetailedDto.setCurrencyDescription(rs.getString("currency_description"));
-            myWalletsDetailedDto.setCurrencyScale(rs.getInt("currency_scale"));
+            myWalletsDetailedDto.setCurrencyPrecision(rs.getInt("currency_scale"));
             myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
             myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
             myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));
@@ -1660,7 +1660,7 @@ public class WalletDaoImpl implements WalletDao {
             myWalletsDetailedDto.setCurrencyId(rs.getInt("currency_id"));
             myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
             myWalletsDetailedDto.setCurrencyDescription(rs.getString("currency_description"));
-            myWalletsDetailedDto.setCurrencyScale(rs.getInt("currency_scale"));
+            myWalletsDetailedDto.setCurrencyPrecision(rs.getInt("currency_scale"));
             myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
             myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
             myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));

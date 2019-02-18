@@ -14,7 +14,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
 
   private Integer currencyPairId;
   private String currencyPairName;
-  private Integer currencyPairScale;
+  private Integer currencyPairPrecision;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
@@ -40,7 +40,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.needRefresh = exOrderStatisticsShortByPairsDto.isNeedRefresh();
     this.page = exOrderStatisticsShortByPairsDto.getPage();
     this.currencyPairName = exOrderStatisticsShortByPairsDto.getCurrencyPairName();
-    this.currencyPairScale = exOrderStatisticsShortByPairsDto.getCurrencyPairScale();
+    this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.getCurrencyPairPrecision();
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.getLastOrderRate();
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.getPredLastOrderRate();
     this.percentChange = exOrderStatisticsShortByPairsDto.getPercentChange();
