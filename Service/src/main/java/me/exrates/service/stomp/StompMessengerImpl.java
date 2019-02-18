@@ -100,7 +100,8 @@ public class StompMessengerImpl implements StompMessenger{
     @Override
     public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, final Integer currencyPair, String message) {
         String destination = "/queue/my_orders/".concat(currencyPair.toString());
-        messagingTemplate.convertAndSendToUser(userService.findEmailById(userId), destination, message);
+        String userEmail = userService.getEmailById(userId);
+        messagingTemplate.convertAndSendToUser(userEmail, destination, message);
     }
 
    @Override
