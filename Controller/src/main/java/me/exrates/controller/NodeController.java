@@ -26,12 +26,20 @@ public class NodeController {
     }
 
     @GetMapping(value = "/getBlocksCount")
-    public Long getBlocksCount(@RequestParam("ticker") String ticker) throws BitcoindException, CommunicationException {
-        return nodeCheckerService.getBTCBlocksCount(ticker);
+    public Object getBlocksCount(@RequestParam("ticker") String ticker) {
+        try {
+            return nodeCheckerService.getBTCBlocksCount(ticker);
+        } catch (Exception e){
+            return e.toString();
+        }
     }
 
     @GetMapping(value = "/getLastBlockTime")
-    public Long getLastBlockTime(@RequestParam("ticker") String ticker) throws BitcoindException, CommunicationException {
-        return nodeCheckerService.getLastBlockTime(ticker);
+    public Object getLastBlockTime(@RequestParam("ticker") String ticker) {
+        try {
+            return nodeCheckerService.getLastBlockTime(ticker);
+        } catch (Exception e){
+            return e.toString();
+        }
     }
 }
