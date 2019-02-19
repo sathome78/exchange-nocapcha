@@ -51,4 +51,6 @@ public interface NotificationService {
 
   void updateUserNotifications(List<NotificationOption> options);
 
+  void updateNotificationOptionsForUser(int userId, List<NotificationOption> options);
+
 }

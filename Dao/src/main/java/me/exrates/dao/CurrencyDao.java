@@ -42,9 +42,9 @@ public interface CurrencyDao {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
@@ -104,4 +104,16 @@ public interface CurrencyDao {
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 
     List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
+
+    boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, List<Integer> roleIds, Boolean recalculateToUsd);
+
+    List<CurrencyLimit> getAllCurrencyLimits();
+
+    void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
+
+    List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
+
+    List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
 }

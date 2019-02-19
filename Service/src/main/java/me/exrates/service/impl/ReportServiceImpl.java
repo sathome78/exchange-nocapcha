@@ -162,8 +162,10 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
 
-        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrency())) ? BigDecimal.ZERO : rates.get(s.getCurrency()).getLeft()));
-        //
+        report.forEach(s -> {
+            final Pair<BigDecimal, BigDecimal> pairRates = rates.get(s.getCurrency());
+            s.setRateToUSD(isNull(pairRates) ? BigDecimal.ZERO : pairRates.getLeft());
+        });
         return report;
     }
 
@@ -320,6 +322,7 @@ public class ReportServiceImpl implements ReportService {
 
                     final BigDecimal internalTotalBalance = intWalletBalances.stream()
                             .filter(inWallet -> inWallet.getRoleName() != UserRole.BOT_TRADER)
+                            .filter(inWallet -> inWallet.getRoleName() != UserRole.OUTER_MARKET_BOT)
                             .map(InternalWalletBalancesDto::getTotalBalance)
                             .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
                     final BigDecimal internalTotalBalanceUSD = internalTotalBalance.multiply(usdRate);

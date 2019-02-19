@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -267,6 +268,31 @@ public class InputOutputServiceImpl implements InputOutputService {
     public List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                                      List<Integer> userRoleIdList) {
         return inputOutputDao.getInputOutputSummaryWithCommissions(startTime, endTime, userRoleIdList);
+    }
+
+    @Override
+    public Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale) {
+        List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(email, 0,
+                0, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
+        return items.size();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
+                                                                   LocalDate dateFrom, LocalDate dateTo,
+                                                                   int currencyId, Locale locale) {
+        List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset,
+                limit, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
+        setAdditionalFields(result, locale);
+        return result;
+    }
+
+    private List<Integer> getOperationTypesList() {
+        return OperationType.getInputOutputOperationsList()
+                .stream()
+                .map(OperationType::getType)
+                .collect(Collectors.toList());
     }
 
 }

@@ -12,13 +12,13 @@ public interface UserSecureService {
 
     UserShortDto getUserByUsername(String email);
 
-    public List<User> getAllUsers();
+    List<User> getAllUsers();
 
-public List<User> getUsersByRoles(List<UserRole> listRoles);
+    List<User> getUsersByRoles(List<UserRole> listRoles);
 
     DataTable<List<User>> getUsersByRolesPaginated(List<UserRole> listRoles, Map<String, String> tableParams);
 
-    public UserRole getUserRoles(String email);
+    UserRole getUserRoles(String email);
 
     List<String> getUserAuthorities(String email);
 }

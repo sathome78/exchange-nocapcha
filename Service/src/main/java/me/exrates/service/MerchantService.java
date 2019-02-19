@@ -14,6 +14,7 @@ import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -54,7 +55,7 @@ public interface MerchantService {
 
     Map<String, String> formatResponseMessage(Transaction transaction);
 
-    void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw);
+    void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
@@ -105,4 +106,12 @@ public interface MerchantService {
     List<MerchantCurrencyBasicInfoDto> findTokenMerchantsByParentId(Integer parentId);
 
     BigDecimal getMerchantInputCommission(int merchantId, int currencyId, String childMerchant);
+
+    boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd);
+
+    void updateMerchantCommissionsLimits();
+
+    boolean checkAvailableRefill(Integer currencyId, Integer merchantId);
+
+    MerchantCurrency findMerchantForTransferByCurrencyId(Integer currencyId, TransferTypeVoucher transferType);
 }

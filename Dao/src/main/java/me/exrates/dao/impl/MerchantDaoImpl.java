@@ -16,10 +16,13 @@ import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.mobileApiDto.TransferMerchantApiDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransferTypeVoucher;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -28,8 +31,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -307,51 +313,68 @@ public class MerchantDaoImpl implements MerchantDao {
 
     @Override
     public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions(List<String> processTypes) {
-        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
-                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, " +
-                " MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.merchant_transfer_commission, " +
-                " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, MERCHANT_CURRENCY.transfer_block, " +
-                " MERCHANT_CURRENCY.merchant_fixed_commission, " +
-                " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount," +
-                " MERCHANT_CURRENCY.subtract_merchant_commission_for_withdraw " +
-                " FROM MERCHANT " +
+        final String sql = "SELECT" +
+                " MERCHANT.id as merchant_id," +
+                " MERCHANT.name AS merchant_name," +
+                " CURRENCY.id AS currency_id," +
+                " CURRENCY.name AS currency_name," +
+                " MERCHANT_CURRENCY.merchant_input_commission," +
+                " MERCHANT_CURRENCY.merchant_output_commission," +
+                " MERCHANT_CURRENCY.merchant_transfer_commission," +
+                " MERCHANT_CURRENCY.withdraw_block," +
+                " MERCHANT_CURRENCY.refill_block," +
+                " MERCHANT_CURRENCY.transfer_block," +
+                " MERCHANT_CURRENCY.merchant_fixed_commission," +
+                " MERCHANT_CURRENCY.merchant_fixed_commission_usd," +
+                " MERCHANT_CURRENCY.usd_rate," +
+                " MERCHANT_CURRENCY.withdraw_auto_enabled," +
+                " MERCHANT_CURRENCY.withdraw_auto_delay_seconds," +
+                " MERCHANT_CURRENCY.withdraw_auto_threshold_amount," +
+                " MERCHANT_CURRENCY.subtract_merchant_commission_for_withdraw, " +
+                " MERCHANT_CURRENCY.recalculate_to_usd " +
+                "FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
                 (processTypes.isEmpty() ? "" : "WHERE MERCHANT.process_type IN (:process_types) ") +
                 "ORDER BY merchant_id, currency_id";
+
         Map<String, List<String>> params = new HashMap<String, List<String>>();
         params.put("process_types", processTypes);
 
-
-        return masterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
-            dto.setMerchantId(rs.getInt("merchant_id"));
-            dto.setCurrencyId(rs.getInt("currency_id"));
-            dto.setMerchantName(rs.getString("merchant_name"));
-            dto.setCurrencyName(rs.getString("currency_name"));
-            dto.setInputCommission(rs.getBigDecimal("merchant_input_commission"));
-            dto.setOutputCommission(rs.getBigDecimal("merchant_output_commission"));
-            dto.setTransferCommission(rs.getBigDecimal("merchant_transfer_commission"));
-            dto.setIsRefillBlocked(rs.getBoolean("refill_block"));
-            dto.setIsWithdrawBlocked(rs.getBoolean("withdraw_block"));
-            dto.setIsTransferBlocked(rs.getBoolean("transfer_block"));
-            dto.setMinFixedCommission(rs.getBigDecimal("merchant_fixed_commission"));
-            dto.setWithdrawAutoEnabled(rs.getBoolean("withdraw_auto_enabled"));
-            dto.setWithdrawAutoDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
-            dto.setWithdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"));
-            dto.setIsMerchantCommissionSubtractedForWithdraw(rs.getBoolean("subtract_merchant_commission_for_withdraw"));
-            return dto;
-        });
+        return masterJdbcTemplate.query(sql, params, (rs, rowNum) -> MerchantCurrencyOptionsDto.builder()
+                .merchantId(rs.getInt("merchant_id"))
+                .currencyId(rs.getInt("currency_id"))
+                .merchantName(rs.getString("merchant_name"))
+                .currencyName(rs.getString("currency_name"))
+                .inputCommission(rs.getBigDecimal("merchant_input_commission"))
+                .outputCommission(rs.getBigDecimal("merchant_output_commission"))
+                .transferCommission(rs.getBigDecimal("merchant_transfer_commission"))
+                .isRefillBlocked(rs.getBoolean("refill_block"))
+                .isWithdrawBlocked(rs.getBoolean("withdraw_block"))
+                .isTransferBlocked(rs.getBoolean("transfer_block"))
+                .minFixedCommission(rs.getBigDecimal("merchant_fixed_commission"))
+                .minFixedCommissionUsdRate(rs.getBigDecimal("merchant_fixed_commission_usd"))
+                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
+                .withdrawAutoEnabled(rs.getBoolean("withdraw_auto_enabled"))
+                .withdrawAutoDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"))
+                .withdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"))
+                .isMerchantCommissionSubtractedForWithdraw(rs.getBoolean("subtract_merchant_commission_for_withdraw"))
+                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .build());
     }
 
     @Override
-    public void toggleSubtractMerchantCommissionForWithdraw(Integer merchantId, Integer currencyId, boolean subtractMerchantCommissionForWithdraw) {
-        String sql = "UPDATE MERCHANT_CURRENCY SET subtract_merchant_commission_for_withdraw = :subtract_merchant_commission " +
-                " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    public void toggleSubtractMerchantCommissionForWithdraw(String merchantName, String currencyName, boolean subtractMerchantCommissionForWithdraw) {
+        String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET subtract_merchant_commission_for_withdraw = :subtract_merchant_commission " +
+                "WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+                "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+
         Map<String, Object> params = new HashMap<>();
         params.put("subtract_merchant_commission", subtractMerchantCommissionForWithdraw);
-        params.put("merchant_id", merchantId);
-        params.put("currency_id", currencyId);
+        params.put("merchant_name", merchantName);
+        params.put("currency_name", currencyName);
+
         masterJdbcTemplate.update(sql, params);
     }
 
@@ -665,6 +688,132 @@ public class MerchantDaoImpl implements MerchantDao {
         }};
 
         return slaveJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    }
+
+    @Transactional
+    @Override
+    public boolean setPropertyRecalculateCommissionLimitToUsd(String merchantName, String currencyName, Boolean recalculateToUsd) {
+        String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET recalculate_to_usd = :recalculate_to_usd " +
+                "WHERE merchant_id = (SELECT id FROM MERCHANT WHERE name = :merchant_name) " +
+                "AND currency_id = (SELECT id FROM CURRENCY WHERE name = :currency_name)";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("merchant_name", merchantName);
+        params.put("currency_name", currencyName);
+        params.put("recalculate_to_usd", recalculateToUsd);
+
+        return masterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MerchantCurrencyOptionsDto> getAllMerchantCommissionsLimits() {
+        String sql = "SELECT " +
+                "MERCHANT_CURRENCY.merchant_id, " +
+                "MERCHANT_CURRENCY.currency_id, " +
+                "CURRENCY.name AS currency_name, " +
+                "MERCHANT_CURRENCY.merchant_fixed_commission, " +
+                "MERCHANT_CURRENCY.merchant_fixed_commission_usd, " +
+                "MERCHANT_CURRENCY.usd_rate, " +
+                "MERCHANT_CURRENCY.recalculate_to_usd " +
+                "FROM MERCHANT_CURRENCY " +
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id";
+
+        return masterJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
+                .merchantId(rs.getInt("merchant_id"))
+                .currencyId(rs.getInt("currency_id"))
+                .currencyName(rs.getString("currency_name"))
+                .minFixedCommission(rs.getBigDecimal("merchant_fixed_commission"))
+                .minFixedCommissionUsdRate(rs.getBigDecimal("merchant_fixed_commission_usd"))
+                .currencyUsdRate(rs.getBigDecimal("usd_rate"))
+                .recalculateToUsd(rs.getBoolean("recalculate_to_usd"))
+                .build());
+    }
+
+    @Override
+    public boolean checkAvailable(Integer currencyId, Integer merchantId) {
+        String sql = "SELECT refill_block FROM MERCHANT_CURRENCY WHERE currency_id = :currency_id AND merchant_id = :merchant_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        return masterJdbcTemplate.queryForObject(sql, params, Integer.class) == 0;
+    }
+
+    @Override
+    public MerchantCurrency getMerchantByCurrencyForVoucher(Integer currencyId, TransferTypeVoucher transferType) {
+        String blockClause;
+
+        switch (transferType) {
+            case INNER_VOUCHER:
+                blockClause = "AND MERCHANT.name = 'VoucherTransfer'";
+                break;
+            case VOUCHER:
+                blockClause = "AND MERCHANT.name = 'VoucherFreeTransfer'";
+                break;
+            case TRANSFER:
+                blockClause = "AND MERCHANT.name = 'SimpleTransfer'";
+                break;
+            default:
+                throw new UnsupportedTransferProcessTypeException("Error transfer type - " + transferType);
+        }
+
+        String sql = "SELECT" +
+                "  MERCHANT.id as merchant_id," +
+                "  MERCHANT.name," +
+                "  MERCHANT.description," +
+                "  MERCHANT.process_type," +
+                "  MERCHANT_CURRENCY.min_sum," +
+                "  MERCHANT_CURRENCY.currency_id," +
+                "  MERCHANT_CURRENCY.merchant_input_commission," +
+                "  MERCHANT_CURRENCY.merchant_output_commission," +
+                "  MERCHANT_CURRENCY.merchant_fixed_commission" +
+                " FROM MERCHANT" +
+                "  JOIN MERCHANT_CURRENCY" +
+                "    ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id" +
+                " WHERE MERCHANT_CURRENCY.currency_id in (:currency_id)" +
+                "      AND MERCHANT_CURRENCY.transfer_block = 0 "
+                + blockClause;
+
+        return masterJdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), (resultSet, i) -> {
+            MerchantCurrency merchantCurrency = new MerchantCurrency();
+            merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+            merchantCurrency.setName(resultSet.getString("name"));
+            merchantCurrency.setDescription(resultSet.getString("description"));
+            merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+            merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+            merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+            merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+            merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+            merchantCurrency.setProcessType(resultSet.getString("process_type"));
+            return merchantCurrency;
+        });
+    }
+
+    @Transactional
+    @Override
+    public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
+        String sql = "UPDATE MERCHANT_CURRENCY " +
+                "SET merchant_fixed_commission = ?, merchant_fixed_commission_usd = ?, usd_rate = ? " +
+                "WHERE merchant_id = ? AND currency_id = ?";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                MerchantCurrencyOptionsDto dto = merchantCommissionsLimits.get(i);
+                ps.setBigDecimal(1, dto.getMinFixedCommission());
+                ps.setBigDecimal(2, dto.getMinFixedCommissionUsdRate());
+                ps.setBigDecimal(3, dto.getCurrencyUsdRate());
+                ps.setInt(4, dto.getMerchantId());
+                ps.setInt(5, dto.getCurrencyId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return merchantCommissionsLimits.size();
+            }
+        });
     }
 }
 

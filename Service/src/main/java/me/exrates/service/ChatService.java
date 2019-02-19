@@ -23,4 +23,6 @@ public interface ChatService {
     void flushCache();
 
     List<ChatHistoryDto> getChatHistory(ChatLang chatLang);
+
+    ChatMessage persistPublicMessage(String body, String email, ChatLang lang) throws IllegalChatMessageException;
 }

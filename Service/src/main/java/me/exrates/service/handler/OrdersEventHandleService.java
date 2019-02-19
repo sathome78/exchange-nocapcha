@@ -2,7 +2,6 @@ package me.exrates.service.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.ExOrder;
 import me.exrates.model.OrderWsDetailDto;
@@ -13,21 +12,35 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
-import me.exrates.service.RabbitMqService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.events.CancelOrderEvent;
+import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.OrderEvent;
+import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.vo.ChartRefreshHandler;
+import me.exrates.service.vo.CurrencyStatisticsHandler;
+import me.exrates.service.vo.MyTradesHandler;
+import me.exrates.service.vo.OrdersEventsHandler;
+import me.exrates.service.vo.TradesEventsHandler;
 import me.exrates.service.events.*;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,8 +52,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Log4j2
 @Component
-@PropertySource(value = {"classpath:/job.properties"})
+@PropertySource(value = {"classpath:/job.properties", "classpath:/angular.properties"})
 public class OrdersEventHandleService {
+
+    @Value("${dev.mode}")
+    private boolean DEV_MODE;
 
     @Autowired
     private ExchangeRatesHolder ratesHolder;
@@ -53,12 +69,11 @@ public class OrdersEventHandleService {
     @Autowired
     private OrderService orderService;
     @Autowired
-    private RabbitMqService rabbitMqService;
-    @Autowired
     private StompMessenger stompMessenger;
     @Autowired
     private ObjectMapper objectMapper;
-
+    @Autowired
+    private DefaultSimpUserRegistry registry;
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -67,6 +82,8 @@ public class OrdersEventHandleService {
     private Map<Integer, MyTradesHandler> mapMyTrades = new ConcurrentHashMap<>();
     private Map<Integer, ChartRefreshHandler> mapChart = new ConcurrentHashMap<>();
     private Map<Integer, OrdersReFreshHandler> mapOrders = new ConcurrentHashMap<>();
+
+    private Map<Integer, UserPersonalOrdersHandler> personalOrdersHandlerMap = new ConcurrentHashMap<>();
 
     public void handleOrderEventOnMessage(InputCreateOrderDto orderDto) {
         ExOrder order = orderDto.toExorder();
@@ -84,7 +101,6 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CreateOrderEvent event) {
         ExOrder exOrder = (ExOrder) event.getSource();
         InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     @Async
@@ -92,7 +108,6 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(CancelOrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(exOrder);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
 
@@ -101,12 +116,13 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-        log.debug("order event {} ", exOrder);
-        System.out.println("event " + event.getOrderEventEnum() + exOrder);
+        handlePersonalOrders(exOrder, event.getOrderEventEnum());
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-        handleCallBack(event);
-        if (exOrder.getUserAcceptorId() != 0) {
-            handleAcceptorUserId(exOrder);
+        if (!DEV_MODE) {
+            handleCallBack(event);
+            if (exOrder.getUserAcceptorId() != 0) {
+                handleAcceptorUserId(exOrder);
+            }
         }
     }
 
@@ -131,8 +147,6 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
-        InputCreateOrderDto inputCreateOrderDto = InputCreateOrderDto.of(order);
-        rabbitMqService.sendOrderInfo(inputCreateOrderDto, RabbitMqService.ANGULAR_QUEUE);
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -249,6 +263,19 @@ public class OrdersEventHandleService {
         OrdersReFreshHandler handler = mapOrders
                 .computeIfAbsent(pairId, k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairId));
         handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
+    }
+
+    @Async
+    void handlePersonalOrders(ExOrder exOrder, OrderEventEnum orderEvent) {
+        Integer pairId = exOrder.getCurrencyPairId();
+        UserPersonalOrdersHandler handler = personalOrdersHandlerMap
+                .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
+        if (registry.getUser(userService.getEmailById(exOrder.getUserId())) != null) {
+            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
+        }
+        if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId() && registry.getUser(userService.getEmailById(exOrder.getUserAcceptorId())) != null) {
+            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
+        }
     }
 
     @Async

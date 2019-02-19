@@ -3,6 +3,7 @@ package me.exrates.security.service;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.User;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.PinAttempsDto;
@@ -134,6 +135,41 @@ public class SecureServiceImpl implements SecureService {
         return new PinDto(message, needToSendPin);
     }
 
+    @Override
+    public NotificationResultDto sendWithdrawPincode(User user) {
+        NotificationsUserSetting setting = getWithdrawSettings(user);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, Locale.ENGLISH);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[] {pin}, Locale.ENGLISH);
+        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
+    public NotificationResultDto sendLoginPincode(User user, HttpServletRequest request, String ipAddress) {
+        NotificationsUserSetting setting = getLoginSettings(user);
+        Locale locale = localeResolver.resolveLocale(request);
+        String subject = messageSource.getMessage(setting.getNotificationMessageEventEnum().getSbjCode(), null, locale);
+        String pin = userService.updatePinForUserForEvent(user.getEmail(), setting.getNotificationMessageEventEnum());
+        String messageText = messageSource.getMessage(setting.getNotificationMessageEventEnum().getMessageCode(),
+                new String[] {pin, ipAddress}, locale);
+        return notificationService.notifyUser(user.getEmail(), messageText, subject, setting);
+    }
+
+    @Override
+    public void checkLoginAuthNg(String email, HttpServletRequest request, Locale locale) {
+        String result = reSendLoginMessage(request, email, locale).getMessage();
+        if (result != null) {
+            throw new PinCodeCheckNeedException(result);
+        }
+    }
+
+    @Override
+    public PinDto reSendLoginMessage(HttpServletRequest request, String userEmail, Locale locale) {
+        return reSendLoginMessage(request, userEmail, true);
+    }
+
+
     private NotificationsUserSetting determineSettings(NotificationsUserSetting setting, boolean canBeDisabled, int userId, NotificationMessageEventEnum event) {
         if (setting == null || setting.getNotificatorId() == null) {
             return NotificationsUserSetting.builder()
@@ -155,6 +191,24 @@ public class SecureServiceImpl implements SecureService {
         NotificationResultDto notificationResultDto = notificationService.notifyUser(email, messageText, subject, setting);
         request.getSession().setAttribute("2fa_message".concat(setting.getNotificationMessageEventEnum().name()), notificationResultDto);
         return messageSource.getMessage(notificationResultDto.getMessageSource(), notificationResultDto.getArguments(), locale);
+    }
+
+    private NotificationsUserSetting getWithdrawSettings(User user) {
+        return  NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.WITHDRAW)
+                .notificatorId(NotificationMessageEventEnum.WITHDRAW.getCode())
+                .userId(user.getId())
+                .build();
+    }
+
+    private NotificationsUserSetting getLoginSettings(User user) {
+        return  NotificationsUserSetting
+                .builder()
+                .notificationMessageEventEnum(NotificationMessageEventEnum.LOGIN)
+                .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
+                .userId(user.getId())
+                .build();
     }
 
 }

@@ -32,6 +32,7 @@ import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
+import org.apache.axis.utils.SessionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,8 +171,10 @@ public class MainController {
 
 
     @RequestMapping(value = "/createUser", method = RequestMethod.POST)
-    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto, @RequestParam(required = false) String source,
-                                        BindingResult result, HttpServletRequest request) {
+    public ResponseEntity createNewUser(@ModelAttribute("user") UserEmailDto userEmailDto,
+                                        @RequestParam(required = false) String source,
+                                        BindingResult result,
+                                        HttpServletRequest request) {
         String challenge = request.getParameter(GeetestLib.fn_geetest_challenge);
         String validate = request.getParameter(GeetestLib.fn_geetest_validate);
         String seccode = request.getParameter(GeetestLib.fn_geetest_seccode);
@@ -328,11 +331,11 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        ModelAndView model = new ModelAndView();
-        if (error != null) {
-            if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
+        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION"));
+        if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];
+                logger.info("login(), exceptionClass {}", exceptionClass);
                 if (exceptionClass.equals("DisabledException")) {
                     attr.addFlashAttribute("blockedUser", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
                     attr.addFlashAttribute("contactsUrl", "/contacts");
@@ -341,9 +344,11 @@ public class MainController {
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("PinCodeCheckNeedException")) {
+                    logger.debug("pin needed");
                     PinCodeCheckNeedException exception = (PinCodeCheckNeedException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
                 } else if (exceptionClass.equals("IncorrectPinException")) {
+                    System.out.println("pin needed");
                     IncorrectPinException exception = (IncorrectPinException) httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION");
                     attr.addFlashAttribute("pinNeed", exception.getMessage());
                     attr.addFlashAttribute("pinError", messageSource.getMessage("message.pin_code.incorrect", null, localeResolver.resolveLocale(request)));
@@ -359,7 +364,7 @@ public class MainController {
                 } else {
                     attr.addFlashAttribute("loginErr", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
-            }
+                httpSession.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", null);
         }
 
         return new ModelAndView(new RedirectView("/dashboard"));
