@@ -84,6 +84,7 @@ public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
     }
 
     @Test
+    @Ignore
     public void createOrder() throws Exception {
         when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString()))
                 .thenReturn(getFakeOrderCreationResultDto());
