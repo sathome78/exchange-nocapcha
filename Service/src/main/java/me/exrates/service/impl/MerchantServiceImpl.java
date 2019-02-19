@@ -112,6 +112,9 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private ExchangeApi exchangeApi;
 
+    @Autowired
+    private BigDecimalConverter converter;
+
     private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
 
     @Autowired
@@ -579,7 +582,7 @@ public class MerchantServiceImpl implements MerchantService {
             merchantCommissionsLimit.setCurrencyUsdRate(usdRate);
 
             if (recalculateToUsd) {
-                minFixedCommission = BigDecimalConverter.convert(minFixedCommissionUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                minFixedCommission = converter.convert(minFixedCommissionUsdRate.divide(usdRate, RoundingMode.HALF_UP));
                 merchantCommissionsLimit.setMinFixedCommission(minFixedCommission);
             } else {
                 minFixedCommissionUsdRate = minFixedCommission.multiply(usdRate);
