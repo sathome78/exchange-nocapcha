@@ -72,18 +72,24 @@ import static me.exrates.model.enums.OperationType.SELL;
 @Log4j2
 public class WalletDaoImpl implements WalletDao {
 
-    @Autowired
-    private TransactionDao transactionDao;
-    @Autowired
+    private final TransactionDao transactionDao;
     private UserDao userDao;
+    private final CurrencyDao currencyDao;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate slaveJdbcTemplate;
+
     @Autowired
-    private CurrencyDao currencyDao;
-    @Autowired
-    @Qualifier(value = "masterTemplate")
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    @Autowired
-    @Qualifier(value = "slaveTemplate")
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
+    public WalletDaoImpl(TransactionDao transactionDao,
+                         UserDao userDao,
+                         CurrencyDao currencyDao,
+                         @Qualifier(value = "masterTemplate") NamedParameterJdbcTemplate jdbcTemplate,
+                         @Qualifier(value = "slaveTemplate") NamedParameterJdbcTemplate slaveJdbcTemplate) {
+        this.transactionDao = transactionDao;
+        this.userDao = userDao;
+        this.currencyDao = currencyDao;
+        this.jdbcTemplate = jdbcTemplate;
+        this.slaveJdbcTemplate = slaveJdbcTemplate;
+    }
 
     protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
 
