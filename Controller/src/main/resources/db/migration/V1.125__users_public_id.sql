@@ -11,6 +11,3 @@ create trigger TRANSACTION_BEFORE_UPD_TR
   END;
 
 UPDATE USER SET pub_id = (substring(md5(USER.email), 1, 20));
-
-
-
