@@ -38,6 +38,8 @@ public interface OrderDao {
 
     int createOrder(ExOrder order);
 
+    List<OrderListDto> getMyOpenOrdersForCurrencyPair(CurrencyPair currencyPair, OrderType orderType, int userId);
+
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
@@ -146,6 +148,6 @@ public interface OrderDao {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
-    List<OrderListDto> findAllByOrderTypeAndCurrencyId(OrderType orderType, Integer currencyId);
+    List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
 }

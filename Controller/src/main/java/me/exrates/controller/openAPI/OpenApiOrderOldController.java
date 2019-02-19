@@ -261,7 +261,7 @@ public class OpenApiOrderOldController {
     @ExceptionHandler(UserOperationAccessException.class)
     @ResponseBody
     public OpenApiError userOperationAccessExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.BLOCED_TRADING, req.getRequestURL(), exception);
+        return new OpenApiError(ErrorCode.BLOCKED_TRADING, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(NO_CONTENT)

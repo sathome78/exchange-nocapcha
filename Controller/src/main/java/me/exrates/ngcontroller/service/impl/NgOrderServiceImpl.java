@@ -2,7 +2,6 @@ package me.exrates.ngcontroller.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
@@ -16,8 +15,8 @@ import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.SimpleOrderBookItem;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.ChartPeriodsEnum;
@@ -26,13 +25,10 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.OrderType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.util.BigDecimalToStringSerializer;
 import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.OrderBookWrapperDto;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
-import me.exrates.ngcontroller.model.SimpleOrderBookItem;
 import me.exrates.ngcontroller.service.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -52,21 +48,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -487,31 +480,6 @@ public class NgOrderServiceImpl implements NgOrderService {
     }
 
     @Override
-    public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
-        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
-        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(orderType, currencyId)
-                .stream()
-                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
-                .collect(Collectors.toList());
-        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
-        OrderBookWrapperDto dto = OrderBookWrapperDto
-                .builder()
-                .orderType(orderType)
-                .orderBookItems(simpleOrderBookItems)
-                .total(getWrapperTotal(simpleOrderBookItems))
-                .build();
-        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
-        if (marketStatistic != null) {
-            dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
-            dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
-            dto.setPositive(safeCompareBigDecimals(
-                    new BigDecimal(marketStatistic.getLastOrderRate()),
-                    new BigDecimal(marketStatistic.getPredLastOrderRate())));
-        }
-        return dto;
-    }
-
-    @Override
     public List<CurrencyPair> getAllPairsByFirstPartName(String pathName) {
         return currencyService.getPairsByFirstPartName(pathName);
     }
@@ -521,58 +489,7 @@ public class NgOrderServiceImpl implements NgOrderService {
         return currencyService.getPairsBySecondPartName(pathName);
     }
 
-    private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
-        Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
-        BigDecimal total = BigDecimal.ZERO;
-        if (max.isPresent()) {
-            total = max.get().getTotal();
-        }
-        return total;
-    }
 
-    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
-                                                     int currencyPairId, int precision) {
-        MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
-        Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
-                .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
-        List<SimpleOrderBookItem> items = Lists.newArrayList();
-        groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
-                .builder()
-                .exrate(new BigDecimal(key.toString()))
-                .currencyPairId(currencyPairId)
-                .orderType(orderType)
-                .amount(getAmount(value))
-                .build()));
-
-        if (!items.isEmpty()) {
-            if (orderType == OrderType.SELL) {
-                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
-            } else {
-                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
-            }
-        }
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
-        setSumAmount(preparedItems);
-        setTotal(preparedItems);
-        return preparedItems;
-    }
-
-    private void setTotal(List<SimpleOrderBookItem> preparedItems) {
-        for (int i = 0; i < preparedItems.size(); i++) {
-            SimpleOrderBookItem item = preparedItems.get(i);
-            if (i == 0) {
-                BigDecimal total = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
-                item.setTotal(total);
-                continue;
-            }
-
-            BigDecimal totalItem = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
-            BigDecimal prevTotal = item.getAmount().add(preparedItems.get(i - 1).getTotal());
-            BigDecimal total = BigDecimalProcessing.doAction(prevTotal, totalItem, ActionType.ADD);
-            item.setTotal(total);
-        }
-    }
 
 //    private void countTotal(List<SimpleOrderBookItem> items, OrderType orderType) {
 //        if (orderType == OrderType.BUY) {
@@ -629,28 +546,12 @@ public class NgOrderServiceImpl implements NgOrderService {
 
     private String convertToString(int currencyId, int precision) throws JsonProcessingException {
         JSONArray objectsArray = new JSONArray();
-        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
-        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
-        return objectsArray.toString();
+        throw new UnsupportedOperationException("NgOrderServiceImpl.convertToString needs update");
+//        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.BUY, currencyId, precision)));
+//        objectsArray.put(objectMapper.writeValueAsString(findAllOrderBookItems(OrderType.SELL, currencyId, precision)));
+//        return objectsArray.toString();
     }
 
-    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
-        if (last == null && beforeLast == null || last == null) {
-            return false;
-        } else if (beforeLast == null) {
-            return true;
-        } else {
-            return last.compareTo(beforeLast) > 0;
-        }
-    }
-
-    private String safeFormatBigDecimal(BigDecimal value) {
-        if (value == null) {
-            value = BigDecimal.ZERO;
-        }
-        value = BigDecimalProcessing.normalize(value);
-        return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
-    }
 
     @SuppressWarnings("Duplicates")
     private void getData(HashMap<String, Object> response, List<CandleDto> result, String resolution) {

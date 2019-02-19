@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.model;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;

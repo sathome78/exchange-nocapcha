@@ -11,8 +11,10 @@ import me.exrates.model.enums.CurrencyPairType;
  */
 @Getter @Setter @ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
+
   private Integer currencyPairId;
   private String currencyPairName;
+  private Integer currencyPairPrecision;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
@@ -38,6 +40,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
     this.page = exOrderStatisticsShortByPairsDto.page;
     this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
+    this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.currencyPairPrecision;
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
