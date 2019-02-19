@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Created by Maks on 24.08.2017.

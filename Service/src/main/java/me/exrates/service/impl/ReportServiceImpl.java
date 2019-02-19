@@ -162,8 +162,10 @@ public class ReportServiceImpl implements ReportService {
 
         Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
 
-        report.forEach(s -> s.setRateToUSD(isNull(rates.get(s.getCurrency())) ? BigDecimal.ZERO : rates.get(s.getCurrency()).getLeft()));
-        //
+        report.forEach(s -> {
+            final Pair<BigDecimal, BigDecimal> pairRates = rates.get(s.getCurrency());
+            s.setRateToUSD(isNull(pairRates) ? BigDecimal.ZERO : pairRates.getLeft());
+        });
         return report;
     }
 

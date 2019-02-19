@@ -1,12 +1,14 @@
 package me.exrates.security.config;
 
 import me.exrates.model.UserRoleSettings;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.UserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -49,5 +51,7 @@ public class WebSocketSecurity  extends AbstractSecurityWebSocketMessageBrokerCo
                 .simpSubscribeDestMatchers("/user/queue/trade_orders/f/*").hasAnyAuthority(roles)
                 .anyMessage().permitAll();
     }
+
+
 
 }

@@ -113,8 +113,7 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-        log.debug("order event {} ", exOrder);
-        System.out.println("event " + event.getOrderEventEnum() + exOrder);
+        handlePersonalOrders(exOrder, event.getOrderEventEnum());
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         if (!DEV_MODE) {
             handleCallBack(event);

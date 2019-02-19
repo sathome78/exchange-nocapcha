@@ -32,8 +32,8 @@
         <spring-core.version>4.3.7.RELEASE</spring-core.version>
         <spring-context.version>4.3.7.RELEASE</spring-context.version>
         <spring-test.version>4.3.7.RELEASE</spring-test.version>
-        <spring-security.version>4.2.0.RELEASE</spring-security.version>
         <spring-expression.version>4.3.16.RELEASE</spring-expression.version>
+        <spring-security.version>4.2.0.RELEASE</spring-security.version>
         <spring-websocket.version>4.3.22.RELEASE</spring-websocket.version>
         <spring-messaging.version>4.3.22.RELEASE</spring-messaging.version>
         <bitcoinj.version>0.14.3</bitcoinj.version>
