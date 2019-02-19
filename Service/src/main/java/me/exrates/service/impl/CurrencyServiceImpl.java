@@ -99,7 +99,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<Currency> getAllCurrencies() {
-        return currencyDao.getAllActiveCurrencies();
+        return currencyDao.getAllCurrencies();
     }
 
     @Override
