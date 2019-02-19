@@ -347,7 +347,7 @@ public class CryptocurrencyConfig {
 
 @Bean(name = "owcServiceImpl")
 	public BitcoinService owcServiceImpl() {
-		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 20, 20, false, false);
+		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
 	}
 
 	// LISK-like cryptos
