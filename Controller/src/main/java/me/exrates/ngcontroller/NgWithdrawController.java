@@ -28,6 +28,8 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.merchantStrategy.IWithdrawable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +79,7 @@ public class NgWithdrawController {
     private final UserService userService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
+    private final MerchantServiceContext merchantServiceContext;
 
     @Autowired
     public NgWithdrawController(CurrencyService currencyService,
@@ -88,7 +91,8 @@ public class NgWithdrawController {
                                 UserOperationService userOperationService,
                                 UserService userService,
                                 WalletService walletService,
-                                WithdrawService withdrawService) {
+                                WithdrawService withdrawService,
+                                MerchantServiceContext merchantServiceContext) {
         this.currencyService = currencyService;
         this.g2faService = g2faService;
         this.inputOutputService = inputOutputService;
@@ -99,6 +103,7 @@ public class NgWithdrawController {
         this.userService = userService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
+        this.merchantServiceContext = merchantServiceContext;
     }
 
     // POST: /info/private/v2/balances/withdraw/request/create
@@ -165,7 +170,7 @@ public class NgWithdrawController {
         }
     }
 
-    // /info/private/v2/balances/withdraw/merchants/output?currency=BTC
+    // /api /private/v2/balances/withdraw/merchants/output?currency=BTC
     // response for BTC = https://api.myjson.com/bins/15aa4m
     // response for USD = https://api.myjson.com/bins/v8206
     @GetMapping(value = "/merchants/output")
@@ -179,10 +184,22 @@ public class NgWithdrawController {
             Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
             List<Integer> currenciesId = Collections.singletonList(currency.getId());
             List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+
+            //check additional field and fill it
+            for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
+                IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
+                if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
+                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
+                    merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
+                } else {
+                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
+                }
+            }
+
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
-                    .activeBalance(wallet.getActiveBalance())
+                    .activeBalance(wallet == null ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
@@ -192,11 +209,12 @@ public class NgWithdrawController {
                     .build();
             return ResponseEntity.ok(withdrawDataDto);
         } catch (Exception e) {
+            logger.error("outputCredits e {}", e);
             return ResponseEntity.badRequest().build();
         }
     }
 
-    // GET: /info/private/v2/balances/withdraw/request/pin
+    // GET: /api/private/v2/balances/withdraw/request/pin
     // 201 - pincode is sent to user email
     // 200 - no pincode use google oauth
     @CheckActiveUserStatus
