@@ -117,6 +117,8 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
+    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
+
     /**
      * TODO ADD JAVADOC
      */
