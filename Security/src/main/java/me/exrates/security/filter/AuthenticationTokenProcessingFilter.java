@@ -26,15 +26,12 @@ import java.io.IOException;
 public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
     private final String HEADER_SECURITY_TOKEN = "Exrates-Rest-Token";
-    private AuthenticationManager authenticationManager;
-
 
     @Autowired
     private AuthTokenService authTokenService;
 
-    public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
+    public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
-        this.authenticationManager = authenticationManager;
         setAuthenticationSuccessHandler((request, response, authentication) ->
         {
             String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
@@ -86,5 +83,4 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
     public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         super.setAuthenticationManager(authenticationManager);
     }
-
-    }
+}

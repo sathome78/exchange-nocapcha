@@ -8,6 +8,8 @@ import me.exrates.security.exception.InvalidHmacSignatureException;
 import me.exrates.security.exception.InvalidTimestampException;
 import me.exrates.security.exception.TokenException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -15,27 +17,30 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 @Log4j2(topic = "open_api")
 @Service
+@PropertySource("classpath:/api.properties")
 public class OpenApiAuthServiceImpl implements OpenApiAuthService {
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String HMAC_SIGNATURE_DELIMITER = "|";
-    private static final Duration TIMESTAMP_VALIDITY = Duration.ofSeconds(10);
+
+    private final OpenApiTokenDao openApiTokenDao;
+    private final UserDetailsService userDetailsService;
+
+    @Value("${request.lifetime}")
+    private Long requestLifetime;
 
     @Autowired
-    private OpenApiTokenDao openApiTokenDao;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
+    public OpenApiAuthServiceImpl(OpenApiTokenDao openApiTokenDao,
+                                  UserDetailsService userDetailsService) {
+        this.openApiTokenDao = openApiTokenDao;
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     public UserDetails getUserByPublicKey(String method, String endpoint, Long timestamp, String publicKey, String signatureHex) {
@@ -68,10 +73,7 @@ public class OpenApiAuthServiceImpl implements OpenApiAuthService {
     }
 
     private void validateTimestamp(Long timestamp) {
-        LocalDateTime requestTime = new Timestamp(timestamp).toLocalDateTime();
-        LocalDateTime currentTime = LocalDateTime.now();
-        if (requestTime.isBefore(currentTime.minus(TIMESTAMP_VALIDITY)) ||
-                requestTime.isAfter(currentTime.plus(TIMESTAMP_VALIDITY))) {
+        if (Math.abs(new Date().getTime() - timestamp) > requestLifetime) {
             throw new InvalidTimestampException("Invalid timestamp: " + String.valueOf(timestamp));
         }
     }

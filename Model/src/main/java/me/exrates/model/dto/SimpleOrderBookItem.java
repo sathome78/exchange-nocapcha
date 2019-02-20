@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.model;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
@@ -15,6 +15,8 @@ public class SimpleOrderBookItem {
     private Integer currencyPairId;
 
     private OrderType orderType;
+
+    private String currencyPairName;
 
     @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal exrate;

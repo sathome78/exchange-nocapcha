@@ -42,6 +42,7 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
         log.debug("notify user {} for {}", userEmail, notificationTypeEnum);
         try {
             contactToNotify = service.sendMessageToUser(userEmail, message, subject);
+            System.out.println("LOGIN MESSAGE: " + message);
         } catch (Exception e) {
             log.error(e);
             if (notificationTypeEnum.getCode() != NotificationTypeEnum.EMAIL.getCode()) {

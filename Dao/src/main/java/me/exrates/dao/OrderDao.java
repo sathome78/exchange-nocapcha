@@ -148,6 +148,6 @@ public interface OrderDao {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
-    List<OrderListDto> findAllByOrderTypeAndCurrencyId(OrderType orderType, Integer currencyId);
+    List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
 }

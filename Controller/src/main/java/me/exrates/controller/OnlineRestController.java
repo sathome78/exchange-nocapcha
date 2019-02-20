@@ -208,7 +208,7 @@ public class OnlineRestController {
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request), type);
-        HashMap<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("mapWallets", resultWallet);
 
         if (resultWallet.size() > 1) {
@@ -244,7 +244,7 @@ public class OnlineRestController {
                 }
             }
 
-            walletTotalUsdDtoList.stream().forEach(wallet -> {
+            walletTotalUsdDtoList.forEach(wallet -> {
                 if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
                     wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
                 } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
@@ -363,7 +363,6 @@ public class OnlineRestController {
         } catch (Exception e) {
             LOGGER.error(ExceptionUtils.getStackTrace(e));
             throw e;
-        } finally {
         }
     }
 
