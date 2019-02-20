@@ -10,8 +10,11 @@ import me.exrates.model.enums.MerchantProcessType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -25,37 +28,56 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfiguration.class})
+@ContextConfiguration(classes = {TestConfiguration.class, WalletDaoImplTest.InnerConf.class})
 public class WalletDaoImplTest {
 
     private static final String EMAIL = "shvets.k@gmail.com";
     private static final List<Integer> WITHDRAW_STATUS_IDS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-    private static final List<MerchantProcessType> PROCESS_TYPE = Collections.singletonList(MerchantProcessType.CRYPTO);
-
-    @Mock
-    private TransactionDao transactionDao;
-    @Mock
-    private UserDao userDao;
-    @Mock
-    private CurrencyDao currencyDao;
-    @Mock
-    private NamedParameterJdbcTemplate masteJdbcTemplate;
+    private static final List<MerchantProcessType> PROCESS_TYPES = Collections.singletonList(MerchantProcessType.CRYPTO);
 
     @Autowired
-    private NamedParameterJdbcTemplate slaveJdbcTemplate;
-
     private WalletDao walletDao;
 
     @Before
     public void setUp() {
-        walletDao = new WalletDaoImpl(transactionDao, userDao, currencyDao, masteJdbcTemplate, slaveJdbcTemplate);
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
     public void getAllWalletsForUserDetailedTest() {
-        List<MyWalletsDetailedDto> allWalletsForUserDetailed = walletDao.getAllWalletsForUserDetailed(EMAIL, WITHDRAW_STATUS_IDS, Locale.ENGLISH, PROCESS_TYPE);
+        List<MyWalletsDetailedDto> allWalletsForUserDetailed = walletDao.getAllWalletsForUserDetailed(EMAIL, WITHDRAW_STATUS_IDS, Locale.ENGLISH, PROCESS_TYPES);
 
         assertNotNull(allWalletsForUserDetailed);
         assertFalse(allWalletsForUserDetailed.isEmpty());
+    }
+
+    @Configuration
+    static class InnerConf {
+
+        @Bean
+        public WalletDao walletDao() {
+            return new WalletDaoImpl();
+        }
+
+        @Bean
+        public TransactionDao transactionDao() {
+            return Mockito.mock(TransactionDao.class);
+        }
+
+        @Bean
+        public UserDao userDao() {
+            return Mockito.mock(UserDao.class);
+        }
+
+        @Bean
+        public CurrencyDao currencyDao() {
+            return Mockito.mock(CurrencyDao.class);
+        }
+
+        @Bean
+        public NamedParameterJdbcTemplate masterTemplate() {
+            return Mockito.mock(NamedParameterJdbcTemplate.class);
+        }
+
     }
 }

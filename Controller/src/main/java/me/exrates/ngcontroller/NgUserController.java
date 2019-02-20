@@ -273,7 +273,7 @@ public class NgUserController {
 
     private AuthTokenDto createToken(@RequestBody @Valid UserAuthenticationDto authenticationDto, HttpServletRequest request, User user) {
         AuthTokenDto authTokenDto =
-                authTokenService.retrieveTokenNg(authenticationDto, authenticationDto.getClientIp())
+                authTokenService.retrieveTokenNg(authenticationDto)
                         .orElseThrow(() -> {
                             String message = String.format("Failed to get token for user %s", authenticationDto.getEmail());
                             return new NgResponseException("FAILED_TO_GET_USER_TOKEN", message);

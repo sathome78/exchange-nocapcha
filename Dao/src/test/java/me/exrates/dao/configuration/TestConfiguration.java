@@ -25,8 +25,8 @@ public class TestConfiguration {
     @Value("${db.slave.classname}")
     private String dbSlaveClassname;
 
-    @Bean(name = "slaveHikariDataSourceTest")
-    public DataSource slaveHikariDataSource() {
+    @Bean(name = "slaveDataSource")
+    public DataSource slaveDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setDriverClassName(dbSlaveClassname);
         hikariConfig.setJdbcUrl(dbSlaveUrl);
@@ -37,9 +37,9 @@ public class TestConfiguration {
         return new HikariDataSource(hikariConfig);
     }
 
-    @DependsOn("slaveHikariDataSourceTest")
-    @Bean(name = "slaveTemplateTest")
-    public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveHikariDataSourceTest") DataSource dataSource) {
+    @DependsOn("slaveDataSource")
+    @Bean(name = "slaveTemplate")
+    public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 }
