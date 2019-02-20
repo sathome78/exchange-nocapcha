@@ -57,6 +57,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
@@ -115,8 +116,6 @@ public interface OrderService {
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
-
-    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
 
     /**
      * TODO ADD JAVADOC
@@ -471,4 +470,6 @@ public interface OrderService {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
     List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
+
+    OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }

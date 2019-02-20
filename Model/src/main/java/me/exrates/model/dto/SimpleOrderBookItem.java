@@ -13,9 +13,10 @@ import java.math.BigDecimal;
 public class SimpleOrderBookItem {
 
     private Integer currencyPairId;
-    private String currencyPairName;
 
     private OrderType orderType;
+
+    private String currencyPairName;
 
     @JsonSerialize(using = BigDecimalToStringSerializer.class)
     private BigDecimal exrate;
