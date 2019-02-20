@@ -198,7 +198,7 @@ public class SecureServiceImpl implements SecureService {
         return  NotificationsUserSetting
                 .builder()
                 .notificationMessageEventEnum(NotificationMessageEventEnum.WITHDRAW)
-                .notificatorId(NotificationMessageEventEnum.WITHDRAW.getCode())
+                .notificatorId(NotificationMessageEventEnum.LOGIN.getCode())
                 .userId(user.getId())
                 .build();
     }

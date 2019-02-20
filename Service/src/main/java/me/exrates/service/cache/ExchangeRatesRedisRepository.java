@@ -65,4 +65,8 @@ public class ExchangeRatesRedisRepository {
         pairsDtoList.forEach(this::update);
     }
 
+
+    public boolean isEmpty() {
+        return ops.size(key) == 0;
+    }
 }
