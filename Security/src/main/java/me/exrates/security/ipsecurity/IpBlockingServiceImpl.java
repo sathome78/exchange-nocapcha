@@ -102,7 +102,9 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     @Override
     public void successfulProcessing(String ipAddress, IpTypesOfChecking ipTypesOfChecking) {
         ConcurrentMap<String, LoginAttemptDto> ipChecker = ipchecker.get(ipTypesOfChecking);
-        ipChecker.remove(ipAddress);
+        if (ipChecker != null)  {
+            ipChecker.remove(ipAddress);
+        }
     }
 
 
