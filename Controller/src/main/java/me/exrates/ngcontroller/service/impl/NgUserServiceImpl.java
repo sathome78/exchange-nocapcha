@@ -50,12 +50,10 @@ public class NgUserServiceImpl implements NgUserService {
     private final ReferralService referralService;
     private final IpBlockingService ipBlockingService;
     private final TemporalTokenService temporalTokenService;
+    private final HttpServletRequest request;
 
     @Value("${dev.mode}")
     private boolean DEV_MODE;
-
-    @Value("${angular.allowed.origins}")
-    private String HOST;
 
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
@@ -65,7 +63,8 @@ public class NgUserServiceImpl implements NgUserService {
                              AuthTokenService authTokenService,
                              ReferralService referralService,
                              IpBlockingService ipBlockingService,
-                             TemporalTokenService temporalTokenService) {
+                             TemporalTokenService temporalTokenService,
+                             HttpServletRequest request) {
         this.userDao = userDao;
         this.userService = userService;
         this.messageSource = messageSource;
@@ -74,6 +73,7 @@ public class NgUserServiceImpl implements NgUserService {
         this.referralService = referralService;
         this.ipBlockingService = ipBlockingService;
         this.temporalTokenService = temporalTokenService;
+        this.request = request;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -95,12 +95,11 @@ public class NgUserServiceImpl implements NgUserService {
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
-
         sendEmailWithToken(user,
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, HOST, "final-registration/token?t=");
+                Locale.ENGLISH, getHost(), "final-registration/token?t=");
 
 
         return true;
@@ -155,7 +154,7 @@ public class NgUserServiceImpl implements NgUserService {
                 TokenType.CHANGE_PASSWORD,
                 "emailsubmitResetPassword.subject",
                 "emailsubmitResetPassword.text",
-                Locale.ENGLISH, HOST,
+                Locale.ENGLISH, getHost(),
                 "recovery-password?t=");
 
         return true;
@@ -227,7 +226,7 @@ public class NgUserServiceImpl implements NgUserService {
                 TokenType.REGISTRATION,
                 "emailsubmitregister.subject",
                 "emailsubmitregister.text",
-                Locale.ENGLISH, HOST, "final-registration/token?t=");
+                Locale.ENGLISH, getHost(), "final-registration/token?t=");
 
     }
 
@@ -246,6 +245,7 @@ public class NgUserServiceImpl implements NgUserService {
         token.setTokenType(tokenType);
         token.setCheckIp(user.getIp());
         token.setAlreadyUsed(false);
+        logger.info("sendEmailWithToken(), temp-token {}, email {}", token.getValue(), user.getEmail());
 
         userService.createTemporalToken(token);
 
@@ -263,6 +263,11 @@ public class NgUserServiceImpl implements NgUserService {
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         email.setTo(user.getEmail());
         sendMailService.sendMailMandrill(email);
+    }
+
+    private String getHost() {
+        return request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort();
     }
 
 }
