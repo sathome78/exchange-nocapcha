@@ -532,9 +532,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean update(UpdateUserDto user) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String currentUser = auth.getName(); //get logged in username
-        LOGGER.debug("Updating user: " + user.getEmail() + " by " + currentUser +
+        LOGGER.debug("Updating user: " + user.getEmail() +
                 ", newRole: " + user.getRole() + ", newStatus: " + user.getStatus());
 
         String sql = "UPDATE USER SET";
