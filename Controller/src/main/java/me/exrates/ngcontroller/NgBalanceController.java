@@ -189,7 +189,7 @@ public class NgBalanceController {
                 }
             }
 
-            walletTotalUsdDtoList.stream().forEach(wallet -> {
+            walletTotalUsdDtoList.forEach(wallet -> {
                 if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
                     wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
                 } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
