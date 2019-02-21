@@ -200,8 +200,8 @@ public class NgPublicController {
     @ResponseBody
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
-                orderService.findAllOrderBookItems(pairId, precision, OrderType.SELL),
-                orderService.findAllOrderBookItems(pairId, precision, OrderType.SELL));
+                orderService.findAllOrderBookItems(OrderType.SELL, pairId, precision),
+                orderService.findAllOrderBookItems(OrderType.BUY ,pairId, precision));
     }
 
     @GetMapping("/info/{currencyPairId}")

@@ -7,25 +7,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderFilterDataDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderReportInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -468,4 +450,6 @@ public interface OrderService {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
     List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
+
+    OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }
