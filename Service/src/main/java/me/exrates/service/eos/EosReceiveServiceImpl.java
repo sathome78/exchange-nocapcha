@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class EosReceiveServiceImpl implements EosReceiveService {
 
-    private void init() {
+   /* private void init() {
         BasicConfigurator.configure();
         EosApi client = EosApiFactory.create("http://127.0.0.1:8900", //
                 "http://jungle.cryptolions.io:18888",//
                 "http://jungle.cryptolions.io:18888");;
         // ------------------------------------------------------------------------
         create(client);
-    }
+    }*/
 }
