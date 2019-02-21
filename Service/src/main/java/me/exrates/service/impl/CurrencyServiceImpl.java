@@ -67,6 +67,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     private ExchangeApi exchangeApi;
 
+    @Autowired
+    private BigDecimalConverter converter;
+
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
             add("EDRC");
@@ -96,7 +99,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<Currency> getAllCurrencies() {
-        return currencyDao.getAllActiveCurrencies();
+        return currencyDao.getAllCurrencies();
     }
 
     @Override
@@ -411,7 +414,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             currencyLimit.setCurrencyUsdRate(usdRate);
 
             if (recalculateToUsd) {
-                minSum = BigDecimalConverter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
+                minSum = converter.convert(minSumUsdRate.divide(usdRate, RoundingMode.HALF_UP));
                 currencyLimit.setMinSum(minSum);
             } else {
                 minSumUsdRate = minSum.multiply(usdRate);
