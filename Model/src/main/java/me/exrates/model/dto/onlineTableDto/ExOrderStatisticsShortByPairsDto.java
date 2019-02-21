@@ -9,18 +9,24 @@ import me.exrates.model.enums.CurrencyPairType;
 /**
  * Created by Valk
  */
-@Getter @Setter@ToString
+@Getter @Setter @ToString
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
+
+  private Integer currencyPairId;
   private String currencyPairName;
+  private Integer currencyPairPrecision;
   private String lastOrderRate;
   private String predLastOrderRate;
   private String percentChange;
-  @JsonIgnore
-  private Integer currencyPairId;
-  @JsonIgnore
+  private String market;
+  private String volume;
+  private String priceInUSD;
   private CurrencyPairType type;
   @JsonIgnore
   private Integer pairOrder;
+  @JsonIgnore
+  private Integer currency1Id;
+  private String currencyVolume;
 
   public ExOrderStatisticsShortByPairsDto() {
     this.needRefresh = true;
@@ -34,6 +40,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
     this.page = exOrderStatisticsShortByPairsDto.page;
     this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
+    this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.currencyPairPrecision;
     this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
     this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
     this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;

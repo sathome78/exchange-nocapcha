@@ -36,4 +36,10 @@ public class MerchantServiceContext {
         .orElseThrow(() -> new MerchantNotFoundException(String.valueOf(merchantId)));
     return getMerchantService(merchant.getServiceBeanName());
   }
+
+  public IMerchantService getMerchantServiceByName(String merchantName) {
+    Merchant merchant = Optional.ofNullable(merchantService.findByName(merchantName))
+            .orElseThrow(() -> new MerchantNotFoundException(merchantName));
+    return getMerchantService(merchant.getServiceBeanName());
+  }
 }

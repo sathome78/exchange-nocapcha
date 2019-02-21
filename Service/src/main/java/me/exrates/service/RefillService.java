@@ -19,6 +19,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -192,4 +193,6 @@ public interface RefillService {
     void setInnerTransferHash(int requestId, String hash);
 
     List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
+
+    List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
 }

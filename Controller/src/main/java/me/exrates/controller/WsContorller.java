@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.OrderWsDetailDto;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ChartPeriodsEnum;
+import me.exrates.model.enums.ChartTimeFramesEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.RefreshObjectsEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -21,14 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Created by Maks on 24.08.2017.
@@ -51,6 +57,8 @@ public class WsContorller {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ChartsCache chartsCache;
+    @Autowired
+    private DefaultSimpUserRegistry registry;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -120,7 +128,12 @@ public class WsContorller {
         return orderService.getOpenOrdersForWs(currencyPairId);
     }
 
-    private String initOrders(Integer currencyPair, UserRole userRole) throws IOException, EncodeException {
+    @SubscribeMapping("/queue/my_orders/{currencyPairId}")
+    public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable Integer currencyPairId, Principal principal) {
+        return orderService.getMyOpenOrdersForWs(currencyPairId, principal.getName());
+    }
+
+    private String initOrders(Integer currencyPair, UserRole userRole) throws IOException {
         CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
         if (cp == null) {
             return null;

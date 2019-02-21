@@ -547,14 +547,25 @@ public class WalletServiceImpl implements WalletService {
             Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
             Pair<BigDecimal, LocalDateTime> pairBalances = balances.get(currencyName);
 
-            if (isNull(pairRates) || isNull(pairBalances)) {
-                continue;
+            BigDecimal usdRate;
+            BigDecimal btcRate;
+            if (isNull(pairRates)) {
+                usdRate = BigDecimal.ZERO;
+                btcRate = BigDecimal.ZERO;
+            } else {
+                usdRate = pairRates.getLeft();
+                btcRate = pairRates.getRight();
             }
-            final BigDecimal usdRate = pairRates.getLeft();
-            final BigDecimal btcRate = pairRates.getRight();
 
-            final BigDecimal mainBalance = pairBalances.getLeft();
-            final LocalDateTime lastBalanceUpdate = pairBalances.getRight();
+            BigDecimal mainBalance;
+            LocalDateTime lastBalanceUpdate;
+            if (isNull(pairBalances)) {
+                mainBalance = BigDecimal.ZERO;
+                lastBalanceUpdate = LocalDateTime.now();
+            } else {
+                mainBalance = pairBalances.getLeft();
+                lastBalanceUpdate = pairBalances.getRight();
+            }
 
             ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
                     .currencyId(currencyId)
@@ -581,7 +592,7 @@ public class WalletServiceImpl implements WalletService {
             return;
         }
 
-        for (Map.Entry<String, BigDecimal> entry: reservedBalances.entrySet()) {
+        for (Map.Entry<String, BigDecimal> entry : reservedBalances.entrySet()) {
             final String compositeKey = entry.getKey();
             final BigDecimal balance = entry.getValue();
 
@@ -696,7 +707,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty){
+    public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty) {
         return walletDao.updateSignOfCertaintyForCurrency(currencyId, signOfCertainty);
     }
 

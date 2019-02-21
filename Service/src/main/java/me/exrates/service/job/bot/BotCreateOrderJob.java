@@ -23,7 +23,7 @@ public class BotCreateOrderJob implements Job {
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        System.out.println("start job");
+        log.debug("BotCreateOrderJob execute(), start job");
         Integer currencyPairId = jobExecutionContext.getMergedJobDataMap().getInt("currencyPairId");
         OrderType orderType = OrderType.valueOf(jobExecutionContext.getMergedJobDataMap().getString("orderType"));
         log.debug("Running sequence for CurrencyPairId {}, orderType {}", currencyPairId, orderType.name());

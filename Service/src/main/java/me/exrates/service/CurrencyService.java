@@ -40,9 +40,9 @@ public interface CurrencyService {
 
     List<Currency> findAllCurrencies();
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, Integer maxDailyRequest);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, BigDecimal minAmount, BigDecimal minAmountUSD, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
 
@@ -125,4 +125,15 @@ public interface CurrencyService {
     boolean updateAccessToDirectLinkCurrencyPairById(int currencyPairId);
 
     List<CurrencyReportInfoDto> getStatsByCoin(int currencyId);
+
+    boolean setPropertyCalculateLimitToUsd(int currencyId, OperationType operationType, String roleName, Boolean recalculateToUsd);
+
+    void updateWithdrawLimits();
+
+    List<Currency> getCurrencies(MerchantProcessType ... processType);
+
+    List<CurrencyPair> getPairsByFirstPartName(String partName);
+
+    List<CurrencyPair> getPairsBySecondPartName(String partName);
+
 }

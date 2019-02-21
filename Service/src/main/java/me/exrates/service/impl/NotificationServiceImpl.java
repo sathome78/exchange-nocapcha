@@ -188,4 +188,9 @@ public class NotificationServiceImpl implements NotificationService {
     private String[] normalizeArgs(Object... args) {
        return Arrays.toString(args).replaceAll("[\\[\\]]", "").split("\\s*,\\s*");
     }
+
+    @Override
+    public void updateNotificationOptionsForUser(int userId, List<NotificationOption> options) {
+        throw new UnsupportedOperationException();
+    }
 }

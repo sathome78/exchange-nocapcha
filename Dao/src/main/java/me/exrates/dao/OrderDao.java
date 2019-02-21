@@ -27,6 +27,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.OrderRoleInfoForDelete;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,8 @@ public interface OrderDao {
 
     int createOrder(ExOrder order);
 
+    List<OrderListDto> getMyOpenOrdersForCurrencyPair(CurrencyPair currencyPair, OrderType orderType, int userId);
+
     Optional<BigDecimal> getLastOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
@@ -46,6 +49,8 @@ public interface OrderDao {
     boolean setStatus(int orderId, OrderStatus status);
 
     boolean updateOrder(ExOrder exOrder);
+
+    boolean updateOrder(int orderId, ExOrder order);
 
     List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, UserRole filterRole);
 
@@ -86,6 +91,8 @@ public interface OrderDao {
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
+
+    List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 
@@ -131,5 +138,16 @@ public interface OrderDao {
     List<UserSummaryOrdersDto> getUserSellOrdersDataByPeriodAndRoles(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles, int requesterId);
 
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
+
+    Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto);
+
+    List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
+                                        String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
+
+    List<StatisticForMarket> getOrderStatisticForNewMarkets();
+
+    Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
+
+    List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
 }

@@ -13,6 +13,8 @@ import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
+import me.exrates.service.tron.TronTrc10Token;
+import me.exrates.service.ppy.PPYServiceImpl;
 import me.exrates.service.ppy.PPYServiceImpl;
 import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
@@ -244,13 +246,13 @@ public class CryptocurrencyConfig {
                 "QRK", "QRK", 30, 20, false, false);
     }
 
-    @Bean(name="cmkServiceImpl")
-    public BitcoinService cmkService(){
+    @Bean(name = "cmkServiceImpl")
+    public BitcoinService cmkService() {
         return new BitcoinServiceImpl("merchants/cmk_wallet.properties", "CMK", "CMK", 30, 20, false, true);
     }
 
-    @Bean(name="mbcServiceImpl")
-    public BitcoinService mbcService(){
+    @Bean(name = "mbcServiceImpl")
+    public BitcoinService mbcService() {
         return new BitcoinServiceImpl("merchants/mbc_wallet.properties", "MBC", "MBC", 30, 20, false, true);
     }
 
@@ -260,18 +262,19 @@ public class CryptocurrencyConfig {
                 "DDX", "DDX", 30, 20, false, true);
     }
 
-    @Bean(name="lpcServiceImpl")
-    public BitcoinService lpcService(){
+    @Bean(name = "lpcServiceImpl")
+    public BitcoinService lpcService() {
         return new BitcoinServiceImpl("merchants/lpc_wallet.properties", "LPC", "LPC", 30, 20, false, false);
     }
+
     @Bean(name = "xfcServiceImpl")
     public BitcoinService xfcServiceImpl() {
         return new BitcoinServiceImpl("merchants/xfc_wallet.properties",
                 "XFC", "XFC", 30, 20, false, false);
     }
 
-    @Bean(name="TOAServiceImpl")
-    public BitcoinService taoServiceImpl(){
+    @Bean(name = "TOAServiceImpl")
+    public BitcoinService taoServiceImpl() {
         return new BitcoinServiceImpl("merchants/toa_wallet.properties", "TOA", "TOA", 30, 20, false, false);
     }
 
@@ -292,54 +295,59 @@ public class CryptocurrencyConfig {
     }
 
     @Bean(name = "qServiceImpl")
-	public BitcoinService qServiceImpl() {
-		return new BitcoinServiceImpl("merchants/q_wallet.properties","Q","Q", 30, 20, false, true);
-	}
+    public BitcoinService qServiceImpl() {
+        return new BitcoinServiceImpl("merchants/q_wallet.properties", "Q", "Q", 30, 20, false, true);
+    }
 
-	@Bean(name = "dimeServiceImpl")
-	public BitcoinService dimeServiceImpl() {
-		return new BitcoinServiceImpl("merchants/dime_wallet.properties","DIME","DIME", 30, 20, false, true);
-	}
+    @Bean(name = "dimeServiceImpl")
+    public BitcoinService dimeServiceImpl() {
+        return new BitcoinServiceImpl("merchants/dime_wallet.properties", "DIME", "DIME", 30, 20, false, true);
+    }
 
-	@Bean(name = "bsvServiceImpl")
-	public BitcoinService bsvServiceImpl() {
-		return new BitcoinServiceImpl("merchants/bsv_wallet.properties","BSV","BSV", 30, 20, false, true);
-	}
+    @Bean(name = "bsvServiceImpl")
+    public BitcoinService bsvServiceImpl() {
+        return new BitcoinServiceImpl("merchants/bsv_wallet.properties", "BSV", "BSV", 30, 20, false, true);
+    }
 
-	@Bean(name = "bchServiceImpl")
-	public BitcoinService bchServiceImpl() {
-		return new BitcoinServiceImpl("merchants/bch_wallet.properties","BCH","BCH", 30, 20, false, true);
-  }
+    @Bean(name = "bchServiceImpl")
+    public BitcoinService bchServiceImpl() {
+        return new BitcoinServiceImpl("merchants/bch_wallet.properties", "BCH", "BCH", 30, 20, false, true);
+    }
 
-	@Bean(name = "ctxServiceImpl")
-	public BitcoinService ctxServiceImpl() {
-		return new BitcoinServiceImpl("merchants/ctx_wallet.properties","CTX","CTX", 30, 20, false, true);
-  }
+    @Bean(name = "ctxServiceImpl")
+    public BitcoinService ctxServiceImpl() {
+        return new BitcoinServiceImpl("merchants/ctx_wallet.properties", "CTX", "CTX", 30, 20, false, true);
+    }
 
-	@Bean(name = "rimeServiceImpl")
-	public BitcoinService rimeServiceImpl() {
-		return new BitcoinServiceImpl("merchants/rime_wallet.properties","RIME","RIME", 30, 20, false, true);
-	}
+    @Bean(name = "rimeServiceImpl")
+    public BitcoinService rimeServiceImpl() {
+        return new BitcoinServiceImpl("merchants/rime_wallet.properties", "RIME", "RIME", 30, 20, false, true);
+    }
 
-	@Bean(name = "exoServiceImpl")
-	public BitcoinService exoServiceImpl() {
-		return new BitcoinServiceImpl("merchants/exo_wallet.properties","EXO","EXO", 20, 20, false, true);
-	}
+    @Bean(name = "exoServiceImpl")
+    public BitcoinService exoServiceImpl() {
+        return new BitcoinServiceImpl("merchants/exo_wallet.properties", "EXO", "EXO", 20, 20, false, true);
+    }
 
-	@Bean(name = "grsServiceImpl")
-	public BitcoinService grsServiceImpl() {
-		return new BitcoinServiceImpl("merchants/grs_wallet.properties","GRS","GRS", 30, 20, false, true);
-	}
+    @Bean(name = "grsServiceImpl")
+    public BitcoinService grsServiceImpl() {
+        return new BitcoinServiceImpl("merchants/grs_wallet.properties", "GRS", "GRS", 30, 20, false, true);
+    }
 
-	@Bean(name = "kodServiceImpl")
-	public BitcoinService kodServiceImpl() {
-		return new BitcoinServiceImpl("merchants/kod_wallet.properties","KOD","KOD", 30, 20, false, false);
-	}
+    @Bean(name = "kodServiceImpl")
+    public BitcoinService kodServiceImpl() {
+        return new BitcoinServiceImpl("merchants/kod_wallet.properties", "KOD", "KOD", 30, 20, false, false);
+    }
 
 
 @Bean(name = "diviServiceImpl")
 	public BitcoinService diviServiceImpl() {
 		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 30, 20, false, false);
+	}
+
+@Bean(name = "owcServiceImpl")
+	public BitcoinService owcServiceImpl() {
+		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
 	}
 
 	// LISK-like cryptos

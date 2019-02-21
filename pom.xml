@@ -7,6 +7,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
+        <module>API</module>
         <module>Security</module>
         <module>Model</module>
         <module>Service</module>
@@ -31,10 +32,10 @@
         <spring-core.version>4.3.7.RELEASE</spring-core.version>
         <spring-context.version>4.3.7.RELEASE</spring-context.version>
         <spring-test.version>4.3.7.RELEASE</spring-test.version>
-        <spring-expression.version>4.3.7.RELEASE</spring-expression.version>
-        <spring-security.version>4.1.0.RELEASE</spring-security.version>
-        <spring-websocket.version>4.3.2.RELEASE</spring-websocket.version>
-        <spring-messaging.version>4.3.10.RELEASE</spring-messaging.version>
+        <spring-expression.version>4.3.16.RELEASE</spring-expression.version>
+        <spring-security.version>4.2.0.RELEASE</spring-security.version>
+        <spring-websocket.version>4.3.22.RELEASE</spring-websocket.version>
+        <spring-messaging.version>4.3.22.RELEASE</spring-messaging.version>
         <bitcoinj.version>0.14.3</bitcoinj.version>
         <aspectj.version>1.8.10</aspectj.version>
         <rabbit.version>1.7.5.RELEASE</rabbit.version>
@@ -214,7 +215,7 @@
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
-            <version>1.1.0.Final</version>
+            <version>2.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -487,6 +488,18 @@
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
             <version>3.3.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>1.5.0.RELEASE</version>
         </dependency>
     </dependencies>
 

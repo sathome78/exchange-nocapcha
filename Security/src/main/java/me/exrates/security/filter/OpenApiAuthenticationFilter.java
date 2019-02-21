@@ -23,9 +23,9 @@ import java.io.IOException;
 @Log4j2(topic = "open_api")
 public class OpenApiAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String HEADER_PUBLIC_KEY = "API-KEY";
-    private static final String HEADER_TIMESTAMP = "API-TIME";
-    private static final String HEADER_SIGNATURE = "API-SIGN";
+    public static final String HEADER_PUBLIC_KEY = "API-KEY";
+    public static final String HEADER_TIMESTAMP = "API-TIME";
+    public static final String HEADER_SIGNATURE = "API-SIGN";
 
     @Autowired
     OpenApiAuthService openApiAuthService;
@@ -50,8 +50,6 @@ public class OpenApiAuthenticationFilter extends AbstractAuthenticationProcessin
             out.print(responseString);
             out.flush();
         });
-
-
     }
 
     @Override

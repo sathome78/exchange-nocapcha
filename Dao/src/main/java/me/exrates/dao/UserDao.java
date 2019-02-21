@@ -105,6 +105,8 @@ public interface UserDao {
 
     boolean deleteTemporalToken(TemporalToken token);
 
+    boolean deleteTemporalToken(String tempToken);
+
     /**
      * Delete all tokens for user with concrete TokenType.
      * Uses in "Send again" in registration.
@@ -177,5 +179,43 @@ public interface UserDao {
     String getPassword(int userId);
 
     Integer updateGaTag(String gatag, String userName);
+
+    int getVerificationStep(String userEmail);
+
+    boolean userExistByEmail(String email);
+
+    String getAvatarPath(Integer userId);
+
+    List<Integer> findFavouriteCurrencyPairsById(int userId);
+
+    boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
+
+    int updateReferenceId(String referenceId, String userEmail);
+
+    String getReferenceIdByUserEmail(String userEmail);
+
+    String getEmailByReferenceId(String referenceId);
+
+    int updateVerificationStep(String userEmail);
+
+    TemporaryPasswordDto getTemporaryPasswordById(Long id);
+
+    boolean updateUserPasswordFromTemporary(Long tempPassId);
+
+    boolean tempDeleteUserWallets(int userId);
+
+    boolean tempDeleteUser(int id);
+
+    Integer retrieveNicknameSearchLimit();
+
+    List<String> findNicknamesByPart(String part, Integer limit);
+
+    boolean updateLast2faNotifyDate(String email);
+
+    List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
+
+    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
+
+    long countUserEntrance(String email);
 
 }

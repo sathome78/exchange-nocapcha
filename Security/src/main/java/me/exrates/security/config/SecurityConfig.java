@@ -139,6 +139,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**", "/2a8fy7b07dxe44/report/orders")
             .hasAuthority(AdminAuthority.SEE_REPORTS.name())
 
+            .antMatchers(POST, "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
+
             .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
                     "/2a8fy7b07dxe44/editCmnRefRoot",
                     "/2a8fy7b07dxe44/editLevel",
@@ -229,7 +231,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
             .antMatchers(GET, "/public/**").permitAll()
-            .antMatchers("/info/public/**").permitAll()
             .antMatchers(GET, "/openapi/v1/public/**").permitAll()
             .antMatchers(GET, "/api/v1/public/**").permitAll()
             .antMatchers(GET, "/favicon.ico").permitAll()

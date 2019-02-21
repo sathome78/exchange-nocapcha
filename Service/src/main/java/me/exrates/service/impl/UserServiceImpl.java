@@ -13,6 +13,8 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -55,6 +57,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -65,6 +69,42 @@ import static java.util.stream.Collectors.joining;
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private UserSessionService userSessionService;
+
+    @Autowired
+    private SendMailService sendMailService;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private TokenScheduler tokenScheduler;
+
+    @Autowired
+    private ReferralService referralService;
+
+    @Autowired
+    private NotificationsSettingsService settingsService;
+
+    @Autowired
+    private G2faService g2faService;
+
+    @Autowired
+    private ExchangeApi exchangeApi;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -86,33 +126,7 @@ public class UserServiceImpl implements UserService {
         add("CN");
         add("ID");
         add("AR");
-        add("KO");
     }};
-
-    @Autowired
-    private UserDao userDao;
-    @Autowired
-    private UserSessionService userSessionService;
-    @Autowired
-    private SendMailService sendMailService;
-    @Autowired
-    private MessageSource messageSource;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private HttpServletRequest request;
-    @Autowired
-    private TokenScheduler tokenScheduler;
-    @Autowired
-    private ReferralService referralService;
-    @Autowired
-    private NotificationsSettingsService settingsService;
-    @Autowired
-    private G2faService g2faService;
-    @Autowired
-    private ExchangeApi exchangeApi;
-    @Autowired
-    private UserSettingService userSettingService;
 
     private Cache<String, UsersInfoDto> usersInfoCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -142,6 +156,28 @@ public class UserServiceImpl implements UserService {
             }
         }
         return flag;
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean createUserRest(User user, Locale locale) {
+        if (!ifNicknameIsUnique(user.getNickname())) {
+            LOGGER.error("Nickname already exists!");
+            throw new UniqueNicknameConstraintException("Nickname already exists!");
+        }
+        if (!ifEmailIsUnique(user.getEmail())) {
+            LOGGER.error("Email already exists!");
+            throw new UniqueEmailConstraintException("Email already exists!");
+        }
+        Boolean result = userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp());
+        if (result) {
+            int user_id = this.getIdByEmail(user.getEmail());
+            user.setId(user_id);
+            userDao.setPreferredLang(user_id, locale);
+            sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+        }
+        return result;
     }
 
     /**
@@ -207,8 +243,6 @@ public class UserServiceImpl implements UserService {
         return userDao.getIdByEmail(email);
     }
 
-
-
     @Override
     public int getIdByNickname(String nickname) {
         return userDao.getIdByNickname(nickname);
@@ -268,6 +302,11 @@ public class UserServiceImpl implements UserService {
         return userDao.ifEmailIsUnique(email);
     }
 
+    @Override
+    public boolean userExistByEmail(String email) {
+        return userDao.userExistByEmail(email);
+    }
+
     public String logIP(String email, String host) {
         int id = userDao.getIdByEmail(email);
         String userIP = userDao.getIP(id);
@@ -315,6 +354,12 @@ public class UserServiceImpl implements UserService {
             }
         }
         return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateUserSettings(UpdateUserDto user) {
+        return userDao.update(user);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -449,41 +494,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int setCallbackURL(final int userId, final CallbackURL callbackURL) throws CallBackUrlAlreadyExistException {
-        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId, callbackURL.getPairId()))) {
-            throw new CallBackUrlAlreadyExistException("Callback already present");
-        }
-        return userSettingService.addCallbackURL(userId, callbackURL);
-    }
-
-    @Override
-    public int updateCallbackURL(final int userId, final CallbackURL callbackURL) {
-        return userSettingService.updateCallbackURL(userId, callbackURL);
-    }
-
-    @Override
-    public String getCallBackUrlById(int userId, Integer currencyPairId) {
-        return userSettingService.getCallbackURL(userId, currencyPairId);
-    }
-
-    @Override
-    public String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId) {
-        return userSettingService.getCallbackURL(userAcceptorId, currencyPairId);
-    }
-
-    @Override
-    @Transactional
-    /*@Async*/
-    public Integer updateGaTag(String gatag, String userName) {
-        return userDao.updateGaTag(gatag, userName);
-    }
-
-    @Override
-    public String findEmailById(int userId) {
-        return userDao.getUserById(userId).getEmail();
-    }
-
-    @Override
     public String getPreferedLang(int userId) {
         return userDao.getPreferredLang(userId);
     }
@@ -514,13 +524,61 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale) {
+        user.setStatus(UserStatus.REGISTERED);
+        if (userDao.update(user)) {
+            User u = new User();
+            u.setId(user.getId());
+            u.setEmail(user.getEmail());
+            sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/rest/user/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale, temporaryPass);
+        }
+    }
+
+    @Override
+    public boolean replaceUserPassAndDelete(String token, Long tempPassId) {
+        TemporalToken temporalToken = userDao.verifyToken(token);
+
+        if (temporalToken != null) {
+            TemporaryPasswordDto dto = userDao.getTemporaryPasswordById(tempPassId);
+            LOGGER.debug(dto);
+            if (LocalDateTime.now().isAfter(dto.getDateCreation().plusDays(1L))) {
+                removeTemporaryPassword(dto.getId());
+                throw new ResetPasswordExpirationException("Password expired");
+            }
+            userDao.updateUserPasswordFromTemporary(tempPassId);
+            removeTemporaryPassword(tempPassId);
+
+            userSessionService.invalidateUserSessionExceptSpecific(userDao.getUserById(dto.getUserId()).getEmail(), null);
+
+            return deleteTokensAndUpdateUser(temporalToken) > 0;
+        }
+        removeTemporaryPassword(tempPassId);
+        throw new TokenNotFoundException("Cannot find token");
+
+
+    }
+
+    @Override
     public boolean removeTemporaryPassword(Long id) {
         return userDao.deleteTemporaryPassword(id);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean tempDeleteUser(String email) {
+        int id = userDao.getIdByEmail(email);
+        LOGGER.debug(id);
+        boolean result = userDao.tempDeleteUserWallets(id) && userDao.tempDeleteUser(id);
+        if (!result) {
+            throw new RuntimeException("Could not delete");
+        }
+        return result;
+    }
+
     @PostConstruct
     private void initTokenTriggers() {
-        tokenScheduler.initTrigers();
+
+//    tokenScheduler.initTrigers();
     }
 
     @Override
@@ -533,6 +591,11 @@ public class UserServiceImpl implements UserService {
             log.error(e);
             return Collections.EMPTY_LIST;
         }
+    }
+
+    @Override
+    public String getAvatarPath(Integer userId) {
+        return userDao.getAvatarPath(userId);
     }
 
     @Override
@@ -636,6 +699,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<String> findNicknamesByPart(String part) {
+        Integer nicknameLimit = userDao.retrieveNicknameSearchLimit();
+        return userDao.findNicknamesByPart(part, nicknameLimit);
+
+    }
+
+    @Override
     public UserRole getUserRoleFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String grantedAuthority = authentication.getAuthorities().
@@ -669,6 +740,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public String getEmailById(Integer id) {
+
         return userDao.getEmailById(id);
     }
 
@@ -717,6 +789,134 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean isLogin2faUsed(String email) {
         return g2faService.isGoogleAuthenticatorEnable(userDao.getIdByEmail(email));
+    }
+
+    @Override
+    public boolean checkIsNotifyUserAbout2fa(String email) {
+        return userDao.updateLast2faNotifyDate(email);
+    }
+
+    @Override
+    public List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds) {
+        return userDao.getUserIpReportByRoleList(roleIds);
+    }
+
+    @Override
+    public Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime) {
+        return userDao.getNewRegisteredUserNumber(startTime, endTime);
+    }
+
+
+    private boolean isValidLong(String code) {
+        try {
+            Long.parseLong(code);
+        } catch (final NumberFormatException e) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String getUserEmailFromSecurityContext() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new AuthenticationNotAvailableException();
+        }
+        return auth.getName();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public TemporalToken getTemporalTokenByValue(String token) {
+        return userDao.verifyToken(token);
+    }
+
+    public User getUserByTemporalToken(String token) {
+        return userDao.getUserByTemporalToken(token);
+    }
+
+    @Override
+    public boolean checkPassword(int userId, String password) {
+        return passwordEncoder.matches(password, userDao.getPassword(userId));
+    }
+
+    @Override
+    public long countUserIps(String userEmail) {
+        return userDao.countUserEntrance(userEmail);
+    }
+
+    @Override
+    public boolean isGlobal2FaActive() {
+        return false;
+    }
+
+    @Override
+    public List<Integer> getUserFavouriteCurrencyPairs(String email) {
+        User user = findByEmail(email);
+        if (user == null) {
+            return Collections.emptyList();
+        }
+        return userDao.findFavouriteCurrencyPairsById(user.getId());
+    }
+
+    @Override
+    public boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete) {
+        User user = findByEmail(email);
+        if (user == null) {
+            return false;
+        }
+        return userDao.manageUserFavouriteCurrencyPair(user.getId(), currencyPairId, delete);
+    }
+
+    @Override
+    public boolean deleteTempTokenByValue(String idTempToken) {
+        return userDao.deleteTemporalToken(idTempToken);
+    }
+
+    @Override
+    public void updateGaTag(String gaCookie, String username) {
+        userDao.updateGaTag(gaCookie, username);
+    }
+
+    @Override
+    public String getReferenceId() {
+        return userDao.getReferenceIdByUserEmail(getUserEmailFromSecurityContext());
+    }
+
+    @Override
+    public int updateVerificationStep(String userEmail) {
+        return userDao.updateVerificationStep(userEmail);
+    }
+
+    @Override
+    public VerificationStep getVerificationStep() {
+        final int verificationStep = userDao.getVerificationStep(getUserEmailFromSecurityContext());
+
+        return VerificationStep.of(verificationStep);
+    }
+
+    @Override
+    public int updateReferenceId(String referenceId) {
+        return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
+    }
+
+    @Override
+    public String getEmailByReferenceId(String referenceId) {
+        return userDao.getEmailByReferenceId(referenceId);
+    }
+
+    @Override
+    public String getCallBackUrlById(int userId, Integer currencyPairId) {
+        return null;
+    }
+
+    @Override
+    public String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId) {
+        return null;
+    }
+
+    @Override
+    public String findEmailById(int id) {
+        return null;
     }
 
     @Override
@@ -775,30 +975,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-
-    @Override
-    public String getUserEmailFromSecurityContext() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            throw new AuthenticationNotAvailableException();
-        }
-        return auth.getName();
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public TemporalToken verifyUserEmailForForgetPassword(String token) {
-        return userDao.verifyToken(token);
-    }
-
-    public User getUserByTemporalToken(String token) {
-        return userDao.getUserByTemporalToken(token);
-    }
-
-    @Override
-    public boolean checkPassword(int userId, String password) {
-        return passwordEncoder.matches(password, userDao.getPassword(userId));
-    }
-
     @Override
     public void blockUserByRequest(int userId) {
         User user = new User();
@@ -807,5 +983,27 @@ public class UserServiceImpl implements UserService {
         userDao.updateUserStatus(user);
         userSessionService.invalidateUserSessionExceptSpecific(getEmailById(userId), null);
     }
+
+
+    @Override
+    public int updateCallbackURL(int userId, CallbackURL callbackUrl) {
+        return userSettingService.updateCallbackURL(userId, callbackUrl);
+    }
+
+    @Override
+    public int setCallbackURL(int userId, CallbackURL callbackUrl) {
+        if (!Strings.isNullOrEmpty(userSettingService.getCallbackURL(userId, callbackUrl.getPairId()))) {
+            throw new CallBackUrlAlreadyExistException("Callback already present");
+        }
+        return userSettingService.addCallbackURL(userId, callbackUrl);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public TemporalToken verifyUserEmailForForgetPassword(String token) {
+        return userDao.verifyToken(token);
+    }
+
+
 
 }

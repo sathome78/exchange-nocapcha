@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
 import me.exrates.dao.CommissionDao;
@@ -31,10 +32,12 @@ import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -46,6 +49,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -104,9 +108,7 @@ import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.OrderDeletingException;
-import me.exrates.service.exception.OrderNotFoundException;
 import me.exrates.service.exception.WalletCreationException;
-import me.exrates.service.exception.api.CancelOrderException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
@@ -114,8 +116,14 @@ import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -128,17 +136,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -168,8 +183,10 @@ public class OrderServiceImpl implements OrderService {
 
     public static final String BUY = "BUY";
     public static final String SELL = "SELL";
-
     public static final String SCOPE = "ALL";
+    private final static String CONTENT_DISPOSITION = "Content-Disposition";
+    private final static String ATTACHMENT = "attachment; filename=";
+    private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
@@ -180,58 +197,40 @@ public class OrderServiceImpl implements OrderService {
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
             .collect(toList());
-
-    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
-    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
-
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
-
-
-    @Autowired
-    private OrderDao orderDao;
-
-    @Autowired
-    private CallBackLogDao callBackDao;
-
-    @Autowired
-    private CommissionDao commissionDao;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-
-    @Autowired
-    private ReferralService referralService;
-
     @Autowired
     NotificationService notificationService;
-
     @Autowired
     ServiceCacheableProxy serviceCacheableProxy;
-
     @Autowired
     TransactionDescription transactionDescription;
-
     @Autowired
     StopOrderService stopOrderService;
     @Autowired
     RatesHolder ratesHolder;
+    private List<CoinmarketApiDto> coinmarketCachedData = new CopyOnWriteArrayList<>();
+    private ScheduledExecutorService coinmarketScheduler = Executors.newSingleThreadScheduledExecutor();
+    @Autowired
+    private OrderDao orderDao;
+    @Autowired
+    private CallBackLogDao callBackDao;
+    @Autowired
+    private CommissionDao commissionDao;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private WalletService walletService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private ReferralService referralService;
     @Autowired
     private UserRoleService userRoleService;
     @Autowired
@@ -449,6 +448,87 @@ public class OrderServiceImpl implements OrderService {
                     orderCreateDto.getOperationType(), user);
         }
 
+        if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
+            if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
+                errors.put("stop_" + errors.size(), "order.fillfield");
+            } else {
+                if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMinRate()) < 0) {
+                    String key = "stop_" + errors.size();
+                    errors.put(key, "order.minrate");
+                    errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+                }
+                if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+                    String key = "stop_" + errors.size();
+                    errors.put(key, "order.maxrate");
+                    errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+                }
+            }
+        }
+        /*------------------*/
+        if (orderCreateDto.getCurrencyPair().getPairType() == CurrencyPairType.ICO) {
+            validateIcoOrder(errors, errorParams, orderCreateDto);
+        }
+        /*------------------*/
+        if (orderCreateDto.getAmount() != null) {
+            if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMaxAmount()) > 0) {
+                String key1 = "amount_" + errors.size();
+                errors.put(key1, "order.maxvalue");
+                errorParams.put(key1, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
+                String key2 = "amount_" + errors.size();
+                errors.put(key2, "order.valuerange");
+                errorParams.put(key2, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false),
+                        BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
+            }
+            if (orderCreateDto.getAmount().compareTo(currencyPairLimit.getMinAmount()) < 0) {
+                String key1 = "amount_" + errors.size();
+                errors.put(key1, "order.minvalue");
+                errorParams.put(key1, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false)});
+                String key2 = "amount_" + errors.size();
+                errors.put(key2, "order.valuerange");
+                errorParams.put(key2, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinAmount(), false),
+                        BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxAmount(), false)});
+            }
+        }
+        if (orderCreateDto.getExchangeRate() != null) {
+            if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) < 1) {
+                errors.put("exrate_" + errors.size(), "order.zerorate");
+            }
+            if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMinRate()) < 0) {
+                String key = "exrate_" + errors.size();
+                errors.put(key, "order.minrate");
+                errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinRate(), false)});
+            }
+            if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+                String key = "exrate_" + errors.size();
+                errors.put(key, "order.maxrate");
+                errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxRate(), false)});
+            }
+
+        }
+        if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
+            boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
+            if (!ifEnoughMoney) {
+                errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
+            }
+        }
+        return orderValidationDto;
+    }
+
+    @SuppressWarnings("Duplicates")
+    @Override
+    public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto) {
+        OrderValidationDto orderValidationDto = new OrderValidationDto();
+        Map<String, Object> errors = orderValidationDto.getErrors();
+        Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
+        if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("amount_" + errors.size(), "order.fillfield");
+        }
+        if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("exrate_" + errors.size(), "order.fillfield");
+        }
+
+        CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
+                orderCreateDto.getOperationType());
         if (orderCreateDto.getOrderBaseType() != null && orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
             if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
                 errors.put("stop_" + errors.size(), "order.fillfield");
@@ -1171,42 +1251,34 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void cancelOrder(Integer orderId) {
-        ExOrder exOrder;
-        try {
-            exOrder = getOrderById(orderId);
-            if (isNull(exOrder)) {
-                throw new OrderNotFoundException(String.format("Order: %s not found", orderId));
-            }
-            cancelOrder(exOrder);
-        } catch (Exception ex) {
-            logger.error("Error while cancelling order: {}", ex.getLocalizedMessage());
-            throw new CancelOrderException(ex);
-        }
+    public boolean cancelOrder(Integer orderId) {
+        ExOrder exOrder = getOrderById(orderId);
+
+        return cancelOrder(exOrder);
     }
 
     @Transactional
     @Override
-    public void cancelOpenOrdersByCurrencyPair(String currencyPair) {
+    public boolean cancelOpenOrdersByCurrencyPair(String currencyPair) {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
     @Transactional
     @Override
-    public void cancelAllOpenOrders() {
+    public boolean cancelAllOpenOrders() {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
 
-        openedOrders.forEach(this::cancelOrder);
+        return openedOrders.stream().allMatch(this::cancelOrder);
     }
 
-    private void cancelOrder(ExOrder exOrder) {
-        cancelOrder(exOrder, null);
+    private boolean cancelOrder(ExOrder exOrder) {
+        return cancelOrder(exOrder, null);
     }
 
     @Transactional(rollbackFor = {Exception.class})
@@ -1899,7 +1971,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
-        System.out.println("curencies for refresh size " + currencyIds.size());
+        logger.debug("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
         List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
         List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
@@ -2097,6 +2169,198 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void logCallBackData(CallBackLogDto callBackLogDto) {
         callBackDao.logCallBackData(callBackLogDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(OrderFilterDataDto filterDataDto, Locale locale) {
+
+        int recordsCount = orderDao.getMyOrdersWithStateCount(filterDataDto);
+
+        List<OrderWideListDto> orders;
+        if (recordsCount == 0) {
+            orders = Lists.newArrayList();
+        } else {
+            orders = orderDao.getMyOrdersWithState(filterDataDto, locale);
+        }
+        return Pair.of(recordsCount, orders);
+    }
+
+    @Transactional
+    @Override
+    public boolean cancelOrders(Collection<Integer> orderIds) {
+        return orderIds.stream().allMatch(this::cancelOrder);
+    }
+
+    @Override
+    public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, OrderStatus status, String scope, boolean hideCanceled, Locale locale, LocalDate dateFrom, LocalDate dateTo) {
+        return orderDao.getAllOrders(userId, status, currencyPair, locale, scope, dateFrom, dateTo, hideCanceled);
+    }
+
+    @Override
+    public void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Orders");
+
+        Row headerRow = sheet.createRow(0);
+        if (orderStatus == OrderStatus.OPENED) {
+            headerRow.createCell(0).setCellValue("Order id");
+            headerRow.createCell(1).setCellValue("Date created");
+            headerRow.createCell(2).setCellValue("Market");
+            headerRow.createCell(3).setCellValue("Type");
+            headerRow.createCell(4).setCellValue("Amount");
+            headerRow.createCell(5).setCellValue("Price");
+            headerRow.createCell(6).setCellValue("Commission perсent");
+            headerRow.createCell(7).setCellValue("Commission value");
+            headerRow.createCell(8).setCellValue("In total");
+        } else if (orderStatus == OrderStatus.CLOSED) {
+            headerRow.createCell(0).setCellValue("Date");
+            headerRow.createCell(1).setCellValue("Pair");
+            headerRow.createCell(2).setCellValue("Order");
+            headerRow.createCell(3).setCellValue("Type");
+            headerRow.createCell(4).setCellValue("Price");
+            headerRow.createCell(5).setCellValue("Amount");
+            headerRow.createCell(6).setCellValue("Commission perсent");
+            headerRow.createCell(7).setCellValue("Commission value");
+            headerRow.createCell(8).setCellValue("In total");
+        } else {
+            throw new RuntimeException("Not supported");
+        }
+
+        int index = 1;
+
+        try {
+            for (OrderWideListDto order : orders) {
+                Row row = sheet.createRow(index++);
+                if (orderStatus == OrderStatus.OPENED) {
+                    row.createCell(0, CellType.STRING).setCellValue(order.getId());
+                    row.createCell(1, CellType.STRING).setCellValue(order.getDateCreation().toString());
+                    row.createCell(2, CellType.STRING).setCellValue(order.getCurrencyPairName());
+                    row.createCell(3, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
+                    row.createCell(4, CellType.STRING).setCellValue(order.getAmountBase());
+                    row.createCell(5, CellType.STRING).setCellValue(order.getExExchangeRate());
+                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
+                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
+                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
+                } else {
+                    String acceptDate = order.getDateAcception() != null ? order.getDateAcception().toString() : null;
+                    row.createCell(0, CellType.STRING).setCellValue(acceptDate);
+                    row.createCell(1, CellType.STRING).setCellValue(order.getCurrencyPairName());
+                    row.createCell(2, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
+                    row.createCell(3, CellType.STRING).setCellValue(order.getOperationType());
+                    row.createCell(4, CellType.STRING).setCellValue(order.getExExchangeRate());
+                    row.createCell(5, CellType.STRING).setCellValue(order.getAmountBase());
+                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
+                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
+                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
+                }
+            }
+
+            StringBuilder fileName = new StringBuilder("Orders_")
+                    .append(new SimpleDateFormat("yyyy_MM_dd").format(new Date()))
+                    .append(".xlsx");
+
+            response.setContentType("application/ms-excel");
+            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+
+            OutputStream outStream = response.getOutputStream();
+            workbook.write(outStream);
+            outStream.flush();
+            workbook.close();
+        } catch (IOException e) {
+            logger.error("Error creating excel file, e - {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Transactions");
+
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Status");
+        headerRow.createCell(1).setCellValue("Date");
+        headerRow.createCell(2).setCellValue("Currency");
+        headerRow.createCell(3).setCellValue("Amount");
+        headerRow.createCell(4).setCellValue("Type");
+        headerRow.createCell(5).setCellValue("Address");
+
+        try {
+            int index = 1;
+            if (transactions.isEmpty()) {
+                Row row = sheet.createRow(index);
+                row.createCell(0, CellType.STRING).setCellValue("");
+                row.createCell(1, CellType.STRING).setCellValue("");
+                row.createCell(2, CellType.STRING).setCellValue("");
+                row.createCell(3, CellType.STRING).setCellValue("");
+                row.createCell(4, CellType.STRING).setCellValue("");
+                row.createCell(5, CellType.STRING).setCellValue("");
+            } else {
+                for (MyInputOutputHistoryDto dto : transactions) {
+                    Row row = sheet.createRow(index++);
+                    row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
+                    row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
+                    row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
+                    row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
+                    row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
+                    row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
+                }
+            }
+
+            StringBuilder fileName = new StringBuilder("Transactions_")
+                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
+                    .append(".xlsx");
+
+            response.setContentType("application/ms-excel");
+            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
+
+            OutputStream outStream = response.getOutputStream();
+            workbook.write(outStream);
+            outStream.flush();
+            workbook.close();
+        } catch (IOException e) {
+            logger.error("Error creating excel file, e - {}", e.getMessage());
+        }
+    }
+
+    private String getValue(Object value) {
+        if (value == null) {
+            return "";
+        } else if (value instanceof LocalDate) {
+            LocalDate date = (LocalDate) value;
+            return DATE_TIME_FORMATTER.format(date);
+        } else if (value instanceof LocalDateTime) {
+            LocalDateTime localDateTime = (LocalDateTime) value;
+            return DATE_TIME_FORMATTER.format(localDateTime);
+        }
+        return String.valueOf(value);
+    }
+
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel() {
+        return exchangeRatesHolder.getAllRates();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair) {
+        return orderDao.getLastOrderPriceByCurrencyPair(currencyPair.getId());
+    }
+
+    @Override
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
+        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+        Integer userId = userService.getIdByEmail(userName);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPairId);
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPairId);
+        return Arrays.asList(sellOrders, buyOrders);
     }
 }
 

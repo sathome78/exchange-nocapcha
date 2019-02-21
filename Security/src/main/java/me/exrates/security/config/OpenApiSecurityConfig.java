@@ -42,8 +42,6 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/openapi/v1/**").authorizeRequests()
-                .and()
-                .antMatcher("/api/v1/private/**").authorizeRequests()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling()
@@ -60,6 +58,5 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers(GET, "/openapi/v1/public/**");
-        web.ignoring().antMatchers(GET, "/api/v1/public/**");
     }
 }

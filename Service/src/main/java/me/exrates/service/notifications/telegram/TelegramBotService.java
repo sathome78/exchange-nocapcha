@@ -36,12 +36,14 @@ public class TelegramBotService  extends TelegramLongPollingBot {
 
     private @Value("${telegram.bot.key}") String key;
     private @Value("${telegram.bot.username}") String botName;
+    private @Value("${enable}") boolean enable;
 
     static {ApiContextInitializer.init();}
 
 
     @PostConstruct
     private void init() {
+        if (!enable) return;
         if (Stream.of("exrates_local_test_bot", "exrates_test_bot").noneMatch(p->p.equalsIgnoreCase(botName))) {
             log.debug("init telegram bot {}", botName);
             TelegramBotsApi botsApi = new TelegramBotsApi();

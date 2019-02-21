@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -49,9 +50,14 @@ public interface UserService {
 
     boolean ifEmailIsUnique(String email);
 
+    boolean userExistByEmail(String email);
+
     String logIP(String email, String host);
 
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean createUserRest(User user, Locale locale);
 
     int verifyUserEmail(String token);
 
@@ -62,6 +68,9 @@ public interface UserService {
     boolean createUserByAdmin(User user);
 
     boolean updateUserByAdmin(UpdateUserDto user);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean updateUserSettings(UpdateUserDto user);
 
     boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
 
@@ -138,8 +147,16 @@ public interface UserService {
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
+    void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
+
+    boolean replaceUserPassAndDelete(String token, Long tempPassId);
 
     boolean removeTemporaryPassword(Long id);
+
+    @Transactional
+    boolean tempDeleteUser(String email);
+
+    String getAvatarPath(Integer userId);
 
     Locale getUserLocaleForMobile(String email);
 
@@ -156,6 +173,8 @@ public interface UserService {
     List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
+
+    List<String> findNicknamesByPart(String part);
 
     UserRole getUserRoleFromSecurityContext();
 
@@ -176,25 +195,54 @@ public interface UserService {
 
     boolean isLogin2faUsed(String email);
 
-    UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+    boolean checkIsNotifyUserAbout2fa(String email);
 
-    UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+    List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
+
+    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
     String getUserEmailFromSecurityContext();
 
-    TemporalToken verifyUserEmailForForgetPassword(String token);
+    TemporalToken getTemporalTokenByValue(String token);
 
     User getUserByTemporalToken(String token);
 
     boolean checkPassword(int userId, String password);
 
+    long countUserIps(String userEmail);
+
+    boolean isGlobal2FaActive();
+
+    List<Integer> getUserFavouriteCurrencyPairs(String email);
+
+    boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
+
+    boolean deleteTempTokenByValue(String value);
+
+    void updateGaTag(String gaCookie, String username);
+
+    String getReferenceId();
+
+    int updateVerificationStep(String reference);
+
+    VerificationStep getVerificationStep();
+
+    int updateReferenceId(String referenceId);
+
+    String getEmailByReferenceId(String referenceId);
+
     String getCallBackUrlById(int userId, Integer currencyPairId);
 
     String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
 
-    Integer updateGaTag(String gatag, String userName);
-
     String findEmailById(int id);
 
     void blockUserByRequest(int userId);
+
+    UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    TemporalToken verifyUserEmailForForgetPassword(String token);
+
 }
