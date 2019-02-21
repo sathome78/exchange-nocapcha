@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+import static me.exrates.controller.openAPI.TestUtils.getFakeOrderCreationResultDto;
 import static org.junit.Assert.assertEquals;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -45,6 +46,17 @@ public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
         verify(orderService, times(1))
                 .prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString());
         verifyNoMoreInteractions(orderService);
+    }
+
+    @Test
+    public void createOrderInvalidPriceAndAmount() throws Exception {
+        String cp = "btc-usd";
+        when(orderService.prepareAndCreateOrderRest(anyString(), anyObject(), anyObject(), any(), anyString()))
+                .thenReturn(getFakeOrderCreationResultDto());
+        mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/create")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(objectMapper.writeValueAsString(TestUtils.getCustomTestOrderCreate(null, null, OrderType.BUY, cp))))
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError());
     }
 
     @Test
@@ -130,14 +142,4 @@ public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
         verify(orderService, times(1))
                 .getOpenOrders(OpenApiUtils.transformCurrencyPair(cpName), orderType);
     }
-
-    private OrderCreationResultDto getFakeOrderCreationResultDto() {
-        OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-        orderCreationResultDto.setCreatedOrderId(1000);
-        orderCreationResultDto.setAutoAcceptedQuantity(1000);
-        orderCreationResultDto.setPartiallyAcceptedAmount(BigDecimal.TEN);
-        orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(BigDecimal.TEN);
-        return orderCreationResultDto;
-    }
-
 }
