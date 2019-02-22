@@ -975,6 +975,11 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getOrderById(orderId);
     }
 
+    @Override
+    public ExOrder getOrderById(int orderId, int userId) {
+        return orderDao.getOrderById(orderId, userId);
+    }
+
     @Transactional
     public boolean setStatus(int orderId, OrderStatus status, OrderBaseType orderBaseType) {
         switch (orderBaseType) {

@@ -150,4 +150,5 @@ public interface OrderDao {
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
+    ExOrder getOrderById(int orderId, int userId);
 }
