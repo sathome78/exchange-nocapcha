@@ -2076,6 +2076,19 @@ public class OrderDaoImpl implements OrderDao {
         return slaveJdbcTemplate.query(sql, namedParameters, openOrderListDtoRowMapper());
     }
 
+    @Override
+    public ExOrder getOrderById(int orderId, int userId) {
+        String sql = "SELECT * FROM EXORDERS WHERE id = :orderId AND (user_id = :userId OR user_acceptor_id = :userId)";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("orderId", String.valueOf(orderId));
+        namedParameters.put("userId", String.valueOf(userId));
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
     private RowMapper<OrderListDto> openOrderListDtoRowMapper() {
         return (rs, rowNum) -> {
             OrderListDto order = new OrderListDto();
