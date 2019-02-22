@@ -124,9 +124,9 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
-    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairId}")
-    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) {
-        return orderService.getOpenOrdersForWs(currencyPairId);
+    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairName}")
+    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable String currencyPairName) {
+        return orderService.getOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName));
     }
 
     @SubscribeMapping("/queue/my_orders/{currencyPairName}")

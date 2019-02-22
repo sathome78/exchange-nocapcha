@@ -340,7 +340,7 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
-    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+    List<OrdersListWrapper> getOpenOrdersForWs(String pairName);
 
     /**
      * Returns data of
