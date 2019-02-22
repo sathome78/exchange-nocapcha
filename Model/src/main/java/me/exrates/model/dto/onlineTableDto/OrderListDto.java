@@ -25,6 +25,7 @@ public class OrderListDto extends OnlineTableDto {
   private String ordersIds;
   private LocalDateTime created;
   private LocalDateTime accepted;
+  private Integer orderSourceId;
 
   public OrderListDto(String ordersIds, String exrate, String amountBase, String amountConvert, OperationType orderType, boolean needRefresh) {
     this.ordersIds = ordersIds;

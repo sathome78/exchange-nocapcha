@@ -113,7 +113,6 @@ public class OrdersEventHandleService {
     public void handleOrderEventAsync(OrderEvent event) throws JsonProcessingException {
         ExOrder exOrder = (ExOrder) event.getSource();
         handleOrdersDetailed(exOrder, event.getOrderEventEnum());
-        handlePersonalOrders(exOrder, event.getOrderEventEnum());
         onOrdersEvent(exOrder.getCurrencyPairId(), exOrder.getOperationType());
         if (!DEV_MODE) {
             handleCallBack(event);
@@ -121,6 +120,13 @@ public class OrdersEventHandleService {
                 handleAcceptorUserId(exOrder);
             }
         }
+    }
+
+    @Async
+    @TransactionalEventListener
+    public void handleOrderPersonalEventAsync(OrderEvent event){
+        ExOrder exOrder = (ExOrder) event.getSource();
+        handlePersonalOrders(exOrder, event.getOrderEventEnum());
     }
 
     private void handleAcceptorUserId(ExOrder exOrder) {
@@ -262,16 +268,20 @@ public class OrdersEventHandleService {
         handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
     }
 
-    @Async
-    void handlePersonalOrders(ExOrder exOrder, OrderEventEnum orderEvent) {
-        Integer pairId = exOrder.getCurrencyPairId();
-        UserPersonalOrdersHandler handler = personalOrdersHandlerMap
-                .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairId));
-        if (registry.getUser(userService.getEmailById(exOrder.getUserId())) != null) {
-            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
-        }
-        if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId() && registry.getUser(userService.getEmailById(exOrder.getUserAcceptorId())) != null) {
-            handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
+
+    private void handlePersonalOrders(ExOrder exOrder, OrderEventEnum orderEvent) {
+        try {
+            String pairName = ratesHolder.getOne(exOrder.getCurrencyPairId()).getCurrencyPairName().replace("/", "_").toLowerCase();
+            UserPersonalOrdersHandler handler = personalOrdersHandlerMap
+                    .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
+            if (registry.getUser(userService.getEmailById(exOrder.getUserId())) != null) {
+                handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserId());
+            }
+            if (orderEvent == OrderEventEnum.ACCEPT && exOrder.getUserId() != exOrder.getUserAcceptorId() && registry.getUser(userService.getEmailById(exOrder.getUserAcceptorId())) != null) {
+                handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
+            }
+        } catch (Exception e) {
+           log.error(e);
         }
     }
 
