@@ -35,14 +35,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
+import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 
 
 @Data
 @ClientEndpoint
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 5L;
+    public static final long PERIOD = 1L;
     protected Logger log;
 
     @Autowired
@@ -121,6 +121,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             }
         }
     }
+
     @Override
     public Merchant getMerchant() {
         return merchant;
@@ -308,11 +309,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         history.put("method", "call");
         history.put("params", new JSONArray().put(1).put("history").put(new JSONArray()));
 
-        JSONObject orders = new JSONObject();
-        orders.put("id", 4);
-        orders.put("method", "call");
-        orders.put("params", new JSONArray().put(1).put("orders").put(new JSONArray()));
-
         JSONObject chainId = new JSONObject();
         chainId.put("id", 5);
         chainId.put("method", "call");
@@ -327,7 +323,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         JSONObject subscribe = new JSONObject();
         subscribe.put("id", 7);
         subscribe.put("method", "call");
-        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(false)));
+        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(7).put(false)));
 
         endpoint.sendText(login.toString());
 
@@ -336,8 +332,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(netw.toString());
 
         endpoint.sendText(history.toString());
-
-        endpoint.sendText(orders.toString());
 
         endpoint.sendText(chainId.toString());
 
