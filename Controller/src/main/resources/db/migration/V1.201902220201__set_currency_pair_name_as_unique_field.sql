@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX CURRENCY_PAIR_name_unique_index ON CURRENCY_PAIR (name);
