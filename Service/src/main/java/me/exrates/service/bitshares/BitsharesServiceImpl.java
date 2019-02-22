@@ -309,11 +309,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         history.put("method", "call");
         history.put("params", new JSONArray().put(1).put("history").put(new JSONArray()));
 
-        JSONObject orders = new JSONObject();
-        orders.put("id", 4);
-        orders.put("method", "call");
-        orders.put("params", new JSONArray().put(1).put("orders").put(new JSONArray()));
-
         JSONObject chainId = new JSONObject();
         chainId.put("id", 5);
         chainId.put("method", "call");
@@ -328,7 +323,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         JSONObject subscribe = new JSONObject();
         subscribe.put("id", 7);
         subscribe.put("method", "call");
-        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(0).put(false)));
+        subscribe.put("params", new JSONArray().put(2).put("set_subscribe_callback").put(new JSONArray().put(7).put(false)));
 
         endpoint.sendText(login.toString());
 
@@ -337,8 +332,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
         endpoint.sendText(netw.toString());
 
         endpoint.sendText(history.toString());
-
-        endpoint.sendText(orders.toString());
 
         endpoint.sendText(chainId.toString());
 
@@ -350,6 +343,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
     @OnMessage
     public void onMessage(String msg) {
+        System.out.println("bts " + merchantName + " " + msg);
         try {
             if (msg.contains("notice")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);

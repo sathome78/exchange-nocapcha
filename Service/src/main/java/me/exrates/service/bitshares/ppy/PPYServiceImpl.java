@@ -1,4 +1,4 @@
-package me.exrates.service.ppy;
+package me.exrates.service.bitshares.ppy;
 
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONObject;
@@ -14,12 +14,13 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
     private static final String name = "PPY";
 
     public PPYServiceImpl() {
-        super(name, name, "merchants/ppy.properties", 2);
+        super(name, name, "merchants/ppy.properties", 6);
     }
 
     @OnMessage
     @Override
     public void onMessage(String msg) {
+        System.out.println("PPY msg " + msg);
         log.info(msg);
         try {
             if (msg.contains("last_irreversible_block_num")) setIrreversableBlock(msg);
