@@ -35,14 +35,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static me.exrates.service.bitshares.MemoDecryptor.decryptBTSmemo;
+import static me.exrates.service.bitshares.memo.MemoDecryptor.decryptBTSmemo;
 
 
 @Data
 @ClientEndpoint
 public abstract class BitsharesServiceImpl implements BitsharesService {
 
-    public static final long PERIOD = 5L;
+    public static final long PERIOD = 1L;
     protected Logger log;
 
     @Autowired
@@ -121,6 +121,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             }
         }
     }
+
     @Override
     public Merchant getMerchant() {
         return merchant;
