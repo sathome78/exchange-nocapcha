@@ -58,7 +58,7 @@ public class OpenApiOrderOldController {
     /**
      * @api {post} /openapi/v1/orders/create Create order
      * @apiName Creates order
-     * @apiGroup Order API
+     * @apiGroup 2_Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Creates Order
@@ -92,9 +92,9 @@ public class OpenApiOrderOldController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/accept Accept order
+     * @api {post} /openapi/v1/orders/accept Accept order
      * @apiName Accept order
-     * @apiGroup Order API
+     * @apiGroup 2_Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Accepts order
@@ -118,7 +118,7 @@ public class OpenApiOrderOldController {
     /**
      * @api {post} /openapi/v1/orders/cancel Cancel order by order id
      * @apiName Cancel order by order id
-     * @apiGroup Order API
+     * @apiGroup 2_Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Cancel order by order id
@@ -137,6 +137,27 @@ public class OpenApiOrderOldController {
         return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
     }
 
+    /**
+     * @api {post} /openapi/v1/orders/callback/add Add callback
+     * @apiName add callback
+     * @apiGroup 2_Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Add callback
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/callback/add
+     *
+     *       {
+     *         "callbackURL": String,
+     *         "pairId": Integer
+     *       }
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true
+     *     }
+     *
+     */
     @PreAuthorize("hasAuthority('TRADE')")
     @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> addCallback(@RequestBody CallbackURL callbackUrl) throws CallBackUrlAlreadyExistException {
@@ -153,6 +174,33 @@ public class OpenApiOrderOldController {
         return responseBody;
     }
 
+    /**
+     * @api {put} /openapi/v1/orders/callback/add Update callback
+     * @apiName update callback
+     * @apiGroup 2_Order API
+     * @apiUse APIHeaders
+     * @apiPermission NonPublicAuth
+     * @apiDescription Update callback
+     * @apiParamExample Request Example:
+     * /openapi/v1/orders/callback/update
+     *
+     *       {
+     *         "callbackURL": String,
+     *         "pairId": Integer
+     *       }
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": true
+     *     }
+     *  @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "status": "false",
+     *       "error" : " Callback url is null or empty"
+     *     }
+     *
+     */
     @PreAuthorize("hasAuthority('TRADE')")
     @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> updateallback(@RequestBody CallbackURL callbackUrl) {
@@ -172,7 +220,7 @@ public class OpenApiOrderOldController {
     /**
      * @api {get} /openapi/v1/orders/open/{order_type}?currency_pair Open orders
      * @apiName Open orders
-     * @apiGroup Order API
+     * @apiGroup 2_Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Buy or sell open orders ordered by price (SELL ascending, BUY descending)

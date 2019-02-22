@@ -12,9 +12,9 @@ public class AuthInfo {
      */
 
     /**
-     * @api {get, post} /openapi/v1/{user-orders} Non-public endpoints
+     * @api {get, post} /openapi/v1/** Non-public endpoints
      * @apiName Non-public endpoints
-     * @apiGroup Authentication
+     * @apiGroup 0_Authentication
      * @apiUse APIHeaders
      * @apiPermission APIHeaders
      * @apiDescription All requests to non-public API endpoints must contain the following headers
@@ -24,9 +24,19 @@ public class AuthInfo {
     }
 
     /**
+     * @api {get, post} /openapi/v1/public/** Public endpoints
+     * @apiName Public endpoints
+     * @apiGroup 0_Authentication
+     * @apiDescription All requests to public API endpoints not must contain the following headers
+     */
+    private void stubPublic() {
+        //stub for API doc
+    }
+
+    /**
      * @api {get, post} /openapi/v1/{user-orders} Algorithm
      * @apiName Algorithm
-     * @apiGroup Authentication
+     * @apiGroup 0_Authentication
      * @apiDescription Authentication is performed via HMAC signature (using HMAC SHA256 algorithm).
      * To create the signature, you need to create your own public key and private key from your personal settings page
      * (API settings section).

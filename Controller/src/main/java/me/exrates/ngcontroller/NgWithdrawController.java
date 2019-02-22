@@ -106,23 +106,7 @@ public class NgWithdrawController {
         this.merchantServiceContext = merchantServiceContext;
     }
 
-    // POST: /info/private/v2/balances/withdraw/request/create
-    // model:
-//    {
-//       currency: number,
-//       merchant: number,
-//       sum: string,
-//       destination: string,
-//       destinationTag: string,
-//       merchantImage: number,
-//       operationType: string,
-//       recipientBankName: string,
-//       recipientBankCode: string,
-//       userFullName: string,
-//       remark: string,
-//       walletNumber: string
-//       securityCode: string
-//    }
+    // POST: /api/private/v2/balances/withdraw/request/create
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
     public ResponseEntity<Map<String, String>> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
