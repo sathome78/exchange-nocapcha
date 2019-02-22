@@ -343,7 +343,6 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
 
     @OnMessage
     public void onMessage(String msg) {
-        System.out.println("bts " + merchantName + " " + msg);
         try {
             if (msg.contains("notice")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
