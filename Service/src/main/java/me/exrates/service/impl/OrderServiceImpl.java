@@ -678,6 +678,7 @@ public class OrderServiceImpl implements OrderService {
                         throw new OrderCreationException(result.toString());
                     }
                     setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
+                    exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
@@ -2328,8 +2329,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String userName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(currencyPairName);
         Integer userId = userService.getIdByEmail(userName);
         if (cp == null) {
             return null;
@@ -2338,8 +2339,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPairId);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPairId);
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
     }
 

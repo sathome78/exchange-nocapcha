@@ -23,16 +23,15 @@ public class UserPersonalOrdersHandler {
 
     private final StompMessenger stompMessenger;
     private final ObjectMapper objectMapper;
-    private final Integer pairId;
+    private final String pairName;
     private final long refreshTime = 1000; /*in millis*/
-    private Timer timer;
 
 
-    public UserPersonalOrdersHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, Integer pairId) {
+
+    public UserPersonalOrdersHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, String pairName) {
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
-        this.pairId = pairId;
-        this.timer = new Timer();
+        this.pairName = pairName;
     }
 
     void addToQueueForSend(OrderWsDetailDto dto, Integer userId) {
@@ -83,7 +82,7 @@ public class UserPersonalOrdersHandler {
 
     private void sendMessage(List<OrderWsDetailDto> dtos, Integer userId) {
         try {
-            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairId, objectMapper.writeValueAsString(dtos));
+            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairName, objectMapper.writeValueAsString(dtos));
         } catch (Exception e) {
             log.error(e);
         }

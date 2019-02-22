@@ -449,7 +449,7 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
-    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
+    List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }
