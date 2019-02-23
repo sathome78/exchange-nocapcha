@@ -234,7 +234,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderListDto> getMyOpenOrdersForCurrencyPair(CurrencyPair currencyPair, OrderType orderType, int userId) {
-        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
+        String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount, order_source_id " +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = 2 and operation_type_id = :type_id and currency_pair_id = :currency_pair_id and user_id = :user_id " +
                 "  ORDER BY exrate ASC";

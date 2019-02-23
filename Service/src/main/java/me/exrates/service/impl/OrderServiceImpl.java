@@ -678,6 +678,7 @@ public class OrderServiceImpl implements OrderService {
                         throw new OrderCreationException(result.toString());
                     }
                     setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
+                    exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
