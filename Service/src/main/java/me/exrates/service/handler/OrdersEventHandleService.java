@@ -262,10 +262,14 @@ public class OrdersEventHandleService {
 
     @Async
     void handleOrdersDetailed(ExOrder exOrder, OrderEventEnum orderEvent) {
-        Integer pairId = exOrder.getCurrencyPairId();
-        OrdersReFreshHandler handler = mapOrders
-                .computeIfAbsent(pairId, k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairId));
-        handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
+        try {
+            String pairName = ratesHolder.getOne(exOrder.getCurrencyPairId()).getCurrencyPairName().replace("/", "_").toLowerCase();
+            OrdersReFreshHandler handler = mapOrders
+                    .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
+            handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
 

@@ -67,8 +67,8 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
     @Override
-    public void sendRefreshTradeOrdersDetailMessage(Integer pairId, String message){
-        sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairId.toString()), message);
+    public void sendRefreshTradeOrdersDetailMessage(String pairName, String message){
+        sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairName), message);
     }
 
    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {

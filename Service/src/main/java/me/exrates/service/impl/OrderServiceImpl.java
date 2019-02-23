@@ -1649,8 +1649,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+    public List<OrdersListWrapper> getOpenOrdersForWs(String pairName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(pairName);
         if (cp == null) {
             return null;
         }
@@ -1658,8 +1658,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
     }
 
@@ -2402,11 +2402,6 @@ public class OrderServiceImpl implements OrderService {
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
-    }
-
-    @Override
-    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
-        return null;
     }
 
     @Override
