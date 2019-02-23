@@ -1,6 +1,7 @@
 package me.exrates.controller.openAPI;
 
 import com.google.common.base.Strings;
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
@@ -72,7 +73,12 @@ public class OpenApiOrderController {
      * @apiParam {Number} price Exchange rate
      * @apiParamExample Request Example:
      * /openapi/v1/orders/create
-     * RequestBody:{currency_pair, order_type, amount, price}
+     *       {
+     *         "currencyPair": "btc_usd",
+     *         "orderType": "BUY",
+     *         "amount": 2.3,
+     *         "price": 1.0
+     *       }
      * @apiSuccess {Object} orderCreationResult Order creation result information
      * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
      * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
@@ -95,26 +101,36 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {get} /openapi/v1/orders/accept/{orderId} Accept order by order id
+     * @api {get} /openapi/v1/orders/accept/{orderId} Accept order by id
      * @apiName Accept order
      * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Accepts order
+     * @apiParam {Integer} order id
      * @apiParamExample Request Example:
      * /openapi/v1/orders/accept/1233
-     * @apiSuccess {Map} success=true Acceptance result
-     */
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiErrorExample {json} Error-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "errorCode": "ACCEPTING_ORDER_ERROR",
+     *       "url" : String,
+     *       "detail" : String
+     *     }
+     **/
     @PreAuthorize("hasAuthority('TRADE') and hasAuthority('ACCEPT_BY_ID')")
-    @PostMapping(value = "/accept/{orderId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Boolean> acceptOrder(@PathVariable Integer orderId) {
+    @GetMapping(value = "/accept/{orderId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> acceptOrder(@PathVariable Integer orderId) {
         String userEmail = userService.getUserEmailFromSecurityContext();
         orderService.acceptOrder(userEmail, orderId);
-        return Collections.singletonMap("success", true);
+        return ResponseEntity.ok().build();
     }
 
     /**
-     * @api {get} /openapi/v1/orders/{orderId} Find order among created or accepted orders by principal
+     * @api {get} /openapi/v1/orders/{orderId} Find order by id
      * @apiName Get order by id
      * @apiGroup Order API
      * @apiUse APIHeaders
@@ -140,7 +156,25 @@ public class OpenApiOrderController {
      * @apiSuccess {Number} data.stop  Stop price
      * @apiSuccess {String} data.baseType type of order status (LIMIT, STOP_LIMIT, ICO)
      * @apiSuccess {Number} data.partiallyAcceptedAmount  Partially accepted amount
-     */
+     * @apiSuccessExample {json} Success-Response:
+     *   HTTP/1.1 200 OK
+     *      {
+     *          "id": 402298,
+     *          "currencyPairId": 1,
+     *          "operationType": "BUY",
+     *          "exRate": 2000.009900479,
+     *          "amountBase": 1,
+     *          "amountConvert": 2000.009900479,
+     *          "commission": 4.000019801,
+     *          "userAcceptorId": 0,
+     *          "created": "2018-12-22 00:49:11",
+     *          "accepted": null",
+     *          "status": "OPENED",
+     *          "baseType": "LIMIT",
+     *          "stop": null,
+     *          "partiallyAcceptedAmount": null
+     *      }
+     **/
     // "Order with id: 40229 not found among created or accepted orders"
     @PreAuthorize("hasAuthority('TRADE')")
     @GetMapping(value = "/{orderId}")
@@ -153,28 +187,29 @@ public class OpenApiOrderController {
     }
 
     /**
-     * @api {post} /openapi/v1/orders/cancel/{orderId} Cancel order by order id
+     * @api {delete} /openapi/v1/orders/{orderId} Cancel order by id
      * @apiName Cancel order by order id
-     * @apiGroup 2_Order API
+     * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Cancel order by order id
-     * @apiParam {String} order_id Id of order to be cancelled
+     * @apiParam {Integer} order_id Id of order to be cancelled
      * @apiParamExample Request Example:
-     * /openapi/v1/orders/cancel/123
-     * @apiSuccess {Map} success Cancellation result
+     * /openapi/v1/orders/123
+     * @apiSuccessExample {json} Success-Response:
+            *     HTTP/1.1 200 OK
      */
     @PreAuthorize("hasAuthority('TRADE')")
-    @PostMapping(value = "/cancel/{orderId}")
-    public ResponseEntity<BaseResponse<Map<String, Boolean>>> cancelOrder(@PathVariable Integer orderId) {
+    @DeleteMapping(value = "/{orderId}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable Integer orderId) {
         orderService.cancelOrder(orderId);
-        return ResponseEntity.ok(BaseResponse.success(Collections.singletonMap("success", true)));
+        return ResponseEntity.ok().build();
     }
 
     /**
      * @api {post} /openapi/v1/orders/callback/add Add callback
      * @apiName add callback
-     * @apiGroup 2_Order API
+     * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Add callback
@@ -211,13 +246,12 @@ public class OpenApiOrderController {
     /**
      * @api {put} /openapi/v1/orders/callback/add Update callback
      * @apiName update callback
-     * @apiGroup 2_Order API
+     * @apiGroup Order API
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Update callback
      * @apiParamExample Request Example:
      * /openapi/v1/orders/callback/update
-     *
      *       {
      *         "callbackURL": String,
      *         "pairId": Integer
@@ -233,7 +267,6 @@ public class OpenApiOrderController {
      *       "status": "false",
      *       "error" : " Callback url is null or empty"
      *     }
-     *
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -287,6 +320,13 @@ public class OpenApiOrderController {
     @ResponseBody
     public OpenApiError mismatchArgumentsErrorHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.INVALID_PARAM_VALUE, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(OrderAcceptionException.class)
+    @ResponseBody
+    public OpenApiError jsonMappingExceptionHandler(HttpServletRequest req, OrderAcceptionException exception) {
+        return new OpenApiError(ErrorCode.ACCEPTING_ORDER_ERROR, req.getRequestURL(), exception.getMessage());
     }
 
     @ResponseStatus(BAD_REQUEST)

@@ -255,7 +255,6 @@ public class OrderServiceImpl implements OrderService {
         }, 0, 30, TimeUnit.MINUTES);
     }
 
-
     @Override
     public List<BackDealInterval> getIntervals() {
         return intervals;
@@ -2410,6 +2409,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair) {
         return orderDao.getLastOrderPriceByCurrencyPair(currencyPair.getId());
+    }
+
+    @Override
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name) {
+        return null;
     }
 
     @Override

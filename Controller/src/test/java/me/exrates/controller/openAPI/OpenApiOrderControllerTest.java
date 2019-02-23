@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {WebAppTestConfig.class, OpenApiSecurityConfig.class})
 @WebAppConfiguration
-public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
+public class OpenApiOrderControllerTest extends OpenApiCommonTest {
 
 
     @Test
@@ -49,11 +49,8 @@ public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
 
     @Test
     public void acceptOrder() throws Exception {
-        Map<String, String> params = new HashMap<>();
-        params.put("order_id", "1");
-        mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/accept")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(objectMapper.writeValueAsBytes(params)))
+        mockMvc.perform(MockMvcRequestBuilders.get("/openapi/v1/orders/accept/1234")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(orderService, times(1))
@@ -64,11 +61,8 @@ public class OpenApiOrderOldControllerTest extends OpenApiCommonTest {
     public void cancelOrder() throws Exception {
         when(orderService.cancelOrder(anyInt()))
                 .thenReturn(true);
-        Map<String, String> params = new HashMap<>();
-        params.put("order_id", "1");
-        mockMvc.perform(MockMvcRequestBuilders.post("/openapi/v1/orders/cancel")
-                                              .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                                              .content(objectMapper.writeValueAsBytes(params)))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/openapi/v1/orders/123")
+                                              .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(orderService, times(1))

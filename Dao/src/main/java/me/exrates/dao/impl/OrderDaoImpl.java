@@ -2083,10 +2083,33 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("orderId", String.valueOf(orderId));
         namedParameters.put("userId", String.valueOf(userId));
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    private RowMapper<ExOrder> getExOrderRowMapper() {
+        return (rs, rowNum) -> {
+            ExOrder exOrder = new ExOrder();
+            exOrder.setId(rs.getInt("id"));
+            exOrder.setUserId(rs.getInt("user_id"));
+            exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            exOrder.setExRate(rs.getBigDecimal("exrate"));
+            exOrder.setExRate(rs.getBigDecimal("exrate"));
+            exOrder.setAmountBase(rs.getBigDecimal("amount_base"));
+            exOrder.setAmountConvert(rs.getBigDecimal("amount_convert"));
+            exOrder.setComissionId(rs.getInt("commission_id"));
+            exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
+            exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
+            exOrder.setDateCreation(convertTimeStampToLocalDateTime(rs, "date_creation"));
+            exOrder.setDateAcception(convertTimeStampToLocalDateTime(rs, "date_acception"));
+            exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            exOrder.setSourceId(rs.getInt("order_source_id"));
+            exOrder.setOrderBaseType(OrderBaseType.valueOf(rs.getString("base_type")));
+            return exOrder;
+        };
     }
 
     private RowMapper<OrderListDto> openOrderListDtoRowMapper() {

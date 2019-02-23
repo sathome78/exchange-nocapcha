@@ -117,6 +117,8 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
+    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
+
     /**
      * TODO ADD JAVADOC
      */
@@ -480,6 +482,8 @@ public interface OrderService {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
 
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
+
+    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }
