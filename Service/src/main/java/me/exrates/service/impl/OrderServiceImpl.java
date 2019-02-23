@@ -2405,11 +2405,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
-        return null;
-    }
-
-    @Override
     public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
         final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
