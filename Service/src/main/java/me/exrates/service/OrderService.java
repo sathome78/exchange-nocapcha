@@ -97,6 +97,8 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
+    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
+
     /**
      * TODO ADD JAVADOC
      */
@@ -118,6 +120,8 @@ public interface OrderService {
      * @return entity ExOrder for found order, or null if order not found
      */
     ExOrder getOrderById(int orderId);
+
+    ExOrder getOrderById(int orderId, int userId);
 
     /**
      * Sets new status for existing order with given ID.
@@ -450,6 +454,8 @@ public interface OrderService {
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
+
+    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }
