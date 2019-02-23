@@ -263,9 +263,9 @@ public class OrdersEventHandleService {
     @Async
     void handleOrdersDetailed(ExOrder exOrder, OrderEventEnum orderEvent) {
         try {
-            Integer pairId = exOrder.getCurrencyPairId();
+            String pairName = ratesHolder.getOne(exOrder.getCurrencyPairId()).getCurrencyPairName().replace("/", "_").toLowerCase();
             OrdersReFreshHandler handler = mapOrders
-                    .computeIfAbsent(pairId, k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairId));
+                    .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
             handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
         } catch (Exception e) {
             log.error(e);

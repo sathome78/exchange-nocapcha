@@ -131,7 +131,6 @@ public class WsContorller {
 
     @SubscribeMapping("/queue/my_orders/{currencyPairName}")
     public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable String currencyPairName, Principal principal) {
-        System.out.println(registry.getUser(principal.getName()));
         return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
     }
 

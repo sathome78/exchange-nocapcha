@@ -52,11 +52,11 @@ public class OrdersReFreshHandler {
 
     @Synchronized
     private void sendMessage(List<OrderWsDetailDto> dtos) {
-        /*try {
+        try {
             stompMessenger.sendRefreshTradeOrdersDetailMessage(pairName, objectMapper.writeValueAsString(dtos));
         } catch (Exception e) {
             log.error(e);
-        }*/
+        }
     }
 
 

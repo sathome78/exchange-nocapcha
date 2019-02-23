@@ -32,16 +32,20 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     }
 
     @Override
-    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
         System.out.println("Authentication failed. Cause: " + exception.getMessage());
         LOGGER.info("Authentication failed. Cause: " + exception.getMessage());
-         if (!(exception instanceof BannedIpException)) {
-            String ipAddress = IpUtils.getClientIpAddress(request);
-            ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
-        }
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession();
         session.setAttribute("SPRING_SECURITY_LAST_EXCEPTION", exception);
-        System.out.println("send redirect");
         response.sendRedirect("/login?error");
+        try {
+            if (!(exception instanceof BannedIpException)) {
+               String ipAddress = IpUtils.getClientIpAddress(request);
+               ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
+           }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        LOGGER.info("send redirect, sessionId " + session.getId());
     }
 }
