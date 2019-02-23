@@ -843,6 +843,61 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Override
+    public OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType) {
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyId);
+        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
+                .stream()
+                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
+                .collect(Collectors.toList());
+        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyPair, precision);
+        OrderBookWrapperDto dto = OrderBookWrapperDto
+                .builder()
+                .orderType(orderType)
+                .orderBookItems(simpleOrderBookItems)
+                .total(getWrapperTotal(simpleOrderBookItems))
+                .build();
+        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
+        if (marketStatistic != null) {
+            dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
+            dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
+            dto.setPositive(safeCompareBigDecimals(
+                    new BigDecimal(marketStatistic.getLastOrderRate()),
+                    new BigDecimal(marketStatistic.getPredLastOrderRate())));
+        }
+        return dto;
+    }
+
+    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
+                                                     CurrencyPair currencyPair, int precision) {
+        MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
+        Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
+                .stream()
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
+        List<SimpleOrderBookItem> items = Lists.newArrayList();
+        groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
+                .builder()
+                .exrate(new BigDecimal(key.toString()))
+                .currencyPairId(currencyPair.getId())
+                .currencyPairName(currencyPair.getName())
+                .orderType(orderType)
+                .amount(getAmount(value))
+                .build()));
+
+        if (!items.isEmpty()) {
+            if (orderType == OrderType.SELL) {
+                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
+            } else {
+                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
+            }
+        }
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
+        setSumAmount(preparedItems);
+        setTotal(preparedItems);
+        return preparedItems;
+    }
+
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale) {
         deleteOrderForPartialAccept(orderForPartialAccept.getId());
@@ -894,6 +949,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public ExOrder getOrderById(int orderId) {
         return orderDao.getOrderById(orderId);
+    }
+
+    @Override
+    public ExOrder getOrderById(int orderId, int userId) {
+        return orderDao.getOrderById(orderId, userId);
     }
 
     @Transactional
@@ -2342,6 +2402,11 @@ public class OrderServiceImpl implements OrderService {
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
+    }
+
+    @Override
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
+        return null;
     }
 
     @Override

@@ -48,7 +48,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 @SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/public")
-public class OpenApiPublicOldController {
+public class OpenApiPublicController {
 
     @Autowired
     private OrderService orderService;
@@ -80,21 +80,21 @@ public class OpenApiPublicOldController {
      * * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * [
-     * {
-     * "id": 123,
-     * "name": "currencyPairName",
-     * "last": 12341,
-     * "lowestAsk": 12342,
-     * "highestBid":  12343
-     * "percentChange":  1
-     * "baseVolume": 10
-     * "quoteVolume": 11
-     * "high": 10
-     * "low": 1
-     * }
+     *  {
+     *      "id": 123,
+     *      "name": "currencyPairName",
+     *      "last": 12341,
+     *      "lowestAsk": 12342,
+     *      "highestBid":  12343
+     *      "percentChange":  1
+     *      "baseVolume": 10
+     *      "quoteVolume": 11
+     *      "high": 10
+     *      "low": 1
+     *  }
      * ]
      */
-    @RequestMapping("/ticker")
+    @GetMapping("/ticker")
     public List<TickerJsonDto> getDailyTicker(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
         String currencyPairName = null;
         if (currencyPair != null) {
@@ -104,17 +104,8 @@ public class OpenApiPublicOldController {
         return formatCoinmarketData(orderService.getDailyCoinmarketData(currencyPairName));
     }
 
-    private void validateCurrencyPair(String currencyPairName) {
-        currencyService.findCurrencyPairIdByName(currencyPairName);
-    }
-
-
-    private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
-        return data.stream().map(TickerJsonDto::new).collect(toList());
-    }
-
     /**
-     * @api {get} /openapi/v1/public/orderbook/:currency_pair?order_type Order Book
+     * @api {get} /openapi/v1/public/orderbook/{currency_pair}?order_type Order Book
      * @apiName Order Book
      * @apiGroup Public API
      * @apiPermission user
@@ -256,6 +247,15 @@ public class OpenApiPublicOldController {
                 .map(CandleChartItemReducedDto::new)
                 .collect(toList());
         return ResponseEntity.ok(BaseResponse.success(resultList));
+    }
+
+    private void validateCurrencyPair(String currencyPairName) {
+        currencyService.findCurrencyPairIdByName(currencyPairName);
+    }
+
+
+    private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
+        return data.stream().map(TickerJsonDto::new).collect(toList());
     }
 
     @ResponseStatus(BAD_REQUEST)
