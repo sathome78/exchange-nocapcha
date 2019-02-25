@@ -44,7 +44,7 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
                ipBlockingService.failureProcessing(ipAddress, IpTypesOfChecking.LOGIN);
            }
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error(e.getStackTrace());
         }
         LOGGER.info("send redirect, sessionId " + session.getId());
     }

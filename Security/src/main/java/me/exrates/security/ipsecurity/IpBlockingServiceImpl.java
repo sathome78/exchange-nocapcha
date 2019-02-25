@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Log4j2(topic = "ip_log")
@@ -40,9 +41,13 @@ public class IpBlockingServiceImpl implements IpBlockingService {
     private ConcurrentMap<IpTypesOfChecking, ConcurrentMap<String, LoginAttemptDto>> ipchecker;
 
     public IpBlockingServiceImpl() {
-        ipchecker = new ConcurrentReferenceHashMap<>();
+        ipchecker = new ConcurrentHashMap<>();
         ipchecker.put(IpTypesOfChecking.LOGIN, new ConcurrentReferenceHashMap<>());
         ipchecker.put(IpTypesOfChecking.OPEN_API, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.CREATE_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.REGISTER, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.REQUEST_FOR_RECOVERY_PASSWORD, new ConcurrentReferenceHashMap<>());
+        ipchecker.put(IpTypesOfChecking.UPDATE_MAIN_PASSWORD, new ConcurrentReferenceHashMap<>());
     }
 
     @Override
@@ -63,7 +68,6 @@ public class IpBlockingServiceImpl implements IpBlockingService {
                 } else {
                     attempt.setStatus(IpBanStatus.ALLOW);
                 }
-
             }
         }
 
