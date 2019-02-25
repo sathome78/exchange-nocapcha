@@ -323,6 +323,47 @@ public class NgDashboardController {
     }
 
     /**
+     * Last closed orders
+     * /info/private/v2/dashboard/last/closed/orders
+     *
+     * @param limit         - request records limit
+     * @param offset        - request offset number
+     * @param request       - HttpServletRequest, used by backend to resolve locale
+     * @return - Pageable list of defined orders with meta info about total orders' count
+     * @throws - 403 bad request
+     */
+    @GetMapping("/last/closed/orders")
+    public ResponseEntity<PagedResult<OrderWideListDto>> getLastOrders(
+            @RequestParam(required = false, defaultValue = "15") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            HttpServletRequest request) {
+        final int userId = userService.getIdByEmail(getPrincipalEmail());
+
+        Locale locale = localeResolver.resolveLocale(request);
+
+        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
+                .userId(userId)
+                .status(OrderStatus.CLOSED)
+                .scope(StringUtils.EMPTY)
+                .offset(offset)
+                .limit(limit)
+                .hideCanceled(true)
+                .sortedColumns(Collections.emptyMap())
+                .build();
+        try {
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
+
+            PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
+            pagedResult.setCount(ordersTuple.getKey());
+            pagedResult.setItems(ordersTuple.getValue());
+
+            return ResponseEntity.ok(pagedResult); // 200
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
      * Cancel one open order by order id
      *
      * @param orderId order id

@@ -971,24 +971,24 @@ public class OrderDaoImpl implements OrderDao {
                 + currencyNameClause
                 + pageClause;
 
-        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
-        namedParameters.addValue("user_id", filterDataDto.getUserId());
-        namedParameters.addValue("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
-        namedParameters.addValue("operation_type_id", Arrays.asList(3, 4));
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", filterDataDto.getUserId());
+        params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
+        params.put("operation_type_id", Arrays.asList(3, 4));
         if (nonNull(filterDataDto.getCurrencyPair())) {
-            namedParameters.addValue("currencyPairId", filterDataDto.getCurrencyPair().getId());
+            params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
         }
         if (nonNull(filterDataDto.getDateFrom())) {
-            namedParameters.addValue("dateFrom", filterDataDto.getDateFrom(), Types.DATE);
+            params.put("dateFrom", filterDataDto.getDateFrom());
         }
         if (nonNull(filterDataDto.getDateTo())) {
-            namedParameters.addValue("dateBefore", filterDataDto.getDateTo().plus(1, ChronoUnit.DAYS), Types.DATE);
+            params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
         }
         if (isNotBlank(filterDataDto.getCurrencyName())) {
-            namedParameters.addValue("currency_name", filterDataDto.getCurrencyName());
+            params.put("currency_name", filterDataDto.getCurrencyName());
         }
 
-        return slaveJdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+        return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             OrderWideListDto orderWideListDto = new OrderWideListDto();
             orderWideListDto.setId(rs.getInt("id"));
             orderWideListDto.setUserId(rs.getInt("user_id"));
@@ -1857,23 +1857,23 @@ public class OrderDaoImpl implements OrderDao {
                 + currencyNameClause
                 + userFilterClause;
 
-        MapSqlParameterSource namedParameters = new MapSqlParameterSource();
-        namedParameters.addValue("user_id", filterDataDto.getUserId());
-        namedParameters.addValue("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
-        namedParameters.addValue("operation_type_id", Arrays.asList(3, 4));
+        Map<String, Object> params = new HashMap<>();
+        params.put("user_id", filterDataDto.getUserId());
+        params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
+        params.put("operation_type_id", Arrays.asList(3, 4));
         if (nonNull(filterDataDto.getCurrencyPair())) {
-            namedParameters.addValue("currencyPairId", filterDataDto.getCurrencyPair().getId());
+            params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
         }
         if (nonNull(filterDataDto.getDateFrom())) {
-            namedParameters.addValue("dateFrom", filterDataDto.getDateFrom(), Types.DATE);
+            params.put("dateFrom", filterDataDto.getDateFrom());
         }
         if (nonNull(filterDataDto.getDateTo())) {
-            namedParameters.addValue("dateBefore", filterDataDto.getDateTo().plus(1, ChronoUnit.DAYS), Types.DATE);
+            params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
         }
         if (isNotBlank(filterDataDto.getCurrencyName())) {
-            namedParameters.addValue("currency_name", filterDataDto.getCurrencyName());
+            params.put("currency_name", filterDataDto.getCurrencyName());
         }
-        return slaveJdbcTemplate.queryForObject(sql, namedParameters, Integer.TYPE);
+        return slaveJdbcTemplate.queryForObject(sql, params, Integer.TYPE);
     }
 
     @SuppressWarnings("Duplicates")
