@@ -37,19 +37,20 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @PostConstruct
     private void init() {
         log.info("Start init ExchangeRatesHolder");
-        List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs();
+        List<ExOrderStatisticsShortByPairsDto> list = orderDao.getOrderStatisticByPairs()
+                .stream()
+                .peek(o -> {
+                    processPercentChange(o);
+                    calculateCurrencyVolume(o);
+                    calculatePriceInUSD(o);
+                    if (o.getCurrencyPairName().equalsIgnoreCase("BTC/USD")) {
+                        BTC_USD_ID = o.getCurrencyPairId();
+                    } else if (o.getCurrencyPairName().equalsIgnoreCase("ETH/USD")) {
+                        ETH_USD_ID = o.getCurrencyPairId();
+                    }
+                }).collect(Collectors.toList());
         ratesRedisRepository.batchUpdate(list);
         log.info("Finish init ExchangeRatesHolder");
-        list.forEach(o -> {
-            processPercentChange(o);
-            calculateCurrencyVolume(o);
-            calculatePriceInUSD(o);
-            if (o.getCurrencyPairName().equalsIgnoreCase("BTC/USD")) {
-                BTC_USD_ID = o.getCurrencyPairId();
-            } else if (o.getCurrencyPairName().equalsIgnoreCase("ETH/USD")) {
-                ETH_USD_ID = o.getCurrencyPairId();
-            }
-        });
     }
 
     @Override
