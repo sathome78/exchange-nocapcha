@@ -78,6 +78,5 @@ public class WalletDaoImplTest {
         public NamedParameterJdbcTemplate masterTemplate() {
             return Mockito.mock(NamedParameterJdbcTemplate.class);
         }
-
     }
 }

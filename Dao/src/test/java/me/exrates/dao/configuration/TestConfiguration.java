@@ -16,13 +16,13 @@ import javax.sql.DataSource;
 @PropertySource(value = "classpath:/test-db.properties")
 public class TestConfiguration {
 
-    @Value("${db.slave.user}")
+    @Value("${db.user}")
     private String dbSlaveUser;
-    @Value("${db.slave.password}")
+    @Value("${db.password}")
     private String dbSlavePassword;
-    @Value("${db.slave.url}")
+    @Value("${db.url}")
     private String dbSlaveUrl;
-    @Value("${db.slave.classname}")
+    @Value("${db.classname}")
     private String dbSlaveClassname;
 
     @Bean(name = "slaveDataSource")
@@ -40,6 +40,24 @@ public class TestConfiguration {
     @DependsOn("slaveDataSource")
     @Bean(name = "slaveTemplate")
     public NamedParameterJdbcTemplate slaveNamedParameterJdbcTemplate(@Qualifier("slaveDataSource") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @Bean(name = "masterDataSource")
+    public DataSource masterDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbSlaveClassname);
+        hikariConfig.setJdbcUrl(dbSlaveUrl);
+        hikariConfig.setUsername(dbSlaveUser);
+        hikariConfig.setPassword(dbSlavePassword);
+        hikariConfig.setMaximumPoolSize(50);
+        hikariConfig.setReadOnly(true);
+        return new HikariDataSource(hikariConfig);
+    }
+
+    @DependsOn("masterDataSource")
+    @Bean(name = "masterTemplate")
+    public NamedParameterJdbcTemplate masterNamedParameterJdbcTemplate(@Qualifier("masterDataSource") DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 }
