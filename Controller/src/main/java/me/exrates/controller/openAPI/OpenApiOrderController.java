@@ -15,7 +15,12 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.AlreadyAcceptedOrderException;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.api.CancelOrderException;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
@@ -32,16 +37,34 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
-import static me.exrates.service.util.RestApiUtils.retrieveParamFormBody;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping(value = "/openapi/v1/orders",
@@ -270,7 +293,7 @@ public class OpenApiOrderController {
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Map<String, Object> updateallback(@RequestBody CallbackURL callbackUrl) {
+    public Map<String, Object> updateCallback(@RequestBody CallbackURL callbackUrl) {
         Map<String, Object> responseBody = new HashMap<>();
         String userEmail = userService.getUserEmailFromSecurityContext();
         int userId = userService.getIdByEmail(userEmail);

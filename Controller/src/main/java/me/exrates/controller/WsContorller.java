@@ -19,6 +19,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
+import me.exrates.service.util.OpenApiUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -123,14 +124,14 @@ public class WsContorller {
         return initOrders(currencyPairId, null);
     }
 
-    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairId}")
-    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable Integer currencyPairId) {
-        return orderService.getOpenOrdersForWs(currencyPairId);
+    @SubscribeMapping("/orders/sfwfrf442fewdf/detailed/{currencyPairName}")
+    public List<OrdersListWrapper> subscribeTradeOrdersDetailed(@DestinationVariable String currencyPairName) {
+        return orderService.getOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName));
     }
 
-    @SubscribeMapping("/queue/my_orders/{currencyPairId}")
-    public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable Integer currencyPairId, Principal principal) {
-        return orderService.getMyOpenOrdersForWs(currencyPairId, principal.getName());
+    @SubscribeMapping("/queue/my_orders/{currencyPairName}")
+    public List<OrdersListWrapper> subscribeMyTradeOrdersDetailed(@DestinationVariable String currencyPairName, Principal principal) {
+        return orderService.getMyOpenOrdersForWs(OpenApiUtils.transformCurrencyPair(currencyPairName), principal.getName());
     }
 
     private String initOrders(Integer currencyPair, UserRole userRole) throws IOException {

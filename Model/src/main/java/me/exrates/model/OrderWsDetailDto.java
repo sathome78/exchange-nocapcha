@@ -5,6 +5,7 @@ import lombok.Data;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
+import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,8 @@ public class OrderWsDetailDto {
     private LocalDateTime dateAcception;
     private String orderEvent;
     private long timestamp;
+    private Integer orderParentId;
+    private String orderStatus;
 
     public OrderWsDetailDto(ExOrder exOrder, OrderEventEnum orderEventEnum) {
         this.id = exOrder.getId();
@@ -31,6 +34,8 @@ public class OrderWsDetailDto {
         this.orderEvent = orderEventEnum.name();
         this.dateAcception = exOrder.getDateAcception();
         this.timestamp = exOrder.getEventTimestamp();
+        this.orderParentId = exOrder.getSourceId();
+        this.orderStatus = exOrder.getStatus() == null ? null : exOrder.getStatus().name();
     }
 
     public OrderWsDetailDto(OrderListDto dto) {
@@ -39,5 +44,7 @@ public class OrderWsDetailDto {
         this.exrate = dto.getExrate();
         this.amountBase = dto.getAmountBase();
         this.amountConvert = dto.getAmountConvert();
+        this.orderParentId = dto.getOrderSourceId();
+        this.orderStatus = OrderStatus.OPENED.name();
     }
 }

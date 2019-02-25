@@ -33,6 +33,7 @@ public class OrderExtractor implements ResultSetExtractor<ExOrder> {
         }
         exOrder.setDateAcception(dateAcception);
         exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+        exOrder.setSourceId(rs.getInt("order_source_id"));
         return exOrder;
     }
 }
