@@ -43,7 +43,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 @SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/user")
-public class OpenApiUserInfoOldController {
+public class OpenApiUserInfoController {
 
     @Autowired
     private WalletService walletService;
@@ -291,7 +291,6 @@ public class OpenApiUserInfoOldController {
     public OpenApiError invalidCurrencyPairFormatExceptionHandler(HttpServletRequest req, Exception exception) {
         return new OpenApiError(ErrorCode.INVALID_CURRENCY_PAIR_FORMAT, req.getRequestURL(), exception);
     }
-
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)

@@ -41,7 +41,7 @@ function ChartAmchartsClass2(currencyPair) {
 
 
     function initChartWidget(currencyPair) {
-        var host = window.location.href
+        var host = location.protocol + '//' + location.host + '/dashboard';
         datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 20000);
         var lang = $("#language").text().toLowerCase().trim();
 

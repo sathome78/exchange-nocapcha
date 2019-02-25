@@ -67,8 +67,8 @@ public class StompMessengerImpl implements StompMessenger{
    }
 
     @Override
-    public void sendRefreshTradeOrdersDetailMessage(Integer pairId, String message){
-        sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairId.toString()), message);
+    public void sendRefreshTradeOrdersDetailMessage(String pairName, String message){
+        sendMessageToDestination("/app/orders/sfwfrf442fewdf/detailed/".concat(pairName), message);
     }
 
    private void sendRefreshTradeOrdersMessageToFiltered(Integer pairId, OperationType operationType) {
@@ -98,8 +98,8 @@ public class StompMessengerImpl implements StompMessenger{
 
 
     @Override
-    public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, final Integer currencyPair, String message) {
-        String destination = "/queue/my_orders/".concat(currencyPair.toString());
+    public void sendPersonalOpenOrdersAndDealsToUser(Integer userId, String pairName, String message) {
+        String destination = "/queue/my_orders/".concat(pairName);
         String userEmail = userService.getEmailById(userId);
         messagingTemplate.convertAndSendToUser(userEmail, destination, message);
     }

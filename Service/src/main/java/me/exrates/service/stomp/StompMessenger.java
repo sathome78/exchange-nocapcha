@@ -12,9 +12,9 @@ public interface StompMessenger {
 
     void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType);
 
-    void sendRefreshTradeOrdersDetailMessage(Integer pairId, String message);
+    void sendRefreshTradeOrdersDetailMessage(String pairName, String message);
 
-    void sendPersonalOpenOrdersAndDealsToUser(Integer userId, Integer currencyPair, String message);
+    void sendPersonalOpenOrdersAndDealsToUser(Integer userId, String pairName, String message);
 
     void sendMyTradesToUser(int userId, Integer currencyPair);
 

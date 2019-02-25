@@ -331,7 +331,7 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION"));
+        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") + " sessionId " + httpSession.getId());
         if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];

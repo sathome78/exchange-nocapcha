@@ -369,7 +369,7 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
-    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+    List<OrdersListWrapper> getOpenOrdersForWs(String pairName);
 
     /**
      * Returns data of
@@ -480,6 +480,8 @@ public interface OrderService {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
 
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
+
+    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }

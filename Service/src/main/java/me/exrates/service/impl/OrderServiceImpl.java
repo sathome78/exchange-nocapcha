@@ -21,31 +21,7 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairLimitDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderBookWrapperDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderFilterDataDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderReportInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.SimpleOrderBookItem;
-import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -254,7 +230,6 @@ public class OrderServiceImpl implements OrderService {
             coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
         }, 0, 30, TimeUnit.MINUTES);
     }
-
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -703,6 +678,7 @@ public class OrderServiceImpl implements OrderService {
                         throw new OrderCreationException(result.toString());
                     }
                     setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
+                    exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
@@ -1673,8 +1649,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+    public List<OrdersListWrapper> getOpenOrdersForWs(String pairName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(pairName);
         if (cp == null) {
             return null;
         }
@@ -1682,8 +1658,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
     }
 
@@ -2413,8 +2389,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String userName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(currencyPairName);
         Integer userId = userService.getIdByEmail(userName);
         if (cp == null) {
             return null;
@@ -2423,8 +2399,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPairId);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPairId);
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
     }
 
