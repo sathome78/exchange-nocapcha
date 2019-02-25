@@ -12,6 +12,7 @@ import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,7 +82,11 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
-//            ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
+            try {
+                ipBlockingService.successfulProcessing(ip, IpTypesOfChecking.LOGIN);
+            } catch (Exception e) {
+                log.error(ExceptionUtils.getFullStackTrace(e));
+            }
             String lastPage = (String) request.getSession().getAttribute("lastPageBeforeLogin");
             request.getSession().removeAttribute("lastPageBeforeLogin");
             if (!StringUtils.isEmpty(lastPage)) {
