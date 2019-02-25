@@ -57,6 +57,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
@@ -116,8 +117,6 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
-    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
-
     /**
      * TODO ADD JAVADOC
      */
@@ -130,7 +129,7 @@ public interface OrderService {
     /**
      * TODO ADD JAVADOC
      */
-    public OrderCreateDto getMyOrderById(int orderId);
+    OrderCreateDto getMyOrderById(int orderId);
 
     /**
      * Returns entity ExOrder by its ID
@@ -139,6 +138,15 @@ public interface OrderService {
      * @return entity ExOrder for found order, or null if order not found
      */
     ExOrder getOrderById(int orderId);
+
+    /**
+     * Returns entity ExOrder by its ID and userId
+     *
+     * @param orderId
+     * @param userId
+     * @return entity ExOrder for found order, or null if order not found
+     */
+    ExOrder getOrderById(int orderId, int userId);
 
     /**
      * Sets new status for existing order with given ID.
@@ -361,7 +369,7 @@ public interface OrderService {
      */
     List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale, Boolean orderRoleFilterEnabled);
 
-    List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair);
+    List<OrdersListWrapper> getOpenOrdersForWs(String pairName);
 
     /**
      * Returns data of
@@ -470,5 +478,8 @@ public interface OrderService {
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(CurrencyPair currencyPair);
-    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String name);
+
+    List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
+
+    OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }

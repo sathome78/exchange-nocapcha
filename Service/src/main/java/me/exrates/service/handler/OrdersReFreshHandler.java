@@ -19,16 +19,16 @@ public class OrdersReFreshHandler {
 
     private final StompMessenger stompMessenger;
     private final ObjectMapper objectMapper;
-    private final Integer pairId;
+    private final String pairName;
     private final Semaphore semaphore = new Semaphore(1);
     private final long refreshTime = 1000; /*in millis*/
 
     private List<OrderWsDetailDto> dtos = new CopyOnWriteArrayList<>();
 
-    public OrdersReFreshHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, Integer pairId) {
+    public OrdersReFreshHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, String pairName) {
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
-        this.pairId = pairId;
+        this.pairName = pairName;
     }
 
     void addOrderToQueue(OrderWsDetailDto dto) {
@@ -53,7 +53,7 @@ public class OrdersReFreshHandler {
     @Synchronized
     private void sendMessage(List<OrderWsDetailDto> dtos) {
         try {
-            stompMessenger.sendRefreshTradeOrdersDetailMessage(pairId, objectMapper.writeValueAsString(dtos));
+            stompMessenger.sendRefreshTradeOrdersDetailMessage(pairName, objectMapper.writeValueAsString(dtos));
         } catch (Exception e) {
             log.error(e);
         }

@@ -46,8 +46,8 @@ public class ApiSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public Filter authenticationTokenProcessingFilter() throws Exception {
-        return new AuthenticationTokenProcessingFilter("/**", authenticationManagerBean());
+    public Filter authenticationTokenProcessingFilter() {
+        return new AuthenticationTokenProcessingFilter("/api/**");
     }
 
     @Bean(name = "ApiAuthenticationManager")

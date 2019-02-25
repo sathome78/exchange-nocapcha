@@ -9,7 +9,6 @@ import me.exrates.controller.filter.LoggingFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.MDCInterceptor;
 import me.exrates.controller.interceptor.SecurityInterceptor;
-import me.exrates.controller.interceptor.TokenInterceptor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.enums.ChatLang;
@@ -18,7 +17,11 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MoneroService;
 import me.exrates.service.NamedParameterJdbcTemplateWrapper;
 import me.exrates.service.achain.AchainContract;
-import me.exrates.service.ethereum.*;
+import me.exrates.service.ethereum.EthTokenService;
+import me.exrates.service.ethereum.EthTokenServiceImpl;
+import me.exrates.service.ethereum.EthereumCommonService;
+import me.exrates.service.ethereum.EthereumCommonServiceImpl;
+import me.exrates.service.ethereum.ExConvert;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.BitcoinServiceImpl;
@@ -44,7 +47,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -68,7 +78,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -91,7 +100,12 @@ import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -234,7 +248,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String dbSlaveForReportsPassword;
     private String dbSlaveForReportsUrl;
     private String dbSlaveForReportsClassname;
-
 
     @PostConstruct
     public void init() {
@@ -440,7 +453,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addInterceptor(new MDCInterceptor());
     }
 
-
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(120_000L);
@@ -598,7 +610,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "b2gServiceImpl")
     public EthereumCommonService b2gService() {
         return new EthereumCommonServiceImpl("merchants/bitcoiin2g.properties",
-                "B2G", "B2G", 200);
+                "B2G", "B2G", 300);
     }
 
     @Bean(name = "golServiceImpl")
@@ -1770,6 +1782,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		List<String> tokensList = new ArrayList<>();
 		tokensList.add("0xc5e017450346e4f9a2e477519d65affcfc90586a");
 		return new EthTokenServiceImpl(tokensList, "ZUBE","ZUBE", true, ExConvert.Unit.ETHER);
+	}
+
+	@Bean(name = "elcServiceImpl")
+	public EthTokenService elcServiceImpl(){
+		List<String> tokensList = new ArrayList<>();
+		tokensList.add("0x2ab2ffaa942851922a50fd640893f5c42b82474e");
+		return new EthTokenServiceImpl(tokensList, "ELC","ELC", false, ExConvert.Unit.AIWEI);
 	}
 
 	//    Qtum tokens:

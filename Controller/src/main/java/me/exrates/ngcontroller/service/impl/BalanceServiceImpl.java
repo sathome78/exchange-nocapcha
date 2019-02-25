@@ -8,6 +8,7 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyType;
 import me.exrates.model.enums.TradeMarket;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.ngcontroller.dao.BalanceDao;
 import me.exrates.ngcontroller.model.RefillPendingRequestDto;
@@ -123,7 +124,7 @@ public class BalanceServiceImpl implements BalanceService {
 
         PagedResult<MyWalletsDetailedDto> detailsPage = getSafeSubList(balanceDetails, offset, limit);
 
-        setBtcUsdAmoun(detailsPage.getItems());
+        setBtcUsdAmount(detailsPage.getItems());
 
         return detailsPage;
     }
@@ -137,7 +138,7 @@ public class BalanceServiceImpl implements BalanceService {
                 .findFirst();
     }
 
-    private void setBtcUsdAmoun(List<MyWalletsDetailedDto> walletsDetails) {
+    private void setBtcUsdAmount(List<MyWalletsDetailedDto> walletsDetails) {
         Map<Integer, String> btcRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.BTC);
         Map<Integer, String> usdRateMapped = exchangeRatesHolder.getRatesForMarket(TradeMarket.USD);
 
@@ -182,6 +183,8 @@ public class BalanceServiceImpl implements BalanceService {
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, dateFrom, dateTo, currencyId, locale);
         List<MyInputOutputHistoryDto> historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, currencyId, dateFrom, dateTo, locale);
 
+        setAcceptedToDefineUserTransferOperation(historyDtoList, email);
+
         adjustDates(dateFrom, dateTo);
         PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
         pagedResult.setCount(recordsCount);
@@ -193,10 +196,24 @@ public class BalanceServiceImpl implements BalanceService {
         Integer recordsCount = inputOutputService.getUserInputOutputHistoryCount(email, null, null, 0, locale);
         List<MyInputOutputHistoryDto> historyDtoList = getMyInputOutputHistoryDtos(email, limit, offset, 0, null, null, locale);
 
+        setAcceptedToDefineUserTransferOperation(historyDtoList, email);
+
         PagedResult<MyInputOutputHistoryDto> pagedResult = new PagedResult<>();
         pagedResult.setCount(recordsCount);
         pagedResult.setItems(historyDtoList);
         return pagedResult;
+    }
+
+    private void setAcceptedToDefineUserTransferOperation(List<MyInputOutputHistoryDto> historyDtoList, String email) {
+        final int principalUserId = userService.getIdByEmail(email);
+
+        historyDtoList.forEach(inout -> {
+            if (Objects.equals(TransactionSourceType.USER_TRANSFER, inout.getSourceType())) {
+                final Integer userId = inout.getUserId();
+
+                inout.setAccepted(principalUserId != userId);
+            }
+        });
     }
 
     @Override

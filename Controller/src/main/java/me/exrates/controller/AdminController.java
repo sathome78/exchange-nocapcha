@@ -282,6 +282,9 @@ public class AdminController {
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
 
+    @Autowired
+    private BigDecimalConverter converter;
+
     public static String adminAnyAuthority;
     public static String nonAdminAnyAuthority;
     public static String traderAuthority;
@@ -880,7 +883,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/convert-min-sum", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<BigDecimal> convertMinSum(@RequestParam BigDecimal minSum) {
-        return ResponseEntity.ok(BigDecimalConverter.convert(minSum));
+        return ResponseEntity.ok(converter.convert(minSum));
     }
 
     @AdminLoggable

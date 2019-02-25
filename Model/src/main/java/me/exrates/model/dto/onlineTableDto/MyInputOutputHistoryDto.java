@@ -55,6 +55,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private List<Map<String, Object>> buttons;
   private String transactionHash;
   private String market;
+  private Boolean accepted;
 
 
   public MyInputOutputHistoryDto() {

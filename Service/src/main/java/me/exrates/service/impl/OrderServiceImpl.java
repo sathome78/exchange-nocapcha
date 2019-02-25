@@ -21,31 +21,7 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CallBackLogDto;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.CurrencyPairLimitDto;
-import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderBasicInfoDto;
-import me.exrates.model.dto.OrderBookWrapperDto;
-import me.exrates.model.dto.OrderCommissionsDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.OrderDetailDto;
-import me.exrates.model.dto.OrderFilterDataDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderReportInfoDto;
-import me.exrates.model.dto.OrderValidationDto;
-import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.SimpleOrderBookItem;
-import me.exrates.model.dto.StatisticForMarket;
-import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
-import me.exrates.model.dto.UserSummaryOrdersDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -254,7 +230,6 @@ public class OrderServiceImpl implements OrderService {
             coinmarketCachedData = new CopyOnWriteArrayList<>(newData);
         }, 0, 30, TimeUnit.MINUTES);
     }
-
 
     @Override
     public List<BackDealInterval> getIntervals() {
@@ -703,6 +678,7 @@ public class OrderServiceImpl implements OrderService {
                         throw new OrderCreationException(result.toString());
                     }
                     setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
+                    exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
@@ -864,64 +840,7 @@ public class OrderServiceImpl implements OrderService {
                 profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
             }
         }
-
     }
-
-    @Override
-    public OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyId);
-        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
-        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
-                .stream()
-                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
-                .collect(Collectors.toList());
-        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyPair, precision);
-        OrderBookWrapperDto dto = OrderBookWrapperDto
-                .builder()
-                .orderType(orderType)
-                .orderBookItems(simpleOrderBookItems)
-                .total(getWrapperTotal(simpleOrderBookItems))
-                .build();
-        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
-        if (marketStatistic != null) {
-            dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
-            dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
-            dto.setPositive(safeCompareBigDecimals(
-                    new BigDecimal(marketStatistic.getLastOrderRate()),
-                    new BigDecimal(marketStatistic.getPredLastOrderRate())));
-        }
-        return dto;
-    }
-
-    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
-                                                     CurrencyPair currencyPair, int precision) {
-        MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
-        Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
-                .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
-        List<SimpleOrderBookItem> items = Lists.newArrayList();
-        groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
-                .builder()
-                .exrate(new BigDecimal(key.toString()))
-                .currencyPairId(currencyPair.getId())
-                .currencyPairName(currencyPair.getName())
-                .orderType(orderType)
-                .amount(getAmount(value))
-                .build()));
-
-        if (!items.isEmpty()) {
-            if (orderType == OrderType.SELL) {
-                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
-            } else {
-                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
-            }
-        }
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
-        setSumAmount(preparedItems);
-        setTotal(preparedItems);
-        return preparedItems;
-    }
-
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale) {
         deleteOrderForPartialAccept(orderForPartialAccept.getId());
@@ -973,6 +892,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public ExOrder getOrderById(int orderId) {
         return orderDao.getOrderById(orderId);
+    }
+
+    @Override
+    public ExOrder getOrderById(int orderId, int userId) {
+        return orderDao.getOrderById(orderId, userId);
     }
 
     @Transactional
@@ -1668,8 +1592,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrdersListWrapper> getOpenOrdersForWs(Integer currencyPair) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPair);
+    public List<OrdersListWrapper> getOpenOrdersForWs(String pairName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(pairName);
         if (cp == null) {
             return null;
         }
@@ -1677,8 +1601,8 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPair);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPair);
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
     }
 
@@ -2407,6 +2331,57 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getLastOrderPriceByCurrencyPair(currencyPair.getId());
     }
 
+    @Override
+    public List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String userName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(currencyPairName);
+        Integer userId = userService.getIdByEmail(userName);
+        if (cp == null) {
+            return null;
+        }
+        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
+                .collect(Collectors.toList());
+        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
+        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
+        return Arrays.asList(sellOrders, buyOrders);
+    }
+
+    @Override
+    public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
+        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
+                .stream()
+                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
+                .collect(Collectors.toList());
+        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
+        OrderBookWrapperDto dto = OrderBookWrapperDto
+                .builder()
+                .orderType(orderType)
+                .orderBookItems(simpleOrderBookItems)
+                .total(getWrapperTotal(simpleOrderBookItems))
+                .build();
+        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
+        if (marketStatistic != null) {
+            dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
+            dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
+            dto.setPositive(safeCompareBigDecimals(
+                    new BigDecimal(marketStatistic.getLastOrderRate()),
+                    new BigDecimal(marketStatistic.getPredLastOrderRate())));
+        }
+        return dto;
+    }
+
+    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
+        if (last == null && beforeLast == null || last == null) {
+            return false;
+        } else if (beforeLast == null) {
+            return true;
+        } else {
+            return last.compareTo(beforeLast) > 0;
+        }
+    }
+
     private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
         Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
         BigDecimal total = BigDecimal.ZERO;
@@ -2416,6 +2391,53 @@ public class OrderServiceImpl implements OrderService {
         return total;
     }
 
+    private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
+                                                     int currencyPairId, int precision) {
+        MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
+        Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
+                .stream()
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
+        List<SimpleOrderBookItem> items = Lists.newArrayList();
+        groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
+                .builder()
+                .exrate(new BigDecimal(key.toString()))
+                .currencyPairId(currencyPairId)
+                .orderType(orderType)
+                .amount(getAmount(value))
+                .build()));
+
+        if (!items.isEmpty()) {
+            if (orderType == OrderType.SELL) {
+                items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
+            } else {
+                items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
+            }
+        }
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
+        setSumAmount(preparedItems);
+        setTotal(preparedItems);
+        return preparedItems;
+    }
+
+    private BigDecimal getAmount(List<OrderListDto> list) {
+        BigDecimal amount = BigDecimal.ZERO;
+        for (OrderListDto item : list) {
+            amount = amount.add(new BigDecimal(item.getAmountBase()));
+        }
+        return amount;
+    }
+
+    private void setSumAmount(List<SimpleOrderBookItem> items) {
+        for (int i = 0; i < items.size(); i++) {
+            if (i == 0) {
+                items.get(i).setSumAmount(items.get(i).getAmount());
+            } else {
+                BigDecimal add =
+                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
+                items.get(i).setSumAmount(add);
+            }
+        }
+    }
 
     private void setTotal(List<SimpleOrderBookItem> preparedItems) {
         for (int i = 0; i < preparedItems.size(); i++) {
@@ -2433,58 +2455,12 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
-        if (last == null && beforeLast == null || last == null) {
-            return false;
-        } else if (beforeLast == null) {
-            return true;
-        } else {
-            return last.compareTo(beforeLast) > 0;
-        }
-    }
-
     private String safeFormatBigDecimal(BigDecimal value) {
         if (value == null) {
             value = BigDecimal.ZERO;
         }
         value = BigDecimalProcessing.normalize(value);
         return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
-    }
-
-    private void setSumAmount(List<SimpleOrderBookItem> items) {
-        for (int i = 0; i < items.size(); i++) {
-            if (i == 0) {
-                items.get(i).setSumAmount(items.get(i).getAmount());
-            } else {
-                BigDecimal add =
-                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
-                items.get(i).setSumAmount(add);
-            }
-        }
-    }
-
-    private BigDecimal getAmount(List<OrderListDto> list) {
-        BigDecimal amount = BigDecimal.ZERO;
-        for (OrderListDto item : list) {
-            amount = amount.add(new BigDecimal(item.getAmountBase()));
-        }
-        return amount;
-    }
-
-    @Override
-    public List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName) {
-        CurrencyPair cp = currencyService.findCurrencyPairById(currencyPairId);
-        Integer userId = userService.getIdByEmail(userName);
-        if (cp == null) {
-            return null;
-        }
-        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId).stream().map(OrderWsDetailDto::new)
-                .collect(Collectors.toList());
-        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
-                .collect(Collectors.toList());
-        OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), currencyPairId);
-        OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), currencyPairId);
-        return Arrays.asList(sellOrders, buyOrders);
     }
 }
 

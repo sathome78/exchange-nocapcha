@@ -88,28 +88,20 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     public List<Currency> getAllActiveCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
-        List<Currency> currList;
-        currList = npJdbcTemplate.query(sql, (rs, row) -> {
-            Currency currency = new Currency();
-            currency.setId(rs.getInt("id"));
-            currency.setName(rs.getString("name"));
-            return currency;
 
-        });
-        return currList;
+        return npJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build());
     }
 
     public List<Currency> getAllCurrencies() {
         String sql = "SELECT id, name FROM CURRENCY";
-        List<Currency> currList;
-        currList = npJdbcTemplate.query(sql, (rs, row) -> {
-            Currency currency = new Currency();
-            currency.setId(rs.getInt("id"));
-            currency.setName(rs.getString("name"));
-            return currency;
 
-        });
-        return currList;
+        return npJdbcTemplate.query(sql, (rs, row) -> Currency.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build());
     }
 
     @Override

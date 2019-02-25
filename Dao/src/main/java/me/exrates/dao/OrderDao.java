@@ -46,6 +46,8 @@ public interface OrderDao {
 
     ExOrder getOrderById(int orderid);
 
+    ExOrder getOrderById(int orderId, int userId);
+
     boolean setStatus(int orderId, OrderStatus status);
 
     boolean updateOrder(ExOrder exOrder);
@@ -149,5 +151,4 @@ public interface OrderDao {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
-
 }

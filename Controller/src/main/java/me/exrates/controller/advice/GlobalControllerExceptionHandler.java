@@ -97,4 +97,12 @@ public class GlobalControllerExceptionHandler {
         return new ErrorInfo(message, exception);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(Throwable.class)
+    @ResponseBody
+    public ErrorInfo HZExceptionHandler(Throwable exception) {
+        String message = "Cause: " + exception.getLocalizedMessage();
+        return new ErrorInfo(message, exception);
+    }
+
 }

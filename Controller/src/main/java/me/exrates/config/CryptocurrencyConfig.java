@@ -7,15 +7,10 @@ import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.bitshares.BitsharesService;
-import me.exrates.service.bitshares.BitsharesServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
-import me.exrates.service.tron.TronTrc10Token;
-import me.exrates.service.ppy.PPYServiceImpl;
-import me.exrates.service.ppy.PPYServiceImpl;
 import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
@@ -345,6 +340,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 30, 20, false, false);
 	}
 
+@Bean(name = "owcServiceImpl")
+	public BitcoinService owcServiceImpl() {
+		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
@@ -422,17 +422,6 @@ public class CryptocurrencyConfig {
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
-    }
-
-    //Bitshares
-    @Bean(name = "ppyServiceImpl")
-    public BitsharesService bitsharesService(){
-        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 6); // TODO
-    }
-
-    @Bean(name = "aunitServiceImpl")
-    public BitsharesService aunitServiceImpl(){
-        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 5){};
     }
 
 }

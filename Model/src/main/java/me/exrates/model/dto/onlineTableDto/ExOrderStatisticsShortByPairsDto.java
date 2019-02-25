@@ -37,16 +37,16 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
   }
 
   public ExOrderStatisticsShortByPairsDto(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
-    this.needRefresh = exOrderStatisticsShortByPairsDto.isNeedRefresh();
-    this.page = exOrderStatisticsShortByPairsDto.getPage();
-    this.currencyPairName = exOrderStatisticsShortByPairsDto.getCurrencyPairName();
-    this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.getCurrencyPairPrecision();
-    this.lastOrderRate = exOrderStatisticsShortByPairsDto.getLastOrderRate();
-    this.predLastOrderRate = exOrderStatisticsShortByPairsDto.getPredLastOrderRate();
-    this.percentChange = exOrderStatisticsShortByPairsDto.getPercentChange();
-    this.type = exOrderStatisticsShortByPairsDto.getType();
-    this.currencyPairId = exOrderStatisticsShortByPairsDto.getCurrencyPairId();
-    this.pairOrder = exOrderStatisticsShortByPairsDto.getPairOrder();
+    this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
+    this.page = exOrderStatisticsShortByPairsDto.page;
+    this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
+    this.currencyPairPrecision = exOrderStatisticsShortByPairsDto.currencyPairPrecision;
+    this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
+    this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
+    this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
+    this.type = exOrderStatisticsShortByPairsDto.type;
+    this.currencyPairId = exOrderStatisticsShortByPairsDto.currencyPairId;
+    this.pairOrder = exOrderStatisticsShortByPairsDto.pairOrder;
   }
 
   @Override
