@@ -12,7 +12,6 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
-import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.ngcontroller.exception.NgDashboardException;
@@ -26,7 +25,6 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.OrderCancellingException;
-import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -277,8 +275,10 @@ public class NgDashboardController {
      * /info/private/v2/dashboard/last/orders/{status}
      *
      * @param status         - user’s order status
-     * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
-     * @param hideCanceled   - hide cancelled orders if true
+     * @param currencyPairId - single currency pair (not required, default 0), when 0 then all currency pair are queried
+     * @param hideCanceled   - hide cancelled orders if true (not required, default 0)
+     * @param limit          - request records limit (default 15)
+     * @param offset         - request offset number (default 0)
      * @param request        - HttpServletRequest, used by backend to resolve locale
      * @return - Pageable list of defined orders with meta info about total orders' count
      * @throws - 403 bad request
@@ -288,9 +288,9 @@ public class NgDashboardController {
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
+            @RequestParam(required = false, defaultValue = "15") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        final OrderStatus orderStatus = OrderStatus.valueOf(status);
-
         final int userId = userService.getIdByEmail(getPrincipalEmail());
 
         final CurrencyPair currencyPair = currencyPairId > 0
@@ -302,52 +302,11 @@ public class NgDashboardController {
         final OrderFilterDataDto filter = OrderFilterDataDto.builder()
                 .userId(userId)
                 .currencyPair(currencyPair)
-                .status(orderStatus)
-                .scope(StringUtils.EMPTY)
-                .offset(0)
-                .limit(15)
-                .hideCanceled(hideCanceled)
-                .sortedColumns(Collections.emptyMap())
-                .build();
-        try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
-
-            PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
-            pagedResult.setCount(ordersTuple.getKey());
-            pagedResult.setItems(ordersTuple.getValue());
-
-            return ResponseEntity.ok(pagedResult); // 200
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    /**
-     * Last closed orders
-     * /info/private/v2/dashboard/last/closed/orders
-     *
-     * @param limit         - request records limit
-     * @param offset        - request offset number
-     * @param request       - HttpServletRequest, used by backend to resolve locale
-     * @return - Pageable list of defined orders with meta info about total orders' count
-     * @throws - 403 bad request
-     */
-    @GetMapping("/last/closed/orders")
-    public ResponseEntity<PagedResult<OrderWideListDto>> getLastOrders(
-            @RequestParam(required = false, defaultValue = "15") Integer limit,
-            @RequestParam(required = false, defaultValue = "0") Integer offset,
-            HttpServletRequest request) {
-        final int userId = userService.getIdByEmail(getPrincipalEmail());
-
-        Locale locale = localeResolver.resolveLocale(request);
-
-        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
-                .userId(userId)
-                .status(OrderStatus.CLOSED)
+                .status(OrderStatus.valueOf(status))
                 .scope(StringUtils.EMPTY)
                 .offset(offset)
                 .limit(limit)
-                .hideCanceled(true)
+                .hideCanceled(hideCanceled)
                 .sortedColumns(Collections.emptyMap())
                 .build();
         try {
