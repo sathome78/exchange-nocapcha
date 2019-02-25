@@ -843,32 +843,6 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    @Override
-    public OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType) {
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyId);
-        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
-        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
-                .stream()
-                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
-                .collect(Collectors.toList());
-        List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyPair, precision);
-        OrderBookWrapperDto dto = OrderBookWrapperDto
-                .builder()
-                .orderType(orderType)
-                .orderBookItems(simpleOrderBookItems)
-                .total(getWrapperTotal(simpleOrderBookItems))
-                .build();
-        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
-        if (marketStatistic != null) {
-            dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
-            dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
-            dto.setPositive(safeCompareBigDecimals(
-                    new BigDecimal(marketStatistic.getLastOrderRate()),
-                    new BigDecimal(marketStatistic.getPredLastOrderRate())));
-        }
-        return dto;
-    }
-
     private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
                                                      CurrencyPair currencyPair, int precision) {
         MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);

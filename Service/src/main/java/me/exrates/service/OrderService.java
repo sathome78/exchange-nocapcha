@@ -481,7 +481,5 @@ public interface OrderService {
 
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
-    List<OrdersListWrapper> getMyOpenOrdersForWs(Integer currencyPairId, String userName);
-
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
 }

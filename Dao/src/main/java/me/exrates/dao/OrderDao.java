@@ -151,6 +151,4 @@ public interface OrderDao {
     Optional<BigDecimal> getLastOrderPriceByCurrencyPair(int currencyPairId);
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
-
-    ExOrder getOrderById(int orderId, int userId);
 }
