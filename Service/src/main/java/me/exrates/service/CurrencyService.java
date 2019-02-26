@@ -48,6 +48,8 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
+    BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
+
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
     List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
