@@ -5,9 +5,11 @@ import me.exrates.dao.UserDao;
 import me.exrates.service.GtagRefillService;
 import me.exrates.service.GtagService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class GtagRefillServiceImpl implements GtagRefillService {
 
     @Autowired
