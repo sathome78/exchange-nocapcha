@@ -135,9 +135,16 @@ public class CurrencyServiceImpl implements CurrencyService {
                 operationType);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
         return currencyDao.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currencyId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+        return currencyDao.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currencyId);
     }
 
     @Override

@@ -34,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -204,11 +202,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
         String sql = "SELECT min_sum FROM CURRENCY_LIMIT " +
                 "WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
-        Map<String, Integer> params = new HashMap<String, Integer>() {{
-            put("role_id", userRole.getRole());
-            put("operation_type_id", operationType.getType());
-            put("currency_id", currencyId);
-        }};
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("role_id", userRole.getRole());
+        params.put("operation_type_id", operationType.getType());
+        params.put("currency_id", currencyId);
+
+        return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    }
+
+    @Override
+    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+        String sql = "SELECT max_daily_request FROM CURRENCY_LIMIT " +
+                "WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("role_id", userRole.getRole());
+        params.put("operation_type_id", operationType.getType());
+        params.put("currency_id", currencyId);
+
         return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
