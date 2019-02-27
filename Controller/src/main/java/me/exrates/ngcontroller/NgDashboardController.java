@@ -14,10 +14,10 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.ngService.NgOrderService;
+import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
@@ -326,7 +326,7 @@ public class NgDashboardController {
      * Cancel one open order by order id
      *
      * @param orderId order id
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel")
     public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
@@ -337,7 +337,7 @@ public class NgDashboardController {
      * Cancel open orders by order ids
      *
      * @param ids list of orders (can be one or more)
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel/list")
     public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<Integer> ids) {
@@ -348,7 +348,7 @@ public class NgDashboardController {
      * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
      *
      * @param pairName pair name
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel/all")
     public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {

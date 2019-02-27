@@ -4,7 +4,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.ngcontroller.service.BalanceService;
+import me.exrates.ngService.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;

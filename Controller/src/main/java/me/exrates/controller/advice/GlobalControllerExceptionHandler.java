@@ -3,7 +3,7 @@ package me.exrates.controller.advice;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.UserFile;
-import me.exrates.ngcontroller.exception.NgResponseException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;

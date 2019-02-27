@@ -12,6 +12,7 @@ import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
@@ -19,6 +20,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
+import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.util.OpenApiUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,29 +39,33 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * Created by Maks on 24.08.2017.
- */
+
 @Log4j2(topic = "ws_stomp_log")
 @Controller
 public class WsContorller {
 
+    private final OrderService orderService;
+    private final CurrencyService currencyService;
+    private final ObjectMapper objectMapper;
+    private final UserService userService;
+    private final UsersAlertsService usersAlertsService;
+    private final ChartsCacheManager chartsCacheManager;
+    private final ChartsCache chartsCache;
+    private final CpStatisticsHolder cpStatisticsHolder;
+    private final DefaultSimpUserRegistry registry;
+
     @Autowired
-    private OrderService orderService;
-    @Autowired
-    private CurrencyService currencyService;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UsersAlertsService usersAlertsService;
-    @Autowired
-    private ChartsCacheManager chartsCacheManager;
-    @Autowired
-    private ChartsCache chartsCache;
-    @Autowired
-    private DefaultSimpUserRegistry registry;
+    public WsContorller(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, ChartsCacheManager chartsCacheManager, ChartsCache chartsCache, CpStatisticsHolder cpStatisticsHolder, DefaultSimpUserRegistry registry) {
+        this.orderService = orderService;
+        this.currencyService = currencyService;
+        this.objectMapper = objectMapper;
+        this.userService = userService;
+        this.usersAlertsService = usersAlertsService;
+        this.chartsCacheManager = chartsCacheManager;
+        this.chartsCache = chartsCache;
+        this.cpStatisticsHolder = cpStatisticsHolder;
+        this.registry = registry;
+    }
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -88,6 +94,11 @@ public class WsContorller {
         return orderService.getAllCurrenciesStatForRefresh(refreshObjectsEnum);
     }
 
+    @SubscribeMapping("/statistics/pairInfo/{pairName}")
+    public ResponseInfoCurrencyPairDto subscribePairInfo(@DestinationVariable String pairName) {
+        return cpStatisticsHolder.get(OpenApiUtils.transformCurrencyPair(pairName));
+    }
+
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
     public String subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
@@ -110,8 +121,7 @@ public class WsContorller {
     @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
     public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
         ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
-        String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
-        return preparedData;
+        return chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")

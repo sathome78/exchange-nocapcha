@@ -28,6 +28,8 @@ public interface StompMessenger {
 
     void sendStatisticMessage(List<Integer> currenciesIds);
 
+    void sendCpInfoMessage(String pairName, String message);
+
     void sendEventMessage(String sessionId, String message);
 
     void sendAlerts(String message, String lang);
