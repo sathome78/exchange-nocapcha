@@ -267,14 +267,14 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         try {
-            int maxTotalTransactionInNode = 0;
+            int totalTransactions = 0;
 
             List<Payment> payments;
             for (int i = 0; (payments = btcdClient.listTransactions("", TRANSACTION_PER_REQUEST, i * TRANSACTION_PER_REQUEST)).size() > 0; i++) {
-                maxTotalTransactionInNode += payments.size();
+                totalTransactions += payments.size();
             }
 
-            int offset = maxTotalTransactionInNode > TRANSACTION_LIMIT * 2 ? maxTotalTransactionInNode - TRANSACTION_LIMIT : 0;
+            int offset = totalTransactions > TRANSACTION_LIMIT * 2 ? totalTransactions - TRANSACTION_LIMIT : 0;
             List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, offset);
 
             return result.stream()
