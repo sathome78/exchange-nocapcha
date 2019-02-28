@@ -76,4 +76,8 @@ public interface CoreWalletService {
     long getBlocksCount() throws BitcoindException, CommunicationException;
 
     Long getLastBlockTime() throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> listTransaction(int page);
+
+  List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException;
 }

@@ -52,6 +52,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   private static final int TRANSACTION_LIMIT = 1000;
+  private static final int TRANSACTION_PER_PAGE_COUNT = 30;
 
   @Autowired
   private ZMQ.Context zmqContext;
@@ -643,6 +644,33 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public Long getLastBlockTime() throws BitcoindException, CommunicationException {
         return btcdClient.getBlock(btcdClient.getBestBlockHash()).getTime();
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> listTransaction(int page) {
+        try {
+            return getTransactionsByPage(page, TRANSACTION_PER_PAGE_COUNT);
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException {
+        return btcdClient.listTransactions("", page * transactionsPerPage, page == 0 ? 1 : page * transactionsPerPage + transactionsPerPage).stream()
+                .map(payment -> {
+                    BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                    dto.setTxId(payment.getTxId());
+                    dto.setAddress(payment.getAddress());
+                    dto.setBlockhash(payment.getBlockHash());
+                    dto.setCategory(payment.getCategory().getName());
+                    dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                    dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                    dto.setConfirmations(payment.getConfirmations());
+                    dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                    return dto;
+                }).collect(Collectors.toList());
     }
 
     @PreDestroy
