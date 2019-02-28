@@ -51,6 +51,8 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
+  private static final int TRANSACTION_PER_REQUEST = 1000;
+  private static final int TRANSACTION_LIMIT = 1000;
 
   @Autowired
   private ZMQ.Context zmqContext;
@@ -261,28 +263,38 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
-  @Override
-  public List<BtcTransactionHistoryDto> listAllTransactions() {
-    try {
-      return btcdClient.listSinceBlock().getPayments().stream()
-              .map(payment -> {
-                BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-                dto.setTxId(payment.getTxId());
-                dto.setAddress(payment.getAddress());
-                dto.setBlockhash(payment.getBlockHash());
-                dto.setCategory(payment.getCategory().getName());
-                dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-                dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-                dto.setConfirmations(payment.getConfirmations());
-                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
-                return dto;
-              }).collect(Collectors.toList());
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+
+    @Override
+    public List<BtcTransactionHistoryDto> listAllTransactions() {
+        try {
+            int maxTotalTransactionInNode = 0;
+
+            List<Payment> payments;
+            for (int i = 0; (payments = btcdClient.listTransactions("", TRANSACTION_PER_REQUEST, i * TRANSACTION_PER_REQUEST)).size() > 0; i++) {
+                maxTotalTransactionInNode += payments.size();
+            }
+
+            int offset = maxTotalTransactionInNode > TRANSACTION_LIMIT * 2 ? maxTotalTransactionInNode - TRANSACTION_LIMIT : 0;
+            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, offset);
+
+            return result.stream()
+                    .map(payment -> {
+                        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                        dto.setTxId(payment.getTxId());
+                        dto.setAddress(payment.getAddress());
+                        dto.setBlockhash(payment.getBlockHash());
+                        dto.setCategory(payment.getCategory().getName());
+                        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                        dto.setConfirmations(payment.getConfirmations());
+                        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                        return dto;
+                    }).collect(Collectors.toList());
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
     }
-  }
 
 
     @Override
