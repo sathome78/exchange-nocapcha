@@ -69,6 +69,8 @@ import java.util.stream.Collectors;
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
+    private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
+
     @Value("${btcInvoice.blockNotifyUsers}")
     private Boolean BLOCK_NOTIFYING;
 
@@ -456,10 +458,29 @@ public class BitcoinServiceImpl implements BitcoinService {
         return bitcoinWalletService.listAllTransactions();
     }
 
-    @Override
-    public BigDecimal estimateFee() {
-        return bitcoinWalletService.estimateFee(40);
+  @Override
+  public List<BtcTransactionHistoryDto> listTransactions(int page) {
+    return bitcoinWalletService.listTransaction(page);
+  }
+
+  @Override
+  public List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException {
+
+    List<BtcTransactionHistoryDto> result = new ArrayList<>();
+    List<BtcTransactionHistoryDto> transactions;
+
+    for (int i = 0; (transactions = bitcoinWalletService.getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
+      List<BtcTransactionHistoryDto> matches = transactions.stream().filter(e -> e.getAddress().equals(value) || e.getBlockhash().equals(value) || e.getTxId().equals(value)).collect(Collectors.toList());
+      result.addAll(matches);
     }
+
+    return result;
+  }
+
+  @Override
+  public BigDecimal estimateFee() {
+    return bitcoinWalletService.estimateFee(40);
+  }
 
     @Override
     public String getEstimatedFeeString() {
