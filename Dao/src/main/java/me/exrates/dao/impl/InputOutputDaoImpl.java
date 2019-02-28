@@ -164,7 +164,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE USER.email=:email /*AND*/ " +
+                "   WHERE USER.email=:email " +
                 "  )  " +
                 "  UNION ALL " +
                 "  (SELECT " +
@@ -424,8 +424,8 @@ public class InputOutputDaoImpl implements InputOutputDao {
             currencyCondition = " TRANSACTION.currency_id = :currencyId AND ";
             curId = " AND CUR.id = :currencyId ";
         } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
-            currencyCondition = " TRANSACTION.currency_id = (SELECT CUR.id FROM CURRENCY CUR WHERE LOWER(CUR.name) LIKE LOWER('%:currencyName%')) ";
-            curId = " AND LOWER(CUR.name) LIKE LOWER('%:currencyName%') ";
+            currencyCondition = " TRANSACTION.currency_id IN (SELECT CUR.id FROM CURRENCY CUR WHERE LOWER(CUR.name) LIKE LOWER(:currencyNamePart)) AND ";
+            curId = " AND LOWER(CUR.name) LIKE LOWER(:currencyNamePart) ";
         }
 
         String dateFromClauseTransaction = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " TRANSACTION.datetime >= :dateFrom AND ";
@@ -627,13 +627,13 @@ public class InputOutputDaoImpl implements InputOutputDao {
         if (filter.getCurrencyId() > 0) {
             params.put("currencyId", filter.getCurrencyId());
         } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
-            params.put("currencyName", filter.getCurrencyName());
+            params.put("currencyNamePart", String.join(StringUtils.EMPTY, "%", filter.getCurrencyName(), "%"));
         }
 
         try {
             return jdbcTemplate.query(sql, params, rowMapper(locale));
         } catch (EmptyResultDataAccessException ex) {
-            log.debug("'findMyInputOutputHistoryByOperationType' did not return any result");
+            log.debug("Method 'InputOutputDaoImpl::findMyInputOutputHistoryByOperationType' did not return any result");
             return Collections.emptyList();
         }
     }

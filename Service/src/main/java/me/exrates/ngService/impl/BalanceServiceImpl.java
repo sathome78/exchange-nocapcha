@@ -21,6 +21,8 @@ import me.exrates.ngService.RefillPendingRequestService;
 import me.exrates.service.InputOutputService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.exception.MerchantNotFoundException;
+import me.exrates.service.exception.MerchantServiceBeanNameNotDefinedException;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.apache.commons.collections4.ListUtils;
@@ -51,7 +53,7 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class BalanceServiceImpl implements BalanceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(BalanceServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(BalanceServiceImpl.class);
 
     private final BalanceDao balanceDao;
     private final InputOutputService inputOutputService;
@@ -247,7 +249,9 @@ public class BalanceServiceImpl implements BalanceService {
                     merchant = (IRefillable) merchantServiceContext.getMerchantServiceByName(dto.getMerchantName());
                     minConfirmations = Optional.ofNullable(merchant.minConfirmationsRefill()).orElse(0);
                 } catch (ClassCastException ex) {
-                    logger.warn("Failed to cast IRefillable ", ex);
+                    log.warn("Failed to cast IRefillable ", ex);
+                } catch (MerchantNotFoundException | MerchantServiceBeanNameNotDefinedException ex) {
+                    log.warn("Merchant: {} did not find: ", dto.getMerchantName(), ex);
                 }
                 dto.setMarket("BTC");
             }

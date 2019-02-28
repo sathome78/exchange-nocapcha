@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
@@ -88,8 +89,10 @@ import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+@Log4j2
 @Repository
 public class OrderDaoImpl implements OrderDao {
 
@@ -926,12 +929,12 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale) {
         String currencyPairClauseWhere = StringUtils.EMPTY;
         if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 1) {
+                && filterDataDto.getCurrencyPair().getId() > 0) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
         } else  if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
-            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currencyPairName%')) ";
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
         }
         String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
@@ -941,7 +944,7 @@ public class OrderDaoImpl implements OrderDao {
                 : " AND EXORDERS.date_creation <= :dateBefore";
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
-                : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
+                : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currency_name_part)";
 
         String userFilterClause;
         switch (filterDataDto.getScope()) {
@@ -972,9 +975,9 @@ public class OrderDaoImpl implements OrderDao {
                 + createdAfter
                 + createdBefore
                 + currencyPairClauseWhere
+                + currencyNameClause
                 + userFilterClause
                 + orderClause
-                + currencyNameClause
                 + pageClause;
 
         Map<String, Object> params = new HashMap<>();
@@ -982,12 +985,12 @@ public class OrderDaoImpl implements OrderDao {
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         params.put("operation_type_id", Arrays.asList(3, 4));
         if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 1) {
+                && filterDataDto.getCurrencyPair().getId() > 0) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
         } else  if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
-            params.put("currencyPairName", filterDataDto.getCurrencyPair().getName());
+            params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyPair().getName(), "%"));
         }
         if (nonNull(filterDataDto.getDateFrom())) {
             params.put("dateFrom", filterDataDto.getDateFrom());
@@ -996,7 +999,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
         }
         if (isNotBlank(filterDataDto.getCurrencyName())) {
-            params.put("currency_name", filterDataDto.getCurrencyName());
+            params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyName(), "%"));
         }
 
         return slaveJdbcTemplate.query(sql, params, (rs, rowNum) -> {
@@ -1830,12 +1833,12 @@ public class OrderDaoImpl implements OrderDao {
     public Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto) {
         String currencyPairClauseWhere = StringUtils.EMPTY;
         if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 1) {
+                && filterDataDto.getCurrencyPair().getId() > 0) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
         } else  if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
-            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currencyPairName%')) ";
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
         }
         String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
@@ -1843,9 +1846,12 @@ public class OrderDaoImpl implements OrderDao {
         String createdBefore = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation <= :dateBefore";
-        String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
-                ? StringUtils.EMPTY
-                : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
+        String currencyNameJoinClause = StringUtils.EMPTY;
+        String currencyNameConditionClause = StringUtils.EMPTY;
+        if (isNoneBlank(filterDataDto.getCurrencyName())) {
+            currencyNameJoinClause = " JOIN CURRENCY_PAIR ON EXORDERS.currency_pair_id = CURRENCY_PAIR.id ";
+            currencyNameConditionClause = " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currency_name_part)";
+        }
 
         String userFilterClause;
         switch (filterDataDto.getScope()) {
@@ -1862,12 +1868,13 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT COUNT(*)" +
                 " FROM EXORDERS " +
+                currencyNameJoinClause +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
                 + createdAfter
                 + createdBefore
                 + currencyPairClauseWhere
-                + currencyNameClause
+                + currencyNameConditionClause
                 + userFilterClause;
 
         Map<String, Object> params = new HashMap<>();
@@ -1875,12 +1882,12 @@ public class OrderDaoImpl implements OrderDao {
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         params.put("operation_type_id", Arrays.asList(3, 4));
         if (nonNull(filterDataDto.getCurrencyPair())
-                && filterDataDto.getCurrencyPair().getId() > 1) {
+                && filterDataDto.getCurrencyPair().getId() > 0) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
         } else  if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
-            params.put("currencyPairName", filterDataDto.getCurrencyPair().getName());
+            params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyPair().getName(), "%"));
         }
         if (nonNull(filterDataDto.getDateFrom())) {
             params.put("dateFrom", filterDataDto.getDateFrom());
@@ -1889,9 +1896,14 @@ public class OrderDaoImpl implements OrderDao {
             params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
         }
         if (isNotBlank(filterDataDto.getCurrencyName())) {
-            params.put("currency_name", filterDataDto.getCurrencyName());
+            params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyName(), "%"));
         }
-        return slaveJdbcTemplate.queryForObject(sql, params, Integer.TYPE);
+        try {
+            return slaveJdbcTemplate.queryForObject(sql, params, Integer.TYPE);
+        } catch (EmptyResultDataAccessException ex) {
+            log.debug("Method 'OrderDaoImpl::getMyOrdersWithStateCount' did not return any result");
+            return 0;
+        }
     }
 
     @SuppressWarnings("Duplicates")

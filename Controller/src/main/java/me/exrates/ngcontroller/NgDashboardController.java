@@ -229,8 +229,6 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
-        final OrderStatus orderStatus = OrderStatus.valueOf(status);
-
         final int userId = userService.getIdByEmail(getPrincipalEmail());
 
         Locale locale = localeResolver.resolveLocale(request);
@@ -244,7 +242,7 @@ public class NgDashboardController {
         OrderFilterDataDto.Builder builder = OrderFilterDataDto.builder()
                 .userId(userId)
                 .currencyName(currencyName)
-                .status(orderStatus)
+                .status(OrderStatus.valueOf(status))
                 .scope(scope)
                 .offset(offset)
                 .limit(limit)
