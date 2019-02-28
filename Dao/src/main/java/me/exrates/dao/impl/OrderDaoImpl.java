@@ -924,9 +924,15 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale) {
-        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String currencyPairClauseWhere = StringUtils.EMPTY;
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 1) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currencyPairName%')) ";
+        }
         String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation >= :dateFrom";
@@ -975,8 +981,13 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", filterDataDto.getUserId());
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         params.put("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(filterDataDto.getCurrencyPair())) {
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 1) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            params.put("currencyPairName", filterDataDto.getCurrencyPair().getName());
         }
         if (nonNull(filterDataDto.getDateFrom())) {
             params.put("dateFrom", filterDataDto.getDateFrom());
@@ -1817,12 +1828,15 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto) {
-        String currencyPairClauseJoin = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
-        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String currencyPairClauseWhere = StringUtils.EMPTY;
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 1) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currencyPairName%')) ";
+        }
         String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation >= :dateFrom";
@@ -1848,7 +1862,6 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT COUNT(*)" +
                 " FROM EXORDERS " +
-                currencyPairClauseJoin +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
                 + createdAfter
@@ -1861,8 +1874,13 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", filterDataDto.getUserId());
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         params.put("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(filterDataDto.getCurrencyPair())) {
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 1) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            params.put("currencyPairName", filterDataDto.getCurrencyPair().getName());
         }
         if (nonNull(filterDataDto.getDateFrom())) {
             params.put("dateFrom", filterDataDto.getDateFrom());

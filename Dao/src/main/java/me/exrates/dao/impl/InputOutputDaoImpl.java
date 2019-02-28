@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -414,27 +414,31 @@ public class InputOutputDaoImpl implements InputOutputDao {
     }
 
     @Override
-    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit,
-                                                                                 LocalDate dateFrom, LocalDate dateTo,
-                                                                                 List<Integer> operationTypesList,
-                                                                                 Locale locale, int currencyId) {
-        String limitStr = limit < 1 ? StringUtils.EMPTY : String.format("LIMIT %d ", limit);
-        String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format("OFFSET %d ", offset);
+    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(TransactionFilterDataDto filter, Locale locale) {
+        String limitStr = filter.getLimit() < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", filter.getLimit());
+        String offsetStr = filter.getOffset() < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", filter.getOffset());
 
-        String currencyCondition = currencyId < 1 ? StringUtils.EMPTY : " TRANSACTION.currency_id = :currencyId AND ";
-        String curId = currencyId < 1 ? StringUtils.EMPTY : " AND CUR.id =:currencyId";
+        String currencyCondition = StringUtils.EMPTY;
+        String curId = StringUtils.EMPTY;
+        if (filter.getCurrencyId() > 0) {
+            currencyCondition = " TRANSACTION.currency_id = :currencyId AND ";
+            curId = " AND CUR.id = :currencyId ";
+        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
+            currencyCondition = " TRANSACTION.currency_id = (SELECT CUR.id FROM CURRENCY CUR WHERE LOWER(CUR.name) LIKE LOWER('%:currencyName%')) ";
+            curId = " AND LOWER(CUR.name) LIKE LOWER('%:currencyName%') ";
+        }
 
-        String dateFromClauseTransaction = isNull(dateFrom) ? StringUtils.EMPTY : " TRANSACTION.datetime >= :dateFrom AND ";
-        String dateFromClauseRefillRequest = isNull(dateFrom) ? StringUtils.EMPTY : "AND RR.date_creation >= :dateFrom";
-        String dateFromClauseWithdrawRequest = isNull(dateFrom) ? StringUtils.EMPTY : " AND WR.date_creation >= :dateFrom";
-        String dateFromClauseTransferwRequest = isNull(dateFrom) ? StringUtils.EMPTY : " AND TR.date_creation >= :dateFrom";
-        String dateFromClauseTransferwRequestTr = isNull(dateFrom) ? StringUtils.EMPTY : " AND TR.datetime >= :dateFrom";
+        String dateFromClauseTransaction = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " TRANSACTION.datetime >= :dateFrom AND ";
+        String dateFromClauseRefillRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND RR.date_creation >= :dateFrom ";
+        String dateFromClauseWithdrawRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND WR.date_creation >= :dateFrom ";
+        String dateFromClauseTransferwRequest = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND TR.date_creation >= :dateFrom ";
+        String dateFromClauseTransferwRequestTr = isNull(filter.getDateFrom()) ? StringUtils.EMPTY : " AND TR.datetime >= :dateFrom ";
 
-        String dateToClauseTransaction = isNull(dateTo) ? StringUtils.EMPTY : " TRANSACTION.datetime <= :dateTo AND ";
-        String dateToClauseRefillRequest = isNull(dateTo) ? StringUtils.EMPTY : " AND RR.date_creation <= :dateTo";
-        String dateToClauseWithdrawRequest = isNull(dateTo) ? StringUtils.EMPTY : " AND WR.date_creation <= :dateTo";
-        String dateToClauseTransferwRequest = isNull(dateTo) ? StringUtils.EMPTY : " AND TR.date_creation <= :dateTo";
-        String dateToClauseTransferwRequestTr = isNull(dateTo) ? StringUtils.EMPTY : " AND TR.datetime <= :dateTo";
+        String dateToClauseTransaction = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " TRANSACTION.datetime <= :dateTo AND ";
+        String dateToClauseRefillRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND RR.date_creation <= :dateTo ";
+        String dateToClauseWithdrawRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND WR.date_creation <= :dateTo ";
+        String dateToClauseTransferwRequest = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND TR.date_creation <= :dateTo ";
+        String dateToClauseTransferwRequestTr = isNull(filter.getDateTo()) ? StringUtils.EMPTY : " AND TR.datetime <= :dateTo ";
 
         String sql = " SELECT " +
                 "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, REFILL_REQUEST.date_creation) AS datetime, " +
@@ -443,28 +447,27 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "    MERCHANT.name AS merchant,  " +
                 "    TRANSACTION.source_type AS source_type, " +
                 "    OPERATION_TYPE.name as operation_type, TRANSACTION.id AS transaction_id, " +
-                "    IF (WITHDRAW_REQUEST.id IS NOT NULL, WITHDRAW_REQUEST.id, REFILL_REQUEST.id) AS operation_id," +
+                "    IF (WITHDRAW_REQUEST.id IS NOT NULL, WITHDRAW_REQUEST.id, REFILL_REQUEST.id) AS operation_id, " +
                 "    (SELECT MAX(confirmation_number) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmation, " +
-
                 "    IF(WITHDRAW_REQUEST.wallet IS NOT NULL, WITHDRAW_REQUEST.wallet, INVOICE_BANK.account_number) AS destination, " +
-                "    USER.id AS user_id," +
-                "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id," +
-                "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date," +
-                "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
-                "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
+                "    USER.id AS user_id, " +
+                "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id, " +
+                "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date, " +
+                "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name, " +
+                "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark, " +
                 "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id, " +
-                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash" +
+                "    IF (WITHDRAW_REQUEST.transaction_hash IS NOT NULL, WITHDRAW_REQUEST.transaction_hash, REFILL_REQUEST.merchant_transaction_id) AS transaction_hash " +
                 "  FROM TRANSACTION " +
-                "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
-                "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
-                "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id" +
+                "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id " +
+                "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id " +
+                "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id " +
                 "    left join REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
                 "    left join REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
                 "    left join INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
-                "    left join MERCHANT on (MERCHANT.id = REFILL_REQUEST.merchant_id) OR (MERCHANT.id = WITHDRAW_REQUEST.merchant_id)" +
-                "    left join OPERATION_TYPE on OPERATION_TYPE.id = TRANSACTION.operation_type_id" +
-                "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
-                "    left join USER on WALLET.user_id=USER.id" +
+                "    left join MERCHANT on (MERCHANT.id = REFILL_REQUEST.merchant_id) OR (MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
+                "    left join OPERATION_TYPE on OPERATION_TYPE.id = TRANSACTION.operation_type_id " +
+                "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id " +
+                "    left join USER on WALLET.user_id=USER.id " +
                 "  WHERE " +
                 "    TRANSACTION.operation_type_id IN (:operation_type_id_list) AND " + currencyCondition +
                 dateFromClauseTransaction +
@@ -488,7 +491,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     RRP.user_full_name, " +
                 "     RR.remark, " +
                 "     RR.admin_holder_id, " +
-                "     RR.merchant_transaction_id" +
+                "     RR.merchant_transaction_id " +
                 "   FROM REFILL_REQUEST RR " +
                 "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
                 "     JOIN USER USER ON USER.id=RR.user_id " +
@@ -501,7 +504,6 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 dateFromClauseRefillRequest +
                 dateToClauseRefillRequest +
                 "  )  " +
-
                 "  UNION " +
                 "  (SELECT " +
                 "     WR.date_creation, " +
@@ -518,7 +520,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     WR.user_full_name, " +
                 "     WR.remark, " +
                 "     WR.admin_holder_id, " +
-                "     WR.transaction_hash" +
+                "     WR.transaction_hash " +
                 "   FROM WITHDRAW_REQUEST WR " +
                 "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
                 "     JOIN USER USER ON USER.id=WR.user_id " +
@@ -528,7 +530,6 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 dateFromClauseWithdrawRequest +
                 dateToClauseWithdrawRequest +
                 "  )  " +
-
                 "  UNION ALL " +
                 "  (SELECT " +
                 "     TR.date_creation, " +
@@ -545,12 +546,12 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL" +
+                "     NULL " +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
                 "     JOIN MERCHANT M ON M.id=TR.merchant_id " +
-                "   WHERE USER.email=:email /*AND*/ " + curId +
+                "   WHERE USER.email=:email " + curId +
                 dateFromClauseTransferwRequest +
                 dateToClauseTransferwRequest +
                 "  )  " +
@@ -570,7 +571,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL" +
+                "     NULL " +
                 "   FROM TRANSFER_REQUEST TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN USER USER ON USER.id=TR.user_id " +
@@ -596,7 +597,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "     NULL, " +
                 "     NULL, " +
                 "     NULL, " +
-                "     NULL" +
+                "     NULL " +
                 "   FROM TRANSACTION TR " +
                 "     JOIN CURRENCY CUR ON CUR.id=TR.currency_id " +
                 "     JOIN WALLET W ON W.id = TR.user_wallet_id AND W.currency_id = CUR.id " +
@@ -608,12 +609,14 @@ public class InputOutputDaoImpl implements InputOutputDao {
                 "  ORDER BY datetime DESC, operation_id DESC " + limitStr + offsetStr;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("email", email);
-        params.put("dateFrom", dateFrom);
-        params.put("dateTo", dateTo);
-        params.put("operation_type_id_list", operationTypesList);
-        if (currencyId > 0) {
-            params.put("currencyId", currencyId);
+        params.put("email", filter.getEmail());
+        params.put("dateFrom", filter.getDateFrom());
+        params.put("dateTo", filter.getDateTo());
+        params.put("operation_type_id_list", filter.getOperationTypes());
+        if (filter.getCurrencyId() > 0) {
+            params.put("currencyId", filter.getCurrencyId());
+        } else if (filter.getCurrencyId() == 0 && StringUtils.isNotBlank(filter.getCurrencyName())) {
+            params.put("currencyName", filter.getCurrencyName());
         }
 
         try {
