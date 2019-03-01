@@ -2319,6 +2319,7 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(3).setCellValue("Amount");
         headerRow.createCell(4).setCellValue("Type");
         headerRow.createCell(5).setCellValue("Address");
+        headerRow.createCell(6).setCellValue("Status");
 
         try {
             int index = 1;
@@ -2330,6 +2331,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(3, CellType.STRING).setCellValue("");
                 row.createCell(4, CellType.STRING).setCellValue("");
                 row.createCell(5, CellType.STRING).setCellValue("");
+                row.createCell(6, CellType.STRING).setCellValue("");
             } else {
                 for (MyInputOutputHistoryDto dto : transactions) {
                     Row row = sheet.createRow(index++);
@@ -2339,6 +2341,7 @@ public class OrderServiceImpl implements OrderService {
                     row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
                     row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
                     row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
+                    row.createCell(6, CellType.STRING).setCellValue(getValue(dto.getStatus()));
                 }
             }
 
