@@ -51,6 +51,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
+  private static final int TRANSACTION_LIMIT = 1000;
 
   @Autowired
   private ZMQ.Context zmqContext;
@@ -261,28 +262,30 @@ public class CoreWalletServiceImpl implements CoreWalletService {
       throw new BitcoinCoreException(e.getMessage());
     }
   }
-  
-  @Override
-  public List<BtcTransactionHistoryDto> listAllTransactions() {
-    try {
-      return btcdClient.listSinceBlock().getPayments().stream()
-              .map(payment -> {
-                BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-                dto.setTxId(payment.getTxId());
-                dto.setAddress(payment.getAddress());
-                dto.setBlockhash(payment.getBlockHash());
-                dto.setCategory(payment.getCategory().getName());
-                dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-                dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-                dto.setConfirmations(payment.getConfirmations());
-                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
-                return dto;
-              }).collect(Collectors.toList());
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+
+    @Override
+    public List<BtcTransactionHistoryDto> listAllTransactions() {
+        try {
+            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, 0);
+
+            return result.stream()
+                    .map(payment -> {
+                        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                        dto.setTxId(payment.getTxId());
+                        dto.setAddress(payment.getAddress());
+                        dto.setBlockhash(payment.getBlockHash());
+                        dto.setCategory(payment.getCategory().getName());
+                        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                        dto.setConfirmations(payment.getConfirmations());
+                        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(payment.getTime()), ZoneId.systemDefault()));
+                        return dto;
+                    }).collect(Collectors.toList());
+        } catch (BitcoindException | CommunicationException e) {
+            log.error(e);
+            throw new BitcoinCoreException(e.getMessage());
+        }
     }
-  }
 
 
     @Override
