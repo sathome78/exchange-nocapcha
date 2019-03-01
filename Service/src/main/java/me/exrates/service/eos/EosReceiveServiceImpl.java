@@ -20,7 +20,13 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 @Log4j2(topic = "eos_log")
@@ -34,11 +40,15 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     private static final String CURRENCY_NAME = "EOS";
 
     private static final String TRANSFER = "transfer";
+    private static final String EOSIO_ACCOUNT = "eosio.token";
+    private static final String EXECUTED = "executed";
 
     private String mainAccount = "";
 
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+
+    private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @PostConstruct
     private void init() {
@@ -46,27 +56,45 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         client = EosApiFactory.create("http://127.0.0.1:8900", //
                 "https://api.eosnewyork.io",//
                 "https://api.eosnewyork.io");
+        scheduler.scheduleAtFixedRate(this::checkRefills, 5, 5, TimeUnit.MINUTES);
     }
 
 
-    public void checkRefills() {
-        Block block = client.getBlock(loadLastBlock().toString());
-        List<Transaction> transactionList = Arrays.asList(block.getTransactions());
-        transactionList.forEach(p -> {
-            p.getTrx().ifPresent(s->{
-                List<io.jafka.jeos.core.common.Action> actions = s.getTransaction().getActions();
-                actions.forEach(a->{
-                    String operation = a.getName();
-                    if (operation.equalsIgnoreCase(TRANSFER)) {
-                        String data = String.valueOf(a.getData());
-
-
-                        System.out.println(data);
-
-                    }
-                });
+    private void checkRefills() {
+        long lastBlock = loadLastBlock();
+        long blockchainHeight = getLastBlockNum();
+        while (lastBlock < blockchainHeight) {
+            Block block = client.getBlock(String.valueOf(++lastBlock));
+            List<Transaction> transactionList = Arrays.asList(block.getTransactions());
+            transactionList.forEach(p -> {
+                if (p.getStatus().equals(EXECUTED)) {
+                    p.getTrx().ifPresent(s -> {
+                        List<io.jafka.jeos.core.common.Action> actions = s.getTransaction().getActions();
+                        actions.forEach(a -> {
+                            String operation = a.getName();
+                            if (operation.equalsIgnoreCase(TRANSFER) && a.getAccount().equals(EOSIO_ACCOUNT)) {
+                                EosDataDto dataDto = new EosDataDto((LinkedHashMap) a.getData());
+                                if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
+                                    processTransaction(dataDto, s.getId());
+                                }
+                            }
+                        });
+                    });
+                }
             });
-        });
+            saveLastBlock(lastBlock);
+        }
+    }
+
+    private long getLastBlockNum() {
+        return client.getChainInfo().getLastIrreversibleBlockNum();
+    }
+
+    private void processTransaction(EosDataDto dataDto, String hash) {
+        Map<String, String> map = new HashMap<>();
+        map.put("address", dataDto.getMemo());
+        map.put("hash", hash);
+        map.put("amount", dataDto.getAmount().toPlainString());
     }
 
 
@@ -91,19 +119,20 @@ public class EosReceiveServiceImpl implements EosReceiveService {
                 "https://api.eosnewyork.io");
         // ------------------------------------------------------------------------
 
-        Block block = client.getBlock("14643107");
+        /*Block block = client.getBlock("14643107");
         List<Transaction> transactionList = Arrays.asList(block.getTransactions());
-        transactionList.forEach(System.out::println);
         transactionList.forEach(p -> {
             p.getTrx().ifPresent(s->{
                 List<io.jafka.jeos.core.common.Action> actions = s.getTransaction().getActions();
                 actions.forEach(a->{
+                    System.out.println(a.getAccount());
                     String operation = a.getName();
                     if (operation.equalsIgnoreCase(TRANSFER)) {
                         EosDataDto dataDto = null;
                         try {
-                            dataDto = objectMapper.readValue(a.getData().toString(), EosDataDto.class);
-                        } catch (IOException e) {
+                            LinkedHashMap map = (LinkedHashMap) a.getData();
+                            dataDto = new EosDataDto(map);
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         System.out.println(dataDto);
@@ -111,6 +140,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
                 });
 
             });
-        });
+        });*/
+
+        System.out.println(client.getChainInfo());
     }
 }

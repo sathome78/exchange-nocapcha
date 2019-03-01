@@ -11,6 +11,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
+import me.exrates.service.util.CryptoUtils;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +65,7 @@ public class EosServiceImpl implements EosService {
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = "";
+        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 15);
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{

@@ -4,6 +4,7 @@ import lombok.Data;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 
 @Data
 public class EosDataDto {
@@ -21,14 +22,13 @@ public class EosDataDto {
     private String memo;
 
 
-  /*  public EosDataDto(String dataObject) {
-        System.out.println(dataObject);
-        JSONObject object = new JSONObject(dataObject);
-        String[] fullAmountString = object.getString("quantity").split(" ");
+    public EosDataDto(LinkedHashMap map) {
+        this.quantity = map.get("quantity").toString();
+        String[] fullAmountString = quantity.split(" ");
         this.amount = new BigDecimal(fullAmountString[0]);
         this.currency = fullAmountString[1];
-        this.fromAccount = object.getString("from");
-        this.toAccount = object.getString("to");
-        this.memo = object.getString("memo");
-    }*/
+        this.fromAccount = map.get("from").toString();
+        this.toAccount = map.get("to").toString();
+        this.memo = map.get("memo").toString();
+    }
 }
