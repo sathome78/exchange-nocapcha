@@ -5,10 +5,7 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.jdbc.OrderRowMapper;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
-import me.exrates.model.PagingData;
+import me.exrates.model.*;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -1048,7 +1045,7 @@ public class OrderDaoImpl implements OrderDao {
                 + createdBeforeStopLimit
                 + createdAfterStopLimit
                 + currencyNameClause
-                +") x " +
+                + ") x " +
                 orderClause + pageClause;
 
         Map<String, Object> params = new HashMap<>();
@@ -1112,7 +1109,7 @@ public class OrderDaoImpl implements OrderDao {
                     amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
                 }
                 orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("stop_prder_date_creation")) ? null : rs.getTimestamp("stop_prder_date_creation").toLocalDateTime());
+                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("stop_order_date_creation")) ? null : rs.getTimestamp("stop_order_date_creation").toLocalDateTime());
                 orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
                 orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -1938,6 +1935,15 @@ public class OrderDaoImpl implements OrderDao {
         String createdBefore = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation <= :dateBefore";
+        String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
+                ? StringUtils.EMPTY
+                : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
+        String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
+                ? StringUtils.EMPTY
+                : " AND STOP_ORDERS.date_creation >= :dateFrom";
+        String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
+                ? StringUtils.EMPTY
+                : " AND STOP_ORDERS.date_creation <= :dateBefore";
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
@@ -1966,6 +1972,23 @@ public class OrderDaoImpl implements OrderDao {
                 + currencyNameClause
                 + userFilterClause;
 
+        String sqlFresh = "SELECT " +
+                "       (SELECT COUNT(*) FROM EXORDERS " +
+                currencyPairClauseJoin +
+                " WHERE (status_id in (:statusId))" +
+                " AND (operation_type_id IN (:operation_type_id)) "
+                + createdAfter
+                + createdBefore
+                + currencyPairClauseWhere
+                + currencyNameClause
+                + userFilterClause + ") +" +
+                "       (SELECT COUNT(*) FROM STOP_ORDERS WHERE STOP_ORDERS.user_id = :user_id " +
+                createdAfterStopLimit +
+                createdBeforeStopLimit +
+                currencyPairClauseWhereStopLimit +
+                currencyNameClause + ") " +
+                "    AS SumCount";
+
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", filterDataDto.getUserId());
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
@@ -1982,7 +2005,7 @@ public class OrderDaoImpl implements OrderDao {
         if (isNotBlank(filterDataDto.getCurrencyName())) {
             params.put("currency_name", filterDataDto.getCurrencyName());
         }
-        return slaveJdbcTemplate.queryForObject(sql, params, Integer.TYPE);
+        return slaveJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
     }
 
     @SuppressWarnings("Duplicates")
