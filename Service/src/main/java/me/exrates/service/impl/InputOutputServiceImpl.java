@@ -10,6 +10,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -43,7 +44,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,11 +128,10 @@ public class InputOutputServiceImpl implements InputOutputService {
     }
 
     private void setAdditionalFields(List<MyInputOutputHistoryDto> inputOutputList, Locale locale) {
-        inputOutputList.forEach(e ->
-        {
-            e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-            e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
-            e.setAuthorisedUserId(e.getUserId());
+        inputOutputList.forEach(inout -> {
+            inout.setSummaryStatus(generateAndGetSummaryStatus(inout, locale));
+            inout.setButtons(generateAndGetButtonsSet(inout.getStatus(), null, false, locale));
+            inout.setAuthorisedUserId(inout.getUserId());
         });
     }
 
@@ -271,19 +270,23 @@ public class InputOutputServiceImpl implements InputOutputService {
     }
 
     @Override
-    public Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale) {
-        List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(email, 0,
-                0, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
+    public Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale) {
+        filter = filter.toBuilder()
+                .limit(0)
+                .offset(0)
+                .operationTypes(getOperationTypesList())
+                .build();
+        List<MyInputOutputHistoryDto> items = inputOutputDao.findMyInputOutputHistoryByOperationType(filter, locale);
         return items.size();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
-                                                                   LocalDate dateFrom, LocalDate dateTo,
-                                                                   int currencyId, Locale locale) {
-        List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(email, offset,
-                limit, dateFrom, dateTo, getOperationTypesList(), locale, currencyId);
+    public List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale) {
+        filter = filter.toBuilder()
+                .operationTypes(getOperationTypesList())
+                .build();
+        List<MyInputOutputHistoryDto> result = inputOutputDao.findMyInputOutputHistoryByOperationType(filter, locale);
         setAdditionalFields(result, locale);
         return result;
     }

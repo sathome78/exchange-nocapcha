@@ -1,6 +1,7 @@
 package me.exrates.ngService;
 
 import me.exrates.model.dto.BalanceFilterDataDto;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
@@ -26,13 +27,11 @@ public interface BalanceService {
 
     PagedResult<RefillPendingRequestDto> getPendingRequests(int offset, int limit, String currencyName, String email);
 
-    PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, int limit, int offset, int currencyId,
-                                                                   LocalDate dateFrom, LocalDate dateTo, Locale locale);
+    PagedResult<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
 
-    PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(String email, int limit, int offset, Locale locale);
+    PagedResult<MyInputOutputHistoryDto> getDefaultInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
 
-    List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(String email, int currencyId, LocalDate dateFrom,
-                                                                 LocalDate dateTo, Locale locale);
+    List<MyInputOutputHistoryDto> getUserInputOutputHistoryExcel(TransactionFilterDataDto filter, Locale locale);
 
     Map<String, BigDecimal> getBalancesSumInBtcAndUsd();
 }

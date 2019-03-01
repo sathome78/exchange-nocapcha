@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
 import me.exrates.dao.CommissionDao;
@@ -21,7 +20,30 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderFilterDataDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.SimpleOrderBookItem;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -2192,10 +2214,8 @@ public class OrderServiceImpl implements OrderService {
 
         int recordsCount = orderDao.getMyOrdersWithStateCount(filterDataDto);
 
-        List<OrderWideListDto> orders;
-        if (recordsCount == 0) {
-            orders = Lists.newArrayList();
-        } else {
+        List<OrderWideListDto> orders = Collections.emptyList();
+        if (recordsCount > 0) {
             orders = orderDao.getMyOrdersWithState(filterDataDto, locale);
         }
         return Pair.of(recordsCount, orders);
