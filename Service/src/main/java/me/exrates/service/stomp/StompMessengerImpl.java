@@ -11,6 +11,7 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ChartsCache;
+import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -175,6 +176,11 @@ public class StompMessengerImpl implements StompMessenger{
         result.forEach((k,v) -> {
             sendMessageToDestination("/app/statistics/".concat(k.getSubscribeChannel()), v);
         });
+    }
+
+    @Override
+    public void sendCpInfoMessage(String pairName, String message) {
+        sendMessageToDestination("/app/statistics/pairInfo/".concat(OpenApiUtils.transformCurrencyPairBack(pairName)), message);
     }
 
     @Override

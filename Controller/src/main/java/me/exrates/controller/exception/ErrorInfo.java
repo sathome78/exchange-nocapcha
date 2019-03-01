@@ -1,7 +1,7 @@
 package me.exrates.controller.exception;
 
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.NgResponseException;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;

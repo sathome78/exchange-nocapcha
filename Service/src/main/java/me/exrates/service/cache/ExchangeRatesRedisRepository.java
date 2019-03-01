@@ -23,7 +23,7 @@ public class ExchangeRatesRedisRepository {
     @Autowired
     public ExchangeRatesRedisRepository(RedisTemplate<String, Object> redisTemplate) {
         redisTemplate.setHashKeySerializer(new GenericToStringSerializer<>(Integer.class));
-        redisTemplate.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(ExOrderStatisticsShortByPairsDto.class));
+        redisTemplate.delete(key);
         ops = redisTemplate.opsForHash();
     }
 

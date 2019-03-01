@@ -16,7 +16,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;

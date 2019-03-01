@@ -154,7 +154,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type) {
-        return currencyDao.getAllCurrencyPairs(type);
+        return currencyDao.getAllCurrencyPairsWithHidden(type);
     }
 
     @Override
