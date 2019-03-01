@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
@@ -85,9 +86,11 @@ import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Repository
+        @Log4j2
 public class OrderDaoImpl implements OrderDao {
 
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
@@ -1923,30 +1926,47 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto) {
-        String currencyPairClauseJoin = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) ";
-        String currencyPairClauseWhere = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " AND EXORDERS.currency_pair_id = :currencyPairId ";
+        String currencyPairClauseWhere = StringUtils.EMPTY;
+        String currencyPairClauseWhereForStopLimit = StringUtils.EMPTY;
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 0) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
+            currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
+            currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
+        }
         String createdAfter = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation >= :dateFrom";
         String createdBefore = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND EXORDERS.date_creation <= :dateBefore";
-        String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
+
         String createdAfterStopLimit = isNull(filterDataDto.getDateFrom())
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.date_creation >= :dateFrom";
         String createdBeforeStopLimit = isNull(filterDataDto.getDateTo())
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.date_creation <= :dateBefore";
+
+        String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
+                ? StringUtils.EMPTY
+                : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
+
+        String currencyNameJoinClause = StringUtils.EMPTY;
+        String currencyNameJoinClauseForStopLimits = StringUtils.EMPTY;
+        String currencyNameConditionClause = StringUtils.EMPTY;
+        if (isNoneBlank(filterDataDto.getCurrencyName())) {
+            currencyNameJoinClause = " JOIN CURRENCY_PAIR ON EXORDERS.currency_pair_id = CURRENCY_PAIR.id ";
+            currencyNameConditionClause = " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currency_name_part)";
+            currencyNameJoinClauseForStopLimits = " JOIN CURRENCY_PAIR ON STOP_ORDERS.currency_pair_id = CURRENCY_PAIR.id ";
+        }
 
         String userFilterClause;
         switch (filterDataDto.getScope()) {
@@ -1963,18 +1983,18 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT COUNT(*)" +
                 " FROM EXORDERS " +
-                currencyPairClauseJoin +
+                currencyNameJoinClause +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
                 + createdAfter
                 + createdBefore
                 + currencyPairClauseWhere
-                + currencyNameClause
+                + currencyNameConditionClause
                 + userFilterClause;
 
         String sqlFresh = "SELECT " +
                 "       (SELECT COUNT(*) FROM EXORDERS " +
-                currencyPairClauseJoin +
+                currencyNameJoinClause +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) "
                 + createdAfter
@@ -1982,10 +2002,14 @@ public class OrderDaoImpl implements OrderDao {
                 + currencyPairClauseWhere
                 + currencyNameClause
                 + userFilterClause + ") +" +
-                "       (SELECT COUNT(*) FROM STOP_ORDERS WHERE STOP_ORDERS.user_id = :user_id " +
+                "       (SELECT COUNT(*) FROM STOP_ORDERS "+
+                currencyNameJoinClauseForStopLimits +
+                " WHERE (status_id in (:statusId))" +
+                " AND (operation_type_id IN (:operation_type_id)) " +
+                " WHERE STOP_ORDERS.user_id = :user_id " +
                 createdAfterStopLimit +
                 createdBeforeStopLimit +
-                currencyPairClauseWhereStopLimit +
+                currencyPairClauseWhereForStopLimit +
                 currencyNameClause + ") " +
                 "    AS SumCount";
 
@@ -1993,8 +2017,13 @@ public class OrderDaoImpl implements OrderDao {
         params.put("user_id", filterDataDto.getUserId());
         params.put("statusId", getListOrderStatus(filterDataDto.getStatus(), filterDataDto.getHideCanceled()));
         params.put("operation_type_id", Arrays.asList(3, 4));
-        if (nonNull(filterDataDto.getCurrencyPair())) {
+        if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() > 0) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
+        } else  if (nonNull(filterDataDto.getCurrencyPair())
+                && filterDataDto.getCurrencyPair().getId() == 0
+                && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
+            params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyPair().getName(), "%"));
         }
         if (nonNull(filterDataDto.getDateFrom())) {
             params.put("dateFrom", filterDataDto.getDateFrom());
@@ -2003,9 +2032,14 @@ public class OrderDaoImpl implements OrderDao {
             params.put("dateBefore", filterDataDto.getDateTo().plusDays(1));
         }
         if (isNotBlank(filterDataDto.getCurrencyName())) {
-            params.put("currency_name", filterDataDto.getCurrencyName());
+            params.put("currency_name_part", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyName(), "%"));
         }
-        return slaveJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
+        try {
+            return slaveJdbcTemplate.queryForObject(sqlFresh, params, Integer.TYPE);
+        } catch (EmptyResultDataAccessException ex) {
+            log.debug("Method 'OrderDaoImpl::getMyOrdersWithStateCount' did not return any result");
+            return 0;
+        }
     }
 
     @SuppressWarnings("Duplicates")
