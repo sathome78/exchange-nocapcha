@@ -1614,7 +1614,7 @@ public class OrderDaoImpl implements OrderDao {
                 "o.order_source_id " +
                 " FROM EXORDERS o" +
                 " JOIN CURRENCY_PAIR cp on o.currency_pair_id = cp.id" +
-                " WHERE o.user_id = :user_id AND cp.name = :currency_pair AND o.status_id = : status_id";
+                " WHERE o.user_id = :user_id AND cp.name = :currency_pair AND o.status_id = :status_id";
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
