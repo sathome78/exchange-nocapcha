@@ -51,7 +51,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
-  private static final int TRANSACTION_PER_REQUEST = 1000;
   private static final int TRANSACTION_LIMIT = 1000;
 
   @Autowired
@@ -267,15 +266,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         try {
-            int totalTransactions = 0;
-
-            List<Payment> payments;
-            for (int i = 0; (payments = btcdClient.listTransactions("", TRANSACTION_PER_REQUEST, i * TRANSACTION_PER_REQUEST)).size() > 0; i++) {
-                totalTransactions += payments.size();
-            }
-
-            int offset = totalTransactions > TRANSACTION_LIMIT ? totalTransactions - TRANSACTION_LIMIT : 0;
-            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, offset);
+            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, 0);
 
             return result.stream()
                     .map(payment -> {
