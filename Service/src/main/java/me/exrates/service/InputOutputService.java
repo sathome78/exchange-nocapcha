@@ -4,6 +4,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.CurrencyInputOutputSummaryDto;
 import me.exrates.model.dto.InOutReportDto;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -37,9 +38,7 @@ public interface InputOutputService {
     List<InOutReportDto> getInputOutputSummaryWithCommissions(LocalDateTime startTime, LocalDateTime endTime,
                                                               List<Integer> userRoleIdList);
 
-  Integer getUserInputOutputHistoryCount(String email, LocalDate dateFrom, LocalDate dateTo, int currencyId, Locale locale);
+  Integer getUserInputOutputHistoryCount(TransactionFilterDataDto filter, Locale locale);
 
-  List<MyInputOutputHistoryDto> getUserInputOutputHistory(String email, Integer offset, Integer limit,
-                                                          LocalDate dateFrom, LocalDate dateTo, int currencyId,
-                                                          Locale locale);
+  List<MyInputOutputHistoryDto> getUserInputOutputHistory(TransactionFilterDataDto filter, Locale locale);
 }
