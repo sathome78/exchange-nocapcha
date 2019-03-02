@@ -51,7 +51,7 @@
                     </li>
                     <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="https://news.demo.exrates.me/" />" target="_blank" class="nav__link">
+                <li><a href="<c:url value="https://news.exrates.me" />" target="_blank" class="nav__link">
                     <loc:message code="dashboard.news"/></a>
                 </li>
 
