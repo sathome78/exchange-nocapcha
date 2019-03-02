@@ -40,7 +40,7 @@
                     </a>
                 </li>
                 <li id="menu-traiding">
-                    <a class="nav__link" style="color: #d9dbff;" href="<c:url value='#'/>">ICO</a>
+                    <a class="nav__link" style="color: #d9dbff;" href="<c:url value='#'/>">IEO</a>
                 </li>
                 <li><a href="/dashboard" class="nav__link"><loc:message
                         code="dashboard.trading"/></a></li>
@@ -52,8 +52,8 @@
                     </li>
                     <li><a href="/dashboard?startupPage=orders" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="https://help.exrates.me/" />" target="_blank" class="nav__link">
-                    <loc:message code="dashboard.support"/></a>
+                <li><a href="<c:url value="https://news.demo.exrates.me/" />" target="_blank" class="nav__link">
+                    <loc:message code="dashboard.news"/></a>
                 </li>
 
                 <sec:authorize access="isAuthenticated()">
