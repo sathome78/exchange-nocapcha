@@ -37,6 +37,11 @@
                         Predictions
                     </a>
                 </li>
+                <li>
+                    <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
+                        IEO
+                    </a>
+                </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
                             code="dashboard.trading"/></a></li>
@@ -46,8 +51,8 @@
                     </li>
                     <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="https://help.exrates.me/" />" target="_blank" class="nav__link">
-                    <loc:message code="dashboard.support"/></a>
+                <li><a href="<c:url value="https://news.exrates.me" />" target="_blank" class="nav__link">
+                    <loc:message code="dashboard.news"/></a>
                 </li>
 
                 <sec:authorize access="isAuthenticated()">
