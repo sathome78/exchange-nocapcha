@@ -244,6 +244,8 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private StopOrderService stopOrderServiceImpl;
 
     @PostConstruct
     public void init() {
@@ -1290,8 +1292,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-
-        return cancelOrder(exOrder);
+        if (exOrder != null) {
+            return cancelOrder(exOrder);
+        } else {
+            return stopOrderServiceImpl.cancelOrder(orderId, null);
+        }
     }
 
     @Transactional

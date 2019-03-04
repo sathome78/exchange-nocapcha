@@ -20,6 +20,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.events.AcceptOrderEvent;
+import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NotCreatableOrderException;
 import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.StopOrderNoConditionException;
@@ -40,6 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.util.Objects.isNull;
 
 /**
  * Created by maks on 20.04.2017.
@@ -173,6 +176,19 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     public boolean cancelOrder(int orderId, Locale locale) {
         OrderCreateDto orderCreateDto = this.getOrderById(orderId, true);
+
+        if (isNull(locale)) {
+            final String currentUserEmail = getUserEmailFromSecurityContext();
+
+            final int userId = orderCreateDto.getUserId();
+
+            final String creatorEmail = userService.getEmailById(userId);
+            if (!currentUserEmail.equals(creatorEmail)) {
+                throw new IncorrectCurrentUserException(String.format("Creator email: %s and currentUser email: %s are different", creatorEmail, currentUserEmail));
+            }
+            locale = userService.getUserLocaleForMobile(currentUserEmail);
+        }
+
         if (orderCreateDto.getStatus() != OrderStatus.OPENED) {
             throw new OrderCancellingException(messageSource.getMessage("order.cannotcancel", null, locale));
         }
@@ -352,5 +368,9 @@ public class StopOrderServiceImpl implements StopOrderService {
     private void shutdown() {
         checkExecutors.shutdown();
         ordersExecutors.shutdown();
+    }
+
+    private String getUserEmailFromSecurityContext() {
+        return userService.getUserEmailFromSecurityContext();
     }
 }
