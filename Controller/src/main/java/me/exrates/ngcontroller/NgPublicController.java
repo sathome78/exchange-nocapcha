@@ -114,7 +114,8 @@ public class NgPublicController {
     }
 
     @GetMapping(value = "/if_email_exists")
-    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email) {
+    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
+        logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
             user = userService.findByEmail(email);
