@@ -17,4 +17,5 @@ public class TokenWrappersGenerator {
                 "-p",
                 "me.exrates.service.ethereum.ethTokensWrappers"});
     }
+
 }
