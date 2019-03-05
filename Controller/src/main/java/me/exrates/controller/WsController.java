@@ -7,6 +7,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
@@ -18,6 +19,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
+import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
@@ -55,7 +57,7 @@ public class WsController {
     private final DefaultSimpUserRegistry registry;
 
     @Autowired
-    public WsContorller(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, ChartsCacheManager chartsCacheManager, ChartsCache chartsCache, CpStatisticsHolder cpStatisticsHolder, DefaultSimpUserRegistry registry) {
+    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, ChartsCacheManager chartsCacheManager, ChartsCache chartsCache, CpStatisticsHolder cpStatisticsHolder, DefaultSimpUserRegistry registry) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.objectMapper = objectMapper;
@@ -110,6 +112,14 @@ public class WsController {
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
         return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
+    }
+
+    @SubscribeMapping("/all_trades/{pairName}")
+    public List<OrderAcceptedHistoryDto> subscribeAllTrades(@DestinationVariable String pairName) {
+        CurrencyPair cp = currencyService.getCurrencyPairByName(OpenApiUtils.transformCurrencyPair(pairName));
+        Preconditions.checkNotNull(cp);
+        return orderService.getOrderAcceptedForPeriodEx(null, new BackDealInterval("24 HOUR"),
+                25, cp, Locale.ENGLISH);
     }
 
     @SubscribeMapping("/charts/{currencyPairId}/{period}")
