@@ -825,6 +825,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM FIAT_PAIR" +
                 " WHERE ticker_name = :ticker_name";
 
-        return jdbcTemplate.queryForObject(sql, Collections.singletonMap("ticker_name", pairName), FiatPair.class);
+        return npJdbcTemplate.queryForObject(sql, Collections.singletonMap("ticker_name", pairName), FiatPair.class);
     }
 }
