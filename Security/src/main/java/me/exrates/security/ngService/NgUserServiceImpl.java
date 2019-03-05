@@ -54,6 +54,9 @@ public class NgUserServiceImpl implements NgUserService {
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
+    @Value("${front-host}")
+    private String host;
+
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
                              UserService userService,
@@ -265,8 +268,7 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     private String getHost() {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort();
+        return host;
     }
 
 }
