@@ -11,4 +11,4 @@ ALTER TABLE USER_VERIFICATION_INFO
   ADD CONSTRAINT pk_user_verification_info PRIMARY KEY (user_id, document_type);
 
 ALTER TABLE USER_VERIFICATION_INFO
-  ADD CONSTRAINT fk_user_id_on_user_verification_info FOREIGN KEY (user_id) REFERENCES USER(id) ON DELETE CASCADE;
+  ADD CONSTRAINT fk_user_verification_info FOREIGN KEY (user_id) REFERENCES USER(id) ON DELETE CASCADE;
