@@ -42,7 +42,7 @@ import java.util.Set;
 
 @Log4j2(topic = "ws_stomp_log")
 @Controller
-public class WsContorller {
+public class WsController {
 
     private final OrderService orderService;
     private final CurrencyService currencyService;
