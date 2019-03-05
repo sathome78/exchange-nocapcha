@@ -278,7 +278,7 @@ public class NgBalanceController {
                 .limit(limit)
                 .offset(offset)
                 .currencyId(0)
-                .currencyName(org.apache.commons.lang3.StringUtils.EMPTY)
+                .currencyName(StringUtils.EMPTY)
                 .dateFrom(null)
                 .dateTo(null)
                 .build();
