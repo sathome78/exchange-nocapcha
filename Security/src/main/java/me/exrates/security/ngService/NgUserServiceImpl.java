@@ -13,6 +13,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;

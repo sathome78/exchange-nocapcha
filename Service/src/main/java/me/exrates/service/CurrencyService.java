@@ -18,6 +18,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,6 +49,7 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
+    @Transactional(readOnly = true)
     BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
