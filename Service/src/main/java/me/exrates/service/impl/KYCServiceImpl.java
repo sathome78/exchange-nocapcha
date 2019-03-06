@@ -304,14 +304,12 @@ public class KYCServiceImpl implements KYCService {
             throw new KycException("Error while start processing KYC, state " + response.getState()
                     + " uid " + response.getUid() + " lastReportStatus " + response.getLastReportStatus());
         }
-
-        DocTypeEnum typeDoc = identityData.getTypeDoc();
         String docId = RandomStringUtils.random(18, true, false);
 
         String callBackUrl = String.format("https://exrates.me/api/public/v2/shufti-pro/webhook/%s", uuid);
 
-        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, typeDoc, docId);
-        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), typeDoc, docId));
+        RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
+        userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
 
         return kycHttpClient.createOnBoarding(onBoardingDto);
     }
