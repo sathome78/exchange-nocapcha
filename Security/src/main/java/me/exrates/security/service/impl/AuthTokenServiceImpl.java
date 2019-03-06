@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.service.impl;
 
 
 import io.jsonwebtoken.JwtBuilder;
@@ -14,6 +14,7 @@ import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.TokenException;
+import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.util.IpUtils;

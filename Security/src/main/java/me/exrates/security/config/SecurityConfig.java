@@ -4,7 +4,7 @@ import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.*;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
-import me.exrates.security.service.UserDetailsServiceImpl;
+import me.exrates.security.service.impl.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

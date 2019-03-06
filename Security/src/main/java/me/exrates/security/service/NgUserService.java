@@ -1,4 +1,4 @@
-package me.exrates.security.ngService;
+package me.exrates.security.service;
 
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;

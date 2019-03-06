@@ -7,6 +7,7 @@ import me.exrates.dao.ApiAuthTokenDao;
 import me.exrates.model.ApiAuthToken;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.security.exception.TokenException;
+import me.exrates.security.service.impl.AuthTokenServiceImpl;
 import me.exrates.service.SessionParamsService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

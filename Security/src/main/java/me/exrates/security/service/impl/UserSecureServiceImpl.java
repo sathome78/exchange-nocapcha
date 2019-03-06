@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.service.impl;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.PagingData;
@@ -6,6 +6,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.enums.UserRole;
+import me.exrates.security.service.UserSecureService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

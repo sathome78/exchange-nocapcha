@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OpenApiTokenDao;
@@ -7,6 +7,7 @@ import me.exrates.model.OpenApiToken;
 import me.exrates.security.exception.InvalidHmacSignatureException;
 import me.exrates.security.exception.InvalidTimestampException;
 import me.exrates.security.exception.TokenException;
+import me.exrates.security.service.OpenApiAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;

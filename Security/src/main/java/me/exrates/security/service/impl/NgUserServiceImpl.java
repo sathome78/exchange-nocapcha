@@ -1,4 +1,4 @@
-package me.exrates.security.ngService.impl;
+package me.exrates.security.service.impl;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
@@ -13,8 +13,8 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.security.ipsecurity.IpBlockingService;
-import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.NgUserService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TemporalTokenService;
