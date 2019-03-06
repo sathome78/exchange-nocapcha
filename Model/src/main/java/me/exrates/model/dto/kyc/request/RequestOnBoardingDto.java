@@ -40,6 +40,7 @@ public class RequestOnBoardingDto {
                 documentsToCapture.add(new DocumentToCapture(
                         docId, "Identity document", "Passport",
                         new String[]{"P"}));
+                break;
             default:
                 throw new KycException("Error initial identity document " + docTypeEnum);
         }

@@ -1,18 +1,13 @@
-DROP TABLE IF EXISTS USER_VERIFICATION_INFO ;
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE USER_VERIFICATION_INFO;
+SET FOREIGN_KEY_CHECKS=1;
 
-CREATE TABLE USER_VERIFICATION_INFO (
+CREATE TABLE IF NOT EXISTS USER_VERIFICATION_INFO (
   user_id INTEGER NOT NULL,
-  last_names VARCHAR(255),
-  first_names VARCHAR(255),
-  born date,
-  document_code VARCHAR(100),
-  document_type VARCHAR(100) NOT NULL,
-  image_encoded longblob,
-  details TEXT)
+  doc_type ENUM ('ID', 'P') DEFAULT 'P',
+  doc_id VARCHAR(55),
+  UNIQUE (user_id, doc_type))
   ENGINE = InnoDB;
 
 ALTER TABLE USER_VERIFICATION_INFO
-  ADD CONSTRAINT pk_user_verification_info PRIMARY KEY (user_id, document_type);
-
-ALTER TABLE WITHDRAW_REQUEST
-  ADD CONSTRAINT fk_user_id_on_user_verification_info FOREIGN KEY (user_id) REFERENCES USER(id) ON DELETE CASCADE;
+  ADD CONSTRAINT fk_user_id_on_user_verification_info FOREIGN KEY (user_id) REFERENCES USER(id);
