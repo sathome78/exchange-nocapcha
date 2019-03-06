@@ -1,18 +1,17 @@
-package me.exrates.ngcontroller.service;
+package me.exrates.security.ngService;
 
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
-import me.exrates.model.enums.TokenType;
-import me.exrates.ngcontroller.model.PasswordCreateDto;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
 
 public interface NgUserService {
-
+    @Transactional(rollbackFor = Exception.class)
     boolean registerUser(UserEmailDto userEmailDto, HttpServletRequest request);
 
+    @Transactional(rollbackFor = Exception.class)
     AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
 
     boolean recoveryPassword(UserEmailDto userEmailDto, HttpServletRequest request);
@@ -21,10 +20,9 @@ public interface NgUserService {
 
     boolean validateTempToken(String token);
 
-    void sendEmailDisable2Fa(String email);
+    void sendEmailDisable2Fa(String userEmail);
 
-    void sendEmailEnable2Fa(String email);
+    void sendEmailEnable2Fa(String userEmail);
 
     void resendEmailForFinishRegistration(User user);
-
 }

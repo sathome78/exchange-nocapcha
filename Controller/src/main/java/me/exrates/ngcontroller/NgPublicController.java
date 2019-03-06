@@ -26,7 +26,6 @@ import me.exrates.ngcontroller.exception.NgResponseException;
 import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
 import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;

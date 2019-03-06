@@ -12,7 +12,6 @@ import me.exrates.ngcontroller.exception.NgDashboardException;
 import me.exrates.ngcontroller.exception.NgResponseException;
 import me.exrates.ngcontroller.model.PasswordCreateDto;
 import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -50,8 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 

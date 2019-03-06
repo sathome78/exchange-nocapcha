@@ -1,4 +1,4 @@
-package me.exrates.ngcontroller.service.impl;
+package me.exrates.security.ngService.impl;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
@@ -10,10 +10,8 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.PasswordCreateDto;
-import me.exrates.ngcontroller.service.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -55,6 +53,9 @@ public class NgUserServiceImpl implements NgUserService {
     @Value("${dev.mode}")
     private boolean DEV_MODE;
 
+    @Value("${front-host}")
+    private String host;
+
     @Autowired
     public NgUserServiceImpl(UserDao userDao,
                              UserService userService,
@@ -92,6 +93,7 @@ public class NgUserServiceImpl implements NgUserService {
             return false;
         }
 
+
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
@@ -107,7 +109,7 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
+    public AuthTokenDto createPassword(UserEmailDto passwordCreateDto, HttpServletRequest request) {
         String tempToken = passwordCreateDto.getTempToken();
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
@@ -116,7 +118,7 @@ public class NgUserServiceImpl implements NgUserService {
         }
 
         String password = RestApiUtils.decodePassword(passwordCreateDto.getPassword());
-        user.setUserStatus(UserStatus.ACTIVE);
+        user.setStatus(UserStatus.ACTIVE);
         UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
         updateUserDto.setEmail(user.getEmail());
         updateUserDto.setPassword(password);
@@ -161,7 +163,7 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     @Override
-    public boolean createPasswordRecovery(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
+    public boolean createPasswordRecovery(String passwordCreateDto, HttpServletRequest request) {
         String tempToken = passwordCreateDto.getTempToken();
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
@@ -188,6 +190,7 @@ public class NgUserServiceImpl implements NgUserService {
 
         return temporalTokenService.updateTemporalToken(temporalToken);
     }
+
 
     @Override
     public void sendEmailDisable2Fa(String userEmail) {
@@ -256,7 +259,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        host + "/" +  confirmationUrl +
+                        host + "/" + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
@@ -266,8 +269,8 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     private String getHost() {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort();
+        return host;
     }
+}
 
 }
