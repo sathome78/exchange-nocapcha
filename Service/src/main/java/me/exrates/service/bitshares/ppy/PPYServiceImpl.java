@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
+import java.io.IOException;
 
 
 @ClientEndpoint
@@ -12,9 +13,10 @@ import javax.websocket.*;
 public class PPYServiceImpl extends BitsharesServiceImpl {
 
     private static final String name = "PPY";
+    private static final int DECIMAL = 5;
 
     public PPYServiceImpl() {
-        super(name, name, "merchants/ppy.properties", 6);
+        super(name, name, "merchants/ppy.properties", 6, DECIMAL);
     }
 
     @OnMessage
@@ -31,8 +33,7 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
 
     }
 
-    @Override
-    protected void setIrreversableBlock(String msg) {
+    private void setIrreversableBlock(String msg) throws IOException {
         JSONObject message = new JSONObject(msg);
         int blockNumber = message.getJSONArray("params").getJSONArray(1).getJSONArray(0).getJSONObject(3).getInt(lastIrreversebleBlockParam);
         synchronized (this) {
