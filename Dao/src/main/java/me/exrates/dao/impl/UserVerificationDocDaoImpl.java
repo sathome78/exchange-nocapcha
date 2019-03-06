@@ -22,7 +22,7 @@ public class UserVerificationDocDaoImpl implements UserVerificationInfoDao {
     @Override
     public UserVerificationInfo saveUserVerificationDoc(UserVerificationInfo userVerificationDoc) {
 
-        String sql = "INSERT INTO USER_VERIFICATION_INFO (user_id, document_type, doc_id) " +
+        String sql = "INSERT INTO USER_VERIFICATION_INFO (user_id, doc_type, doc_id) " +
                 "VALUES (:user_id, :document_type, :doc_id)";
 
         Map<String, Object> params = new HashMap<String, Object>() {
