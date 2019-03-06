@@ -350,7 +350,7 @@ public abstract class BitsharesServiceImpl implements BitsharesService {
             else if (isIrreversibleBlockInfo(msg)) processIrreversebleBlock(msg);
             else log.info("unrecogrinzed msg from " + merchantName + "\n" + msg);
         } catch (Exception e) {
-            log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
+//            log.error("Web socket error" + merchantName + "  : \n" + e.getMessage());
         }
 
     }
