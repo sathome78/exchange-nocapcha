@@ -21,11 +21,12 @@ import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.NgResponseException;
-import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.ngService.NgOrderService;
+import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.ChatService;
@@ -113,7 +114,8 @@ public class NgPublicController {
     }
 
     @GetMapping(value = "/if_email_exists")
-    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email) {
+    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
+        logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
             user = userService.findByEmail(email);

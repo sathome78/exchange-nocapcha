@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.FiatPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -113,9 +114,13 @@ public interface CurrencyDao {
 
     void updateWithdrawLimits(List<CurrencyLimit> currencyLimits);
 
-    List<Currency> getCurrencies(MerchantProcessType ... processType);
+    List<Currency> getCurrencies(MerchantProcessType... processType);
 
     List<CurrencyPair> findAllCurrenciesByFirstPartName(String partName);
 
     List<CurrencyPair> findAllCurrenciesBySecondPartName(String partName);
+
+    List<FiatPair> getAllFiatPairs();
+
+    FiatPair getFiatPairByName(String pairName);
 }

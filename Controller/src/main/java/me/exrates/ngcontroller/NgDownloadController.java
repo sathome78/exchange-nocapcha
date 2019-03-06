@@ -1,13 +1,15 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.ngcontroller.service.BalanceService;
+import me.exrates.ngService.BalanceService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -78,18 +80,25 @@ public class NgDownloadController {
         }
     }
 
-    //  apiUrl/info/private/v2/download/inputOutputData/excel?&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    //  apiUrl/info/private/v2/download/inputOutputData/excel?&currencyId=0&currencyName=&dateFrom=2018-11-21&dateTo=2018-11-26
     @GetMapping(value = "/inputOutputData/excel")
     public void getMyInputOutputDataToExcel(
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request, HttpServletResponse response) {
-        String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
+
+        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
+                .email(getPrincipalEmail())
+                .currencyId(currencyId)
+                .currencyName(currencyName)
+                .dateFrom(dateFrom)
+                .dateTo(dateTo)
+                .build();
         try {
-            List<MyInputOutputHistoryDto> transactions =
-                    balanceService.getUserInputOutputHistoryExcel(email, currencyId, dateFrom, dateTo, locale);
+            List<MyInputOutputHistoryDto> transactions = balanceService.getUserInputOutputHistoryExcel(filter, locale);
 
             orderService.getTransactionExcelFile(transactions, response);
 

@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CallBackLogDao;
 import me.exrates.dao.CommissionDao;
@@ -21,7 +20,30 @@ import me.exrates.model.UserRoleSettings;
 import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderDetailDto;
+import me.exrates.model.dto.OrderFilterDataDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.SimpleOrderBookItem;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -49,6 +71,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderDeleteStatus;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.TransactionSourceType;
@@ -92,6 +115,7 @@ import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
@@ -222,6 +246,8 @@ public class OrderServiceImpl implements OrderService {
     private ChartsCacheManager chartsCacheManager;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private StopOrderService stopOrderServiceImpl;
 
     @PostConstruct
     public void init() {
@@ -1237,7 +1263,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
-
         return cancelOrder(exOrder);
     }
 
@@ -1849,17 +1874,19 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
+    public BiTuple<String, String> getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum) {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
         List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(email,
                 new BackDealInterval("24 HOUR"),
-                100,
+                50,
                 cp,
                 Locale.ENGLISH);
         try {
-            return new JSONArray() {{
+            String responseForOldFront = new JSONArray() {{
                 put(objectMapper.writeValueAsString(new OrdersListWrapper(dtos, refreshObjectEnum.name(), pairId)));
             }}.toString();
+            String dtosOnly = objectMapper.writeValueAsString(dtos);
+            return new BiTuple(dtosOnly, responseForOldFront);
         } catch (JsonProcessingException e) {
             log.error(e);
             return null;
@@ -1871,7 +1898,7 @@ public class OrderServiceImpl implements OrderService {
         CurrencyPair cp = currencyService.findCurrencyPairById(pairId);
         List<OrderAcceptedHistoryDto> dtos = this.getOrderAcceptedForPeriodEx(null,
                 new BackDealInterval("24 HOUR"),
-                100,
+                50,
                 cp,
                 Locale.ENGLISH);
         JSONArray jsonArray = new JSONArray() {{
@@ -1880,7 +1907,7 @@ public class OrderServiceImpl implements OrderService {
         if (principal != null) {
             List<OrderAcceptedHistoryDto> myDtos = this.getOrderAcceptedForPeriodEx(principal.getName(),
                     new BackDealInterval("24 HOUR"),
-                    100,
+                    50,
                     cp,
                     Locale.ENGLISH);
             jsonArray.put(objectMapper.writeValueAsString(new OrdersListWrapper(myDtos, RefreshObjectsEnum.MY_TRADES.name(), pairId)));
@@ -2161,10 +2188,8 @@ public class OrderServiceImpl implements OrderService {
 
         int recordsCount = orderDao.getMyOrdersWithStateCount(filterDataDto);
 
-        List<OrderWideListDto> orders;
-        if (recordsCount == 0) {
-            orders = Lists.newArrayList();
-        } else {
+        List<OrderWideListDto> orders = Collections.emptyList();
+        if (recordsCount > 0) {
             orders = orderDao.getMyOrdersWithState(filterDataDto, locale);
         }
         return Pair.of(recordsCount, orders);
@@ -2268,6 +2293,7 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(3).setCellValue("Amount");
         headerRow.createCell(4).setCellValue("Type");
         headerRow.createCell(5).setCellValue("Address");
+        headerRow.createCell(6).setCellValue("Status");
 
         try {
             int index = 1;
@@ -2279,6 +2305,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(3, CellType.STRING).setCellValue("");
                 row.createCell(4, CellType.STRING).setCellValue("");
                 row.createCell(5, CellType.STRING).setCellValue("");
+                row.createCell(6, CellType.STRING).setCellValue("");
             } else {
                 for (MyInputOutputHistoryDto dto : transactions) {
                     Row row = sheet.createRow(index++);
@@ -2288,6 +2315,7 @@ public class OrderServiceImpl implements OrderService {
                     row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
                     row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
                     row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
+                    row.createCell(6, CellType.STRING).setCellValue(getValue(dto.getStatus()));
                 }
             }
 
@@ -2370,6 +2398,39 @@ public class OrderServiceImpl implements OrderService {
                     new BigDecimal(marketStatistic.getPredLastOrderRate())));
         }
         return dto;
+    }
+
+    @Override
+    public Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList) {
+        final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+        List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
+                .stream()
+                .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
+                .collect(Collectors.toList());
+        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
+        Map<PrecissionsEnum, String> result = new HashMap<>();
+        precissionsList.forEach(p->{
+            try {
+                List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, p.getValue());
+                OrderBookWrapperDto dto = OrderBookWrapperDto
+                        .builder()
+                        .orderType(orderType)
+                        .orderBookItems(simpleOrderBookItems)
+                        .total(getWrapperTotal(simpleOrderBookItems))
+                        .build();
+                if (marketStatistic != null) {
+                    dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
+                    dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                    dto.setPositive(safeCompareBigDecimals(
+                            new BigDecimal(marketStatistic.getLastOrderRate()),
+                            new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                }
+                result.put(p, objectMapper.writeValueAsString(dto));
+            } catch (Exception e) {
+                log.error(e);
+            }
+        });
+        return result;
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {

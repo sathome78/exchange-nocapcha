@@ -1,5 +1,6 @@
 package me.exrates.service.stomp;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.enums.OperationType;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface StompMessenger {
 
-    void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType);
+    void sendRefreshTradeOrdersMessage(CurrencyPair currencyPair, OperationType operationType);
 
     void sendRefreshTradeOrdersDetailMessage(String pairName, String message);
 
@@ -18,7 +19,7 @@ public interface StompMessenger {
 
     void sendMyTradesToUser(int userId, Integer currencyPair);
 
-    void sendAllTrades(Integer currencyPair);
+    void sendAllTrades(CurrencyPair currencyPair);
 
     void sendChartData(Integer currencyPairId);
 
@@ -27,6 +28,8 @@ public interface StompMessenger {
     List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId);
 
     void sendStatisticMessage(List<Integer> currenciesIds);
+
+    void sendCpInfoMessage(String pairName, String message);
 
     void sendEventMessage(String sessionId, String message);
 

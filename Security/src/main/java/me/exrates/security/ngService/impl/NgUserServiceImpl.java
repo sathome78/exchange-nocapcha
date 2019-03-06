@@ -10,6 +10,8 @@ import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ngService.NgUserService;
 import me.exrates.security.service.AuthTokenService;
@@ -109,7 +111,7 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public AuthTokenDto createPassword(UserEmailDto passwordCreateDto, HttpServletRequest request) {
+    public AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
         String tempToken = passwordCreateDto.getTempToken();
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
@@ -163,7 +165,7 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     @Override
-    public boolean createPasswordRecovery(String passwordCreateDto, HttpServletRequest request) {
+    public boolean createPasswordRecovery(PasswordCreateDto passwordCreateDto, HttpServletRequest request) {
         String tempToken = passwordCreateDto.getTempToken();
         User user = userService.getUserByTemporalToken(tempToken);
         if (user == null) {
@@ -271,6 +273,4 @@ public class NgUserServiceImpl implements NgUserService {
     private String getHost() {
         return host;
     }
-}
-
 }

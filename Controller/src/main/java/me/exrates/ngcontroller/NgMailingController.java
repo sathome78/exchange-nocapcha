@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.mail.ListingRequest;
-import me.exrates.ngcontroller.exception.ValidationException;
+import me.exrates.model.ngExceptions.ValidationException;
 import me.exrates.service.SendMailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

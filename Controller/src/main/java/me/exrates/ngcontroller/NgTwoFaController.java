@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import me.exrates.model.User;
 import me.exrates.model.dto.Generic2faResponseDto;
+import me.exrates.security.ngService.NgUserService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.G2faService;
 import org.apache.logging.log4j.LogManager;

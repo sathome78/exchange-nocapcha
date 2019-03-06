@@ -16,7 +16,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -164,6 +164,7 @@ public class NgWithdrawController {
         String email = getPrincipalEmail();
         try {
             OperationType operationType = OUTPUT;
+
             Currency currency = currencyService.findByName(currencyName);
             Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
             UserRole userRole = userService.getUserRoleFromSecurityContext();
@@ -187,12 +188,14 @@ public class NgWithdrawController {
             }
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
+
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
                     .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
+                    .maxDailyRequestSum(maxDailyRequestSum)
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)

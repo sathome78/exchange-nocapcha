@@ -59,7 +59,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/balances User Balances
      * @apiName User Balances
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Returns array of wallet objects
      * @apiParamExample Request Example:
@@ -78,7 +78,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/orders/open?currency_pair User's open orders
      * @apiName Open orders
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Returns collection of user open orders
      * @apiParam {String} currency_pair Name of currency pair (optional)
@@ -107,7 +107,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/orders/closed?currency_pair&limit&offset User's closed orders
      * @apiName Closed orders
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Returns collection of user closed orders sorted by creation time
      * @apiParam {String} currency_pair Name of currency pair (optional)
@@ -140,7 +140,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/orders/canceled?currency_pair&limit&offset User's canceled orders
      * @apiName Canceled orders
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Returns collection of user canceled orders sorted by creation time
      * @apiParam {String} currency_pair Name of currency pair (optional)
@@ -173,7 +173,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/commissions User’s commission rates
      * @apiName Commissions
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Returns info on user’s commission rates
      * (as per cent - for example, 0.5 rate means 0.5% of amount) by operation type.
@@ -195,7 +195,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/history/{currency_pair}/trades?from_date&to_date&limit User trade history
      * @apiName User Trade History
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Provides collection of user trade info objects
      * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
@@ -236,7 +236,7 @@ public class OpenApiUserInfoController {
     /**
      * @api {get} /openapi/v1/user/history/{order_id}/transactions Order transactions history
      * @apiName Order transactions history
-     * @apiGroup User API
+     * @apiGroup 3_User API
      * @apiPermission NonPublicAuth
      * @apiDescription Provides collection of user transactions info objects
      * @apiParamExample Request Example:

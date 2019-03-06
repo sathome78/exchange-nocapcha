@@ -14,6 +14,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -71,6 +72,8 @@ public class OrdersEventHandleService {
     private ObjectMapper objectMapper;
     @Autowired
     private DefaultSimpUserRegistry registry;
+    @Autowired
+    private CpStatisticsHolder cpStatisticsHolder;
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -150,6 +153,7 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+        cpStatisticsHolder.onOrderAccept(order.getCurrencyPairId());
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -268,7 +272,7 @@ public class OrdersEventHandleService {
                     .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
             handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
         } catch (Exception e) {
-            log.error(e);
+            log.error("error handleOrdersDetailed() {}", e);
         }
     }
 
@@ -285,7 +289,7 @@ public class OrdersEventHandleService {
                 handler.addToQueueForSend(new OrderWsDetailDto(exOrder, orderEvent), exOrder.getUserAcceptorId());
             }
         } catch (Exception e) {
-           log.error(e);
+           log.error("ERROR handlePersonalOrders {}", e);
         }
     }
 
