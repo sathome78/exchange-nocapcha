@@ -4,7 +4,7 @@ DELIMITER $$
 CREATE PROCEDURE `Alter_Table`()
 BEGIN
 
-    IF NOT EXISTS( SELECT NULL
+    IF EXISTS( SELECT NULL
             FROM INFORMATION_SCHEMA.COLUMNS
            WHERE table_name = 'USER'
              AND table_schema = 'birzha'
