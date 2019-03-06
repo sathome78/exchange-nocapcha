@@ -609,6 +609,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="crea" fileName="${sys:catalina.home}/logs/crypto/crea.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/crea%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ppy" fileName="${sys:catalina.home}/logs/crypto/ppy.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ppy%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -909,6 +918,9 @@
         </logger>
         <logger name="aunit" level="ALL" additivity="false">
             <AppenderRef ref="aunit"/>
+        </logger>
+        <logger name="crea" level="ALL" additivity="false">
+            <AppenderRef ref="crea"/>
         </logger>
         <logger name="ppy" level="ALL" additivity="false">
             <AppenderRef ref="ppy"/>
