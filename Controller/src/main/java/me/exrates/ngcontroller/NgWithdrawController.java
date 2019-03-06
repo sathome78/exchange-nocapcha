@@ -13,6 +13,7 @@ import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngcontroller.exception.NgDashboardException;
@@ -58,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
@@ -106,23 +108,7 @@ public class NgWithdrawController {
         this.merchantServiceContext = merchantServiceContext;
     }
 
-    // POST: /info/private/v2/balances/withdraw/request/create
-    // model:
-//    {
-//       currency: number,
-//       merchant: number,
-//       sum: string,
-//       destination: string,
-//       destinationTag: string,
-//       merchantImage: number,
-//       operationType: string,
-//       recipientBankName: string,
-//       recipientBankCode: string,
-//       userFullName: string,
-//       remark: string,
-//       walletNumber: string
-//       securityCode: string
-//    }
+    // POST: /api/private/v2/balances/withdraw/request/create
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
     public ResponseEntity<Map<String, String>> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
@@ -180,7 +166,11 @@ public class NgWithdrawController {
             OperationType operationType = OUTPUT;
             Currency currency = currencyService.findByName(currencyName);
             Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
-            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
+            UserRole userRole = userService.getUserRoleFromSecurityContext();
+
+            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
+            BigDecimal maxDailyRequestSum = currencyService.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currency.getId());
+
             Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
             List<Integer> currenciesId = Collections.singletonList(currency.getId());
             List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
@@ -199,7 +189,7 @@ public class NgWithdrawController {
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
-                    .activeBalance(wallet == null ? BigDecimal.ZERO : wallet.getActiveBalance())
+                    .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
@@ -208,8 +198,8 @@ public class NgWithdrawController {
                     .warningCodeList(warningCodeList)
                     .build();
             return ResponseEntity.ok(withdrawDataDto);
-        } catch (Exception e) {
-            logger.error("outputCredits e {}", e);
+        } catch (Exception ex) {
+            logger.error("outputCredits error:", ex);
             return ResponseEntity.badRequest().build();
         }
     }
