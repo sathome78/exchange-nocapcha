@@ -88,4 +88,4 @@ FROM CURRENCY cur
 WHERE cur.name IN ('CREA');
 
 INSERT IGNORE INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-((SELECT id FROM MERCHANT WHERE name = 'CREA'), 'last_irreversible_block_num', 17536392);
+((SELECT id FROM MERCHANT WHERE name = 'CREA'), 'last_irreversible_block_num', 371192);
