@@ -58,6 +58,7 @@ public class CurrencyStatisticsHandler {
             }
         } catch (Exception e) {
             log.error(e);
+        } finally {
             semaphoreMain.release();
             if(lock.isLocked()) {
                 lock.unlock();

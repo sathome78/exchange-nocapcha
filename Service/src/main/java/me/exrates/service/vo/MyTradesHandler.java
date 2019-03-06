@@ -57,9 +57,10 @@ public class MyTradesHandler {
                 Thread.sleep(LATENCY);
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
+            } finally {
+                semaphore.release();
+                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
             }
-            semaphore.release();
-            stompMessenger.sendMyTradesToUser(userId, currencyPairId);
         }
     }
 

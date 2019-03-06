@@ -45,7 +45,27 @@ public class ExchangeApi {
     public Map<String, Pair<BigDecimal, BigDecimal>> getRates() {
         ResponseEntity<ExchangeData> responseEntity;
         try {
-            responseEntity = restTemplate.getForEntity(url, ExchangeData.class);
+            responseEntity = restTemplate.getForEntity(url + "/all", ExchangeData.class);
+            if (responseEntity.getStatusCodeValue() != 200) {
+                throw new ExchangeApiException("Exchange server is not available");
+            }
+        } catch (Exception ex) {
+            log.warn("Exchange service did not return valid data: server not available");
+            return Collections.emptyMap();
+        }
+        ExchangeData body = responseEntity.getBody();
+        return nonNull(body) && nonNull(body.rates) && !body.rates.isEmpty()
+                ? body.rates.entrySet().stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        entry -> Pair.of(BigDecimal.valueOf(entry.getValue().usdRate), BigDecimal.valueOf(entry.getValue().btcRate))))
+                : Collections.emptyMap();
+    }
+
+    public Map<String, Pair<BigDecimal, BigDecimal>> getRatesByCurrencyType(String type) {
+        ResponseEntity<ExchangeData> responseEntity;
+        try {
+            responseEntity = restTemplate.getForEntity(String.format(url + "/type/%s", type), ExchangeData.class);
             if (responseEntity.getStatusCodeValue() != 200) {
                 throw new ExchangeApiException("Exchange server is not available");
             }
