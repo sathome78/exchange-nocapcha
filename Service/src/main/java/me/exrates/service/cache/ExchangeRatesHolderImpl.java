@@ -106,8 +106,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             if (ratesRedisRepository.exist(pairId)) {
                 dto = ratesRedisRepository.get(pairId);
 
-
-
                 final BigDecimal preLastOrderRate = nonNull(dto.getLastOrderRate())
                         ? new BigDecimal(dto.getLastOrderRate())
                         : lastOrderRate;
