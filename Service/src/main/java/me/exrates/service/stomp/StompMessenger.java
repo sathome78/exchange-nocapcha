@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface StompMessenger {
 
-    void sendRefreshTradeOrdersMessage(Integer pairId, OperationType operationType);
+    void sendRefreshTradeOrdersMessage(CurrencyPair currencyPair, OperationType operationType);
 
     void sendRefreshTradeOrdersDetailMessage(String pairName, String message);
 
