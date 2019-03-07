@@ -25,6 +25,8 @@ CREATE PROCEDURE `Alter_Table`()
   END $$
 DELIMITER ;
 
+CALL Alter_Table();
+
 DROP PROCEDURE `Alter_Table`;
 
 UPDATE CURRENCY SET scale = 2 WHERE id IN (1, 2, 3, 7, 8, 10, 11, 12, 13, 17, 18, 20);
