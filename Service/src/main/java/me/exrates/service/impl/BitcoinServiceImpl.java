@@ -23,6 +23,10 @@ import me.exrates.model.dto.merchants.btc.BtcPaymentResultDto;
 import me.exrates.model.dto.merchants.btc.BtcPreparedTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcTransactionDto;
 import me.exrates.model.dto.merchants.btc.BtcWalletPaymentItemDto;
+import me.exrates.model.PagingData;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.merchants.btc.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
@@ -44,6 +48,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -129,10 +134,10 @@ public class BitcoinServiceImpl implements BitcoinService {
         this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, true);
     }
 
-    public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
-                              Boolean rawTxEnabled, Boolean supportSubtractFee) {
-        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
-    }
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
+  }
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                               Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
@@ -464,17 +469,19 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
 
   @Override
-  public List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException {
+  public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams) throws BitcoindException, CommunicationException{
+      Integer start = Integer.parseInt(tableParams.getOrDefault("start", "0"));
+      Integer length = Integer.parseInt(tableParams.getOrDefault("length", "10"));
+      String searchValue = tableParams.get("search[value]");
 
-    List<BtcTransactionHistoryDto> result = new ArrayList<>();
-    List<BtcTransactionHistoryDto> transactions;
+      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(start, length, searchValue);
 
-    for (int i = 0; (transactions = bitcoinWalletService.getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
-      List<BtcTransactionHistoryDto> matches = transactions.stream().filter(e -> e.getAddress().equals(value) || e.getBlockhash().equals(value) || e.getTxId().equals(value)).collect(Collectors.toList());
-      result.addAll(matches);
-    }
+      DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
+      output.setData(searchResult.getData());
+      output.setRecordsTotal(searchResult.getTotal());
+      output.setRecordsFiltered(searchResult.getFiltered());
 
-    return result;
+    return output;
   }
 
   @Override
