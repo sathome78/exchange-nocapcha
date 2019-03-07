@@ -170,7 +170,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @Override
     public Map<Integer, String> getRatesForMarket(TradeMarket market) {
         return getAllRates().stream()
-                .filter(p -> p.getMarket().equals(market.name()))
+                .filter(p -> p.getMarket() != null && p.getMarket().equals(market.name()))
                 .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrency1Id, ExOrderStatisticsShortByPairsDto::getLastOrderRate, (oldValue, newValue) -> oldValue));
     }
 
