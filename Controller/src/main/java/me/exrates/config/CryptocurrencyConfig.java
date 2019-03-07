@@ -430,7 +430,7 @@ public class CryptocurrencyConfig {
     //Bitshares
     @Bean(name = "creaServiceImpl")
     public BitsharesService bitsharesService(){
-        return new CreaServiceImpl("CREA", "CREA", "merchants/crea.properties", 0, 3);
+        return new CreaServiceImpl("CREA", "CREA", "merchants/crea.properties", 6, 3);
     }
 }
 
