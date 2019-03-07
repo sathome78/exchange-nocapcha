@@ -12,6 +12,7 @@ import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +91,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
-            log.error(e);
+            log.error(ExceptionUtils.getFullStackTrace(e));
             authentication.setAuthenticated(false);
         }
     }

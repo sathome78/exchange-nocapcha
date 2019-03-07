@@ -1,4 +1,4 @@
-package me.exrates.security.service;
+package me.exrates.security.service.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ObjectArrays;
@@ -12,6 +12,7 @@ import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
+import me.exrates.security.service.SecureService;
 import me.exrates.service.UserService;
 import me.exrates.service.notifications.NotificationMessageService;
 import me.exrates.service.notifications.NotificationsSettingsService;

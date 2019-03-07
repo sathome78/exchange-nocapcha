@@ -12,7 +12,7 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.model.ngModel.response.ResponseModel;
-import me.exrates.security.ngService.NgUserService;
+import me.exrates.security.service.NgUserService;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.ipsecurity.IpBlockingService;

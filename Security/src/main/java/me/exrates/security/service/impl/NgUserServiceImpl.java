@@ -1,4 +1,4 @@
-package me.exrates.security.ngService;
+package me.exrates.security.service.impl;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
@@ -14,6 +14,7 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.PasswordCreateDto;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
+import me.exrates.security.service.NgUserService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TemporalTokenService;
@@ -93,6 +94,7 @@ public class NgUserServiceImpl implements NgUserService {
         if (!(userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp()))) {
             return false;
         }
+
 
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
@@ -191,6 +193,7 @@ public class NgUserServiceImpl implements NgUserService {
         return temporalTokenService.updateTemporalToken(temporalToken);
     }
 
+
     @Override
     public void sendEmailDisable2Fa(String userEmail) {
         Email email = new Email();
@@ -258,7 +261,7 @@ public class NgUserServiceImpl implements NgUserService {
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
-                        host + "/" +  confirmationUrl +
+                        host + "/" + confirmationUrl +
                         "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
 
@@ -270,5 +273,4 @@ public class NgUserServiceImpl implements NgUserService {
     private String getHost() {
         return host;
     }
-
 }

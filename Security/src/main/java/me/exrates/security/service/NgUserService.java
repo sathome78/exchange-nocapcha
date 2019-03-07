@@ -1,4 +1,4 @@
-package me.exrates.security.ngService;
+package me.exrates.security.service;
 
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
@@ -8,7 +8,6 @@ import me.exrates.model.ngModel.PasswordCreateDto;
 import javax.servlet.http.HttpServletRequest;
 
 public interface NgUserService {
-
     boolean registerUser(UserEmailDto userEmailDto, HttpServletRequest request);
 
     AuthTokenDto createPassword(PasswordCreateDto passwordCreateDto, HttpServletRequest request);
@@ -19,10 +18,9 @@ public interface NgUserService {
 
     boolean validateTempToken(String token);
 
-    void sendEmailDisable2Fa(String email);
+    void sendEmailDisable2Fa(String userEmail);
 
-    void sendEmailEnable2Fa(String email);
+    void sendEmailEnable2Fa(String userEmail);
 
     void resendEmailForFinishRegistration(User user);
-
 }

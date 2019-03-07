@@ -23,7 +23,8 @@ public class UserVerificationDocDaoImpl implements UserVerificationInfoDao {
     public UserVerificationInfo saveUserVerificationDoc(UserVerificationInfo userVerificationDoc) {
 
         String sql = "INSERT INTO USER_VERIFICATION_INFO (user_id, doc_type, doc_id) " +
-                "VALUES (:user_id, :document_type, :doc_id)";
+                "VALUES (:user_id, :document_type, :doc_id) " +
+                "ON DUPLICATE KEY UPDATE doc_type = :document_type, doc_id = :doc_id";
 
         Map<String, Object> params = new HashMap<String, Object>() {
             {
