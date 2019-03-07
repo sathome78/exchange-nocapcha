@@ -813,7 +813,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Transactional(readOnly = true)
     @Override
     public List<FiatPair> getAllFiatPairs() {
-        final String sql = "SELECT id, currency1_id, currency2_id, ticker_name, market, hidden hidden" +
+        final String sql = "SELECT id, currency1_id, currency2_id, ticker_name, market, type, scale, hidden" +
                 " FROM FIAT_PAIR";
 
         return jdbcTemplate.query(sql, (rs, i) -> FiatPair.builder()
@@ -822,6 +822,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 .currency2(rs.getInt("currency2_id"))
                 .name(rs.getString("ticker_name"))
                 .market(rs.getString("market"))
+                .type(CurrencyPairType.valueOf(rs.getString("type")))
+                .currencyPairPrecision(rs.getInt("scale"))
                 .hidden(rs.getBoolean("hidden"))
                 .build());
     }
@@ -829,7 +831,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Transactional(readOnly = true)
     @Override
     public FiatPair getFiatPairByName(String pairName) {
-        final String sql = "SELECT id, currency1_id AS currency1, currency2_id AS currency2, ticker_name AS name, market, hidden hidden" +
+        final String sql = "SELECT id, currency1_id AS currency1, currency2_id AS currency2, ticker_name AS name, market, scale AS currencyPairPrecision, hidden hidden" +
                 " FROM FIAT_PAIR" +
                 " WHERE ticker_name = :ticker_name";
 

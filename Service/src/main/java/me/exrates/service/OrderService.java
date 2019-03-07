@@ -8,6 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
@@ -23,8 +24,6 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.dto.SimpleOrderBookItem;
-import me.exrates.model.dto.StatisticForMarket;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
@@ -59,8 +58,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -483,6 +482,8 @@ public interface OrderService {
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
+
+    List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName);
 
     Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
 }
