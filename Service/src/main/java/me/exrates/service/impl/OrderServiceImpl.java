@@ -2399,7 +2399,7 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
-        ExOrderStatisticsShortByPairsDto marketStatistic = exchangeRatesHolder.getOne(currencyId);
+        CacheOrderStatisticDto statistic = exchangeRatesHolder.getOne(currencyId);
         Map<PrecissionsEnum, String> result = new HashMap<>();
         precissionsList.forEach(p -> {
             try {
@@ -2410,12 +2410,12 @@ public class OrderServiceImpl implements OrderService {
                         .orderBookItems(simpleOrderBookItems)
                         .total(getWrapperTotal(simpleOrderBookItems))
                         .build();
-                if (marketStatistic != null) {
-                    dto.setLastExrate(safeFormatBigDecimal((new BigDecimal(marketStatistic.getLastOrderRate()))));
-                    dto.setPreLastExrate(safeFormatBigDecimal(new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                if (nonNull(statistic)) {
+                    dto.setLastExrate(safeFormatBigDecimal(statistic.getLastOrderRate()));
+                    dto.setPreLastExrate(safeFormatBigDecimal(statistic.getPredLastOrderRate()));
                     dto.setPositive(safeCompareBigDecimals(
-                            new BigDecimal(marketStatistic.getLastOrderRate()),
-                            new BigDecimal(marketStatistic.getPredLastOrderRate())));
+                            statistic.getLastOrderRate(),
+                            statistic.getPredLastOrderRate()));
                 }
                 result.put(p, objectMapper.writeValueAsString(dto));
             } catch (Exception e) {
