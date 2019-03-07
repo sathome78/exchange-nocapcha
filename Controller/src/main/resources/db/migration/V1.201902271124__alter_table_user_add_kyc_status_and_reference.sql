@@ -10,7 +10,7 @@ BEGIN
              AND table_schema = 'birzha'
              AND column_name = 'kyc_reference')  THEN
 
-      ALTER TABLE `USER` DROP COLUMN kyc_reference;
+      ALTER TABLE USER DROP COLUMN kyc_reference;
     END IF;
 
     IF NOT EXISTS( SELECT NULL
