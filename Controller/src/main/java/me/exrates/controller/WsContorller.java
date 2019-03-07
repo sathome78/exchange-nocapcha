@@ -7,35 +7,26 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrdersListWrapper;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
-import me.exrates.service.cache.ChartsCache;
-import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.util.OpenApiUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Created by Maks on 24.08.2017.
@@ -54,12 +45,6 @@ public class WsContorller {
     private UserService userService;
     @Autowired
     private UsersAlertsService usersAlertsService;
-    @Autowired
-    private ChartsCacheManager chartsCacheManager;
-    @Autowired
-    private ChartsCache chartsCache;
-    @Autowired
-    private DefaultSimpUserRegistry registry;
 
 
     @SubscribeMapping("/users_alerts/{loc}")
@@ -99,19 +84,6 @@ public class WsContorller {
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();
         return orderService.getAllAndMyTradesForInit(currencyPairId, principal);
-    }
-
-    @SubscribeMapping("/charts/{currencyPairId}/{period}")
-    public String subscribeChart(@DestinationVariable Integer currencyPairId, @DestinationVariable String period) throws Exception {
-        BackDealInterval backDealInterval = ChartPeriodsEnum.convert(period).getBackDealInterval();
-        return chartsCache.getDataForPeriod(currencyPairId, backDealInterval.getInterval());
-    }
-
-    @SubscribeMapping("/charts2/{currencyPairId}/{resolution}")
-    public String subscribeChart2(@DestinationVariable Integer currencyPairId, @DestinationVariable String resolution) throws Exception {
-        ChartTimeFrame timeFrame = ChartTimeFramesEnum.ofResolution(resolution).getTimeFrame();
-        String preparedData = chartsCacheManager.getPreparedData(currencyPairId, timeFrame, false);
-        return preparedData;
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")
