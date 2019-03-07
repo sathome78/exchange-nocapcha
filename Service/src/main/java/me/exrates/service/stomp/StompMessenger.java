@@ -20,10 +20,6 @@ public interface StompMessenger {
 
     void sendAllTrades(Integer currencyPair);
 
-    void sendChartData(Integer currencyPairId);
-
-    void sendChartData(Integer currencyPairId, String resolution, String data);
-
     List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId);
 
     void sendStatisticMessage(List<Integer> currenciesIds);
