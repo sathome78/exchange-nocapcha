@@ -24,8 +24,6 @@ import java.util.Map;
 
 public interface BitcoinService extends IRefillable, IWithdrawable {
 
-  int CONFIRMATION_NEEDED_COUNT = 4;
-
     boolean isRawTxEnabled();
 
     @EventListener(value = BtcWalletEvent.class)

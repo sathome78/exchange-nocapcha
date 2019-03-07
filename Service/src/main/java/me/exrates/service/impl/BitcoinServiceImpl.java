@@ -74,8 +74,6 @@ import java.util.stream.Collectors;
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
-    private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
-
     @Value("${btcInvoice.blockNotifyUsers}")
     private Boolean BLOCK_NOTIFYING;
 
