@@ -37,3 +37,8 @@ CREATE PROCEDURE `Add_Constraint`()
 
   END $$
 DELIMITER ;
+
+
+CALL Add_Constraint();
+
+DROP PROCEDURE `Add_Constraint`;

@@ -61,7 +61,7 @@ public class OpenApiPublicController {
      * @apiPosition 1
      * @api {get} /openapi/v1/public/ticker?currency_pair Ticker Info
      * @apiName Ticker
-     * @apiGroup 1_Public API
+     * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Returns array of ticker info objects
      * @apiParam {String} currency_pair Currency pair name (optional)
@@ -109,7 +109,7 @@ public class OpenApiPublicController {
     /**
      * @api {get} /openapi/v1/public/orderbook/{currency_pair}?order_type Order Book
      * @apiName Order Book
-     * @apiGroup 1_Public API
+     * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Books Order
      * @apiParam {String} order_type Order type (BUY or SELL) (optional)
@@ -130,7 +130,7 @@ public class OpenApiPublicController {
     /**
      * @api {get} /openapi/v1/public/history/{currency_pair}?from_date&to_date&limit&direction Trade History
      * @apiName Trade History
-     * @apiGroup 1_Public API
+     * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Provides collection of trade info objects
      * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
@@ -171,7 +171,7 @@ public class OpenApiPublicController {
     /**
      * @api {get} /openapi/v1/public/currency_pairs Currency Pairs
      * @apiName Currency Pairs
-     * @apiGroup 1_Public API
+     * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Provides collection of currency pairs
      * @apiParamExample Request Example:
@@ -189,7 +189,7 @@ public class OpenApiPublicController {
     /**
      * @api {get} /openapi/v1/public/{currency_pair}/candle_chart?interval_type&interval_value Data for candle chart
      * @apiName Data for candle chart
-     * @apiGroup 1_Public API
+     * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Data for candle chart
      * @apiParam {String} interval_type type of interval (valid values: "HOUR", "DAY", "MONTH", "YEAR")

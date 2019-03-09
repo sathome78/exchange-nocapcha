@@ -12,9 +12,14 @@ public class AuthInfo {
      */
 
     /**
+     * @apiDefine APIJson
+     * @apiHeader {String} content-type application/json;charset=UTF-8
+     */
+
+    /**
      * @api {get, post} /openapi/v1/** Non-public endpoints
      * @apiName Non-public endpoints
-     * @apiGroup 0_Authentication
+     * @apiGroup Authentication
      * @apiUse APIHeaders
      * @apiPermission APIHeaders
      * @apiDescription All requests to non-public API endpoints must contain the following headers
@@ -26,17 +31,72 @@ public class AuthInfo {
     /**
      * @api {get, post} /openapi/v1/public/** Public endpoints
      * @apiName Public endpoints
-     * @apiGroup 0_Authentication
-     * @apiDescription All requests to public API endpoints not must contain the following headers
+     * @apiGroup Authentication
+     * @apiDescription DETAILED DESCRIPTION
+     *
+     *
+     *
      */
     private void stubPublic() {
         //stub for API doc
     }
 
     /**
+     * @api {get, post} /openapi/v1/** Non-public endpoints DESCRIPTION
+     * @apiName Private endpoints
+     * @apiGroup Authentication
+     * @apiDescription  {get, post} /openapi/v1/user/** and /openapi/v1/orders/**
+     *
+     * Example for endpoint https://api.exrates.me/openapi/v1/orders/create
+     *
+     * first step is to generate current timestamp
+     *
+     * var current_timestamp = current unix timestamp as a string
+     *
+     * timestamp is valid until 10 seconds
+     *
+     * values for creating signature:
+     *
+     * delimiter = |
+     *
+     * method = POST
+     *
+     * endpoint = /openapi/v1/orders/create  (not pass url parameters to signature generation)
+     *
+     * timestamp = current_timestamp (previously generated timestamp)
+     *
+     * public_key = your generated public key
+     *
+     * secret = your generated secret key
+     *
+     * values for header:
+     *
+     * API-KEY:  your generated public key
+     *
+     * API-TIME: current_timestamp (previously generated timestamp)
+     *
+     * API-SIGN: your generated signature
+     *
+     * content-type: application/json;charset=UTF-8
+     *
+     * body json
+     * {
+     *        "currencyPair": "btc_usd",
+     *        "orderType": "BUY",
+     *        "amount": 2.3,
+     *        "price": 1.0
+     * }
+     */
+    private void stubPrivate() {
+        //stub for API doc
+    }
+
+
+
+    /**
      * @api {get, post} /openapi/v1/{user-orders} Algorithm
      * @apiName Algorithm
-     * @apiGroup 0_Authentication
+     * @apiGroup Authentication
      * @apiDescription Authentication is performed via HMAC signature (using HMAC SHA256 algorithm).
      * To create the signature, you need to create your own public key and private key from your personal settings page
      * (API settings section).

@@ -203,7 +203,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     @Override
     public Map<String, BigDecimal> getRatesForMarket(TradeMarket market) {
         return getAllRates().stream()
-                .filter(statistic -> statistic.getMarket().equals(market.name()))
+                .filter(statistic -> statistic.getMarket() != null && statistic.getMarket().equals(market.name()))
                 .collect(Collectors.toMap(
                         statistic -> statistic.getCurrencyPairName().split(DELIMITER)[0],
                         statistic -> new BigDecimal(statistic.getLastOrderRate()),

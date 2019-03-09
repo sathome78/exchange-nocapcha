@@ -16,3 +16,7 @@ CREATE PROCEDURE `Alter_Table`()
 
   END $$
 DELIMITER ;
+
+CALL Alter_Table();
+
+DROP PROCEDURE `Alter_Table`;

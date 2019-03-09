@@ -25,6 +25,8 @@ CREATE PROCEDURE `Alter_Table`()
   END $$
 DELIMITER ;
 
+CALL Alter_Table();
+
 DROP PROCEDURE `Alter_Table`;
 
 UPDATE CURRENCY_PAIR SET scale = 2 WHERE market = 'FIAT';

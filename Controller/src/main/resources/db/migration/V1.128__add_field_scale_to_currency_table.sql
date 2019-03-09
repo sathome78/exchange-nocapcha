@@ -10,7 +10,7 @@ CREATE PROCEDURE `Alter_Table`()
                      AND table_schema = 'birzha'
                      AND column_name = 'scale')  THEN
 
-      ALTER TABLE `CURRENCY` DROP COLUMN scale;
+      ALTER TABLE CURRENCY DROP COLUMN scale;
     END IF;
 
     IF NOT EXISTS( SELECT NULL
@@ -19,11 +19,13 @@ CREATE PROCEDURE `Alter_Table`()
                          AND table_schema = 'birzha'
                          AND column_name = 'scale')  THEN
 
-      ALTER TABLE `CURRENCY` ADD COLUMN scale INT(11) NULL;
+      ALTER TABLE CURRENCY ADD COLUMN scale INT(11) NULL;
     END IF;
 
   END $$
 DELIMITER ;
+
+CALL Alter_Table();
 
 DROP PROCEDURE `Alter_Table`;
 
