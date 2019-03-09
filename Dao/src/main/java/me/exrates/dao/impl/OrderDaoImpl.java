@@ -7,8 +7,10 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
 import me.exrates.jdbc.OrderRowMapper;
-import me.exrates.model.*;
-import me.exrates.model.dto.CacheOrderStatisticDto;
+import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
@@ -71,7 +73,6 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,7 +85,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderStatus.CLOSED;
 import static me.exrates.model.enums.TransactionSourceType.ORDER;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -92,7 +92,7 @@ import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Repository
-        @Log4j2
+@Log4j2
 public class OrderDaoImpl implements OrderDao {
 
     private static final Logger LOGGER = LogManager.getLogger(OrderDaoImpl.class);
@@ -873,7 +873,10 @@ public class OrderDaoImpl implements OrderDao {
                 break;
         }
 
-        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(toList());
+        List<Integer> statusIds = statuses
+                .stream()
+                .map(OrderStatus::getStatus)
+                .collect(Collectors.toList());
         List<Integer> operationTypesIds = Arrays.asList(3, 4);
 
         String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
@@ -1803,7 +1806,10 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> params = new HashMap<>();
         params.put("start_time", Timestamp.valueOf(startTime));
         params.put("end_time", Timestamp.valueOf(endTime));
-        params.put("user_roles", roles.stream().map(UserRole::getRole).collect(toList()));
+        params.put("user_roles", roles
+                .stream()
+                .map(UserRole::getRole)
+                .collect(Collectors.toList()));
 
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> CurrencyPairTurnoverReportDto.builder()
                 .currencyPairId(rs.getInt("currency_pair_id"))
@@ -1842,7 +1848,10 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("user_roles", userRoles
+                    .stream()
+                    .map(UserRole::getName)
+                    .collect(Collectors.toList()));
             put("requester_user_id", requesterId);
         }};
 
@@ -1889,7 +1898,10 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("start_time", Timestamp.valueOf(startTime));
             put("end_time", Timestamp.valueOf(endTime));
-            put("user_roles", userRoles.stream().map(UserRole::getName).collect(toList()));
+            put("user_roles", userRoles
+                    .stream()
+                    .map(UserRole::getName)
+                    .collect(Collectors.toList()));
             put("requester_user_id", requesterId);
         }};
 
@@ -1940,7 +1952,7 @@ public class OrderDaoImpl implements OrderDao {
                 && filterDataDto.getCurrencyPair().getId() > 0) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id = :currencyPairId ";
             currencyPairClauseWhereForStopLimit = " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
-        } else  if (nonNull(filterDataDto.getCurrencyPair())
+        } else if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
             currencyPairClauseWhere = " AND EXORDERS.currency_pair_id IN (SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currencyPairNamePart)) ";
@@ -2010,7 +2022,7 @@ public class OrderDaoImpl implements OrderDao {
                 + currencyPairClauseWhere
                 + currencyNameClause
                 + userFilterClause + ") +" +
-                "       (SELECT COUNT(*) FROM STOP_ORDERS "+
+                "       (SELECT COUNT(*) FROM STOP_ORDERS " +
                 currencyNameJoinClauseForStopLimits +
                 " WHERE (status_id in (:statusId))" +
                 " AND (operation_type_id IN (:operation_type_id)) " +
@@ -2028,7 +2040,7 @@ public class OrderDaoImpl implements OrderDao {
         if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() > 0) {
             params.put("currencyPairId", filterDataDto.getCurrencyPair().getId());
-        } else  if (nonNull(filterDataDto.getCurrencyPair())
+        } else if (nonNull(filterDataDto.getCurrencyPair())
                 && filterDataDto.getCurrencyPair().getId() == 0
                 && StringUtils.isNotBlank(filterDataDto.getCurrencyPair().getName())) {
             params.put("currencyPairNamePart", String.join(StringUtils.EMPTY, "%", filterDataDto.getCurrencyPair().getName(), "%"));
@@ -2271,7 +2283,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
         String sql = "{call GET_CURRENCY_PAIR_STATISTICS_FOR_CACHE(:currency_pair_name)}";
 
         Map<String, Object> params = new HashMap<>();
@@ -2279,21 +2291,21 @@ public class OrderDaoImpl implements OrderDao {
 
         return namedParameterJdbcTemplate.execute(sql, params, ps -> {
             ResultSet rs = ps.executeQuery();
-            List<CacheOrderStatisticDto> list = Lists.newArrayList();
+            List<ExOrderStatisticsShortByPairsDto> list = Lists.newArrayList();
             while (rs.next()) {
-                CacheOrderStatisticDto statistic = CacheOrderStatisticDto.builder()
+                ExOrderStatisticsShortByPairsDto statistic = ExOrderStatisticsShortByPairsDto.builder()
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .currencyPairType(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
-                        .lastOrderRate(rs.getBigDecimal("last"))
-                        .predLastOrderRate(rs.getBigDecimal("first"))
-                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH))
-                        .volume(rs.getBigDecimal("baseVolume"))
-                        .currencyVolume(rs.getBigDecimal("quoteVolume"))
+                        .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                        .lastOrderRate(rs.getBigDecimal("last").toPlainString())
+                        .predLastOrderRate(rs.getBigDecimal("first").toPlainString())
+                        .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? "0" : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH).toPlainString())
+                        .volume(rs.getBigDecimal("baseVolume").toPlainString())
+                        .currencyVolume(rs.getBigDecimal("quoteVolume").toPlainString())
                         .market(rs.getString("market"))
-                        .high24hr(rs.getBigDecimal("high24hr"))
-                        .low24hr(rs.getBigDecimal("low24hr"))
+                        .high24hr(rs.getBigDecimal("high24hr").toPlainString())
+                        .low24hr(rs.getBigDecimal("low24hr").toPlainString())
                         .build();
                 list.add(statistic);
             }

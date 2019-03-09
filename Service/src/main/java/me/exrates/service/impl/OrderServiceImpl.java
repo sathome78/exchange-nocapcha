@@ -21,7 +21,6 @@ import me.exrates.model.Wallet;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AdminOrderInfoDto;
-import me.exrates.model.dto.CacheOrderStatisticDto;
 import me.exrates.model.dto.CallBackLogDto;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
@@ -169,7 +168,6 @@ import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPT;
 import static me.exrates.model.enums.OrderActionEnum.ACCEPTED;
 import static me.exrates.model.enums.OrderActionEnum.CANCEL;
@@ -197,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final List<ChartTimeFrame> timeFrames = Arrays.stream(ChartTimeFramesEnum.values())
             .map(ChartTimeFramesEnum::getTimeFrame)
-            .collect(toList());
+            .collect(Collectors.toList());
     private final Object autoAcceptLock = new Object();
     private final Object restOrderCreationLock = new Object();
     @Autowired
@@ -323,9 +321,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
         List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs();
-        result = result.stream()
+        result = result
+                .stream()
                 .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         result.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -343,11 +342,17 @@ public class OrderServiceImpl implements OrderService {
         List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
         switch (refreshObjectsEnum) {
             case ICO_CURRENCIES_STATISTIC: {
-                dto = dto.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
+                dto = dto
+                        .stream()
+                        .filter(p -> p.getType() == CurrencyPairType.ICO)
+                        .collect(Collectors.toList());
                 break;
             }
             case MAIN_CURRENCIES_STATISTIC: {
-                dto = dto.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
+                dto = dto
+                        .stream()
+                        .filter(p -> p.getType() == CurrencyPairType.MAIN)
+                        .collect(Collectors.toList());
                 break;
             }
             default: {
@@ -358,9 +363,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
-        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds).stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
+        List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
+
         Locale locale = Locale.ENGLISH;
         dto.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
@@ -825,7 +829,10 @@ public class OrderServiceImpl implements OrderService {
                 OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
                 if (ordersForAccept.size() > 0) {
-                    acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(toList()), locale);
+                    acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept
+                            .stream()
+                            .map(ExOrder::getId)
+                            .collect(Collectors.toList()), locale);
                     orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
                 }
                 if (orderForPartialAccept != null) {
@@ -1259,7 +1266,9 @@ public class OrderServiceImpl implements OrderService {
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
 
-        return openedOrders.stream().allMatch(this::cancelOrder);
+        return openedOrders
+                .stream()
+                .allMatch(this::cancelOrder);
     }
 
     @Transactional
@@ -1269,7 +1278,9 @@ public class OrderServiceImpl implements OrderService {
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
 
-        return openedOrders.stream().allMatch(this::cancelOrder);
+        return openedOrders
+                .stream()
+                .allMatch(this::cancelOrder);
     }
 
     private boolean cancelOrder(ExOrder exOrder) {
@@ -1343,11 +1354,14 @@ public class OrderServiceImpl implements OrderService {
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
         final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs(CurrencyPairType.ALL);
-        result.addAll(currencyPairList.stream()
+        result.addAll(currencyPairList
+                .stream()
                 .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
-                        && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
+                        && result
+                        .stream()
+                        .noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
                 .map(CoinmarketApiDto::new)
-                .collect(toList()));
+                .collect(Collectors.toList()));
         return result;
     }
 
@@ -1445,9 +1459,10 @@ public class OrderServiceImpl implements OrderService {
                                                                    BackDealInterval backDealInterval,
                                                                    Integer limit, CurrencyPair currencyPair, Locale locale) {
         List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
-        result = result.stream()
+        result = result
+                .stream()
                 .map(OrderAcceptedHistoryDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         result.forEach(e -> {
             e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
             e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1460,9 +1475,10 @@ public class OrderServiceImpl implements OrderService {
                                                                      BackDealInterval backDealInterval,
                                                                      Integer limit, CurrencyPair currencyPair, Locale locale) {
         List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair);
-        result = result.stream()
+        result = result
+                .stream()
                 .map(OrderAcceptedHistoryDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         result.forEach(e -> {
             e.setRate(BigDecimalProcessing.formatLocale(e.getRate(), locale, true));
             e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1496,14 +1512,10 @@ public class OrderServiceImpl implements OrderService {
                 add(new OrderListDto(false));
             }};
         } else {
-            result = result.stream()
-                    .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                        @Override
-                        public int compare(OrderListDto o1, OrderListDto o2) {
-                            return Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate()));
-                        }
-                    })
-                    .collect(toList());
+            result = result
+                    .stream()
+                    .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate())))
+                    .collect(Collectors.toList());
             result.forEach(e -> {
                 e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
                 e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1518,9 +1530,10 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderListDto> getAllBuyOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
         List<OrderListDto> result = aggregateOrders(orderDao.getOrdersBuyForCurrencyPair(currencyPair, userRole), OperationType.BUY, true);
         result = new ArrayList<>(result);
-        result = result.stream()
+        result = result
+                .stream()
                 .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o2.getExrate()).compareTo(Double.valueOf(o1.getExrate())))
-                .collect(toList());
+                .collect(Collectors.toList());
         result.forEach(e -> {
             e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
             e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1533,14 +1546,10 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderListDto> getAllSellOrdersEx(CurrencyPair currencyPair, Locale locale, UserRole userRole) {
         List<OrderListDto> result = aggregateOrders(orderDao.getOrdersSellForCurrencyPair(currencyPair, userRole), OperationType.SELL, true);
         result = new ArrayList<>(result);
-        result = result.stream()
-                .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                    @Override
-                    public int compare(OrderListDto o1, OrderListDto o2) {
-                        return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
-                    }
-                })
-                .collect(toList());
+        result = result
+                .stream()
+                .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate())))
+                .collect(Collectors.toList());
         result.forEach(e -> {
             e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
             e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1562,14 +1571,10 @@ public class OrderServiceImpl implements OrderService {
                 add(new OrderListDto(false));
             }};
         } else {
-            result = result.stream()
-                    .map(OrderListDto::new).sorted(new Comparator<OrderListDto>() {
-                        @Override
-                        public int compare(OrderListDto o1, OrderListDto o2) {
-                            return Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate()));
-                        }
-                    })
-                    .collect(toList());
+            result = result
+                    .stream()
+                    .map(OrderListDto::new).sorted((o1, o2) -> Double.valueOf(o1.getExrate()).compareTo(Double.valueOf(o2.getExrate())))
+                    .collect(Collectors.toList());
             result.forEach(e -> {
                 e.setExrate(BigDecimalProcessing.formatLocale(e.getExrate(), locale, 2));
                 e.setAmountBase(BigDecimalProcessing.formatLocale(e.getAmountBase(), locale, true));
@@ -1581,8 +1586,9 @@ public class OrderServiceImpl implements OrderService {
 
     private List<OrderListDto> aggregateOrders(List<OrderListDto> historyDtos, OperationType operationType, boolean forceUpdate) {
         List<OrderListDto> resultList = new ArrayList<>();
-        Map<String, List<OrderListDto>> map =
-                historyDtos.stream().collect(Collectors.groupingBy(OrderListDto::getExrate));
+        Map<String, List<OrderListDto>> map = historyDtos
+                .stream()
+                .collect(Collectors.groupingBy(OrderListDto::getExrate));
         map.forEach((k, v) -> {
             BigDecimal amountBase = new BigDecimal(0);
             BigDecimal amountConverted = new BigDecimal(0);
@@ -1604,9 +1610,13 @@ public class OrderServiceImpl implements OrderService {
         if (cp == null) {
             return null;
         }
-        List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+        List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null)
+                .stream()
+                .map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null).stream().map(OrderWsDetailDto::new)
+        List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null)
+                .stream()
+                .map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
@@ -1966,8 +1976,14 @@ public class OrderServiceImpl implements OrderService {
     public Map<RefreshObjectsEnum, String> getSomeCurrencyStatForRefresh(List<Integer> currencyIds) {
         logger.debug("curencies for refresh size " + currencyIds.size());
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
-        List<ExOrderStatisticsShortByPairsDto> icos = dtos.stream().filter(p -> p.getType() == CurrencyPairType.ICO).collect(toList());
-        List<ExOrderStatisticsShortByPairsDto> mains = dtos.stream().filter(p -> p.getType() == CurrencyPairType.MAIN).collect(toList());
+        List<ExOrderStatisticsShortByPairsDto> icos = dtos
+                .stream()
+                .filter(p -> p.getType() == CurrencyPairType.ICO)
+                .collect(Collectors.toList());
+        List<ExOrderStatisticsShortByPairsDto> mains = dtos
+                .stream()
+                .filter(p -> p.getType() == CurrencyPairType.MAIN)
+                .collect(Collectors.toList());
         Map<RefreshObjectsEnum, String> res = new HashMap<>();
         if (!icos.isEmpty()) {
             OrdersListWrapper wrapper = new OrdersListWrapper(icos, RefreshObjectsEnum.ICO_CURRENCY_STATISTIC.name());
@@ -1992,19 +2008,18 @@ public class OrderServiceImpl implements OrderService {
         return res;
     }
 
-    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<CacheOrderStatisticDto> statisticList) {
-        List<ExOrderStatisticsShortByPairsDto> orders = statisticList.stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
-        orders = Stream.of(
-                orders.stream()
+    private List<ExOrderStatisticsShortByPairsDto> processStatistic(List<ExOrderStatisticsShortByPairsDto> statisticList) {
+        statisticList = Stream.of(
+                statisticList
+                        .stream()
                         .filter(p -> !new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)),
-                orders.stream()
+                statisticList
+                        .stream()
                         .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
                 .flatMap(p -> p)
                 .collect(Collectors.toList());
-        setStatisitcValues(orders);
-        return orders;
+        setStatisitcValues(statisticList);
+        return statisticList;
     }
 
     private void setStatisitcValues(List<ExOrderStatisticsShortByPairsDto> ordersList) {
@@ -2032,7 +2047,8 @@ public class OrderServiceImpl implements OrderService {
             return Collections.singletonMap(orderType, orderDao.getOrderBookItemsForType(currencyPairId, orderType));
         } else {
             Map<OrderType, List<OrderBookItem>> result = orderDao.getOrderBookItems(currencyPairId)
-                    .stream().collect(Collectors.groupingBy(OrderBookItem::getOrderType));
+                    .stream()
+                    .collect(Collectors.groupingBy(OrderBookItem::getOrderType));
             result.forEach((key, value) -> value.sort(Comparator.comparing(OrderBookItem::getRate, key.getBenefitRateComparator())));
             return result;
         }
@@ -2153,12 +2169,14 @@ public class OrderServiceImpl implements OrderService {
                                                                             List<UserRole> userRoles,
                                                                             int requesterId) {
         Map<String, List<UserSummaryOrdersDto>> summary = new HashMap<>();
-        summary.put(BUY, orderDao.getUserBuyOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId).stream()
+        summary.put(BUY, orderDao.getUserBuyOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId)
+                .stream()
                 .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
-                .collect(toList()));
-        summary.put(SELL, orderDao.getUserSellOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId).stream()
+                .collect(Collectors.toList()));
+        summary.put(SELL, orderDao.getUserSellOrdersDataByPeriodAndRoles(startTime, endTime, userRoles, requesterId)
+                .stream()
                 .filter(userSummaryOrdersDto -> !userSummaryOrdersDto.isEmpty())
-                .collect(toList()));
+                .collect(Collectors.toList()));
         return summary;
     }
 
@@ -2183,7 +2201,9 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public boolean cancelOrders(Collection<Integer> orderIds) {
-        return orderIds.stream().allMatch(this::cancelOrder);
+        return orderIds
+                .stream()
+                .allMatch(this::cancelOrder);
     }
 
     @Override
@@ -2335,9 +2355,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel() {
-        return exchangeRatesHolder.getAllRates().stream()
-                .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
+        return exchangeRatesHolder.getAllRates();
     }
 
     @Override
@@ -2353,9 +2371,13 @@ public class OrderServiceImpl implements OrderService {
         if (cp == null) {
             return null;
         }
-        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId).stream().map(OrderWsDetailDto::new)
+        List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId)
+                .stream()
+                .map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
-        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId).stream().map(OrderWsDetailDto::new)
+        List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId)
+                .stream()
+                .map(OrderWsDetailDto::new)
                 .collect(Collectors.toList());
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
@@ -2376,19 +2398,20 @@ public class OrderServiceImpl implements OrderService {
                 .orderBookItems(simpleOrderBookItems)
                 .total(getWrapperTotal(simpleOrderBookItems))
                 .build();
-        CacheOrderStatisticDto statistic = exchangeRatesHolder.getOne(currencyId);
+        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
         if (nonNull(statistic)) {
-            dto.setLastExrate(safeFormatBigDecimal(statistic.getLastOrderRate()));
-            dto.setPreLastExrate(safeFormatBigDecimal(statistic.getPredLastOrderRate()));
-            dto.setPositive(safeCompareBigDecimals(
-                    statistic.getLastOrderRate(),
-                    statistic.getPredLastOrderRate()));
+            final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
+            final BigDecimal predLastOrderRate = new BigDecimal(statistic.getPredLastOrderRate());
+
+            dto.setLastExrate(safeFormatBigDecimal(lastOrderRate));
+            dto.setPreLastExrate(safeFormatBigDecimal(predLastOrderRate));
+            dto.setPositive(safeCompareBigDecimals(lastOrderRate, predLastOrderRate));
         }
         return dto;
     }
 
     @Override
-    public List<CacheOrderStatisticDto> getDailyCoinmarketDataForCache(String currencyPairName) {
+    public List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName) {
         return orderDao.getDailyCoinmarketDataForCache(currencyPairName);
     }
 
@@ -2399,7 +2422,7 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
-        CacheOrderStatisticDto statistic = exchangeRatesHolder.getOne(currencyId);
+        ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
         Map<PrecissionsEnum, String> result = new HashMap<>();
         precissionsList.forEach(p -> {
             try {
@@ -2411,11 +2434,12 @@ public class OrderServiceImpl implements OrderService {
                         .total(getWrapperTotal(simpleOrderBookItems))
                         .build();
                 if (nonNull(statistic)) {
-                    dto.setLastExrate(safeFormatBigDecimal(statistic.getLastOrderRate()));
-                    dto.setPreLastExrate(safeFormatBigDecimal(statistic.getPredLastOrderRate()));
-                    dto.setPositive(safeCompareBigDecimals(
-                            statistic.getLastOrderRate(),
-                            statistic.getPredLastOrderRate()));
+                    final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
+                    final BigDecimal predLastOrderRate = new BigDecimal(statistic.getPredLastOrderRate());
+
+                    dto.setLastExrate(safeFormatBigDecimal(lastOrderRate));
+                    dto.setPreLastExrate(safeFormatBigDecimal(predLastOrderRate));
+                    dto.setPositive(safeCompareBigDecimals(lastOrderRate, predLastOrderRate));
                 }
                 result.put(p, objectMapper.writeValueAsString(dto));
             } catch (Exception e) {
@@ -2436,7 +2460,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private BigDecimal getWrapperTotal(List<SimpleOrderBookItem> items) {
-        Optional<SimpleOrderBookItem> max = items.stream().max(Comparator.comparing(SimpleOrderBookItem::getTotal));
+        Optional<SimpleOrderBookItem> max = items
+                .stream()
+                .max(Comparator.comparing(SimpleOrderBookItem::getTotal));
         BigDecimal total = BigDecimal.ZERO;
         if (max.isPresent()) {
             total = max.get().getTotal();

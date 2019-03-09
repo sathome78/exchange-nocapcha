@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -160,9 +161,7 @@ public class NgBalanceController {
         map.put("mapWallets", resultWallet);
 
         if (resultWallet.size() > 1) {
-            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates().stream()
-                    .map(ExOrderStatisticsShortByPairsDto::new)
-                    .collect(toList());
+            List<ExOrderStatisticsShortByPairsDto> resultOrders = exchangeRatesHolder.getAllRates();
 
             final HashMap<String, BigDecimal> ratesBTC_ETH = new HashMap<>();
             resultOrders
@@ -179,7 +178,8 @@ public class NgBalanceController {
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
                     walletTotalUsdDtoList.add(walletTotalUsdDto);
                 }
-                resultOrders.stream()
+                resultOrders
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))

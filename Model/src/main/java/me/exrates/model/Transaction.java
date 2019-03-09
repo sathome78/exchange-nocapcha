@@ -1,7 +1,11 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
@@ -12,9 +16,10 @@ import java.time.LocalDateTime;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
-@ToString(exclude = {"userWallet"})
+@ToString
 @EqualsAndHashCode
 public class Transaction {
     private int id;

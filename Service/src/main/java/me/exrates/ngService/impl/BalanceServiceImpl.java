@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -167,7 +168,7 @@ public class BalanceServiceImpl implements BalanceService {
                             Date dateTwo = getDateFromString(o2.getDate());
                             return dateTwo.compareTo(dateOne);
                         }))
-                        .collect(toList());
+                        .collect(Collectors.toList());
         return getSafeSubList(requests, offset, limit);
     }
 
@@ -302,13 +303,11 @@ public class BalanceServiceImpl implements BalanceService {
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalBtc =
                 exchangeRatesHolder.getAllRates().stream()
-                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/BTC"))
                         .findFirst();
 
         Optional<ExOrderStatisticsShortByPairsDto> optionalUsd =
                 exchangeRatesHolder.getAllRates().stream()
-                        .map(ExOrderStatisticsShortByPairsDto::new)
                         .filter(o -> o.getCurrencyPairName().equalsIgnoreCase(currencyName + "/USD"))
                         .findFirst();
 
