@@ -171,10 +171,6 @@ public class NgRefillController {
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
         List<MerchantCurrency> merchantCurrencyData =
                 merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        merchantCurrencyData.forEach(o -> {
-            boolean availableRefill = merchantService.checkAvailableRefill(o.getCurrencyId(), o.getMerchantId());
-            o.setAvailableForRefill(availableRefill);
-        });
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, getPrincipalEmail());
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
