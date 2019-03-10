@@ -6,6 +6,8 @@ import me.exrates.dao.StopOrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
+import me.exrates.ngService.BalanceService;
+import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
@@ -258,6 +260,16 @@ public class AngularAppTestConfig {
     @Bean
     public PageLayoutSettingsService pageLayoutSettingsService() {
         return Mockito.mock(PageLayoutSettingsService.class);
+    }
+
+    @Bean
+    public BalanceService getBalanceService() {
+        return Mockito.mock(BalanceService.class);
+    }
+
+    @Bean
+    public NgOrderService getNgOrderService() {
+        return Mockito.mock(NgOrderService.class);
     }
 
 }

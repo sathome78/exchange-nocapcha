@@ -18,6 +18,8 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.handler.HandlerExceptionResolverComposite;
 
+import static org.mockito.Mockito.verify;
+
 //https://www.baeldung.com/integration-testing-in-spring
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {AngularAppTestConfig.class})
@@ -33,23 +35,26 @@ public class NgTwoFaControllerTest {
     @Autowired
     private G2faService g2faService;
 
-    private MockMvc mockMvc;
-
     @InjectMocks
     private NgTwoFaController ngTwoFaController;
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private WebApplicationContext wac;
+
+    private MockMvc mockMvc;
+
+    private String BASE_URL = "/api/private/v2/2FaOptions/";
 
     @Before
     public void setUp() {
         ngTwoFaController = new NgTwoFaController(userService, g2faService, ngUserService);
 
-        HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
+        HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) wac
                 .getBean("handlerExceptionResolver"))
                 .getExceptionResolvers()
                 .get(0);
-        mockMvc = MockMvcBuilders.standaloneSetup(ngTwoFaController)
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(ngTwoFaController)
                 .setHandlerExceptionResolvers(resolver)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter())
                 .build();
