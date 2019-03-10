@@ -8,6 +8,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
 import me.exrates.ngService.BalanceService;
 import me.exrates.ngService.NgOrderService;
+import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.AuthTokenService;
 import me.exrates.security.service.NgUserService;
@@ -270,6 +271,16 @@ public class AngularAppTestConfig {
     @Bean
     public NgOrderService getNgOrderService() {
         return Mockito.mock(NgOrderService.class);
+    }
+
+    @Bean
+    public GtagRefillService getGtagRefillService(){
+        return Mockito.mock(GtagRefillService.class);
+    }
+
+    @Bean
+    public UserVerificationService getUserVerificationService(){
+        return Mockito.mock(UserVerificationService.class);
     }
 
 }
