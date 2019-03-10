@@ -16,11 +16,8 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.cache.ChartsCache;
 import me.exrates.service.util.OpenApiUtils;
 import me.exrates.service.util.BiTuple;
-import me.exrates.service.util.OpenApiUtils;
-import me.exrates.service.util.OpenApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -51,9 +48,8 @@ public class StompMessengerImpl implements StompMessenger {
     @Autowired
     private UserService userService;
     @Autowired
-    private ChartsCache chartsCache;
-    @Autowired
     CurrencyService currencyService;
+
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -158,24 +154,6 @@ public class StompMessengerImpl implements StompMessenger {
         sendMessageToDestination(destination, results.left);
     }
 
-    @Override
-    public void sendChartData(final Integer currencyPairId) {
-       Map<String, String> data = chartsCache.getData(currencyPairId);
-        orderService.getIntervals().forEach(p-> {
-            String message = data.get(p.getInterval());
-            String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(p.getInterval()));
-            sendMessageToDestination(destination, message);
-        });
-    }
-
-
-
-    @Override
-    public void sendChartData(final Integer currencyPairId, String resolution, String data) {
-        log.error("send chart data to {} {}", currencyPairId, resolution);
-        String destination = "/app/charts/".concat(currencyPairId.toString().concat("/").concat(resolution));
-        sendMessageToDestination(destination, data);
-    }
 
     @Override
     public List<ChartTimeFrame> getSubscribedTimeFramesForCurrencyPair(Integer pairId) {
