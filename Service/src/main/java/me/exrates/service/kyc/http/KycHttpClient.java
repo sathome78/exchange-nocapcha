@@ -59,11 +59,11 @@ public class KycHttpClient {
         ResponseEntity<ResponseCreateApplicantDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, ResponseCreateApplicantDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
             String errorString = "Error while creating applicant ";
-            throw new KycException(errorString.concat(responseEntity.getBody() != null
-                    && responseEntity.getBody().getError() != null ?
-                    responseEntity.getBody().getError() : null));
+            log.error(errorString + " {}", responseEntity);
+            throw new NgDashboardException("Error while response from service, create applicant",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
         }
         return responseEntity.getBody();
     }
@@ -83,9 +83,10 @@ public class KycHttpClient {
         ResponseEntity<OnboardingResponseDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
             log.error("Error while creating onboarding {}", responseEntity);
-            throw new KycException("Error while creating onboarding");
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
 
         return responseEntity.getBody();
