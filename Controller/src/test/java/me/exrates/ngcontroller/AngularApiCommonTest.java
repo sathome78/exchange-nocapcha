@@ -40,6 +40,8 @@ public abstract class AngularApiCommonTest {
 
     MockMvc mockMvc;
 
+    private final String HEADER_SECURITY_TOKEN = "Exrates-Rest-Token";
+
     @Before
     public void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
@@ -67,10 +69,9 @@ public abstract class AngularApiCommonTest {
 
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.put("Exrates-Rest-Token", ImmutableList.of("Test-Token"));
+        headers.put(HEADER_SECURITY_TOKEN, ImmutableList.of("Test-Token"));
         return headers;
     }
-
 
     private UserDetails getTestUserDetails() {
         Collection<GrantedAuthority> tokenPermissions = Sets.newHashSet();

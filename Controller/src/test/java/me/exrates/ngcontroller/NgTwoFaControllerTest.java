@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -27,7 +30,6 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
@@ -63,6 +65,9 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
     public void setUp() {
         ngTwoFaController = new NgTwoFaController(userService, g2faService, ngUserService);
 
+        SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("GUEST","USERNAME", AuthorityUtils
+                .createAuthorityList("ROLE_ONE", "ROLE_TWO")));
+
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) wac
                 .getBean("handlerExceptionResolver"))
                 .getExceptionResolvers()
@@ -79,7 +84,9 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/google2fa/hash")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.errorCode", is("MISSING_AUTHENTICATION_TOKEN")));
     }
 
     @Test
@@ -96,7 +103,6 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$.message", is("message")))
                 .andExpect(jsonPath("$.code", is("code")))
                 .andExpect(jsonPath("$.error", is("error")));
@@ -111,7 +117,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/google2fa/pin")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -131,7 +137,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/google2fa/submit")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -171,7 +177,7 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/google2fa/disable")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -179,6 +185,6 @@ public class NgTwoFaControllerTest extends AngularApiCommonTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BASE_URL + "/verify_google2fa")
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 }
