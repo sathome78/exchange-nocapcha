@@ -10,6 +10,8 @@ import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
@@ -20,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -59,11 +62,11 @@ public class KycHttpClient {
         ResponseEntity<ResponseCreateApplicantDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, ResponseCreateApplicantDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
             String errorString = "Error while creating applicant ";
-            throw new KycException(errorString.concat(responseEntity.getBody() != null
-                    && responseEntity.getBody().getError() != null ?
-                    responseEntity.getBody().getError() : null));
+            log.error(errorString + " {}", responseEntity);
+            throw new NgDashboardException("Error while response from service, create applicant",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_APPLICANT_ERROR);
         }
         return responseEntity.getBody();
     }
@@ -80,12 +83,22 @@ public class KycHttpClient {
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
 
-        ResponseEntity<OnboardingResponseDto> responseEntity =
-                template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        ResponseEntity<OnboardingResponseDto> responseEntity = null;
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        } catch (Exception e) {
+            log.error("Error response {}", ExceptionUtils.getStackTrace(e));
+            log.error("Response error {}", responseEntity);
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
+        }
+
+        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
             log.error("Error while creating onboarding {}", responseEntity);
-            throw new KycException("Error while creating onboarding");
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
 
         return responseEntity.getBody();
