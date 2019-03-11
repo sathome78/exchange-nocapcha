@@ -5,13 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.AlertDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrdersListWrapper;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.enums.ChartPeriodsEnum;
-import me.exrates.model.enums.ChartTimeFramesEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.PrecissionsEnum;
@@ -33,6 +30,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.websocket.EncodeException;
 import java.io.IOException;
@@ -50,17 +48,15 @@ public class WsController {
     private final ObjectMapper objectMapper;
     private final UserService userService;
     private final UsersAlertsService usersAlertsService;
-    private final ChartsCacheManager chartsCacheManager;
     private final CpStatisticsHolder cpStatisticsHolder;
 
     @Autowired
-    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, ChartsCacheManager chartsCacheManager, CpStatisticsHolder cpStatisticsHolder) {
+    public WsController(OrderService orderService, CurrencyService currencyService, ObjectMapper objectMapper, UserService userService, UsersAlertsService usersAlertsService, CpStatisticsHolder cpStatisticsHolder) {
         this.orderService = orderService;
         this.currencyService = currencyService;
         this.objectMapper = objectMapper;
         this.userService = userService;
         this.usersAlertsService = usersAlertsService;
-        this.chartsCacheManager = chartsCacheManager;
         this.cpStatisticsHolder = cpStatisticsHolder;
     }
 

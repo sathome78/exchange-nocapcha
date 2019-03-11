@@ -1,4 +1,3 @@
-
 INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`)
 VALUES ('Qubera', 'Qubera', 2, 'quberaServiceImpl', 'MERCHANT');
 

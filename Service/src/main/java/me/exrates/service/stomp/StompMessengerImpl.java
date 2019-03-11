@@ -5,7 +5,6 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChartPeriodsEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -13,7 +12,6 @@ import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.OpenApiUtils;
@@ -47,8 +45,6 @@ public class StompMessengerImpl implements StompMessenger {
     private DefaultSimpUserRegistry registry;
     @Autowired
     private UserService userService;
-    @Autowired
-    CurrencyService currencyService;
 
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

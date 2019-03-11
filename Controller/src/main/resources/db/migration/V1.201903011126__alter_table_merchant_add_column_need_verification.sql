@@ -7,7 +7,6 @@ CREATE PROCEDURE `Alter_Table`()
     IF NOT EXISTS( SELECT NULL
                    FROM INFORMATION_SCHEMA.COLUMNS
                    WHERE table_name = 'MERCHANT'
-                         AND table_schema = 'birzha'
                          AND column_name = 'needVerification')  THEN
 
       ALTER TABLE MERCHANT ADD COLUMN needVerification tinyint(1) NOT NULL DEFAULT 0;
@@ -16,3 +15,7 @@ CREATE PROCEDURE `Alter_Table`()
 
   END $$
 DELIMITER ;
+
+CALL Alter_Table();
+
+DROP PROCEDURE `Alter_Table`;
