@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,8 @@ import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 @Log4j2
 @Component
 public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final String DELIMITER = "/";
 
@@ -115,6 +119,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .peek(statistic -> {
                     statistic.setPercentChange(calculatePercentChange(statistic));
                     statistic.setPriceInUSD(calculatePriceInUSD(statistic));
+                    statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
                 })
                 .collect(Collectors.toList());
         ratesRedisRepository.batchUpdate(statisticList);
@@ -155,6 +160,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             statistic.setLow24hr(low24hr.compareTo(lastOrderRate) > 0
                     ? lastOrderRate.toPlainString()
                     : statistic.getLow24hr());
+            statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         } else {
             statistic = new ExOrderStatisticsShortByPairsDto();
             statistic.setCurrencyPairId(currencyPairId);
@@ -168,6 +174,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             statistic.setCurrencyVolume(amountConvert.toPlainString());
             statistic.setHigh24hr(lastOrderRate.toPlainString());
             statistic.setLow24hr(lastOrderRate.toPlainString());
+            statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         }
 
         if (ratesRedisRepository.exist(currencyPairName)) {
