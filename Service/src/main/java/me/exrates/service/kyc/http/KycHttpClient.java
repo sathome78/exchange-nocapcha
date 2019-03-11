@@ -10,6 +10,7 @@ import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
 import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
@@ -20,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -80,8 +82,16 @@ public class KycHttpClient {
 
         HttpEntity<?> request = new HttpEntity<>(requestDto, headers);
 
-        ResponseEntity<OnboardingResponseDto> responseEntity =
-                template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        ResponseEntity<OnboardingResponseDto> responseEntity = null;
+
+        try {
+            responseEntity =
+                    template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
+        } catch (Exception e) {
+            log.error("Error response  {}", ExceptionUtils.getStackTrace(e));
+            throw new NgDashboardException("Error while creating onboarding",
+                    Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
+        }
 
         if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
             log.error("Error while creating onboarding {}", responseEntity);
