@@ -88,6 +88,7 @@ public class OpenApiOrderController {
      * @apiName Creates order
      * @apiGroup Order API
      * @apiUse APIHeaders
+     * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Creates Order
      * @apiParam {String} currency_pair Name of currency pair (e.g. btc_usd)
@@ -128,6 +129,7 @@ public class OpenApiOrderController {
      * @apiName Accept order
      * @apiGroup Order API
      * @apiUse APIHeaders
+     * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Accepts order
      * @apiParam {Integer} order id
@@ -234,6 +236,7 @@ public class OpenApiOrderController {
      * @apiName add callback
      * @apiGroup Order API
      * @apiUse APIHeaders
+     * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Add callback
      * @apiParamExample Request Example:
@@ -271,6 +274,7 @@ public class OpenApiOrderController {
      * @apiName update callback
      * @apiGroup Order API
      * @apiUse APIHeaders
+     * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Update callback
      * @apiParamExample Request Example:

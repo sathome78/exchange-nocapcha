@@ -3,14 +3,8 @@
   "version": "0.1.0",
   "description": "Exrates REST API",
   "title": "Exrates REST API",
-  "url" : "https://exrates.me",
-  "forceLanguage" : "en",
-  "order": [
-    "Group",
-    "Define",
-    "PostTitleAndError",
-    "PostError"
-  ]
+  "url" : "https://api.exrates.me",
+  "forceLanguage" : "en"
 }
 
 
