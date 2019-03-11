@@ -310,7 +310,7 @@ public class KYCServiceImpl implements KYCService {
         }
         String docId = RandomStringUtils.random(18, true, false);
 
-        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", host, uuid);
+        String callBackUrl = String.format("%s/api/public/v2/kyc/webhook/%s", "https://demo.exrates.me", uuid);
 
         RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
         userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
