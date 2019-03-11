@@ -84,6 +84,7 @@ public class KycHttpClient {
                 template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
 
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            log.error("Error while creating onboarding {}", responseEntity);
             throw new KycException("Error while creating onboarding");
         }
 

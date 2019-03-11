@@ -314,7 +314,7 @@ public class KYCServiceImpl implements KYCService {
 
         RequestOnBoardingDto onBoardingDto = RequestOnBoardingDto.createOfParams(callBackUrl, email, uuid, docId);
         userVerificationInfoDao.saveUserVerificationDoc(new UserVerificationInfo(user.getId(), DocTypeEnum.P, docId));
-
+        log.info("Sending to create applicant {}", onBoardingDto);
         OnboardingResponseDto onBoarding = kycHttpClient.createOnBoarding(onBoardingDto);
         userService.updateKycStatusById(user.getEmail(), "Pending");
         return onBoarding;
