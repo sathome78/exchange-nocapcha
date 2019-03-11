@@ -88,7 +88,8 @@ public class KycHttpClient {
             responseEntity =
                     template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
         } catch (Exception e) {
-            log.error("Error response  {}", ExceptionUtils.getStackTrace(e));
+            log.error("Error response {}", ExceptionUtils.getStackTrace(e));
+            log.error("Response error {}", responseEntity);
             throw new NgDashboardException("Error while creating onboarding",
                     Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
