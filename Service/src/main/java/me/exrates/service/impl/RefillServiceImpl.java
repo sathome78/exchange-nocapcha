@@ -1334,4 +1334,9 @@ public class RefillServiceImpl implements RefillService {
         return refillRequestDao.findFlatByUserIdAndMerchantIdAndCurrencyId(userId, merchantId, currencyId);
     }
 
+    @Override
+    public void processRefillRequest(WalletOperationData walletOperationData) {
+
+    }
+
 }
