@@ -424,6 +424,6 @@ public class OpenApiOrderController {
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public OpenApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), "An internal error occured");
+        return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), String.format("An internal error occurred: %s", exception.getMessage()));
     }
 }
