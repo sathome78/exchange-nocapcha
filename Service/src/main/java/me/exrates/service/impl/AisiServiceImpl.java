@@ -113,7 +113,7 @@ public class AisiServiceImpl implements AisiService {
         if (tempStatus.equals(STATUS_OK)) {
         try {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
-        } catch (RefillRequestAppropriateNotFoundException e) {
+        } catch (Exception e) {
             log.debug("RefillRequestNotFountException: " + params);
                 Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
                 requestAcceptDto.setRequestId(requestId);
