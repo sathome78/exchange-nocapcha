@@ -85,7 +85,7 @@ public class KYCServiceImpl implements KYCService {
     private final KycDao kycDao;
     private final UserVerificationInfoDao userVerificationInfoDao;
 
-    @Value("${front-host}")
+    @Value("${server-host}")
     private String host;
 
     @Autowired
