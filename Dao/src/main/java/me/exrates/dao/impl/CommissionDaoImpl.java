@@ -45,10 +45,16 @@ public class CommissionDaoImpl implements CommissionDao {
         final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
                 "FROM COMMISSION " +
                 "WHERE operation_type = :operation_type AND user_role = :role_id";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
         params.put("role_id", userRole.getRole());
-        return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -67,10 +73,16 @@ public class CommissionDaoImpl implements CommissionDao {
     public Commission getDefaultCommission(OperationType operationType) {
         final String sql = "SELECT id, operation_type, date, value " +
                 "FROM COMMISSION " +
-                "WHERE operation_type = :operation_type AND user_role = 4;";
+                "WHERE operation_type = :operation_type AND user_role = 4";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
-        return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+
+        try {
+            return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
 
@@ -197,7 +209,7 @@ public class CommissionDaoImpl implements CommissionDao {
             put("fixed_commission", editMerchantCommissionDto.getMinFixedAmount());
             put("fixed_commission_usd", editMerchantCommissionDto.getMinFixedAmountUSD());
         }};
-        
+
         jdbcTemplate.update(sql, params);
     }
 

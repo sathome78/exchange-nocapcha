@@ -36,11 +36,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.object.MappingSqlQuery;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -145,7 +142,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("email", email);
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return 0;
         }
     }
@@ -269,8 +266,14 @@ public class UserDaoImpl implements UserDao {
     public UserRole getUserRoleById(Integer id) {
         String sql = "select USER_ROLE.name as role_name from USER " +
                 "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id ";
+
         Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) -> UserRole.valueOf(rs.getString("role_name")));
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) -> UserRole.valueOf(rs.getString("role_name")));
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -441,9 +444,15 @@ public class UserDaoImpl implements UserDao {
 
     public User getUserById(int id) {
         String sql = SELECT_USER + "WHERE USER.id = :id";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(id));
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public User getUserByTemporalToken(String token) {
@@ -730,11 +739,13 @@ public class UserDaoImpl implements UserDao {
     @Override
     public String getPreferredLang(int userId) {
         String sql = "SELECT preferred_lang FROM USER WHERE id = :id";
+
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("id", userId);
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
@@ -742,11 +753,13 @@ public class UserDaoImpl implements UserDao {
     @Override
     public String getPreferredLangByEmail(String email) {
         String sql = "SELECT preferred_lang FROM USER WHERE email = :email";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
@@ -960,16 +973,27 @@ public class UserDaoImpl implements UserDao {
     @Override
     public String getEmailById(Integer id) {
         String sql = "SELECT email FROM USER WHERE id = :id";
-        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
     public UserRole getUserRoleByEmail(String email) {
         String sql = "select USER_ROLE.name as role_name from USER " +
                 "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
+
         Map<String, String> namedParameters = Collections.singletonMap("email", email);
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) ->
-                UserRole.valueOf(rs.getString("role_name")));
+
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) ->
+                    UserRole.valueOf(rs.getString("role_name")));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
@@ -1101,7 +1125,7 @@ public class UserDaoImpl implements UserDao {
         String sql = "UPDATE USER SET GA=:ga WHERE email=:email";
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("ga", gatag);
-            put("email",userName);
+            put("email", userName);
         }};
         return namedParameterJdbcTemplate.update(sql, namedParameters);
     }
@@ -1323,7 +1347,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public String getKycStatusByEmail(String email) {
         String sql = "SELECT u.kyc_status FROM USER u WHERE u.email =:email";
-        return namedParameterJdbcTemplate.queryForObject(sql,  Collections.singletonMap("email", email), String.class);
+        return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
     }
 
     @Override

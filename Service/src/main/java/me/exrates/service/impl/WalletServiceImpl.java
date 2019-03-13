@@ -75,6 +75,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -499,7 +500,11 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
-        return walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
+        WalletsForOrderCancelDto wallet = walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
+        if (Objects.isNull(wallet)) {
+            throw new WalletNotFoundException("Wallet for order not found");
+        }
+        return wallet;
     }
 
     @Override

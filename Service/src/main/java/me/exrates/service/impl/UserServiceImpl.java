@@ -52,6 +52,7 @@ import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
+import me.exrates.service.exception.api.UserRoleNotFoundException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
@@ -81,6 +82,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -269,7 +271,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public int getIdByEmail(String email) {
-        return userDao.getIdByEmail(email);
+        int userId = userDao.getIdByEmail(email);
+        if (userId == 0) {
+            throw new UserNotFoundException(String.format("User: %s not found", email));
+        }
+        return userId;
     }
 
     @Override
@@ -356,7 +362,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public User getUserById(int id) {
-        return userDao.getUserById(id);
+        User userById = userDao.getUserById(id);
+        if (Objects.isNull(userById)) {
+            throw new UserNotFoundException(String.format("User: %d not found", id));
+        }
+        return userById;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -524,7 +534,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getPreferedLang(int userId) {
-        return userDao.getPreferredLang(userId);
+        String preferredLang = userDao.getPreferredLang(userId);
+        if (Objects.isNull(preferredLang)) {
+            preferredLang = "en";
+        }
+        return preferredLang;
     }
 
     @Override
@@ -634,7 +648,6 @@ public class UserServiceImpl implements UserService {
         if (!("ru".equalsIgnoreCase(lang) || "en".equalsIgnoreCase(lang))) {
             lang = "en";
         }
-
         return new Locale(lang);
     }
 
@@ -740,6 +753,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserRole getUserRoleFromSecurityContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (Objects.isNull(authentication)) {
+            throw new AuthenticationNotAvailableException();
+        }
         String grantedAuthority = authentication.getAuthorities().
                 stream()
                 .map(GrantedAuthority::getAuthority)
@@ -774,7 +791,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public String getEmailById(Integer id) {
-
         return userDao.getEmailById(id);
     }
 
@@ -786,7 +802,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserRole getUserRoleFromDB(Integer userId) {
-        return userDao.getUserRoleById(userId);
+        UserRole userRoleById = userDao.getUserRoleById(userId);
+        if (Objects.isNull(userRoleById)) {
+            throw new UserRoleNotFoundException(String.format("User role for user: %d not found", userId));
+        }
+        return userRoleById;
     }
 
     @Transactional
@@ -853,7 +873,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getUserEmailFromSecurityContext() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
+        if (Objects.isNull(auth)) {
             throw new AuthenticationNotAvailableException();
         }
         return auth.getName();

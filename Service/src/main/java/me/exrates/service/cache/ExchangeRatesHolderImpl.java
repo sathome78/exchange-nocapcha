@@ -167,7 +167,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             statistic.setCurrencyPairName(currencyPairName);
             statistic.setMarket(market);
             statistic.setLastOrderRate(lastOrderRate.toPlainString());
-            statistic.setPredLastOrderRate(statistic.getLastOrderRate());
+            statistic.setPredLastOrderRate(BigDecimal.ZERO.toPlainString());
             statistic.setPercentChange(calculatePercentChange(statistic));
             statistic.setPriceInUSD(calculatePriceInUSD(statistic));
             statistic.setVolume(amountBase.toPlainString());
@@ -227,7 +227,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         final String market = statistic.getMarket();
         final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
         if (lastOrderRate.compareTo(BigDecimal.ZERO) == 0) {
-            return "0";
+            return BigDecimal.ZERO.toPlainString();
         }
 
         switch (Market.of(market)) {
@@ -252,9 +252,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 BigDecimal newLastOrderRate = nonNull(usdRate) ? usdRate : BigDecimal.ZERO;
                 return newLastOrderRate.multiply(lastOrderRate).toPlainString();
             case UNDEFINED:
-                return "0";
+                return BigDecimal.ZERO.toPlainString();
         }
-        return "0";
+        return BigDecimal.ZERO.toPlainString();
     }
 
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {

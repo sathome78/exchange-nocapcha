@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -169,10 +170,12 @@ public class WalletDaoImpl implements WalletDao {
     public int createNewWallet(Wallet wallet) {
         String sql = "INSERT INTO WALLET (currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", wallet.getCurrencyId())
                 .addValue("userId", wallet.getUser().getId())
                 .addValue("activeBalance", wallet.getActiveBalance());
+
         int result = jdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {
@@ -724,6 +727,10 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
         CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+        if (Objects.isNull(currencyPair)) {
+            return null;
+        }
+
         String sql = "SELECT " +
                 " EXORDERS.id AS order_id, " +
                 " EXORDERS.status_id AS order_status_id, " +
@@ -762,11 +769,12 @@ public class WalletDaoImpl implements WalletDao {
                 "             (w2a.currency_id= :currency2_id) " +
                 " WHERE (EXORDERS.id = :order_id)" +
                 " FOR UPDATE "; //FOR UPDATE !Impotant
+
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("order_id", orderId);
         namedParameters.put("currency1_id", currencyPair.getCurrency1().getId());
         namedParameters.put("currency2_id", currencyPair.getCurrency2().getId());
-        if (userAcceptorId != null) {
+        if (Objects.nonNull(userAcceptorId)) {
             namedParameters.put("user_acceptor_id", String.valueOf(userAcceptorId));
         }
         try {
@@ -815,9 +823,11 @@ public class WalletDaoImpl implements WalletDao {
                 "  FROM WALLET " +
                 "  WHERE WALLET.id = :walletId " +
                 "  FOR UPDATE"; //FOR UPDATE Important!
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletId));
-        Wallet wallet = null;
+
+        Wallet wallet;
         try {
             wallet = jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Wallet>() {
                 @Override
@@ -836,7 +846,7 @@ public class WalletDaoImpl implements WalletDao {
         /**/
         BigDecimal newActiveBalance = BigDecimalProcessing.doAction(wallet.getActiveBalance(), amount, ActionType.ADD);
         BigDecimal newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.SUBTRACT);
-        if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+        if (newActiveBalance.compareTo(BigDecimal.ZERO) < 0 || newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
             log.error(String.format("Negative balance: active %s, reserved %s ",
                     BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
                     BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
@@ -883,7 +893,6 @@ public class WalletDaoImpl implements WalletDao {
         return WalletTransferStatus.SUCCESS;
     }
 
-
     public WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData) {
         BigDecimal amount = walletOperationData.getAmount();
         if (walletOperationData.getOperationType() == OperationType.OUTPUT) {
@@ -897,9 +906,11 @@ public class WalletDaoImpl implements WalletDao {
                 "  JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = WALLET.currency_id) " +
                 "  WHERE WALLET.id = :walletId " +
                 "  FOR UPDATE"; //FOR UPDATE Important!
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletOperationData.getWalletId()));
-        Wallet wallet = null;
+
+        Wallet wallet;
         try {
             wallet = jdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
                 Wallet result = new Wallet();
@@ -916,8 +927,8 @@ public class WalletDaoImpl implements WalletDao {
                 companyWallet.setCommissionBalance(rs.getBigDecimal("commission_balance"));
                 return result;
             });
-        } catch (EmptyResultDataAccessException e) {
-            log.error(ExceptionUtils.getStackTrace(e));
+        } catch (EmptyResultDataAccessException ex) {
+            log.error(ExceptionUtils.getStackTrace(ex));
             return WalletTransferStatus.WALLET_NOT_FOUND;
         }
         /**/
@@ -930,7 +941,7 @@ public class WalletDaoImpl implements WalletDao {
             newActiveBalance = wallet.getActiveBalance();
             newReservedBalance = BigDecimalProcessing.doAction(wallet.getReservedBalance(), amount, ActionType.ADD);
         }
-        if (newActiveBalance.compareTo(BigDecimal.ZERO) == -1 || newReservedBalance.compareTo(BigDecimal.ZERO) == -1) {
+        if (newActiveBalance.compareTo(BigDecimal.ZERO) < 0 || newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
             log.error(String.format("Negative balance: active %s, reserved %s ",
                     BigDecimalProcessing.formatNonePoint(newActiveBalance, false),
                     BigDecimalProcessing.formatNonePoint(newReservedBalance, false)));
@@ -938,6 +949,7 @@ public class WalletDaoImpl implements WalletDao {
         }
         /**/
         sql = "UPDATE WALLET SET active_balance = :active_balance, reserved_balance = :reserved_balance WHERE id =:walletId";
+
         Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("active_balance", newActiveBalance);
@@ -945,6 +957,7 @@ public class WalletDaoImpl implements WalletDao {
                 put("walletId", String.valueOf(walletOperationData.getWalletId()));
             }
         };
+
         if (jdbcTemplate.update(sql, params) <= 0) {
             return WalletTransferStatus.WALLET_UPDATE_ERROR;
         }
@@ -968,8 +981,8 @@ public class WalletDaoImpl implements WalletDao {
             transaction.setDescription(walletOperationData.getDescription());
             try {
                 transactionDao.create(transaction);
-            } catch (Exception e) {
-                log.error(ExceptionUtils.getStackTrace(e));
+            } catch (Exception ex) {
+                log.error(ExceptionUtils.getStackTrace(ex));
                 return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
             }
             walletOperationData.setTransaction(transaction);
@@ -999,6 +1012,10 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
         CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+        if (Objects.isNull(currencyPair)) {
+            return null;
+        }
+
         String sql = "SELECT " +
                 " EXORDERS.id AS order_id, " +
                 " EXORDERS.status_id AS order_status_id, " +
@@ -1019,7 +1036,7 @@ public class WalletDaoImpl implements WalletDao {
         params.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
         try {
             return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper(operationType));
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
@@ -1054,6 +1071,10 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
         CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+        if (Objects.isNull(currencyPair)) {
+            return Collections.emptyList();
+        }
+
         String sql =
                 "  SELECT  " +
                         "    EXORDERS.id AS order_id, " +

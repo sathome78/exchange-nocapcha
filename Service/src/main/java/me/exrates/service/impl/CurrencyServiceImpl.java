@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -168,7 +169,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyDao.findCurrencyPairById(currencyPairId);
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }
@@ -328,7 +329,11 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public CurrencyPair getCurrencyPairByName(String currencyPair) {
-        return currencyDao.findCurrencyPairByName(currencyPair);
+        CurrencyPair currencyPairByName = currencyDao.findCurrencyPairByName(currencyPair);
+        if (Objects.isNull(currencyPairByName)) {
+            throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
+        }
+        return currencyPairByName;
     }
 
     @Override

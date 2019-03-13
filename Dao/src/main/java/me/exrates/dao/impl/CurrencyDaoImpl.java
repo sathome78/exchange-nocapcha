@@ -348,7 +348,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, String> params = new HashMap<>();
         params.put("currency_pair", currencyPair);
 
-        return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -445,9 +449,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM EXORDERS " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 " WHERE EXORDERS.id = :order_id";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("order_id", String.valueOf(orderId));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Override
@@ -457,20 +467,27 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM CURRENCY_PAIR_LIMIT lim " +
                 " JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id AND CURRENCY_PAIR.hidden != 1 " +
                 " WHERE lim.currency_pair_id = :currency_pair_id AND lim.user_role_id = :user_role_id AND lim.order_type_id = :order_type_id";
+
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("user_role_id", roleId);
         namedParameters.put("order_type_id", orderTypeId);
-        return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
-            CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
-            dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            dto.setMinRate(rs.getBigDecimal("min_rate"));
-            dto.setMaxRate(rs.getBigDecimal("max_rate"));
-            dto.setMinAmount(rs.getBigDecimal("min_amount"));
-            dto.setMaxAmount(rs.getBigDecimal("max_amount"));
-            return dto;
-        });
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+                CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
+                dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+                dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                dto.setMinRate(rs.getBigDecimal("min_rate"));
+                dto.setMaxRate(rs.getBigDecimal("max_rate"));
+                dto.setMinAmount(rs.getBigDecimal("min_amount"));
+                dto.setMaxAmount(rs.getBigDecimal("max_amount"));
+                return dto;
+            });
+        } catch (Exception ex) {
+            return null;
+        }
+
     }
 
     @Override
@@ -608,6 +625,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Override
     public List<CurrencyPairInfoItem> findActiveCurrencyPairs() {
         String sql = "SELECT name FROM CURRENCY_PAIR WHERE hidden != 1 ORDER BY name ASC";
+
         return npJdbcTemplate.query(sql, Collections.emptyMap(),
                 (rs, row) -> new CurrencyPairInfoItem(rs.getString("name")));
     }

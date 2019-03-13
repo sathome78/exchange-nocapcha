@@ -2,6 +2,7 @@ package me.exrates.controller.openAPI;
 
 import me.exrates.controller.model.BaseResponse;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -12,50 +13,43 @@ import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.GtagService;
 import me.exrates.service.OrderService;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
-import me.exrates.service.exception.api.OpenApiError;
+import me.exrates.service.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 
 @SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/public")
 public class OpenApiPublicController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+    private final CurrencyService currencyService;
 
     @Autowired
-    private CurrencyService currencyService;
+    public OpenApiPublicController(OrderService orderService,
+                                   CurrencyService currencyService) {
+        this.orderService = orderService;
+        this.currencyService = currencyService;
+    }
 
     /**
      * @apiPosition 1
@@ -82,24 +76,26 @@ public class OpenApiPublicController {
      * * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * [
-     *  {
-     *      "id": 123,
-     *      "name": "currencyPairName",
-     *      "last": 12341,
-     *      "lowestAsk": 12342,
-     *      "highestBid":  12343
-     *      "percentChange":  1
-     *      "baseVolume": 10
-     *      "quoteVolume": 11
-     *      "high": 10
-     *      "low": 1
-     *  }
+     * {
+     * "id": 123,
+     * "name": "currencyPairName",
+     * "last": 12341,
+     * "lowestAsk": 12342,
+     * "highestBid":  12343
+     * "percentChange":  1
+     * "baseVolume": 10
+     * "quoteVolume": 11
+     * "high": 10
+     * "low": 1
+     * }
      * ]
+     * @apiError InvalidCurrencyPairFormatException
+     * @apiError CurrencyPairNotFoundException
      */
     @GetMapping("/ticker")
     public List<TickerJsonDto> getDailyTicker(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
         String currencyPairName = null;
-        if (currencyPair != null) {
+        if (Objects.nonNull(currencyPair)) {
             currencyPairName = transformCurrencyPair(currencyPair);
             validateCurrencyPair(currencyPairName);
         }
@@ -119,6 +115,8 @@ public class OpenApiPublicController {
      * (sorted by price - SELL ascending, BUY descending).
      * amount -	order amount in base currency
      * rate	- exchange rate
+     * @apiError InvalidCurrencyPairFormatException
+     * @apiError CurrencyPairNotFoundException
      */
     @RequestMapping("/orderbook/{currency_pair}")
     public Map<OrderType, List<OrderBookItem>> getOrderBook(@PathVariable(value = "currency_pair") String currencyPair,
@@ -149,6 +147,8 @@ public class OpenApiPublicController {
      * @apiSuccess {Number} data.total Total sum
      * @apiSuccess {Number} data.commission commission
      * @apiSuccess {String} data.order_type Order type (BUY or SELL)
+     * @apiError InvalidCurrencyPairFormatException
+     * @apiError CurrencyPairNotFoundException
      */
     @GetMapping(value = "/history/{currency_pair}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TradeHistoryDto>>> getTradeHistory(@PathVariable(value = "currency_pair") String currencyPair,
@@ -229,14 +229,8 @@ public class OpenApiPublicController {
      * "endDate":1472132438000
      * }
      * ]
-     * @apiError ExpiredAuthenticationTokenError
-     * @apiError MissingAuthenticationTokenError
-     * @apiError InvalidAuthenticationTokenError
-     * @apiError AuthenticationError
-     * @apiError InvalidParamError
-     * @apiError MissingParamError
-     * @apiError CurrencyPairNotFoundError
-     * @apiError InternalServerError
+     * @apiError InvalidCurrencyPairFormatException
+     * @apiError CurrencyPairNotFoundException
      */
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<CandleChartItemReducedDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String currencyPair,
@@ -245,60 +239,31 @@ public class OpenApiPublicController {
         final CurrencyPair currencyPairByName = currencyService.getCurrencyPairByName(transformCurrencyPair(currencyPair));
         final BackDealInterval interval = new BackDealInterval(intervalValue, intervalType);
 
-        List<CandleChartItemReducedDto> resultList = orderService.getDataForCandleChart(currencyPairByName, interval)
-                .stream()
-                .map(CandleChartItemReducedDto::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(BaseResponse.success(resultList));
+        List<CandleChartItemDto> dataForCandleChart = orderService.getDataForCandleChart(currencyPairByName, interval);
+
+        return ResponseEntity.ok(
+                BaseResponse.success(formatCandleData(dataForCandleChart)));
     }
 
     private void validateCurrencyPair(String currencyPairName) {
         currencyService.findCurrencyPairIdByName(currencyPairName);
     }
 
-
     private List<TickerJsonDto> formatCoinmarketData(List<CoinmarketApiDto> data) {
-        return data
+        return CollectionUtil.isNotEmpty(data)
+                ? data
                 .stream()
                 .map(TickerJsonDto::new)
-                .collect(toList());
+                .collect(toList())
+                : Collections.emptyList();
     }
 
-    @ResponseStatus(BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseBody
-    public OpenApiError mismatchArgumentsErrorHandler(HttpServletRequest req, MethodArgumentTypeMismatchException exception) {
-        String detail = "Invalid param value : " + exception.getParameter().getParameterName();
-        return new OpenApiError(ErrorCode.INVALID_PARAM_VALUE, req.getRequestURL(), detail);
-    }
-
-    @ResponseStatus(BAD_REQUEST)
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseBody
-    public OpenApiError missingServletRequestParameterHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
-    }
-
-    @ResponseStatus(NOT_ACCEPTABLE)
-    @ExceptionHandler(CurrencyPairNotFoundException.class)
-    @ResponseBody
-    public OpenApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.CURRENCY_PAIR_NOT_FOUND, req.getRequestURL(), exception);
-    }
-
-
-    @ResponseStatus(NOT_ACCEPTABLE)
-    @ExceptionHandler(InvalidCurrencyPairFormatException.class)
-    @ResponseBody
-    public OpenApiError invalidCurrencyPairFormatExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INVALID_CURRENCY_PAIR_FORMAT, req.getRequestURL(), exception);
-    }
-
-
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(Exception.class)
-    @ResponseBody
-    public OpenApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), String.format("An internal error occurred: %s", exception.getMessage()));
+    private List<CandleChartItemReducedDto> formatCandleData(List<CandleChartItemDto> data) {
+        return CollectionUtil.isNotEmpty(data)
+                ? data
+                .stream()
+                .map(CandleChartItemReducedDto::new)
+                .collect(Collectors.toList())
+                : Collections.emptyList();
     }
 }
