@@ -37,6 +37,11 @@
                         Predictions
                     </a>
                 </li>
+                <li>
+                    <a class="nav__link" href="<c:url value='/ieo_dashboard'/>">
+                        IEO
+                    </a>
+                </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
                             code="dashboard.trading"/></a></li>
