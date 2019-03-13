@@ -113,8 +113,6 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private UserTransferService userTransferService;
     @Autowired
-    private CryptoCurrencyBalances cryptoCurrencyBalances;
-    @Autowired
     private OrderService orderService;
     @Autowired
     private ExchangeApi exchangeApi;
@@ -775,5 +773,10 @@ public class WalletServiceImpl implements WalletService {
             return null;
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
+    }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, int currencyId) {
+        return walletDao.findByUserAndCurrency(userId, currencyId);
     }
 }

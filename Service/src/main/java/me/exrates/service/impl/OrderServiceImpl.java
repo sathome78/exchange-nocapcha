@@ -180,6 +180,7 @@ import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.model.enums.OrderActionEnum.CREATE_SPLIT;
 import static me.exrates.model.enums.OrderActionEnum.DELETE;
 import static me.exrates.model.enums.OrderActionEnum.DELETE_SPLIT;
+import static me.exrates.service.util.CollectionUtil.isEmpty;
 
 @Log4j2
 @Service
@@ -1283,6 +1284,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public boolean cancelOrder(Integer orderId) {
         ExOrder exOrder = getOrderById(orderId);
+        if (isNull(exOrder)) {
+            return false;
+        }
         return cancelOrder(exOrder);
     }
 
@@ -1292,6 +1296,9 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getOpenedOrdersByCurrencyPair(userId, currencyPair);
+        if (isEmpty(openedOrders)) {
+            return false;
+        }
 
         return openedOrders
                 .stream()
@@ -1304,6 +1311,9 @@ public class OrderServiceImpl implements OrderService {
         final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         List<ExOrder> openedOrders = orderDao.getAllOpenedOrdersByUserId(userId);
+        if (isEmpty(openedOrders)) {
+            return false;
+        }
 
         return openedOrders
                 .stream()
