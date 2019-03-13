@@ -38,7 +38,7 @@
                     </a>
                 </li>
                 <li>
-                    <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
+                    <a class="nav__link" href="<c:url value='/ieo_dashboard'/>">
                         IEO
                     </a>
                 </li>
