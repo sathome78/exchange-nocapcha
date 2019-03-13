@@ -61,7 +61,9 @@ public class KycHttpClient {
         ResponseEntity<ResponseCreateApplicantDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, ResponseCreateApplicantDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
+        HttpStatus httpStatus = responseEntity.getStatusCode();
+
+        if (!httpStatus.is2xxSuccessful()) {
             String errorString = "Error while creating applicant ";
             log.error(errorString + " {}", responseEntity);
             throw new NgDashboardException("Error while response from service, create applicant",
@@ -94,7 +96,7 @@ public class KycHttpClient {
                     Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
 
-        if (responseEntity.getStatusCode() != HttpStatus.CREATED) {
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("Error while creating onboarding {}", responseEntity);
             throw new NgDashboardException("Error while creating onboarding",
                     Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
@@ -118,7 +120,7 @@ public class KycHttpClient {
         ResponseEntity<AccountQuberaResponseDto> responseEntity =
                 template.exchange(uri, HttpMethod.POST, request, AccountQuberaResponseDto.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
             log.error("Error create account {}", responseEntity.getBody());
             throw new NgDashboardException("Error while creating account",
                     Constants.ErrorApi.QUBERA_CREATE_ACCOUNT_RESPONSE_ERROR);
