@@ -1,5 +1,7 @@
 package me.exrates.service.kyc.http;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountQuberaRequestDto;
@@ -8,8 +10,8 @@ import me.exrates.model.dto.kyc.CreateApplicantDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
 import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
-import me.exrates.model.exceptions.KycException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -21,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -32,8 +33,10 @@ import java.net.URI;
 @PropertySource("classpath:/merchants/qubera.properties")
 public class KycHttpClient {
 
-    private @Value("${qubera.kyc.url}") String uriApi;
-    private @Value("${qubera.kyc.apiKey}") String apiKey;
+    private @Value("${qubera.kyc.url}")
+    String uriApi;
+    private @Value("${qubera.kyc.apiKey}")
+    String apiKey;
 
     private RestTemplate template;
 
@@ -45,7 +48,7 @@ public class KycHttpClient {
     }
 
     public ResponseCreateApplicantDto createApplicant(CreateApplicantDto createApplicantDto) {
-
+        log.info("createApplicant(), {}", toJson(createApplicantDto));
         String finalUrl = uriApi + "/verification/cis/file";
 
         HttpHeaders headers = new HttpHeaders();
@@ -73,6 +76,7 @@ public class KycHttpClient {
     }
 
     public OnboardingResponseDto createOnBoarding(RequestOnBoardingDto requestDto) {
+        log.info("createOnBoarding (), {}", toJson(requestDto));
         String finalUrl = uriApi + "/verification/onboarding/sendlink";
 
         HttpHeaders headers = new HttpHeaders();
@@ -91,7 +95,7 @@ public class KycHttpClient {
                     template.exchange(uri, HttpMethod.POST, request, OnboardingResponseDto.class);
         } catch (Exception e) {
             log.error("Error response {}", ExceptionUtils.getStackTrace(e));
-            log.error("Response error {}", responseEntity);
+            log.error("Response error {}", toJson(responseEntity));
             throw new NgDashboardException("Error while creating onboarding",
                     Constants.ErrorApi.QUBERA_RESPONSE_CREATE_ONBOARDING_ERROR);
         }
@@ -106,6 +110,7 @@ public class KycHttpClient {
     }
 
     public AccountQuberaResponseDto createAccount(AccountQuberaRequestDto accountQuberaRequestDto) {
+        log.info("createAccount (), {}", toJson(accountQuberaRequestDto));
         String finalUrl = uriApi + "/account/create";
 
         HttpHeaders headers = new HttpHeaders();
@@ -127,5 +132,15 @@ public class KycHttpClient {
         }
 
         return responseEntity.getBody();
+    }
+
+    private String toJson(Object input) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(input);
+        } catch (JsonProcessingException e) {
+            log.error("Error create json from object");
+            return StringUtils.EMPTY;
+        }
     }
 }
