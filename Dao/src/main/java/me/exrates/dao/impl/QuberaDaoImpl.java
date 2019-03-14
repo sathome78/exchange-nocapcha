@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.dto.QuberaRequestDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
