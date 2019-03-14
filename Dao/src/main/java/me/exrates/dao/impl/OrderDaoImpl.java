@@ -1729,7 +1729,7 @@ public class OrderDaoImpl implements OrderDao {
 
         return namedParameterJdbcTemplate.query(sql, params, (rs, row) -> {
             ExOrder exOrder = new ExOrder();
-            exOrder.setId(rs.getInt("id"));
+            exOrder.setId(rs.getInt("order_id"));
             exOrder.setUserId(userId);
             exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
             exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
@@ -2306,6 +2306,7 @@ public class OrderDaoImpl implements OrderDao {
                         .market(rs.getString("market"))
                         .high24hr(rs.getBigDecimal("high24hr").toPlainString())
                         .low24hr(rs.getBigDecimal("low24hr").toPlainString())
+                        .hidden(rs.getBoolean("hidden"))
                         .build();
                 list.add(statistic);
             }

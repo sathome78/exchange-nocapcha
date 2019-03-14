@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,8 @@ import static me.exrates.service.util.CollectionUtil.isNotEmpty;
 @Log4j2
 @Component
 public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final String DELIMITER = "/";
 
@@ -115,6 +119,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .peek(statistic -> {
                     statistic.setPercentChange(calculatePercentChange(statistic));
                     statistic.setPriceInUSD(calculatePriceInUSD(statistic));
+                    statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
                 })
                 .collect(Collectors.toList());
         ratesRedisRepository.batchUpdate(statisticList);
@@ -138,13 +143,14 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         ExOrderStatisticsShortByPairsDto statistic;
         if (isNotEmpty(statisticList)) {
             statistic = statisticList.get(0);
+            final String predLastOrderRate = statistic.getLastOrderRate();
             final BigDecimal volume = new BigDecimal(statistic.getVolume());
             final BigDecimal currencyVolume = new BigDecimal(statistic.getCurrencyVolume());
             final BigDecimal high24hr = new BigDecimal(statistic.getHigh24hr());
             final BigDecimal low24hr = new BigDecimal(statistic.getLow24hr());
 
             statistic.setLastOrderRate(lastOrderRate.toPlainString());
-            statistic.setPredLastOrderRate(statistic.getLastOrderRate());
+            statistic.setPredLastOrderRate(predLastOrderRate);
             statistic.setPercentChange(calculatePercentChange(statistic));
             statistic.setPriceInUSD(calculatePriceInUSD(statistic));
             statistic.setVolume(volume.add(amountBase).toPlainString());
@@ -155,19 +161,21 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             statistic.setLow24hr(low24hr.compareTo(lastOrderRate) > 0
                     ? lastOrderRate.toPlainString()
                     : statistic.getLow24hr());
+            statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         } else {
             statistic = new ExOrderStatisticsShortByPairsDto();
             statistic.setCurrencyPairId(currencyPairId);
             statistic.setCurrencyPairName(currencyPairName);
             statistic.setMarket(market);
             statistic.setLastOrderRate(lastOrderRate.toPlainString());
-            statistic.setPredLastOrderRate(statistic.getLastOrderRate());
+            statistic.setPredLastOrderRate(BigDecimal.ZERO.toPlainString());
             statistic.setPercentChange(calculatePercentChange(statistic));
             statistic.setPriceInUSD(calculatePriceInUSD(statistic));
             statistic.setVolume(amountBase.toPlainString());
             statistic.setCurrencyVolume(amountConvert.toPlainString());
             statistic.setHigh24hr(lastOrderRate.toPlainString());
             statistic.setLow24hr(lastOrderRate.toPlainString());
+            statistic.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
         }
 
         if (ratesRedisRepository.exist(currencyPairName)) {
@@ -220,7 +228,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         final String market = statistic.getMarket();
         final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
         if (lastOrderRate.compareTo(BigDecimal.ZERO) == 0) {
-            return "0";
+            return BigDecimal.ZERO.toPlainString();
         }
 
         switch (Market.of(market)) {
@@ -245,9 +253,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 BigDecimal newLastOrderRate = nonNull(usdRate) ? usdRate : BigDecimal.ZERO;
                 return newLastOrderRate.multiply(lastOrderRate).toPlainString();
             case UNDEFINED:
-                return "0";
+                return BigDecimal.ZERO.toPlainString();
         }
-        return "0";
+        return BigDecimal.ZERO.toPlainString();
     }
 
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {

@@ -105,6 +105,7 @@ public class AisiServiceImpl implements AisiService {
                 .currencyId(currency.getId())
                 .amount(fullAmount)
                 .merchantTransactionId(hash)
+                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
         String tempStatus = aisiCurrencyService.createNewTransaction(address, fullAmount);
