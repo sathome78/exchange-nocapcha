@@ -1809,7 +1809,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public EthTokenService rvcServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xa3ebd756729904ba2a39289751d96d9b2eac793b");
-        return new EthTokenServiceImpl(tokensList, "RVC","RVC", true, ExConvert.Unit.ETHER);
+        return new EthTokenServiceImpl(tokensList, "RVC","RVC", false, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
