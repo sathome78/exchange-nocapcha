@@ -1947,7 +1947,7 @@ public class OrderServiceImpl implements OrderService {
                 return null;
         }
         try {
-            return objectMapper.writeValueAsString(new OrdersListWrapper(dtos, operationType.name(), pairId));
+            return objectMapper.writeValueAsString(Arrays.asList(new OrdersListWrapper(dtos, operationType.name(), pairId)));
         } catch (JsonProcessingException e) {
             log.error(e);
             return null;
