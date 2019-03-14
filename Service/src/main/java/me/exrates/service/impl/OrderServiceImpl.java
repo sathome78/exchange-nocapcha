@@ -335,7 +335,7 @@ public class OrderServiceImpl implements OrderService {
         result = result
                 .stream()
                 .map(ExOrderStatisticsShortByPairsDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         result.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
             BigDecimal predLastRate = e.getPredLastOrderRate() == null ? lastRate : new BigDecimal(e.getPredLastOrderRate());
@@ -350,20 +350,23 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsEx(RefreshObjectsEnum refreshObjectsEnum) {
-        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates());
+        List<ExOrderStatisticsShortByPairsDto> dto = this.processStatistic(exchangeRatesHolder.getAllRates())
+                .stream()
+                .filter(statistic -> !statistic.isHidden())
+                .collect(Collectors.toList());
         switch (refreshObjectsEnum) {
             case ICO_CURRENCIES_STATISTIC: {
                 dto = dto
                         .stream()
                         .filter(p -> p.getType() == CurrencyPairType.ICO)
-                        .collect(toList());
+                        .collect(Collectors.toList());
                 break;
             }
             case MAIN_CURRENCIES_STATISTIC: {
                 dto = dto
                         .stream()
                         .filter(p -> p.getType() == CurrencyPairType.MAIN)
-                        .collect(toList());
+                        .collect(Collectors.toList());
                 break;
             }
             default: {
@@ -375,6 +378,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<ExOrderStatisticsShortByPairsDto> getStatForSomeCurrencies(List<Integer> pairsIds) {
         List<ExOrderStatisticsShortByPairsDto> dto = exchangeRatesHolder.getCurrenciesRates(pairsIds);
+
         Locale locale = Locale.ENGLISH;
         dto.forEach(e -> {
             BigDecimal lastRate = new BigDecimal(e.getLastOrderRate());
@@ -646,6 +650,7 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderId;
     }
+
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -1696,11 +1701,11 @@ public class OrderServiceImpl implements OrderService {
         List<OrderWsDetailDto> dtoSell = orderDao.getOrdersSellForCurrencyPair(cp, null)
                 .stream()
                 .map(OrderWsDetailDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getOrdersBuyForCurrencyPair(cp, null)
                 .stream()
                 .map(OrderWsDetailDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
@@ -2106,7 +2111,7 @@ public class OrderServiceImpl implements OrderService {
                         .stream()
                         .filter(p -> new BigDecimal(p.getLastOrderRate()).equals(BigDecimal.ZERO)))
                 .flatMap(p -> p)
-                .collect(toList());
+                .collect(Collectors.toList());
         setStatisitcValues(statisticList);
         return statisticList;
     }
@@ -2466,11 +2471,11 @@ public class OrderServiceImpl implements OrderService {
         List<OrderWsDetailDto> dtoSell = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.SELL, userId)
                 .stream()
                 .map(OrderWsDetailDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         List<OrderWsDetailDto> dtoBuy = orderDao.getMyOpenOrdersForCurrencyPair(cp, OrderType.BUY, userId)
                 .stream()
                 .map(OrderWsDetailDto::new)
-                .collect(toList());
+                .collect(Collectors.toList());
         OrdersListWrapper sellOrders = new OrdersListWrapper(dtoSell, OperationType.SELL.name(), cp.getId());
         OrdersListWrapper buyOrders = new OrdersListWrapper(dtoBuy, OperationType.BUY.name(), cp.getId());
         return Arrays.asList(sellOrders, buyOrders);
@@ -2482,7 +2487,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
-                .collect(toList());
+                .collect(Collectors.toList());
         List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
         OrderBookWrapperDto dto = OrderBookWrapperDto
                 .builder()
@@ -2567,7 +2572,7 @@ public class OrderServiceImpl implements OrderService {
         MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
                 .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), toList()));
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
         List<SimpleOrderBookItem> items = Lists.newArrayList();
         groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
                 .builder()
@@ -2584,7 +2589,7 @@ public class OrderServiceImpl implements OrderService {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
             }
         }
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(toList());
+        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
         setSumAmount(preparedItems);
         setTotal(preparedItems);
         return preparedItems;
