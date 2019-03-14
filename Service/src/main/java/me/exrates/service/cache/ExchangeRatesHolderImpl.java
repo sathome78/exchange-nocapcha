@@ -143,13 +143,14 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         ExOrderStatisticsShortByPairsDto statistic;
         if (isNotEmpty(statisticList)) {
             statistic = statisticList.get(0);
+            final String predLastOrderRate = statistic.getLastOrderRate();
             final BigDecimal volume = new BigDecimal(statistic.getVolume());
             final BigDecimal currencyVolume = new BigDecimal(statistic.getCurrencyVolume());
             final BigDecimal high24hr = new BigDecimal(statistic.getHigh24hr());
             final BigDecimal low24hr = new BigDecimal(statistic.getLow24hr());
 
             statistic.setLastOrderRate(lastOrderRate.toPlainString());
-            statistic.setPredLastOrderRate(statistic.getLastOrderRate());
+            statistic.setPredLastOrderRate(predLastOrderRate);
             statistic.setPercentChange(calculatePercentChange(statistic));
             statistic.setPriceInUSD(calculatePriceInUSD(statistic));
             statistic.setVolume(volume.add(amountBase).toPlainString());
