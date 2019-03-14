@@ -2534,7 +2534,7 @@ public class OrderServiceImpl implements OrderService {
                     dto.setPreLastExrate(safeFormatBigDecimal(predLastOrderRate));
                     dto.setPositive(safeCompareBigDecimals(lastOrderRate, predLastOrderRate));
                 }
-                result.put(p, objectMapper.writeValueAsString(dto));
+                result.put(p, objectMapper.writeValueAsString(Arrays.asList(dto)));
             } catch (Exception e) {
                 log.error(e);
             }
