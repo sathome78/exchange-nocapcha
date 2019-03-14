@@ -994,28 +994,28 @@ public class NgMobileInputOutputController {
         return new ApiError(BAD_INVOICE_STATUS, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(CurrencyPairNotFoundException.class)
     @ResponseBody
     public ApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.CURRENCY_PAIR_NOT_FOUND, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler({InvoiceNotFoundException.class, me.exrates.service.exception.invoice.InvoiceNotFoundException.class})
     @ResponseBody
     public ApiError invoiceNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INVOICE_NOT_FOUND, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler({UserNotFoundException.class, me.exrates.dao.exception.UserNotFoundException.class})
     @ResponseBody
     public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(VoucherNotFoundException.class)
     @ResponseBody
     public ApiError VoucherNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {

@@ -1174,7 +1174,7 @@ public class MobileDashboardController {
         return new ApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(CurrencyPairNotFoundException.class)
     @ResponseBody
     public ApiError CurrencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {

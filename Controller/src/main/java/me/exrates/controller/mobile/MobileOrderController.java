@@ -394,7 +394,7 @@ public class MobileOrderController {
         return new ApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(WrongOrderKeyException.class)
     public ApiError wrongOrderKeyExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ORDER_KEY_NOT_FOUND, req.getRequestURL(), exception);
@@ -412,14 +412,14 @@ public class MobileOrderController {
         return new ApiError(ALREADY_ACCEPTED_ORDER, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(OrderNotFoundException.class)
     @ResponseBody
     public ApiError orderNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ORDER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND_ERROR)
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(CurrencyPairNotFoundException.class)
     @ResponseBody
     public ApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
