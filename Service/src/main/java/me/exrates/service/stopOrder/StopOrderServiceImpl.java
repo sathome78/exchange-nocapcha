@@ -21,9 +21,9 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.exception.IncorrectCurrentUserException;
-import me.exrates.service.exception.NotCreatableOrderException;
-import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.exception.StopOrderNoConditionException;
+import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -83,7 +83,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     public String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale) {
         Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
         if (orderId <= 0) {
-            throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
+            throw new OrderCreationException(messageSource.getMessage("dberror.text", null, locale));
         }
         ExOrder exOrder = new ExOrder(orderCreateDto);
         exOrder.setId(orderId);

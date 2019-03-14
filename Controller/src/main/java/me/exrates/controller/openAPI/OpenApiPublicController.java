@@ -58,9 +58,12 @@ public class OpenApiPublicController {
      * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Returns array of ticker info objects
+     *
      * @apiParam {String} currency_pair Currency pair name (optional)
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/public/ticker?currency_pair=btc_usd
+     *
      * @apiSuccess {Array} Ticker Infos result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Currency pair id
@@ -73,24 +76,26 @@ public class OpenApiPublicController {
      * @apiSuccess {Number} data.quoteVolume Volume of trade in quote currency
      * @apiSuccess {Number} data.high Highest price of accepted orders
      * @apiSuccess {Number} data.low Lowest price of accepted orders
-     * * @apiSuccessExample {json} Success-Response:
+     *
+     * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * [
-     * {
-     * "id": 123,
-     * "name": "currencyPairName",
-     * "last": 12341,
-     * "lowestAsk": 12342,
-     * "highestBid":  12343
-     * "percentChange":  1
-     * "baseVolume": 10
-     * "quoteVolume": 11
-     * "high": 10
-     * "low": 1
-     * }
+     *  {
+     *      "id": 123,
+     *      "name": "currencyPairName",
+     *      "last": 12341,
+     *      "lowestAsk": 12342,
+     *      "highestBid":  12343
+     *      "percentChange":  1
+     *      "baseVolume": 10
+     *      "quoteVolume": 11
+     *      "high": 10
+     *      "low": 1
+     *  }
      * ]
+     *
      * @apiError InvalidCurrencyPairFormatException
-     * @apiError CurrencyPairNotFoundException
+     * @apiError NotFoundException
      */
     @GetMapping("/ticker")
     public List<TickerJsonDto> getDailyTicker(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
@@ -108,15 +113,19 @@ public class OpenApiPublicController {
      * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Books Order
+     *
      * @apiParam {String} order_type Order type (BUY or SELL) (optional)
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/public/orderbook/btc_usd/?order_type=SELL
+     *
      * @apiSuccess {Map} Object with SELL and BUY fields, each containing array of open orders info objects
      * (sorted by price - SELL ascending, BUY descending).
      * amount -	order amount in base currency
      * rate	- exchange rate
+     *
      * @apiError InvalidCurrencyPairFormatException
-     * @apiError CurrencyPairNotFoundException
+     * @apiError NotFoundException
      */
     @RequestMapping("/orderbook/{currency_pair}")
     public Map<OrderType, List<OrderBookItem>> getOrderBook(@PathVariable(value = "currency_pair") String currencyPair,
@@ -131,12 +140,15 @@ public class OpenApiPublicController {
      * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Provides collection of trade info objects
+     *
      * @apiParam {LocalDate} from_date start date of search (date format: yyyy-MM-dd)
      * @apiParam {LocalDate} to_date end date of search (date format: yyyy-MM-dd)
      * @apiParam {Integer} limit limit number of entries (allowed values: limit could not be equals or be less then zero, default value: 50) (optional)
      * @apiParam {String} result direction (allowed values: ASC or DESC, default value: ASC) (optional)
+     *
      * @apiParamExample Request Example:
      * openapi/v1/public/history/btc_usd?from_date=2018-09-01&to_date=2018-09-05&limit=20&direction=DESC
+     *
      * @apiSuccess {Array} Array of trade info objects
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.order_id Order id
@@ -147,8 +159,9 @@ public class OpenApiPublicController {
      * @apiSuccess {Number} data.total Total sum
      * @apiSuccess {Number} data.commission commission
      * @apiSuccess {String} data.order_type Order type (BUY or SELL)
+     *
      * @apiError InvalidCurrencyPairFormatException
-     * @apiError CurrencyPairNotFoundException
+     * @apiError NotFoundException
      */
     @GetMapping(value = "/history/{currency_pair}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<TradeHistoryDto>>> getTradeHistory(@PathVariable(value = "currency_pair") String currencyPair,
@@ -174,8 +187,10 @@ public class OpenApiPublicController {
      * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Provides collection of currency pairs
+     *
      * @apiParamExample Request Example:
      * openapi/v1/public/currency_pairs
+     *
      * @apiSuccess {Array} Array of currency pairs
      * @apiSuccess {Object} data Container object
      * @apiSuccess {String} data.name Currency pair name
@@ -192,10 +207,13 @@ public class OpenApiPublicController {
      * @apiGroup Public API
      * @apiPermission user
      * @apiDescription Data for candle chart
+     *
      * @apiParam {String} interval_type type of interval (valid values: "HOUR", "DAY", "MONTH", "YEAR")
      * @apiParam {Integer} interval_value value of interval
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/public/btc_usd/candle_chart?interval_type=DAY&interval_value=7
+     *
      * @apiSuccess {Array} chartData Request result
      * @apiSuccess {Object} data Candle chart data item
      * @apiSuccess {Object} data.beginPeriod beginning of period as Java8 LocalDateTime
@@ -207,30 +225,32 @@ public class OpenApiPublicController {
      * @apiSuccess {Number} data.baseVolume base amount of order
      * @apiSuccess {Number} data.beginDate same as beginPeriod, different format
      * @apiSuccess {Number} data.endDate same as endPeriod, different format
+     *
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * [
-     * {
-     * "openRate":0.1,
-     * "closeRate":0.1,
-     * "lowRate":0.1,
-     * "highRate":0.1,
-     * "baseVolume":0,
-     * "beginDate":1472132318000,
-     * "endDate":1472132378000
-     * },
-     * {
-     * "openRate":0.1,
-     * "closeRate":0.1,
-     * "lowRate":0.1,
-     * "highRate":0.1,
-     * "baseVolume":0,
-     * "beginDate":1472132378000,
-     * "endDate":1472132438000
-     * }
+     *  {
+     *      "openRate":0.1,
+     *      "closeRate":0.1,
+     *      "lowRate":0.1,
+     *      "highRate":0.1,
+     *      "baseVolume":0,
+     *      "beginDate":1472132318000,
+     *      "endDate":1472132378000
+     *  },
+     *  {
+     *      "openRate":0.1,
+     *      "closeRate":0.1,
+     *      "lowRate":0.1,
+     *      "highRate":0.1,
+     *      "baseVolume":0,
+     *      "beginDate":1472132378000,
+     *      "endDate":1472132438000
+     *  }
      * ]
+     *
      * @apiError InvalidCurrencyPairFormatException
-     * @apiError CurrencyPairNotFoundException
+     * @apiError NotFoundException
      */
     @GetMapping(value = "/{currency_pair}/candle_chart", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResponse<List<CandleChartItemReducedDto>>> getCandleChartData(@PathVariable(value = "currency_pair") String currencyPair,

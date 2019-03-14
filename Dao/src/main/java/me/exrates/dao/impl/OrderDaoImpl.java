@@ -6,6 +6,8 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -845,7 +847,7 @@ public class OrderDaoImpl implements OrderDao {
                 return commissionsDto;
             });
         } catch (EmptyResultDataAccessException ex) {
-            return null;
+            throw new CommissionsNotFoundException(String.format("Commissions for role: %s not found", userRole));
         }
     }
 
@@ -1218,7 +1220,7 @@ public class OrderDaoImpl implements OrderDao {
                 }
             });
         } catch (EmptyResultDataAccessException ex) {
-            return null;
+            throw new WalletNotFoundException(String.format("Wallet for user: %s not found", email));
         }
     }
 

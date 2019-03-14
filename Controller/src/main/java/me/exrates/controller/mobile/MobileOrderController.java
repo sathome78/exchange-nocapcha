@@ -1,44 +1,21 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.controller.exception.WrongOrderKeyException;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderCreationResultDto;
-import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
-import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
-import me.exrates.service.exception.api.ApiError;
-import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
-
-import static me.exrates.service.exception.api.ErrorCode.*;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * Created by OLEG on 29.08.2016.
@@ -46,7 +23,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * ALL controleers oommented for security reasons
- * */
+ */
 @RestController
 @RequestMapping(value = "/api/orders")
 public class MobileOrderController {
@@ -417,7 +394,7 @@ public class MobileOrderController {
         return new ApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND)
+    @ResponseStatus(NOT_FOUND_ERROR)
     @ExceptionHandler(WrongOrderKeyException.class)
     public ApiError wrongOrderKeyExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ORDER_KEY_NOT_FOUND, req.getRequestURL(), exception);
@@ -435,14 +412,14 @@ public class MobileOrderController {
         return new ApiError(ALREADY_ACCEPTED_ORDER, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND)
+    @ResponseStatus(NOT_FOUND_ERROR)
     @ExceptionHandler(OrderNotFoundException.class)
     @ResponseBody
     public ApiError orderNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ORDER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
-    @ResponseStatus(NOT_FOUND)
+    @ResponseStatus(NOT_FOUND_ERROR)
     @ExceptionHandler(CurrencyPairNotFoundException.class)
     @ResponseBody
     public ApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {

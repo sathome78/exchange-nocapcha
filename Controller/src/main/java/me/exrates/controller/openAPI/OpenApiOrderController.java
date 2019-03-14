@@ -13,7 +13,7 @@ import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
-import me.exrates.service.exception.OrderNotFoundException;
+import me.exrates.dao.exception.notfound.OrderNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.userOperation.UserOperationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,36 +71,31 @@ public class OpenApiOrderController {
      * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Creates Order
+     *
      * @apiParam {String} currency_pair Name of currency pair (e.g. btc_usd)
      * @apiParam {String} order_type Type of order (BUY or SELL)
      * @apiParam {Number} amount Amount in base currency
      * @apiParam {Number} price Exchange rate
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/create
      * {
-     * "currencyPair": "btc_usd",
-     * "orderType": "BUY",
-     * "amount": 2.3,
-     * "price": 1.0
+     *      "currencyPair": "btc_usd",
+     *      "orderType": "BUY",
+     *      "amount": 2.3,
+     *      "price": 1.0
      * }
+     *
      * @apiSuccess {Object} orderCreationResult Order creation result information
      * @apiSuccess {Integer} orderCreationResult.created_order_id Id of created order (not shown in case of partial accept)
      * @apiSuccess {Integer} orderCreationResult.auto_accepted_quantity Number of orders accepted automatically (not shown if no orders were auto-accepted)
      * @apiSuccess {Number} orderCreationResult.partially_accepted_amount Amount that was accepted partially (shown only in case of partial accept)
+     *
      * @apiError AuthenticationNotAvailableException
      * @apiError InvalidCurrencyPairFormatException
-     * @apiError UserNotFoundException
-     * @apiError CurrencyPairNotFoundException
-     * @apiError WalletNotFoundException
-     * @apiError CurrencyPairLimitNotFoundException
-     * @apiError UserOperationAccessException
      * @apiError OrderParamsWrongException
-     * @apiError OrderAcceptionException
-     * @apiError OrderDeletingException
-     * @apiError OrderCreationException
-     * @apiError NotEnoughUserWalletMoneyException
-     * @apiError NotCreatableOrderException
-     * @apiError AlreadyAcceptedOrderException
+     * @apiError NotFoundException
+     * @apiError ProcessingException
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -128,7 +123,9 @@ public class OpenApiOrderController {
      * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Accepts order
+     *
      * @apiParam {Integer} order id
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/accept/1233
      * @apiSuccessExample {json} Success-Response:
@@ -136,21 +133,14 @@ public class OpenApiOrderController {
      * @apiErrorExample {json} Error-Response:
      * HTTP/1.1 200 OK
      * {
-     * "errorCode": "ACCEPTING_ORDER_ERROR",
-     * "url" : String,
-     * "detail" : String
+     *      "errorCode": "ACCEPTING_ORDER_ERROR",
+     *      "url" : String,
+     *      "detail" : String
      * }
+     *
      * @apiError AuthenticationNotAvailableException
-     * @apiError UserNotFoundException
-     * @apiError CurrencyPairNotFoundException
-     * @apiError WalletNotFoundException
-     * @apiError CurrencyPairLimitNotFoundException
-     * @apiError OrderAcceptionException
-     * @apiError AlreadyAcceptedOrderException
-     * @apiError WalletCreationException
-     * @apiError UserRoleNotFoundException
-     * @apiError CommissionsNotFoundException
-     * @apiError InsufficientCostsForAcceptionException
+     * @apiError NotFoundException
+     * @apiError ProcessingException
      **/
     @PreAuthorize("hasAuthority('TRADE') and hasAuthority('ACCEPT_BY_ID')")
     @GetMapping(value = "/accept/{orderId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -167,9 +157,12 @@ public class OpenApiOrderController {
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Accepts order
+     *
      * @apiParam {Integer} order_id Id of requested order
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/123
+     *
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
      * @apiSuccess {Integer} data.currencyPairId Currency pair id
@@ -187,27 +180,28 @@ public class OpenApiOrderController {
      * @apiSuccess {Number} data.stop  Stop price
      * @apiSuccess {String} data.baseType type of order status (LIMIT, STOP_LIMIT, ICO)
      * @apiSuccess {Number} data.partiallyAcceptedAmount  Partially accepted amount
+     *
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * {
-     * "id": 402298,
-     * "currencyPairId": 1,
-     * "operationType": "BUY",
-     * "exRate": 2000.009900479,
-     * "amountBase": 1,
-     * "amountConvert": 2000.009900479,
-     * "commission": 4.000019801,
-     * "userAcceptorId": 0,
-     * "created": "2018-12-22 00:49:11",
-     * "accepted": null",
-     * "status": "OPENED",
-     * "baseType": "LIMIT",
-     * "stop": null,
-     * "partiallyAcceptedAmount": null
+     *      "id": 402298,
+     *      "currencyPairId": 1,
+     *      "operationType": "BUY",
+     *      "exRate": 2000.009900479,
+     *      "amountBase": 1,
+     *      "amountConvert": 2000.009900479,
+     *      "commission": 4.000019801,
+     *      "userAcceptorId": 0,
+     *      "created": "2018-12-22 00:49:11",
+     *      "accepted": null",
+     *      "status": "OPENED",
+     *      "baseType": "LIMIT",
+     *      "stop": null,
+     *      "partiallyAcceptedAmount": null
      * }
+     *
      * @apiError AuthenticationNotAvailableException
-     * @apiError UserNotFoundException
-     * @apiError OrderNotFoundException
+     * @apiError NotFoundException
      **/
     // "Order with id: 40229 not found among created or accepted orders"
     @PreAuthorize("hasAuthority('TRADE')")
@@ -228,18 +222,19 @@ public class OpenApiOrderController {
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Cancel order by order id
+     *
      * @apiParam {Integer} order_id Id of order to be cancelled
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/123
+     *
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
+     *
      * @apiError AuthenticationNotAvailableException
-     * @apiError UserNotFoundException
-     * @apiError CurrencyPairNotFoundException
-     * @apiError WalletNotFoundException
-     * @apiError OrderAcceptionException
      * @apiError IncorrectCurrentUserException
-     * @apiError OrderCancellingException
+     * @apiError NotFoundException
+     * @apiError ProcessingException
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @DeleteMapping(value = "/{orderId}")
@@ -256,21 +251,24 @@ public class OpenApiOrderController {
      * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Add callback
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/callback/add
      * <p>
      * {
-     * "callbackURL": String,
-     * "pairId": Integer
+     *      "callbackURL": String,
+     *      "pairId": Integer
      * }
+     *
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * {
-     * "status": true
+     *      "status": true
      * }
+     *
      * @apiError AuthenticationNotAvailableException
-     * @apiError UserNotFoundException
      * @apiError CallBackUrlAlreadyExistException
+     * @apiError NotFoundException
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @PostMapping(value = "/callback/add", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -296,32 +294,35 @@ public class OpenApiOrderController {
      * @apiUse APIJson
      * @apiPermission NonPublicAuth
      * @apiDescription Update callback
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/callback/update
      * {
-     * "callbackURL": String,
-     * "pairId": Integer
+     *      "callbackURL": String,
+     *      "pairId": Integer
      * }
+     *
      * @apiSuccessExample {json} Success-Response:
      * HTTP/1.1 200 OK
      * {
-     * "status": true
+     *      "status": true
      * }
+     *
      * @apiErrorExample {json} Error-Response:
      * HTTP/1.1 200 OK
      * {
-     * "status": "false",
-     * "error" : " Callback url is null or empty"
+     *      "status": "false",
+     *      "error" : " Callback url is null or empty"
      * }
+     *
      * @apiError AuthenticationNotAvailableException
-     * @apiError UserNotFoundException
+     * @apiError NotFoundException
      */
     @PreAuthorize("hasAuthority('TRADE')")
     @PutMapping(value = "/callback/update", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, Object> updateCallback(@RequestBody CallbackURL callbackUrl) {
         Map<String, Object> responseBody = new HashMap<>();
-        String userEmail = userService.getUserEmailFromSecurityContext();
-        int userId = userService.getIdByEmail(userEmail);
+        int userId = userService.getIdByEmail(userService.getUserEmailFromSecurityContext());
         if (Strings.isNullOrEmpty(callbackUrl.getCallbackURL()) && Objects.nonNull(callbackUrl.getPairId())) {
             responseBody.put("status", "false");
             responseBody.put("error", " Callback url is null or empty");
@@ -339,18 +340,22 @@ public class OpenApiOrderController {
      * @apiUse APIHeaders
      * @apiPermission NonPublicAuth
      * @apiDescription Buy or sell open orders ordered by price (SELL ascending, BUY descending)
+     *
      * @apiParam {String} order_type Type of order (BUY or SELL)
      * @apiParam {String} currency_pair Name of currency pair
+     *
      * @apiParamExample Request Example:
      * /openapi/v1/orders/open/SELL?btc_usd
+     *
      * @apiSuccess {Array} openOrder Open Order Result
      * @apiSuccess {Object} data Container object
      * @apiSuccess {Integer} data.id Order id
      * @apiSuccess {String} data.order_type type of order (BUY or SELL)
      * @apiSuccess {Number} data.amount Amount in base currency
      * @apiSuccess {Number} data.price Exchange rate
-     * @apiError CurrencyPairNotFoundException
+     *
      * @apiError InvalidCurrencyPairFormatException
+     * @apiError NotFoundException
      */
     @GetMapping(value = "/open/{order_type}")
     public List<OpenOrderDto> openOrders(@PathVariable("order_type") OrderType orderType,

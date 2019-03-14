@@ -2,10 +2,11 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.exception.notfound.CurrencyPairLimitNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -13,13 +14,16 @@ import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -33,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -350,7 +353,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         try {
             return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
         } catch (Exception ex) {
-            return null;
+            throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
         }
     }
 
@@ -455,7 +458,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
         try {
             return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
         } catch (Exception ex) {
-            return null;
+            throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }
 
@@ -484,7 +487,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 return dto;
             });
         } catch (Exception ex) {
-            return null;
+            throw new CurrencyPairLimitNotFoundException(String.format("Currency pair limit for pair: %d not found", currencyPairId));
         }
 
     }

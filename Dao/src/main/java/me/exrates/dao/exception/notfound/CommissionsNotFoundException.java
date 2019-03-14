@@ -1,6 +1,10 @@
-package me.exrates.service.exception.api;
+package me.exrates.dao.exception.notfound;
 
-public class CommissionsNotFoundException extends RuntimeException {
+public class CommissionsNotFoundException extends NotFoundException {
+
+    public CommissionsNotFoundException() {
+        super();
+    }
 
     public CommissionsNotFoundException(String message) {
         super(message);

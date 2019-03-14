@@ -25,6 +25,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;

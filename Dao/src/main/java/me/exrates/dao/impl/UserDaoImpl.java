@@ -1,7 +1,8 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserRoleNotFoundException;
 import me.exrates.model.AdminAuthorityOption;
 import me.exrates.model.Comment;
 import me.exrates.model.PagingData;
@@ -138,12 +139,14 @@ public class UserDaoImpl implements UserDao {
 
     public int getIdByEmail(String email) {
         String sql = "SELECT id FROM USER WHERE email = :email";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
         } catch (EmptyResultDataAccessException ex) {
-            return 0;
+            throw new UserNotFoundException(String.format("User: %s not found", email));
         }
     }
 
@@ -272,7 +275,7 @@ public class UserDaoImpl implements UserDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) -> UserRole.valueOf(rs.getString("role_name")));
         } catch (Exception ex) {
-            return null;
+            throw new UserRoleNotFoundException(String.format("User role for user: %d not found", id));
         }
     }
 
@@ -451,7 +454,7 @@ public class UserDaoImpl implements UserDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
         } catch (Exception ex) {
-            return null;
+            throw new UserNotFoundException(String.format("User: %d not found", id));
         }
     }
 
@@ -746,7 +749,7 @@ public class UserDaoImpl implements UserDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
         } catch (EmptyResultDataAccessException ex) {
-            return null;
+            return Locale.ENGLISH.getLanguage();
         }
     }
 
@@ -977,7 +980,7 @@ public class UserDaoImpl implements UserDao {
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
         } catch (Exception ex) {
-            return null;
+            throw new UserNotFoundException(String.format("User: %d not found", id));
         }
     }
 

@@ -41,7 +41,6 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CryptoCurrencyBalances;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
@@ -53,9 +52,9 @@ import me.exrates.service.api.WalletsApi;
 import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.exception.WalletNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -498,11 +497,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
-        WalletsForOrderCancelDto wallet = walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
-        if (Objects.isNull(wallet)) {
-            throw new WalletNotFoundException("Wallet for order not found");
-        }
-        return wallet;
+        return walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
     }
 
     @Override

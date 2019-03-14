@@ -1,6 +1,10 @@
-package me.exrates.service.exception.api;
+package me.exrates.dao.exception.notfound;
 
-public class CurrencyPairLimitNotFoundException extends RuntimeException {
+public class CurrencyPairLimitNotFoundException extends NotFoundException {
+
+    public CurrencyPairLimitNotFoundException() {
+        super();
+    }
 
     public CurrencyPairLimitNotFoundException(String message) {
         super(message);

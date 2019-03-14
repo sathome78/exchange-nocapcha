@@ -5,6 +5,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -726,58 +727,55 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
-        if (Objects.isNull(currencyPair)) {
-            return null;
-        }
-
-        String sql = "SELECT " +
-                " EXORDERS.id AS order_id, " +
-                " EXORDERS.status_id AS order_status_id, " +
-                " cw1.id AS company_wallet_currency_base, " +
-                " cw1.balance AS company_wallet_currency_base_balance, " +
-                " cw1.commission_balance AS company_wallet_currency_base_commission_balance, " +
-                " cw2.id AS company_wallet_currency_convert, " +
-                " cw2.balance AS company_wallet_currency_convert_balance, " +
-                " cw2.commission_balance AS company_wallet_currency_convert_commission_balance, " +
-
-                " IF (EXORDERS.operation_type_id=4, w1.id, w2.id) AS wallet_in_for_creator, " +
-                " IF (EXORDERS.operation_type_id=4, w1.active_balance, w2.active_balance) AS wallet_in_active_for_creator, " +
-                " IF (EXORDERS.operation_type_id=4, w1.reserved_balance, w2.reserved_balance) AS wallet_in_reserved_for_creator, " +
-
-                " IF (EXORDERS.operation_type_id=4, w2.id, w1.id) AS wallet_out_for_creator, " +
-                " IF (EXORDERS.operation_type_id=4, w2.active_balance, w1.active_balance) AS wallet_out_active_for_creator, " +
-                " IF (EXORDERS.operation_type_id=4, w2.reserved_balance, w1.reserved_balance) AS wallet_out_reserved_for_creator, " +
-
-                " IF (EXORDERS.operation_type_id=3, w1a.id, w2a.id) AS wallet_in_for_acceptor, " +
-                " IF (EXORDERS.operation_type_id=3, w1a.active_balance, w2a.active_balance) AS wallet_in_active_for_acceptor, " +
-                " IF (EXORDERS.operation_type_id=3, w1a.reserved_balance, w2a.reserved_balance) AS wallet_in_reserved_for_acceptor, " +
-
-                " IF (EXORDERS.operation_type_id=3, w2a.id, w1a.id) AS wallet_out_for_acceptor, " +
-                " IF (EXORDERS.operation_type_id=3, w2a.active_balance, w1a.active_balance) AS wallet_out_active_for_acceptor, " +
-                " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserved_for_acceptor" +
-                " FROM EXORDERS  " +
-                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= :currency1_id) " +
-                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= :currency2_id) " +
-                " LEFT JOIN WALLET w1 ON  (w1.user_id = EXORDERS.user_id) AND " +
-                "             (w1.currency_id= :currency1_id) " +
-                " LEFT JOIN WALLET w2 ON  (w2.user_id = EXORDERS.user_id) AND " +
-                "             (w2.currency_id= :currency2_id) " +
-                " LEFT JOIN WALLET w1a ON  (w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w1a.currency_id= :currency1_id)" +
-                " LEFT JOIN WALLET w2a ON  (w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w2a.currency_id= :currency2_id) " +
-                " WHERE (EXORDERS.id = :order_id)" +
-                " FOR UPDATE "; //FOR UPDATE !Impotant
-
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("order_id", orderId);
-        namedParameters.put("currency1_id", currencyPair.getCurrency1().getId());
-        namedParameters.put("currency2_id", currencyPair.getCurrency2().getId());
-        if (Objects.nonNull(userAcceptorId)) {
-            namedParameters.put("user_acceptor_id", String.valueOf(userAcceptorId));
-        }
         try {
+            CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+
+            String sql = "SELECT " +
+                    " EXORDERS.id AS order_id, " +
+                    " EXORDERS.status_id AS order_status_id, " +
+                    " cw1.id AS company_wallet_currency_base, " +
+                    " cw1.balance AS company_wallet_currency_base_balance, " +
+                    " cw1.commission_balance AS company_wallet_currency_base_commission_balance, " +
+                    " cw2.id AS company_wallet_currency_convert, " +
+                    " cw2.balance AS company_wallet_currency_convert_balance, " +
+                    " cw2.commission_balance AS company_wallet_currency_convert_commission_balance, " +
+
+                    " IF (EXORDERS.operation_type_id=4, w1.id, w2.id) AS wallet_in_for_creator, " +
+                    " IF (EXORDERS.operation_type_id=4, w1.active_balance, w2.active_balance) AS wallet_in_active_for_creator, " +
+                    " IF (EXORDERS.operation_type_id=4, w1.reserved_balance, w2.reserved_balance) AS wallet_in_reserved_for_creator, " +
+
+                    " IF (EXORDERS.operation_type_id=4, w2.id, w1.id) AS wallet_out_for_creator, " +
+                    " IF (EXORDERS.operation_type_id=4, w2.active_balance, w1.active_balance) AS wallet_out_active_for_creator, " +
+                    " IF (EXORDERS.operation_type_id=4, w2.reserved_balance, w1.reserved_balance) AS wallet_out_reserved_for_creator, " +
+
+                    " IF (EXORDERS.operation_type_id=3, w1a.id, w2a.id) AS wallet_in_for_acceptor, " +
+                    " IF (EXORDERS.operation_type_id=3, w1a.active_balance, w2a.active_balance) AS wallet_in_active_for_acceptor, " +
+                    " IF (EXORDERS.operation_type_id=3, w1a.reserved_balance, w2a.reserved_balance) AS wallet_in_reserved_for_acceptor, " +
+
+                    " IF (EXORDERS.operation_type_id=3, w2a.id, w1a.id) AS wallet_out_for_acceptor, " +
+                    " IF (EXORDERS.operation_type_id=3, w2a.active_balance, w1a.active_balance) AS wallet_out_active_for_acceptor, " +
+                    " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserved_for_acceptor" +
+                    " FROM EXORDERS  " +
+                    " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= :currency1_id) " +
+                    " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= :currency2_id) " +
+                    " LEFT JOIN WALLET w1 ON  (w1.user_id = EXORDERS.user_id) AND " +
+                    "             (w1.currency_id= :currency1_id) " +
+                    " LEFT JOIN WALLET w2 ON  (w2.user_id = EXORDERS.user_id) AND " +
+                    "             (w2.currency_id= :currency2_id) " +
+                    " LEFT JOIN WALLET w1a ON  (w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
+                    "             (w1a.currency_id= :currency1_id)" +
+                    " LEFT JOIN WALLET w2a ON  (w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
+                    "             (w2a.currency_id= :currency2_id) " +
+                    " WHERE (EXORDERS.id = :order_id)" +
+                    " FOR UPDATE "; //FOR UPDATE !Impotant
+
+            Map<String, Object> namedParameters = new HashMap<>();
+            namedParameters.put("order_id", orderId);
+            namedParameters.put("currency1_id", currencyPair.getCurrency1().getId());
+            namedParameters.put("currency2_id", currencyPair.getCurrency2().getId());
+            if (Objects.nonNull(userAcceptorId)) {
+                namedParameters.put("user_acceptor_id", String.valueOf(userAcceptorId));
+            }
             return jdbcTemplate.queryForObject(sql, namedParameters, (rs, i) -> {
                 WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = new WalletsForOrderAcceptionDto();
                 walletsForOrderAcceptionDto.setOrderId(rs.getInt("order_id"));
@@ -812,8 +810,8 @@ public class WalletDaoImpl implements WalletDao {
                 /**/
                 return walletsForOrderAcceptionDto;
             });
-        } catch (EmptyResultDataAccessException e) {
-            return null;
+        } catch (Exception ex) {
+            throw new WalletNotFoundException(String.format("Wallet for user: %d not found", userAcceptorId));
         }
     }
 
@@ -1011,33 +1009,31 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
-        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
-        if (Objects.isNull(currencyPair)) {
-            return null;
-        }
-
-        String sql = "SELECT " +
-                " EXORDERS.id AS order_id, " +
-                " EXORDERS.status_id AS order_status_id, " +
-                " EXORDERS.amount_base AS amount_base, " +
-                " EXORDERS.amount_convert AS amount_convert, " +
-                " EXORDERS.commission_fixed_amount AS commission_fixed_amount, " +
-                " WALLET.id AS wallet_id, " +
-                " WALLET.active_balance AS active_balance, " +
-                " WALLET.reserved_balance AS reserved_balance " +
-                " FROM EXORDERS  " +
-                " JOIN WALLET ON  (WALLET.user_id = EXORDERS.user_id) AND " +
-                "             (WALLET.currency_id = :currency_id) " +
-                " WHERE (EXORDERS.id = :order_id)" +
-                " FOR UPDATE "; //FOR UPDATE !Impotant
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("order_id", orderId);
-        params.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
         try {
+            CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+
+            String sql = "SELECT " +
+                    " EXORDERS.id AS order_id, " +
+                    " EXORDERS.status_id AS order_status_id, " +
+                    " EXORDERS.amount_base AS amount_base, " +
+                    " EXORDERS.amount_convert AS amount_convert, " +
+                    " EXORDERS.commission_fixed_amount AS commission_fixed_amount, " +
+                    " WALLET.id AS wallet_id, " +
+                    " WALLET.active_balance AS active_balance, " +
+                    " WALLET.reserved_balance AS reserved_balance " +
+                    " FROM EXORDERS  " +
+                    " JOIN WALLET ON  (WALLET.user_id = EXORDERS.user_id) AND " +
+                    "             (WALLET.currency_id = :currency_id) " +
+                    " WHERE (EXORDERS.id = :order_id)" +
+                    " FOR UPDATE "; //FOR UPDATE !Impotant
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("order_id", orderId);
+            params.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
+
             return jdbcTemplate.queryForObject(sql, params, getWalletsForOrderCancelDtoMapper(operationType));
-        } catch (EmptyResultDataAccessException ex) {
-            return null;
+        } catch (Exception ex) {
+            throw new WalletNotFoundException(String.format("Wallet for order: %d not found", orderId));
         }
     }
 

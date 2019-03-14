@@ -3,20 +3,15 @@ package me.exrates.dao.impl;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.dto.QuberaRequestDto;
-import org.glassfish.grizzly.http.util.TimeStamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.Map;
@@ -63,8 +58,8 @@ public class QuberaDaoImpl implements QuberaDao {
                 return values;
             });
         } catch (EmptyResultDataAccessException e) {
-           log.info("Neither iban nor accountNumber for userId: {} and currencyId: {}", userId, currencyId);
-           return Collections.emptyMap();
+            log.info("Neither iban nor accountNumber for userId: {} and currencyId: {}", userId, currencyId);
+            return Collections.emptyMap();
         }
     }
 

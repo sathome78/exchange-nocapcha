@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.CommissionDao;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -53,7 +54,7 @@ public class CommissionDaoImpl implements CommissionDao {
         try {
             return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
         } catch (Exception ex) {
-            return null;
+            throw new CommissionsNotFoundException("Commission not found");
         }
     }
 
@@ -63,9 +64,11 @@ public class CommissionDaoImpl implements CommissionDao {
                 "FROM COMMISSION " +
                 "JOIN USER ON USER.id = :user_id " +
                 "WHERE operation_type = :operation_type AND user_role = USER.roleid";
+
         final HashMap<String, Integer> params = new HashMap<>();
         params.put("operation_type", operationType.type);
         params.put("user_id", userId);
+
         return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
     }
 
@@ -81,10 +84,9 @@ public class CommissionDaoImpl implements CommissionDao {
         try {
             return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
         } catch (Exception ex) {
-            return null;
+            throw new CommissionsNotFoundException("Commission not found");
         }
     }
-
 
     @Override
     public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
@@ -233,5 +235,4 @@ public class CommissionDaoImpl implements CommissionDao {
         params.put("id", commissionId);
         return jdbcTemplate.queryForObject(sql, params, commissionRowMapper);
     }
-
 }

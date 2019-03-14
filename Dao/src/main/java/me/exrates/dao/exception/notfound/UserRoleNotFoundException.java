@@ -1,6 +1,10 @@
-package me.exrates.service.exception.api;
+package me.exrates.dao.exception.notfound;
 
-public class UserRoleNotFoundException extends RuntimeException {
+public class UserRoleNotFoundException extends NotFoundException {
+
+    public UserRoleNotFoundException() {
+        super();
+    }
 
     public UserRoleNotFoundException(String message) {
         super(message);

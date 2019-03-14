@@ -17,7 +17,7 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.api.CommissionsNotFoundException;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -68,11 +67,7 @@ public class CommissionServiceImpl implements CommissionService {
 
     @Override
     public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
-        Commission commission = commissionDao.getCommission(operationType, userRole);
-        if (Objects.isNull(commission)) {
-            throw new CommissionsNotFoundException("Commission not found");
-        }
-        return commission;
+        return commissionDao.getCommission(operationType, userRole);
     }
 
     @Override

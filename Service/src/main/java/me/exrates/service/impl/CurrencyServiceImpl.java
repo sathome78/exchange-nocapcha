@@ -20,7 +20,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
@@ -327,11 +327,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public CurrencyPair getCurrencyPairByName(String currencyPair) {
-        CurrencyPair currencyPairByName = currencyDao.findCurrencyPairByName(currencyPair);
-        if (Objects.isNull(currencyPairByName)) {
-            throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
-        }
-        return currencyPairByName;
+        return currencyDao.findCurrencyPairByName(currencyPair);
     }
 
     @Override
