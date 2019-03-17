@@ -1,4 +1,4 @@
-INSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
+ёINSERT IGNORE INTO `MERCHANT` (`description`, `name`, `transaction_source_type_id`, `service_bean_name`, `process_type`, `tokens_parrent_id`)
 VALUES ('BioCrypt ', 'BIO', 2, 'ethereumServiceImpl', 'CRYPTO', 16);
 INSERT IGNORE INTO `CURRENCY` (`name`, `description`, `hidden`, `max_scale_for_refill`, `max_scale_for_withdraw`, `max_scale_for_transfer`)
 VALUES ('BIO', 'BioCrypt ', 0, 8, 8, 8);
