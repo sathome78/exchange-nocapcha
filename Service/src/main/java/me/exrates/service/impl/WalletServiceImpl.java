@@ -2,6 +2,8 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
@@ -53,8 +55,6 @@ import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -74,9 +74,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -84,7 +84,9 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 
 @Log4j2
 @Service
@@ -564,6 +566,12 @@ public class WalletServiceImpl implements WalletService {
 
         final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
         final Map<String, Pair<BigDecimal, LocalDateTime>> balances = walletsApi.getBalances();
+        final Map<String, ExternalWalletBalancesDto> mainBalancesMap = walletDao.getExternalMainWalletBalances()
+                .stream()
+                .collect(toMap(
+                        ExternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()
+                ));
 
         if (rates.isEmpty() || balances.isEmpty()) {
             log.info("Exchange or wallet api did not return any data");
@@ -591,19 +599,33 @@ public class WalletServiceImpl implements WalletService {
             LocalDateTime lastBalanceUpdate;
             if (isNull(pairBalances)) {
                 mainBalance = BigDecimal.ZERO;
-                lastBalanceUpdate = LocalDateTime.now();
+                lastBalanceUpdate = null;
             } else {
                 mainBalance = pairBalances.getLeft();
                 lastBalanceUpdate = pairBalances.getRight();
             }
 
-            ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
-                    .currencyId(currencyId)
-                    .usdRate(usdRate)
-                    .btcRate(btcRate)
-                    .mainBalance(mainBalance)
-                    .lastUpdatedDate(lastBalanceUpdate)
-                    .build();
+            ExternalWalletBalancesDto exWallet = mainBalancesMap.get(currencyName);
+            if (nonNull(exWallet)) {
+                ExternalWalletBalancesDto.Builder builder = exWallet.toBuilder()
+                        .usdRate(usdRate)
+                        .btcRate(btcRate)
+                        .mainBalance(mainBalance);
+
+                if (nonNull(lastBalanceUpdate)) {
+                    builder.lastUpdatedDate(lastBalanceUpdate);
+                }
+                exWallet = builder.build();
+            } else {
+                exWallet = ExternalWalletBalancesDto.builder()
+                        .currencyId(currencyId)
+                        .currencyName(currencyName)
+                        .usdRate(usdRate)
+                        .btcRate(btcRate)
+                        .mainBalance(mainBalance)
+                        .lastUpdatedDate(lastBalanceUpdate)
+                        .build();
+            }
             walletDao.updateExternalMainWalletBalances(exWallet);
         }
         log.info("Process of updating external main wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));

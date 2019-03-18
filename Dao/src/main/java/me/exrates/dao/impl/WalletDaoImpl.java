@@ -1441,7 +1441,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public boolean updateSignOfCertaintyForCurrency(int currencyId, boolean signOfCertainty) {
-        String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES SET sign_of_certainty = :sign_of_certainty " +
+        String sql = "UPDATE COMPANY_EXTERNAL_WALLET_BALANCES SET sign_of_certainty = :sign_of_certainty, last_updated_at = current_timestamp " +
                 "WHERE currency_id = :currency_id";
 
         Map<String, Object> params = new HashMap<String, Object>() {
