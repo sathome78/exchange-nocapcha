@@ -1943,6 +1943,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "bioServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService bioServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
