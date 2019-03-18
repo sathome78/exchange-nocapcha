@@ -415,7 +415,7 @@ public class OrderDaoImpl implements OrderDao {
 
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
-        List<CandleChartItemDto> result = namedParameterJdbcTemplate.execute(s, ps -> {
+        return namedParameterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
             while (rs.next()) {
@@ -434,7 +434,6 @@ public class OrderDaoImpl implements OrderDao {
             rs.close();
             return list;
         });
-        return result;
     }
 
     @Override
@@ -973,26 +972,18 @@ public class OrderDaoImpl implements OrderDao {
                 break;
         }
 
-        String orderClause = filterDataDto.getSortedColumns().isEmpty()
-                ? " ORDER BY x.exorder_date_creation , x.stop_order_date_creation DESC "
-                : " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
+        String orderClause;
+        if (filterDataDto.getStatus() == OrderStatus.CLOSED) {
+            orderClause = " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
+        } else {
+            orderClause = filterDataDto.getSortedColumns().isEmpty()
+                    ? " ORDER BY x.exorder_date_creation , x.stop_order_date_creation DESC "
+                    : " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
+        }
 
         String pageClause = " LIMIT ";
         pageClause += filterDataDto.getLimit() != 14 ? String.valueOf(filterDataDto.getLimit()) : "14";
         pageClause += filterDataDto.getOffset() > 0 ? " OFFSET " + String.valueOf(filterDataDto.getOffset()) : StringUtils.EMPTY;
-
-        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name, com.value AS commission_value" +
-                " FROM EXORDERS" +
-                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id)" +
-                " INNER JOIN COMMISSION com ON commission_id = com.id" +
-                " WHERE (status_id in (:statusId)) AND (operation_type_id IN (:operation_type_id)) "
-                + createdAfter
-                + createdBefore
-                + currencyPairClauseWhere
-                + userFilterClause
-                + orderClause
-                + currencyNameClause
-                + pageClause;
 
         String sqlWithBothOrders = "SELECT * " +
                 "FROM (SELECT EXORDERS.id, " +
@@ -1423,7 +1414,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("roles", roles);
         namedParameters.put("requester_user_id", requesterUserId);
 
-        return (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+        return slaveJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
             @Override
             public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
@@ -1596,6 +1587,7 @@ public class OrderDaoImpl implements OrderDao {
                                                      OrderStatus status,
                                                      int limit,
                                                      int offset) {
+        String orderSql = status == OrderStatus.CLOSED ? " ASC " : " DESC ";
         String currencyPairSql = nonNull(currencyPairId) ? " AND EO.currency_pair_id = :currency_pair_id " : StringUtils.EMPTY;
         String limitSql = limit > 0 ? " LIMIT :limit " : StringUtils.EMPTY;
         String offsetSql = (limit > 0 && offset > 0) ? "OFFSET :offset" : StringUtils.EMPTY;
@@ -1604,7 +1596,7 @@ public class OrderDaoImpl implements OrderDao {
                 " EO.date_creation, EO.date_acception FROM EXORDERS EO " +
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE (EO.user_id = :user_id OR EO.user_acceptor_id = :user_id) AND EO.status_id = :status_id " + currencyPairSql +
-                " ORDER BY EO.date_creation DESC " + limitSql + offsetSql;
+                " ORDER BY EO.date_creation " + orderSql + limitSql + offsetSql;
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
@@ -1972,19 +1964,14 @@ public class OrderDaoImpl implements OrderDao {
                 ? StringUtils.EMPTY
                 : " AND STOP_ORDERS.date_creation <= :dateBefore";
 
-        String currencyPairClauseWhereStopLimit = isNull(filterDataDto.getCurrencyPair())
-                ? StringUtils.EMPTY
-                : " AND STOP_ORDERS.currency_pair_id = :currencyPairId ";
         String currencyNameClause = isBlank(filterDataDto.getCurrencyName())
                 ? StringUtils.EMPTY
                 : " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER('%:currency_name%')";
 
         String currencyNameJoinClause = StringUtils.EMPTY;
         String currencyNameJoinClauseForStopLimits = StringUtils.EMPTY;
-        String currencyNameConditionClause = StringUtils.EMPTY;
         if (isNoneBlank(filterDataDto.getCurrencyName())) {
             currencyNameJoinClause = " JOIN CURRENCY_PAIR ON EXORDERS.currency_pair_id = CURRENCY_PAIR.id ";
-            currencyNameConditionClause = " AND LOWER(CURRENCY_PAIR.name) LIKE LOWER(:currency_name_part)";
             currencyNameJoinClauseForStopLimits = " JOIN CURRENCY_PAIR ON STOP_ORDERS.currency_pair_id = CURRENCY_PAIR.id ";
         }
 
@@ -2000,17 +1987,6 @@ public class OrderDaoImpl implements OrderDao {
                 userFilterClause = " AND EXORDERS.user_id = :user_id ";
                 break;
         }
-
-        String sql = "SELECT COUNT(*)" +
-                " FROM EXORDERS " +
-                currencyNameJoinClause +
-                " WHERE (status_id in (:statusId))" +
-                " AND (operation_type_id IN (:operation_type_id)) "
-                + createdAfter
-                + createdBefore
-                + currencyPairClauseWhere
-                + currencyNameConditionClause
-                + userFilterClause;
 
         String sqlFresh = "SELECT " +
                 "       (SELECT COUNT(*) FROM EXORDERS " +
