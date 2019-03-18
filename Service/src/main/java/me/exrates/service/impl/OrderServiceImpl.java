@@ -38,6 +38,7 @@ import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderReportInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.ReportDto;
 import me.exrates.model.dto.SimpleOrderBookItem;
 import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
@@ -96,10 +97,10 @@ import me.exrates.service.WalletService;
 import me.exrates.service.cache.ChartsCacheManager;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
-import me.exrates.service.events.EventsForDetailed.AutoAcceptEventsList;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
+import me.exrates.service.events.EventsForDetailed.AcceptDetailOrderEvent;
+import me.exrates.service.events.EventsForDetailed.AutoAcceptEventsList;
 import me.exrates.service.events.EventsForDetailed.CancelDetailorderEvent;
 import me.exrates.service.events.EventsForDetailed.CreateDetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
@@ -127,8 +128,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,22 +138,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.NoTransactionException;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.security.Principal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -163,11 +160,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -194,6 +191,7 @@ public class OrderServiceImpl implements OrderService {
     private final static String CONTENT_DISPOSITION = "Content-Disposition";
     private final static String ATTACHMENT = "attachment; filename=";
     private final static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER_FOR_NAME = DateTimeFormatter.ofPattern("dd_MM_yyyy_HH_mm");
     private static final int ORDERS_QUERY_DEFAULT_LIMIT = 20;
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
@@ -659,7 +657,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, List<OrderEvent> eventsList, boolean partialAccept) {
-        logTransaction("createOrder" ,"begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
+        logTransaction("createOrder", "begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         ProfileData profileData = new ProfileData(200);
         try {
             String description = transactionDescription.get(null, action);
@@ -716,9 +714,9 @@ public class OrderServiceImpl implements OrderService {
                     exOrder.setStatus(OrderStatus.OPENED);
                     profileData.setTime4();
                 }
-                logTransaction("createOrder" ,"end", orderCreateDto.getCurrencyPair().getId(), createdOrderId, null);
+                logTransaction("createOrder", "end", orderCreateDto.getCurrencyPair().getId(), createdOrderId, null);
                 eventPublisher.publishEvent(new CreateOrderEvent(exOrder));
-                if(!partialAccept) {
+                if (!partialAccept) {
                     eventPublisher.publishEvent(new CreateDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
                 } else {
                     eventsList.add(new CreateOrderEvent(exOrder));
@@ -825,7 +823,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
-        logTransaction("autoAcceptOrders" ,"begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
+        logTransaction("autoAcceptOrders", "begin", orderCreateDto.getCurrencyPair().getId(), -1, null);
         synchronized (autoAcceptLock) {
             List<OrderEvent> acceptEventsList = new ArrayList<>();
             ProfileData profileData = new ProfileData(200);
@@ -856,7 +854,7 @@ public class OrderServiceImpl implements OrderService {
                 OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
                 if (ordersForAccept.size() > 0) {
-                     acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept
+                    acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept
                             .stream()
                             .map(ExOrder::getId)
                             .collect(Collectors.toList()), locale, acceptEventsList, true);
@@ -881,7 +879,7 @@ public class OrderServiceImpl implements OrderService {
                     profileData.setTime4();
                     orderCreationResultDto.setCreatedOrderId(createdOrderId);
                 }
-                logTransaction("autoAcceptOrders" ,"end", orderCreateDto.getCurrencyPair().getId(), -1, null);
+                logTransaction("autoAcceptOrders", "end", orderCreateDto.getCurrencyPair().getId(), -1, null);
                 if (!acceptEventsList.isEmpty()) {
                     eventPublisher.publishEvent(new AutoAcceptEventsList(acceptEventsList, orderCreateDto.getCurrencyPair().getId()));
                 }
@@ -893,7 +891,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private BigDecimal acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale, List<OrderEvent> acceptEventsList) {
-        logTransaction("acceptPartially" ,"begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
+        logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
         OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
@@ -903,10 +901,10 @@ public class OrderServiceImpl implements OrderService {
                 userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
-        logTransaction("acceptPartially" ,"middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
+        logTransaction("acceptPartially", "middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
         int remainderId = createOrder(remainder, CREATE_SPLIT, acceptEventsList, true);
         acceptOrder(newOrder.getUserId(), acceptedId, locale, false, acceptEventsList, true);
-        logTransaction("acceptPartially" ,"end", orderForPartialAccept.getCurrencyPairId(), remainderId, null);
+        logTransaction("acceptPartially", "end", orderForPartialAccept.getCurrencyPairId(), remainderId, null);
         eventPublisher.publishEvent(partiallyAcceptedOrder(orderForPartialAccept, amountForPartialAccept));
 
    /* TODO temporary disable
@@ -924,7 +922,7 @@ public class OrderServiceImpl implements OrderService {
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String partOfLogging = String.format(" method %s ; part %s ; user %s ; pairId %d ; partialyAccepted or created Id %d ;",
-                 method, part, auth == null ? "no user" : auth.getName(), pairId, partiallyAcceptedOrderId);
+                method, part, auth == null ? "no user" : auth.getName(), pairId, partiallyAcceptedOrderId);
         String logMessage;
         try {
             if (TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -938,8 +936,8 @@ public class OrderServiceImpl implements OrderService {
                         partOfLogging, TransactionSynchronizationManager.getCurrentTransactionName(), isSyncActive, isRollbackOnly, isCompleted, isNewTx, hasSavepoint);
             } else {
                 logMessage = String.format("%s no transaction active ; ", partOfLogging);
-                if(ordersDtos != null) {
-                    String ids = ordersDtos.stream().map(p->p.getId().toString()).collect(Collectors.joining( "," ) );
+                if (ordersDtos != null) {
+                    String ids = ordersDtos.stream().map(p -> p.getId().toString()).collect(Collectors.joining(","));
                     logMessage = logMessage.concat(ids);
                 }
             }
@@ -997,7 +995,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public boolean setStatus(int orderId, OrderStatus status) {
-        logTransaction("setStatus" ,"begin", 0, orderId, null);
+        logTransaction("setStatus", "begin", 0, orderId, null);
         return orderDao.setStatus(orderId, status);
     }
 
@@ -1045,7 +1043,7 @@ public class OrderServiceImpl implements OrderService {
 
     private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification, List<OrderEvent> eventsList, boolean partialAccept) {
         try {
-            logTransaction("acceptOrder" ,"begin", 0, orderId, null);
+            logTransaction("acceptOrder", "begin", 0, orderId, null);
             ExOrder exOrder = this.getOrderById(orderId);
 
             checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
@@ -1260,7 +1258,7 @@ public class OrderServiceImpl implements OrderService {
             /*  stopOrderService.onLimitOrderAccept(exOrder);*//*check stop-orders for process*/
             /*action for refresh orders*/
             eventPublisher.publishEvent(new AcceptOrderEvent(exOrder));
-            if(!partialAccept) {
+            if (!partialAccept) {
                 eventPublisher.publishEvent(new AcceptDetailOrderEvent(exOrder, exOrder.getCurrencyPairId()));
             } else {
                 eventsList.add(new AcceptOrderEvent(exOrder));
@@ -1404,7 +1402,7 @@ public class OrderServiceImpl implements OrderService {
         if (result) {
             exOrder.setStatus(OrderStatus.CANCELLED);
             eventPublisher.publishEvent(new CancelOrderEvent(exOrder, false));
-            if(!forPartialAccept) {
+            if (!forPartialAccept) {
                 eventPublisher.publishEvent(new CancelDetailorderEvent(exOrder, false, true, exOrder.getCurrencyPairId()));
             } else {
                 acceptEventsList.add(new CancelOrderEvent(exOrder, false));
@@ -1433,7 +1431,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public boolean updateOrder(ExOrder exOrder) {
-        logTransaction("updateOrder" ,"begin", exOrder.getCurrencyPairId(), exOrder.getId(), null);
+        logTransaction("updateOrder", "begin", exOrder.getCurrencyPairId(), exOrder.getId(), null);
         return orderDao.updateOrder(exOrder);
     }
 
@@ -1888,7 +1886,7 @@ public class OrderServiceImpl implements OrderService {
         if (currentOrderStatus.equals(OrderStatus.OPENED)) {
             eventPublisher.publishEvent(new CancelOrderEvent(exOrder, true, true));
         }
-        if(!forPartialAccept) {
+        if (!forPartialAccept) {
             eventPublisher.publishEvent(new CancelDetailorderEvent(exOrder, false, true, exOrder.getCurrencyPairId()));
         } else {
             acceptEventsList.add(new CancelOrderEvent(exOrder, false, false));
@@ -2308,9 +2306,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response) {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Orders");
+    public ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+
+        XSSFSheet sheet = workbook.createSheet("Orders");
 
         Row headerRow = sheet.createRow(0);
         if (orderStatus == OrderStatus.OPENED) {
@@ -2338,54 +2337,48 @@ public class OrderServiceImpl implements OrderService {
         }
 
         int index = 1;
-
-        try {
-            for (OrderWideListDto order : orders) {
-                Row row = sheet.createRow(index++);
-                if (orderStatus == OrderStatus.OPENED) {
-                    row.createCell(0, CellType.STRING).setCellValue(order.getId());
-                    row.createCell(1, CellType.STRING).setCellValue(order.getDateCreation().toString());
-                    row.createCell(2, CellType.STRING).setCellValue(order.getCurrencyPairName());
-                    row.createCell(3, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
-                    row.createCell(4, CellType.STRING).setCellValue(order.getAmountBase());
-                    row.createCell(5, CellType.STRING).setCellValue(order.getExExchangeRate());
-                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
-                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
-                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
-                } else {
-                    String acceptDate = order.getDateAcception() != null ? order.getDateAcception().toString() : null;
-                    row.createCell(0, CellType.STRING).setCellValue(acceptDate);
-                    row.createCell(1, CellType.STRING).setCellValue(order.getCurrencyPairName());
-                    row.createCell(2, CellType.STRING).setCellValue(order.getOrderBaseType().toString());
-                    row.createCell(3, CellType.STRING).setCellValue(order.getOperationType());
-                    row.createCell(4, CellType.STRING).setCellValue(order.getExExchangeRate());
-                    row.createCell(5, CellType.STRING).setCellValue(order.getAmountBase());
-                    row.createCell(6, CellType.STRING).setCellValue(order.getCommissionFixedAmount());
-                    row.createCell(7, CellType.STRING).setCellValue(order.getCommissionValue());
-                    row.createCell(8, CellType.STRING).setCellValue(order.getAmountWithCommission());
-                }
+        for (OrderWideListDto order : orders) {
+            Row row = sheet.createRow(index++);
+            if (orderStatus == OrderStatus.OPENED) {
+                row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
+                row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
+                row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
+                row.createCell(4, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
+                row.createCell(5, CellType.STRING).setCellValue(getValue(order.getExExchangeRate()));
+                row.createCell(6, CellType.STRING).setCellValue(getValue(order.getCommissionFixedAmount()));
+                row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
+                row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
+            } else {
+                row.createCell(0, CellType.STRING).setCellValue(getValue(order.getDateAcception()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
+                row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
+                row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
+                row.createCell(4, CellType.STRING).setCellValue(getValue(order.getExExchangeRate()));
+                row.createCell(5, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
+                row.createCell(6, CellType.STRING).setCellValue(getValue(order.getCommissionFixedAmount()));
+                row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
+                row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             }
-
-            StringBuilder fileName = new StringBuilder("Orders_")
-                    .append(new SimpleDateFormat("yyyy_MM_dd").format(new Date()))
-                    .append(".xlsx");
-
-            response.setContentType("application/ms-excel");
-            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
-
-            OutputStream outStream = response.getOutputStream();
-            workbook.write(outStream);
-            outStream.flush();
-            workbook.close();
-        } catch (IOException e) {
-            logger.error("Error creating excel file, e - {}", e.getMessage());
         }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            workbook.write(bos);
+            bos.close();
+        } catch (IOException ex) {
+            throw new Exception("Problem with convert workbook to byte array", ex);
+        }
+        return ReportDto.builder()
+                .fileName(String.format("Orders_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(bos.toByteArray())
+                .build();
     }
 
     @Override
-    public void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response) {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Transactions");
+    public ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+
+        XSSFSheet sheet = workbook.createSheet("Transactions");
 
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Status");
@@ -2394,51 +2387,44 @@ public class OrderServiceImpl implements OrderService {
         headerRow.createCell(3).setCellValue("Amount");
         headerRow.createCell(4).setCellValue("Type");
         headerRow.createCell(5).setCellValue("Address");
-        headerRow.createCell(6).setCellValue("Status");
 
-        try {
-            int index = 1;
-            if (transactions.isEmpty()) {
-                Row row = sheet.createRow(index);
-                row.createCell(0, CellType.STRING).setCellValue("");
-                row.createCell(1, CellType.STRING).setCellValue("");
-                row.createCell(2, CellType.STRING).setCellValue("");
-                row.createCell(3, CellType.STRING).setCellValue("");
-                row.createCell(4, CellType.STRING).setCellValue("");
-                row.createCell(5, CellType.STRING).setCellValue("");
-                row.createCell(6, CellType.STRING).setCellValue("");
-            } else {
-                for (MyInputOutputHistoryDto dto : transactions) {
-                    Row row = sheet.createRow(index++);
-                    row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
-                    row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
-                    row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
-                    row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
-                    row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
-                    row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
-                    row.createCell(6, CellType.STRING).setCellValue(getValue(dto.getStatus()));
-                }
+        int index = 1;
+        if (transactions.isEmpty()) {
+            Row row = sheet.createRow(index);
+            row.createCell(0, CellType.STRING).setCellValue(StringUtils.EMPTY);
+            row.createCell(1, CellType.STRING).setCellValue(StringUtils.EMPTY);
+            row.createCell(2, CellType.STRING).setCellValue(StringUtils.EMPTY);
+            row.createCell(3, CellType.STRING).setCellValue(StringUtils.EMPTY);
+            row.createCell(4, CellType.STRING).setCellValue(StringUtils.EMPTY);
+            row.createCell(5, CellType.STRING).setCellValue(StringUtils.EMPTY);
+        } else {
+            for (MyInputOutputHistoryDto dto : transactions) {
+                Row row = sheet.createRow(index++);
+                row.createCell(0, CellType.STRING).setCellValue(getValue(dto.getStatus()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(dto.getDatetime()));
+                row.createCell(2, CellType.STRING).setCellValue(getValue(dto.getCurrencyName()));
+                row.createCell(3, CellType.STRING).setCellValue(getValue(dto.getAmount()));
+                row.createCell(4, CellType.STRING).setCellValue(getValue(dto.getSourceType()));
+                row.createCell(5, CellType.STRING).setCellValue(getValue(dto.getTransactionHash()));
             }
-
-            StringBuilder fileName = new StringBuilder("Transactions_")
-                    .append(new SimpleDateFormat("MM_dd_yyyy").format(new Date()))
-                    .append(".xlsx");
-
-            response.setContentType("application/ms-excel");
-            response.setHeader(CONTENT_DISPOSITION, ATTACHMENT + fileName.toString());
-
-            OutputStream outStream = response.getOutputStream();
-            workbook.write(outStream);
-            outStream.flush();
-            workbook.close();
-        } catch (IOException e) {
-            logger.error("Error creating excel file, e - {}", e.getMessage());
         }
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            workbook.write(bos);
+            bos.close();
+        } catch (IOException ex) {
+            throw new Exception("Problem with convert workbook to byte array", ex);
+        }
+        return ReportDto.builder()
+                .fileName(String.format("Transactions_%s", LocalDateTime.now().format(FORMATTER_FOR_NAME)))
+                .content(bos.toByteArray())
+                .build();
     }
 
     private String getValue(Object value) {
-        if (value == null) {
-            return "";
+        if (Objects.isNull(value)) {
+            return StringUtils.EMPTY;
         } else if (value instanceof LocalDate) {
             LocalDate date = (LocalDate) value;
             return DATE_TIME_FORMATTER.format(date);
