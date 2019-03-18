@@ -105,18 +105,18 @@ import me.exrates.service.events.EventsForDetailed.CancelDetailorderEvent;
 import me.exrates.service.events.EventsForDetailed.CreateDetailOrderEvent;
 import me.exrates.service.events.OrderEvent;
 import me.exrates.service.events.PartiallyAcceptedOrder;
-import me.exrates.service.exception.AlreadyAcceptedOrderException;
 import me.exrates.service.exception.AttemptToAcceptBotOrderException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
-import me.exrates.service.exception.InsufficientCostsForAcceptionException;
-import me.exrates.service.exception.NotCreatableOrderException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.OrderAcceptionException;
-import me.exrates.service.exception.OrderCancellingException;
-import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.OrderDeletingException;
-import me.exrates.service.exception.WalletCreationException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.service.exception.process.AlreadyAcceptedOrderException;
+import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
+import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
+import me.exrates.service.exception.process.OrderCreationException;
+import me.exrates.service.exception.process.WalletCreationException;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
@@ -722,10 +722,9 @@ public class OrderServiceImpl implements OrderService {
                     eventsList.add(new CreateOrderEvent(exOrder));
                 }
                 return createdOrderId;
-
             } else {
                 //this exception will be caught in controller, populated  with message text  and thrown further
-                throw new NotEnoughUserWalletMoneyException("");
+                throw new NotEnoughUserWalletMoneyException(StringUtils.EMPTY);
             }
         } finally {
             profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
@@ -746,6 +745,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderCreateDto prepareOrderRest(OrderCreationParamsDto orderCreationParamsDto, String userEmail, Locale locale, OrderBaseType orderBaseType) {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
+
         OrderCreateDto orderCreateDto = prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate(), orderBaseType);
         log.debug("Order prepared" + orderCreateDto);
@@ -860,7 +860,7 @@ public class OrderServiceImpl implements OrderService {
                             .collect(Collectors.toList()), locale, acceptEventsList, true);
                     orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
                 }
-                if (orderForPartialAccept != null) {
+                if (Objects.nonNull(orderForPartialAccept)) {
                     BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale, acceptEventsList);
                     orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
                     orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
@@ -894,11 +894,12 @@ public class OrderServiceImpl implements OrderService {
         logTransaction("acceptPartially", "begin", orderForPartialAccept.getCurrencyPairId(), orderForPartialAccept.getId(), null);
         deleteOrderForPartialAccept(orderForPartialAccept.getId(), acceptEventsList);
         BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
+        User userById = userService.getUserById(orderForPartialAccept.getUserId());
         OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
+                userById.getEmail(), amountForPartialAccept,
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
         OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
+                userById.getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
                 orderForPartialAccept.getExRate(), orderForPartialAccept.getId(), newOrder.getOrderBaseType());
         int acceptedId = createOrder(accepted, CREATE, acceptEventsList, true);
         logTransaction("acceptPartially", "middle", orderForPartialAccept.getCurrencyPairId(), accepted.getOrderId(), null);
@@ -1049,6 +1050,7 @@ public class OrderServiceImpl implements OrderService {
             checkAcceptPermissionForUser(userAcceptorId, exOrder.getUserId(), locale);
 
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletService.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
+
             String descriptionForCreator = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPTED);
             String descriptionForAcceptor = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPT);
             /**/
@@ -1167,6 +1169,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletOperationData.setDescription(descriptionForCreator);
             walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughreservedmoneyforcreator", locale);
                 if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
@@ -1186,6 +1189,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletOperationData.setDescription(descriptionForAcceptor);
             walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
                 if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
@@ -1205,6 +1209,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletOperationData.setDescription(descriptionForCreator);
             walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
                 throw new OrderAcceptionException(exceptionMessage);
@@ -1222,6 +1227,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletOperationData.setDescription(descriptionForAcceptor);
             walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
                 throw new OrderAcceptionException(exceptionMessage);
@@ -1411,7 +1417,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     private String getStatusString(OrderStatus status, Locale ru) {
         String statusString = null;
         switch (status) {
@@ -1511,10 +1516,10 @@ public class OrderServiceImpl implements OrderService {
 
         Object result = deleteOrder(orderId, OrderStatus.DELETED, DELETE, null, false);
         if (result instanceof OrderDeleteStatus) {
-            if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
+            if (result == OrderDeleteStatus.NOT_FOUND) {
                 return 0;
             }
-            throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
+            throw new OrderDeletingException(result.toString());
         }
         /*notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
                 "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});*/
@@ -1526,7 +1531,7 @@ public class OrderServiceImpl implements OrderService {
     public Integer deleteOrderForPartialAccept(int orderId, List<OrderEvent> acceptEventsList) {
         Object result = deleteOrder(orderId, OrderStatus.SPLIT_CLOSED, DELETE_SPLIT, acceptEventsList, true);
         if (result instanceof OrderDeleteStatus) {
-            throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
+            throw new OrderDeletingException(result.toString());
         }
         return (Integer) result;
     }
@@ -1581,6 +1586,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public CommissionsDto getAllCommissions() {
         UserRole userRole = userService.getUserRoleFromSecurityContext();
+
         return orderDao.getAllCommissions(userRole);
     }
 
@@ -1712,9 +1718,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType) {
-        UserRole userRole = null;
+        UserRole userRole;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
+        if (Objects.isNull(authentication)) {
             userRole = userService.getUserRoleFromDB(email);
         } else {
             userRole = userService.getUserRoleFromSecurityContext();
@@ -2134,7 +2140,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Map<OrderType, List<OrderBookItem>> getOrderBook(String currencyPairName, @Nullable OrderType orderType) {
         Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
-        if (orderType != null) {
+        if (Objects.nonNull(orderType)) {
             return Collections.singletonMap(orderType, orderDao.getOrderBookItemsForType(currencyPairId, orderType));
         } else {
             Map<OrderType, List<OrderBookItem>> result = orderDao.getOrderBookItems(currencyPairId)
@@ -2143,7 +2149,6 @@ public class OrderServiceImpl implements OrderService {
             result.forEach((key, value) -> value.sort(Comparator.comparing(OrderBookItem::getRate, key.getBenefitRateComparator())));
             return result;
         }
-
     }
 
     @Transactional(readOnly = true)
@@ -2178,11 +2183,15 @@ public class OrderServiceImpl implements OrderService {
     public List<UserOrdersDto> getUserClosedOrders(@Null String currencyPairName,
                                                    @Null Integer limit,
                                                    @Null Integer offset) {
-        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+        final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
 
-        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
-        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
-        int queryOffset = offset == null ? 0 : offset;
+        final int queryLimit = Objects.isNull(limit)
+                ? ORDERS_QUERY_DEFAULT_LIMIT
+                : limit;
+        final int queryOffset = Objects.isNull(offset)
+                ? 0
+                : offset;
 
         return orderDao.getUserOrdersByStatus(userId, currencyPairId, OrderStatus.CLOSED, queryLimit, queryOffset);
     }
@@ -2192,11 +2201,15 @@ public class OrderServiceImpl implements OrderService {
     public List<UserOrdersDto> getUserCanceledOrders(@Null String currencyPairName,
                                                      @Null Integer limit,
                                                      @Null Integer offset) {
-        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+        final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
 
-        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
-        int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
-        int queryOffset = offset == null ? 0 : offset;
+        final int queryLimit = Objects.isNull(limit)
+                ? ORDERS_QUERY_DEFAULT_LIMIT
+                : limit;
+        final int queryOffset = Objects.isNull(offset)
+                ? 0
+                : offset;
 
         return orderDao.getUserOrdersByStatus(userId, currencyPairId, OrderStatus.CANCELLED, queryLimit, queryOffset);
     }
@@ -2206,8 +2219,8 @@ public class OrderServiceImpl implements OrderService {
                                                 @Null Integer limit,
                                                 @Null Integer offset) {
         final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
+        final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
 
-        Integer currencyPairId = isNull(currencyPairName) ? null : currencyService.findCurrencyPairIdByName(currencyPairName);
         int queryLimit = limit == null ? ORDERS_QUERY_DEFAULT_LIMIT : limit;
         int queryOffset = offset == null ? 0 : offset;
         return orderDao.getUserOrders(userId, currencyPairId, queryLimit, queryOffset);
@@ -2229,8 +2242,8 @@ public class OrderServiceImpl implements OrderService {
                                                                        @NotNull LocalDate fromDate,
                                                                        @NotNull LocalDate toDate,
                                                                        @Null Integer limit) {
+        final int userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
         final Integer currencyPairId = currencyService.findCurrencyPairIdByName(currencyPairName);
-        final Integer userId = userService.getIdByEmail(getUserEmailFromSecurityContext());
 
         return orderDao.getUserTradeHistoryByCurrencyPair(
                 userId,

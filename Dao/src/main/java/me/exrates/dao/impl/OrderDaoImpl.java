@@ -6,6 +6,8 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.OrderDaoException;
+import me.exrates.dao.exception.notfound.CommissionsNotFoundException;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -136,6 +138,7 @@ public class OrderDaoImpl implements OrderDao {
                 "  VALUES " +
                 "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount, :status_id, :order_source_id, :base_type)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", exOrder.getUserId())
                 .addValue("currency_pair_id", exOrder.getCurrencyPairId())
@@ -148,6 +151,7 @@ public class OrderDaoImpl implements OrderDao {
                 .addValue("status_id", OrderStatus.INPROCESS.getStatus())
                 .addValue("order_source_id", exOrder.getSourceId())
                 .addValue("base_type", exOrder.getOrderBaseType().name());
+
         int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {
@@ -288,11 +292,13 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public ExOrder getOrderById(int orderId) {
         String sql = "SELECT * FROM EXORDERS WHERE id = :id";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(orderId));
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
@@ -415,6 +421,7 @@ public class OrderDaoImpl implements OrderDao {
 
     private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
         String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.getIntervalValue() + ", '" + backDealInterval.getIntervalType().name() + "', " + currencyPair.getId() + ")}";
+
         return namedParameterJdbcTemplate.execute(s, ps -> {
             ResultSet rs = ps.executeQuery();
             List<CandleChartItemDto> list = new ArrayList<>();
@@ -827,8 +834,9 @@ public class OrderDaoImpl implements OrderDao {
                         "      WHERE operation_type = 9 AND user_role = :user_role  " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "  ) COMMISSION";
+
+        Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
         try {
-            Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
             return slaveJdbcTemplate.queryForObject(sql, params, (rs, row) -> {
                 CommissionsDto commissionsDto = new CommissionsDto();
                 commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
@@ -838,8 +846,8 @@ public class OrderDaoImpl implements OrderDao {
                 commissionsDto.setTransferCommission(rs.getBigDecimal("transfer_commission"));
                 return commissionsDto;
             });
-        } catch (EmptyResultDataAccessException e) {
-            return null;
+        } catch (EmptyResultDataAccessException ex) {
+            throw new CommissionsNotFoundException(String.format("Commissions for role: %s not found", userRole));
         }
     }
 
@@ -1183,11 +1191,13 @@ public class OrderDaoImpl implements OrderDao {
                 "           WHERE COMMISSION.operation_type=:operation_type_id AND COMMISSION.user_role = :user_role ORDER BY COMMISSION.date " +
                 "           DESC LIMIT 1) AS COMM) ON (1=1) " +
                 "  WHERE USER.email = :email";
+
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
         namedParameters.put("operation_type_id", operationType.getType());
         namedParameters.put("currency_id", currency.getId());
         namedParameters.put("user_role", userRole.getRole());
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<WalletsAndCommissionsForOrderCreationDto>() {
                 @Override
@@ -1201,8 +1211,8 @@ public class OrderDaoImpl implements OrderDao {
                     return walletsAndCommissionsForOrderCreationDto;
                 }
             });
-        } catch (EmptyResultDataAccessException e) {
-            return null;
+        } catch (EmptyResultDataAccessException ex) {
+            throw new WalletNotFoundException(String.format("Wallet for user: %s not found", email));
         }
     }
 
@@ -1467,6 +1477,7 @@ public class OrderDaoImpl implements OrderDao {
         String sql = "SELECT amount_base, exrate FROM EXORDERS WHERE currency_pair_id = :currency_pair_id " +
                 "AND status_id = :status_id AND operation_type_id = :operation_type_id " +
                 "ORDER BY exrate " + orderDirection;
+
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
@@ -1485,9 +1496,11 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderBookItem> getOrderBookItems(Integer currencyPairId) {
         String sql = "SELECT operation_type_id, amount_base, exrate FROM EXORDERS WHERE currency_pair_id = :currency_pair_id " +
                 "AND status_id = :status_id ";
+
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
+
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OrderBookItem item = new OrderBookItem();
             item.setOrderType(OrderType.fromOperationType(OperationType.convert(rs.getInt("operation_type_id"))));
@@ -1504,10 +1517,12 @@ public class OrderDaoImpl implements OrderDao {
         String sql = "SELECT id, operation_type_id, amount_base, exrate FROM EXORDERS " +
                 "WHERE currency_pair_id = :currency_pair_id " +
                 "AND status_id = :status_id AND operation_type_id = :operation_type_id " + orderBySql;
+
         Map<String, Object> params = new HashMap<>();
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
         params.put("operation_type_id", orderType.getOperationType().type);
+
         return slaveJdbcTemplate.query(sql, params, (rs, row) -> {
             OpenOrderDto item = new OpenOrderDto();
             item.setId(rs.getInt("id"));
@@ -1573,6 +1588,7 @@ public class OrderDaoImpl implements OrderDao {
                 " JOIN CURRENCY_PAIR CP ON EO.currency_pair_id = CP.id " +
                 " WHERE EO.user_id = :user_id AND EO.status_id = :status_id " + currencyPairSql +
                 " ORDER BY EO.date_creation DESC";
+
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
         params.put("currency_pair_id", currencyPairId);
@@ -2248,12 +2264,14 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public ExOrder getOrderById(int orderId, int userId) {
         String sql = "SELECT * FROM EXORDERS WHERE id = :orderId AND (user_id = :userId OR user_acceptor_id = :userId)";
+
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("orderId", String.valueOf(orderId));
         namedParameters.put("userId", String.valueOf(userId));
+
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, getExOrderRowMapper());
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
