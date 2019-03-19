@@ -1950,6 +1950,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
     }
 
+    @Bean(name = "vraServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vraServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdf1d6405df92d981a2fb3ce68f6a03bac6c0e41f");
+        return new EthTokenServiceImpl(tokensList, "VRA","VRA", true, ExConvert.Unit.ETHER);
+    }
+
     @Bean(name = "katServiceImpl")
     @Conditional(MonolitConditional.class)
     public EthTokenService katServiceImpl(){
