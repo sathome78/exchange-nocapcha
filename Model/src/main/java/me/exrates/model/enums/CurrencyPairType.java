@@ -19,7 +19,7 @@ public enum CurrencyPairType {
     }
 
     public static CurrencyPairType getType(String value) {
-        if (StringUtils.isBlank(value)) {
+        if (!StringUtils.isBlank(value)) {
             if (value.equalsIgnoreCase(ICO.toString())) {
                 return ICO;
             }
