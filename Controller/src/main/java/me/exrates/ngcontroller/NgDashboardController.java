@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
@@ -12,21 +13,19 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
-import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.model.ngUtil.PagedResult;
+import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.OrderAcceptionException;
-import me.exrates.service.exception.OrderCancellingException;
-import me.exrates.service.exception.api.OrderParamsWrongException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -83,6 +82,7 @@ public class NgDashboardController {
     private final ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final StopOrderService stopOrderService;
+    private final StopOrderService stopOrderServiceImpl;
 
 
     @Autowired
@@ -94,7 +94,7 @@ public class NgDashboardController {
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
                                  SimpMessagingTemplate messagingTemplate,
-                                 StopOrderService stopOrderService) {
+                                 StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
@@ -104,6 +104,7 @@ public class NgDashboardController {
         this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
+        this.stopOrderServiceImpl = stopOrderServiceImpl;
     }
 
     // /info/private/v2/dashboard/order
@@ -221,6 +222,7 @@ public class NgDashboardController {
     public ResponseEntity<PagedResult<OrderWideListDto>> getFilteredOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "currencyPairName", defaultValue = StringUtils.EMPTY) String currencyPairName,
             @RequestParam(required = false, name = "currencyName", defaultValue = StringUtils.EMPTY) String currencyName,
             @RequestParam(required = false, name = "page", defaultValue = "1") Integer page,
             @RequestParam(required = false, name = "limit", defaultValue = "15") Integer limit,
@@ -230,13 +232,7 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
-        final OrderStatus orderStatus = OrderStatus.valueOf(status);
-
         final int userId = userService.getIdByEmail(getPrincipalEmail());
-
-        final CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
 
         Locale locale = localeResolver.resolveLocale(request);
 
@@ -246,21 +242,25 @@ public class NgDashboardController {
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
 
-        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
+        OrderFilterDataDto.Builder builder = OrderFilterDataDto.builder()
                 .userId(userId)
-                .currencyPair(currencyPair)
                 .currencyName(currencyName)
-                .status(orderStatus)
+                .status(OrderStatus.valueOf(status))
                 .scope(scope)
                 .offset(offset)
                 .limit(limit)
                 .hideCanceled(hideCanceled)
                 .sortedColumns(sortedColumns)
                 .dateFrom(dateFrom)
-                .dateTo(dateTo)
-                .build();
+                .dateTo(dateTo);
+
+        if (currencyPairId > 0) {
+            builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));
+        } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
+            builder.currencyPair(new CurrencyPair(currencyPairName));
+        }
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(builder.build(), locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
@@ -277,8 +277,10 @@ public class NgDashboardController {
      * /info/private/v2/dashboard/last/orders/{status}
      *
      * @param status         - user’s order status
-     * @param currencyPairId - single currency pair, , not required,  default 0, when 0 then all currency pair are queried
-     * @param hideCanceled   - hide cancelled orders if true
+     * @param currencyPairId - single currency pair (not required, default 0), when 0 then all currency pair are queried
+     * @param hideCanceled   - hide cancelled orders if true (not required, default 0)
+     * @param limit          - request records limit (default 15)
+     * @param offset         - request offset number (default 0)
      * @param request        - HttpServletRequest, used by backend to resolve locale
      * @return - Pageable list of defined orders with meta info about total orders' count
      * @throws - 403 bad request
@@ -287,30 +289,31 @@ public class NgDashboardController {
     public ResponseEntity<PagedResult<OrderWideListDto>> getLastOrders(
             @PathVariable("status") String status,
             @RequestParam(required = false, name = "currencyPairId", defaultValue = "0") Integer currencyPairId,
+            @RequestParam(required = false, name = "currencyPairName", defaultValue = StringUtils.EMPTY) String currencyPairName,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
+            @RequestParam(required = false, defaultValue = "15") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        final OrderStatus orderStatus = OrderStatus.valueOf(status);
-
         final int userId = userService.getIdByEmail(getPrincipalEmail());
-
-        final CurrencyPair currencyPair = currencyPairId > 0
-                ? currencyService.findCurrencyPairById(currencyPairId)
-                : null;
 
         Locale locale = localeResolver.resolveLocale(request);
 
-        final OrderFilterDataDto filter = OrderFilterDataDto.builder()
+        OrderFilterDataDto.Builder builder = OrderFilterDataDto.builder()
                 .userId(userId)
-                .currencyPair(currencyPair)
-                .status(orderStatus)
+                .status(OrderStatus.valueOf(status))
                 .scope(StringUtils.EMPTY)
-                .offset(0)
-                .limit(15)
+                .offset(offset)
+                .limit(limit)
                 .hideCanceled(hideCanceled)
-                .sortedColumns(Collections.emptyMap())
-                .build();
+                .sortedColumns(Collections.emptyMap());
+
+        if (currencyPairId > 0) {
+            builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));
+        } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
+            builder.currencyPair(new CurrencyPair(currencyPairName));
+        }
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(filter, locale);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(builder.build(), locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
@@ -326,18 +329,23 @@ public class NgDashboardController {
      * Cancel one open order by order id
      *
      * @param orderId order id
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel")
     public ResponseModel cancelOrder(@RequestParam("order_id") int orderId) {
-        return new ResponseModel<>(orderService.cancelOrder(orderId));
+        ExOrder orderById = orderService.getOrderById(orderId);
+        if (orderById != null) {
+            return new ResponseModel<>(orderService.cancelOrder(orderId));
+        } else {
+            return new ResponseModel<>(stopOrderServiceImpl.cancelOrder(orderId, null));
+        }
     }
 
     /**
      * Cancel open orders by order ids
      *
      * @param ids list of orders (can be one or more)
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel/list")
     public ResponseModel cancelOrders(@RequestParam("order_ids") Collection<Integer> ids) {
@@ -348,11 +356,10 @@ public class NgDashboardController {
      * Cancel open orders by currency pair (if currency pair have not set - cancel all open orders)
      *
      * @param pairName pair name
-     * @return {@link me.exrates.ngcontroller.model.response.ResponseModel}
+     * @return {@link me.exrates.model.ngModel.response.ResponseModel}
      */
     @PostMapping("/cancel/all")
     public ResponseModel cancelOrdersByCurrencyPair(@RequestParam(value = "currency_pair", required = false) String pairName) {
-
         boolean canceled;
         if (nonNull(pairName)) {
             pairName = pairName.toUpperCase();

@@ -9,17 +9,15 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
-import me.exrates.ngcontroller.constant.Constants;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.WrongPasswordException;
-import me.exrates.ngcontroller.model.ExceptionDto;
-import me.exrates.ngcontroller.model.UserDocVerificationDto;
-import me.exrates.ngcontroller.model.UserInfoVerificationDto;
-import me.exrates.ngcontroller.model.enums.VerificationDocumentType;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.UserVerificationService;
-import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.model.constants.Constants;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.WrongPasswordException;
+import me.exrates.model.ngModel.ExceptionDto;
+import me.exrates.model.ngModel.UserDocVerificationDto;
+import me.exrates.model.ngModel.UserInfoVerificationDto;
+import me.exrates.model.ngModel.enums.VerificationDocumentType;
+import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.service.CheckIp;
@@ -27,8 +25,7 @@ import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.util.RestApiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -39,7 +36,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -198,7 +194,9 @@ public class NgUserSettingsController {
             return notificationService
                     .getNotificationOptionsByUser(userId)
                     .stream()
-                    .collect(Collectors.toMap(NotificationOption::getEvent, NotificationOption::isSendEmail));
+                    .collect(Collectors.toMap(
+                            NotificationOption::getEvent,
+                            NotificationOption::isSendEmail));
         } catch (Exception e) {
             return Collections.emptyMap();
         }

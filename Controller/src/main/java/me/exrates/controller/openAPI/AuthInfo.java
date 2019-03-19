@@ -12,7 +12,12 @@ public class AuthInfo {
      */
 
     /**
-     * @api {get, post} /openapi/v1/{user-orders} Non-public endpoints
+     * @apiDefine APIJson
+     * @apiHeader {String} content-type application/json;charset=UTF-8
+     */
+
+    /**
+     * @api {get, post} /openapi/v1/** Non-public endpoints
      * @apiName Non-public endpoints
      * @apiGroup Authentication
      * @apiUse APIHeaders
@@ -22,6 +27,71 @@ public class AuthInfo {
     private void stubHeaders() {
         //stub for API doc
     }
+
+    /**
+     * @api {get, post} /openapi/v1/public/** Public endpoints
+     * @apiName Public endpoints
+     * @apiGroup Authentication
+     * @apiDescription DETAILED DESCRIPTION
+     *
+     *
+     *
+     */
+    private void stubPublic() {
+        //stub for API doc
+    }
+
+    /**
+     * @api {get, post} /openapi/v1/** Non-public endpoints DESCRIPTION
+     * @apiName Private endpoints
+     * @apiGroup Authentication
+     * @apiDescription  {get, post} /openapi/v1/user/** and /openapi/v1/orders/**
+     *
+     * Example for endpoint https://api.exrates.me/openapi/v1/orders/create
+     *
+     * first step is to generate current timestamp
+     *
+     * var current_timestamp = current unix timestamp as a string
+     *
+     * timestamp is valid until 10 seconds
+     *
+     * values for creating signature:
+     *
+     * delimiter = |
+     *
+     * method = POST
+     *
+     * endpoint = /openapi/v1/orders/create  (not pass url parameters to signature generation)
+     *
+     * timestamp = current_timestamp (previously generated timestamp)
+     *
+     * public_key = your generated public key
+     *
+     * secret = your generated secret key
+     *
+     * values for header:
+     *
+     * API-KEY:  your generated public key
+     *
+     * API-TIME: current_timestamp (previously generated timestamp)
+     *
+     * API-SIGN: your generated signature
+     *
+     * content-type: application/json;charset=UTF-8
+     *
+     * body json
+     * {
+     *        "currencyPair": "btc_usd",
+     *        "orderType": "BUY",
+     *        "amount": 2.3,
+     *        "price": 1.0
+     * }
+     */
+    private void stubPrivate() {
+        //stub for API doc
+    }
+
+
 
     /**
      * @api {get, post} /openapi/v1/{user-orders} Algorithm

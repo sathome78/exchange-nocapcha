@@ -17,6 +17,8 @@ public class OrderWideListDto extends OnlineTableDto{
     private String operationType;
     private OperationType operationTypeEnum;
     private String stopRate; /*for stop orders*/
+    private String limitRate; /*for stop orders*/
+    private int childOrderId;
     private String exExchangeRate;
     private String amountBase;
     private String amountConvert;
@@ -31,6 +33,8 @@ public class OrderWideListDto extends OnlineTableDto{
     private OrderStatus status;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateStatusModification;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime dateModification; /* for stop orders*/
     private String commissionAmountForAcceptor;
     private String amountWithCommissionForAcceptor;
     /**/
@@ -261,5 +265,29 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public void setCommissionValue(Double commissionValue) {
         this.commissionValue = commissionValue;
+    }
+
+    public String getLimitRate() {
+        return limitRate;
+    }
+
+    public void setLimitRate(String limitRate) {
+        this.limitRate = limitRate;
+    }
+
+    public int getChildOrderId() {
+        return childOrderId;
+    }
+
+    public void setChildOrderId(int childOrderId) {
+        this.childOrderId = childOrderId;
+    }
+
+    public LocalDateTime getDateModification() {
+        return dateModification;
+    }
+
+    public void setDateModification(LocalDateTime dateModification) {
+        this.dateModification = dateModification;
     }
 }

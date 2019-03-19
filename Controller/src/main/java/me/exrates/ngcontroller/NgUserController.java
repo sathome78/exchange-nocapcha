@@ -1,18 +1,18 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.UserStatus;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.NgResponseException;
-import me.exrates.ngcontroller.model.PasswordCreateDto;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgUserService;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngModel.PasswordCreateDto;
+import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.security.service.NgUserService;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.ipsecurity.IpBlockingService;
@@ -50,8 +50,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 

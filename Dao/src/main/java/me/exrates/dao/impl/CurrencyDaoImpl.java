@@ -1,9 +1,13 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.exception.notfound.CurrencyPairLimitNotFoundException;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -21,6 +25,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -43,6 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
 
@@ -53,7 +59,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
+    public static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
         CurrencyPair currencyPair = new CurrencyPair();
         currencyPair.setId(rs.getInt("id"));
         currencyPair.setName(rs.getString("name"));
@@ -126,7 +132,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 put("name", name);
             }
         };
-        return npJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+        } catch (Exception e) {
+            log.warn("Failed to find currency for name " + name, e);
+            throw e;
+        }
     }
 
     @Override
@@ -202,11 +213,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
     public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
         String sql = "SELECT min_sum FROM CURRENCY_LIMIT " +
                 "WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
-        Map<String, Integer> params = new HashMap<String, Integer>() {{
-            put("role_id", userRole.getRole());
-            put("operation_type_id", operationType.getType());
-            put("currency_id", currencyId);
-        }};
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("role_id", userRole.getRole());
+        params.put("operation_type_id", operationType.getType());
+        params.put("currency_id", currencyId);
+
+        return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    }
+
+    @Override
+    public BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+        String sql = "SELECT max_daily_request FROM CURRENCY_LIMIT " +
+                "WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("role_id", userRole.getRole());
+        params.put("operation_type_id", operationType.getType());
+        params.put("currency_id", currencyId);
+
         return npJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
     }
 
@@ -327,7 +352,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Map<String, String> params = new HashMap<>();
         params.put("currency_pair", currencyPair);
 
-        return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        try {
+            return npJdbcTemplate.queryForObject(sql, params, currencyPairRowMapper);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException(String.format("Currency pair: %s not found", currencyPair));
+        }
     }
 
     @Override
@@ -426,7 +455,12 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " WHERE EXORDERS.id = :order_id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("order_id", String.valueOf(orderId));
-        return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+        } catch (Exception ex) {
+            throw new CurrencyPairNotFoundException("Currency pair not found");
+        }
     }
 
     @Override
@@ -440,16 +474,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("user_role_id", roleId);
         namedParameters.put("order_type_id", orderTypeId);
-        return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
-            CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
-            dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
-            dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-            dto.setMinRate(rs.getBigDecimal("min_rate"));
-            dto.setMaxRate(rs.getBigDecimal("max_rate"));
-            dto.setMinAmount(rs.getBigDecimal("min_amount"));
-            dto.setMaxAmount(rs.getBigDecimal("max_amount"));
-            return dto;
-        });
+
+        try {
+            return npJdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+                CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
+                dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+                dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                dto.setMinRate(rs.getBigDecimal("min_rate"));
+                dto.setMaxRate(rs.getBigDecimal("max_rate"));
+                dto.setMinAmount(rs.getBigDecimal("min_amount"));
+                dto.setMaxAmount(rs.getBigDecimal("max_amount"));
+                return dto;
+            });
+        } catch (Exception ex) {
+            throw new CurrencyPairLimitNotFoundException(String.format("Currency pair limit for pair: %d not found", currencyPairId));
+        }
+
     }
 
     @Override

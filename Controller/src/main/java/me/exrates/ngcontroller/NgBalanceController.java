@@ -3,6 +3,7 @@ package me.exrates.ngcontroller;
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.BalanceFilterDataDto;
+import me.exrates.model.dto.TransactionFilterDataDto;
 import me.exrates.model.dto.WalletTotalUsdDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -11,17 +12,17 @@ import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.CurrencyType;
-import me.exrates.ngcontroller.exception.NgBalanceException;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.RefillPendingRequestDto;
-import me.exrates.ngcontroller.service.BalanceService;
-import me.exrates.ngcontroller.util.PagedResult;
+import me.exrates.model.ngExceptions.NgBalanceException;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngModel.RefillPendingRequestDto;
+import me.exrates.model.ngUtil.PagedResult;
+import me.exrates.ngService.BalanceService;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.service.RefillService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -53,6 +54,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
@@ -185,7 +189,8 @@ public class NgBalanceController {
                     walletTotalUsdDto.setRates(mapWalletTotalUsdDto);
                     walletTotalUsdDtoList.add(walletTotalUsdDto);
                 }
-                resultOrders.stream()
+                resultOrders
+                        .stream()
                         .filter(o -> o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/USD"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/BTC"))
                                 || o.getCurrencyPairName().equals(myWalletsStatisticsDto.getCurrencyName().concat("/ETH"))
@@ -200,7 +205,7 @@ public class NgBalanceController {
                 }
             }
 
-            walletTotalUsdDtoList.stream().forEach(wallet -> {
+            walletTotalUsdDtoList.forEach(wallet -> {
                 if (wallet.getRates().containsKey(wallet.getCurrency().concat("/USD"))) {
                     wallet.setSumUSD(wallet.getRates().get(wallet.getCurrency().concat("/USD")).multiply(wallet.getTotalBalance()));
                 } else if (wallet.getRates().containsKey(wallet.getCurrency().concat("/BTC"))) {
@@ -246,20 +251,29 @@ public class NgBalanceController {
         }
     }
 
-    //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&dateFrom=2018-11-21&dateTo=2018-11-26
+    //  apiUrl/info/private/v2/balances/inputOutputData?limit=20&offset=0&currencyId=0&currencyName=&dateFrom=2018-11-21&dateTo=2018-11-26
     @GetMapping("/inputOutputData")
     public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getMyInputOutputData(
             @RequestParam(required = false, defaultValue = "20") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "0") Integer currencyId,
+            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String currencyName,
             @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             HttpServletRequest request) {
-        String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
+
+        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
+                .email(getPrincipalEmail())
+                .currencyId(currencyId)
+                .currencyName(currencyName)
+                .dateFrom(dateFrom)
+                .dateTo(dateTo)
+                .limit(limit)
+                .offset(offset)
+                .build();
         try {
-            PagedResult<MyInputOutputHistoryDto> page =
-                    balanceService.getUserInputOutputHistory(email, limit, offset, currencyId, dateFrom, dateTo, locale);
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);
@@ -269,14 +283,22 @@ public class NgBalanceController {
 
     @GetMapping("/inputOutputData/default")
     public ResponseEntity<PagedResult<MyInputOutputHistoryDto>> getDefaultMyInputOutputData(
-            @RequestParam(required = false, defaultValue = "20") Integer limit,
+            @RequestParam(required = false, defaultValue = "15") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        String email = getPrincipalEmail();
         Locale locale = localeResolver.resolveLocale(request);
+
+        TransactionFilterDataDto filter = TransactionFilterDataDto.builder()
+                .email(getPrincipalEmail())
+                .limit(limit)
+                .offset(offset)
+                .currencyId(0)
+                .currencyName(StringUtils.EMPTY)
+                .dateFrom(null)
+                .dateTo(null)
+                .build();
         try {
-            PagedResult<MyInputOutputHistoryDto> page =
-                    balanceService.getDefaultInputOutputHistory(email, limit, offset, locale);
+            PagedResult<MyInputOutputHistoryDto> page = balanceService.getDefaultInputOutputHistory(filter, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
             logger.error("Failed to get user inputOutputData", ex);

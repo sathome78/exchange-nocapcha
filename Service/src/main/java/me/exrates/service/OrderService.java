@@ -7,7 +7,26 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.chart.ChartResolution;
 import me.exrates.model.chart.ChartTimeFrame;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.AdminOrderInfoDto;
+import me.exrates.model.dto.CallBackLogDto;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderFilterDataDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
+import me.exrates.model.dto.OrdersListWrapper;
+import me.exrates.model.dto.ReportDto;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
@@ -29,17 +48,18 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.PrecissionsEnum;
 import me.exrates.model.enums.RefreshObjectsEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.events.OrderEvent;
+import me.exrates.service.events.OrderEvent;
+import me.exrates.service.util.BiTuple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -100,8 +120,6 @@ public interface OrderService {
 
     Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
 
-    OrderBookWrapperDto findAllOrderBookItems(Integer currencyId, int precision, OrderType orderType);
-
     /**
      * TODO ADD JAVADOC
      */
@@ -114,7 +132,7 @@ public interface OrderService {
     /**
      * TODO ADD JAVADOC
      */
-    public OrderCreateDto getMyOrderById(int orderId);
+    OrderCreateDto getMyOrderById(int orderId);
 
     /**
      * Returns entity ExOrder by its ID
@@ -124,6 +142,13 @@ public interface OrderService {
      */
     ExOrder getOrderById(int orderId);
 
+    /**
+     * Returns entity ExOrder by its ID and userId
+     *
+     * @param orderId
+     * @param userId
+     * @return entity ExOrder for found order, or null if order not found
+     */
     ExOrder getOrderById(int orderId, int userId);
 
     /**
@@ -390,7 +415,7 @@ public interface OrderService {
 
     List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 
-    String getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
+    BiTuple getTradesForRefresh(Integer pairId, String email, RefreshObjectsEnum refreshObjectEnum);
 
     @Transactional(readOnly = true)
     String getAllAndMyTradesForInit(int pairId, Principal principal) throws JsonProcessingException;
@@ -449,9 +474,9 @@ public interface OrderService {
                                              String scope, boolean hideCanceled,
                                              Locale locale, LocalDate dateFrom, LocalDate dateTo);
 
-    void getExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus, HttpServletResponse response);
+    ReportDto getOrderExcelFile(List<OrderWideListDto> orders, OrderStatus orderStatus) throws Exception;
 
-    void getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions, HttpServletResponse response);
+    ReportDto getTransactionExcelFile(List<MyInputOutputHistoryDto> transactions) throws Exception;
 
     List<ExOrderStatisticsShortByPairsDto> getAllCurrenciesMarkersForAllPairsModel();
 
@@ -460,4 +485,8 @@ public interface OrderService {
     List<OrdersListWrapper> getMyOpenOrdersForWs(String currencyPairName, String name);
 
     OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision);
+
+    List<ExOrderStatisticsShortByPairsDto> getDailyCoinmarketDataForCache(String currencyPairName);
+
+    Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList);
 }
