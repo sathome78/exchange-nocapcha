@@ -2291,7 +2291,7 @@ public class OrderDaoImpl implements OrderDao {
                         .currencyPairId(rs.getInt("currency_pair_id"))
                         .currencyPairName(rs.getString("currency_pair_name"))
                         .currencyPairPrecision(rs.getInt("currency_pair_precision"))
-                        .type(CurrencyPairType.valueOf(rs.getString("currency_pair_type")))
+                        .type(CurrencyPairType.getType(rs.getString("currency_pair_type")))
                         .lastOrderRate(rs.getBigDecimal("last").toPlainString())
                         .predLastOrderRate(rs.getBigDecimal("first").toPlainString())
                         .percentChange(rs.getBigDecimal("first").compareTo(BigDecimal.ZERO) == 0 ? "0" : BigDecimalProcessing.doAction(rs.getBigDecimal("first"), rs.getBigDecimal("last"), ActionType.PERCENT_GROWTH).toPlainString())
