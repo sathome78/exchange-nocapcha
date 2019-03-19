@@ -7,6 +7,7 @@ import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.News;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
