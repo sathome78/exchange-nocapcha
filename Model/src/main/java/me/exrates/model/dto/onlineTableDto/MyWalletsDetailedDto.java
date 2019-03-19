@@ -8,9 +8,11 @@ import java.util.List;
 
 @Getter@Setter
 public class MyWalletsDetailedDto extends OnlineTableDto {
+
     private Integer id;
     private Integer userId;
     private Integer currencyId;
+    private Integer currencyPrecision;
     private String currencyName;
     private String currencyDescription;
     private String activeBalance;

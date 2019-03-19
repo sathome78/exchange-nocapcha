@@ -3,13 +3,11 @@ package me.exrates.controller;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.CoinmarketApiJsonDto;
 import me.exrates.security.exception.BannedIpException;
-import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.util.IpUtils;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +67,7 @@ public class PublicController {
         String clientIpAddress = IpUtils.getClientIpAddress(request);
         List<String> errors = new ArrayList<>();
         try {
-//            ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
         } catch (BannedIpException ban) {
             LOGGER.debug(String.format("%s: completed : %d ms", ban.getMessage(), getTiming(before)));
             errors.add(ban.getMessage());
@@ -80,16 +78,16 @@ public class PublicController {
 
         try {
             if (!userService.ifEmailIsUnique(email)) {
-               /* ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);*/
+                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
                 errors.add("emailExists");
             }
-           /* if (errors.isEmpty()) {
+            if (errors.isEmpty()) {
                 ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
-            }*/
+            }
             LOGGER.debug(String.format("completed... : ms: %d", getTiming(before)));
         } catch (Exception exc) {
             LOGGER.error(String.format("error... for email: %s ms: %d : %s", email, getTiming(before), exc.getMessage()));
-           /* ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);*/
+            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
         }
         return errors;
     }
@@ -99,28 +97,32 @@ public class PublicController {
     public List<String> checkIfNewUserUsernameUnique(@RequestParam("username") String username, HttpServletRequest request) {
         long before = System.currentTimeMillis();
         String clientIpAddress = IpUtils.getClientIpAddress(request);
-//        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
+        ipBlockingService.checkIp(clientIpAddress, IpTypesOfChecking.OPEN_API);
         try {
             List<String> errors = new ArrayList<>();
             if (!userService.ifNicknameIsUnique(username)) {
-//                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+                ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
                 errors.add("Username exists");
             }
             long after = System.currentTimeMillis();
             LOGGER.debug(String.format("completed...: ms: %s", (after - before)));
-//            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            if (errors.isEmpty()) ipBlockingService.successfulProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             return errors;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error(String.format("error... for username: %s ms: %s : %s", username, (after - before), e.getMessage()));
-//            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
+            ipBlockingService.failureProcessing(clientIpAddress, IpTypesOfChecking.OPEN_API);
             throw e;
         }
     }
 
     private Map<String, CoinmarketApiJsonDto> getData(String currencyPair) {
         List<CoinmarketApiDto> list = orderService.getDailyCoinmarketData(currencyPair);
-        return list.stream().collect(Collectors.toMap(dto -> dto.getCurrency_pair_name().replace('/', '_'), CoinmarketApiJsonDto::new));
+        return list
+                .stream()
+                .collect(Collectors.toMap(
+                        dto -> dto.getCurrency_pair_name().replace('/', '_'),
+                        CoinmarketApiJsonDto::new));
     }
 
     private long getTiming(long before) {

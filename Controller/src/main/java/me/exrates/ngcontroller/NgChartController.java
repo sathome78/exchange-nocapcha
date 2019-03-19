@@ -3,7 +3,7 @@ package me.exrates.ngcontroller;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CandleDto;
 import me.exrates.model.enums.ChartTimeFramesEnum;
-import me.exrates.ngcontroller.service.NgOrderService;
+import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,9 @@ public class NgChartController {
         String rsolutionForChartTime = (resolution.equals("W") || resolution.equals("M")) ? "D" : resolution;
         result = orderService.getCachedDataForCandle(currencyPair,
                 ChartTimeFramesEnum.ofResolution(rsolutionForChartTime).getTimeFrame())
-                .stream().map(CandleDto::new).collect(Collectors.toList());
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList());
         return new ResponseEntity(ngOrderService.filterDataPeriod(result, from, to, resolution), HttpStatus.OK);
     }
 

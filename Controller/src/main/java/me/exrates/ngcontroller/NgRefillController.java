@@ -15,17 +15,13 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.ngcontroller.exception.NgCurrencyNotFoundException;
-import me.exrates.ngcontroller.exception.NgRefillException;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InputOutputService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
-import me.exrates.service.UserService;
+import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
+import me.exrates.model.ngExceptions.NgRefillException;
+import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -75,19 +62,22 @@ public class NgRefillController {
     private final RefillService refillService;
     private final UserService userService;
 
+    private final GtagRefillService gtagRefillService;
+
     @Autowired
     public NgRefillController(CurrencyService currencyService,
                               InputOutputService inputOutputService,
                               UserService userService,
                               MerchantService merchantService,
                               MessageSource messageSource,
-                              RefillService refillService) {
+                              RefillService refillService, GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
         this.userService = userService;
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.gtagRefillService = gtagRefillService;
     }
 
     // /info/private/v2/balances/refill/crypto-currencies
@@ -99,8 +89,10 @@ public class NgRefillController {
     @ResponseBody
     public List<Currency> getCryptoCurrencies() {
         try {
-            return currencyService.getCurrencies(MerchantProcessType.CRYPTO).stream()
-                    .filter(o-> !o.getName().equalsIgnoreCase("rub")).collect(Collectors.toList());
+            return currencyService.getCurrencies(MerchantProcessType.CRYPTO)
+                    .stream()
+                    .filter(o-> !o.getName().equalsIgnoreCase("rub"))
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Failed to get all hashed currency names");
             return Collections.emptyList();
@@ -123,7 +115,35 @@ public class NgRefillController {
         }
     }
 
-    // /info/private/v2/balances/refill/merchants/input?currency=${currencyName}
+
+
+    @GetMapping("/afgssr/gtag")
+    public Map<String, String> getGtagRequests() {
+        Map<String, String> response = new HashMap<>();
+        try {
+            String principalEmail = getPrincipalEmail();
+            response.put("count", String.valueOf(gtagRefillService.getUserRequests(principalEmail)));
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/afgssr/gtag")
+    public Map<String,String> resetGtagRequests(){
+        Map<String, String> response = new HashMap<>();
+        try {
+            String principalEmail = getPrincipalEmail();
+            gtagRefillService.resetCount(principalEmail);
+            response.put("reset", "true");
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+
+    // /api/private/v2/balances/refill/merchants/input?currency=${currencyName}
 
     /**
      * Return merchant to get necessary refill fields specified by currency name
@@ -153,10 +173,6 @@ public class NgRefillController {
         List<Integer> currenciesId = Collections.singletonList(currency.getId());
         List<MerchantCurrency> merchantCurrencyData =
                 merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
-        merchantCurrencyData.forEach(o -> {
-            boolean availableRefill = merchantService.checkAvailableRefill(o.getCurrencyId(), o.getMerchantId());
-            o.setAvailableForRefill(availableRefill);
-        });
         refillService.retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(merchantCurrencyData, getPrincipalEmail());
         response.setMerchantCurrencyData(merchantCurrencyData);
         List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);

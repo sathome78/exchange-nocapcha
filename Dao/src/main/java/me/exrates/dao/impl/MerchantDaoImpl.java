@@ -5,11 +5,8 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.MerchantCurrencyScaleDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.merchants.btc.CoreWalletDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
@@ -21,6 +18,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -36,17 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Log4j
 @Repository
+@Conditional(MonolitConditional.class)
 public class MerchantDaoImpl implements MerchantDao {
 
     @Autowired
@@ -102,7 +98,12 @@ public class MerchantDaoImpl implements MerchantDao {
     public Merchant findByName(String name) {
         final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
         final Map<String, String> params = Collections.singletonMap("name", name);
-        return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+        try {
+            return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+        } catch (EmptyResultDataAccessException ex) {
+            log.debug("Method 'MerchantDaoImpl::findByName' did not return any result");
+            return null;
+        }
     }
 
     @Override
@@ -197,7 +198,7 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification," +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -223,6 +224,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("merchant_id", resultSet.getInt("merchant_id"));
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+                merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
+                merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
                 return merchantCurrency;
             });
         } catch (EmptyResultDataAccessException e) {
