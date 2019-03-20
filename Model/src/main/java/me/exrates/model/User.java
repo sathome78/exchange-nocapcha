@@ -1,21 +1,20 @@
 package me.exrates.model;
 
-import me.exrates.model.dto.ChangePasswordDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class User  {
+public class User implements Serializable {
 
 	private int id;
 	private String nickname;
 	private String email;
 	private String phone;
 	private UserStatus status = UserStatus.REGISTERED;
-	private UserStatus userStatus = UserStatus.REGISTERED;
 	private String password;
 	private String finpassword;
 	private Date regdate;
@@ -26,7 +25,7 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
-
+	private String kycStatus;
 
 	public User() {
 	}
@@ -95,7 +94,6 @@ public class User  {
 		this.phone = phone;
 	}
 
-	
 	public UserStatus getStatus() {
 		return status;
 	}
@@ -144,6 +142,14 @@ public class User  {
 		this.parentEmail = parentEmail;
 	}
 
+	public String getKycStatus() {
+		return kycStatus;
+	}
+
+	public void setKycStatus(String kycStatus) {
+		this.kycStatus = kycStatus;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
@@ -159,13 +165,5 @@ public class User  {
 				", parentEmail='" + parentEmail + '\'' +
 				", userFiles=" + userFiles +
 				'}';
-	}
-
-	public UserStatus getUserStatus() {
-		return userStatus;
-	}
-
-	public void setUserStatus(UserStatus userStatus) {
-		this.userStatus = userStatus;
 	}
 }

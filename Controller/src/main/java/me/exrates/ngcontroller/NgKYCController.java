@@ -3,9 +3,14 @@ package me.exrates.ngcontroller;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.kyc.EventStatus;
+import me.exrates.model.dto.kyc.IdentityDataRequest;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.KycLanguageDto;
 import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
+import me.exrates.model.dto.kyc.responces.OnboardingResponseDto;
+import me.exrates.model.exceptions.KycException;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.KYCService;
 import me.exrates.service.KYCSettingsService;
 import me.exrates.service.UserService;
@@ -15,10 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,23 +33,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
 import static java.util.Objects.nonNull;
-import static me.exrates.service.impl.ShuftiProKYCService.SIGNATURE;
+import static me.exrates.service.impl.KYCServiceImpl.SIGNATURE;
 
 @Log4j2
 @RestController
 @RequestMapping(
-        consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE
 )
 public class NgKYCController {
 
-    private final static String PUBLIC_KYC = "/api/public/v2/shufti-pro";
-    private final static String PRIVATE_KYC = "/api/private/v2/shufti-pro/";
+    private final static String PUBLIC_KYC = "/api/public/v2/kyc";
+    private final static String PRIVATE_KYC = "/api/private/v2/kyc/";
     private final UserService userService;
     private final KYCService kycService;
     private final KYCSettingsService kycSettingsService;
@@ -57,7 +64,7 @@ public class NgKYCController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @PostMapping(value = PUBLIC_KYC + "/callback")
+    @PostMapping(value = PUBLIC_KYC + "/callback", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity callback(HttpServletRequest request) {
         try (BufferedReader reader = new BufferedReader(request.getReader())) {
             final String response = reader.readLine();
@@ -77,10 +84,20 @@ public class NgKYCController {
         return ResponseEntity.notFound().build();
     }
 
+    // https://exrates.me/api/public/v2/webhook/{referenceId}
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(value = PUBLIC_KYC + "/webhook/{referenceId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> callback(@PathVariable String referenceId,
+                                         @RequestBody KycStatusResponseDto kycStatusResponseDto) {
+        log.info("CALLBACK_KYC ref {}, {}", referenceId, kycStatusResponseDto);
+        kycService.processingCallBack(referenceId, kycStatusResponseDto);
+        return ResponseEntity.ok().build();
+    }
+
     // /private/v2/shufti-pro/verification-url/step/{stepNumber}
 
     /**
-     * /info/private/v2/shufti-pro/verification-url/{step}
+     * /info/private/v2/verification-url/{step}
      *
      * @param step         - possible values (LEVEL_ONE, LEVEL_TWO)
      * @param languageCode - from submitted list
@@ -108,7 +125,7 @@ public class NgKYCController {
     }
 
     /**
-     * /info/info/private/v2/shufti-pro/countries
+     * /info/info/private/v2/countries
      * <p>
      * {
      * countryName: Ukraine
@@ -122,7 +139,7 @@ public class NgKYCController {
 
 
     /**
-     * /info/private/v2/shufti-pro/languages
+     * /info/private/v2/languages
      * <p>
      * {
      * languageName: English
@@ -144,6 +161,18 @@ public class NgKYCController {
         return ResponseEntity.ok(userService.getVerificationStep());
     }
 
+    @GetMapping(PRIVATE_KYC + "/status")
+    public ResponseModel<String> getStatusKyc() {
+        String email = getPrincipalEmail();
+        return new ResponseModel<>(kycService.getKycStatus(email));
+    }
+
+    @PostMapping(value = PRIVATE_KYC + "/start", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<OnboardingResponseDto> startKycProcessing(@RequestBody @Valid IdentityDataRequest identityDataRequest) {
+        String email = getPrincipalEmail();
+        return new ResponseModel<>(kycService.startKyCProcessing(identityDataRequest, email));
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ShuftiProException.class)
     @ResponseBody
@@ -152,4 +181,19 @@ public class NgKYCController {
         log.error("Invocation of request url: {} caused error:", requestURL, exception);
         return new ErrorInfo(requestURL, exception);
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(KycException.class)
+    @ResponseBody
+    public ErrorInfo exceptionHandler(HttpServletRequest req, Exception exception) {
+        StringBuffer requestURL = req.getRequestURL();
+        log.error("Invocation of request url: {} caused error:", requestURL, exception);
+        return new ErrorInfo(requestURL, exception);
+    }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+
 }

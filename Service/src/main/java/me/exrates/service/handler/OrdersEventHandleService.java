@@ -10,11 +10,13 @@ import me.exrates.model.dto.ExOrderWrapperDTO;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderEventEnum;
+import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.events.AcceptOrderEvent;
 import me.exrates.service.events.CancelOrderEvent;
 import me.exrates.service.events.CreateOrderEvent;
@@ -45,6 +47,8 @@ import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +83,11 @@ public class OrdersEventHandleService {
     @Autowired
     private DefaultSimpUserRegistry registry;
     @Autowired
+    private CpStatisticsHolder cpStatisticsHolder;
+    @Autowired
     private CurrencyService currencyService;
+
+    private final Object handlerSync = new Object();
 
     private Map<Integer, OrdersEventsHandler> mapSell = new ConcurrentHashMap<>();
     private Map<Integer, OrdersEventsHandler> mapBuy = new ConcurrentHashMap<>();
@@ -137,14 +145,13 @@ public class OrdersEventHandleService {
     @TransactionalEventListener
     public void handleOrderPersonalEventAsync(DetailOrderEvent event){
         try {
-            Map<ExOrder, OrderEventEnum> map = new HashMap<>();
-
+            List<ExOrder> orderList;
             if (event.getOrderEventEnum() == OrderEventEnum.AUTO_ACCEPT) {
-                ((List<OrderEvent>)(event.getSource())).forEach(p-> map.put((ExOrder) p.getSource(), p.getOrderEventEnum()));
+                orderList = (List<ExOrder>) event.getSource();
             } else {
-                map.put((ExOrder) event.getSource(), event.getOrderEventEnum());
+                orderList = Collections.singletonList(((ExOrder)event.getSource()));
             }
-            handlePersonalOrders(map, event.getPairId());
+            handlePersonalOrders(orderList, event.getPairId());
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
         }
@@ -170,6 +177,7 @@ public class OrdersEventHandleService {
         handleChart(order);
         ratesHolder.onRatesChange(order);
         currencyStatisticsHandler.onEvent(order.getCurrencyPairId());
+        cpStatisticsHolder.onOrderAccept(order.getCurrencyPairId());
     }
 
     private void handleCallBack(OrderEvent event) throws JsonProcessingException {
@@ -288,26 +296,36 @@ public class OrdersEventHandleService {
                     .computeIfAbsent(exOrder.getCurrencyPairId(), k -> new OrdersReFreshHandler(stompMessenger, objectMapper, pairName));
             handler.addOrderToQueue(new OrderWsDetailDto(exOrder, orderEvent));
         } catch (Exception e) {
-            log.error(e);
+            log.error("error handleOrdersDetailed() {}", e);
         }
     }
 
 
-    private void handlePersonalOrders(Map<ExOrder, OrderEventEnum> map, int pairId) {
+    private void handlePersonalOrders(List<ExOrder> orders, int pairId) {
         try {
             Map<Integer, List<OrderWsDetailDto>> byUserMap = new HashMap<>();
-            map.forEach((k,v) -> {
-                byUserMap.computeIfAbsent(k.getUserId(),  y -> new ArrayList<>()).add(new OrderWsDetailDto(k, v));
-                if (v == OrderEventEnum.ACCEPT && k.getUserId() != k.getUserAcceptorId()) {
-                    byUserMap.computeIfAbsent(k.getUserAcceptorId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(k, v));
+            orders.forEach(p-> {
+                byUserMap.computeIfAbsent(p.getUserId(),  y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
+                if (p.getStatus() == OrderStatus.CLOSED && p.getUserId() != p.getUserAcceptorId()) {
+                    byUserMap.computeIfAbsent(p.getUserAcceptorId(), y -> new ArrayList<>()).add(new OrderWsDetailDto(p));
                 }
             });
-            String pairName = ratesHolder.getOne(pairId).getCurrencyPairName().replace("/", "_").toLowerCase();
-            UserPersonalOrdersHandler handler = personalOrdersHandlerMap
-                    .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
-            byUserMap.forEach((k,v)-> handler.addToQueueForSend(v, k));
+            String pairName = currencyService.findCurrencyPairById(pairId).getName().replace("/", "_").toLowerCase();
+            UserPersonalOrdersHandler handler = getHandlerSafe(pairId, pairName, stompMessenger);
+            byUserMap.forEach((k,v)-> handler.sendInstant(v, k));
         } catch (Exception e) {
             ExceptionUtils.printRootCauseStackTrace(e);
+        }
+    }
+
+    private UserPersonalOrdersHandler getHandlerSafe(int pairId, String pairName, StompMessenger stompMessenger) {
+        if (!personalOrdersHandlerMap.containsKey(pairId)) {
+            synchronized (handlerSync) {
+                return personalOrdersHandlerMap
+                        .computeIfAbsent(pairId, k -> new UserPersonalOrdersHandler(stompMessenger, objectMapper, pairName));
+            }
+        } else {
+            return personalOrdersHandlerMap.get(pairId);
         }
     }
 

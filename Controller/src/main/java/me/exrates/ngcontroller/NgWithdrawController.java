@@ -13,9 +13,10 @@ import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.ngcontroller.exception.NgDashboardException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -26,8 +27,10 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
+import me.exrates.service.merchantStrategy.IWithdrawable;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
@@ -77,6 +81,7 @@ public class NgWithdrawController {
     private final UserService userService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
+    private final MerchantServiceContext merchantServiceContext;
 
     @Autowired
     public NgWithdrawController(CurrencyService currencyService,
@@ -88,7 +93,8 @@ public class NgWithdrawController {
                                 UserOperationService userOperationService,
                                 UserService userService,
                                 WalletService walletService,
-                                WithdrawService withdrawService) {
+                                WithdrawService withdrawService,
+                                MerchantServiceContext merchantServiceContext) {
         this.currencyService = currencyService;
         this.g2faService = g2faService;
         this.inputOutputService = inputOutputService;
@@ -99,25 +105,10 @@ public class NgWithdrawController {
         this.userService = userService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
+        this.merchantServiceContext = merchantServiceContext;
     }
 
-    // POST: /info/private/v2/balances/withdraw/request/create
-    // model:
-//    {
-//       currency: number,
-//       merchant: number,
-//       sum: string,
-//       destination: string,
-//       destinationTag: string,
-//       merchantImage: number,
-//       operationType: string,
-//       recipientBankName: string,
-//       recipientBankCode: string,
-//       userFullName: string,
-//       remark: string,
-//       walletNumber: string
-//       securityCode: string
-//    }
+    // POST: /api/private/v2/balances/withdraw/request/create
     @CheckActiveUserStatus
     @PostMapping(value = "/request/create")
     public ResponseEntity<Map<String, String>> createWithdrawalRequest(@RequestBody WithdrawRequestParamsDto requestParamsDto) {
@@ -165,7 +156,7 @@ public class NgWithdrawController {
         }
     }
 
-    // /info/private/v2/balances/withdraw/merchants/output?currency=BTC
+    // /api /private/v2/balances/withdraw/merchants/output?currency=BTC
     // response for BTC = https://api.myjson.com/bins/15aa4m
     // response for USD = https://api.myjson.com/bins/v8206
     @GetMapping(value = "/merchants/output")
@@ -173,30 +164,50 @@ public class NgWithdrawController {
         String email = getPrincipalEmail();
         try {
             OperationType operationType = OUTPUT;
+
             Currency currency = currencyService.findByName(currencyName);
             Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(email), currency);
-            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), operationType, currency.getId());
+            UserRole userRole = userService.getUserRoleFromSecurityContext();
+
+            BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currency.getId());
+            BigDecimal maxDailyRequestSum = currencyService.retrieveMaxDailyRequestForRoleAndCurrency(userRole, operationType, currency.getId());
+
             Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForWithdraw();
             List<Integer> currenciesId = Collections.singletonList(currency.getId());
             List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, operationType);
+
+            //check additional field and fill it
+            for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
+                IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
+                if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
+                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
+                    merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
+                } else {
+                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
+                }
+            }
+
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
+
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
-                    .activeBalance(wallet.getActiveBalance())
+                    .activeBalance(isNull(wallet) ? BigDecimal.ZERO : wallet.getActiveBalance())
                     .currenciesId(Collections.singletonList(currency.getId()))
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
+                    .maxDailyRequestSum(maxDailyRequestSum)
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)
                     .build();
             return ResponseEntity.ok(withdrawDataDto);
-        } catch (Exception e) {
+        } catch (Exception ex) {
+            logger.error("outputCredits error:", ex);
             return ResponseEntity.badRequest().build();
         }
     }
 
-    // GET: /info/private/v2/balances/withdraw/request/pin
+    // GET: /api/private/v2/balances/withdraw/request/pin
     // 201 - pincode is sent to user email
     // 200 - no pincode use google oauth
     @CheckActiveUserStatus

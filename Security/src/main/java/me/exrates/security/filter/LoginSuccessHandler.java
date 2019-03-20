@@ -95,6 +95,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             WebUtils.setSessionAttribute(request,"first_entry_after_login", true);
             super.onAuthenticationSuccess(request, response, authentication);
         } catch (Exception e) {
+            log.error(ExceptionUtils.getFullStackTrace(e));
             log.error(e.getStackTrace());
             authentication.setAuthenticated(false);
         }
