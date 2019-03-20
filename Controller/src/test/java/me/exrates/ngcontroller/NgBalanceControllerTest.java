@@ -45,6 +45,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 public class NgBalanceControllerTest extends AngularApiCommonTest {
@@ -511,7 +512,7 @@ public class NgBalanceControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getDefaultMyInputOutputData_exception() throws Exception {
-        String ngBalanceException = "Failed to get user default inputOutputData as null";
+        String ngBalanceException = "Failed to get user inputOutputData as null";
 
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path(BASE_URL + "/inputOutputData/default")
