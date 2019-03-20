@@ -9,6 +9,7 @@ import com.neemre.btcdcli4j.core.domain.Address;
 import com.neemre.btcdcli4j.core.domain.Block;
 import com.neemre.btcdcli4j.core.domain.FundingResult;
 import com.neemre.btcdcli4j.core.domain.OutputOverview;
+import com.neemre.btcdcli4j.core.domain.Payment;
 import com.neemre.btcdcli4j.core.domain.RawTransactionOverview;
 import com.neemre.btcdcli4j.core.domain.SignatureResult;
 import com.neemre.btcdcli4j.core.domain.SinceBlock;
@@ -16,8 +17,8 @@ import com.neemre.btcdcli4j.core.domain.SmartFee;
 import com.neemre.btcdcli4j.core.domain.Transaction;
 import com.neemre.btcdcli4j.core.domain.WalletInfo;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.PagingData;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -81,15 +82,15 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "bitcoin_core")
 @Conditional(MonolitConditional.class)
 public class CoreWalletServiceImpl implements CoreWalletService {
-  
-  private static final int KEY_POOL_LOW_THRESHOLD = 10;
-  private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
-  private static final int TRANSACTION_PER_PAGE_COUNT = 30;
-  private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
+
+    private static final int KEY_POOL_LOW_THRESHOLD = 10;
+    private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
+    private static final int TRANSACTION_LIMIT = 1000;
+    private static final int TRANSACTION_PER_PAGE_COUNT = 30;
+    private static final int TRANSACTIONS_PER_PAGE_FOR_SEARCH = 500;
 
     @Autowired
     private ZMQ.Context zmqContext;
-
 
     private BtcdClient btcdClient;
 
@@ -143,7 +144,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             log.error(ExceptionUtils.getStackTrace(e));
         }
     }
-
 
     @Override
     public String getNewAddress(String walletPassword) {
@@ -275,7 +275,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             }
         }
         return dto;
-
     }
 
     @Override
@@ -300,7 +299,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     @Override
     public List<BtcTransactionHistoryDto> listAllTransactions() {
         try {
-            return btcdClient.listSinceBlock().getPayments().stream()
+            List<Payment> result = btcdClient.listTransactions("", TRANSACTION_LIMIT, 0);
+
+            return result.stream()
                     .map(payment -> {
                         BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
                         dto.setTxId(payment.getTxId());
@@ -390,7 +391,6 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             }
             throw new BitcoinCoreException(e);
         }
-
     }
 
     @Override
@@ -685,14 +685,14 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     }
 
     @Override
-    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue){
+    public PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue) {
         try {
             PagingData<List<BtcTransactionHistoryDto>> result = new PagingData<>();
 
             int recordsTotal = getWalletInfo().getTransactionCount() != null ? getWalletInfo().getTransactionCount() : calculateTransactionCount();
             List<BtcTransactionHistoryDto> data = getTransactionsForPagination(start, length);
 
-            if(!(StringUtils.isEmpty(searchValue))){
+            if (!(StringUtils.isEmpty(searchValue))) {
                 recordsTotal = findTransactions(searchValue).size();
                 data = findTransactions(searchValue);
             }
@@ -705,7 +705,9 @@ public class CoreWalletServiceImpl implements CoreWalletService {
             log.error(e);
             throw new BitcoinCoreException(e.getMessage());
         }
-    };
+    }
+
+    ;
 
 
     @Override
@@ -748,7 +750,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         List<BtcTransactionHistoryDto> result = new ArrayList<>();
         List<BtcTransactionHistoryDto> transactions;
 
-        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
+        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++) {
             List<BtcTransactionHistoryDto> matches = transactions.stream().filter(e ->
                     (StringUtils.equals(e.getAddress(), value)) || StringUtils.equals(e.getBlockhash(), value) || StringUtils.equals(e.getTxId(), value))
                     .collect(Collectors.toList());
@@ -763,7 +765,7 @@ public class CoreWalletServiceImpl implements CoreWalletService {
         List<BtcTransactionHistoryDto> transactions;
         int transactionCount = 0;
 
-        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++){
+        for (int i = 0; (transactions = getTransactionsByPage(i, TRANSACTIONS_PER_PAGE_FOR_SEARCH)).size() > 0; i++) {
             transactionCount += transactions.size();
         }
 
@@ -774,6 +776,4 @@ public class CoreWalletServiceImpl implements CoreWalletService {
     private void shutDown() {
         outputUnlockingExecutor.shutdown();
     }
-
-
 }

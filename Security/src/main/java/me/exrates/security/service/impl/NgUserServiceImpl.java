@@ -95,7 +95,6 @@ public class NgUserServiceImpl implements NgUserService {
             return false;
         }
 
-
         int idUser = userDao.getIdByEmail(userEmailDto.getEmail());
         user.setId(idUser);
 
@@ -193,7 +192,6 @@ public class NgUserServiceImpl implements NgUserService {
         return temporalTokenService.updateTemporalToken(temporalToken);
     }
 
-
     @Override
     public void sendEmailDisable2Fa(String userEmail) {
         Email email = new Email();
@@ -271,6 +269,8 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     private String getHost() {
-        return host;
+        return request.getScheme() + "://" + request.getServerName() +
+                ":" + request.getServerPort();
     }
+
 }
