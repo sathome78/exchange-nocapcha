@@ -269,8 +269,7 @@ public class NgUserServiceImpl implements NgUserService {
     }
 
     private String getHost() {
-        return request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort();
+        return host;
     }
 
 }

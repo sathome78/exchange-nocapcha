@@ -80,9 +80,7 @@ public class NgDashboardController {
     private final LocaleResolver localeResolver;
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
-    private final SimpMessagingTemplate messagingTemplate;
     private final StopOrderService stopOrderService;
-    private final StopOrderService stopOrderServiceImpl;
 
 
     @Autowired
@@ -93,18 +91,15 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 SimpMessagingTemplate messagingTemplate,
-                                 StopOrderService stopOrderService, StopOrderService stopOrderServiceImpl) {
+                                 StopOrderService stopOrderService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
         this.userService = userService;
         this.localeResolver = localeResolver;
         this.ngOrderService = ngOrderService;
-        this.messagingTemplate = messagingTemplate;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
-        this.stopOrderServiceImpl = stopOrderServiceImpl;
     }
 
     // /info/private/v2/dashboard/order
@@ -163,7 +158,7 @@ public class NgDashboardController {
 //
 //        if (result) {
 //            String destination = "/topic/myorders/".concat(userName);
-//            messagingTemplate.convertAndSend(destination, fromResult(result));
+//            simpMessagingTemplate.convertAndSend(destination, fromResult(result));
 //            return ResponseEntity.ok().build();
 //        }
 //        return ResponseEntity.badRequest().build();
@@ -337,7 +332,7 @@ public class NgDashboardController {
         if (orderById != null) {
             return new ResponseModel<>(orderService.cancelOrder(orderId));
         } else {
-            return new ResponseModel<>(stopOrderServiceImpl.cancelOrder(orderId, null));
+            return new ResponseModel<>(stopOrderService.cancelOrder(orderId, null));
         }
     }
 
