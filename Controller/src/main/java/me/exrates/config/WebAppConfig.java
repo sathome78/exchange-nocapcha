@@ -1938,6 +1938,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	}
 
     @Bean(name = "tttServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService tttServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x317572aabc73d59fc55f923750d1c51680fd28b4");
@@ -1945,6 +1946,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "rebServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService rebServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0x61383ac89988b498df5363050ff07fe5c52ecdda");
@@ -1959,10 +1961,35 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "bioServiceImpl")
+    @Conditional(MonolitConditional.class)
     public EthTokenService bioServiceImpl(){
         List<String> tokensList = new ArrayList<>();
         tokensList.add("0xf18432ef894ef4b2a5726f933718f5a8cf9ff831");
         return new EthTokenServiceImpl(tokensList, "BIO","BIO", false, ExConvert.Unit.AIWEI);
+    }
+
+    @Bean(name = "vraServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService vraServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xdf1d6405df92d981a2fb3ce68f6a03bac6c0e41f");
+        return new EthTokenServiceImpl(tokensList, "VRA","VRA", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "katServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService katServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0xa858bc1b71a895ee83b92f149616f9b3f6afa0fb");
+        return new EthTokenServiceImpl(tokensList, "KAT","KAT", true, ExConvert.Unit.ETHER);
+    }
+
+    @Bean(name = "etaServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService etaServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x9195e00402abe385f2d00a32af40b271f2e87925");
+        return new EthTokenServiceImpl(tokensList, "ETA","ETA", true, ExConvert.Unit.ETHER);
     }
 
     //    Qtum tokens:
