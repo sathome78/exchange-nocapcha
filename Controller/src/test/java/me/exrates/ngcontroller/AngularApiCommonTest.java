@@ -2,28 +2,36 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import me.exrates.model.ExOrder;
 import me.exrates.model.ChatMessage;
+import me.exrates.model.Commission;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
+import me.exrates.model.Merchant;
 import me.exrates.model.User;
+import me.exrates.model.Wallet;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.InputCreateOrderDto;
+import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserStatus;
-import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.ngModel.RefillPendingRequestDto;
 import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
 import org.springframework.http.HttpHeaders;
@@ -340,5 +348,95 @@ public abstract class AngularApiCommonTest {
         dto.setAnalysisResults(Collections.EMPTY_LIST);
 
         return dto;
+    }
+
+    protected Wallet getMockWallet() {
+        Wallet wallet = new Wallet();
+        wallet.setId(100);
+        wallet.setCurrencyId(200);
+        wallet.setUser(getMockUser());
+        wallet.setActiveBalance(BigDecimal.TEN);
+        wallet.setReservedBalance(BigDecimal.ONE);
+        wallet.setName("TEST_NAME");
+
+        return wallet;
+    }
+
+    protected WithdrawRequestParamsDto getMockWithdrawRequestParamsDto(String securityCode) {
+        WithdrawRequestParamsDto dto = new WithdrawRequestParamsDto();
+        dto.setCurrency(100);
+        dto.setMerchant(200);
+        dto.setSum(BigDecimal.TEN);
+        dto.setDestination("TEST_DESTINATION");
+        dto.setDestinationTag("TEST_DESTINATION_TAG");
+        dto.setMerchantImage(300);
+        dto.setOperationType(OperationType.BUY);
+        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
+        dto.setRecipientBankCode("TEST_RECIPIENT_BANK_CODE");
+        dto.setUserFullName("TEST_USER_FULL_NAME");
+        dto.setRemark("TEST_REMARK");
+        dto.setWalletNumber("TEST_WALLET_NUMBER");
+        dto.setSecurityCode(securityCode);
+
+        return dto;
+    }
+
+    protected CreditsOperation getMockCreditsOperation() {
+        CreditsOperation creditsOperation = new CreditsOperation.Builder()
+                .initialAmount(getMockCommissionDataDto().getAmount())
+                .amount(getMockCommissionDataDto().getResultAmount())
+                .commissionAmount(getMockCommissionDataDto().getCompanyCommissionAmount())
+                .commission(getMockCommissionDataDto().getCompanyCommission())
+                .operationType(OperationType.BUY)
+                .user(getMockUser())
+                .currency(getMockCurrency("TEST_CURRENCY"))
+                .wallet(getMockWallet())
+                .merchant(getMockMerchant())
+                .merchantCommissionAmount(getMockCommissionDataDto().getMerchantCommissionAmount())
+                .destination("TEST_DESTINATION")
+                .destinationTag("TEST_DESTINATION_TAG")
+                .transactionSourceType(TransactionSourceType.WITHDRAW)
+                .recipient(getMockUser())
+                .recipientWallet(getMockWallet())
+                .build();
+
+        return creditsOperation;
+    }
+
+    protected CommissionDataDto getMockCommissionDataDto() {
+        return new CommissionDataDto(
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                "TEST_MARCHANT_COMMISSION_RATE",
+                BigDecimal.ONE,
+                Commission.zeroComission(),
+                BigDecimal.ONE,
+                "TEST_COMPANY_COMMISSION_AMOUNT",
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                BigDecimal.ONE,
+                Boolean.TRUE
+        );
+    }
+
+    protected Merchant getMockMerchant() {
+        Merchant merchant = new Merchant();
+        merchant.setId(100);
+        merchant.setName("TEST_NAME");
+        merchant.setDescription("TEST_DESCRIPTION");
+        merchant.setServiceBeanName("TEST_SERVICE_BEAN_NAME");
+        merchant.setProcessType(MerchantProcessType.CRYPTO);
+        merchant.setRefillOperationCountLimitForUserPerDay(200);
+        merchant.setAdditionalTagForWithdrawAddressIsUsed(Boolean.TRUE);
+        merchant.setTokensParrentId(300);
+        merchant.setNeedVerification(Boolean.TRUE);
+
+        return merchant;
+    }
+
+    protected NotificationResultDto getMockNotificationResultDto() {
+        String[] arguments = {"ONE", "TWO"};
+        return new NotificationResultDto("TEST_MESSAGE_SOURCE", arguments);
     }
 }
