@@ -54,6 +54,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping(value = "/api/private/v2/balances",
@@ -298,8 +301,8 @@ public class NgBalanceController {
             PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(filter, locale);
             return ResponseEntity.ok(page);
         } catch (Exception ex) {
-            logger.error("Failed to get user default inputOutputData", ex);
-            throw new NgBalanceException("Failed to get user default inputOutputData as " + ex.getMessage());
+            logger.error("Failed to get user inputOutputData", ex);
+            throw new NgBalanceException("Failed to get user inputOutputData as " + ex.getMessage());
         }
     }
 
