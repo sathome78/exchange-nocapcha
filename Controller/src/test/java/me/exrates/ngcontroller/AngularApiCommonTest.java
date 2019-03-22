@@ -23,6 +23,7 @@ import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
 import me.exrates.model.dto.TransferRequestParamsDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.kyc.responces.KycStatusResponseDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
@@ -550,5 +551,23 @@ public abstract class AngularApiCommonTest {
     protected NotificationResultDto getMockNotificationResultDto() {
         String[] arguments = {"ONE", "TWO"};
         return new NotificationResultDto("TEST_MESSAGE_SOURCE", arguments);
+    }
+
+    protected WithdrawRequestParamsDto getMockWithdrawRequestParamsDto(String securityCode) {
+        WithdrawRequestParamsDto dto = new WithdrawRequestParamsDto();
+        dto.setCurrency(100);
+        dto.setMerchant(200);
+        dto.setSum(BigDecimal.TEN);
+        dto.setDestination("TEST_DESTINATION");
+        dto.setDestinationTag("TEST_DESTINATION_TAG");
+        dto.setMerchantImage(300);
+        dto.setOperationType(OperationType.BUY);
+        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
+        dto.setUserFullName("TEST_USER_FULL_NAME");
+        dto.setRemark("TEST_REMARK");
+        dto.setWalletNumber("TEST_WALLET_NUMBER");
+        dto.setSecurityCode(securityCode);
+
+        return dto;
     }
 }
