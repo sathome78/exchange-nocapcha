@@ -1,6 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.dto.PinOrderInfoDto;
+import me.exrates.model.enums.UserRole;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -9,6 +10,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -16,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
@@ -26,13 +29,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -96,7 +103,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is("TEST ERROR MSG")));
 
@@ -130,7 +136,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto(""))))
-                .andDo(print())
                 .andExpect(status().isForbidden());
 
         verify(userOperationService, times(1))
@@ -149,7 +154,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is("Incorrect Google 2FA oauth code: TEST_SECURITY_CODE")));
 
@@ -175,7 +179,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", is("Incorrect pin: TEST_SECURITY_CODE")));
 
@@ -201,13 +204,12 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         when(g2faService.isGoogleAuthenticatorEnable(anyInt())).thenReturn(Boolean.FALSE);
         when(userService.checkPin(anyString(), anyString(), anyObject())).thenReturn(Boolean.TRUE);
         when(inputOutputService.prepareCreditsOperation(anyObject(), anyString(), anyObject()))
-                .thenReturn(java.util.Optional.ofNullable(getMockCreditsOperation()));
+                .thenReturn(getMockCreditsOperation());
         when(withdrawService.createWithdrawalRequest(anyObject(), anyObject())).thenReturn(response);
 
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasKey("TEST_KEY")))
                 .andExpect(jsonPath("$", hasValue("TEST_VALUE")));
@@ -237,7 +239,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/create")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(getMockWithdrawRequestParamsDto("TEST_SECURITY_CODE"))))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userOperationService, times(1))
@@ -253,7 +254,156 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
 
     //    TODO
     @Test
-    public void outputCredits() {
+    public void outputCredits_isOk_merchantCurrencyData_is_empty() throws Exception {
+        List<String> warningCodeList = new ArrayList<>();
+        warningCodeList.add("WARNING_CODE_ONE");
+        warningCodeList.add("WARNING_CODE_TWO");
+
+        when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
+        when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+
+        when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+        when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+
+        when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
+        when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.EMPTY_LIST));
+
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+
+        mockMvc.perform(get(BASE_URL + "/merchants/output")
+                .param("currency", "BTC")
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.operationType", is("OUTPUT")))
+                .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
+                .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
+
+        verify(currencyService, times(1)).findByName(anyString());
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
+        verify(userService, times(1)).getUserRoleFromSecurityContext();
+        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
+        verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
+        verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
+    }
+
+    @Test
+    public void outputCredits_exception() throws Exception {
+        when(currencyService.findByName(anyString())).thenThrow(Exception.class);
+        when(userService.findByEmail(anyString())).thenThrow(Exception.class);
+        when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenThrow(Exception.class);
+        when(userService.getUserRoleFromSecurityContext()).thenThrow(Exception.class);
+
+        when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenThrow(Exception.class);
+        when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenThrow(Exception.class);
+
+        when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenThrow(Exception.class);
+        when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenThrow(Exception.class);
+        when(merchantServiceContext.getMerchantService(anyInt())).thenThrow(Exception.class);
+
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenThrow(Exception.class);
+
+        mockMvc.perform(get(BASE_URL + "/merchants/output")
+                .param("currency", "BTC")
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void outputCredits_isOk_additionalTagForWithdrawAddressIsUsed_equals_false() throws Exception {
+        List<String> warningCodeList = new ArrayList<>();
+        warningCodeList.add("WARNING_CODE_ONE");
+        warningCodeList.add("WARNING_CODE_TWO");
+
+        IWithdrawable withdrawable = Mockito.mock(IWithdrawable.class);
+
+        when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
+        when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+
+        when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+        when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+
+        when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
+        when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
+
+        when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
+        when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.FALSE);
+
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+
+        mockMvc.perform(get(BASE_URL + "/merchants/output")
+                .param("currency", "BTC")
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.operationType", is("OUTPUT")))
+                .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
+                .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
+
+        verify(currencyService, times(1)).findByName(anyString());
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
+        verify(userService, times(1)).getUserRoleFromSecurityContext();
+        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
+        verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
+        verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
+    }
+
+
+    @Test
+    public void outputCredits_isOk_additionalTagForWithdrawAddressIsUsed_equals_true() throws Exception {
+        List<String> warningCodeList = new ArrayList<>();
+        warningCodeList.add("WARNING_CODE_ONE");
+        warningCodeList.add("WARNING_CODE_TWO");
+
+        IWithdrawable withdrawable = Mockito.mock(IWithdrawable.class);
+
+        when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_CURRENCY"));
+        when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        when(walletService.findByUserAndCurrency(anyObject(), anyObject())).thenReturn(getMockWallet());
+        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+
+        when(currencyService.retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+        when(currencyService.retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt())).thenReturn(BigDecimal.TEN);
+
+        when(currencyService.getCurrencyScaleByCurrencyId(anyInt())).thenReturn(getMockMerchantCurrencyScaleDto());
+        when(merchantService.getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject())).thenReturn((Collections.singletonList(getMockMerchantCurrency())));
+
+        when(merchantServiceContext.getMerchantService(anyInt())).thenReturn(withdrawable);
+        when(withdrawable.additionalTagForWithdrawAddressIsUsed()).thenReturn(Boolean.TRUE);
+
+        when(currencyService.getWarningForCurrency(anyInt(), anyObject())).thenReturn(warningCodeList);
+
+        mockMvc.perform(get(BASE_URL + "/merchants/output")
+                .param("currency", "BTC")
+                .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.operationType", is("OUTPUT")))
+                .andExpect(jsonPath("$.minWithdrawSum", is(10.0)))
+                .andExpect(jsonPath("$.maxDailyRequestSum", is(10.0)))
+                .andExpect(jsonPath("$.warningCodeList.[0]", is("WARNING_CODE_ONE")))
+                .andExpect(jsonPath("$.warningCodeList.[1]", is("WARNING_CODE_TWO")));
+
+        verify(currencyService, times(1)).findByName(anyString());
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(walletService, times(1)).findByUserAndCurrency(anyObject(), anyObject());
+        verify(userService, times(1)).getUserRoleFromSecurityContext();
+        verify(currencyService, times(1)).retrieveMinLimitForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).retrieveMaxDailyRequestForRoleAndCurrency(anyObject(), anyObject(), anyInt());
+        verify(currencyService, times(1)).getCurrencyScaleByCurrencyId(anyInt());
+        verify(merchantService, times(1)).getAllUnblockedForOperationTypeByCurrencies(anyList(), anyObject());
+        verify(currencyService, times(1)).getWarningForCurrency(anyInt(), anyObject());
     }
 
     @Test
@@ -266,7 +416,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/pin")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(new PinOrderInfoDto("TEST_NAME", BigDecimal.ZERO))))
-                .andDo(print())
                 .andExpect(status().isCreated());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -282,7 +431,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/pin")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(new PinOrderInfoDto("TEST_NAME", BigDecimal.ZERO))))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -296,7 +444,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/request/pin")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(objectMapper.writeValueAsString(new PinOrderInfoDto("TEST_NAME", BigDecimal.ZERO))))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -315,7 +462,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .param("amount", "100")
                 .param("currency", "100")
                 .param("merchant", "100"))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -335,7 +481,6 @@ public class NgWithdrawControllerTest extends AngularApiCommonTest {
                 .param("currency", "100")
                 .param("merchant", "100")
                 .param("memo", "memo"))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());

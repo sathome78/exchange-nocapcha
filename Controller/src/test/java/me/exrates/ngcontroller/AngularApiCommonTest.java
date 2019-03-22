@@ -2,7 +2,6 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import me.exrates.model.ExOrder;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Commission;
 import me.exrates.model.CreditsOperation;
@@ -32,8 +31,6 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
@@ -554,5 +551,23 @@ public abstract class AngularApiCommonTest {
     protected NotificationResultDto getMockNotificationResultDto() {
         String[] arguments = {"ONE", "TWO"};
         return new NotificationResultDto("TEST_MESSAGE_SOURCE", arguments);
+    }
+
+    protected WithdrawRequestParamsDto getMockWithdrawRequestParamsDto(String securityCode) {
+        WithdrawRequestParamsDto dto = new WithdrawRequestParamsDto();
+        dto.setCurrency(100);
+        dto.setMerchant(200);
+        dto.setSum(BigDecimal.TEN);
+        dto.setDestination("TEST_DESTINATION");
+        dto.setDestinationTag("TEST_DESTINATION_TAG");
+        dto.setMerchantImage(300);
+        dto.setOperationType(OperationType.BUY);
+        dto.setRecipientBankName("TEST_RECIPIENT_BANK_NAME");
+        dto.setUserFullName("TEST_USER_FULL_NAME");
+        dto.setRemark("TEST_REMARK");
+        dto.setWalletNumber("TEST_WALLET_NUMBER");
+        dto.setSecurityCode(securityCode);
+
+        return dto;
     }
 }
