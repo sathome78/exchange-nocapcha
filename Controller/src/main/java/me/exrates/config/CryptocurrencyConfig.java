@@ -402,27 +402,27 @@ public class CryptocurrencyConfig {
     }
 
     //NEO and Forks
-    @Bean(name = "neoServiceImpl")
-    public NeoService neoService() {
-        Merchant mainMerchant = merchantService.findByName(NeoAsset.NEO.name());
-        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.NEO.name());
-        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
-            put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, mainMerchant, mainCurrency));
-            put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantService.findByName(NeoAsset.GAS.name()), currencyService.findByName(NeoAsset.GAS.name())));
-        }};
-        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/neo.properties");
-    }
-
-    @Bean(name = "kazeServiceImpl")
-    public NeoService kazeService() {
-        Merchant mainMerchant = merchantService.findByName(NeoAsset.KAZE.name());
-        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.KAZE.name());
-        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
-            put(NeoAsset.KAZE.getId(), new AssetMerchantCurrencyDto(NeoAsset.KAZE, mainMerchant, mainCurrency));
-            put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
-        }};
-        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
-    }
+//    @Bean(name = "neoServiceImpl")
+//    public NeoService neoService() {
+//        Merchant mainMerchant = merchantService.findByName(NeoAsset.NEO.name());
+//        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.NEO.name());
+//        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+//            put(NeoAsset.NEO.getId(), new AssetMerchantCurrencyDto(NeoAsset.NEO, mainMerchant, mainCurrency));
+//            put(NeoAsset.GAS.getId(), new AssetMerchantCurrencyDto(NeoAsset.GAS, merchantService.findByName(NeoAsset.GAS.name()), currencyService.findByName(NeoAsset.GAS.name())));
+//        }};
+//        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/neo.properties");
+//    }
+//
+//    @Bean(name = "kazeServiceImpl")
+//    public NeoService kazeService() {
+//        Merchant mainMerchant = merchantService.findByName(NeoAsset.KAZE.name());
+//        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.KAZE.name());
+//        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+//            put(NeoAsset.KAZE.getId(), new AssetMerchantCurrencyDto(NeoAsset.KAZE, mainMerchant, mainCurrency));
+//            put(NeoAsset.STREAM.getId(), new AssetMerchantCurrencyDto(NeoAsset.STREAM, merchantService.findByName(NeoAsset.STREAM.name()), currencyService.findByName(NeoAsset.STREAM.name())));
+//        }};
+//        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
+//    }
 
     @Bean(name = "cronServiceImpl")
     public NeoService cronService() {
