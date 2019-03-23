@@ -31,13 +31,6 @@ import static me.exrates.model.enums.invoice.RefillStatusEnum.CREATED_BY_FACT;
  */
 @Log4j2
 public enum WithdrawStatusEnum implements InvoiceStatus {
-    X_STATE(0) {
-        @Override
-        public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-            schemaMap.put(CREATE_BY_USER, CREATED_USER);
-            schemaMap.put(CREATE_BY_FACT, CREATED_BY_FACT);
-        }
-    },
     CREATED_USER(1) {
         @Override
         public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
