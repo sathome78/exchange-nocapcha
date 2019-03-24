@@ -97,7 +97,7 @@ public class NeoServiceImpl implements NeoService {
             } catch (Exception e) {
                 log.error(e);
             }
-        }, 0L, 1L, TimeUnit.MINUTES);
+        }, 3L, 5L, TimeUnit.MINUTES);
     }
 
     public NeoServiceImpl(Merchant mainMerchant, Currency mainCurrency, Map<String, AssetMerchantCurrencyDto> neoAssetMap, String propertySource) {
