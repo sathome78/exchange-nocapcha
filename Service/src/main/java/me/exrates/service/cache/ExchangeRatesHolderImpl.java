@@ -126,6 +126,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     }
                     data.setLastOrderRate(lastOrderRate);
                     data.setPredLastOrderRate(predLastOrderRate);
+                    data.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
                 })
                 .collect(Collectors.toList());
     }
@@ -167,6 +168,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         final BigDecimal lastOrderRate = order.getExRate();
         final BigDecimal amountBase = order.getAmountBase();
         final BigDecimal amountConvert = order.getAmountConvert();
+        final LocalDateTime dateAcception = nonNull(order.getDateAcception()) ? order.getDateAcception() : LocalDateTime.now();
 
         List<ExOrderStatisticsShortByPairsDto> statisticList = getExratesCache(currencyPairId);
 
@@ -178,9 +180,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             final BigDecimal currencyVolume = new BigDecimal(statistic.getCurrencyVolume());
             final BigDecimal high24hr = new BigDecimal(statistic.getHigh24hr());
             final BigDecimal low24hr = new BigDecimal(statistic.getLow24hr());
+            final LocalDateTime lastUpdateCache = LocalDateTime.parse(statistic.getLastUpdateCache(), DATE_TIME_FORMATTER);
 
-            statistic.setLastOrderRate(lastOrderRate.toPlainString());
-            statistic.setPredLastOrderRate(predLastOrderRate);
+            if (dateAcception.isAfter(lastUpdateCache)) {
+                statistic.setLastOrderRate(lastOrderRate.toPlainString());
+                statistic.setPredLastOrderRate(predLastOrderRate);
+            }
             statistic.setPercentChange(calculatePercentChange(statistic));
             statistic.setPriceInUSD(calculatePriceInUSD(statistic));
             statistic.setVolume(volume.add(amountBase).toPlainString());
