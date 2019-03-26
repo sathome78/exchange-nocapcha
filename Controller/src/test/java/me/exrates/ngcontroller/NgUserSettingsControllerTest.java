@@ -4,6 +4,7 @@ import me.exrates.model.NotificationOption;
 import me.exrates.model.SessionParams;
 import me.exrates.model.User;
 import me.exrates.model.dto.PageLayoutSettingsDto;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.ngModel.UserDocVerificationDto;
@@ -11,11 +12,11 @@ import me.exrates.model.ngModel.UserInfoVerificationDto;
 import me.exrates.model.ngModel.enums.VerificationDocumentType;
 import me.exrates.ngService.UserVerificationService;
 import me.exrates.security.ipsecurity.IpBlockingService;
+import me.exrates.security.ipsecurity.IpTypesOfChecking;
 import me.exrates.service.NotificationService;
 import me.exrates.service.PageLayoutSettingsService;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
-import me.exrates.service.util.RestApiUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasValue;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
@@ -92,7 +94,7 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
                 .build();
 
         SecurityContextHolder.getContext()
-                .setAuthentication(new AnonymousAuthenticationToken("guest", "test@test.ru",
+                .setAuthentication(new AnonymousAuthenticationToken("guest", "testemail@gmail.com",
                         AuthorityUtils.createAuthorityList("ADMIN")));
     }
 
@@ -110,7 +112,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + "/updateMainPassword")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.url", is("http://localhost/api/private/v2/settings/updateMainPassword")))
                 .andExpect(jsonPath("$.cause", is("NgDashboardException")))
@@ -128,17 +129,16 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     @Ignore
     public void updateMainPassword_bad_request() throws Exception {
         Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("currentPassword", "TEST_CURRENT_PASSWORD");
+        requestBody.put("currentPassword", "inapplicable");
         requestBody.put("newPassword", "TEST_NEW_PASSWORD");
 
-        String detailMsg = "Failed to check password for user: [] from ip: [] ";
+        String detailMsg = "Failed to check password for user: TEST_EMAIL from ip:  ";
 
 //        RestApiUtils restApiUtils = Mockito.mock(RestApiUtils.class);
 //        PowerMockito.mockStatic(RestApiUtils.class);
 
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
         when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
-        when(RestApiUtils.decodePassword(anyString())).thenReturn("");
         when(userService.checkPassword(anyInt(), anyString())).thenReturn(Boolean.FALSE);
         doNothing().when(ipBlockingService).failureProcessing(anyString(), anyObject());
 
@@ -160,13 +160,73 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         verify(ipBlockingService, times(1)).failureProcessing(anyString(), anyObject());
     }
 
+    // TODO: Problem with mock static methods in class RestApiUtils.class!!!
+    // @PrepareForTest(RestApiUtils.class)
+    @Ignore
+    public void updateMainPassword_isOk() throws Exception {
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("currentPassword", "inapplicable");
+        requestBody.put("newPassword", "inapplicable");
+
+        String detailMsg = "Failed to check password for user: TEST_EMAIL from ip:  ";
+
+//        RestApiUtils restApiUtils = Mockito.mock(RestApiUtils.class);
+//        PowerMockito.mockStatic(RestApiUtils.class);
+
+        when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(userService.checkPassword(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(userService.update(any(UpdateUserDto.class), any(Locale.class))).thenReturn(Boolean.TRUE);
+        doNothing().when(ipBlockingService).successfulProcessing(anyString(), any(IpTypesOfChecking.class));
+
+        mockMvc.perform(put(BASE_URL + "/updateMainPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestBody)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(userService, times(1)).getUserLocaleForMobile(anyString());
+        verify(userService, times(1)).checkPassword(anyInt(), anyString());
+        verify(userService, times(1)).update(any(UpdateUserDto.class), any(Locale.class));
+    }
+
+    // TODO: Problem with mock static methods in class RestApiUtils.class!!!
+    // @PrepareForTest(RestApiUtils.class)
+    @Ignore
+    public void updateMainPassword_not_acceptable() throws Exception {
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("currentPassword", "inapplicable");
+        requestBody.put("newPassword", "inapplicable");
+
+        String detailMsg = "Failed to check password for user: TEST_EMAIL from ip:  ";
+
+//        RestApiUtils restApiUtils = Mockito.mock(RestApiUtils.class);
+//        PowerMockito.mockStatic(RestApiUtils.class);
+
+        when(userService.findByEmail(anyString())).thenReturn(getMockUser());
+        when(userService.getUserLocaleForMobile(anyString())).thenReturn(Locale.ENGLISH);
+        when(userService.checkPassword(anyInt(), anyString())).thenReturn(Boolean.TRUE);
+        when(userService.update(any(UpdateUserDto.class), any(Locale.class))).thenReturn(Boolean.FALSE);
+
+        mockMvc.perform(put(BASE_URL + "/updateMainPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestBody)))
+                .andDo(print())
+                .andExpect(status().isNotAcceptable());
+
+        verify(userService, times(1)).findByEmail(anyString());
+        verify(userService, times(1)).getUserLocaleForMobile(anyString());
+        verify(userService, times(1)).checkPassword(anyInt(), anyString());
+        verify(userService, times(1)).update(any(UpdateUserDto.class), any(Locale.class));
+    }
+
     @Test
     public void getNickName_isOk_user_has_nickname() throws Exception {
         when(userService.findByEmail(anyString())).thenReturn(getMockUser());
 
         mockMvc.perform(get(BASE_URL + NICKNAME)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasKey("/nickname")))
                 .andExpect(jsonPath("$", hasValue("TEST_NICKNAME")));
@@ -183,7 +243,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + NICKNAME)
                 .contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasKey("/nickname")))
                 .andExpect(jsonPath("$", hasValue("")));
@@ -200,7 +259,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + NICKNAME)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isNotFound());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -216,7 +274,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + NICKNAME)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -233,7 +290,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + NICKNAME)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -246,7 +302,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(0)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -263,7 +318,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is(300)))
                 .andExpect(jsonPath("$.error", is(nullValue())));
@@ -278,7 +332,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -292,7 +345,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isNotAcceptable());
 
         verify(sessionService, times(1)).isSessionTimeValid(anyInt());
@@ -315,7 +367,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + SESSION_INTERVAL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(requestBody)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(sessionService, times(1)).isSessionTimeValid(anyInt());
@@ -328,7 +379,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + EMAIL_NOTIFICATION)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is(Collections.EMPTY_MAP)));
     }
@@ -347,7 +397,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + EMAIL_NOTIFICATION)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasKey("ACCOUNT")))
                 .andExpect(jsonPath("$", hasValue(Boolean.TRUE)));
@@ -365,7 +414,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + EMAIL_NOTIFICATION)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(options)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -382,7 +430,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + EMAIL_NOTIFICATION)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(options)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -402,7 +449,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + IS_COLOR_BLIND)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is(Boolean.TRUE)));
 
@@ -417,7 +463,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + IS_COLOR_BLIND)
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is(Boolean.FALSE)));
 
@@ -432,7 +477,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + IS_COLOR_BLIND)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isUnprocessableEntity());
     }
 
@@ -447,7 +491,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + IS_COLOR_BLIND)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).findByEmail(anyString());
@@ -461,7 +504,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + COLOR_SCHEME)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isUnprocessableEntity());
     }
 
@@ -481,7 +523,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + COLOR_SCHEME)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -491,14 +532,17 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     // TODO: TEST FAIL
     @Ignore
     public void uploadUserVerification_bad_request() throws Exception {
-        UserInfoVerificationDto mockDto = UserInfoVerificationDto.builder().build();
-        mockDto.setFirstName("");
-        mockDto.setLastName("");
-        mockDto.setBorn(LocalDate.of(1980, 10, 20));
-        mockDto.setResidentialAddress("");
-        mockDto.setPostalCode("");
-        mockDto.setCountry("");
-        mockDto.setCity("");
+        UserInfoVerificationDto mockDto = UserInfoVerificationDto
+                .builder()
+                .userId(100)
+                .firstName("first_name")
+                .lastName("last_name")
+                .born(LocalDate.of(1980, 10, 20))
+                .residentialAddress("residential_address")
+                .postalCode("country")
+                .country("country")
+                .city("city")
+                .build();
 
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(verificationService.save((UserInfoVerificationDto) anyObject())).thenReturn(mockDto);
@@ -516,14 +560,17 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
     // TODO: TEST FAIL
     @Ignore
     public void uploadUserVerification_created() throws Exception {
-        UserInfoVerificationDto mockDto = UserInfoVerificationDto.builder().build();
-        mockDto.setFirstName("");
-        mockDto.setLastName("");
-        mockDto.setBorn(LocalDate.of(1980, 10, 20));
-        mockDto.setResidentialAddress("");
-        mockDto.setPostalCode("");
-        mockDto.setCountry("");
-        mockDto.setCity("");
+        UserInfoVerificationDto mockDto = UserInfoVerificationDto
+                .builder()
+                .userId(100)
+                .firstName("first_name")
+                .lastName("last_name")
+                .born(LocalDate.of(1980, 10, 20))
+                .residentialAddress("residential_address")
+                .postalCode("country")
+                .country("country")
+                .city("city")
+                .build();
 
         when(userService.getIdByEmail(anyString())).thenReturn(100);
         when(verificationService.save((UserInfoVerificationDto) anyObject())).thenReturn(null);
@@ -554,7 +601,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(body)))
-                .andDo(print())
                 .andExpect(status().isCreated());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -572,7 +618,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(body)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -588,7 +633,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(post(BASE_URL + "/userFiles/docs/{type}", "PHOTO")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(body)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1)).getIdByEmail(anyString());
@@ -603,7 +647,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
 
         mockMvc.perform(get(BASE_URL + "/currency_pair/favourites")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.[0]", is(listFavouriteCurrencyPairs)));
 
@@ -621,7 +664,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isOk());
 
         verify(userService, times(1))
@@ -639,7 +681,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
 
         verify(userService, times(1))
@@ -653,7 +694,6 @@ public class NgUserSettingsControllerTest extends AngularApiCommonTest {
         mockMvc.perform(put(BASE_URL + "/currency_pair/favourites")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .content(objectMapper.writeValueAsString(params)))
-                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 }
