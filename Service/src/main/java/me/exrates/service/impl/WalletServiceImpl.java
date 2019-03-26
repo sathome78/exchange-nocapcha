@@ -137,6 +137,14 @@ public class WalletServiceImpl implements WalletService {
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
+    public List<Wallet> getAllAndHiddenWallets(int userId) {
+        final List<Wallet> wallets = walletDao.findAllAndHiddenByUser(userId);
+        wallets.forEach(this::balanceRepresentation);
+        return wallets;
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
     public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
         return walletDao.getAllUserWalletsForAdminDetailed(userId,
                 WithdrawStatusEnum.getEndStatesSet()
