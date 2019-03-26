@@ -193,7 +193,7 @@ public class TransactionServiceImpl implements TransactionService {
             Integer userId,
             AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
         requesterUserId = requesterUserId.equals(userId) ? null : requesterUserId;
-        final List<Integer> wallets = walletService.getAllAndHiddenWallets(userId).stream()
+        final List<Integer> wallets = walletService.getAllWallets(userId).stream()
                 .mapToInt(Wallet::getId)
                 .boxed()
                 .collect(Collectors.toList());
