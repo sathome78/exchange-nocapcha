@@ -319,7 +319,7 @@ public class NgUserSettingsController {
         dto.setFinpassword(user.getFinpassword());
         dto.setPassword(user.getPassword());
         dto.setRole(user.getRole());
-        dto.setStatus(user.getStatus());
+        dto.setStatus(user.getUserStatus());
         dto.setPhone(user.getPhone());
         return dto;
     }
