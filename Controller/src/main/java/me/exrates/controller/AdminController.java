@@ -581,7 +581,7 @@ public class AdminController {
                     updateUserDto.setRole(user.getRole());
                 }
             }
-            updateUserDto.setStatus(user.getStatus());
+            updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
                 userSessionService.invalidateUserSessionExceptSpecific(updateUserDto.getEmail(), null);
