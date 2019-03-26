@@ -41,7 +41,7 @@ public interface WalletDao {
 
     int getUserIdFromWallet(int walletId);
 
-    List<Wallet> findAllByUser(int userId);
+    List<Wallet> findAllForNotHiddenCurByUser(int userId);
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
 
@@ -61,7 +61,7 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
-    List<Wallet> findAllAndHiddenByUser(int userId);
+    List<Wallet> findAllByUser(int userId);
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);
 

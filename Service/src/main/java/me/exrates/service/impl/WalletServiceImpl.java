@@ -130,7 +130,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<Wallet> getAllWallets(int userId) {
-        final List<Wallet> wallets = walletDao.findAllByUser(userId);
+        final List<Wallet> wallets = walletDao.findAllForNotHiddenCurByUser(userId);
         wallets.forEach(this::balanceRepresentation);
         return wallets;
     }
@@ -138,7 +138,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<Wallet> getAllAndHiddenWallets(int userId) {
-        final List<Wallet> wallets = walletDao.findAllAndHiddenByUser(userId);
+        final List<Wallet> wallets = walletDao.findAllByUser(userId);
         wallets.forEach(this::balanceRepresentation);
         return wallets;
     }
