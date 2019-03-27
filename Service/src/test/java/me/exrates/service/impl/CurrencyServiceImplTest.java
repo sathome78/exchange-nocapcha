@@ -2,6 +2,13 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyLimit;
+import me.exrates.model.enums.BusinessUserRoleEnum;
+import me.exrates.model.enums.OperationType;
+import me.exrates.service.UserRoleService;
+import me.exrates.service.UserService;
+import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.util.BigDecimalConverter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -11,9 +18,19 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertEquals;
 
@@ -24,6 +41,17 @@ public class CurrencyServiceImplTest {
 
     @Mock
     private CurrencyDao currencyDao;
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private UserRoleService userRoleService;
+
+    @Mock
+    private ExchangeApi exchangeApi;
+
+    @Mock
+    private BigDecimalConverter converter;
 
     private MockMvc mockMvc;
 
@@ -51,30 +79,62 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getAllCurrencies() {
+        List<Currency> currencyList = new ArrayList<>();
+        when(currencyDao.getAllCurrencies()).thenReturn(currencyList);
+
+        assertEquals(currencyList,currencyServiceImpl.getAllCurrencies());
     }
 
     @Test
     public void findByName() {
+        Currency currency = new Currency(8);
+        when(currencyDao.findByName(anyString())).thenReturn(currency);
+
+        assertEquals(currency,currencyServiceImpl.findByName("test"));
     }
 
     @Test
     public void findById() {
+        Currency currency = new Currency(8);
+        when(currencyDao. findById(anyInt())).thenReturn(currency);
+
+        assertEquals(currency,currencyServiceImpl.findById(1));
+
     }
 
     @Test
     public void findAllCurrencies() {
+        List<Currency> currencyList = new ArrayList<>();
+        when(currencyDao.findAllCurrencies()).thenReturn(currencyList);
+
+        assertEquals(currencyList,currencyServiceImpl.findAllCurrencies());
+
     }
 
     @Test
     public void updateCurrencyLimit() {
+        List<Integer> integerList = new ArrayList<>();
+        integerList.add(5);
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
+        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
+        assertEquals(integerList,userRoleService.getRealUserRoleIdByBusinessRoleList(anyString()));
     }
 
     @Test
     public void updateCurrencyLimit1() {
+        doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
     }
 
     @Test
     public void retrieveCurrencyLimitsForRole() {
+        List<Integer> integerList = new ArrayList<>();
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
+
+        List<CurrencyLimit> currencyLimits = new ArrayList<>();
+        when(currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class))).thenReturn(currencyLimits);
+
+        assertEquals(integerList,userRoleService.getRealUserRoleIdByBusinessRoleList(anyString()));
+        assertEquals(currencyLimits,currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class)));
     }
 
     @Test
