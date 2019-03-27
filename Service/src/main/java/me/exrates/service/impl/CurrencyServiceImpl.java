@@ -217,7 +217,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     @Transactional(readOnly = true)
     public List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail) {
-        return getCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.REFILL);
+        return getAllCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.REFILL);
     }
 
     @Override
