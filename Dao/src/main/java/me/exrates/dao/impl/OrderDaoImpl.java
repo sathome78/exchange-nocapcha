@@ -984,16 +984,15 @@ public class OrderDaoImpl implements OrderDao {
 
         String orderClause;
         if (orderStatus == OrderStatus.CLOSED) {
-            orderClause = " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
+            orderClause = " ORDER BY x.date_creation ASC ";
         } else {
             orderClause = sortedColumns.isEmpty()
-                    ? " ORDER BY x.exorder_date_creation , x.stop_order_date_creation DESC "
-                    : " ORDER BY x.exorder_date_creation , x.stop_order_date_creation ASC ";
+                    ? " ORDER BY x.date_creation DESC "
+                    : " ORDER BY x.date_creation ASC ";
         }
 
-        String pageClause = " LIMIT ";
-        pageClause += limit != 14 ? String.valueOf(limit) : "14";
-        pageClause += offset > 0 ? " OFFSET " + String.valueOf(offset) : StringUtils.EMPTY;
+        String limitStr = limit < 1 ? StringUtils.EMPTY : String.format(" LIMIT %d ", limit);
+        String offsetStr = offset < 1 ? StringUtils.EMPTY : String.format(" OFFSET %d ", offset);
 
         String sqlWithBothOrders = "SELECT * " +
                 "FROM (SELECT EXORDERS.id, " +
@@ -1005,7 +1004,6 @@ public class OrderDaoImpl implements OrderDao {
                 "             EXORDERS.commission_id," +
                 "             EXORDERS.commission_fixed_amount, " +
                 "             EXORDERS.user_acceptor_id," +
-                "             EXORDERS.date_creation as exorder_date_creation, " +
                 "             EXORDERS.date_acception, " +
                 "             EXORDERS.status_id, " +
                 "             EXORDERS.status_modification_date, " +
@@ -1013,7 +1011,7 @@ public class OrderDaoImpl implements OrderDao {
                 "             EXORDERS.base_type, " +
                 "             CURRENCY_PAIR.name     AS currency_pair_name, " +
                 "             com.value              AS commission_value, " +
-                "             null                   as stop_order_date_creation, " +
+                "             EXORDERS.date_creation as date_creation, " +
                 "             null                   as child_order_id, " +
                 "             null                   as stop_rate, " +
                 "             null                   as limit_rate," +
@@ -1037,14 +1035,13 @@ public class OrderDaoImpl implements OrderDao {
                 "             STOP_ORDERS.commission_fixed_amount, " +
                 "             null, " +
                 "             null, " +
-                "             null, " +
                 "             STOP_ORDERS.status_id, " +
                 "             null, " +
                 "             STOP_ORDERS.currency_pair_id, " +
                 "             'STOP_LIMIT', " +
                 "             CURRENCY_PAIR.name            AS currency_pair_name, " +
                 "             com.value                     AS commission_value, " +
-                "             STOP_ORDERS.date_creation     as stop_order_date_creation, " +
+                "             STOP_ORDERS.date_creation     as date_creation, " +
                 "             STOP_ORDERS.child_order_id    as child_order_id, " +
                 "             STOP_ORDERS.stop_rate         as stop_rate, " +
                 "             STOP_ORDERS.limit_rate        as limit_rate, " +
@@ -1059,7 +1056,7 @@ public class OrderDaoImpl implements OrderDao {
                 + createdStopLimitClause
                 + currencyNameClause
                 + ") x " +
-                orderClause + pageClause;
+                orderClause + limitStr + offsetStr;
 
         Map<String, Object> params = new HashMap<>();
         params.put("user_id", userId);
@@ -1072,7 +1069,7 @@ public class OrderDaoImpl implements OrderDao {
             params.put("dateFrom", dateTimeFrom);
         }
         if (nonNull(dateTimeTo)) {
-            params.put("dateBefore", dateTimeTo.plusDays(1));
+            params.put("dateBefore", dateTimeTo);
         }
         if (isNotBlank(currencyName)) {
             params.put("currency_name", currencyName);
@@ -1098,7 +1095,7 @@ public class OrderDaoImpl implements OrderDao {
                 }
                 orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
                 orderWideListDto.setUserAcceptorId(rs.getInt("user_acceptor_id"));
-                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("exorder_date_creation")) ? null : rs.getTimestamp("exorder_date_creation").toLocalDateTime());
+                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation")) ? null : rs.getTimestamp("date_creation").toLocalDateTime());
                 orderWideListDto.setDateAcception(isNull(rs.getTimestamp("date_acception")) ? null : rs.getTimestamp("date_acception").toLocalDateTime());
                 orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
                 orderWideListDto.setDateStatusModification(isNull(rs.getTimestamp("status_modification_date")) ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
@@ -1122,7 +1119,7 @@ public class OrderDaoImpl implements OrderDao {
                     amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
                 }
                 orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
-                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("stop_order_date_creation")) ? null : rs.getTimestamp("stop_order_date_creation").toLocalDateTime());
+                orderWideListDto.setDateCreation(isNull(rs.getTimestamp("date_creation")) ? null : rs.getTimestamp("date_creation").toLocalDateTime());
                 orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
                 orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
