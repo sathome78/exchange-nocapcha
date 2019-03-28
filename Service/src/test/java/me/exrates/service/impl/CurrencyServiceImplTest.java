@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
-import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
@@ -15,11 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,7 +22,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.stub;
@@ -55,13 +49,10 @@ public class CurrencyServiceImplTest {
     @Mock
     private BigDecimalConverter converter;
 
-    private MockMvc mockMvc;
-
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(currencyServiceImpl)
-                .build();
+
     }
 
     @Test
@@ -121,30 +112,32 @@ public class CurrencyServiceImplTest {
     public void updateCurrencyLimit() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-
         currencyServiceImpl.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), 8);
+
+        verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("");
         verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5,6,7), new BigDecimal(5), new BigDecimal(5), 8);
     }
 
     @Test
     public void updateCurrencyLimit1() {
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-//        verify(currencyDao, times(1)).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
+        currencyServiceImpl.updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), 8);
+
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), 8);
     }
 
     @Test
     public void retrieveCurrencyLimitsForRole() {
-        List<Integer> empty = new ArrayList<>();
-        List<Integer> notAmpty = Arrays.asList(5,6,7,9);
-        List<CurrencyLimit> currencyLimits = new ArrayList<>();
+        List<Integer> integerList = Arrays.asList(5,6,7,9);
+        List<CurrencyLimit> currencyLimits = Arrays.asList(new CurrencyLimit());
 
-        assertEquals(empty,userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"));
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
+        when(currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class))).thenReturn(currencyLimits);
 
-        stub(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).toReturn(notAmpty);
-        assertEquals(notAmpty,userRoleService.getRealUserRoleIdByBusinessRoleList(""));
+        assertEquals(currencyLimits,currencyServiceImpl.retrieveCurrencyLimitsForRole("test", OperationType.INPUT));
 
-        assertEquals(currencyLimits,currencyDao.retrieveCurrencyLimitsForRoles(Arrays.asList(5,7), OperationType.INPUT));
-
+        verify(userRoleService, times(1)).getRealUserRoleIdByBusinessRoleList("test");
+        verify(currencyDao, times(1)).retrieveCurrencyLimitsForRoles(integerList,OperationType.INPUT);
     }
 
     @Test
