@@ -91,7 +91,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
         log.info("Start init ExchangeRatesHolder");
 
-        initExchangePairsCache();
+//        initExchangePairsCache();
 
         log.info("Finish init ExchangeRatesHolder");
     }
