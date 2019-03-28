@@ -2327,7 +2327,7 @@ public class OrderDaoImpl implements OrderDao {
 
         String sql = "SELECT " +
                 "CP2.id AS currency_pair_id, " +
-                "CP2.ticker_name AS currency_pair_name, " +
+                "CP2.name AS currency_pair_name, " +
                 "CP2.scale AS currency_pair_precision, " +
                 "CP2.market, " +
                 "CP2.type AS currency_pair_type, " +
