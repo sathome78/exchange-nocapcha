@@ -564,7 +564,6 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
                 .andExpect(jsonPath("$.[0].page", is(0)))
                 .andExpect(jsonPath("$.[0].orderId", is(500)))
                 .andExpect(jsonPath("$.[0].dateAcceptionTime", is("TEST_DATE_ACCEPTION_TIME")))
-                .andExpect(jsonPath("$.[0].acceptionTime", is(1552655155000L)))
                 .andExpect(jsonPath("$.[0].rate", is("TEST_RATE")))
                 .andExpect(jsonPath("$.[0].amountBase", is("TEST_AMOUNT_BASE")))
                 .andExpect(jsonPath("$.[0].operationType", is("BUY"))).andDo(print());
