@@ -14,7 +14,7 @@ import java.util.Date;
 public class DateUtils {
     private static final Logger logger = LogManager.getLogger(DateUtils.class);
 
-    public static LocalDateTime convert(String input) {
+    public static LocalDateTime convert(String input, boolean endOfDay) {
         if (input == null) {
             return null;
         }
@@ -25,7 +25,11 @@ public class DateUtils {
             logger.warn("Can't parse date: {}", input);
             dateTime = DateTime.now();
         }
-        return LocalDateTime.ofInstant(new Date(dateTime.getMillis()).toInstant(), ZoneOffset.UTC);
+        LocalDateTime time = LocalDateTime.ofInstant(new Date(dateTime.getMillis()).toInstant(), ZoneOffset.UTC);
+        if (endOfDay) {
+            time = time.plusDays(1);
+        }
+        return time;
     }
 
     private static String decodeStringFromUrl(String input) {
