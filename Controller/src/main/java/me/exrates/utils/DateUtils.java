@@ -3,7 +3,6 @@ package me.exrates.utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.springframework.security.access.method.P;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
