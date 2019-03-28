@@ -273,8 +273,8 @@ public class NgBalanceController {
             HttpServletRequest request) {
         Locale locale = localeResolver.resolveLocale(request);
         String userEmail = getPrincipalEmail();
-        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom);
-        LocalDateTime dateTimeTo = DateUtils.convert(dateTo);
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom).withHour(0).withMinute(0);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo).withHour(23).withMinute(59).withSecond(59);
 
         try {
             PagedResult<MyInputOutputHistoryDto> page = balanceService.getUserInputOutputHistory(
