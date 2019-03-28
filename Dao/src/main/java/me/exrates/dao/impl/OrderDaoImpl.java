@@ -2338,7 +2338,7 @@ public class OrderDaoImpl implements OrderDao {
                 "(IF (AGR.low24hr IS NOT NULL, AGR.low24hr, 0)) AS low24hr " +
                 "FROM " +
                 "   (SELECT" +
-                "       CP.ticker_name, " +
+                "       CP.name, " +
                 "       EO.currency_pair_id, " +
                 "       SUM(EO.amount_base) AS baseVolume, " +
                 "       SUM(EO.amount_convert) AS quoteVolume, " +
