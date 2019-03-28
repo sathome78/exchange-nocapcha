@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
@@ -29,6 +30,7 @@ import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,22 +69,25 @@ public class CurrencyServiceImplTest {
         when(currencyDao.getCurrencyName(5)).thenReturn("name");
 
         assertEquals("name",currencyServiceImpl.getCurrencyName(5));
+        verify(currencyDao, times(1)).getCurrencyName(5);
     }
 
     @Test
     public void getAllActiveCurrencies_Test() {
-        List<Currency> currencyList = new ArrayList<>();
-        when(currencyDao.getAllActiveCurrencies()).thenReturn(currencyList);
+        List<Currency> currencyList = Arrays.asList(new Currency());
+        stub(currencyDao.getAllActiveCurrencies()).toReturn(currencyList);
 
         assertEquals(currencyList,currencyServiceImpl.getAllActiveCurrencies());
+        verify(currencyDao, times(1)).getAllActiveCurrencies();
     }
 
     @Test
     public void getAllCurrencies() {
-        List<Currency> currencyList = new ArrayList<>();
-        when(currencyDao.getAllCurrencies()).thenReturn(currencyList);
+        List<Currency> currencyList = Arrays.asList(new Currency());
+        stub(currencyDao.getAllCurrencies()).toReturn(currencyList);
 
         assertEquals(currencyList,currencyServiceImpl.getAllCurrencies());
+        verify(currencyDao, times(1)).getAllCurrencies();
     }
 
     @Test
@@ -91,50 +96,55 @@ public class CurrencyServiceImplTest {
         when(currencyDao.findByName(anyString())).thenReturn(currency);
 
         assertEquals(currency,currencyServiceImpl.findByName("test"));
+        verify(currencyDao, times(1)).findByName("test");
     }
 
     @Test
     public void findById() {
         Currency currency = new Currency(8);
-        when(currencyDao. findById(anyInt())).thenReturn(currency);
+        when(currencyDao.findById(anyInt())).thenReturn(currency);
 
-        assertEquals(currency,currencyServiceImpl.findById(1));
-
+        assertEquals(currency,currencyServiceImpl.findById(7));
+        verify(currencyDao, times(1)).findById(7);
     }
 
     @Test
     public void findAllCurrencies() {
-        List<Currency> currencyList = new ArrayList<>();
+        List<Currency> currencyList = Arrays.asList(new Currency());
         when(currencyDao.findAllCurrencies()).thenReturn(currencyList);
 
         assertEquals(currencyList,currencyServiceImpl.findAllCurrencies());
-
+        verify(currencyDao, times(1)).findAllCurrencies();
     }
 
     @Test
     public void updateCurrencyLimit() {
-        List<Integer> integerList = new ArrayList<>();
-        integerList.add(5);
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
-        assertEquals(integerList,userRoleService.getRealUserRoleIdByBusinessRoleList(anyString()));
+
+        currencyServiceImpl.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), 8);
+        verify(currencyDao, times(1)).updateCurrencyLimit(6, OperationType.STORNO, Arrays.asList(5,6,7), new BigDecimal(5), new BigDecimal(5), 8);
     }
 
     @Test
     public void updateCurrencyLimit1() {
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
+//        verify(currencyDao, times(1)).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
     }
 
     @Test
     public void retrieveCurrencyLimitsForRole() {
-        List<Integer> integerList = new ArrayList<>();
-        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(integerList);
-
+        List<Integer> empty = new ArrayList<>();
+        List<Integer> notAmpty = Arrays.asList(5,6,7,9);
         List<CurrencyLimit> currencyLimits = new ArrayList<>();
-        when(currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class))).thenReturn(currencyLimits);
 
-        assertEquals(integerList,userRoleService.getRealUserRoleIdByBusinessRoleList(anyString()));
-        assertEquals(currencyLimits,currencyDao.retrieveCurrencyLimitsForRoles(anyList(), any(OperationType.class)));
+        assertEquals(empty,userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"));
+
+        stub(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).toReturn(notAmpty);
+        assertEquals(notAmpty,userRoleService.getRealUserRoleIdByBusinessRoleList(""));
+
+        assertEquals(currencyLimits,currencyDao.retrieveCurrencyLimitsForRoles(Arrays.asList(5,7), OperationType.INPUT));
+
     }
 
     @Test
