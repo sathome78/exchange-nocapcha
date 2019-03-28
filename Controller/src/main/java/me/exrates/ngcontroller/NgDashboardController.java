@@ -228,8 +228,8 @@ public class NgDashboardController {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
         OrderStatus orderStatus = OrderStatus.valueOf(status);
-        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom).withHour(0).withMinute(0);
-        LocalDateTime dateTimeTo = DateUtils.convert(dateTo).withHour(23).withMinute(59).withSecond(59);
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
         Integer offset = (page - 1) * limit;
 
