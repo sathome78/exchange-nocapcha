@@ -66,6 +66,28 @@ public class CurrencyDaoImpl implements CurrencyDao {
         Currency currency1 = new Currency();
         currency1.setId(rs.getInt("currency1_id"));
         currency1.setName(rs.getString("currency1_name"));
+        currencyPair.setCurrency1(currency1);
+        /**/
+        Currency currency2 = new Currency();
+        currency2.setId(rs.getInt("currency2_id"));
+        currency2.setName(rs.getString("currency2_name"));
+        currencyPair.setCurrency2(currency2);
+        /**/
+        currencyPair.setMarket(rs.getString("market"));
+
+        return currencyPair;
+
+    };
+
+    public static RowMapper<CurrencyPair> currencyPairRowMapperWithDescrption = (rs, row) -> {
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(rs.getInt("id"));
+        currencyPair.setName(rs.getString("name"));
+        currencyPair.setPairType(CurrencyPairType.valueOf(rs.getString("type")));
+        /**/
+        Currency currency1 = new Currency();
+        currency1.setId(rs.getInt("currency1_id"));
+        currency1.setName(rs.getString("currency1_name"));
         currency1.setDescription(rs.getString("description"));
         currencyPair.setCurrency1(currency1);
         /**/
@@ -284,7 +306,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
                 " FROM CURRENCY_PAIR " +
                 " WHERE hidden IS NOT TRUE " + typeClause +
                 " ORDER BY -pair_order DESC";
-        return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapper);
+        return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
 
     @Override
