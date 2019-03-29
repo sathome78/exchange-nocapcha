@@ -1,5 +1,6 @@
 package me.exrates.service.bitshares.ppy;
 
+import lombok.SneakyThrows;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.bitshares.BitsharesServiceImpl;
 import org.json.JSONArray;
@@ -21,7 +22,7 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
     private static final int DECIMAL = 5;
 
     public PPYServiceImpl() {
-        super(name, name, "merchants/ppy.properties", 6, DECIMAL);
+        super(name, name, "merchants/ppy.properties", 7, DECIMAL);
     }
 
     public void subscribeToTransactions() throws IOException {
@@ -103,5 +104,14 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
                 merchantSpecParamsDao.updateParam(merchant.getName(), lastIrreversebleBlockParam, String.valueOf(lastIrreversibleBlockValue));
             }
         }
+    }
+
+    @SneakyThrows
+    protected void getBlock(int blockNum) {
+        JSONObject block = new JSONObject();
+        block.put("id", 10);
+        block.put("method", "call");
+        block.put("params", new JSONArray().put("database").put("get_block").put(new JSONArray().put(blockNum)));
+        endpoint.sendText(block.toString());
     }
 }
