@@ -82,7 +82,6 @@ public class PPYServiceImpl extends BitsharesServiceImpl {
     @OnMessage
     @Override
     public void onMessage(String msg) {
-        System.out.println(msg);
         try {
             if (msg.contains("last_irreversible_block_num")) setIrreversableBlock(msg);
             else if (msg.contains("previous")) processIrreversebleBlock(msg);
