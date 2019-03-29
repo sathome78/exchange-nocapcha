@@ -18,11 +18,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -69,8 +66,8 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getCurrencyName_Test() {
-        when(currencyDao.getCurrencyName(5)).thenReturn("name");
-
+        when(currencyDao.getCurrencyName(anyInt())).thenReturn("name");
+//        assertThat("name", is(currencyService.getCurrencyName(5)));
         assertEquals("name",currencyService.getCurrencyName(5));
         verify(currencyDao, times(1)).getCurrencyName(5);
     }

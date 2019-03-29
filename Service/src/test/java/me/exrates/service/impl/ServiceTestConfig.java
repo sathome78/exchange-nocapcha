@@ -1,37 +1,90 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.dao.CallBackLogDao;
+import me.exrates.dao.CommissionDao;
+import me.exrates.dao.CompanyWalletDao;
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.G2faDao;
+import me.exrates.dao.MerchantDao;
+import me.exrates.dao.NewsDao;
 import me.exrates.dao.NotificationDao;
+import me.exrates.dao.NotificationUserSettingsDao;
+import me.exrates.dao.NotificatorPriceDao;
+import me.exrates.dao.NotificatorsDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
+import me.exrates.dao.StopOrderDao;
+import me.exrates.dao.TelegramSubscriptionDao;
+import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.UserRoleDao;
+import me.exrates.dao.UserSettingsDao;
+import me.exrates.dao.UserTransferDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.model.vo.TransactionDescription;
+import me.exrates.service.BitcoinService;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.OrderService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.UserSettingService;
+import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.api.WalletsApi;
+import me.exrates.service.cache.ChartsCacheManager;
+import me.exrates.service.cache.ExchangeRatesHolder;
+import me.exrates.service.impl.proxy.ServiceCacheableProxy;
+import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.notifications.EmailNotificatorServiceImpl;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.Google2faNotificatorServiceImpl;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.notifications.NotificationsSettingsServiceImpl;
+import me.exrates.service.notifications.NotificatorService;
+import me.exrates.service.notifications.NotificatorsService;
+import me.exrates.service.notifications.NotificatorsServiceImpl;
+import me.exrates.service.notifications.Subscribable;
+import me.exrates.service.notifications.TelegramNotificatorServiceImpl;
+import me.exrates.service.notifications.telegram.TelegramBotService;
 import me.exrates.service.session.UserSessionService;
+import me.exrates.service.stomp.StompMessenger;
+import me.exrates.service.stomp.StompMessengerImpl;
+import me.exrates.service.stopOrder.RatesHolder;
+import me.exrates.service.stopOrder.RatesHolderImpl;
+import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.stopOrder.StopOrderServiceImpl;
+import me.exrates.service.stopOrder.StopOrdersHolder;
+import me.exrates.service.stopOrder.StopOrdersHolderImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
+import me.exrates.service.util.WithdrawUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.socket.messaging.DefaultSimpUserRegistry;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -39,7 +92,8 @@ import javax.servlet.http.HttpServletRequest;
 @PropertySource(value = {
         "classpath:/mail.properties",
         "classpath:/angular.properties",
-        "classpath:/precision.properties"
+        "classpath:/precision.properties",
+        "classpath:/external-apis.properties"
 })
 public class ServiceTestConfig {
 
@@ -53,6 +107,10 @@ public class ServiceTestConfig {
     @Value("${precision.value8}") int precision8;
     @Value("${precision.value9}") int precision9;
     @Value("${precision.value10}") int precision10;
+
+    @Value("${api.wallets.url}") String url;
+    @Value("${api.wallets.username}") String username;
+    @Value("${api.wallets.password}") String password;
 
     @Bean
     public CurrencyDao currencyDao() {
@@ -190,6 +248,228 @@ public class ServiceTestConfig {
         return new BigDecimalConverter(precision1,precision2,precision3,precision4,precision5,precision6,precision7,precision8,precision9,precision10);
     }
 
+    @Bean
+    public CommissionDao commissionDao() {
+        return Mockito.mock(CommissionDao.class);
+    }
 
+    @Bean
+    public CommissionService commissionService () {
+        return new CommissionServiceImpl();
+    }
 
+    @Bean
+    public MerchantDao merchantDao() {
+        return Mockito.mock(MerchantDao.class);
+    }
+
+    @Bean
+    public MerchantService merchantService () {
+        return new MerchantServiceImpl();
+    }
+
+    @Bean
+    public MerchantServiceContext merchantServiceContext () {
+        return new MerchantServiceContext();
+    }
+
+    @Bean
+    public IMerchantService iMerchantService () {
+        return new IcoServiceImpl();
+    }
+
+    @Bean
+    public WithdrawUtils withdrawUtils () {
+        return new WithdrawUtils();
+    }
+
+    @Bean("masterTemplate")
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
+        return Mockito.mock(NamedParameterJdbcTemplate.class);
+    }
+
+    @Bean("bitcoinServiceImpl")
+    public BitcoinService bitcoinService () {
+        return Mockito.mock(BitcoinService.class);
+    }
+
+    @Bean
+    public CompanyWalletService companyWalletService() {
+        return new CompanyWalletServiceImpl();
+    }
+
+    @Bean
+    public CompanyWalletDao companyWalletDao() {
+        return Mockito.mock(CompanyWalletDao.class);
+    }
+
+    @Bean
+    public UserTransferService userTransferService() {
+        return new UserTransferServiceImpl();
+    }
+
+    @Bean
+    public UserTransferDao userTransferDao() {
+        return Mockito.mock(UserTransferDao.class);
+    }
+
+    @Bean
+    public OrderService orderService() {
+        return new OrderServiceImpl();
+    }
+
+    @Bean
+    public ServiceCacheableProxy serviceCacheableProxy() {
+        return new ServiceCacheableProxy();
+    }
+
+    @Bean
+    public OrderDao orderDao() {
+        return Mockito.mock(OrderDao.class);
+    }
+
+    @Bean
+    public NewsDao newsDao() {
+        return Mockito.mock(NewsDao.class);
+    }
+
+    @Bean
+    public Twitter twitter() {
+        return Mockito.mock(Twitter.class);
+    }
+
+    @Bean
+    public TransactionDescription transactionDescription() {
+        return new TransactionDescription();
+    }
+
+    @Bean
+    public StopOrderService stopOrderService() {
+        return new StopOrderServiceImpl();
+    }
+
+    @Bean
+    public StopOrderDao stopOrderDao() {
+        return Mockito.mock(StopOrderDao.class);
+    }
+
+    @Bean
+    public StopOrdersHolder stopOrdersHolder() {
+        return new StopOrdersHolderImpl();
+    }
+
+    @Bean
+    public RatesHolder ratesHolder() {
+        return new RatesHolderImpl();
+    }
+
+    @Bean
+    public CallBackLogDao callBackLogDao() {
+        return Mockito.mock(CallBackLogDao.class);
+    }
+
+    @Bean
+    public TransactionService transactionService() {
+        return new TransactionServiceImpl();
+    }
+
+    @Bean
+    public TransactionDao transactionDao() {
+        return Mockito.mock(TransactionDao.class);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return Mockito.mock(ObjectMapper.class);
+    }
+
+    @Bean
+    public ChartsCacheManager chartsCacheManager() {
+        return new ChartsCacheManager();
+    }
+
+    @Bean
+    public StompMessenger stompMessenger() {
+        return new StompMessengerImpl();
+    }
+
+    @Bean
+    public SimpMessagingTemplate simpMessagingTemplate() {
+        return Mockito.mock(SimpMessagingTemplate.class);
+    }
+
+    @Bean
+    public DefaultSimpUserRegistry defaultSimpUserRegistry() {
+        return Mockito.mock(DefaultSimpUserRegistry.class);
+    }
+
+    @Bean
+    public ExchangeRatesHolder exchangeRatesHolder() {
+        return Mockito.mock(ExchangeRatesHolder.class);
+    }
+
+    @Bean
+    public WalletsApi walletsApi() {
+        return new WalletsApi(url, username, password);
+    }
+
+    @Bean
+    public NotificationUserSettingsDao notificationUserSettingsDao() {
+        return Mockito.mock(NotificationUserSettingsDao.class);
+    }
+
+    @Bean
+    public NotificatorsService notificatorsService() {
+        return new NotificatorsServiceImpl();
+    }
+
+    @Bean
+    public NotificatorsDao notificatorsDao() {
+        return Mockito.mock(NotificatorsDao.class);
+    }
+
+    @Bean
+    public NotificatorPriceDao notificatorPriceDao() {
+        return Mockito.mock(NotificatorPriceDao.class);
+    }
+
+    @Bean
+    public NotificatorService notificatorService() {
+        return new EmailNotificatorServiceImpl();
+    }
+
+    @Bean
+    public TelegramSubscriptionDao telegramSubscriptionDao() {
+        return Mockito.mock(TelegramSubscriptionDao.class);
+    }
+
+    @Bean("telegramNotificatorServiceImpl")
+    public Subscribable subscribable() {
+        return Mockito.mock(Subscribable.class);
+    }
+
+    @Bean
+    public G2faDao g2faDao() {
+        return Mockito.mock(G2faDao.class);
+    }
+
+    @Bean
+    public LocaleResolver localeResolver() {
+        return Mockito.mock(LocaleResolver.class);
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return Mockito.mock(UserDetailsService.class);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return Mockito.mock(PasswordEncoder.class);
+    }
+
+    @Bean
+    public UserSettingsDao userSettingsDao() {
+        return Mockito.mock(UserSettingsDao.class);
+    }
 }
