@@ -303,8 +303,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
         String sql = "SELECT id, currency1_id, currency2_id, name, market, type," +
                 "       (select name from CURRENCY where id = currency1_id) as currency1_name," +
                 "       (select description from CURRENCY where id = currency1_id) as currency1_description," +
-                "       (select name from CURRENCY where id = currency1_id) as currency2_name," +
-                "       (select description from CURRENCY where id = currency1_id) as currency2_description " +
+                "       (select name from CURRENCY where id = currency2_id) as currency2_name," +
+                "       (select description from CURRENCY where id = currency2_id) as currency2_description " +
                 "FROM CURRENCY_PAIR  WHERE hidden IS NOT TRUE  ORDER BY pair_order DESC";
         return npJdbcTemplate.query(sql, Collections.singletonMap("pairType", type.name()), currencyPairRowMapperWithDescrption);
     }
