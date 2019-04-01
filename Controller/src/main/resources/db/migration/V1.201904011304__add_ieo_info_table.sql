@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS IEO_INFO
   amount       double(40, 9)                              not null,
   contributors VARCHAR(254)                               NOT NULL,
   started      timestamp                                  NOT NULL,
-  status       enum ('finish', 'pending', 'fail') NOT NULL,
+  status       enum ('finish', 'pending', 'fail') default 'pending' NOT NULL,
   total_limit  double(40, 9)                              not null,
   buy_limit    double(40, 9)                              not null,
   version      int(8)                                     not null,
