@@ -19,6 +19,15 @@ public class IEOClaim {
     public IEOClaim() {
     }
 
+    public IEOClaim(String currencyName, int makerId, int userId, BigDecimal amount) {
+        this.currencyName = currencyName;
+        this.makerId = makerId;
+        this.userId = userId;
+        this.amount = amount;
+        this.created = new Date();
+        this.state = IEOClaimStateEnum.created;
+    }
+
     public int getId() {
         return id;
     }

@@ -2,12 +2,18 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IEOInfoRepository;
+import me.exrates.model.Currency;
 import me.exrates.model.IEOInfo;
+import me.exrates.model.enums.IEOStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Repository
 @Log4j
@@ -46,5 +52,38 @@ public class IEOInfoRepositoryImpl implements IEOInfoRepository {
             throw new NgDashboardException("Error insert ieoinfo to DB");
         }
         return ieoInfo;
+    }
+
+    @Override
+    public IEOInfo findByCurrencyName(String currencyName) {
+
+        String sql = "SELECT ii.currency_id, ii.user_id, ii.rate, ii.amount, ii.contributors, ii.started, ii.status," +
+                " ii.total_limit, ii.buy_limit, ii.version" +
+                " FROM IEO_INFO ii INNER JOIN CURRENCY c ON c.id = ii.currency_id " +
+                " WHERE c.name = :currencyName";
+
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("currencyName", currencyName);
+            }
+        };
+        try {
+            return jdbcTemplate.queryForObject(sql, params, (rs, row) -> {
+                IEOInfo ieoInfo = new IEOInfo();
+                ieoInfo.setCurrencyId(rs.getInt("currency_id"));
+                ieoInfo.setUserId(rs.getInt("user_id"));
+                ieoInfo.setRate(rs.getBigDecimal("rate"));
+                ieoInfo.setAmount(rs.getBigDecimal("amount"));
+                ieoInfo.setAmount(rs.getBigDecimal("amount"));
+                ieoInfo.setContibutors(rs.getString("contributors"));
+                ieoInfo.setStarted(rs.getDate("started"));
+                ieoInfo.setStatus(IEOStatusEnum.valueOf(rs.getString("status")));
+
+                return  ieoInfo;
+            });
+        } catch (Exception e) {
+            log.warn("Failed to find ieoInfo for currency name " + currencyName, e);
+            throw e;
+        }
     }
 }
