@@ -240,7 +240,7 @@ public class ServiceTestConfig {
 
     @Bean
     public UserRoleService userRoleService () {
-        return new UserRoleServiceImpl();
+        return Mockito.mock(UserRoleService.class);
     }
 
     @Bean
