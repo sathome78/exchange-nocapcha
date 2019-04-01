@@ -56,8 +56,6 @@ import me.exrates.service.notifications.NotificatorService;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.NotificatorsServiceImpl;
 import me.exrates.service.notifications.Subscribable;
-import me.exrates.service.notifications.TelegramNotificatorServiceImpl;
-import me.exrates.service.notifications.telegram.TelegramBotService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stomp.StompMessenger;
 import me.exrates.service.stomp.StompMessengerImpl;
@@ -66,7 +64,6 @@ import me.exrates.service.stopOrder.RatesHolderImpl;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.stopOrder.StopOrderServiceImpl;
 import me.exrates.service.stopOrder.StopOrdersHolder;
-import me.exrates.service.stopOrder.StopOrdersHolderImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.BigDecimalConverter;
 import me.exrates.service.util.WithdrawUtils;
@@ -355,7 +352,7 @@ public class ServiceTestConfig {
 
     @Bean
     public StopOrdersHolder stopOrdersHolder() {
-        return new StopOrdersHolderImpl();
+        return Mockito.mock(StopOrdersHolder.class);
     }
 
     @Bean
