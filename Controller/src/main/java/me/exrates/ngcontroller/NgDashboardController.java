@@ -2,13 +2,14 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.InputCreateOrderDto;
 import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderFilterDataDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
@@ -16,6 +17,7 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
 import me.exrates.ngService.NgOrderService;
@@ -23,20 +25,18 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
-import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.utils.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,7 +56,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -117,15 +117,21 @@ public class NgDashboardController {
                 result = orderService.createOrder(prepareNewOrder, OrderActionEnum.CREATE, null);
             }
         }
-
-        return StringUtils.isEmpty(result) ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) :
-                new ResponseEntity<>(HttpStatus.CREATED);
+        if (StringUtils.isEmpty(result)) {
+            String message = String.format("Invalid orderId= %s", inputOrder.getOrderId());
+            throw new NgResponseException(ErrorApiTitles.CREATE_ORDER_FAILED, message);
+        }
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result = (Integer) orderService.deleteOrderByAdmin(id);
-        return result == 1 ? new ResponseEntity<>(HttpStatus.OK) : new ResponseEntity(HttpStatus.BAD_REQUEST);
+        if (result == 1) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        String message = String.format("Invalid orderId= %s", id);
+        throw new NgResponseException(ErrorApiTitles.DELETE_ORDER_FAILED, message);
     }
 
     @PutMapping("/order")
@@ -176,11 +182,12 @@ public class NgDashboardController {
         } catch (Exception e) {
             logger.error("Error while get balance by currency user {}, currency {} , e {}",
                     user.getEmail(), currency.getName(), e.getLocalizedMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = String.format("Error while get balance by currency user {%s}, currency {%s}",
+                    user.getEmail(), currency.getName());
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_GET_BALANCE_BY_CURRENCY, message);
         }
         return new ResponseEntity<>(balanceByCurrency, HttpStatus.OK);
     }
-
 
     @GetMapping("/commission/{orderType}/{currencyPairId}")
     public ResponseEntity<WalletsAndCommissionsForOrderCreationDto> getCommission(@PathVariable OperationType orderType,
@@ -224,38 +231,42 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "sortByCreated", defaultValue = "DESC") String sortByCreated,
             @RequestParam(required = false, name = "scope", defaultValue = StringUtils.EMPTY) String scope,
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
-            @RequestParam(required = false, name = "dateFrom") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false, name = "dateTo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false, name = "dateFrom") String dateFrom,
+            @RequestParam(required = false, name = "dateTo") String dateTo,
             HttpServletRequest request) {
-        final int userId = userService.getIdByEmail(getPrincipalEmail());
-
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
+        LocalDateTime dateTimeFrom = DateUtils.convert(dateFrom, false);
+        LocalDateTime dateTimeTo = DateUtils.convert(dateTo, true);
 
-        final int offset = (page - 1) * limit;
+        Integer offset = (page - 1) * limit;
 
-        final Map<String, String> sortedColumns = sortByCreated.equals("DESC")
+        Map<String, String> sortedColumns = sortByCreated.equals("DESC")
                 ? Collections.emptyMap()
                 : Collections.singletonMap("date_creation", sortByCreated);
 
-        OrderFilterDataDto.Builder builder = OrderFilterDataDto.builder()
-                .userId(userId)
-                .currencyName(currencyName)
-                .status(OrderStatus.valueOf(status))
-                .scope(scope)
-                .offset(offset)
-                .limit(limit)
-                .hideCanceled(hideCanceled)
-                .sortedColumns(sortedColumns)
-                .dateFrom(dateFrom)
-                .dateTo(dateTo);
-
+        CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
-            builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            builder.currencyPair(new CurrencyPair(currencyPairName));
+            currencyPair = new CurrencyPair(currencyPairName);
+            currencyPair.setId(currencyPairId);
         }
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(builder.build(), locale);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(
+                    userId,
+                    currencyPair,
+                    currencyName,
+                    orderStatus,
+                    scope,
+                    limit,
+                    offset,
+                    hideCanceled,
+                    sortedColumns,
+                    dateTimeFrom,
+                    dateTimeTo,
+                    locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
@@ -263,7 +274,8 @@ public class NgDashboardController {
 
             return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
+            String message = "Failed to filtered orders";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_FILTERED_ORDERS, message);
         }
     }
 
@@ -289,26 +301,31 @@ public class NgDashboardController {
             @RequestParam(required = false, defaultValue = "15") Integer limit,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             HttpServletRequest request) {
-        final int userId = userService.getIdByEmail(getPrincipalEmail());
-
+        Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
+        OrderStatus orderStatus = OrderStatus.valueOf(status);
 
-        OrderFilterDataDto.Builder builder = OrderFilterDataDto.builder()
-                .userId(userId)
-                .status(OrderStatus.valueOf(status))
-                .scope(StringUtils.EMPTY)
-                .offset(offset)
-                .limit(limit)
-                .hideCanceled(hideCanceled)
-                .sortedColumns(Collections.emptyMap());
-
+        CurrencyPair currencyPair = null;
         if (currencyPairId > 0) {
-            builder.currencyPair(currencyService.findCurrencyPairById(currencyPairId));
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId);
         } else if (currencyPairId == 0 && StringUtils.isNotBlank(currencyPairName)) {
-            builder.currencyPair(new CurrencyPair(currencyPairName));
+            currencyPair = new CurrencyPair(currencyPairName);
+            currencyPair.setId(currencyPairId);
         }
         try {
-            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(builder.build(), locale);
+            Pair<Integer, List<OrderWideListDto>> ordersTuple = orderService.getMyOrdersWithStateMap(
+                    userId,
+                    currencyPair,
+                    StringUtils.EMPTY,
+                    orderStatus,
+                    StringUtils.EMPTY,
+                    limit,
+                    offset,
+                    hideCanceled,
+                    Collections.emptyMap(),
+                    null,
+                    null,
+                    locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
             pagedResult.setCount(ordersTuple.getKey());
@@ -316,7 +333,8 @@ public class NgDashboardController {
 
             return ResponseEntity.ok(pagedResult); // 200
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().build();
+            String message = "Failed to get last orders";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_GET_LAST_ORDERS, message);
         }
     }
 
@@ -410,5 +428,4 @@ public class NgDashboardController {
             return "";
         }
     }
-
 }
