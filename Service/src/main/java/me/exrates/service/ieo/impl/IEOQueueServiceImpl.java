@@ -7,6 +7,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOQueueService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -18,23 +19,27 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class IEOQueueServiceImpl implements IEOQueueService {
 
     private final Queue<IEOClaim> claims;
-    private final IEOResultRepository ieoResultRepository;
-    private final UserService userService;
     private final WalletService walletService;
 
     @Autowired
-    public IEOQueueServiceImpl(IEOResultRepository ieoResultRepository,
-                               UserService userService,
-                               WalletService walletService) {
-        this.ieoResultRepository = ieoResultRepository;
-        this.walletService = walletService;
+    public IEOQueueServiceImpl(WalletService walletService) {
         this.claims = new ConcurrentLinkedQueue<>();
-        this.userService = userService;
+        this.walletService = walletService;
     }
 
     @PostConstruct
     public void init() {
 
+    }
+
+    @Scheduled(fixedDelay = 20000)
+    public void processClaims() {
+        while (!claims.isEmpty()) {
+            IEOClaim claim = claims.poll();
+            if (claim != null) {
+
+            }
+        }
     }
 
     @Override

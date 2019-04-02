@@ -1,7 +1,7 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.IeoClaimsDao;
+import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
@@ -124,7 +124,7 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private WalletsApi walletsApi;
     @Autowired
-    private IeoClaimsDao ieoClaimsDao;
+    private IEOClaimRepository ieoClaimRepository;
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -826,6 +826,6 @@ public class WalletServiceImpl implements WalletService {
             log.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_INSUFFICIENT_BUYER_FUNDS, message);
         }
-        return ieoClaimsDao.save(ieoClaim);
+        return ieoClaimRepository.create(ieoClaim);
     }
 }
