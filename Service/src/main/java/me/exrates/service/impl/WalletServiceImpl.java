@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
+import me.exrates.dao.IEOInfoRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
@@ -10,6 +11,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.IEOClaim;
+import me.exrates.model.IEOInfo;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
@@ -125,6 +127,9 @@ public class WalletServiceImpl implements WalletService {
     private WalletsApi walletsApi;
     @Autowired
     private IEOClaimRepository ieoClaimRepository;
+    @Autowired
+    private IEOInfoRepository ieoInfoRepository;
+
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -819,7 +824,12 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public IEOClaim blockUserBtcWalletWithIeoClaim(IEOClaim ieoClaim) {
-        ieoClaimRepository.checkIfIeoOpenForCurrency(ieoClaim.getCurrencyName());
+        IEOInfo openIeo = ieoInfoRepository.findOpenIeoByCurrencyName(ieoClaim.getCurrencyName());
+        if (openIeo == null) {
+            String message = "Failed to apply claim as IEO is not running yet";
+            log.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
+        }
         int currencyId = currencyService.findByName("BTC").getId();
         BigDecimal available = walletDao.getAvailableAmountInBtcLocked(ieoClaim.getUserId(), currencyId);
         if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {

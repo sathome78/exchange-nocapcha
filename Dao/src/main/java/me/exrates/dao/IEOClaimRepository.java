@@ -11,6 +11,5 @@ public interface IEOClaimRepository {
     Collection<IEOClaim> findUnprocessedIeoClaims();
 
     boolean updateStateIEOClaim(int id, IEOClaim.IEOClaimStateEnum state);
-
-    boolean checkIfIeoOpenForCurrency(String currencyName);
 }
+

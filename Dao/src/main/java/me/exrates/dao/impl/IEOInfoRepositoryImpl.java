@@ -2,16 +2,16 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IEOInfoRepository;
-import me.exrates.model.Currency;
 import me.exrates.model.IEOInfo;
 import me.exrates.model.enums.IEOStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class IEOInfoRepositoryImpl implements IEOInfoRepository {
         params.addValue("currency_id", ieoInfo.getCurrencyId());
         params.addValue("rate", ieoInfo.getRate());
         params.addValue("amount", ieoInfo.getAmount());
-        params.addValue("contributors", ieoInfo.getContibutors());
+        params.addValue("contributors", ieoInfo.getContributors());
         params.addValue("started", ieoInfo.getStarted());
         params.addValue("status", ieoInfo.getStatus());
         params.addValue("total_limit", ieoInfo.getTotalLimit());
@@ -55,7 +55,7 @@ public class IEOInfoRepositoryImpl implements IEOInfoRepository {
     }
 
     @Override
-    public IEOInfo findByCurrencyName(String currencyName) {
+    public Collection<IEOInfo> findByCurrencyName(String currencyName) {
 
         String sql = "SELECT ii.currency_id, ii.user_id, ii.rate, ii.amount, ii.contributors, ii.started, ii.status," +
                 " ii.total_limit, ii.buy_limit, ii.version" +
@@ -68,22 +68,46 @@ public class IEOInfoRepositoryImpl implements IEOInfoRepository {
             }
         };
         try {
-            return jdbcTemplate.queryForObject(sql, params, (rs, row) -> {
-                IEOInfo ieoInfo = new IEOInfo();
-                ieoInfo.setCurrencyId(rs.getInt("currency_id"));
-                ieoInfo.setUserId(rs.getInt("user_id"));
-                ieoInfo.setRate(rs.getBigDecimal("rate"));
-                ieoInfo.setAmount(rs.getBigDecimal("amount"));
-                ieoInfo.setAmount(rs.getBigDecimal("amount"));
-                ieoInfo.setContibutors(rs.getString("contributors"));
-                ieoInfo.setStarted(rs.getDate("started"));
-                ieoInfo.setStatus(IEOStatusEnum.valueOf(rs.getString("status")));
-
-                return  ieoInfo;
-            });
+            return jdbcTemplate.query(sql, params, ieoInfoRowMapper());
         } catch (Exception e) {
-            log.warn("Failed to find ieoInfo for currency name " + currencyName, e);
+            log.warn("Failed to find ieoInfos for currency name " + currencyName, e);
             throw e;
         }
+    }
+
+    @Override
+    public IEOInfo findOpenIeoByCurrencyName(String currencyName) {
+        String sql = "SELECT ii.currency_id, ii.user_id, ii.rate, ii.amount, ii.contributors, ii.started, ii.status," +
+                " ii.total_limit, ii.buy_limit, ii.version" +
+                " FROM IEO_INFO ii INNER JOIN CURRENCY c ON c.id = ii.currency_id " +
+                " WHERE c.name = :currencyName AND ii.started < NOW() AND ii.terminates >= NOW()";
+
+        final Map<String, String> params = new HashMap<String, String>() {
+            {
+                put("currencyName", currencyName);
+            }
+        };
+        try {
+            return jdbcTemplate.queryForObject(sql, params, ieoInfoRowMapper());
+        } catch (Exception e) {
+            log.warn("Failed to find ieoInfo for currency name " + currencyName, e);
+            throw null;
+        }
+    }
+
+    private RowMapper<IEOInfo> ieoInfoRowMapper() {
+        return (rs, row) -> {
+            IEOInfo ieoInfo = new IEOInfo();
+            ieoInfo.setCurrencyId(rs.getInt("currency_id"));
+            ieoInfo.setUserId(rs.getInt("user_id"));
+            ieoInfo.setRate(rs.getBigDecimal("rate"));
+            ieoInfo.setAmount(rs.getBigDecimal("amount"));
+            ieoInfo.setAmount(rs.getBigDecimal("amount"));
+            ieoInfo.setContributors(rs.getString("contributors"));
+            ieoInfo.setStarted(rs.getDate("started"));
+            ieoInfo.setTerminated(rs.getDate("terminated"));
+            ieoInfo.setStatus(IEOStatusEnum.valueOf(rs.getString("status")));
+            return ieoInfo;
+        };
     }
 }
