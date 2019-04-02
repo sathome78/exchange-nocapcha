@@ -115,11 +115,7 @@ public class WavesServiceImpl implements WavesService {
          }};
      } catch (Exception e){
          log.error(e);
-         return new HashMap<String, String>() {{
-             put("message", "Error, see log");
-             put("address", "Error, see log");
-             put("qr", "Error, see log");
-         }};
+         throw e;
      }
     }
 
