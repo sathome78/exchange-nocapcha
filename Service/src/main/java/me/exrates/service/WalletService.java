@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -167,4 +168,7 @@ public interface WalletService {
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
     Wallet findByUserAndCurrency(int userId, String currencyName);
+
+    @Transactional
+    IEOClaim blockUserBtcWalletWithIeoClaim(IEOClaim ieoClaim);
 }

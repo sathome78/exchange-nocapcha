@@ -1096,6 +1096,19 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public BigDecimal getAvailableAmountInBtcLocked(int userId) {
+        Integer currencyId = currencyDao.findByName("BTC").getId();
+        String sql = "SELECT active_balance FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId FOR UPDATE";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        } catch (Exception ex) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
     public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
         CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
         if (Objects.isNull(currencyPair)) {

@@ -97,6 +97,8 @@ public interface WalletDao {
 
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
+    BigDecimal getAvailableAmountInBtcLocked(int userId);
+
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 
     void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
