@@ -104,16 +104,23 @@ public class WavesServiceImpl implements WavesService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        log.debug("Waves RefillRequestCreateDto: " + request);
-        String address = restClient.generateNewAddress();
-        String message = messageSource.getMessage("merchants.refill.btc",
-                new Object[]{address}, request.getLocale());
-        log.debug("Waves address: " + address + " message: " + message);
-        return new HashMap<String, String>() {{
-            put("message", message);
-            put("address", address);
-            put("qr", address);
-        }};
+     try {
+         String address = restClient.generateNewAddress();
+         String message = messageSource.getMessage("merchants.refill.btc",
+                 new Object[]{address}, request.getLocale());
+         return new HashMap<String, String>() {{
+             put("message", message);
+             put("address", address);
+             put("qr", address);
+         }};
+     } catch (Exception e){
+         log.error(e);
+         return new HashMap<String, String>() {{
+             put("message", "Error, see log");
+             put("address", "Error, see log");
+             put("qr", "Error, see log");
+         }};
+     }
     }
 
     @PostConstruct
