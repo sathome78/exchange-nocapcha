@@ -56,7 +56,7 @@ public class IEOServiceImpl implements IEOService {
         ieoClaimRepository.create(ieoClaim);
         claimDto.setId(ieoClaim.getId());
 
-        IEOProcessor processor = new IEOProcessor(ieoClaimRepository, ieoResultRepository, ieoClaim);
+        IEOProcessor processor = new IEOProcessor(ieoResultRepository, claimRepository1, ieoClaim);
         executorService.execute(processor);
 
         return claimDto;

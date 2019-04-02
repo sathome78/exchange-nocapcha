@@ -1,38 +1,19 @@
 package me.exrates.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+@Data
+@AllArgsConstructor
+@Builder
 public class IEOResult {
-    private int id;
     private int claimId;
     private IEOResultStatus status;
 
     public enum IEOResultStatus {
         success, fail, none
-    }
-
-    public IEOResult() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getClaimId() {
-        return claimId;
-    }
-
-    public void setClaimId(int claimId) {
-        this.claimId = claimId;
-    }
-
-    public IEOResultStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(IEOResultStatus status) {
-        this.status = status;
     }
 }

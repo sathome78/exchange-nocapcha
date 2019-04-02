@@ -1096,8 +1096,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public BigDecimal getAvailableAmountInBtcLocked(int userId) {
-        Integer currencyId = currencyDao.findByName("BTC").getId();
+    public BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId) {
         String sql = "SELECT active_balance FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId FOR UPDATE";
         MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
                 .addValue("currencyId", currencyId);
@@ -1106,6 +1105,26 @@ public class WalletDaoImpl implements WalletDao {
         } catch (Exception ex) {
             return BigDecimal.ZERO;
         }
+    }
+
+    @Override
+    public boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId) {
+        String sql = "UPDATE WALLET SET active_balance = (active_balance - :amountInBtc)," +
+                " ieo_reserve = (ieo_reserve + :amountInBtc)" +
+                " WHERE user_id = :userId AND currency_id = :currencyId";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId) {
+        String sql = "UPDATE WALLET SET active_balance = (active_balance + :amountInBtc)," +
+                " ieo_reserve = (ieo_reserve - :amountInBtc)" +
+                " WHERE user_id = :userId AND currency_id = :currencyId";
+        MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
+                .addValue("currencyId", currencyId);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     @Override

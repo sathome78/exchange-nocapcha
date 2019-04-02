@@ -13,6 +13,7 @@ public class IEOClaim {
     private String currencyName;
     private int makerId;
     private int userId;
+    private BigDecimal rate;
     private BigDecimal amount;
     private BigDecimal priceInBtc;
     private Date created;

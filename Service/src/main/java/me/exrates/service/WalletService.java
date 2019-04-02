@@ -169,6 +169,9 @@ public interface WalletService {
 
     Wallet findByUserAndCurrency(int userId, String currencyName);
 
-    @Transactional
     IEOClaim blockUserBtcWalletWithIeoClaim(IEOClaim ieoClaim);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
 }

@@ -97,7 +97,11 @@ public interface WalletDao {
 
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
-    BigDecimal getAvailableAmountInBtcLocked(int userId);
+    BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 
