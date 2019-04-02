@@ -87,6 +87,8 @@ public class CurrencyServiceImplTest {
     @Autowired
     private BigDecimalConverter converter;
 
+    private List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -94,6 +96,12 @@ public class CurrencyServiceImplTest {
         SecurityContextHolder.getContext()
                 .setAuthentication(new AnonymousAuthenticationToken("USER", "testemail@gmail.com",
                         AuthorityUtils.createAuthorityList("USER")));
+
+        userCurrencyOperationPermissionDtoList = new ArrayList<>();
+        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
+        entity.setCurrencyName("FFF");
+        userCurrencyOperationPermissionDtoList.add(entity);
+
         reset(currencyDao);
         reset(exchangeApi);
     }
@@ -306,27 +314,18 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void findWithOperationPermissionByUserAndDirection_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
-        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(list);
+        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
 
-        assertEquals(list, currencyService.findWithOperationPermissionByUserAndDirection(90, InvoiceOperationDirection.REFILL));
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.findWithOperationPermissionByUserAndDirection(90, InvoiceOperationDirection.REFILL));
         verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(90, "REFILL");
     }
 
     @Test
     public void getCurrencyOperationPermittedForRefill_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
-
         when(userService.getIdByEmail(anyString())).thenReturn(99);
-        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(list);
+        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
 
-        assertEquals(list, currencyService.getCurrencyOperationPermittedForRefill("email@email.com"));
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getCurrencyOperationPermittedForRefill("email@email.com"));
 
         verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99,"REFILL");
 
@@ -334,59 +333,40 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getAllCurrencyOperationPermittedForRefill_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
-
         when(userService.getIdByEmail(anyString())).thenReturn(99);
-        when(currencyDao.findAllCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(list);
+        when(currencyDao.findAllCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
 
-        assertEquals(list, currencyService.getAllCurrencyOperationPermittedForRefill("email@email.com"));
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getAllCurrencyOperationPermittedForRefill("email@email.com"));
 
         verify(currencyDao, times(1)).findAllCurrencyOperationPermittedByUserAndDirection(99, "REFILL");
     }
 
     @Test
     public void getCurrencyOperationPermittedForWithdraw_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
-
         when(userService.getIdByEmail(anyString())).thenReturn(99);
-        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(list);
-        assertEquals(list, currencyService.getCurrencyOperationPermittedForWithdraw("email@email.com"));
+        when(currencyDao.findCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getCurrencyOperationPermittedForWithdraw("email@email.com"));
 
         verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserAndDirection(99,"WITHDRAW");
     }
 
     @Test
     public void getAllCurrencyOperationPermittedForWithdraw_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
-
         when(userService.getIdByEmail(anyString())).thenReturn(99);
-        when(currencyDao.findAllCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(list);
+        when(currencyDao.findAllCurrencyOperationPermittedByUserAndDirection(anyInt(), anyString())).thenReturn(userCurrencyOperationPermissionDtoList);
 
-        assertEquals(list, currencyService.getAllCurrencyOperationPermittedForWithdraw("email@email.com"));
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getAllCurrencyOperationPermittedForWithdraw("email@email.com"));
 
         verify(currencyDao, times(1)).findAllCurrencyOperationPermittedByUserAndDirection(99,"WITHDRAW");
     }
 
     @Test
     public void getCurrencyPermittedNameList_WhenParameterString() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
         Set<String> set = new HashSet<>();
         set.add("FFF");
 
         when(userService.getIdByEmail(anyString())).thenReturn(90);
-        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(list);
+        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(userCurrencyOperationPermissionDtoList);
 
         assertEquals(set, currencyService.getCurrencyPermittedNameList("email@email.com"));
 
@@ -396,14 +376,9 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getCurrencyPermittedOperationList_Test() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
+        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(userCurrencyOperationPermissionDtoList);
 
-        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(list);
-
-        assertEquals(list, currencyService.getCurrencyPermittedOperationList(37));
+        assertEquals(userCurrencyOperationPermissionDtoList, currencyService.getCurrencyPermittedOperationList(37));
 
         verify(currencyDao, times(1)).findCurrencyOperationPermittedByUserList(37);
 
@@ -411,14 +386,10 @@ public class CurrencyServiceImplTest {
 
     @Test
     public void getCurrencyPermittedNameList_WhenParameterInteger() {
-        List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
-        UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
-        entity.setCurrencyName("FFF");
-        list.add(entity);
         Set<String> set = new HashSet<>();
         set.add("FFF");
 
-        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(list);
+        when(currencyDao.findCurrencyOperationPermittedByUserList(anyInt())).thenReturn(userCurrencyOperationPermissionDtoList);
 
         assertEquals(set, currencyService.getCurrencyPermittedNameList(25));
 
