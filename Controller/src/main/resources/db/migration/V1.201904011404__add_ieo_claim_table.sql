@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS IEO_CLAIM
     user_id       INT(11)                                         not null,
     amount        double(40, 9)                                   not null,
     rate          double(40, 9)                                   not null,
+    price_in_btc  double(40, 9)                                   not null,
     created       timestamp                     default NOW()     NOT NULL,
     state         enum ('created', 'processed') default 'created' NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User (id),

@@ -817,33 +817,6 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    @Transactional
-    public IEOClaim blockUserBtcWalletWithIeoClaim(IEOClaim ieoClaim) {
-        ieoClaimRepository.checkIfIeoOpenForCurrency(ieoClaim.getCurrencyName());
-        int currencyId = currencyService.findByName("BTC").getId();
-        BigDecimal available = walletDao.getAvailableAmountInBtcLocked(ieoClaim.getUserId(), currencyId);
-        if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
-            String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
-                    available.toPlainString(), ieoClaim.getPriceInBtc());
-            log.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_INSUFFICIENT_BUYER_FUNDS, message);
-        }
-        ieoClaim = ieoClaimRepository.create(ieoClaim);
-        if (ieoClaim == null) {
-            String message = "Failed to save user's claim";
-            log.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_CLAIM_SAVE_FAILURE, message);
-        }
-        boolean result = walletDao.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc(), currencyId);
-        if (!result) {
-            String message = String.format("Failed to reserve %s BTC from user's account", ieoClaim.getPriceInBtc());
-            log.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_USER_RESERVE_BTC_FAILURE, message);
-        }
-        return ieoClaim;
-    }
-
-    @Override
     public boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc) {
         int currencyId = currencyService.findByName("BTC").getId();
         return walletDao.reserveUserBtcForIeo(userId, amountInBtc, currencyId);

@@ -51,7 +51,6 @@ public class IEOQueueServiceImpl implements IEOQueueService {
 
     @Override
     public boolean add(IEOClaim claim) {
-        claim = walletService.blockUserBtcWalletWithIeoClaim(claim);
         return claims.offer(claim);
     }
 
