@@ -100,6 +100,20 @@ public class WalletDaoImpl implements WalletDao {
         return userWallet;
     };
 
+    protected final RowMapper<Wallet> ieoWalletRowMapper = (resultSet, i) -> {
+
+        final Wallet userWallet = new Wallet();
+        userWallet.setId(resultSet.getInt("id"));
+        userWallet.setName(resultSet.getString("name"));
+        userWallet.setCurrencyId(resultSet.getInt("currency_id"));
+        userWallet.setUser(userDao.getUserById(resultSet.getInt("user_id")));
+        userWallet.setActiveBalance(resultSet.getBigDecimal("active_balance"));
+        userWallet.setIeoReserved(resultSet.getBigDecimal("ieo_reserve"));
+        userWallet.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
+
+        return userWallet;
+    };
+
     private RowMapper<WalletsForOrderCancelDto> getWalletsForOrderCancelDtoMapper(OperationType operationType) {
         return (rs, i) -> {
             WalletsForOrderCancelDto result = new WalletsForOrderCancelDto();
@@ -690,7 +704,7 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet findByUserAndCurrency(int userId, String currencyName) {
-        final String sql = "SELECT WALLET.id, WALLET.currency_id, WALLET.user_id, WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name" +
+        final String sql = "SELECT WALLET.id, WALLET.currency_id, WALLET.user_id, WALLET.active_balance, WALLET.reserved_balance, WALLET.ieo_reserve, CURRENCY.name as name" +
                 " FROM WALLET INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id" +
                 " WHERE user_id = :userId and CURRENCY.name = :currencyName";
         final Map<String, Object> params = new HashMap<String, Object>() {
@@ -700,7 +714,7 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         try {
-            return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+            return jdbcTemplate.queryForObject(sql, params, ieoWalletRowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -718,11 +732,16 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public Wallet createWallet(User user, int currencyId) {
-        final String sql = "INSERT INTO WALLET (currency_id,user_id) VALUES(:currId,:userId)";
+        return createWallet(user.getId(), currencyId);
+    }
+
+    @Override
+    public Wallet createWallet(int userId, int currencyId) {
+        final String sql = "INSERT INTO WALLET (currency_id, user_id) VALUES(:currId,:userId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", currencyId)
-                .addValue("userId", user.getId());
+                .addValue("userId", userId);
         if (jdbcTemplate.update(sql, parameters, keyHolder) > 0) {
             Wallet wallet = new Wallet();
             wallet.setActiveBalance(BigDecimal.valueOf(0));

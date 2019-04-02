@@ -73,6 +73,8 @@ public interface WalletDao {
 
     Wallet createWallet(User user, int currencyId);
 
+    Wallet createWallet(int userId, int currencyId);
+
     boolean update(Wallet wallet);
 
     /**

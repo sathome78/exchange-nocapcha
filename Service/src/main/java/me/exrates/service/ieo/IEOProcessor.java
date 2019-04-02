@@ -1,6 +1,6 @@
 package me.exrates.service.ieo;
 
-import me.exrates.dao.IEOInfoRepository;
+import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEOResult;
@@ -11,13 +11,15 @@ import java.math.BigDecimal;
 public class IEOProcessor implements Runnable {
 
     private final IEOResultRepository ieoResultRepository;
+    private final IEOClaimRepository ieoClaimRepository;
     private final WalletService walletService;
     private final IEOClaim ieoClaim;
 
     public IEOProcessor(IEOResultRepository ieoResultRepository,
-                        IEOClaim ieoClaim,
+                        IEOClaimRepository ieoClaimRepository, IEOClaim ieoClaim,
                         WalletService walletService) {
         this.ieoResultRepository = ieoResultRepository;
+        this.ieoClaimRepository = ieoClaimRepository;
         this.walletService = walletService;
         this.ieoClaim = ieoClaim;
     }
@@ -45,18 +47,21 @@ public class IEOProcessor implements Runnable {
             availableAmount = availableAmount.subtract(ieoClaim.getAmount());
         }
 
-        // save result
-        IEOResult ieoResult = IEOResult.builder().claimId();
+        IEOResult.IEOResultStatus resultStatus = walletService.performIeoTransfer(ieoClaim)
+                ? IEOResult.IEOResultStatus.success
+                : IEOResult.IEOResultStatus.fail;
 
-        // subtract btc from user ieo_reserve to maker btc and add currency
+        IEOResult ieoResult = IEOResult.builder()
+                .claimId(ieoClaim.getId())
+                .availableAmount(availableAmount)
+                .status(resultStatus)
+                .build();
 
-        // send btc to maker
+        ieoResultRepository.create(ieoResult);
+        ieoClaimRepository.updateClaimStatus(ieoClaim.getId());
 
-        // update claims
+        // todo send notification
 
-        // send notification
-
-        // send message to websocket
-
+        // todo send message to websocket
     }
 }

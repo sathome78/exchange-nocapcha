@@ -76,7 +76,7 @@ public class IEOServiceImpl implements IEOService {
                 ieoInfo.getRate());
 
         int currencyId = currencyService.findByName("BTC").getId();
-        BigDecimal available = walletDao.getAvailableAmountInBtcLocked(ieoClaim.getUserId(), currencyId);
+        BigDecimal available = walletDao.getAvailableAmountInBtcLocked(user.getId(), currencyId);
         if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
             String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
                     available.toPlainString(), ieoClaim.getPriceInBtc());

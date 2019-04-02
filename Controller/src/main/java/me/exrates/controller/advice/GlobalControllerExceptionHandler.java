@@ -13,6 +13,7 @@ import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
+import me.exrates.service.exception.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -94,6 +95,13 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler(NgResponseException.class)
     @ResponseBody
     public ErrorInfo handleNgUserAuthenticationException(HttpServletRequest req, NgResponseException exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IeoException.class)
+    @ResponseBody
+    public ErrorInfo handleNgUserAuthenticationException(HttpServletRequest req, IeoException exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

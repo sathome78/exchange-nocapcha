@@ -8,8 +8,11 @@ public interface IEOClaimRepository {
 
     IEOClaim create(IEOClaim ieoClaim);
 
+
     Collection<IEOClaim> findUnprocessedIeoClaims();
 
     boolean updateStateIEOClaim(int id, IEOClaim.IEOClaimStateEnum state);
+
+    boolean updateClaimStatus(int ieoClaimId);
 }
 

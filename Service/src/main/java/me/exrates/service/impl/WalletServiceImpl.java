@@ -822,4 +822,24 @@ public class WalletServiceImpl implements WalletService {
         int currencyId = currencyService.findByName("BTC").getId();
         return walletDao.rollbackUserBtcForIeo(userId, amountInBtc, currencyId);
     }
+
+    @Override
+    @Transactional()
+    public  boolean performIeoTransfer(IEOClaim ieoClaim) {
+        Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
+        Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
+        Wallet userIeoWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), ieoClaim.getCurrencyName());
+        if (userIeoWallet == null) {
+            int currencyId = currencyService.findByName(ieoClaim.getCurrencyName()).getId();
+            userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
+        }
+
+        makerBtcWallet.setActiveBalance(makerBtcWallet.getReservedBalance().add(ieoClaim.getPriceInBtc()));
+        userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
+        userIeoWallet.setActiveBalance(userIeoWallet.getActiveBalance().add(ieoClaim.getAmount()));
+
+        return walletDao.update(makerBtcWallet)
+                && walletDao.update(userBtcWallet)
+                && walletDao.update(userIeoWallet);
+    }
 }

@@ -171,4 +171,7 @@ public interface WalletService {
     boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
 
     boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    @Transactional()
+    boolean performIeoTransfer(IEOClaim ieoClaim);
 }
