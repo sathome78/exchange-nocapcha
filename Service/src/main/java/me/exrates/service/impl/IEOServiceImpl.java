@@ -24,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Service
 public class IEOServiceImpl implements IEOService {
@@ -40,8 +38,6 @@ public class IEOServiceImpl implements IEOService {
     private final CurrencyService currencyService;
     private final WalletDao walletDao;
     private final IEOQueueService ieoQueueService;
-
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -67,14 +63,14 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
 
-        if (!ieoClaimRepository.checkIfIeoOpenForCurrency(claimDto.getNameCurrency())) {
-            String message = String.format("Failed to create claim whila IEO %s not started",
+        IEOInfo ieoInfo = ieoInfoRepository.findOpenIeoByCurrencyName(claimDto.getNameCurrency());
+        if (ieoInfo == null) {
+            String message = String.format("Failed to create claim while IEO %s not started",
                     claimDto.getNameCurrency());
             LOGGER.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED, message);
+            throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
         }
 
-        IEOInfo ieoInfo = ieoInfoRepository.findByCurrencyName(claimDto.getNameCurrency());
         User user = userDao.findByEmail(email);
         IEOClaim ieoClaim = new IEOClaim(claimDto.getNameCurrency(), ieoInfo.getUserId(), user.getId(), claimDto.getAmount(),
                 ieoInfo.getRate());

@@ -10,8 +10,9 @@ public class IEOInfo {
     private int userId;
     private BigDecimal rate;
     private BigDecimal amount;
-    private String contibutors;
+    private String contributors;
     private Date started;
+    private Date terminated;
     private BigDecimal totalLimit;
     private BigDecimal buyLimit;
     private int version;
@@ -52,14 +53,6 @@ public class IEOInfo {
         this.amount = amount;
     }
 
-    public String getContibutors() {
-        return contibutors;
-    }
-
-    public void setContibutors(String contibutors) {
-        this.contibutors = contibutors;
-    }
-
     public Date getStarted() {
         return started;
     }
@@ -98,5 +91,21 @@ public class IEOInfo {
 
     public void setStatus(IEOStatusEnum status) {
         this.status = status;
+    }
+
+    public String getContributors() {
+        return contributors;
+    }
+
+    public void setContributors(String contributors) {
+        this.contributors = contributors;
+    }
+
+    public Date getTerminated() {
+        return terminated;
+    }
+
+    public void setTerminated(Date terminated) {
+        this.terminated = terminated;
     }
 }

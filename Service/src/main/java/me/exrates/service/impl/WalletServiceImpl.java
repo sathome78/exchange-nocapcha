@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.dao.exception.notfound.WalletNotFoundException;
@@ -9,10 +8,8 @@ import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
 import me.exrates.model.dto.ExternalWalletBalancesDto;
 import me.exrates.model.dto.InternalWalletBalancesDto;
@@ -56,7 +53,6 @@ import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.IeoException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
@@ -123,8 +119,7 @@ public class WalletServiceImpl implements WalletService {
     private ExchangeApi exchangeApi;
     @Autowired
     private WalletsApi walletsApi;
-    @Autowired
-    private IEOClaimRepository ieoClaimRepository;
+
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
