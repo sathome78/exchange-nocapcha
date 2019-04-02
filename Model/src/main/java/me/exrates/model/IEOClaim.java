@@ -23,13 +23,14 @@ public class IEOClaim {
         created, processed
     }
 
-    public IEOClaim(String currencyName, int makerId, int userId, BigDecimal amount, BigDecimal priceInBtc) {
+    public IEOClaim(String currencyName, int makerId, int userId, BigDecimal amount, BigDecimal rate) {
         this.currencyName = currencyName;
         this.makerId = makerId;
         this.userId = userId;
         this.amount = amount;
         this.created = new Date();
         this.state = IEOClaimStateEnum.created;
-        this.priceInBtc = priceInBtc;
+        this.rate = rate;
+        this.priceInBtc = amount.multiply(rate);
     }
 }

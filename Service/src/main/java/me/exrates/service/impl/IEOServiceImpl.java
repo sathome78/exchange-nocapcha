@@ -11,6 +11,7 @@ import me.exrates.model.User;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.service.IEOService;
+import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +30,7 @@ public class IEOServiceImpl implements IEOService {
     private final UserDao userDao;
     private final IEOInfoRepository ieoInfoRepository;
     private final IEOResultRepository ieoResultRepository;
+    private final WalletService walletService;
 
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -37,12 +39,14 @@ public class IEOServiceImpl implements IEOService {
                           CurrencyDao currencyDao,
                           UserDao userDao,
                           IEOInfoRepository ieoInfoRepository,
-                          IEOResultRepository ieoResultRepository) {
+                          IEOResultRepository ieoResultRepository,
+                          WalletService walletService) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.currencyDao = currencyDao;
         this.userDao = userDao;
         this.ieoInfoRepository = ieoInfoRepository;
         this.ieoResultRepository = ieoResultRepository;
+        this.walletService = walletService;
     }
 
     @Override
@@ -52,11 +56,11 @@ public class IEOServiceImpl implements IEOService {
         IEOInfo ieoInfo = ieoInfoRepository.findByCurrencyName(claimDto.getNameCurrency());
 
         IEOClaim ieoClaim =
-                new IEOClaim(claimDto.getNameCurrency(), ieoInfo.getUserId(), user.getId(), claimDto.getAmount());
+                new IEOClaim(claimDto.getNameCurrency(), ieoInfo.getUserId(), user.getId(), claimDto.getAmount(), ieoInfo.getRate());
         ieoClaimRepository.create(ieoClaim);
         claimDto.setId(ieoClaim.getId());
 
-        IEOProcessor processor = new IEOProcessor(ieoResultRepository, claimRepository1, ieoClaim);
+        IEOProcessor processor = new IEOProcessor(ieoResultRepository, ieoClaim, walletService);
         executorService.execute(processor);
 
         return claimDto;
