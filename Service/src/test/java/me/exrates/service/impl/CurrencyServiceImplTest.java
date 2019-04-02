@@ -7,10 +7,14 @@ import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.CurrencyReportInfoDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
+import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.CurrencyPairType;
+import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserCommentTopicEnum;
@@ -20,6 +24,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -41,10 +46,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyListOf;
@@ -536,68 +543,186 @@ public class CurrencyServiceImplTest {
         verify(currencyDao, times(1)).findAllCurrenciesWithHidden();
     }
 
-    @Test
+    @Ignore
     public void computeRandomizedAddition() {
+//        understand the logic of method
+//        assertEquals(new BigDecimal(0),currencyService.computeRandomizedAddition(137,OperationType.BUY));
     }
 
     @Test
     public void isIco() {
+        when(currencyDao.isCurrencyIco(anyInt())).thenReturn(true);
+
+        assertEquals(true, currencyService.isIco(7));
+
+        verify(currencyDao, times(1)).isCurrencyIco(7);
     }
 
     @Test
-    public void getCurrencyScaleByCurrencyId() {
+    public void getCurrencyScaleByCurrencyId_WhenOk() {
+        MerchantCurrencyScaleDto merchantCurrencyScaleDto = new MerchantCurrencyScaleDto();
+        merchantCurrencyScaleDto.setScaleForRefill(4);
+        merchantCurrencyScaleDto.setScaleForWithdraw(6);
+
+        when(currencyDao.findCurrencyScaleByCurrencyId(anyInt())).thenReturn(merchantCurrencyScaleDto);
+
+        assertEquals(merchantCurrencyScaleDto, currencyService.getCurrencyScaleByCurrencyId(19));
+        verify(currencyDao, times(1)).findCurrencyScaleByCurrencyId(19);
+
+    }
+
+    @Test(expected = ScaleForAmountNotSetException.class)
+    public void getCurrencyScaleByCurrencyId_WhenScaleForRefillEqualsNull() {
+        MerchantCurrencyScaleDto merchantCurrencyScaleDto = new MerchantCurrencyScaleDto();
+        merchantCurrencyScaleDto.setScaleForWithdraw(6);
+
+        when(currencyDao.findCurrencyScaleByCurrencyId(anyInt())).thenReturn(merchantCurrencyScaleDto);
+        currencyService.getCurrencyScaleByCurrencyId(19);
+    }
+
+    @Test(expected = ScaleForAmountNotSetException.class)
+    public void getCurrencyScaleByCurrencyId_WhenScaleForWithdrawEqualsNull() {
+        MerchantCurrencyScaleDto merchantCurrencyScaleDto = new MerchantCurrencyScaleDto();
+        merchantCurrencyScaleDto.setScaleForRefill(6);
+
+        when(currencyDao.findCurrencyScaleByCurrencyId(anyInt())).thenReturn(merchantCurrencyScaleDto);
+        currencyService.getCurrencyScaleByCurrencyId(19);
     }
 
     @Test
     public void getCurrencyPairByName() {
+        when(currencyDao.findCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("Pair Name"));
+
+        assertEquals(new CurrencyPair("Pair Name"), currencyService.getCurrencyPairByName("Name"));
+
+        verify(currencyDao, times(1)).findCurrencyPairByName("Name");
     }
 
     @Test
-    public void findCurrencyPairIdByName() {
+    public void findCurrencyPairIdByName_WhenOk() {
+        when(currencyDao.findOpenCurrencyPairIdByName(anyString())).thenReturn(Optional.of(5));
+
+        assertEquals(Integer.valueOf(5), currencyService.findCurrencyPairIdByName("Name"));
+
+        verify(currencyDao, times(1)).findOpenCurrencyPairIdByName("Name");
+    }
+
+    @Test(expected = CurrencyPairNotFoundException.class)
+    public void findCurrencyPairIdByName_WhenCurrencyPairNotFoundException() {
+        when(currencyDao.findOpenCurrencyPairIdByName(anyString())).thenReturn(Optional.empty());
+        currencyService.findCurrencyPairIdByName("Name");
     }
 
     @Test
     public void findAllCurrenciesByProcessType() {
+        when(currencyDao.findAllCurrenciesByProcessType(any(MerchantProcessType.class)))
+                .thenReturn(Arrays.asList(new Currency(28)));
+
+        assertEquals(Arrays.asList(new Currency(28)),
+                currencyService.findAllCurrenciesByProcessType(MerchantProcessType.MERCHANT));
+
+        verify(currencyDao, times(1))
+                .findAllCurrenciesByProcessType(MerchantProcessType.MERCHANT);
     }
 
     @Test
     public void findPermitedCurrencyPairs() {
+        when(currencyDao.findPermitedCurrencyPairs(any(CurrencyPairType.class)))
+                .thenReturn(Arrays.asList(new CurrencyPair("Pair Name")));
+
+        assertEquals(Arrays.asList(new CurrencyPair("Pair Name")),
+                currencyService.findPermitedCurrencyPairs(CurrencyPairType.ICO));
+
+        verify(currencyDao, times(1))
+                .findPermitedCurrencyPairs(CurrencyPairType.ICO);
+
     }
 
     @Test
     public void getNotHiddenCurrencyPairByName() {
+        when(currencyDao.getNotHiddenCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("Pair Name"));
+
+        assertEquals(new CurrencyPair("Pair Name"), currencyService.getNotHiddenCurrencyPairByName("Pair Name"));
+
+        verify(currencyDao, times(1)).getNotHiddenCurrencyPairByName("Pair Name");
     }
 
     @Test
     public void findActiveCurrencyPairs() {
+        List<CurrencyPairInfoItem> currencyPairInfoItems = Arrays.asList(new CurrencyPairInfoItem("String"));
+        when(currencyDao.findActiveCurrencyPairs()).thenReturn(currencyPairInfoItems);
+
+        assertEquals(currencyPairInfoItems, currencyService.findActiveCurrencyPairs());
+
+        verify(currencyDao, times(1)).findActiveCurrencyPairs();
     }
 
     @Test
     public void findAllCurrency() {
+        List<Currency> currencyList = Arrays.asList(new Currency(37));
+        when(currencyDao.findAllCurrency()).thenReturn(currencyList);
+
+        assertEquals(currencyList, currencyService.findAllCurrency());
+
+        verify(currencyDao, times(1)).findAllCurrency();
     }
 
     @Test
     public void updateVisibilityCurrencyById() {
+        when(currencyDao.updateVisibilityCurrencyById(anyInt())).thenReturn(true);
+
+        assertEquals(true, currencyService.updateVisibilityCurrencyById(34));
+
+        verify(currencyDao, times(1)).updateVisibilityCurrencyById(34);
     }
 
     @Test
     public void findAllCurrencyPair() {
+        List<CurrencyPair> currencyPairs = Arrays.asList(new CurrencyPair("Name"));
+
+        when(currencyDao.findAllCurrencyPair()).thenReturn(currencyPairs);
+
+        assertEquals(currencyPairs, currencyService.findAllCurrencyPair());
+
+        verify(currencyDao, times(1)).findAllCurrencyPair();
     }
 
     @Test
     public void updateVisibilityCurrencyPairById() {
+        when(currencyDao.updateVisibilityCurrencyPairById(anyInt())).thenReturn(false);
+
+        assertEquals(false, currencyService.updateVisibilityCurrencyPairById(536));
+
+        verify(currencyDao, times(1)).updateVisibilityCurrencyPairById(536);
     }
 
     @Test
     public void updateAccessToDirectLinkCurrencyPairById() {
+        when(currencyDao.updateAccessToDirectLinkCurrencyPairById(anyInt())).thenReturn(false);
+
+        assertEquals(false, currencyService.updateAccessToDirectLinkCurrencyPairById(536));
+
+        verify(currencyDao, times(1)).updateAccessToDirectLinkCurrencyPairById(536);
     }
 
     @Test
     public void getStatsByCoin() {
+        List<CurrencyReportInfoDto> currencyReportInfoDtos = Arrays.asList(new CurrencyReportInfoDto());
+        when(currencyDao.getStatsByCoin(anyInt())).thenReturn(currencyReportInfoDtos);
+
+        assertEquals(currencyReportInfoDtos, currencyService.getStatsByCoin(536));
+
+        verify(currencyDao, times(1)).getStatsByCoin(536);
     }
 
     @Test
     public void setPropertyCalculateLimitToUsd() {
+        when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(4,5,6));
+        when(currencyDao.setPropertyCalculateLimitToUsd(anyInt(), any(OperationType.class), anyList(), anyBoolean())).thenReturn(true);
+
+        assertEquals(true, currencyService.setPropertyCalculateLimitToUsd(77, OperationType.STORNO, "String", false));
+
+        verify(currencyDao, times(1)).setPropertyCalculateLimitToUsd(77, OperationType.STORNO, Arrays.asList(4,5,6), false);
     }
 
     @Test
