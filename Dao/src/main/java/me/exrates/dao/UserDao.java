@@ -226,7 +226,7 @@ public interface UserDao {
 
     String getKycStatusByEmail(String email);
 
-    boolean updateKycReferenceIdByEmail(String email, String refernceUID);
+    boolean updateKycReferenceIdByEmail(String email, String refernceUID, String country);
 
     Optional<User> findByKycReferenceId(String referenceId);
 

@@ -37,4 +37,7 @@ public class IdentityDataRequest {
 
     private DocTypeEnum typeDoc;
 
+    @NotNull
+    private String country;
+
 }

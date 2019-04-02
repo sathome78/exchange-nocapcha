@@ -247,7 +247,7 @@ public interface UserService {
 
     String getUserKycStatusByEmail(String email);
 
-    boolean updateKycReferenceByEmail(String email, String referenceUID);
+    boolean updateKycReferenceByEmail(String email, String referenceUID, String country);
 
     User findByKycReferenceId(String referenceId);
 

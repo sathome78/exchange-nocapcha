@@ -30,6 +30,7 @@ public class User implements Serializable {
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
 	private String kycStatus;
+	private String country;
 
 	public User() {
 	}
@@ -152,6 +153,14 @@ public class User implements Serializable {
 
 	public void setKycStatus(String kycStatus) {
 		this.kycStatus = kycStatus;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
 	}
 
 	@Override

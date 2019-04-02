@@ -1,7 +1,10 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.dto.ieo.ClaimDto;
+import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.ngModel.response.ResponseModel;
+import me.exrates.service.IEOService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,17 +20,26 @@ import javax.validation.Valid;
 @RestController
 public class NgIEOController {
 
+    @Autowired
+    private IEOService ieoService;
+
     @GetMapping("/{ieoName}")
     public ResponseModel<?> getInfo(@PathVariable String ieoName) {
+
         return new ResponseModel<>();
     }
 
-    @PostMapping("/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto) {
-
-
+        return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
     }
 
+    @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkAvailable() {
+        String email = getPrincipalEmail();
+        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email);
+        return new ResponseModel<>(result);
+    }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
