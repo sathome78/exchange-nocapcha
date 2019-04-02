@@ -26,6 +26,8 @@ import me.exrates.service.UserService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -44,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -726,11 +729,50 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateWithdrawLimits() {
+    public void updateWithdrawLimits_WhenRatesIsEmpty() {
+        when(currencyDao.getAllCurrencyLimits()).thenReturn(Arrays.asList(new CurrencyLimit()));
+        when(exchangeApi.getRates()).thenReturn(new HashMap<>());
+
+        currencyService.updateWithdrawLimits();
+
+        verify(currencyDao, times(1)).getAllCurrencyLimits();
+        verify(exchangeApi, times(1)).getRates();
+
+    }
+
+    @Test
+    public void updateWithdrawLimits_WhenRatesIsNotEmpty() {
+        Currency currency = new Currency(4);
+        currency.setName("Name");
+        CurrencyLimit currencyLimit = new CurrencyLimit();
+        currencyLimit.setCurrency(currency);
+        currencyLimit.setRecalculateToUsd(true);
+        currencyLimit.setMinSumUsdRate(new BigDecimal(5));
+        currencyLimit.setMinSum(new BigDecimal(5));
+
+        when(currencyDao.getAllCurrencyLimits()).thenReturn(Arrays.asList(currencyLimit));
+        when(exchangeApi.getRates()).thenReturn(new HashMap<String, Pair<BigDecimal, BigDecimal>>() {{
+            put("Name", new ImmutablePair(new BigDecimal(3),new BigDecimal(6)));
+        }});
+        doNothing().when(currencyDao).updateWithdrawLimits(anyList());
+
+        currencyService.updateWithdrawLimits();
+
+        verify(currencyDao, times(1)).getAllCurrencyLimits();
+        verify(exchangeApi, times(1)).getRates();
+        verify(currencyDao, times(1)).updateWithdrawLimits(Arrays.asList(currencyLimit));
+
     }
 
     @Test
     public void getCurrencies() {
+        List<Currency> currencyList = Arrays.asList(new Currency(90));
+        when(currencyDao.getCurrencies(any(MerchantProcessType[].class))).thenReturn(currencyList);
+// TODO works with 1 elem in array only... why?
+        assertEquals(currencyList,
+                currencyService.getCurrencies(new MerchantProcessType[] {MerchantProcessType.CRYPTO}));
+
+        verify(currencyDao, times(1)).getCurrencies(new MerchantProcessType[] {MerchantProcessType.CRYPTO});
     }
 
     @Test
