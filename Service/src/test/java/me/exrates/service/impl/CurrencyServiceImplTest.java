@@ -29,10 +29,7 @@ import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,6 +95,7 @@ public class CurrencyServiceImplTest {
                 .setAuthentication(new AnonymousAuthenticationToken("USER", "testemail@gmail.com",
                         AuthorityUtils.createAuthorityList("USER")));
         reset(currencyDao);
+        reset(exchangeApi);
     }
 
     @Test
@@ -117,7 +116,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getAllCurrencies() {
+    public void getAllCurrencies_Test() {
         List<Currency> currencyList = Arrays.asList(new Currency());
         stub(currencyDao.getAllCurrencies()).toReturn(currencyList);
 
@@ -126,7 +125,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findByName() {
+    public void findByName_Test() {
         Currency currency = new Currency(8);
         when(currencyDao.findByName(anyString())).thenReturn(currency);
 
@@ -135,7 +134,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findById() {
+    public void findById_Test() {
         Currency currency = new Currency(8);
         when(currencyDao.findById(anyInt())).thenReturn(currency);
 
@@ -144,7 +143,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrencies() {
+    public void findAllCurrencies_Test() {
         List<Currency> currencyList = Arrays.asList(new Currency());
         when(currencyDao.findAllCurrencies()).thenReturn(currencyList);
 
@@ -153,7 +152,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateCurrencyLimit() {
+    public void updateCurrencyLimit_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), anyListOf(Integer.TYPE), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
         currencyService.updateCurrencyLimit(6, OperationType.STORNO, "", new BigDecimal(5), new BigDecimal(5), 8);
@@ -163,7 +162,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateCurrencyLimit1() {
+    public void updateCurrencyLimit1_Test() {
         doNothing().when(currencyDao).updateCurrencyLimit(anyInt(), any(OperationType.class), any(BigDecimal.class), any(BigDecimal.class), any(Integer.class));
         currencyService.updateCurrencyLimit(6, OperationType.STORNO, new BigDecimal(5), new BigDecimal(5), 8);
 
@@ -171,7 +170,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void retrieveCurrencyLimitsForRole() {
+    public void retrieveCurrencyLimitsForRole_Test() {
         List<Integer> integerList = Arrays.asList(5,6,7,9);
         List<CurrencyLimit> currencyLimits = Arrays.asList(new CurrencyLimit());
 
@@ -185,7 +184,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void retrieveMinLimitForRoleAndCurrency() {
+    public void retrieveMinLimitForRoleAndCurrency_Test() {
         when(currencyDao.retrieveMinLimitForRoleAndCurrency(any(UserRole.class), any(OperationType.class), anyInt())).thenReturn(new BigDecimal(10));
 
         assertEquals(new BigDecimal(10), currencyService.retrieveMinLimitForRoleAndCurrency(UserRole.USER, OperationType.BUY, 777));
@@ -194,7 +193,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void retrieveMaxDailyRequestForRoleAndCurrency() {
+    public void retrieveMaxDailyRequestForRoleAndCurrency_Test() {
         when(currencyDao.retrieveMaxDailyRequestForRoleAndCurrency(any(UserRole.class), any(OperationType.class), anyInt())).thenReturn(new BigDecimal(10));
 
         assertEquals(new BigDecimal(10), currencyService.retrieveMaxDailyRequestForRoleAndCurrency(UserRole.USER, OperationType.BUY, 777));
@@ -203,7 +202,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getAllCurrencyPairs() {
+    public void getAllCurrencyPairs_Test() {
         CurrencyPair currencyPair = new CurrencyPair("New Curr");
         when(currencyDao.getAllCurrencyPairs(anyObject())).thenReturn(Arrays.asList(currencyPair));
 
@@ -212,64 +211,54 @@ public class CurrencyServiceImplTest {
         verify(currencyDao, times(1)).getAllCurrencyPairs(CurrencyPairType.ICO);
     }
 
-    @Ignore
-    public void getAllCurrencyPairsWithHidden() {
-//        when(currencyDao.getAllCurrencyPairsWithHidden(any(CurrencyPairType.class))).thenReturn(Arrays.asList(new CurrencyPair("Some Curr")));
-//
-//        assertEquals(Arrays.asList(new CurrencyPair("Some Curr")), currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN));
-//
-//        verify(currencyDao, times(1)).getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
+    @Test
+    public void getAllCurrencyPairsWithHidden_Test() {
+        when(currencyDao.getAllCurrencyPairsWithHidden(any(CurrencyPairType.class))).thenReturn(Arrays.asList(new CurrencyPair("Some Curr")));
+
+        assertEquals(Arrays.asList(new CurrencyPair("Some Curr")), currencyService.getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN));
+
+        verify(currencyDao, times(1)).getAllCurrencyPairsWithHidden(CurrencyPairType.MAIN);
     }
 
     @Test
-    public void getAllCurrencyPairsInAlphabeticOrder() {
-//        List<CurrencyPair> result = Arrays.asList(
-//                new CurrencyPair("kkk"),
-//                new CurrencyPair("fff"),
-//                new CurrencyPair("aaa"),
-//                new CurrencyPair("zzz"));
-//
-//        List<CurrencyPair> result2 = Arrays.asList(
-//                new CurrencyPair("aaa"),
-//                new CurrencyPair("fff"),
-//                new CurrencyPair("kkk"),
-//                new CurrencyPair("zzz"));
-//        when(currencyDao.getAllCurrencyPairs(any(CurrencyPairType.class))).thenReturn(result);
-//
-//        assertEquals(result2,currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN));
-//
-//        verify(currencyDao, times(1)).getAllCurrencyPairs(CurrencyPairType.MAIN);
+    public void getAllCurrencyPairsInAlphabeticOrder_Test() {
+        List<CurrencyPair> result = Arrays.asList(
+                new CurrencyPair("zz"),
+                new CurrencyPair("dfF"),
+                new CurrencyPair("2"),
+                new CurrencyPair("1"));
+
+        when(currencyDao.getAllCurrencyPairs(any(CurrencyPairType.class))).thenReturn(result);
+        result.sort(Comparator.comparing(CurrencyPair::getName));
+
+        assertEquals(result.get(0),currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(0));
+        assertEquals(result.get(1),currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.MAIN).get(1));
+
+
+        verify(currencyDao, times(2)).getAllCurrencyPairs(CurrencyPairType.MAIN);
     }
 
-    @Ignore
+    @Test
     public void findCurrencyPairById_WhenOk() {
         when(currencyDao.findCurrencyPairById(anyInt())).thenReturn(new CurrencyPair("Curr"));
         assertEquals(new CurrencyPair("Curr"), currencyService.findCurrencyPairById(7));
 
-// TODO was 2 times
         verify(currencyDao, times(1)).findCurrencyPairById(7);
     }
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test(expected = CurrencyPairNotFoundException.class)
     public void findCurrencyPairById_WhenException() {
         when(currencyDao.findCurrencyPairById(anyInt())).thenThrow(EmptyResultDataAccessException.class);
         currencyService.findCurrencyPairById(7);
-        thrown.expect(CurrencyPairNotFoundException.class);
-        thrown.expectMessage("Currency pair not found");
-// TODO check method for times()
-        verify(currencyDao, times(1)).findCurrencyPairById(7);
     }
 
     @Test
-    public void amountToString() {
-        assertEquals("5.00000000",currencyService.amountToString(new BigDecimal(5), "EDR"));
+    public void amountToString_Test() {
+        assertEquals("7.00000000",currencyService.amountToString(new BigDecimal(7), "EDR"));
     }
 
     @Test
-    public void resolvePrecision() {
+    public void resolvePrecision_Test() {
         assertEquals(8, currencyService.resolvePrecision("EDR"));
         assertEquals(2, currencyService.resolvePrecision("EDR2"));
     }
@@ -304,17 +293,19 @@ public class CurrencyServiceImplTest {
         verify(currencyDao, times(1)).findByName(anyString());
     }
 
-    @Ignore
-    public void retrieveMinTransferLimits() {
+    @Test
+    public void retrieveMinTransferLimits_Test() {
         List<TransferLimitDto> transferLimitDtos = Arrays.asList(new TransferLimitDto());
-//        when(userService.getUserRoleFromSecurityContext()).thenReturn(UserRole.USER);
+
         when(currencyDao.retrieveMinTransferLimits(anyList(), anyInt())).thenReturn(transferLimitDtos);
-// TODO me.exrates.service.exception.AuthenticationNotAvailableException
+
         assertEquals(transferLimitDtos, currencyService.retrieveMinTransferLimits(Arrays.asList(5,6,7)));
+
+        verify(currencyDao, times(1)).retrieveMinTransferLimits(Arrays.asList(5,6,7), 4);
     }
 
     @Test
-    public void findWithOperationPermissionByUserAndDirection() {
+    public void findWithOperationPermissionByUserAndDirection_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -326,7 +317,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getCurrencyOperationPermittedForRefill() {
+    public void getCurrencyOperationPermittedForRefill_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -342,7 +333,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getAllCurrencyOperationPermittedForRefill() {
+    public void getAllCurrencyOperationPermittedForRefill_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -357,7 +348,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getCurrencyOperationPermittedForWithdraw() {
+    public void getCurrencyOperationPermittedForWithdraw_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -371,7 +362,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getAllCurrencyOperationPermittedForWithdraw() {
+    public void getAllCurrencyOperationPermittedForWithdraw_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -404,7 +395,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getCurrencyPermittedOperationList() {
+    public void getCurrencyPermittedOperationList_Test() {
         List<UserCurrencyOperationPermissionDto> list = new ArrayList<>();
         UserCurrencyOperationPermissionDto entity = new UserCurrencyOperationPermissionDto();
         entity.setCurrencyName("FFF");
@@ -435,7 +426,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getWarningForCurrency() {
+    public void getWarningForCurrency_Test() {
         List<String> list = Arrays.asList("list", "string");
         when(currencyDao.getWarningForCurrency(anyInt(), any(UserCommentTopicEnum.class))).thenReturn(list);
 
@@ -445,7 +436,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getWarningsByTopic() {
+    public void getWarningsByTopic_Test() {
         when(currencyDao.getWarningsByTopic(any(UserCommentTopicEnum.class))).thenReturn(Arrays.asList("list", "string"));
 
         assertEquals(Arrays.asList("list", "string"), currencyService.getWarningsByTopic(UserCommentTopicEnum.GENERAL));
@@ -454,7 +445,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getWarningForMerchant() {
+    public void getWarningForMerchant_Test() {
         when(currencyDao.getWarningForMerchant(anyInt(),any(UserCommentTopicEnum.class))).thenReturn(Arrays.asList("list", "string"));
 
         assertEquals(Arrays.asList("list", "string"), currencyService.getWarningForMerchant(80, UserCommentTopicEnum.GENERAL));
@@ -463,7 +454,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getById() {
+    public void getById_Test() {
         when(currencyDao.findById(anyInt())).thenReturn(new Currency(10));
 
         assertEquals(new Currency(10), currencyService.getById(40));
@@ -472,7 +463,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findLimitForRoleByCurrencyPairAndType() {
+    public void findLimitForRoleByCurrencyPairAndType_Test() {
         CurrencyPairLimitDto currencyPairLimitDto = new CurrencyPairLimitDto();
         currencyPairLimitDto.setCurrencyPairName("String");
 
@@ -484,7 +475,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findLimitForRoleByCurrencyPairAndTypeAndUser() {
+    public void findLimitForRoleByCurrencyPairAndTypeAndUser_Test() {
         CurrencyPairLimitDto currencyPairLimitDto = new CurrencyPairLimitDto();
         currencyPairLimitDto.setCurrencyPairName("String");
         User user = new User();
@@ -498,7 +489,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrencyLimitsForRoleAndType() {
+    public void findAllCurrencyLimitsForRoleAndType_Test() {
         CurrencyPairLimitDto currencyPairLimitDto = new CurrencyPairLimitDto();
         currencyPairLimitDto.setCurrencyPairName("String");
         List<CurrencyPairLimitDto> currencyPairLimitDtos = Arrays.asList(currencyPairLimitDto);
@@ -512,7 +503,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateCurrencyPairLimit() {
+    public void updateCurrencyPairLimit_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(5,6,7));
         doNothing().when(currencyDao).setCurrencyPairLimit(anyInt(), anyList(), anyInt(), any(BigDecimal.class),
                 any(BigDecimal.class),any(BigDecimal.class),any(BigDecimal.class));
@@ -524,7 +515,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findCurrencyPairsWithLimitsForUser() {
+    public void findCurrencyPairsWithLimitsForUser_Test() {
         CurrencyPair currencyPair = new CurrencyPair(new Currency(3), new Currency(6));
         CurrencyPairWithLimitsDto currencyPairWithLimitsDto = new CurrencyPairWithLimitsDto(currencyPair,
                 new BigDecimal(3),new BigDecimal(7),new BigDecimal(22),new BigDecimal(77),
@@ -538,7 +529,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrenciesWithHidden() {
+    public void findAllCurrenciesWithHidden_Test() {
         when(currencyDao.findAllCurrenciesWithHidden()).thenReturn(Arrays.asList(new Currency(7)));
 
         assertEquals(Arrays.asList(new Currency(7)), currencyService.findAllCurrenciesWithHidden());
@@ -546,10 +537,9 @@ public class CurrencyServiceImplTest {
         verify(currencyDao, times(1)).findAllCurrenciesWithHidden();
     }
 
-    @Ignore
-    public void computeRandomizedAddition() {
-//        understand the logic of method
-//        assertEquals(new BigDecimal(0),currencyService.computeRandomizedAddition(137,OperationType.BUY));
+    @Test
+    public void computeRandomizedAddition_WhenRandomAmountParamIsNotPresent() {
+        assertEquals(new BigDecimal(0),currencyService.computeRandomizedAddition(0,OperationType.BUY));
     }
 
     @Test
@@ -593,7 +583,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getCurrencyPairByName() {
+    public void getCurrencyPairByName_Test() {
         when(currencyDao.findCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("Pair Name"));
 
         assertEquals(new CurrencyPair("Pair Name"), currencyService.getCurrencyPairByName("Name"));
@@ -617,7 +607,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrenciesByProcessType() {
+    public void findAllCurrenciesByProcessType_Test() {
         when(currencyDao.findAllCurrenciesByProcessType(any(MerchantProcessType.class)))
                 .thenReturn(Arrays.asList(new Currency(28)));
 
@@ -629,7 +619,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findPermitedCurrencyPairs() {
+    public void findPermitedCurrencyPairs_Test() {
         when(currencyDao.findPermitedCurrencyPairs(any(CurrencyPairType.class)))
                 .thenReturn(Arrays.asList(new CurrencyPair("Pair Name")));
 
@@ -642,7 +632,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getNotHiddenCurrencyPairByName() {
+    public void getNotHiddenCurrencyPairByName_Test() {
         when(currencyDao.getNotHiddenCurrencyPairByName(anyString())).thenReturn(new CurrencyPair("Pair Name"));
 
         assertEquals(new CurrencyPair("Pair Name"), currencyService.getNotHiddenCurrencyPairByName("Pair Name"));
@@ -651,7 +641,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findActiveCurrencyPairs() {
+    public void findActiveCurrencyPairs_Test() {
         List<CurrencyPairInfoItem> currencyPairInfoItems = Arrays.asList(new CurrencyPairInfoItem("String"));
         when(currencyDao.findActiveCurrencyPairs()).thenReturn(currencyPairInfoItems);
 
@@ -661,7 +651,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrency() {
+    public void findAllCurrency_Test() {
         List<Currency> currencyList = Arrays.asList(new Currency(37));
         when(currencyDao.findAllCurrency()).thenReturn(currencyList);
 
@@ -671,7 +661,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateVisibilityCurrencyById() {
+    public void updateVisibilityCurrencyById_Test() {
         when(currencyDao.updateVisibilityCurrencyById(anyInt())).thenReturn(true);
 
         assertEquals(true, currencyService.updateVisibilityCurrencyById(34));
@@ -680,7 +670,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void findAllCurrencyPair() {
+    public void findAllCurrencyPair_Test() {
         List<CurrencyPair> currencyPairs = Arrays.asList(new CurrencyPair("Name"));
 
         when(currencyDao.findAllCurrencyPair()).thenReturn(currencyPairs);
@@ -691,7 +681,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateVisibilityCurrencyPairById() {
+    public void updateVisibilityCurrencyPairById_Test() {
         when(currencyDao.updateVisibilityCurrencyPairById(anyInt())).thenReturn(false);
 
         assertEquals(false, currencyService.updateVisibilityCurrencyPairById(536));
@@ -700,7 +690,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void updateAccessToDirectLinkCurrencyPairById() {
+    public void updateAccessToDirectLinkCurrencyPairById_Test() {
         when(currencyDao.updateAccessToDirectLinkCurrencyPairById(anyInt())).thenReturn(false);
 
         assertEquals(false, currencyService.updateAccessToDirectLinkCurrencyPairById(536));
@@ -709,7 +699,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getStatsByCoin() {
+    public void getStatsByCoin_Test() {
         List<CurrencyReportInfoDto> currencyReportInfoDtos = Arrays.asList(new CurrencyReportInfoDto());
         when(currencyDao.getStatsByCoin(anyInt())).thenReturn(currencyReportInfoDtos);
 
@@ -719,7 +709,7 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void setPropertyCalculateLimitToUsd() {
+    public void setPropertyCalculateLimitToUsd_Test() {
         when(userRoleService.getRealUserRoleIdByBusinessRoleList(anyString())).thenReturn(Arrays.asList(4,5,6));
         when(currencyDao.setPropertyCalculateLimitToUsd(anyInt(), any(OperationType.class), anyList(), anyBoolean())).thenReturn(true);
 
@@ -765,10 +755,10 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getCurrencies() {
+    public void getCurrencies_Test() {
         List<Currency> currencyList = Arrays.asList(new Currency(90));
         when(currencyDao.getCurrencies(any(MerchantProcessType[].class))).thenReturn(currencyList);
-// TODO works with 1 elem in array only... why?
+
         assertEquals(currencyList,
                 currencyService.getCurrencies(new MerchantProcessType[] {MerchantProcessType.CRYPTO}));
 
@@ -776,11 +766,25 @@ public class CurrencyServiceImplTest {
     }
 
     @Test
-    public void getPairsByFirstPartName() {
+    public void getPairsByFirstPartName_Test() {
+        when(currencyDao.findAllCurrenciesByFirstPartName(anyString()))
+                .thenReturn(Arrays.asList(new CurrencyPair("Pair")));
+
+        assertEquals(Arrays.asList(new CurrencyPair("Pair")),
+                currencyService.getPairsByFirstPartName("Pair"));
+
+        verify(currencyDao, times(1)).findAllCurrenciesByFirstPartName("Pair");
     }
 
     @Test
-    public void getPairsBySecondPartName() {
+    public void getPairsBySecondPartName_Test() {
+        when(currencyDao.findAllCurrenciesBySecondPartName(anyString()))
+                .thenReturn(Arrays.asList(new CurrencyPair("Pair")));
+
+        assertEquals(Arrays.asList(new CurrencyPair("Pair")),
+                currencyService.getPairsBySecondPartName("Pair"));
+
+        verify(currencyDao, times(1)).findAllCurrenciesBySecondPartName("Pair");
     }
 
 }
