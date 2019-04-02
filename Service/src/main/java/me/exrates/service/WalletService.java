@@ -165,4 +165,6 @@ public interface WalletService {
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
+
+    Wallet findByUserAndCurrency(int userId, String currencyName);
 }

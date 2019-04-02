@@ -67,6 +67,8 @@ public interface WalletDao {
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
     Wallet findById(Integer walletId);
 
     Wallet createWallet(User user, int currencyId);

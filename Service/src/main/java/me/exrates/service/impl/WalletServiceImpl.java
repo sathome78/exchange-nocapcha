@@ -804,4 +804,9 @@ public class WalletServiceImpl implements WalletService {
     public Wallet findByUserAndCurrency(int userId, int currencyId) {
         return walletDao.findByUserAndCurrency(userId, currencyId);
     }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, String currencyName) {
+        return walletDao.findByUserAndCurrency(userId, currencyName);
+    }
 }

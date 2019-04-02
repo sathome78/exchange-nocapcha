@@ -689,6 +689,24 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public Wallet findByUserAndCurrency(int userId, String currencyName) {
+        final String sql = "SELECT WALLET.id, WALLET.currency_id, WALLET.user_id, WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name" +
+                " FROM WALLET INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id" +
+                " WHERE user_id = :userId and CURRENCY.name = :currencyName";
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("userId", userId);
+                put("currencyName", currencyName);
+            }
+        };
+        try {
+            return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
     public Wallet findById(Integer walletId) {
         final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name " +
                 "FROM WALLET " +
