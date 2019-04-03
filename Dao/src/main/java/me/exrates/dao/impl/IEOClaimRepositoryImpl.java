@@ -63,16 +63,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
-<<<<<<< HEAD
-    @Override
-    public boolean updateClaimStatus(int ieoClaimId) {
-        return false;
-    }
-
-    private RowMapper<IEOClaim> getAllFieldsRowMapper() {
-=======
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();
             ieoClaim.setId(rs.getInt("id"));

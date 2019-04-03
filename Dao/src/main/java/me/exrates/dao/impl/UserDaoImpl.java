@@ -1399,11 +1399,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-<<<<<<< HEAD
     public List<Policy> getAllPoliciesByUserId(String id) {
 
         String sql = "SELECT p.* FROM POLICY p " +
-                "INNER JOIN USER_POLICY up ON up.policy_id = p.id " +
+                "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
                 "WHERE up.user_id = :id";
 
         final Map<String, String> params = new HashMap<String, String>() {
@@ -1425,7 +1424,7 @@ public class UserDaoImpl implements UserDao {
     public boolean existPolicyByUserIdAndPolicy(int id, String policyName) {
 
         String sql = "SELECT COUNT(p.*) FROM POLICY p " +
-                "INNER JOIN USER_POLICY up ON up.policy_id = p.id " +
+                "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
                 "WHERE up.user_id = :id AND p.name = :policy LIMIT 1" ;
         final Map<String, String> params = new HashMap<String, String>() {
             {
@@ -1439,7 +1438,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum) {
-        String sql = "INSERT INTO USER_POLICY (user_id, policy_id) VALUES (" +
+        String sql = "INSERT INTO USER_POLICES (user_id, policy_id) VALUES (" +
                 "(SELECT u.id FROM USER u WHERE u.email = :email), " +
                 "(SELECT p.id FROM POLICY p WHERE p.name = :policyName)" +
                 ")";
@@ -1452,12 +1451,12 @@ public class UserDaoImpl implements UserDao {
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
-=======
+    }
+
     public IeoUserStatus findIeoUserStatusByEmail(String email) {
         // todo implement
 
         return null;
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
     }
 
 }

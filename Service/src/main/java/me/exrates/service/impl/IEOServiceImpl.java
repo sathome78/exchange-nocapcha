@@ -1,13 +1,8 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.IEOClaimRepository;
-<<<<<<< HEAD
-import me.exrates.dao.IEOInfoRepository;
-import me.exrates.dao.IEOResultRepository;
-import me.exrates.dao.KYCSettingsDao;
-=======
 import me.exrates.dao.IeoDetailsRepository;
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
+import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserDao;
 import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
@@ -15,13 +10,9 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
-<<<<<<< HEAD
 import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.PolicyEnum;
-=======
-import me.exrates.model.dto.ieo.IeoUserStatus;
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
@@ -43,41 +34,29 @@ public class IEOServiceImpl implements IEOService {
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
     private final IEOQueueService ieoQueueService;
-<<<<<<< HEAD
     private final UserService userService;
     private final KYCSettingsDao kycSettingsDao;
-
-    @Autowired
-    public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
-                          CurrencyDao currencyDao,
-                          UserDao userDao,
-                          IEOInfoRepository ieoInfoRepository,
-                          IEOResultRepository ieoResultRepository,
-                          WalletService walletService, CurrencyService currencyService,
-                          WalletDao walletDao,
-                          IEOQueueService ieoQueueService,
-                          UserService userService,
-                          KYCSettingsDao kycSettingsDao) {
-=======
     private final IeoDetailsRepository ieoDetailsRepository;
-    private final UserService userService;
     private final WalletService walletService;
+    private final UserDao userDao;
+
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
                           IeoDetailsRepository ieoDetailsRepository,
                           CurrencyService currencyService,
                           IEOQueueService ieoQueueService,
-                          UserService userService, WalletService walletService) {
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
+                          UserService userService,
+                          WalletService walletService,
+                          KYCSettingsDao kycSettingsDao, UserDao userDao) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.currencyService = currencyService;
         this.walletService = walletService;
         this.ieoQueueService = ieoQueueService;
-        this.userService = userService;
         this.kycSettingsDao = kycSettingsDao;
+        this.userDao = userDao;
     }
 
     @Transactional
@@ -127,7 +106,6 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-<<<<<<< HEAD
     public IEOStatusInfo checkUserStatusForIEO(String email) {
         User user = userDao.findByEmail(email);
 
@@ -135,7 +113,7 @@ public class IEOServiceImpl implements IEOService {
         boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS");
         KycCountryDto countryDto = null;
         if (kycCheck) {
-             countryDto = kycSettingsDao.getCountryByCode(user.getCountry());
+            countryDto = kycSettingsDao.getCountryByCode(user.getCountry());
         }
 
         boolean policyCheck = userDao.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
@@ -143,9 +121,6 @@ public class IEOServiceImpl implements IEOService {
         //todo check by list county
 
         return new IEOStatusInfo(kycCheck, policyCheck, true, countryDto);
-=======
-    public IeoUserStatus checkUserStatusForIEO(String email) {
-        return userService.findIeoUserStatusByEmail(email);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
@@ -170,6 +145,5 @@ public class IEOServiceImpl implements IEOService {
                 throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_PER_USER_FAILURE, message);
             }
         }
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
     }
 }

@@ -237,13 +237,11 @@ public interface UserDao {
 
     String findKycReferenceByUserEmail(String email);
 
-<<<<<<< HEAD
     List<Policy> getAllPoliciesByUserId(String id);
 
     boolean existPolicyByUserIdAndPolicy(int id, String policyName);
 
     boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum);
-=======
+
     IeoUserStatus findIeoUserStatusByEmail(String email);
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
 }

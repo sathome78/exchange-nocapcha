@@ -1,7 +1,7 @@
 package me.exrates.ngcontroller;
 
 import me.exrates.model.dto.ieo.ClaimDto;
-import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.service.IEOService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ public class NgIEOController {
     @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> checkAvailable() {
         String email = getPrincipalEmail();
-        IeoUserStatus result = ieoService.checkUserStatusForIEO(email);
+        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email);
         return new ResponseModel<>(result);
     }
 

@@ -1083,7 +1083,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-<<<<<<< HEAD
     public boolean addPolicyToUser(String email, String policy) {
         PolicyEnum policyEnum = PolicyEnum.convert(policy);
         User user = userDao.findByEmail(email);
@@ -1091,10 +1090,10 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return userDao.updateUserPolicyByEmail(email, policyEnum);
-=======
+    }
+
     public IeoUserStatus findIeoUserStatusByEmail(String email) {
         return userDao.findIeoUserStatusByEmail(email);
->>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
     }
 
 }
