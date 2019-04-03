@@ -2008,6 +2008,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new EthTokenServiceImpl(tokensList, "GNY","GNY", true, ExConvert.Unit.ETHER);
     }
 
+    @Bean(name = "novaServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public EthTokenService novaServiceImpl(){
+        List<String> tokensList = new ArrayList<>();
+        tokensList.add("0x72fbc0fc1446f5accc1b083f0852a7ef70a8ec9f");
+        return new EthTokenServiceImpl(tokensList, "NOVA","NOVA", true, ExConvert.Unit.ETHER);
+    }
+
     //    Qtum tokens:
     @Bean(name = "spcServiceImpl")
     @Conditional(MonolitConditional.class)
