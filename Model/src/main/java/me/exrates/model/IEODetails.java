@@ -25,6 +25,7 @@ public class IEODetails {
     private int makerId;
     private BigDecimal rate;
     private BigDecimal amount;
+    private BigDecimal availableAmount;
     private int contributors;
     private IEODetailsStatus status;
     private BigDecimal minAmount;
@@ -41,4 +42,22 @@ public class IEODetails {
     private int createdBy;
     private int version;
 
+    public IEODetails(int id, String currencyName, int makerId, BigDecimal rate, BigDecimal amount, int contributors,
+                      IEODetailsStatus status, BigDecimal minAmount, BigDecimal maxAmountPerClaim, BigDecimal maxAmountPerUser,
+                      LocalDateTime startDate, LocalDateTime endDate, int version) {
+        this.id = id;
+        this.currencyName = currencyName;
+        this.makerId = makerId;
+        this.rate = rate;
+        this.amount = amount;
+        this.availableAmount = amount;
+        this.contributors = contributors;
+        this.status = status;
+        this.minAmount = minAmount;
+        this.maxAmountPerClaim = maxAmountPerClaim;
+        this.maxAmountPerUser = maxAmountPerUser;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.version = version;
+    }
 }

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 
 @Service
 public class IEOServiceImpl implements IEOService {
@@ -121,6 +122,16 @@ public class IEOServiceImpl implements IEOService {
         //todo check by list county
 
         return new IEOStatusInfo(kycCheck, policyCheck, true, countryDto);
+    }
+
+    @Override
+    public Collection<IEODetails> findAll() {
+        return ieoDetailsRepository.findAll();
+    }
+
+    @Override
+    public Collection<IEODetails> findAllExceptForMaker(User user) {
+        return ieoDetailsRepository.findAllExceptForMaker(user);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {

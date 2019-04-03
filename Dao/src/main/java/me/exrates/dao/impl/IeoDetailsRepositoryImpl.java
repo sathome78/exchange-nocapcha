@@ -3,7 +3,10 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEODetails;
+import me.exrates.model.User;
 import me.exrates.model.enums.IEODetailsStatus;
+import me.exrates.model.enums.UserRole;
+import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,6 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 @Repository
@@ -30,9 +34,9 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     public IEODetails save(IEODetails ieoDetails) {
 
         String sql = "INSERT INTO IEO_INFO"
-                + " (currency_name, maker_id, rate, amount, contributors, status, min_amount, max_amount_per_claim," +
+                + " (currency_name, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
                 " max_amount_per_user, starts_at, terminates_at, created_by)"
-                + " VALUES(:currency_name, :maker_id, :rate, :amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
+                + " VALUES(:currency_name, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
                 + " :max_amount_per_user, :starts_at, :terminates_at, :created_by)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -103,6 +107,50 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         }
     }
 
+    @Override
+    public boolean updateAvailableAmount(int ieoId, BigDecimal availableAmount) {
+        String sql = "UPDATE IEO_DETAILS SET available_amount = :availableAmount WHERE id = :ieoId";
+        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoId)
+                .addValue("availableAmount", availableAmount.doubleValue());
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public BigDecimal getAvailableAmount(int ieoId) {
+        String sql = "SELECT available_amount WHERE id = :ieoId";
+        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoId);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+        } catch (DataAccessException e) {
+            log.warn("Failed to retrieve available amount for ieo with id: " + ieoId, e);
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @Override
+    public Collection<IEODetails> findAll() {
+        String sql = "SELECT * FROM IEO_DETAILS";
+        try {
+            return jdbcTemplate.query(sql, ieoDetailsRowMapper());
+        } catch (DataAccessException e) {
+            return Lists.newArrayList();
+        }
+    }
+
+    @Override
+    public Collection<IEODetails> findAllExceptForMaker(User user) {
+        if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
+            String sql = "SELECT * FROM IEO_DETAILS WHERE maker_id = :makerId";
+            MapSqlParameterSource params = new MapSqlParameterSource("makerId", user.getId());
+            try {
+                return jdbcTemplate.query(sql, params, ieoDetailsRowMapper());
+            } catch (DataAccessException e) {
+                return Lists.newArrayList();
+            }
+        }
+        return findAll();
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
@@ -110,6 +158,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .makerId(rs.getInt("maker_id"))
                 .amount(rs.getBigDecimal("rate"))
                 .amount(rs.getBigDecimal("amount"))
+                .availableAmount(rs.getBigDecimal("available_amount"))
                 .contributors(rs.getInt("contributors"))
                 .status(IEODetailsStatus.valueOf(rs.getString("status")))
                 .minAmount(rs.getBigDecimal("min_amount"))
@@ -128,6 +177,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         params.addValue("maker_id", ieoDetails.getMakerId());
         params.addValue("rate", ieoDetails.getRate());
         params.addValue("amount", ieoDetails.getAmount());
+        params.addValue("available_amount", ieoDetails.getAvailableAmount());
         params.addValue("contributors", ieoDetails.getContributors());
         params.addValue("status", ieoDetails.getStatus().name());
         params.addValue("min_amount", ieoDetails.getMinAmount());

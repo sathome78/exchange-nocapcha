@@ -42,25 +42,8 @@ public class IEOResultRepositoryImpl implements IEOResultRepository {
     }
 
     @Override
-    public IEOResult startIeo(IEOClaim ieoClaim) {
-        return null;
-    }
-
-    @Override
     public boolean isAlreadyStarted(IEOClaim ieoClaim) {
         return false;
-    }
-
-    @Override
-    public BigDecimal getAvailableAmount(IEOClaim ieoClaim) {
-        final String sql = "SELECT MIN(available_amount) FROM IEO_RESULT WHERE ieo_id = :ieoId";
-        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoClaim.getIeoId());
-        try {
-            return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
-        } catch (DataAccessException e) {
-            log.warn("Failed to minimal amount for ieo details id:" + ieoClaim.getIeoId(), e);
-            return BigDecimal.ZERO;
-        }
     }
 
     private RowMapper<IEOResult> ieoResultRawMapper() {

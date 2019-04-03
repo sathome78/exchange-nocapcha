@@ -36,7 +36,7 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
-        BigDecimal availableAmount = ieoResultRepository.getAvailableAmount(ieoClaim);
+        BigDecimal availableAmount = ieoDetailsRepository.getAvailableAmount(ieoClaim.getIeoId());
         boolean firstTransaction = false;
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
@@ -83,6 +83,7 @@ public class IEOProcessor implements Runnable {
             ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), status);
         }
         ieoResultRepository.save(ieoResult);
+        ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
 
         // todo send notification
 
