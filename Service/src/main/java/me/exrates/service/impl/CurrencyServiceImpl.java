@@ -25,6 +25,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.aspect.CheckCurrencyPairVisibility;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
@@ -163,6 +164,13 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
         List<CurrencyPair> result = currencyDao.getAllCurrencyPairs(type);
+        result.sort(Comparator.comparing(CurrencyPair::getName));
+        return result;
+    }
+
+    @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type) {
+        List<CurrencyPair> result = currencyDao.getAllCurrencyPairsWithHidden(type);
         result.sort(Comparator.comparing(CurrencyPair::getName));
         return result;
     }
@@ -392,6 +400,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.findAllCurrencyPair();
     }
 
+    @CheckCurrencyPairVisibility
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
         return currencyDao.updateVisibilityCurrencyPairById(currencyPairId);
@@ -466,5 +475,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<CurrencyPair> getPairsBySecondPartName(String partName) {
         return currencyDao.findAllCurrenciesBySecondPartName(partName);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        return currencyDao.isCurrencyPairHidden(currencyPairId);
     }
 }

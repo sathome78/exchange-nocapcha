@@ -58,6 +58,8 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
 
+    List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type);
+
     CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
@@ -145,4 +147,6 @@ public interface CurrencyService {
     List<CurrencyPair> getPairsByFirstPartName(String partName);
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
+
+    boolean isCurrencyPairHidden(int currencyPairId);
 }

@@ -17,6 +17,7 @@ import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.aspect.CheckCurrencyPairVisibility;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -99,6 +100,11 @@ public class CurrencyServiceMsImpl implements CurrencyService {
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type) {
+        return null;
+    }
+
+    @Override
+    public List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type) {
         return null;
     }
 
@@ -277,6 +283,7 @@ public class CurrencyServiceMsImpl implements CurrencyService {
         return null;
     }
 
+    @CheckCurrencyPairVisibility
     @Override
     public boolean updateVisibilityCurrencyPairById(int currencyPairId) {
         return false;
@@ -315,5 +322,10 @@ public class CurrencyServiceMsImpl implements CurrencyService {
     @Override
     public List<CurrencyPair> getPairsBySecondPartName(String partName) {
         return null;
+    }
+
+    @Override
+    public boolean isCurrencyPairHidden(int currencyPairId) {
+        return false;
     }
 }
