@@ -1,6 +1,5 @@
 package me.exrates.service.ieo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
@@ -18,7 +17,6 @@ import me.exrates.service.exception.IeoException;
 import me.exrates.service.stomp.StompMessenger;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Log4j2
@@ -85,6 +83,7 @@ public class IEOProcessor implements Runnable {
         IEOResult.IEOResultStatus status = IEOResult.IEOResultStatus.SUCCESS;
         IEOResult ieoResult = IEOResult.builder()
                 .claimId(ieoClaim.getId())
+                .ieoId(ieoClaim.getIeoId())
                 .availableAmount(availableAmount)
                 .status(status)
                 .build();
@@ -102,8 +101,6 @@ public class IEOProcessor implements Runnable {
         ieoDetails.setAvailableAmount(availableAmount);
         String userEmail = ""; /*todo get email of user which we want to send message*/
         CompletableFuture.runAsync(() -> sendNotifications(userEmail, ieoDetails, new Object()/*object for notification*/));
-
-
     }
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, Object notificationObject) {
