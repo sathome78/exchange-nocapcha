@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-@RequestMapping("/api/private/v2/ieo/")
+@RequestMapping("/api/private/v2/ieo")
 @RestController
 public class NgIEOController {
 
@@ -31,7 +31,8 @@ public class NgIEOController {
 
     @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto) {
-        return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
+        ClaimDto claimDto1 = ieoService.addClaim(claimDto, getPrincipalEmail());
+        return new ResponseModel<>(claimDto1);
     }
 
     @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
