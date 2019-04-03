@@ -3,6 +3,8 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.model.IEOClaim;
+import me.exrates.model.IEOResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,18 +22,19 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    @Autowired
     public IEOClaimRepositoryImpl(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public IEOClaim create(IEOClaim ieoClaim) {
-
-        final String sql = "INSERT INTO IEO_CLAIM (currency_name, maker_id, user_id, amount, rate, price_in_btc) " +
-                "VALUES (:currency_name, :maker_id, :user_id, :amount, :rate, :price_in_btc)";
+    public IEOClaim save(IEOClaim ieoClaim) {
+        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc) " +
+                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_name", ieoClaim.getCurrencyName())
+                .addValue("ieo_id", ieoClaim.getIeoId())
                 .addValue("maker_id", ieoClaim.getMakerId())
                 .addValue("user_id", ieoClaim.getUserId())
                 .addValue("rate", ieoClaim.getRate())
@@ -46,42 +49,42 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public Collection<IEOClaim> findUnprocessedIeoClaims() {
-
-        final String sql = "SElECT * FROM IEO_CLAIM WHERE state = :state";
-        final Map<String, String> params = new HashMap<String, String>() {
-            {
-                put("state", IEOClaim.IEOClaimStateEnum.created.name());
-            }
-        };
-        return jdbcTemplate.query(sql, params, getAllFieldsRowMapper());
+        final String sql = "SElECT * FROM IEO_CLAIM WHERE status = :status";
+        MapSqlParameterSource params = new MapSqlParameterSource("status", IEOResult.IEOResultStatus.NONE.name());
+        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
 
     @Override
-    public boolean updateStateIEOClaim(int id, IEOClaim.IEOClaimStateEnum state) {
+    public boolean updateStatusIEOClaim(int claimId, IEOResult.IEOResultStatus status) {
         String sql = "UPDATE IEO_CLAIM SET state = :state WHERE id = :id";
         Map<String, Object> params = new HashMap<>();
-        params.put("state", state.name());
-        params.put("id", id);
+        params.put("status", status.name());
+        params.put("id", claimId);
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+<<<<<<< HEAD
     @Override
     public boolean updateClaimStatus(int ieoClaimId) {
         return false;
     }
 
     private RowMapper<IEOClaim> getAllFieldsRowMapper() {
+=======
+    private RowMapper<IEOClaim> ieoClaimRowMapper() {
+>>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();
             ieoClaim.setId(rs.getInt("id"));
-            ieoClaim.setCurrencyName(rs.getString("currencyName"));
+            ieoClaim.setIeoId(rs.getInt("ieo_id"));
+            ieoClaim.setCurrencyName(rs.getString("currency_name"));
             ieoClaim.setMakerId(rs.getInt("maker_id"));
             ieoClaim.setUserId(rs.getInt("user_id"));
-            ieoClaim.setRate(rs.getBigDecimal("rate"));
             ieoClaim.setAmount(rs.getBigDecimal("amount"));
+            ieoClaim.setRate(rs.getBigDecimal("rate"));
             ieoClaim.setPriceInBtc(rs.getBigDecimal("price_in_btc"));
             ieoClaim.setCreated(rs.getDate("created"));
-            ieoClaim.setState(IEOClaim.IEOClaimStateEnum.valueOf(rs.getString("state")));
+            ieoClaim.setStatus(IEOResult.IEOResultStatus.valueOf(rs.getString("status")));
             return ieoClaim;
         };
     }

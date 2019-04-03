@@ -15,7 +15,7 @@ public class ClaimDto {
     private int id;
 
     @NotNull
-    private String nameCurrency;
+    private String currencyName;
     @NotNull
     private BigDecimal amount;
 }

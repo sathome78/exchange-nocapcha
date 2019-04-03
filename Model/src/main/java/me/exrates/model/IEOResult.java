@@ -14,10 +14,11 @@ import java.math.BigDecimal;
 public class IEOResult {
 
     private int claimId;
+    private int ieoId;
     private IEOResultStatus status;
     private BigDecimal availableAmount;
 
     public enum IEOResultStatus {
-        success, fail, none
+        SUCCESS, FAILED, NONE
     }
 }

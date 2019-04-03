@@ -3,6 +3,7 @@ package me.exrates.service.ieo.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEOClaim;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOProcessor;
@@ -27,11 +28,14 @@ public class IEOQueueServiceImpl implements IEOQueueService {
     private final ExecutorService executor;
     private final IEOClaimRepository claimRepository;
     private final IEOResultRepository ieoResultRepository;
+    private final IeoDetailsRepository ieoDetailsRepository;
 
     @Autowired
     public IEOQueueServiceImpl(IEOClaimRepository claimRepository,
                                WalletService walletService,
-                               IEOResultRepository ieoResultRepository) {
+                               IEOResultRepository ieoResultRepository,
+                               IeoDetailsRepository ieoDetailsRepository) {
+        this.ieoDetailsRepository = ieoDetailsRepository;
         this.claims = new ConcurrentLinkedQueue<>();
         this.executor = Executors.newSingleThreadExecutor();
         this.claimRepository = claimRepository;
@@ -50,7 +54,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
         while (!claims.isEmpty()) {
             IEOClaim claim = claims.poll();
             if (claim != null) {
-                executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, claim, walletService));
+                executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository, claim, walletService));
             }
         }
     }

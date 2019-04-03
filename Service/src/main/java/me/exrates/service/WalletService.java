@@ -175,4 +175,6 @@ public interface WalletService {
 
     @Transactional()
     boolean performIeoTransfer(IEOClaim ieoClaim);
+
+    BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
 }

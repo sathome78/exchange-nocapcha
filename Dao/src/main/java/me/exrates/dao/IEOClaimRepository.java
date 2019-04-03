@@ -1,18 +1,16 @@
 package me.exrates.dao;
 
 import me.exrates.model.IEOClaim;
+import me.exrates.model.IEOResult;
 
 import java.util.Collection;
 
 public interface IEOClaimRepository {
 
-    IEOClaim create(IEOClaim ieoClaim);
-
+    IEOClaim save(IEOClaim ieoClaim);
 
     Collection<IEOClaim> findUnprocessedIeoClaims();
 
-    boolean updateStateIEOClaim(int id, IEOClaim.IEOClaimStateEnum state);
-
-    boolean updateClaimStatus(int ieoClaimId);
+    boolean updateStatusIEOClaim(int claimId, IEOResult.IEOResultStatus status);
 }
 

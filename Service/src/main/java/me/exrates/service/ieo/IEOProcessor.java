@@ -1,35 +1,49 @@
 package me.exrates.service.ieo;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEOClaim;
+import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.IeoException;
 
 import java.math.BigDecimal;
 
+@Log4j2
 public class IEOProcessor implements Runnable {
 
     private final IEOResultRepository ieoResultRepository;
     private final IEOClaimRepository ieoClaimRepository;
+    private final IeoDetailsRepository ieoDetailsRepository;
     private final WalletService walletService;
     private final IEOClaim ieoClaim;
 
     public IEOProcessor(IEOResultRepository ieoResultRepository,
-                        IEOClaimRepository ieoClaimRepository, IEOClaim ieoClaim,
+                        IEOClaimRepository ieoClaimRepository,
+                        IeoDetailsRepository ieoDetailsRepository,
+                        IEOClaim ieoClaim,
                         WalletService walletService) {
         this.ieoResultRepository = ieoResultRepository;
         this.ieoClaimRepository = ieoClaimRepository;
+        this.ieoDetailsRepository = ieoDetailsRepository;
         this.walletService = walletService;
         this.ieoClaim = ieoClaim;
     }
 
     @Override
     public void run() {
-        BigDecimal availableAmount = ieoResultRepository.getAvailableBalance(ieoClaim);
+        BigDecimal availableAmount = ieoResultRepository.getAvailableAmount(ieoClaim);
+        boolean firstTransaction = false;
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
-            // todo update notification message
-            return;
+            if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
+                // todo update notification message
+                return;
+            }
+            firstTransaction = true;
         }
         if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
             // todo update notification message
@@ -47,18 +61,28 @@ public class IEOProcessor implements Runnable {
             availableAmount = availableAmount.subtract(ieoClaim.getAmount());
         }
 
-        IEOResult.IEOResultStatus resultStatus = walletService.performIeoTransfer(ieoClaim)
-                ? IEOResult.IEOResultStatus.success
-                : IEOResult.IEOResultStatus.fail;
-
+        IEOResult.IEOResultStatus status = IEOResult.IEOResultStatus.SUCCESS;
         IEOResult ieoResult = IEOResult.builder()
                 .claimId(ieoClaim.getId())
                 .availableAmount(availableAmount)
-                .status(resultStatus)
+                .status(status)
                 .build();
-
-        ieoResultRepository.create(ieoResult);
-        ieoClaimRepository.updateClaimStatus(ieoClaim.getId());
+        if (firstTransaction) {
+            IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
+            if (ieoDetails == null) {
+                String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
+                log.warn(message);
+                throw new IeoException(ErrorApiTitles.IEO_DETAILS_NOT_FOUND, message);
+            }
+            ieoResult.setAvailableAmount(ieoDetails.getAmount());
+            ieoResult.setClaimId(-1);
+        } else {
+            if (!walletService.performIeoTransfer(ieoClaim)) {
+                status = IEOResult.IEOResultStatus.FAILED;
+            }
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), status);
+        }
+        ieoResultRepository.save(ieoResult);
 
         // todo send notification
 

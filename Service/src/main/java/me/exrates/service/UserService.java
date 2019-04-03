@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -257,5 +258,9 @@ public interface UserService {
 
     String getKycReferenceByEmail(String email);
 
+<<<<<<< HEAD
     boolean addPolicyToUser(String email, String policy);
+=======
+    IeoUserStatus findIeoUserStatusByEmail(String email);
+>>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
 }

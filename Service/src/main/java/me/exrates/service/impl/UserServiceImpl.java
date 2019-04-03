@@ -21,6 +21,7 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -1082,6 +1083,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+<<<<<<< HEAD
     public boolean addPolicyToUser(String email, String policy) {
         PolicyEnum policyEnum = PolicyEnum.convert(policy);
         User user = userDao.findByEmail(email);
@@ -1089,6 +1091,10 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return userDao.updateUserPolicyByEmail(email, policyEnum);
+=======
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        return userDao.findIeoUserStatusByEmail(email);
+>>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
     }
 
 }

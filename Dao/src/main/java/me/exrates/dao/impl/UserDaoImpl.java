@@ -18,6 +18,7 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -1398,6 +1399,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+<<<<<<< HEAD
     public List<Policy> getAllPoliciesByUserId(String id) {
 
         String sql = "SELECT p.* FROM POLICY p " +
@@ -1450,6 +1452,12 @@ public class UserDaoImpl implements UserDao {
         } catch (EmptyResultDataAccessException e) {
             return false;
         }
+=======
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        // todo implement
+
+        return null;
+>>>>>>> ead1be3cd3409a9d1390e987f27217d451e76072
     }
 
 }
