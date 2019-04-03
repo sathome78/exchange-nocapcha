@@ -34,7 +34,7 @@ public class IEOResultRepositoryImpl implements IEOResultRepository {
                 .addValue("claim_id", ieoResult.getClaimId())
                 .addValue("ieo_id", ieoResult.getIeoId())
                 .addValue("status", ieoResult.getStatus().name())
-                .addValue("available_amount", ieoResult.getAvailableAmount());
+                .addValue("availableAmount", ieoResult.getAvailableAmount());
         if (jdbcTemplate.update(sql, params) > 0) {
             return ieoResult;
         }
