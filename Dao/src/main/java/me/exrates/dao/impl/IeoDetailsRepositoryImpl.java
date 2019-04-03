@@ -156,7 +156,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .id(rs.getInt("id"))
                 .currencyName(rs.getString("currency_name"))
                 .makerId(rs.getInt("maker_id"))
-                .amount(rs.getBigDecimal("rate"))
+                .rate(rs.getBigDecimal("rate"))
                 .amount(rs.getBigDecimal("amount"))
                 .availableAmount(rs.getBigDecimal("available_amount"))
                 .contributors(rs.getInt("contributors"))
