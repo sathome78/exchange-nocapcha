@@ -47,6 +47,7 @@ import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
+import me.exrates.service.merchantStrategy.MerchantServiceContextImpl;
 import me.exrates.service.notifications.EmailNotificatorServiceImpl;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.Google2faNotificatorServiceImpl;
@@ -267,7 +268,7 @@ public class ServiceTestConfig {
 
     @Bean
     public MerchantServiceContext merchantServiceContext () {
-        return new MerchantServiceContext();
+        return new MerchantServiceContextImpl();
     }
 
     @Bean
