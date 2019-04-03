@@ -21,6 +21,7 @@ public class IEODetails {
     @JsonIgnore
     private int id;
     private String currencyName;
+    private String currencyDescription;
     @JsonIgnore
     private int makerId;
     private BigDecimal rate;

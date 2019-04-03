@@ -139,6 +139,11 @@ public class IEOServiceImpl implements IEOService {
         return ieoDetailsRepository.findAllExceptForMaker(user);
     }
 
+    @Transactional
+    public void createIeo() {
+
+    }
+
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
         if (ieoDetails.getMinAmount().compareTo(BigDecimal.ZERO) != 0
                 && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) < 0) {

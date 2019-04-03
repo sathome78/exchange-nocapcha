@@ -1,5 +1,8 @@
 package me.exrates.service.ieo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
@@ -8,10 +11,15 @@ import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.WsMessageObject;
+import me.exrates.model.enums.WsMessageTypeEnum;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.IeoException;
+import me.exrates.service.stomp.StompMessenger;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Log4j2
 public class IEOProcessor implements Runnable {
@@ -21,17 +29,23 @@ public class IEOProcessor implements Runnable {
     private final IeoDetailsRepository ieoDetailsRepository;
     private final WalletService walletService;
     private final IEOClaim ieoClaim;
+    private final ObjectMapper objectMapper;
+    private final StompMessenger stompMessenger;
 
     public IEOProcessor(IEOResultRepository ieoResultRepository,
                         IEOClaimRepository ieoClaimRepository,
                         IeoDetailsRepository ieoDetailsRepository,
                         IEOClaim ieoClaim,
-                        WalletService walletService) {
+                        WalletService walletService,
+                        ObjectMapper objectMapper,
+                        StompMessenger stompMessenger) {
         this.ieoResultRepository = ieoResultRepository;
         this.ieoClaimRepository = ieoClaimRepository;
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.walletService = walletService;
         this.ieoClaim = ieoClaim;
+        this.objectMapper = objectMapper;
+        this.stompMessenger = stompMessenger;
     }
 
     @Override
@@ -84,12 +98,27 @@ public class IEOProcessor implements Runnable {
         }
         ieoResultRepository.save(ieoResult);
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
-
-        // todo send notification
-
-        // todo send message to websocket
         ieoDetails.setAvailableAmount(availableAmount);
-//        for private destination send(ImmutableList.of(ieoDetails))
-        // to public send(ieoDetails)
+        String userEmail = ""; /*todo get email of user which we want to send message*/
+        CompletableFuture.runAsync(() -> sendNotifications(userEmail, ieoDetails, new Object()/*object for notification*/));
+    }
+
+    private void sendNotifications(String userEmail, IEODetails ieoDetails, Object notificationObject) {
+        try {
+            String payload = objectMapper.writeValueAsString(new WsMessageObject(WsMessageTypeEnum.IEO, notificationObject));
+            stompMessenger.sendPersonalMessageToUser(userEmail, payload);
+        } catch (Exception e) {
+            /*ignore*/
+        }
+        try {
+            stompMessenger.sendPersonalDetailsIeo(userEmail, objectMapper.writeValueAsString(ImmutableList.of(ieoDetails)));
+        } catch (Exception e) {
+            /*ignore*/
+        }
+        try {
+            stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
     }
 }

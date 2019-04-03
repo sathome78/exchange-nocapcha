@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -885,5 +886,27 @@ public class CurrencyDaoImpl implements CurrencyDao {
         } catch (Exception ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
+    }
+
+   /*todo execute script*/
+    public void addCurrency() {
+
+        final String insertPair = "INSERT INTO CURRENCY_PAIR (:currency1_id, :currency2_id, :name, pair_order, true, :market, :ticker_name)" +
+                "VALUES((select id from CURRENCY where name = 'RBC'), (select id from CURRENCY where name = 'BTC'), 'RBC/BTC', 160, 0, 'BTC', 'RBC/BTC') ";
+
+        final String insertPairLimit = "INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)" +
+                "  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP " +
+                "    JOIN USER_ROLE UR " +
+                "    JOIN ORDER_TYPE OT where CP.name='RBC/BTC';";
+    }
+    /*todo execute*/
+    public void addCurrencyPair(Currency currency1, Currency currency2, String newPairName) {
+        final String insertPair = "INSERT INTO CURRENCY_PAIR (:currency1_id, :currency2_id, :name, pair_order, true, :market, :ticker_name)" +
+                "VALUES((select id from CURRENCY where name = 'RBC'), (select id from CURRENCY where name = 'BTC'), 'RBC/BTC', 160, 0, 'BTC', 'RBC/BTC') ";
+
+        final String insertPairLimit = "INSERT IGNORE INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)" +
+                "  SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP " +
+                "    JOIN USER_ROLE UR " +
+                "    JOIN ORDER_TYPE OT where CP.name='RBC/BTC';";
     }
 }
