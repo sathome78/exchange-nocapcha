@@ -48,8 +48,9 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
-        log.error("START PROCESSING CLAIM ***************************************");
+        log.debug("IEO: ***** START PROCESSING CLAIM # {} *******************", ieoClaim.getIeoId());
         IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
+        log.debug("IEO: IEODetails: {}", ieoDetails);
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
             log.warn(message);
@@ -57,14 +58,18 @@ public class IEOProcessor implements Runnable {
         }
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         boolean firstTransaction = false;
+        log.debug("IEO: firstTransaction: {}", firstTransaction);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
+                log.debug("IEO: The IEO is running, but available balance is 0");
                 // todo update notification message
                 return;
             }
+            log.debug("The IEO is running, but it's first transaction");
             firstTransaction = true;
         }
         if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
+            log.debug("IEO: The claim amount is greater than available ({} vs {}))", ieoClaim.getAmount(), availableAmount);
             // todo update notification message
             String notoficationMessage = String.format("Unfortunately, the available amount of is %s ", availableAmount.toPlainString());
 
@@ -78,6 +83,7 @@ public class IEOProcessor implements Runnable {
             availableAmount = BigDecimal.ZERO;
         } else {
             availableAmount = availableAmount.subtract(ieoClaim.getAmount());
+            log.debug("IEO: The available  amount is {} now after claim {}", availableAmount, ieoClaim.getAmount());
         }
 
         IEOResult.IEOResultStatus status = IEOResult.IEOResultStatus.SUCCESS;
@@ -90,15 +96,19 @@ public class IEOProcessor implements Runnable {
         if (firstTransaction) {
             ieoResult.setAvailableAmount(ieoDetails.getAmount());
             ieoResult.setClaimId(-1);
+            log.debug("IEO: RESULT {}", ieoResult);
         } else {
             if (!walletService.performIeoTransfer(ieoClaim)) {
+                log.debug("IEO: TRANSFER FAILED");
                 status = IEOResult.IEOResultStatus.FAILED;
             }
+            log.debug("IEO: TRANSFER FAILED");
             ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), status);
         }
         ieoResultRepository.save(ieoResult);
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
         ieoDetails.setAvailableAmount(availableAmount);
+        log.debug("IEO: END of PROCESSING CLAIM #{} AND DETAILS: {}", ieoClaim.getId(), ieoDetails);
         String userEmail = ""; /*todo get email of user which we want to send message*/
         CompletableFuture.runAsync(() -> sendNotifications(userEmail, ieoDetails, new Object()/*object for notification*/));
     }
