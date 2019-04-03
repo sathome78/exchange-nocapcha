@@ -4,6 +4,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOInfoRepository;
 import me.exrates.dao.IEOResultRepository;
+import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.IEOClaim;
@@ -12,8 +13,11 @@ import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
+import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
@@ -38,6 +42,8 @@ public class IEOServiceImpl implements IEOService {
     private final CurrencyService currencyService;
     private final WalletDao walletDao;
     private final IEOQueueService ieoQueueService;
+    private final UserService userService;
+    private final KYCSettingsDao kycSettingsDao;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -47,7 +53,9 @@ public class IEOServiceImpl implements IEOService {
                           IEOResultRepository ieoResultRepository,
                           WalletService walletService, CurrencyService currencyService,
                           WalletDao walletDao,
-                          IEOQueueService ieoQueueService) {
+                          IEOQueueService ieoQueueService,
+                          UserService userService,
+                          KYCSettingsDao kycSettingsDao) {
         this.ieoClaimRepository = ieoClaimRepository;
         this.currencyDao = currencyDao;
         this.userDao = userDao;
@@ -57,6 +65,8 @@ public class IEOServiceImpl implements IEOService {
         this.currencyService = currencyService;
         this.walletDao = walletDao;
         this.ieoQueueService = ieoQueueService;
+        this.userService = userService;
+        this.kycSettingsDao = kycSettingsDao;
     }
 
     @Transactional
@@ -105,6 +115,18 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public IEOStatusInfo checkUserStatusForIEO(String email) {
         User user = userDao.findByEmail(email);
-        return null;
+
+        String statusKyc = userService.getUserKycStatusByEmail(email);
+        boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS");
+        KycCountryDto countryDto = null;
+        if (kycCheck) {
+             countryDto = kycSettingsDao.getCountryByCode(user.getCountry());
+        }
+
+        boolean policyCheck = userDao.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
+
+        //todo check by list county
+
+        return new IEOStatusInfo(kycCheck, policyCheck, true, countryDto);
     }
 }

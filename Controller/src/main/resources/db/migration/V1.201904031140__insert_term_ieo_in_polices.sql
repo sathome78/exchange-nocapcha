@@ -1,0 +1,1 @@
+INSERT INTO POLICY (name, title, desciption) VALUES ('IEO', 'IEO agreement', 'IEO agreement');

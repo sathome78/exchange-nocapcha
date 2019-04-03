@@ -28,7 +28,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
-import me.exrates.utils.DateUtils;
+import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -396,6 +396,11 @@ public class NgDashboardController {
         User user = userService.findByEmail(userName);
         Map<String, Map<String, String>> result = ngOrderService.getBalanceByCurrencyPairId(currencyPairId, user);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping("/policy/{name}")
+    public ResponseModel<Boolean> addPolicyToUser(@PathVariable String name) {
+        return new ResponseModel<>(userService.addPolicyToUser(getPrincipalEmail(), name));
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

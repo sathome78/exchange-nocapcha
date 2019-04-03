@@ -26,6 +26,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.NotificationTypeEnum;
+import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
@@ -78,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1055,8 +1057,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateKycReferenceByEmail(String email, String referenceUID, String country) {
-        return userDao.updateKycReferenceIdByEmail(email, referenceUID, country);
+    public boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country,
+                                                    String firstName, String lastName, Date birthDay) {
+        return userDao.updatePrivacyDataAndKycReferenceIdByEmail(email, referenceUID, country, firstName, lastName, birthDay);
     }
 
     @Override
@@ -1076,6 +1079,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getKycReferenceByEmail(String email) {
         return userDao.findKycReferenceByUserEmail(email);
+    }
+
+    @Override
+    public boolean addPolicyToUser(String email, String policy) {
+        PolicyEnum policyEnum = PolicyEnum.convert(policy);
+        User user = userDao.findByEmail(email);
+        if (userDao.existPolicyByUserIdAndPolicy(user.getId(), policy)) {
+            return true;
+        }
+        return userDao.updateUserPolicyByEmail(email, policyEnum);
     }
 
 }

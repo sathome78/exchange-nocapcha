@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;

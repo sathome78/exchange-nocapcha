@@ -39,5 +39,4 @@ public class IdentityDataRequest {
 
     @NotNull
     private String country;
-
 }

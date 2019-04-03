@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -247,11 +248,14 @@ public interface UserService {
 
     String getUserKycStatusByEmail(String email);
 
-    boolean updateKycReferenceByEmail(String email, String referenceUID, String country);
+    boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country, String firstName,
+                                             String lastName, Date birthDate);
 
     User findByKycReferenceId(String referenceId);
 
     boolean updateKycStatusByEmail(String email, String status);
 
     String getKycReferenceByEmail(String email);
+
+    boolean addPolicyToUser(String email, String policy);
 }
