@@ -21,10 +21,7 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.UsersAlertsService;
 import me.exrates.service.bitshares.memo.Preconditions;
-import me.exrates.service.cache.ChartsCacheManager;
-import me.exrates.service.cache.currencyPairsInfo.CpStatisticsHolder;
 import me.exrates.service.util.OpenApiUtils;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -91,7 +88,7 @@ public class WsController {
     }
 
     @SubscribeMapping("/queue/trade_orders/f/{currencyId}")
-    public  List<OrdersListWrapper> subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
+    public List<OrdersListWrapper> subscribeOrdersFiltered(@DestinationVariable Integer currencyId, Principal principal) throws IOException, EncodeException {
         UserRole role = userService.getUserRoleFromDB(principal.getName());
         return initOrders(currencyId, role);
     }
@@ -112,12 +109,12 @@ public class WsController {
     }
 
     @SubscribeMapping("/trade_orders/{currencyPairId}")
-    public  List<OrdersListWrapper> subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
+    public List<OrdersListWrapper> subscribeTradeOrders(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
     }
 
     @SubscribeMapping("/orders/sfwfrf442fewdf/{currencyPairId}")
-    public  List<OrdersListWrapper> subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
+    public List<OrdersListWrapper> subscribeTradeOrdersHidden(@DestinationVariable Integer currencyPairId) throws Exception {
         return initOrders(currencyPairId, null);
     }
 
@@ -128,7 +125,7 @@ public class WsController {
         Preconditions.checkNotNull(currencyPair);
         return ImmutableList.of(
                 orderService.findAllOrderBookItems(OrderType.SELL, currencyPair.getId(), precissionsEnum.getValue()),
-                orderService.findAllOrderBookItems(OrderType.BUY , currencyPair.getId(), precissionsEnum.getValue()));
+                orderService.findAllOrderBookItems(OrderType.BUY, currencyPair.getId(), precissionsEnum.getValue()));
     }
 
     /*alterdice use it*/
@@ -155,7 +152,4 @@ public class WsController {
                 (cp, Locale.ENGLISH, userRole), OperationType.BUY.name(), currencyPair));
         return list;
     }
-
-
-
 }
