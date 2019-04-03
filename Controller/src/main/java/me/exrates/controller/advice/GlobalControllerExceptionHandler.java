@@ -8,7 +8,6 @@ import me.exrates.model.UserFile;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
@@ -101,7 +100,7 @@ public class GlobalControllerExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IeoException.class)
     @ResponseBody
-    public ErrorInfo handleNgUserAuthenticationException(HttpServletRequest req, IeoException exception) {
+    public ErrorInfo handleIeoException(HttpServletRequest req, IeoException exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
