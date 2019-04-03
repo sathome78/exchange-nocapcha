@@ -828,6 +828,10 @@ public class WalletServiceImpl implements WalletService {
     @Transactional()
     public  boolean performIeoTransfer(IEOClaim ieoClaim) {
         Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
+        if (makerBtcWallet == null) {
+            int currencyId = currencyService.findByName("BTC").getId();
+            makerBtcWallet = walletDao.createWallet(ieoClaim.getMakerId(), currencyId);
+        }
         Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
         Wallet userIeoWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), ieoClaim.getCurrencyName());
         if (userIeoWallet == null) {

@@ -56,7 +56,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public boolean updateStatusIEOClaim(int claimId, IEOResult.IEOResultStatus status) {
-        String sql = "UPDATE IEO_CLAIM SET state = :state WHERE id = :id";
+        String sql = "UPDATE IEO_CLAIM SET status = :status WHERE id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("status", status.name());
         params.put("id", claimId);

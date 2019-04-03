@@ -36,6 +36,7 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
+        log.error("START PROCESSING CLAIM ***************************************");
         IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
@@ -91,5 +92,6 @@ public class IEOProcessor implements Runnable {
         ieoDetails.setAvailableAmount(availableAmount);
 //        for private destination send(ImmutableList.of(ieoDetails))
         // to public send(ieoDetails)
+        log.error("END PROCESSING CLAIM ***************************************");
     }
 }

@@ -1132,7 +1132,8 @@ public class WalletDaoImpl implements WalletDao {
                 " ieo_reserve = (ieo_reserve + :amountInBtc)" +
                 " WHERE user_id = :userId AND currency_id = :currencyId";
         MapSqlParameterSource params = new MapSqlParameterSource("userId", userId)
-                .addValue("currencyId", currencyId);
+                .addValue("currencyId", currencyId)
+                .addValue("amountInBtc", amountInBtc);
         return jdbcTemplate.update(sql, params) > 0;
     }
 
