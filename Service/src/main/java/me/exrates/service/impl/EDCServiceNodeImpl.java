@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
 import me.exrates.model.Transaction;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.EDCServiceNode;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
@@ -19,6 +20,7 @@ import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.BiTuple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,7 @@ import java.util.regex.Pattern;
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
+@Conditional(MonolitConditional.class)
 public class EDCServiceNodeImpl implements EDCServiceNode {
 
   private @Value("${edcmerchant.token}") String token;

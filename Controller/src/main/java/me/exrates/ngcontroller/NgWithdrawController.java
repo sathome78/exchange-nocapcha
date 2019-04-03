@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -13,6 +14,7 @@ import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.dto.WithdrawableDataDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
@@ -35,6 +37,7 @@ import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,6 +57,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -85,7 +89,6 @@ public class NgWithdrawController {
     private final UserService userService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
-    private final MerchantServiceContext merchantServiceContext;
 
     @Autowired
     public NgWithdrawController(CurrencyService currencyService,
@@ -97,8 +100,7 @@ public class NgWithdrawController {
                                 UserOperationService userOperationService,
                                 UserService userService,
                                 WalletService walletService,
-                                WithdrawService withdrawService,
-                                MerchantServiceContext merchantServiceContext) {
+                                WithdrawService withdrawService) {
         this.currencyService = currencyService;
         this.g2faService = g2faService;
         this.inputOutputService = inputOutputService;
@@ -109,7 +111,6 @@ public class NgWithdrawController {
         this.userService = userService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
-        this.merchantServiceContext = merchantServiceContext;
     }
 
     // POST: /api/private/v2/balances/withdraw/request/create
@@ -183,13 +184,8 @@ public class NgWithdrawController {
 
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
-                IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
-                if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
-                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
-                    merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
-                } else {
-                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
-                }
+                withdrawService.setAdditionalData(merchantCurrency);
+
             }
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
