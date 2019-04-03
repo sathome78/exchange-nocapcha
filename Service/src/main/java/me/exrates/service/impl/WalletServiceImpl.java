@@ -46,7 +46,9 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
+import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
@@ -96,36 +98,28 @@ public class WalletServiceImpl implements WalletService {
 
     private static final int decimalPlaces = 9;
 
-    private final CommissionService commissionService;
-    private final CompanyWalletService companyWalletService;
-    private final CurrencyService currencyService;
-    private final ExchangeApi exchangeApi;
-    private final MessageSource messageSource;
-    private final NotificationService notificationService;
-    private final UserService userService;
-    private final WalletDao walletDao;
-    private final WalletsApi walletsApi;
-
     @Autowired
-    public WalletServiceImpl(WalletDao walletDao,
-                             CurrencyService currencyService,
-                             UserService userService,
-                             CommissionService commissionService,
-                             CompanyWalletService companyWalletService,
-                             NotificationService notificationService,
-                             MessageSource messageSource,
-                             ExchangeApi exchangeApi,
-                             WalletsApi walletsApi) {
-        this.walletDao = walletDao;
-        this.currencyService = currencyService;
-        this.userService = userService;
-        this.commissionService = commissionService;
-        this.companyWalletService = companyWalletService;
-        this.notificationService = notificationService;
-        this.messageSource = messageSource;
-        this.exchangeApi = exchangeApi;
-        this.walletsApi = walletsApi;
-    }
+    private WalletDao walletDao;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private CommissionService commissionService;
+    @Autowired
+    private CompanyWalletService companyWalletService;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private UserTransferService userTransferService;
+    @Autowired
+    private OrderService orderService;
+    @Autowired
+    private ExchangeApi exchangeApi;
+    @Autowired
+    private WalletsApi walletsApi;
 
 
     @Override
