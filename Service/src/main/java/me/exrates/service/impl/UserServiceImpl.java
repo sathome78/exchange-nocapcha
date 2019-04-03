@@ -21,6 +21,7 @@ import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -1076,6 +1077,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getKycReferenceByEmail(String email) {
         return userDao.findKycReferenceByUserEmail(email);
+    }
+
+    @Override
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        return userDao.findIeoUserStatusByEmail(email);
     }
 
 }

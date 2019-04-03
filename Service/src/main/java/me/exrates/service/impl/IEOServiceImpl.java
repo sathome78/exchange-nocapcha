@@ -9,9 +9,10 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
-import me.exrates.model.dto.ieo.IEOStatusInfo;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
@@ -25,24 +26,23 @@ import java.math.BigDecimal;
 
 @Service
 public class IEOServiceImpl implements IEOService {
-    private static final Logger LOGGER = LogManager.getLogger(IEOServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
 
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
     private final IEOQueueService ieoQueueService;
     private final IeoDetailsRepository ieoDetailsRepository;
-    private final UserDao userDao;
+    private final UserService userService;
     private final WalletService walletService;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
-                          UserDao userDao,
                           IeoDetailsRepository ieoDetailsRepository,
                           CurrencyService currencyService,
                           IEOQueueService ieoQueueService,
-                          WalletService walletService) {
+                          UserService userService, WalletService walletService) {
         this.ieoClaimRepository = ieoClaimRepository;
-        this.userDao = userDao;
+        this.userService = userService;
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.currencyService = currencyService;
         this.walletService = walletService;
@@ -55,13 +55,13 @@ public class IEOServiceImpl implements IEOService {
 
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO %s not started",
+            String message = String.format("Failed to create claim while IEO for %s not started",
                     claimDto.getCurrencyName());
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_NOT_STARTED_YET, message);
         }
 
-        User user = userDao.findByEmail(email);
+        User user = userService.findByEmail(email);
 
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
 
@@ -73,7 +73,7 @@ public class IEOServiceImpl implements IEOService {
         if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
             String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
                     available.toPlainString(), ieoClaim.getPriceInBtc());
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_INSUFFICIENT_BUYER_FUNDS, message);
         }
 
@@ -81,13 +81,13 @@ public class IEOServiceImpl implements IEOService {
 
         if (ieoClaim == null) {
             String message = "Failed to save user's claim";
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_CLAIM_SAVE_FAILURE, message);
         }
         boolean result = walletService.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
         if (!result) {
             String message = String.format("Failed to reserve %s BTC from user's account", ieoClaim.getPriceInBtc());
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_USER_RESERVE_BTC_FAILURE, message);
         }
         ieoQueueService.add(ieoClaim);
@@ -96,9 +96,8 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public IEOStatusInfo checkUserStatusForIEO(String email) {
-        User user = userDao.findByEmail(email);
-        return null;
+    public IeoUserStatus checkUserStatusForIEO(String email) {
+        return userService.findIeoUserStatusByEmail(email);
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
@@ -106,20 +105,20 @@ public class IEOServiceImpl implements IEOService {
                 && ieoDetails.getMinAmount().compareTo(claimDto.getAmount()) < 0) {
             String message = String.format("Failed to accept claim as minimal amount to buy is %s %s, but you submitted %s %s",
                     ieoDetails.getMinAmount().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_MIN_AMOUNT_FAILURE, message);
         } else if (ieoDetails.getMaxAmountPerClaim().compareTo(BigDecimal.ZERO) != 0
                 && ieoDetails.getMaxAmountPerClaim().compareTo(claimDto.getAmount()) < 0) {
             String message = String.format("Failed to accept claim as maximum amount to buy is %s %s, but you submitted %s %s",
                     ieoDetails.getMaxAmountPerClaim().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
-            LOGGER.warn(message);
+            logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_FAILURE, message);
         } else if (ieoDetails.getMaxAmountPerUser().compareTo(BigDecimal.ZERO) != 0) {
             Wallet userIeoWallet = walletService.findByUserAndCurrency(user.getId(), ieoDetails.getCurrencyName());
             if (userIeoWallet != null && userIeoWallet.getActiveBalance().compareTo(claimDto.getAmount()) > 0) {
                 String message = String.format("Failed to accept claim as maximum amount per user to buy is %s %s, but you submitted only %s %s",
                         ieoDetails.getMaxAmountPerUser().toPlainString(), ieoDetails.getCurrencyName(), claimDto.getAmount(), ieoDetails.getCurrencyName());
-                LOGGER.warn(message);
+                logger.warn(message);
                 throw new IeoException(ErrorApiTitles.IEO_MAX_AMOUNT_PER_USER_FAILURE, message);
             }
         }

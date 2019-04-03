@@ -17,6 +17,7 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.NotificationMessageEventEnum;
@@ -1387,6 +1388,13 @@ public class UserDaoImpl implements UserDao {
     public String findKycReferenceByUserEmail(String email) {
         String sql = "SELECT kyc_reference FROM USER WHERE email = :email";
         return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+    }
+
+    @Override
+    public IeoUserStatus findIeoUserStatusByEmail(String email) {
+        // todo implement
+
+        return null;
     }
 
 }

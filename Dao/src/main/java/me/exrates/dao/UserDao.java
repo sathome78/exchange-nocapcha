@@ -14,6 +14,7 @@ import me.exrates.model.dto.UserIpReportDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.TokenType;
@@ -231,4 +232,6 @@ public interface UserDao {
     Optional<User> findByKycReferenceId(String referenceId);
 
     String findKycReferenceByUserEmail(String email);
+
+    IeoUserStatus findIeoUserStatusByEmail(String email);
 }
