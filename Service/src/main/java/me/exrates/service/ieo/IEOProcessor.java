@@ -36,7 +36,13 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
-        BigDecimal availableAmount = ieoDetailsRepository.getAvailableAmount(ieoClaim.getIeoId());
+        IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
+        if (ieoDetails == null) {
+            String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
+            log.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_DETAILS_NOT_FOUND, message);
+        }
+        BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         boolean firstTransaction = false;
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
@@ -68,12 +74,6 @@ public class IEOProcessor implements Runnable {
                 .status(status)
                 .build();
         if (firstTransaction) {
-            IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
-            if (ieoDetails == null) {
-                String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
-                log.warn(message);
-                throw new IeoException(ErrorApiTitles.IEO_DETAILS_NOT_FOUND, message);
-            }
             ieoResult.setAvailableAmount(ieoDetails.getAmount());
             ieoResult.setClaimId(-1);
         } else {
@@ -88,5 +88,8 @@ public class IEOProcessor implements Runnable {
         // todo send notification
 
         // todo send message to websocket
+        ieoDetails.setAvailableAmount(availableAmount);
+//        for private destination send(ImmutableList.of(ieoDetails))
+        // to public send(ieoDetails)
     }
 }
