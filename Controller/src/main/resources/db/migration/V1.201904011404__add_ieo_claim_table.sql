@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS IEO_CLAIM
 (
     id            INT(11) PRIMARY KEY                             NOT NULL AUTO_INCREMENT,
+    ieo_id        INT(11)                                         NOT NULL,
     currency_name VARCHAR(64)                                     NOT NULL,
     maker_id      INT(11)                                         not null,
     user_id       INT(11)                                         not null,
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS IEO_CLAIM
     created       timestamp                     default NOW()     NOT NULL,
     state         enum ('created', 'processed') default 'created' NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User (id),
-    FOREIGN KEY (maker_id) REFERENCES User (id)
+    FOREIGN KEY (maker_id) REFERENCES User (id),
+    FOREIGN KEY (ieo_id) REFERENCES IEO_DETAILS (id)
 )
     ENGINE = INNODB;

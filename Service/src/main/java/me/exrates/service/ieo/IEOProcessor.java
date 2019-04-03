@@ -26,7 +26,7 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
-        BigDecimal availableAmount = ieoResultRepository.getAvailableBalance(ieoClaim);
+        BigDecimal availableAmount = ieoResultRepository.getAvailableAmount(ieoClaim);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             // todo update notification message
             return;

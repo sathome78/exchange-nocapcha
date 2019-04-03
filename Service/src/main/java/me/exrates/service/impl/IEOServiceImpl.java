@@ -2,12 +2,12 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.IEOClaimRepository;
-import me.exrates.dao.IEOInfoRepository;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.IEOResultRepository;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.IEOClaim;
-import me.exrates.model.IEOInfo;
+import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
@@ -32,7 +32,7 @@ public class IEOServiceImpl implements IEOService {
     private final IEOClaimRepository ieoClaimRepository;
     private final CurrencyDao currencyDao;
     private final UserDao userDao;
-    private final IEOInfoRepository ieoInfoRepository;
+    private final IeoDetailsRepository ieoInfoRepository;
     private final IEOResultRepository ieoResultRepository;
     private final WalletService walletService;
     private final CurrencyService currencyService;
@@ -43,7 +43,7 @@ public class IEOServiceImpl implements IEOService {
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
                           CurrencyDao currencyDao,
                           UserDao userDao,
-                          IEOInfoRepository ieoInfoRepository,
+                          IeoDetailsRepository ieoInfoRepository,
                           IEOResultRepository ieoResultRepository,
                           WalletService walletService, CurrencyService currencyService,
                           WalletDao walletDao,
@@ -63,8 +63,8 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
 
-        IEOInfo ieoInfo = ieoInfoRepository.findOpenIeoByCurrencyName(claimDto.getNameCurrency());
-        if (ieoInfo == null) {
+        IEODetails ieoDetails = ieoInfoRepository.findOpenIeoByCurrencyName(claimDto.getNameCurrency());
+        if (ieoDetails == null) {
             String message = String.format("Failed to create claim while IEO %s not started",
                     claimDto.getNameCurrency());
             LOGGER.warn(message);
@@ -72,8 +72,8 @@ public class IEOServiceImpl implements IEOService {
         }
 
         User user = userDao.findByEmail(email);
-        IEOClaim ieoClaim = new IEOClaim(claimDto.getNameCurrency(), ieoInfo.getUserId(), user.getId(), claimDto.getAmount(),
-                ieoInfo.getRate());
+        IEOClaim ieoClaim = new IEOClaim(claimDto.getNameCurrency(), ieoDetails.getUserId(), user.getId(), claimDto.getAmount(),
+                ieoDetails.getRate());
 
         int currencyId = currencyService.findByName("BTC").getId();
         BigDecimal available = walletDao.getAvailableAmountInBtcLocked(user.getId(), currencyId);
