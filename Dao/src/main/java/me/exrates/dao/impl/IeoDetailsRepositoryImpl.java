@@ -91,7 +91,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
             return jdbcTemplate.queryForObject(sql, params, ieoDetailsRowMapper());
         } catch (Exception e) {
             log.warn("Failed to find open ieoDetails for currency name " + currencyName, e);
-            throw null;
+            return null;
         }
     }
 

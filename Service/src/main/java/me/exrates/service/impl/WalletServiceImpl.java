@@ -839,9 +839,15 @@ public class WalletServiceImpl implements WalletService {
             userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
         }
 
-        makerBtcWallet.setActiveBalance(makerBtcWallet.getReservedBalance().add(ieoClaim.getPriceInBtc()));
+        log.error("MAKER WALLET BEFORE: {}", makerBtcWallet);
+        log.error("USER BTC WALLET BEFORE: {}", userBtcWallet);
+        log.error("USER IEO WALLET BEFORE: {}", userIeoWallet);
+        makerBtcWallet.setActiveBalance(makerBtcWallet.getActiveBalance().add(ieoClaim.getPriceInBtc()));
         userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
         userIeoWallet.setActiveBalance(userIeoWallet.getActiveBalance().add(ieoClaim.getAmount()));
+        log.error("MAKER WALLET AFTER: {}", makerBtcWallet);
+        log.error("USER BTC WALLET AFTER: {}", userBtcWallet);
+        log.error("USER IEO WALLET AFTER: {}", userIeoWallet);
 
         return walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)
