@@ -130,6 +130,11 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
+    public IEODetails findOne(int ieoId) {
+        return ieoDetailsRepository.findOne(ieoId);
+    }
+
+    @Override
     public Collection<IEODetails> findAllExceptForMaker(User user) {
         return ieoDetailsRepository.findAllExceptForMaker(user);
     }

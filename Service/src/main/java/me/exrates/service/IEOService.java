@@ -15,6 +15,8 @@ public interface IEOService {
 
     Collection<IEODetails> findAll();
 
+    IEODetails findOne(int ieoId);
+
     Collection<IEODetails> findAllExceptForMaker(User user);
 
 }
