@@ -117,7 +117,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         params.addValue("rate", ieoDetails.getRate());
         params.addValue("amount", ieoDetails.getAmount());
         params.addValue("contributors", ieoDetails.getContributors());
-        params.addValue("status", ieoDetails.getStatus());
+        params.addValue("status", ieoDetails.getStatus().name());
         params.addValue("min_amount", ieoDetails.getMinAmount());
         params.addValue("max_amount_per_claim", ieoDetails.getMaxAmountPerClaim());
         params.addValue("max_amount_per_user", ieoDetails.getMaxAmountPerUser());

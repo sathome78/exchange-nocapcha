@@ -29,6 +29,7 @@ public class IEODetails {
     private IEODetailsStatus status;
     private BigDecimal minAmount;
     private BigDecimal maxAmountPerClaim;
+    @JsonIgnore
     private BigDecimal maxAmountPerUser;
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDateTime startDate;

@@ -10,6 +10,7 @@ import java.util.Date;
 @Data
 public class IEOClaim {
     private int id;
+    private int ieoId;
     private String currencyName;
     private int makerId;
     private int userId;
@@ -17,19 +18,17 @@ public class IEOClaim {
     private BigDecimal amount;
     private BigDecimal priceInBtc;
     private Date created;
-    private IEOClaimStateEnum state;
+    private IEOResult.IEOResultStatus status;
 
-    public enum IEOClaimStateEnum {
-        created, processed
-    }
 
-    public IEOClaim(String currencyName, int makerId, int userId, BigDecimal amount, BigDecimal rate) {
+    public IEOClaim(int ieoId, String currencyName, int makerId, int userId, BigDecimal amount, BigDecimal rate) {
+        this.ieoId = ieoId;
         this.currencyName = currencyName;
         this.makerId = makerId;
         this.userId = userId;
         this.amount = amount;
         this.created = new Date();
-        this.state = IEOClaimStateEnum.created;
+        this.status = IEOResult.IEOResultStatus.NONE;
         this.rate = rate;
         this.priceInBtc = amount.multiply(rate);
     }
