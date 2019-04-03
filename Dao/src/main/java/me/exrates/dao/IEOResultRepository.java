@@ -7,7 +7,11 @@ import java.math.BigDecimal;
 
 public interface IEOResultRepository {
 
-    IEOResult save(IEOResult ieoResult, BigDecimal availableAmount);
+    IEOResult save(IEOResult ieoResult);
+
+    IEOResult startIeo(IEOClaim ieoClaim);
+
+    boolean isAlreadyStarted(IEOClaim ieoClaim);
 
     BigDecimal getAvailableAmount(IEOClaim ieoClaim);
 }

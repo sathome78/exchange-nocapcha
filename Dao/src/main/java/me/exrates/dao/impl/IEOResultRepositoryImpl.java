@@ -27,18 +27,28 @@ public class IEOResultRepositoryImpl implements IEOResultRepository {
     }
 
     @Override
-    public IEOResult save(IEOResult ieoResult, BigDecimal availableAmount) {
+    public IEOResult save(IEOResult ieoResult) {
         final String sql = "INSERT INTO IEO_RESULT (claim_id, ieo_id, status, available_amount) " +
                 "VALUES (:claim_id, :ieo_id, :status, :availableAmount)";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("claim_id", ieoResult.getClaimId())
                 .addValue("ieo_id", ieoResult.getIeoId())
                 .addValue("status", ieoResult.getStatus().name())
-                .addValue("available_amount", availableAmount);
+                .addValue("available_amount", ieoResult.getAvailableAmount());
         if (jdbcTemplate.update(sql, params) > 0) {
             return ieoResult;
         }
         return null;
+    }
+
+    @Override
+    public IEOResult startIeo(IEOClaim ieoClaim) {
+        return null;
+    }
+
+    @Override
+    public boolean isAlreadyStarted(IEOClaim ieoClaim) {
+        return false;
     }
 
     @Override

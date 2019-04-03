@@ -13,4 +13,6 @@ public interface IeoDetailsRepository {
     Collection<IEODetails> findByCurrencyName(String currencyName);
 
     IEODetails findOpenIeoByCurrencyName(String currencyName);
+
+    IEODetails findOne(int ieoId);
 }

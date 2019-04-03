@@ -91,6 +91,18 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         }
     }
 
+    @Override
+    public IEODetails findOne(int ieoId) {
+        String sql = "SELECT * FROM IEO_DETAILS WHERE id = :ieoId";
+        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoId);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, ieoDetailsRowMapper());
+        } catch (DataAccessException e) {
+            log.warn("Failed to find ieo details by id: " + ieoId, e);
+            return null;
+        }
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
