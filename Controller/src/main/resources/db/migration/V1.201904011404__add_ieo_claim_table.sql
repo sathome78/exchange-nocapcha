@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS IEO_CLAIM
     price_in_btc  double(40, 9)                                     not null,
     created       timestamp                          default NOW()  NOT NULL,
     status        ENUM ('SUCCESS', 'FAILED', 'NONE') DEFAULT 'NONE' NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES User (id),
-    FOREIGN KEY (maker_id) REFERENCES User (id),
+    FOREIGN KEY (user_id) REFERENCES USER (id),
+    FOREIGN KEY (maker_id) REFERENCES USER (id),
     FOREIGN KEY (ieo_id) REFERENCES IEO_DETAILS (id)
 )
     ENGINE = INNODB;
