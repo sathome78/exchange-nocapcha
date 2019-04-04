@@ -23,6 +23,8 @@ import java.util.Locale;
  */
 public interface TransactionService {
 
+    Transaction save(Transaction transaction);
+
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 
     Transaction findById(int id);
