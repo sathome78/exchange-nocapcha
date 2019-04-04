@@ -3,9 +3,56 @@ var ieoDataTable;
 
 $(function () {
 
-    function showCreate() {
+    $.ajaxSetup({
+        headers:
+            { 'X-CSRF-TOKEN': $('input[name="_csrf"]').attr('value') }
+    });
 
-    }
+    loadIeoTable();
+
+    $.datetimepicker.setDateFormatter({
+        parseDate: function (date, format) {
+            var d = moment(date, format);
+            return d.isValid() ? d.toDate() : false;
+        },
+
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
+    });
+
+    $('#start_date_create').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'ru',
+        value: new Date(),
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+
+    $('#end_date_create').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'ru'
+    });
+
+
+    $('#start_date_upd').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'ru'
+    });
+
+    $('#end_date_upd').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'ru'
+    });
+
 
     $('#ieoTable').on('click', 'tbody tr', function () {
         var row = ieoDataTable.row( this );
@@ -14,25 +61,55 @@ $(function () {
     });
 
     $('#ieo_create').click(function () {
-        $('#create_form').toggle();
+        $('#currencyToPairWith').val('BTC');
+        $('#create_ieo').show();
+    });
+
+    $('#ieo_create_close').click(function () {
+        /*clear data*/
+        $('#create_ieo_form').find("input, textarea").val("");
+        $('#create_ieo').hide();
     });
 
     $('#ieo_update_send').click(function () {
-        sendUpdateIeo($('#id_upd').text);
+        sendUpdateIeo($('#id_upd').val());
+    });
+
+    $('#ieo_update_close').click(function () {
+        /*clear data*/
+        $('#update_ieo-form').find("input, textarea").val("");
+        $('#update_ieo').hide();
     });
 
     $('#ieo_create_send').click(function () {
         sendCreateIeo()
     });
 
+    $('#ieo_revert_send').click(function () {
+        $.ajax({
+            type: "POST",
+            url: "/2a8fy7b07dxe44/ieo/revert/" + $('#id_upd').val(),
+            contentType: "application/json; charset=utf-8",
+            success: function(data) {
+                console.log("success");
+                successNoty("Warning! Ieo reverted");
+                loadIeoTable();
+            },
+            error: function() {
+                /*todo show error window*/
+            }
+        });
+    });
+
     function showUpdate(data) {
-        $('#id_upd').text(data.id);
+        $('#id_upd').val(data.id);
         $('#currencyName').val(data.currencyName);
-        $('#description').val(data.description);
-        $('#makerEmail').val(data.makerEmail);
+        /*$('#description').val(data.description);*/
+        /*$('#makerEmail').val(data.makerEmail);*/
         $('#status').val(data.status); /*select*/
         $('#rate').val(data.rate);
         $('#amount').val(data.amount);
+        $('#available_balance').val(data.availableBalance);
         $('#minAmount').val(data.minAmount);
         $('#maxAmountPerUser').val(data.maxAmountPerUser);
         $('#maxAmountPerClaim').val(data.maxAmountPerClaim);
@@ -46,15 +123,18 @@ $(function () {
 
 
     function sendCreateIeo() {
-        var datastring = $("#create_ieo_form").serialize();
+        var formData = JSON.stringify($("#create_ieo_form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
         $.ajax({
             type: "POST",
             url: "/2a8fy7b07dxe44/ieo",
-            data: datastring,
+            data: formData,
+            contentType:"application/json; charset=utf-8",
             dataType: "json",
             success: function(data) {
-                /*todo show success window*/
+                successNoty("Ieo created!");
                 loadIeoTable();
+                $('#create_ieo_form').find("input, textarea").val("");
+                $('#create_ieo').hide();
             },
             error: function() {
                 /*todo show error window*/
@@ -63,15 +143,18 @@ $(function () {
     }
 
     function sendUpdateIeo(id) {
-        var datastring = $("#update_ieo-form").serialize();
+        var datastring = JSON.stringify($("#update_ieo-form").serializeArray().map(function(x){this[x.name] = x.value; return this;}.bind({}))[0]);
         $.ajax({
             type: "PUT",
             url: "/2a8fy7b07dxe44/ieo/" + id,
             data: datastring,
+            contentType:"application/json; charset=utf-8",
             dataType: "json",
             success: function(data) {
-                /*todo show success window*/
-               loadIeoTable();
+                successNoty("Ieo updated!");
+                loadIeoTable();
+                $('#update_ieo-form').find("input, textarea").val("");
+                $('#update_ieo').hide();
             },
             error: function() {
                 /*todo show error window*/
@@ -103,13 +186,10 @@ $(function () {
                     "dataSrc": ""
                 },
                 "columns": [
-                    {
-                        "data": "id",
-                        "visible": false
-                    },
-                    {
+
+                   /* {
                         "data": "currencyDescription"
-                    },
+                    },*/
                     {
                         "data": "currencyName"
                     },
@@ -138,10 +218,14 @@ $(function () {
                         "data": "minAmount"
                     },
                     {
+                        "data": "maxAmountPerClaim"
+                    },
+                    {
                         "data": "maxAmountPerUser"
                     },
                     {
-                        "data": "maxAmountPerClime"
+                        "data": "id",
+                        "visible": false
                     },
                     {
                         "data": "createdAt",

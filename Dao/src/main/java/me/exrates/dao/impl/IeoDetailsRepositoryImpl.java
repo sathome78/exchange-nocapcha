@@ -48,7 +48,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
             log.error("Failed to insert IEO Details ", e);
             throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
         }
-        ieoDetails.setId((Integer) keyHolder.getKey());
+        ieoDetails.setId(keyHolder.getKey().intValue());
         return ieoDetails;
     }
 
@@ -57,6 +57,23 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
+
+        MapSqlParameterSource params = getGeneralParams(ieoDetails);
+        try {
+            jdbcTemplate.update(sql, params);
+        } catch (DataAccessException e) {
+            log.error("Failed to insert IEO Details ", e);
+            throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
+        }
+        return ieoDetails;
+    }
+
+    @Override
+    public IEODetails updateSafe(IEODetails ieoDetails) {
+
+        String sql = "UPDATE IEO_DETAILS SET rate = :rate, amount = :amount," +
+                " status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
                 " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);

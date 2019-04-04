@@ -11,17 +11,21 @@ import me.exrates.model.Wallet;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
+import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
+import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -141,9 +145,20 @@ public class IEOServiceImpl implements IEOService {
         return ieoDetailsRepository.findAllExceptForMaker(user);
     }
 
+    @Override
     @Transactional
-    public void createIeo() {
+    public void createIeo(IeoDetailsCreateDto dto) {
+        Integer makerId = userService.getIdByEmail(dto.getMakerEmail());
+        Integer creatorId = userService.getIdByEmail(SecurityContextHolder.getContext().getAuthentication().getName());
+        /*create currency and pairs*/
+        ieoDetailsRepository.save(dto.toIEODetails(makerId, creatorId));
+    }
 
+    @Override
+    @Transactional
+    public void updateIeo(Integer id, IeoDetailsUpdateDto dto) {
+        /*create currency and pairs*/
+        ieoDetailsRepository.update(dto.toIEODetails());
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {
