@@ -10,7 +10,10 @@ import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
 import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WsMessageObject;
+import me.exrates.model.enums.IEODetailsStatus;
+import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsMessageTypeEnum;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -52,9 +55,8 @@ public class IEOProcessor implements Runnable {
 
     @Override
     public void run() {
-        log.error(">>>>>>>>>>> IEO: ***** START PROCESSING CLAIM # {} *******************", ieoClaim.getIeoId());
+        final UserNotificationMessage notificationMessage;
         IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
-        log.error(">>>>>>>>>>> IEO: IEODetails: {}", ieoDetails);
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
             log.warn(message);
@@ -65,15 +67,17 @@ public class IEOProcessor implements Runnable {
         log.error(">>>>>>>>>>> IEO: firstTransaction: {}", firstTransaction);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
-                log.error(">>>>>>>>>>> IEO: The IEO is running, but available balance is 0");
-                // todo update notification message
+                String text = String.format("Unfortunately all available %s amount is sold out!", ieoClaim.getCurrencyName());
+                notificationMessage = new UserNotificationMessage(UserNotificationType.ERROR, text);
+                log.error("{} {} has 0 available balance", ieoDetails.getCurrencyName(), ieoDetails.getCurrencyDescription());
                 return;
             }
             log.error("The IEO is running, but it's first transaction");
             firstTransaction = true;
+            ieoDetails.setStatus(IEODetailsStatus.RUNNING);
+            ieoDetailsRepository.update(ieoDetails);
         }
         if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
-            log.error(">>>>>>>>>>> IEO: The claim amount is greater than available ({} vs {}))", ieoClaim.getAmount(), availableAmount);
             // todo update notification message
             String notoficationMessage = String.format("Unfortunately, the available amount of is %s ", availableAmount.toPlainString());
 
@@ -87,7 +91,6 @@ public class IEOProcessor implements Runnable {
             availableAmount = BigDecimal.ZERO;
         } else {
             availableAmount = availableAmount.subtract(ieoClaim.getAmount());
-            log.error(">>>>>>>>>>> IEO: The available  amount is {} now after claim {}", availableAmount, ieoClaim.getAmount());
         }
 
         IEOResult ieoResult = IEOResult.builder()
@@ -99,19 +102,19 @@ public class IEOProcessor implements Runnable {
         if (firstTransaction) {
             ieoResult.setAvailableAmount(ieoDetails.getAmount());
             ieoResult.setClaimId(-1);
-            log.error(">>>>>>>>>>> IEO: RESULT {}", ieoResult);
         } else {
             if (!walletService.performIeoTransfer(ieoClaim)) {
                 ieoResult.setStatus(IEOResult.IEOResultStatus.FAILED);
             }
-            log.error(">>>>>>>>>>> IEO: TRANSFER STATUS {}", ieoResult.getStatus());
             ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         }
+        String text = String.format("Congratulations! You purchased %s %s, it will be able when IEO will succeed!",
+                ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
+        notificationMessage = new UserNotificationMessage(UserNotificationType.SUCCESS, text);
         ieoResultRepository.save(ieoResult);
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);
         ieoDetails.setAvailableAmount(availableAmount);
-        log.error(">>>>>>>>>>> IEO: END of PROCESSING CLAIM #{} AND DETAILS: {}", ieoClaim.getId(), ieoDetails);
-        CompletableFuture.runAsync(() -> sendNotifications(ieoClaim.getCreatorEmail(), ieoDetails, "Hello backend!"));
+        CompletableFuture.runAsync(() -> sendNotifications(ieoClaim.getCreatorEmail(), ieoDetails, notificationMessage));
     }
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, Object notificationObject) {

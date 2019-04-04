@@ -59,11 +59,9 @@ public class IEOQueueServiceImpl implements IEOQueueService {
 
     @Scheduled(fixedDelay = 20000)
     public void processClaims() {
-        log.error(">>>>>>>>>>> IEO: processClaims started !!! claims number is " + claims.size());
         while (!claims.isEmpty()) {
             IEOClaim claim = claims.poll();
             if (claim != null) {
-                log.error(">>>>>>>>>>> IEO: process claim started !!! claims {} ", claims);
                 executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository, claim, walletService, objectMapper, stompMessenger));
             }
         }
@@ -71,9 +69,7 @@ public class IEOQueueServiceImpl implements IEOQueueService {
 
     @Override
     public boolean add(IEOClaim claim) {
-        boolean offer = claims.offer(claim);
-        log.error(">>>>>>>>>>> IEO: Is claim added to queue? " + (offer ? "Yes it is added" : "Ups, it's not added"));
-        return offer;
+        return claims.offer(claim);
     }
 
 }

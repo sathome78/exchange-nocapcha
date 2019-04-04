@@ -833,7 +833,6 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional()
     public boolean performIeoTransfer(IEOClaim ieoClaim) {
-        System.out.println(">>>>>>>>>>> IEO: PERFORM_IEO_TRANSFER: " + ieoClaim.toString());
         Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
         if (makerBtcWallet == null) {
             int currencyId = currencyService.findByName("BTC").getId();
@@ -846,26 +845,20 @@ public class WalletServiceImpl implements WalletService {
             userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
         }
 
-        System.out.println(">>>>>>>>>>> IEO: makerBtcWallet: " + makerBtcWallet.toString());
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getActiveBalance();
         makerBtcWallet.setActiveBalance(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
-        System.out.println(   ">>>>>>>>>>> IEO: userBtcWallet:" + userBtcWallet.toString());
         userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
-        System.out.println(">>>>>>>>>>> IEO: userIeoWallet: " +  userIeoWallet.toString());
         userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
 
         boolean updateResult = walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)
                 && walletDao.update(userIeoWallet);
         if (updateResult) {
-            System.out.println(">>>>>>>>>>> IEO: SUCCESS to update all wallets");
             final Wallet makerWallet = makerBtcWallet;
             final Wallet userWallet = userIeoWallet;
             CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet, userIeoInitialAmount, userWallet));
-        } else {
-            System.out.println(">>>>>>>>>>> IEO: FAILED to update all wallets");
         }
         return updateResult;
     }

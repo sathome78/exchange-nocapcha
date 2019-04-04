@@ -33,7 +33,6 @@ public class NgIEOController {
 
     @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto) {
-        log.error(">>>>>>>>>>> IEO: received request from user with {}", claimDto);
         return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
     }
 

@@ -6,7 +6,6 @@ import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
-import me.exrates.model.dto.ieo.IeoUserStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
