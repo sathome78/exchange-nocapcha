@@ -158,7 +158,7 @@ public class IEOServiceImpl implements IEOService {
     @Transactional
     public void updateIeo(Integer id, IeoDetailsUpdateDto dto) {
         /*create currency and pairs*/
-        ieoDetailsRepository.update(dto.toIEODetails());
+        ieoDetailsRepository.updateSafe(dto.toIEODetails(id));
     }
 
     private void validateUserAmountRestrictions(IEODetails ieoDetails, User user, ClaimDto claimDto) {

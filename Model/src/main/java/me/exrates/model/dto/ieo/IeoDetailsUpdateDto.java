@@ -20,6 +20,8 @@ public class IeoDetailsUpdateDto {
    /* @NotNull(message = "Description must not be null")
     private String description;*/
     /*  private String currencyToPairWith;*/
+    @NotNull(message = "Description must not be null")
+    private String description;
     @NotNull(message = "Status must not be null")
     private String status;
     @NotNull(message = "Rate must not be null")
@@ -40,8 +42,10 @@ public class IeoDetailsUpdateDto {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
 
- public IEODetails toIEODetails() {
+ public IEODetails toIEODetails(Integer id) {
   return IEODetails.builder()
+          .id(id)
+          .currencyDescription(description)
           .amount(amount)
           .rate(rate)
           .availableAmount(availableBalance)

@@ -70,7 +70,7 @@ public class AdminIeoController {
     @ResponseBody
     public ResponseEntity revertIeo(@PathVariable("id") Integer id) {
         /*todo implementation and conditions checking*/
-        return new ResponseEntity(HttpStatus.OK);
+        return ResponseEntity.ok(null);
     }
 
 
