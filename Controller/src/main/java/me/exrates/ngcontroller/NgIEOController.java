@@ -1,5 +1,6 @@
 package me.exrates.ngcontroller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -18,6 +19,7 @@ import javax.validation.Valid;
 
 @RequestMapping("/api/private/v2/ieo")
 @RestController
+@Log4j2
 public class NgIEOController {
 
     @Autowired
@@ -31,8 +33,8 @@ public class NgIEOController {
 
     @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto) {
-        ClaimDto claimDto1 = ieoService.addClaim(claimDto, getPrincipalEmail());
-        return new ResponseModel<>(claimDto1);
+        log.error(">>>>>>>>>>> IEO: received request from user with {}", claimDto);
+        return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
     }
 
     @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

@@ -105,7 +105,6 @@ public class WsController {
         return initOrders(currencyId, role);
     }
 
-
     @SubscribeMapping("/trades/{currencyPairId}")
     public String subscribeTrades(@DestinationVariable Integer currencyPairId, SimpMessageHeaderAccessor headerAccessor) throws Exception {
         Principal principal = headerAccessor.getUser();

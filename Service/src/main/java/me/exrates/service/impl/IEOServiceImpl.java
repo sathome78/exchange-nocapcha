@@ -101,6 +101,8 @@ public class IEOServiceImpl implements IEOService {
             logger.warn(message);
             throw new IeoException(ErrorApiTitles.IEO_USER_RESERVE_BTC_FAILURE, message);
         }
+        logger.error(">>>>>>>>>>> IEO: adding claim {} to queue", ieoClaim);
+        ieoClaim.setCreatorEmail(email);
         ieoQueueService.add(ieoClaim);
         claimDto.setId(ieoClaim.getId());
         return claimDto;

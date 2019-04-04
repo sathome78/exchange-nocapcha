@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,9 @@ public class IEOClaim {
     private BigDecimal amount;
     private BigDecimal priceInBtc;
     private Date created;
+    @JsonIgnore
+    // this property is needed to transfer who should get notification
+    private String creatorEmail;
     private IEOResult.IEOResultStatus status;
 
 
