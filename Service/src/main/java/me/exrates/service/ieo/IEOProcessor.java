@@ -64,7 +64,6 @@ public class IEOProcessor implements Runnable {
         }
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         boolean firstTransaction = false;
-        log.error(">>>>>>>>>>> IEO: firstTransaction: {}", firstTransaction);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (ieoResultRepository.isAlreadyStarted(ieoClaim)) {
                 String text = String.format("Unfortunately all available %s amount is sold out!", ieoClaim.getCurrencyName());
