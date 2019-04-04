@@ -43,7 +43,10 @@ public class IEOResultRepositoryImpl implements IEOResultRepository {
 
     @Override
     public boolean isAlreadyStarted(IEOClaim ieoClaim) {
-        return false;
+        String sql = "SELECT COUNT(ieo_id) FROM IEO_CLAIM WHERE ieo_id = :ieoId";
+        MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoClaim.getIeoId());
+        Integer result = jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return result != null && result > 0;
     }
 
     private RowMapper<IEOResult> ieoResultRawMapper() {

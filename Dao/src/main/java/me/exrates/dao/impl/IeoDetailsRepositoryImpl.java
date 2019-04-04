@@ -33,10 +33,10 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails save(IEODetails ieoDetails) {
 
-        String sql = "INSERT INTO IEO_INFO"
-                + " (currency_name, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
+        String sql = "INSERT INTO IEO_DETAILS"
+                + " (currency_name, currency_description, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
                 " max_amount_per_user, starts_at, terminates_at, created_by)"
-                + " VALUES(:currency_name, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
+                + " VALUES(:currency_name, :currency_description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
                 + " :max_amount_per_user, :starts_at, :terminates_at, :created_by)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -55,7 +55,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails update(IEODetails ieoDetails) {
 
-        String sql = "UPDATE IEO_INFO SET currency_name = :currency_name, maker_id = :maker_id, rate = :rate, amount = :amount," +
+        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
                 " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
 
@@ -117,7 +117,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
     @Override
     public BigDecimal getAvailableAmount(int ieoId) {
-        String sql = "SELECT available_amount WHERE id = :ieoId";
+        String sql = "SELECT available_amount FROM IEO_DETAILS WHERE id = :ieoId";
         MapSqlParameterSource params = new MapSqlParameterSource("ieoId", ieoId);
         try {
             return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
@@ -155,6 +155,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
                 .currencyName(rs.getString("currency_name"))
+                .currencyDescription(rs.getString("currency_description"))
                 .makerId(rs.getInt("maker_id"))
                 .rate(rs.getBigDecimal("rate"))
                 .amount(rs.getBigDecimal("amount"))
@@ -172,21 +173,21 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     }
 
     private MapSqlParameterSource getGeneralParams(IEODetails ieoDetails) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("currency_name", ieoDetails.getCurrencyName());
-        params.addValue("maker_id", ieoDetails.getMakerId());
-        params.addValue("rate", ieoDetails.getRate());
-        params.addValue("amount", ieoDetails.getAmount());
-        params.addValue("available_amount", ieoDetails.getAvailableAmount());
-        params.addValue("contributors", ieoDetails.getContributors());
-        params.addValue("status", ieoDetails.getStatus().name());
-        params.addValue("min_amount", ieoDetails.getMinAmount());
-        params.addValue("max_amount_per_claim", ieoDetails.getMaxAmountPerClaim());
-        params.addValue("max_amount_per_user", ieoDetails.getMaxAmountPerUser());
-        params.addValue("starts_at", ieoDetails.getStartDate());
-        params.addValue("terminates_at", ieoDetails.getEndDate());
-        params.addValue("version", ieoDetails.getVersion());
-        return params;
+        return new MapSqlParameterSource()
+                .addValue("currency_name", ieoDetails.getCurrencyName())
+                .addValue("currency_description", ieoDetails.getCurrencyDescription())
+                .addValue("maker_id", ieoDetails.getMakerId())
+                .addValue("rate", ieoDetails.getRate())
+                .addValue("amount", ieoDetails.getAmount())
+                .addValue("available_amount", ieoDetails.getAvailableAmount())
+                .addValue("contributors", ieoDetails.getContributors())
+                .addValue("status", ieoDetails.getStatus().name())
+                .addValue("min_amount", ieoDetails.getMinAmount())
+                .addValue("max_amount_per_claim", ieoDetails.getMaxAmountPerClaim())
+                .addValue("max_amount_per_user", ieoDetails.getMaxAmountPerUser())
+                .addValue("starts_at", ieoDetails.getStartDate())
+                .addValue("terminates_at", ieoDetails.getEndDate())
+                .addValue("version", ieoDetails.getVersion());
     }
 }
 
