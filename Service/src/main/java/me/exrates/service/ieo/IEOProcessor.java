@@ -90,12 +90,11 @@ public class IEOProcessor implements Runnable {
             log.error(">>>>>>>>>>> IEO: The available  amount is {} now after claim {}", availableAmount, ieoClaim.getAmount());
         }
 
-        IEOResult.IEOResultStatus status = IEOResult.IEOResultStatus.SUCCESS;
         IEOResult ieoResult = IEOResult.builder()
                 .claimId(ieoClaim.getId())
                 .ieoId(ieoClaim.getIeoId())
                 .availableAmount(availableAmount)
-                .status(status)
+                .status(IEOResult.IEOResultStatus.SUCCESS)
                 .build();
         if (firstTransaction) {
             ieoResult.setAvailableAmount(ieoDetails.getAmount());
@@ -103,10 +102,10 @@ public class IEOProcessor implements Runnable {
             log.error(">>>>>>>>>>> IEO: RESULT {}", ieoResult);
         } else {
             if (!walletService.performIeoTransfer(ieoClaim)) {
-                status = IEOResult.IEOResultStatus.FAILED;
+                ieoResult.setStatus(IEOResult.IEOResultStatus.FAILED);
             }
-            log.error(">>>>>>>>>>> IEO: TRANSFER STATUS {}", status);
-            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), status);
+            log.error(">>>>>>>>>>> IEO: TRANSFER STATUS {}", ieoResult.getStatus());
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         }
         ieoResultRepository.save(ieoResult);
         ieoDetailsRepository.updateAvailableAmount(ieoClaim.getIeoId(), availableAmount);

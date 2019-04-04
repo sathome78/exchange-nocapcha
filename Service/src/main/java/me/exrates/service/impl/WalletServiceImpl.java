@@ -409,7 +409,7 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
         }
         Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
-        Integer currencyId = fromUserWallet.getCurrencyId();
+        int currencyId = fromUserWallet.getCurrencyId();
         BigDecimal inputAmount = BigDecimalProcessing.doAction(amount, commissionAmount, ActionType.SUBTRACT);
         log.debug(commissionAmount.toString());
         log.debug(inputAmount.toString());
@@ -833,6 +833,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional()
     public boolean performIeoTransfer(IEOClaim ieoClaim) {
+        System.out.println(">>>>>>>>>>> IEO: PERFORM_IEO_TRANSFER: " + ieoClaim.toString());
         Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
         if (makerBtcWallet == null) {
             int currencyId = currencyService.findByName("BTC").getId();
@@ -845,26 +846,26 @@ public class WalletServiceImpl implements WalletService {
             userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
         }
 
-        log.error(   ">>>>>>>>>>> IEO: makerBtcWallet: {}", makerBtcWallet);
+        System.out.println(">>>>>>>>>>> IEO: makerBtcWallet: " + makerBtcWallet.toString());
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getActiveBalance();
         makerBtcWallet.setActiveBalance(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
-        log.error(   ">>>>>>>>>>> IEO: userBtcWallet: {}", userBtcWallet);
+        System.out.println(   ">>>>>>>>>>> IEO: userBtcWallet:" + userBtcWallet.toString());
         userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
-        log.error(   ">>>>>>>>>>> IEO: userIeoWallet: {}", userIeoWallet);
+        System.out.println(">>>>>>>>>>> IEO: userIeoWallet: " +  userIeoWallet.toString());
         userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
 
         boolean updateResult = walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)
                 && walletDao.update(userIeoWallet);
         if (updateResult) {
-            log.error(   ">>>>>>>>>>> IEO: SUCCESS to update all wallets");
+            System.out.println(">>>>>>>>>>> IEO: SUCCESS to update all wallets");
             final Wallet makerWallet = makerBtcWallet;
-            final Wallet userWallet = makerBtcWallet;
+            final Wallet userWallet = userIeoWallet;
             CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet, userIeoInitialAmount, userWallet));
         } else {
-            log.error(   ">>>>>>>>>>> IEO: FAILED to update all wallets");
+            System.out.println(">>>>>>>>>>> IEO: FAILED to update all wallets");
         }
         return updateResult;
     }
