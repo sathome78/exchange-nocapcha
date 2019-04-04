@@ -57,7 +57,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
@@ -74,7 +74,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "UPDATE IEO_DETAILS SET rate = :rate, amount = :amount," +
                 " status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id ";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
@@ -183,7 +183,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .maxAmountPerClaim(rs.getBigDecimal("max_amount_per_claim"))
                 .maxAmountPerUser(rs.getBigDecimal("max_amount_per_user"))
                 .startDate(rs.getTimestamp("starts_at").toLocalDateTime())
-                .endDate(rs.getTimestamp("terminates_at").toLocalDateTime())
+                .endDate(rs.getTimestamp("terminates_at") == null ? null : rs.getTimestamp("terminates_at").toLocalDateTime())
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .createdBy(rs.getInt("created_by"))
                 .build();
@@ -191,6 +191,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
     private MapSqlParameterSource getGeneralParams(IEODetails ieoDetails) {
         return new MapSqlParameterSource()
+                .addValue("id", ieoDetails.getId())
                 .addValue("currency_name", ieoDetails.getCurrencyName())
                 .addValue("currency_description", ieoDetails.getCurrencyDescription())
                 .addValue("maker_id", ieoDetails.getMakerId())

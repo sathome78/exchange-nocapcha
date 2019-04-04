@@ -195,7 +195,7 @@
                 <table id="ieoTable" style="width:100%">
                     <thead>
                         <tr>
-                          <%--  <th class="col-2 center blue-white"><loc:message code="ieo.coins"/></th>--%>
+                            <th class="col-2 center blue-white"><loc:message code="ieo.coins"/></th>
                             <th class="col-2 center blue-white"><loc:message code="ieo.curName"/></th>
                             <th class="col-2 center blue-white"><loc:message code="ieo.status"/></th>
                             <th class="col-2 center blue-white"><loc:message code="ieo.contributors"/></th>
@@ -230,7 +230,7 @@
                             </div>
                         </div>
                         <%--Description--%>
-                       <%-- <div class="input-block-wrapper" hidden>
+                        <div class="input-block-wrapper" hidden>
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
                                     <loc:message code="ieo.coinDescription"/>
@@ -239,7 +239,7 @@
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
                                 <input type="text" id="description" name="description">
                             </div>
-                        </div>--%>
+                        </div>
                         <%--maker email--%>
                        <%-- <div class="input-block-wrapper" hidden>
                             <div class="col-md-3 input-block-wrapper__label-wrapper">

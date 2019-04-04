@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class IEODetailsFlatDto {
 
     private int id;

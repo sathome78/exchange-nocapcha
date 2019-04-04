@@ -91,7 +91,7 @@ $(function () {
             url: "/2a8fy7b07dxe44/ieo/revert/" + $('#id_upd').val(),
             contentType: "application/json; charset=utf-8",
             success: function(data) {
-                console.log("success");
+                console.log(data);
                 successNoty("Warning! Ieo reverted");
                 loadIeoTable();
             },
@@ -104,7 +104,7 @@ $(function () {
     function showUpdate(data) {
         $('#id_upd').val(data.id);
         $('#currencyName').val(data.currencyName);
-        /*$('#description').val(data.description);*/
+        $('#description').val(data.currencyDescription);
         /*$('#makerEmail').val(data.makerEmail);*/
         $('#status').val(data.status); /*select*/
         $('#rate').val(data.rate);
@@ -129,15 +129,15 @@ $(function () {
             url: "/2a8fy7b07dxe44/ieo",
             data: formData,
             contentType:"application/json; charset=utf-8",
-            dataType: "json",
             success: function(data) {
                 successNoty("Ieo created!");
                 loadIeoTable();
                 $('#create_ieo_form').find("input, textarea").val("");
                 $('#create_ieo').hide();
             },
-            error: function() {
-                /*todo show error window*/
+            error: function(msg) {
+                errorNoty(msg);
+                loadIeoTable();
             }
         });
     }
@@ -149,17 +149,17 @@ $(function () {
             url: "/2a8fy7b07dxe44/ieo/" + id,
             data: datastring,
             contentType:"application/json; charset=utf-8",
-            dataType: "json",
             success: function(data) {
                 successNoty("Ieo updated!");
                 loadIeoTable();
                 $('#update_ieo-form').find("input, textarea").val("");
                 $('#update_ieo').hide();
             },
-            error: function() {
-                /*todo show error window*/
+            error: function(errMsg) {
+                errorNoty(errMsg);
+                loadIeoTable();
             }
-        });
+        })
     }
 
 
@@ -187,9 +187,9 @@ $(function () {
                 },
                 "columns": [
 
-                   /* {
+                    {
                         "data": "currencyDescription"
-                    },*/
+                    },
                     {
                         "data": "currencyName"
                     },
