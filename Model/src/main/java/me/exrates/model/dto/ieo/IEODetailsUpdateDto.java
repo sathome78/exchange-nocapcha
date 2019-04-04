@@ -1,59 +1,59 @@
 package me.exrates.model.dto.ieo;
 
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
-import me.exrates.model.serializer.LocalDateTimeSerializer;
+import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-public class IEODetailsUpdateDto {
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class IeoDetailsUpdateDto {
 
-    private int id;
-    private String currencyName;
-    private int makerId;
+
+   /* @NotNull(message = "Description must not be null")
+    private String description;*/
+    /*  private String currencyToPairWith;*/
+    @NotNull(message = "Status must not be null")
+    private String status;
+    @NotNull(message = "Rate must not be null")
     private BigDecimal rate;
+    @NotNull(message = "Amount must not be null")
     private BigDecimal amount;
-    private int contributors;
-    private IEODetailsStatus status;
-    private BigDecimal minAmount;
-    private BigDecimal maxAmountPerClaim;
-    private BigDecimal maxAmountPerUser;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime startDate;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime endDate;
-    @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private LocalDateTime createdAt;
-    private int createdBy;
-    private int version;
-    private String currencyDescription;
-    private String priceString;
+    @NotNull(message = "available balance must not be null")
     private BigDecimal availableBalance;
-    private String currencyInPairName;
+    @NotNull(message = "Min amount must not be null")
+    private BigDecimal minAmount;
+    @NotNull(message = "Max amount per user must not be null")
+    private BigDecimal maxAmountPerUser;
+    @NotNull(message = "Max amount per clime must not be null")
+    private BigDecimal maxAmountPerClaim;
+    @NotNull(message = "Start date amount per clime must not be null")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime startDate;
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    private LocalDateTime endDate;
 
-    public IEODetailsUpdateDto(IEODetails ieoDetails) {
-        this.id = ieoDetails.getId();
-        this.currencyName = ieoDetails.getCurrencyName();
-        this.makerId = ieoDetails.getMakerId();
-        this.rate = ieoDetails.getRate();
-        this.amount = ieoDetails.getAmount();
-        this.contributors = ieoDetails.getContributors();
-        this.status = ieoDetails.getStatus();
-        this.minAmount = ieoDetails.getMinAmount();
-        this.maxAmountPerClaim = ieoDetails.getMaxAmountPerClaim();
-        this.maxAmountPerUser = ieoDetails.getMaxAmountPerUser();
-        this.startDate = ieoDetails.getStartDate();
-        this.endDate = ieoDetails.getEndDate();
-        this.createdAt = ieoDetails.getCreatedAt();
-        this.createdBy = ieoDetails.getCreatedBy();
-        this.version = ieoDetails.getVersion();
-        this.currencyDescription = currencyName;
-        this.priceString = priceString;
-        this.availableBalance = ieoDetails.getAvailableAmount();
-    }
+ public IEODetails toIEODetails() {
+  return IEODetails.builder()
+          .amount(amount)
+          .rate(rate)
+          .availableAmount(availableBalance)
+          .minAmount(minAmount)
+          .maxAmountPerUser(maxAmountPerUser)
+          .maxAmountPerClaim(maxAmountPerClaim)
+          .status(IEODetailsStatus.valueOf(status))
+          .startDate(startDate)
+          .endDate(endDate)
+          .build();
+ }
+
+
 }

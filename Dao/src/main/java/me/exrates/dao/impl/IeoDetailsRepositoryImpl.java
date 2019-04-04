@@ -33,7 +33,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails save(IEODetails ieoDetails) {
 
-        String sql = "INSERT INTO IEO_INFO"
+        String sql = "INSERT INTO IEO_DETAILS"
                 + " (currency_name, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
                 " max_amount_per_user, starts_at, terminates_at, created_by)"
                 + " VALUES(:currency_name, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
@@ -48,15 +48,32 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
             log.error("Failed to insert IEO Details ", e);
             throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
         }
-        ieoDetails.setId((Integer) keyHolder.getKey());
+        ieoDetails.setId(keyHolder.getKey().intValue());
         return ieoDetails;
     }
 
     @Override
     public IEODetails update(IEODetails ieoDetails) {
 
-        String sql = "UPDATE IEO_INFO SET currency_name = :currency_name, maker_id = :maker_id, rate = :rate, amount = :amount," +
+        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
+
+        MapSqlParameterSource params = getGeneralParams(ieoDetails);
+        try {
+            jdbcTemplate.update(sql, params);
+        } catch (DataAccessException e) {
+            log.error("Failed to insert IEO Details ", e);
+            throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
+        }
+        return ieoDetails;
+    }
+
+    @Override
+    public IEODetails updateSafe(IEODetails ieoDetails) {
+
+        String sql = "UPDATE IEO_DETAILS SET rate = :rate, amount = :amount," +
+                " status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
                 " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at;";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);

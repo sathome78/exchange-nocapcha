@@ -12,6 +12,8 @@ public interface IeoDetailsRepository {
 
     IEODetails update(IEODetails ieoDetails);
 
+    IEODetails updateSafe(IEODetails ieoDetails);
+
     Collection<IEODetails> findByCurrencyName(String currencyName);
 
     IEODetails findOpenIeoByCurrencyName(String currencyName);
