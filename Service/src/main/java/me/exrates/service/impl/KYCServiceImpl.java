@@ -30,6 +30,7 @@ import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.ShuftiProException;
 import me.exrates.service.kyc.http.KycHttpClient;
+import me.exrates.service.util.DateUtils;
 import me.exrates.service.util.ShuftiProUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -310,10 +312,12 @@ public class KYCServiceImpl implements KYCService {
         if (user.getKycStatus().equalsIgnoreCase("success")) {
             throw new KycException("Already passed KYC");
         }
-
+        Date dateOfBirth = DateUtils.getDateFromStringForKyc(identityDataRequest.getBirthYear(), identityDataRequest.getBirthMonth(),
+                identityDataRequest.getBirthDay());
         //start create applicant
         String uuid = UUID.randomUUID().toString();
-        userService.updateKycReferenceByEmail(email, uuid);
+        userService.updatePrivateDataAndKycReference(email, uuid, identityDataRequest.getCountry(), identityDataRequest.getFirstNames()[1],
+                identityDataRequest.getLastName(), dateOfBirth);
         PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
         CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
 

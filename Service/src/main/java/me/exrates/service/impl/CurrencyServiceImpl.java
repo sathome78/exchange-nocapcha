@@ -27,6 +27,7 @@ import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.aspect.CheckCurrencyPairVisibility;
 import me.exrates.service.api.ExchangeApi;
+import me.exrates.service.bitshares.memo.Preconditions;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import me.exrates.service.util.BigDecimalConverter;
 import org.apache.commons.lang3.time.StopWatch;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -480,5 +482,20 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public boolean isCurrencyPairHidden(int currencyPairId) {
         return currencyDao.isCurrencyPairHidden(currencyPairId);
+    }
+
+    public void addCurrencyAndPairForIco(String firstCurrencyName, String secondCurrencyName) {
+        /*insert currency and all other inserts*/
+    }
+
+    @Transactional
+    public void addCurrencyPair(String firstCurrencyName, String secondCurrencyName) {
+        /*create pair*/
+        Currency currency1 = findByName(firstCurrencyName);
+        Currency currency2 = findByName(secondCurrencyName);
+        Preconditions.checkArgument(currency1 != null && currency2 != null);
+        String newPairName = String.format("%s/%s", firstCurrencyName, secondCurrencyName);
+        Preconditions.checkArgument(findCurrencyPairIdByName(newPairName) == null);
+        /*currencyDao.addCurrencyPair(currency1, currency2, newPairName);*/
     }
 }

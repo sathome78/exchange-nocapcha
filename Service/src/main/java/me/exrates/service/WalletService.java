@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -165,4 +166,15 @@ public interface WalletService {
     BigDecimal getExternalReservedWalletBalance(Integer currencyId, String walletAddress);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
+
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc);
+
+    @Transactional()
+    boolean performIeoTransfer(IEOClaim ieoClaim);
+
+    BigDecimal getAvailableAmountInBtcLocked(int id, int currencyId);
 }
