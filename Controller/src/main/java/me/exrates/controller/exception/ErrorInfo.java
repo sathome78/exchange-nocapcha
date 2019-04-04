@@ -1,5 +1,6 @@
 package me.exrates.controller.exception;
 
+import lombok.ToString;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.service.exception.IeoException;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Valk on 04.04.16.
  */
+@ToString
 public class ErrorInfo {
     public final String url;
     public final String cause;
