@@ -87,7 +87,7 @@ public class NgDownloadController {
                     0,
                     0,
                     hideCanceled,
-                    Collections.emptyMap(),
+                    "DESC",
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
