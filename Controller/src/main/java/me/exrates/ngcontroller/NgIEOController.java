@@ -33,10 +33,10 @@ public class NgIEOController {
         return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
     }
 
-    @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseModel<?> checkAvailable() {
+    @GetMapping(value = "/check/{idIeo}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkAvailable(@PathVariable int idIeo) {
         String email = getPrincipalEmail();
-        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email);
+        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email, idIeo);
         return new ResponseModel<>(result);
     }
 

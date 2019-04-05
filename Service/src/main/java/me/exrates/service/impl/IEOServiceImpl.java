@@ -112,21 +112,20 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public IEOStatusInfo checkUserStatusForIEO(String email) {
+    public IEOStatusInfo checkUserStatusForIEO(String email, int idIeo) {
         User user = userDao.findByEmail(email);
 
         String statusKyc = userService.getUserKycStatusByEmail(email);
         boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS");
+        boolean checkCountry = false;
         KycCountryDto countryDto = null;
         if (kycCheck) {
             countryDto = kycSettingsDao.getCountryByCode(user.getCountry());
+            checkCountry = !ieoDetailsRepository.isCountryRestrictedByIeoId(idIeo, countryDto.getCountryCode());
         }
 
         boolean policyCheck = userDao.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
-
-        //todo check by list county
-
-        return new IEOStatusInfo(kycCheck, policyCheck, true, countryDto);
+        return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto);
     }
 
     @Override

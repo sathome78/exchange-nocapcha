@@ -27,4 +27,6 @@ public interface IeoDetailsRepository {
     Collection<IEODetails> findAll();
 
     Collection<IEODetails> findAllExceptForMaker(User user);
+
+    boolean isCountryRestrictedByIeoId(int idIeo, String countryCode);
 }
