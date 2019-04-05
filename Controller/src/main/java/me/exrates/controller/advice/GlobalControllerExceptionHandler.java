@@ -8,11 +8,11 @@ import me.exrates.model.UserFile;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPasswordException;
-import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.MissingHeaderException;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AuthenticationNotAvailableException;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
+import me.exrates.service.exception.IeoException;
 import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -97,6 +97,13 @@ public class GlobalControllerExceptionHandler {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IeoException.class)
+    @ResponseBody
+    public ErrorInfo handleIeoException(HttpServletRequest req, IeoException exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
 //    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 //    @ExceptionHandler(Exception.class)
 //    @ResponseBody
@@ -140,6 +147,7 @@ public class GlobalControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(value = IncorrectCurrentUserException.class)
+    @ResponseBody
     public OpenApiError incorrectCurrentUserExceptionHandler(HttpServletRequest req, IncorrectCurrentUserException exception) {
         return new OpenApiError(ErrorCode.USER_MISMATCH, req.getRequestURL(), exception.getMessage());
     }
