@@ -40,7 +40,7 @@ curl -X POST \
           ],
           "lastName": "Ivanov",
           "docType":"P",
-          "country: "Ukraine"
+          "country: "UKR"
 }'
 
 @apiSuccess {Object} data Data
