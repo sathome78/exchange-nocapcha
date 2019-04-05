@@ -168,6 +168,19 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return findAll();
     }
 
+    @Override
+    public boolean isCountryRestrictedByIeoId(int idIeo, String countryCode) {
+
+        String sql = "SELECT CASE WHEN count(*) > 0 THEN TRUE ELSE FALSE END FROM IEO_RESTRICTED_COUNTRY WHERE country_code = :code AND" +
+                " ieo_id = :idIeo";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("code", countryCode);
+        params.addValue("ieo_id", idIeo);
+
+        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
