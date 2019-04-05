@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import me.exrates.dao.KYCSettingsDao;
 import me.exrates.dao.UserVerificationInfoDao;
 import me.exrates.model.Email;
 import me.exrates.model.User;
@@ -17,6 +18,7 @@ import me.exrates.model.dto.kyc.DocTypeEnum;
 import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.IdentityDataKyc;
 import me.exrates.model.dto.kyc.IdentityDataRequest;
+import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.dto.kyc.PersonKycDto;
 import me.exrates.model.dto.kyc.ResponseCreateApplicantDto;
 import me.exrates.model.dto.kyc.request.RequestOnBoardingDto;
@@ -46,6 +48,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -87,6 +90,7 @@ public class KYCServiceImpl implements KYCService {
     private final SendMailService sendMailService;
     private final KycHttpClient kycHttpClient;
     private final UserVerificationInfoDao userVerificationInfoDao;
+    private final KYCSettingsDao kycSettingsDao;
 
     @Value("${server-host}")
     private String host;
@@ -108,7 +112,8 @@ public class KYCServiceImpl implements KYCService {
                           UserService userService,
                           SendMailService sendMailService,
                           KycHttpClient kycHttpClient,
-                          UserVerificationInfoDao userVerificationInfoDao) {
+                          UserVerificationInfoDao userVerificationInfoDao,
+                          KYCSettingsDao kycSettingsDao) {
         this.verificationUrl = verificationUrl;
         this.statusUrl = statusUrl;
         this.callbackUrl = callbackUrl;
@@ -125,6 +130,7 @@ public class KYCServiceImpl implements KYCService {
         this.sendMailService = sendMailService;
         this.kycHttpClient = kycHttpClient;
         this.userVerificationInfoDao = userVerificationInfoDao;
+        this.kycSettingsDao = kycSettingsDao;
         this.restTemplate = new RestTemplate();
         this.restTemplate.getInterceptors().add(new BasicAuthorizationInterceptor(username, password));
     }
@@ -316,7 +322,8 @@ public class KYCServiceImpl implements KYCService {
                 identityDataRequest.getBirthDay());
         //start create applicant
         String uuid = UUID.randomUUID().toString();
-        userService.updatePrivateDataAndKycReference(email, uuid, identityDataRequest.getCountry(), identityDataRequest.getFirstNames()[1],
+        KycCountryDto countryDto = kycSettingsDao.getCountryByCode(identityDataRequest.getCountry());
+        userService.updatePrivateDataAndKycReference(email, uuid, countryDto.getCountryCode(), identityDataRequest.getFirstNames()[1],
                 identityDataRequest.getLastName(), dateOfBirth);
         PersonKycDto personKycDto = new PersonKycDto(Collections.singletonList(IdentityDataKyc.of(identityDataRequest)));
         CreateApplicantDto createApplicantDto = new CreateApplicantDto(uuid, personKycDto);
