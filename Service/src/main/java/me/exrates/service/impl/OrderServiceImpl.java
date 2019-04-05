@@ -112,6 +112,7 @@ import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.api.OrderParamsWrongException;
 import me.exrates.service.exception.process.AlreadyAcceptedOrderException;
+import me.exrates.service.exception.process.CancelOrderException;
 import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
 import me.exrates.service.exception.process.NotCreatableOrderException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
@@ -123,6 +124,7 @@ import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.BiTuple;
 import me.exrates.service.util.Cache;
+import me.exrates.service.util.CollectionUtil;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1326,7 +1328,7 @@ public class OrderServiceImpl implements OrderService {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.ADD);
         }
     }
-
+    /*Убрать этот костыль!!!!*/
     @Transactional
     @Override
     public boolean cancelOrder(Integer orderId) {
@@ -1405,8 +1407,11 @@ public class OrderServiceImpl implements OrderService {
                 exOrder.getOperationType());
 
         OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
+        if (currentStatus == OrderStatus.CANCELLED) {
+            throw new CancelOrderException(messageSource.getMessage("order.cannotcancel.allreadycancelled", null, locale));
+        }
         if (currentStatus != OrderStatus.OPENED) {
-            throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
+            throw new CancelOrderException(messageSource.getMessage("order.cannotcancel", null, locale));
         }
         String description = transactionDescription.get(currentStatus, CANCEL);
         WalletTransferStatus transferResult = walletService.walletInnerTransfer(
@@ -2092,7 +2097,7 @@ public class OrderServiceImpl implements OrderService {
     public RefreshStatisticDto getSomeCurrencyStatForRefresh(Set<Integer> currencyIds) {
         RefreshStatisticDto res = new RefreshStatisticDto();
         List<ExOrderStatisticsShortByPairsDto> dtos = this.getStatForSomeCurrencies(currencyIds);
-       /* List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);*/
+        /* List<ExOrderStatisticsShortByPairsDto> dtos = exchangeRatesHolder.getCurrenciesRates(currencyIds);*/
         List<ExOrderStatisticsShortByPairsDto> icos = dtos
                 .stream()
                 .filter(p -> p.getType() == CurrencyPairType.ICO)
@@ -2325,7 +2330,7 @@ public class OrderServiceImpl implements OrderService {
     public Pair<Integer, List<OrderWideListDto>> getMyOrdersWithStateMap(Integer userId, CurrencyPair currencyPair,
                                                                          String currencyName, OrderStatus orderStatus,
                                                                          String scope, Integer limit, Integer offset,
-                                                                         Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                                         Boolean hideCanceled, String sortByCreated,
                                                                          LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo,
                                                                          Locale locale) {
 
@@ -2338,7 +2343,6 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
                 dateTimeFrom,
                 dateTimeTo);
 
@@ -2353,7 +2357,7 @@ public class OrderServiceImpl implements OrderService {
                     limit,
                     offset,
                     hideCanceled,
-                    sortedColumns,
+                    sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
                     locale);
@@ -2372,7 +2376,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderWideListDto> getOrdersForExcel(Integer userId, CurrencyPair currencyPair, String currencyName,
                                                     OrderStatus orderStatus, String scope, Integer limit,
-                                                    Integer offset, Boolean hideCanceled, Map<String, String> sortedColumns,
+                                                    Integer offset, Boolean hideCanceled, String sortByCreated,
                                                     LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale) {
         return orderDao.getMyOrdersWithState(
                 userId,
@@ -2383,7 +2387,7 @@ public class OrderServiceImpl implements OrderService {
                 limit,
                 offset,
                 hideCanceled,
-                sortedColumns,
+                sortByCreated,
                 dateTimeFrom,
                 dateTimeTo,
                 locale);
@@ -2425,7 +2429,7 @@ public class OrderServiceImpl implements OrderService {
             Row row = sheet.createRow(index++);
             if (orderStatus == OrderStatus.OPENED) {
                 row.createCell(0, CellType.STRING).setCellValue(getValue(order.getId()));
-                row.createCell(1, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateCreation()) ? order.getDateCreation() : order.getDateStatusModification()));
+                row.createCell(1, CellType.STRING).setCellValue(getValue(order.getDateCreation()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(4, CellType.STRING).setCellValue(getValue(order.getAmountBase()));
@@ -2434,7 +2438,7 @@ public class OrderServiceImpl implements OrderService {
                 row.createCell(7, CellType.STRING).setCellValue(getValue(order.getCommissionValue()));
                 row.createCell(8, CellType.STRING).setCellValue(getValue(order.getAmountWithCommission()));
             } else {
-                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateAcception()) ? order.getDateAcception() : order.getDateStatusModification()));
+                row.createCell(0, CellType.STRING).setCellValue(getValue(Objects.nonNull(order.getDateAcception()) ? order.getDateAcception() : order.getDateModification()));
                 row.createCell(1, CellType.STRING).setCellValue(getValue(order.getCurrencyPairName()));
                 row.createCell(2, CellType.STRING).setCellValue(getValue(order.getOrderBaseType()));
                 row.createCell(3, CellType.STRING).setCellValue(getValue(order.getOperationType()));
@@ -2553,17 +2557,21 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderBookWrapperDto findAllOrderBookItems(OrderType orderType, Integer currencyId, int precision) {
         final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
+
         List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, precision);
+
         OrderBookWrapperDto dto = OrderBookWrapperDto
                 .builder()
                 .orderType(orderType)
                 .orderBookItems(simpleOrderBookItems)
                 .total(getWrapperTotal(simpleOrderBookItems))
                 .build();
+
         ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
         if (nonNull(statistic)) {
             final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
@@ -2579,21 +2587,26 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Map<PrecissionsEnum, String> findAllOrderBookItemsForAllPrecissions(OrderType orderType, Integer currencyId, List<PrecissionsEnum> precissionsList) {
         final MathContext context = new MathContext(8, RoundingMode.HALF_EVEN);
+
         List<OrderListDto> rawItems = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderType)
                 .stream()
                 .peek(n -> n.setExrate(new BigDecimal(n.getExrate()).round(context).toPlainString()))
                 .collect(Collectors.toList());
+
         ExOrderStatisticsShortByPairsDto statistic = exchangeRatesHolder.getOne(currencyId);
+
         Map<PrecissionsEnum, String> result = new HashMap<>();
         precissionsList.forEach(p -> {
             try {
                 List<SimpleOrderBookItem> simpleOrderBookItems = aggregateItems(orderType, rawItems, currencyId, p.getValue());
+
                 OrderBookWrapperDto dto = OrderBookWrapperDto
                         .builder()
                         .orderType(orderType)
                         .orderBookItems(simpleOrderBookItems)
                         .total(getWrapperTotal(simpleOrderBookItems))
                         .build();
+
                 if (nonNull(statistic)) {
                     final BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
                     final BigDecimal predLastOrderRate = new BigDecimal(statistic.getPredLastOrderRate());
@@ -2602,9 +2615,9 @@ public class OrderServiceImpl implements OrderService {
                     dto.setPreLastExrate(safeFormatBigDecimal(predLastOrderRate));
                     dto.setPositive(safeCompareBigDecimals(lastOrderRate, predLastOrderRate));
                 }
-                result.put(p, objectMapper.writeValueAsString(Arrays.asList(dto)));
-            } catch (Exception e) {
-                log.error(e);
+                result.put(p, objectMapper.writeValueAsString(Collections.singletonList(dto)));
+            } catch (Exception ex) {
+                log.error(ex);
             }
         });
         return result;
@@ -2623,9 +2636,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private boolean safeCompareBigDecimals(BigDecimal last, BigDecimal beforeLast) {
-        if (last == null) {
+        if (Objects.isNull(last)) {
             return false;
-        } else if (beforeLast == null) {
+        } else if (Objects.isNull(beforeLast)) {
             return true;
         } else {
             return last.compareTo(beforeLast) > 0;
@@ -2646,48 +2659,50 @@ public class OrderServiceImpl implements OrderService {
     private List<SimpleOrderBookItem> aggregateItems(OrderType orderType, List<OrderListDto> rawItems,
                                                      int currencyPairId, int precision) {
         MathContext mathContext = new MathContext(precision, RoundingMode.HALF_DOWN);
+
         Map<BigDecimal, List<OrderListDto>> groupByExrate = rawItems
                 .stream()
-                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext), Collectors.toList()));
+                .collect(Collectors.groupingBy(item -> new BigDecimal(item.getExrate()).round(mathContext)));
+
         List<SimpleOrderBookItem> items = Lists.newArrayList();
         groupByExrate.forEach((key, value) -> items.add(SimpleOrderBookItem
                 .builder()
-                .exrate(new BigDecimal(key.toString()))
+                .exrate(key)
                 .currencyPairId(currencyPairId)
                 .orderType(orderType)
-                .amount(getAmount(value))
+                .amount(value
+                        .stream()
+                        .map(ol -> new BigDecimal(ol.getAmountBase()))
+                        .reduce(BigDecimal::add)
+                        .orElse(BigDecimal.ZERO))
                 .build()));
 
-        if (!items.isEmpty()) {
+        if (CollectionUtil.isNotEmpty(items)) {
             if (orderType == OrderType.SELL) {
                 items.sort(Comparator.comparing(SimpleOrderBookItem::getExrate));
             } else {
                 items.sort((o1, o2) -> o2.getExrate().compareTo(o1.getExrate()));
             }
         }
-        List<SimpleOrderBookItem> preparedItems = items.stream().limit(8).collect(Collectors.toList());
+        List<SimpleOrderBookItem> preparedItems = items
+                .stream()
+                .limit(8)
+                .collect(Collectors.toList());
+
         setSumAmount(preparedItems);
         setTotal(preparedItems);
         return preparedItems;
     }
 
-    private BigDecimal getAmount(List<OrderListDto> list) {
-        BigDecimal amount = BigDecimal.ZERO;
-        for (OrderListDto item : list) {
-            amount = amount.add(new BigDecimal(item.getAmountBase()));
-        }
-        return amount;
-    }
-
     private void setSumAmount(List<SimpleOrderBookItem> items) {
         for (int i = 0; i < items.size(); i++) {
+            SimpleOrderBookItem item = items.get(i);
             if (i == 0) {
-                items.get(i).setSumAmount(items.get(i).getAmount());
-            } else {
-                BigDecimal add =
-                        BigDecimalProcessing.doAction(items.get(i).getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
-                items.get(i).setSumAmount(add);
+                item.setSumAmount(item.getAmount());
+                continue;
             }
+            BigDecimal add = BigDecimalProcessing.doAction(item.getAmount(), items.get(i - 1).getSumAmount(), ActionType.ADD);
+            item.setSumAmount(add);
         }
     }
 
@@ -2699,19 +2714,18 @@ public class OrderServiceImpl implements OrderService {
                 item.setTotal(total);
                 continue;
             }
-
             BigDecimal totalItem = BigDecimalProcessing.doAction(item.getAmount(), item.getExrate(), ActionType.MULTIPLY);
-            BigDecimal prevTotal = item.getAmount().add(preparedItems.get(i - 1).getTotal());
-            BigDecimal total = BigDecimalProcessing.doAction(prevTotal, totalItem, ActionType.ADD);
+            BigDecimal prevItem = preparedItems.get(i - 1).getTotal();
+            BigDecimal total = BigDecimalProcessing.doAction(prevItem, totalItem, ActionType.ADD);
             item.setTotal(total);
         }
     }
 
     private String safeFormatBigDecimal(BigDecimal value) {
-        if (value == null) {
-            value = BigDecimal.ZERO;
-        }
-        value = BigDecimalProcessing.normalize(value);
+        value = Objects.isNull(value)
+                ? BigDecimal.ZERO
+                : BigDecimalProcessing.normalize(value);
+
         return BigDecimalProcessing.formatSpacePoint(value, false).replace(" ", "");
     }
 }
