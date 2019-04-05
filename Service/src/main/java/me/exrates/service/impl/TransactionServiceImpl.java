@@ -96,31 +96,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.saveInBatch(transactions);
     }
 
-
-    @PostConstruct
-    public void init() {
-        Set<TransactionSourceType> storedTypes = transactionDao.findAllTransactionSourceTypes();
-        Set<TransactionSourceType> enumValues = new HashSet<>(Arrays.asList(TransactionSourceType.values()));
-        enumValues.removeAll(storedTypes);
-        if (!enumValues.isEmpty()) {
-            transactionDao.updateStoredTransactionSourceType(enumValues);
-        }
-    }
-
-    @Override
-    public Transaction save(Transaction transaction) {
-        return transactionDao.create(transaction);
-    }
-
-    @Override
-    public Transaction save(Collection<Transaction> transactions) {
-
-
-
-
-        return null;
-    }
-
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
