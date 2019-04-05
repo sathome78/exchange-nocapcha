@@ -26,25 +26,13 @@ public interface TransactionService {
 
     Transaction save(Transaction transaction);
 
-    Transaction save(Collection<Transaction> transactions);
+    boolean save(Collection<Transaction> transactions);
 
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 
     Transaction findById(int id);
 
-    void updateTransactionAmount(Transaction transaction, BigDecimal amount);
-
-    void updateTransactionAmount(Transaction transaction);
-
-    BigDecimal calculateNewCommission(Transaction transaction, BigDecimal amount);
-
-    void nullifyTransactionAmountForWithdraw(Transaction transaction);
-
-    void updateTransactionConfirmation(int transactionId, int confirmations);
-
     void provideTransaction(Transaction transaction);
-
-    void invalidateTransaction(Transaction transaction);
 
     DataTable<List<OperationViewDto>> showUserOperationHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
@@ -53,14 +41,6 @@ public interface TransactionService {
     DataTable<List<AccountStatementDto>> getAccountStatementForAdmin(Integer walletId, Integer offset, Integer limit, Locale locale);
 
     BigDecimal maxAmount();
-
-    BigDecimal maxCommissionAmount();
-
-    List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
-
-    void setSourceId(Integer trasactionId, Integer sourceId);
-
-    List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 
     boolean setStatusById(Integer trasactionId, Integer statusId);
 

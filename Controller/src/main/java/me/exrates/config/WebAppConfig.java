@@ -2134,6 +2134,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean(name = "digicServiceImpl")
+    @Conditional(MonolitConditional.class)
     public XemMosaicService digicService() {
         return new XemMosaicServiceImpl(
                 "DIGIT",
@@ -2143,6 +2144,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 6,
                 new Supply(8999999999L),
                 10);
+    }
+
+    @Bean(name = "darcServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public XemMosaicService darcService() {
+        return new XemMosaicServiceImpl(
+                "DARC",
+                "DARC",
+                new MosaicIdDto("darc_totalsupply", "darc"),
+                1000000,
+                6,
+                new Supply(1000000000L),
+                0);
     }
 
     /***stellarAssets****/
