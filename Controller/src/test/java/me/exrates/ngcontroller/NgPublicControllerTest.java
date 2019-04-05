@@ -20,13 +20,13 @@ import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -105,6 +105,8 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
     private TelegramChatDao telegramChatDao;
     @Autowired
     private ExchangeRatesHolder exchangeRatesHolder;
+    @Autowired
+    private IEOService ieoService;
 
     @InjectMocks
     private NgPublicController ngPublicController;
@@ -113,7 +115,7 @@ public class NgPublicControllerTest extends AngularApiCommonTest {
 
     @Before
     public void setUp() {
-        ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, userService,
+        ngPublicController = new NgPublicController(chatService, currencyService, ipBlockingService, ieoService, userService,
                 ngUserService, messagingTemplate, orderService, g2faService, ngOrderService, telegramChatDao, exchangeRatesHolder);
 
         HandlerExceptionResolver resolver = ((HandlerExceptionResolverComposite) webApplicationContext
