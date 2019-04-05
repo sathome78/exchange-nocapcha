@@ -40,7 +40,7 @@ public class KYCSettingsDaoImpl implements KYCSettingsDao {
 
     @Override
     public KycCountryDto getCountryByCode(String code) {
-        final String sql = "SELECT kcc.country_name, kcc.country_code FROM KYC_COUNTRY_CODES kcc WHERE klc.country_code = :code ";
+        final String sql = "SELECT kcc.country_name, kcc.country_code FROM KYC_COUNTRY_CODES kcc WHERE kcc.country_code = :code ";
 
         Map<String, String> params = new HashMap<String, String>() {
             {

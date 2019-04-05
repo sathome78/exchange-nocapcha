@@ -172,7 +172,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     public boolean isCountryRestrictedByIeoId(int idIeo, String countryCode) {
 
         String sql = "SELECT CASE WHEN count(*) > 0 THEN TRUE ELSE FALSE END FROM IEO_RESTRICTED_COUNTRY WHERE country_code = :code AND" +
-                " ieo_id = :idIeo";
+                " ieo_id = :ieo_id";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("code", countryCode);

@@ -1423,7 +1423,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public boolean existPolicyByUserIdAndPolicy(int id, String policyName) {
 
-        String sql = "SELECT COUNT(p.*) FROM POLICY p " +
+        String sql = "SELECT COUNT(*) FROM POLICY p " +
                 "INNER JOIN USER_POLICES up ON up.policy_id = p.id " +
                 "WHERE up.user_id = :id AND p.name = :policy LIMIT 1" ;
         final Map<String, String> params = new HashMap<String, String>() {
