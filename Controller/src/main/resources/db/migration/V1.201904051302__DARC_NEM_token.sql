@@ -17,7 +17,7 @@ INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY wh
 
 INSERT INTO CURRENCY_LIMIT(currency_id, operation_type_id, user_role_id, min_sum, max_sum)
   SELECT (select id from CURRENCY where name = 'DARC'), operation_type_id, user_role_id, min_sum, max_sum
-  FROM CURRENCY_LIMIT WHERE currency_id = (select id from CURRENCY where name = 'EDR');
+  FROM CURRENCY_LIMIT WHERE currency_id = (select id from CURRENCY where name = 'EDC');
 
 INSERT INTO `COMPANY_WALLET` (`currency_id`) VALUES ((select id from CURRENCY where name = 'DARC'));
 
