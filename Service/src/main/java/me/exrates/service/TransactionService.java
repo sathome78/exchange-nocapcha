@@ -15,6 +15,7 @@ import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,6 +25,8 @@ import java.util.Locale;
 public interface TransactionService {
 
     Transaction save(Transaction transaction);
+
+    Transaction save(Collection<Transaction> transactions);
 
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 

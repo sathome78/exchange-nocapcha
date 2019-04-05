@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
@@ -847,6 +848,7 @@ public class WalletServiceImpl implements WalletService {
 
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getActiveBalance();
         makerBtcWallet.setActiveBalance(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
+
         userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
@@ -858,18 +860,19 @@ public class WalletServiceImpl implements WalletService {
         if (updateResult) {
             final Wallet makerWallet = makerBtcWallet;
             final Wallet userWallet = userIeoWallet;
-            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet, userIeoInitialAmount, userWallet));
+            final Wallet userMainWallet = userBtcWallet;
+            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet,
+                    userIeoInitialAmount, userWallet, userMainWallet));
         }
         return updateResult;
     }
 
     private void writeTransActionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
-                                        BigDecimal userIeoInitialAmount, Wallet userIeoWallet) {
-        Transaction makerTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), OperationType.SELL, makerBtcWallet, ieoClaim);
-        transactionService.save(makerTransaction);
-
-        Transaction userTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), OperationType.BUY, userIeoWallet, ieoClaim);
-        transactionService.save(userTransaction);
+                                        BigDecimal userIeoInitialAmount, Wallet userIeoWallet, Wallet userMainWallet) {
+        Transaction makerTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim);
+        Transaction userBtcTransaction = prepareUserBtcTransaction(userMainWallet, ieoClaim);
+        Transaction userTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim);
+        transactionService.save(ImmutableList.of(makerTransaction, userBtcTransaction, userTransaction));
     }
 
     @Override
@@ -877,25 +880,38 @@ public class WalletServiceImpl implements WalletService {
         return walletDao.getAvailableAmountInBtcLocked(userId, currencyId);
     }
 
-    private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, OperationType operationType, Wallet wallet, IEOClaim ieoClaim) {
+    private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
-        String description = "";
-        if (operationType == OperationType.BUY) {
-            description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
+        String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
                     + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
-        } else if (operationType == OperationType.SELL) {
-            description = "Sell of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " for " + ieoClaim.getPriceInBtc() + " BTC "
-                    + "within IEO: 1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
-        }
         return Transaction
                 .builder()
                 .userWallet(wallet)
                 .amount(amount)
                 .commissionAmount(amount)
-                .operationType(operationType)
+                .operationType(OperationType.INPUT)
                 .currency(currency)
                 .datetime(LocalDateTime.now())
                 .activeBalanceBefore(initialAmount)
+                .reservedBalanceBefore(wallet.getReservedBalance())
+                .sourceType(TransactionSourceType.IEO)
+                .description(description)
+                .build();
+    }
+
+    private Transaction prepareUserBtcTransaction(Wallet wallet, IEOClaim ieoClaim) {
+        Currency currency = currencyService.findById(wallet.getCurrencyId());
+        String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
+                + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
+        return Transaction
+                .builder()
+                .userWallet(wallet)
+                .amount(ieoClaim.getPriceInBtc())
+                .commissionAmount(ieoClaim.getPriceInBtc())
+                .operationType(OperationType.OUTPUT)
+                .currency(currency)
+                .datetime(LocalDateTime.now())
+                .activeBalanceBefore(wallet.getActiveBalance().add(ieoClaim.getPriceInBtc()))
                 .reservedBalanceBefore(wallet.getReservedBalance())
                 .sourceType(TransactionSourceType.IEO)
                 .description(description)
