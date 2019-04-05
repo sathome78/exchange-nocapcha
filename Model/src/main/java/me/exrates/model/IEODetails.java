@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 @Builder
 public class IEODetails {
 
-    @JsonIgnore
     private int id;
     private String currencyName;
     private String currencyDescription;
@@ -33,9 +33,9 @@ public class IEODetails {
     private BigDecimal maxAmountPerClaim;
     @JsonIgnore
     private BigDecimal maxAmountPerUser;
-    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
-    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
     @JsonIgnore
     private LocalDateTime createdAt;
