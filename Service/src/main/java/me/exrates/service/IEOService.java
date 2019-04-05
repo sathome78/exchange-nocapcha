@@ -13,7 +13,7 @@ import java.util.Collection;
 public interface IEOService {
     ClaimDto addClaim(ClaimDto claimDto, String email);
 
-    IEOStatusInfo checkUserStatusForIEO(String email);
+    IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);
 
     Collection<IEODetails> findAll();
 

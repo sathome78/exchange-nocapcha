@@ -22,13 +22,11 @@ import javax.validation.Valid;
 @Log4j2
 public class NgIEOController {
 
+    private final IEOService ieoService;
+
     @Autowired
-    private IEOService ieoService;
-
-    @GetMapping("/{ieoName}")
-    public ResponseModel<?> getInfo(@PathVariable String ieoName) {
-
-        return new ResponseModel<>();
+    public NgIEOController(IEOService ieoService) {
+        this.ieoService = ieoService;
     }
 
     @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -36,10 +34,10 @@ public class NgIEOController {
         return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
     }
 
-    @GetMapping(value = "/check", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseModel<?> checkAvailable() {
+    @GetMapping(value = "/check/{idIeo}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkAvailable(@PathVariable int idIeo) {
         String email = getPrincipalEmail();
-        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email);
+        IEOStatusInfo result = ieoService.checkUserStatusForIEO(email, idIeo);
         return new ResponseModel<>(result);
     }
 

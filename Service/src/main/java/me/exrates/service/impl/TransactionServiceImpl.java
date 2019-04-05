@@ -45,6 +45,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -89,6 +90,15 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Transaction save(Transaction transaction) {
         return transactionDao.create(transaction);
+    }
+
+    @Override
+    public Transaction save(Collection<Transaction> transactions) {
+
+
+
+
+        return null;
     }
 
     @Override

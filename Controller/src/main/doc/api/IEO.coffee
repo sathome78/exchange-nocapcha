@@ -82,15 +82,15 @@ curl -X PUT \
 ###
 
 ###
-@api {get} /api/private/v2/ieo/check Get state of conditions fot user
-@apiName Get state of conditions fot user
+@api {get} /api/private/v2/ieo/check/:idIEO Get state of conditions for user by id IEO
+@apiName Get state of conditions for user by id IEO
 @apiVersion 0.0.1
 @apiGroup IEO
 @apiUse Exrates
 
 @apiExample {curl} Example usage:
 curl -X GET \
-  http://dev1.exrates.tech/api/private/v2/ieo/check \
+  http://dev1.exrates.tech/api/private/v2/ieo/check/btt \
   -H 'exrates-rest-token: $token'
 
 @apiSuccess {Object} data Data
