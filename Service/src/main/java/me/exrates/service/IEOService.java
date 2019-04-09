@@ -24,4 +24,6 @@ public interface IEOService {
 
     @Transactional
     void updateIeo(Integer id, IeoDetailsUpdateDto dto);
+
+    void startRevertIEO(Integer idIeo, String email);
 }
