@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.beust.jcommander.internal.Sets;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.Commission;
@@ -37,6 +38,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -49,9 +52,12 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -595,6 +601,21 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " FROM TRANSACTION ";
         return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
 
+    }
+
+    @Override
+    public Set<TransactionSourceType> findAllTransactionSourceTypes() {
+        String sql = "SELECT id FROM TRANSACTION_SOURCE_TYPE";
+        List<TransactionSourceType> types = jdbcTemplate.query(sql, (rs, i) -> TransactionSourceType.convert(rs.getInt("id")));
+        return new HashSet<>(types);
+    }
+
+    @Override
+    public boolean updateStoredTransactionSourceType(Set<TransactionSourceType> values) {
+        SqlParameterSource [] batch = SqlParameterSourceUtils.createBatch(values.toArray());
+        String sql = "INSERT INTO TRANSACTION_SOURCE_TYPE VALUES (:code, :name)";
+        int [] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
     }
 
     @Override

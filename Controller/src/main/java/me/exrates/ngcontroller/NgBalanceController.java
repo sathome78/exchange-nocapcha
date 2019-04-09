@@ -25,7 +25,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.UserOperationAccessException;
-import me.exrates.utils.DateUtils;
+import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

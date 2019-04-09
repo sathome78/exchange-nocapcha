@@ -1,23 +1,28 @@
 package me.exrates.ngcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
+import me.exrates.model.dto.WithdrawableDataDto;
 import me.exrates.model.dto.ngDto.WithdrawDataDto;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
-import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
@@ -28,11 +33,11 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.G2faService;
+import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.userOperation.UserOperationService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +47,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +58,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -66,6 +73,7 @@ import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 
 @RestController
+@PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/withdraw",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -83,7 +91,6 @@ public class NgWithdrawController {
     private final UserService userService;
     private final WalletService walletService;
     private final WithdrawService withdrawService;
-    private final MerchantServiceContext merchantServiceContext;
 
     @Autowired
     public NgWithdrawController(CurrencyService currencyService,
@@ -95,8 +102,7 @@ public class NgWithdrawController {
                                 UserOperationService userOperationService,
                                 UserService userService,
                                 WalletService walletService,
-                                WithdrawService withdrawService,
-                                MerchantServiceContext merchantServiceContext) {
+                                WithdrawService withdrawService) {
         this.currencyService = currencyService;
         this.g2faService = g2faService;
         this.inputOutputService = inputOutputService;
@@ -107,7 +113,6 @@ public class NgWithdrawController {
         this.userService = userService;
         this.walletService = walletService;
         this.withdrawService = withdrawService;
-        this.merchantServiceContext = merchantServiceContext;
     }
 
     // POST: /api/private/v2/balances/withdraw/request/create
@@ -154,7 +159,8 @@ public class NgWithdrawController {
             return ResponseEntity.ok(withdrawalResponse);
         } catch (InvalidAmountException e) {
             logger.error("Failed to create withdraw request", e);
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Failed to create withdraw request %s", e.toString());
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_CREATE_WITHDRAW_REQUEST, message);
         }
     }
 
@@ -180,16 +186,16 @@ public class NgWithdrawController {
 
             //check additional field and fill it
             for (MerchantCurrency merchantCurrency : merchantCurrencyData) {
-                IWithdrawable withdrawable = (IWithdrawable) merchantServiceContext.getMerchantService(merchantCurrency.getMerchantId());
-                if (withdrawable.additionalTagForWithdrawAddressIsUsed()) {
-                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(true);
-                    merchantCurrency.setAdditionalFieldName(withdrawable.additionalWithdrawFieldName());
-                } else {
-                    merchantCurrency.setAdditionalTagForWithdrawAddressIsUsed(false);
-                }
+                withdrawService.setAdditionalData(merchantCurrency);
+
             }
 
             List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
+
+            BigDecimal leftRequestSum = withdrawService.getLeftOutputRequestsSum(currency.getId(), email);
+            if (leftRequestSum.compareTo(BigDecimal.ZERO) < 0) {
+                leftRequestSum = BigDecimal.ZERO;
+            }
 
             WithdrawDataDto withdrawDataDto = WithdrawDataDto
                     .builder()
@@ -198,6 +204,7 @@ public class NgWithdrawController {
                     .operationType(operationType)
                     .minWithdrawSum(minWithdrawSum)
                     .maxDailyRequestSum(maxDailyRequestSum)
+                    .leftRequestSum(leftRequestSum)
                     .merchantCurrencyData(merchantCurrencyData)
                     .scaleForCurrency(scaleForCurrency)
                     .warningCodeList(warningCodeList)
@@ -205,7 +212,8 @@ public class NgWithdrawController {
             return ResponseEntity.ok(withdrawDataDto);
         } catch (Exception ex) {
             logger.error("outputCredits error:", ex);
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Failed output credits %s", currencyName);
+            throw new NgResponseException(ErrorApiTitles.FAILED_OUTPUT_CREDITS, message);
         }
     }
 
@@ -224,8 +232,9 @@ public class NgWithdrawController {
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error("Failed to send user email", e);
-            return ResponseEntity.badRequest().build();
+            logger.error("Failed to send pin code on user email", e);
+            String message = "Failed to send pin code on user email";
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_PIN_CODE_ON_USER_EMAIL, message);
         }
     }
 

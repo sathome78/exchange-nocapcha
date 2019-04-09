@@ -40,11 +40,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -70,6 +75,31 @@ public class TransactionServiceImpl implements TransactionService {
     private MerchantService merchantService;
     @Autowired
     private CurrencyService currencyService;
+
+
+    @PostConstruct
+    public void init() {
+        Set<TransactionSourceType> storedTypes = transactionDao.findAllTransactionSourceTypes();
+        Set<TransactionSourceType> enumValues = new HashSet<>(Arrays.asList(TransactionSourceType.values()));
+        enumValues.removeAll(storedTypes);
+        if (!enumValues.isEmpty()) {
+            transactionDao.updateStoredTransactionSourceType(enumValues);
+        }
+    }
+
+    @Override
+    public Transaction save(Transaction transaction) {
+        return transactionDao.create(transaction);
+    }
+
+    @Override
+    public Transaction save(Collection<Transaction> transactions) {
+
+
+
+
+        return null;
+    }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)

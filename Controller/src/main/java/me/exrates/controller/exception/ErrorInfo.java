@@ -1,7 +1,9 @@
 package me.exrates.controller.exception;
 
+import lombok.ToString;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.service.exception.IeoException;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Valk on 04.04.16.
  */
+@ToString
 public class ErrorInfo {
     public final String url;
     public final String cause;
@@ -39,6 +42,15 @@ public class ErrorInfo {
     }
 
     public ErrorInfo(CharSequence url, NgResponseException exception) {
+        this.url = url.toString();
+        this.cause = exception.getClass().getSimpleName();
+        this.detail =  exception.getMessage();
+        this.title = exception.getTitle();
+        this.code = exception.getHttpStatus().value();
+        this.uuid = MDC.get("process.id");
+    }
+
+    public ErrorInfo(CharSequence url, IeoException exception) {
         this.url = url.toString();
         this.cause = exception.getClass().getSimpleName();
         this.detail =  exception.getMessage();

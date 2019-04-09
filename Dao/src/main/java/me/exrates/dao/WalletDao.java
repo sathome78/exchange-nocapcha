@@ -67,9 +67,13 @@ public interface WalletDao {
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
     Wallet findById(Integer walletId);
 
     Wallet createWallet(User user, int currencyId);
+
+    Wallet createWallet(int userId, int currencyId);
 
     boolean update(Wallet wallet);
 
@@ -94,6 +98,12 @@ public interface WalletDao {
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
+
+    BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 

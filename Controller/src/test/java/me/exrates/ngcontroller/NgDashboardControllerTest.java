@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -21,6 +22,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -35,6 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.util.NestedServletException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -44,10 +47,11 @@ import java.util.Locale;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
@@ -136,10 +140,20 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Mockito.when(ngOrderService.prepareOrder(anyObject())).thenReturn(orderCreateDto);
         Mockito.when(stopOrderService.create(anyObject(), anyObject(), anyObject())).thenReturn("");
 
-        mockMvc.perform(post(BASE_URL + "/order")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(requestJson))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/order")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(requestJson))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("CREATE_ORDER_FAILED", responseException.getTitle());
+
+            String expected = "Invalid orderId= 111";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(ngOrderService, times(1)).prepareOrder(anyObject());
         verify(stopOrderService, times(1)).create(anyObject(), anyObject(), anyObject());
@@ -182,10 +196,20 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Mockito.when(ngOrderService.prepareOrder(anyObject())).thenReturn(orderCreateDto);
         Mockito.when(orderService.createOrder(anyObject(), anyObject(), anyObject())).thenReturn("");
 
-        mockMvc.perform(post(BASE_URL + "/order")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .content(requestJson))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(post(BASE_URL + "/order")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                    .content(requestJson))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("CREATE_ORDER_FAILED", responseException.getTitle());
+
+            String expected = "Invalid orderId= 111";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(ngOrderService, times(1)).prepareOrder(anyObject());
         verify(orderService, times(1)).createOrder(anyObject(), anyObject(), anyObject());
@@ -205,13 +229,23 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
     }
 
     @Test
-    public void deleteOrderById_bad_request() throws Exception {
+    public void deleteOrderById_bad_request() {
         Integer id = 5;
         Mockito.when(orderService.deleteOrderByAdmin(anyInt())).thenReturn(id);
 
-        mockMvc.perform(delete(BASE_URL + "/order/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(delete(BASE_URL + "/order/{id}", id)
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("DELETE_ORDER_FAILED", responseException.getTitle());
+
+            String expected = "Invalid orderId= 5";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(orderService, times(1)).deleteOrderByAdmin(anyInt());
         reset(orderService);
@@ -259,9 +293,19 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
         Mockito.when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("RUB"));
         Mockito.when(dashboardService.getBalanceByCurrency(anyInt(), anyInt())).thenThrow(Exception.class);
 
-        mockMvc.perform(get(BASE_URL + "/balance/{currency}", "TEST_CURRENCY")
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(get(BASE_URL + "/balance/{currency}", "TEST_CURRENCY")
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_GET_BALANCE_BY_CURRENCY", responseException.getTitle());
+
+            String expected = "Error while get balance by currency user {TEST_EMAIL}, currency {RUB}";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getUserEmailFromSecurityContext();
         verify(userService, times(1)).findByEmail(anyString());
@@ -308,7 +352,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyString(), anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -334,7 +378,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -355,7 +399,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -381,7 +425,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -401,15 +445,25 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
-        mockMvc.perform(get(BASE_URL + "/orders/{status}", OrderStatus.DRAFT)
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(get(BASE_URL + "/orders/{status}", OrderStatus.DRAFT)
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_FILTERED_ORDERS", responseException.getTitle());
+
+            String expected = "Failed to filtered orders";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         reset(userService);
@@ -422,7 +476,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -443,7 +497,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -466,7 +520,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -488,7 +542,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -514,7 +568,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -535,7 +589,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
@@ -560,7 +614,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
@@ -579,15 +633,25 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class))
         ).thenThrow(Exception.class);
 
-        mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.DRAFT)
-                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isBadRequest());
+        try {
+            mockMvc.perform(get(BASE_URL + "/last/orders/{status}", OrderStatus.DRAFT)
+                    .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                    .andExpect(status().isBadRequest());
+            Assert.fail();
+        } catch (Exception e) {
+            assertTrue(((NestedServletException) e).getRootCause() instanceof NgResponseException);
+            NgResponseException responseException = (NgResponseException) ((NestedServletException) e).getRootCause();
+            assertEquals("FAILED_TO_GET_LAST_ORDERS", responseException.getTitle());
+
+            String expected = "Failed to get last orders";
+            assertEquals(expected, e.getCause().getMessage());
+        }
 
         verify(userService, times(1)).getIdByEmail(anyString());
         reset(userService);
@@ -600,7 +664,7 @@ public class NgDashboardControllerTest extends AngularApiCommonTest {
                 anyInt(),
                 anyInt(),
                 anyBoolean(),
-                anyMapOf(String.class, String.class),
+                anyString(),
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(Locale.class));
