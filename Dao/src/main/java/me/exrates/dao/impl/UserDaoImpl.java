@@ -1371,7 +1371,7 @@ public class UserDaoImpl implements UserDao {
         params.addValue("value", refernceUID);
         params.addValue("email", email);
         params.addValue("country", country);
-        params.addValue("firsName", firstName);
+        params.addValue("firstName", firstName);
         params.addValue("lastName", lastName);
         params.addValue("birthDay", birthDay);
         try {
