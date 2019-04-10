@@ -130,6 +130,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Transactional(readOnly = true)
     @Override
     public Currency findByName(String name) {
+        if (isNull(currencyByNameCache)) {
+            return currencyDao.findByName(name);
+        }
         return currencyByNameCache.get(name, () -> currencyDao.findByName(name));
     }
 
@@ -204,7 +207,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         try {
             return currencyPairByIdCache.get(currencyPairId, () -> currencyDao.findCurrencyPairById(currencyPairId));
-        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex ) {
+        } catch (EmptyResultDataAccessException | Cache.ValueRetrievalException ex) {
             throw new CurrencyPairNotFoundException("Currency pair not found");
         }
     }
