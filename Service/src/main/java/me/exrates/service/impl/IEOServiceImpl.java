@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class IEOServiceImpl implements IEOService {
@@ -151,7 +152,7 @@ public class IEOServiceImpl implements IEOService {
         if (Objects.isNull(user)) {
             return ieoDetailsRepository.findAll();
         } else if (user.getRole() == UserRole.ICO_MARKET_MAKER) {
-            return ieoDetailsRepository.findAllExceptForMaker(user.getId());
+            return prepareMarketMakerIeos(user);
         }
         Map<String, String> userCurrencyBalances = walletService.findUserCurrencyBalances(user);
         Collection<IEODetails> details = ieoDetailsRepository.findAll();
@@ -269,5 +270,23 @@ public class IEOServiceImpl implements IEOService {
         claims.forEach(c);
         accumulator.clear();
         claims.clear();
+    }
+
+    private Collection<IEODetails> prepareMarketMakerIeos(User user) {
+        Collection<IEODetails> makerIeos = ieoDetailsRepository.findAllExceptForMaker(user.getId());
+        List<String> currencyNames = makerIeos
+                .stream()
+                .map(IEODetails::getCurrencyName)
+                .collect(Collectors.toList());
+        Map<String, Wallet> userWallets = walletService.findAllByUserAndCurrencyNames(user.getId(), currencyNames);
+        makerIeos.forEach(ieo -> {
+            if (userWallets.containsKey(ieo.getCurrencyName())
+                    && userWallets.get(ieo.getCurrencyName()) != null) {
+                ieo.setPersonalAmount(userWallets.get(ieo.getCurrencyName()).getIeoReserved());
+            } else {
+                ieo.setPersonalAmount(BigDecimal.ZERO);
+            }
+        });
+        return makerIeos;
     }
 }

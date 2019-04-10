@@ -43,6 +43,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -846,6 +847,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
             put("part", partName.toUpperCase());
         }};
         return npJdbcTemplate.query(sql, params, currencyPairRowShort);
+    }
+
+    @Override
+    public List<Currency> findAllByNames(Collection<String> names) {
+        String sql = "SELECT id, name FROM CURRENCY WHERE name IN (:names) ";
+        MapSqlParameterSource params = new MapSqlParameterSource("names", names);
+        return npJdbcTemplate.query(sql, params, (rs, row) -> Currency.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build());
     }
 
     private RowMapper<Currency> getCurrencyRowMapper() {
