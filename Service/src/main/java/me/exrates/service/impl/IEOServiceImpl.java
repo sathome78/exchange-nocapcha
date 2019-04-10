@@ -9,6 +9,7 @@ import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.constants.Constants;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
@@ -18,12 +19,12 @@ import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.model.exceptions.IeoException;
 import me.exrates.service.ieo.IEOQueueService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -193,17 +194,18 @@ public class IEOServiceImpl implements IEOService {
     @Override
     public void startRevertIEO(Integer idIeo, String adminEmail) {
         User user = userService.findByEmail(adminEmail);
-        if (user.getRole() != UserRole.ADMIN_USER ) {
-            throw new RuntimeException("NOT ADMIN!!!"); // fix it
+        if (user.getRole() != UserRole.ADMIN_USER) {
+            String message = String.format("Error while start revert IEO, user not ADMIN %s", adminEmail);
+            logger.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_USER_NOT_ADMIN, message);
         }
         IEODetails ieoEntity = findOne(idIeo);
 
-        if (ieoEntity.getStatus() == IEODetailsStatus.PROCESSING_FAIL) {
-            throw new RuntimeException("ALREADY STARTED!!!"); // fix it
-        }
-
         if (ieoEntity.getStatus() == IEODetailsStatus.FAILED) {
-            throw new RuntimeException("ALREADY FAIL!!!"); // fix it
+            String message = String.format("Error while start revert IEO, already FAIL, IEO %s",
+                    ieoEntity.getCurrencyName());
+            logger.warn(message);
+            throw new IeoException(ErrorApiTitles.IEO_ALREADY_PROCESSED, message);
         }
 
         ieoEntity.setStatus(IEODetailsStatus.PROCESSING_FAIL);
@@ -213,6 +215,11 @@ public class IEOServiceImpl implements IEOService {
 
         ieoEntity.setStatus(IEODetailsStatus.FAILED);
         ieoDetailsRepository.update(ieoEntity);
+
+        User maker = userService.getUserById(ieoEntity.getMakerId());
+        maker.setRole(UserRole.USER);
+        userService.updateUserRole(maker.getId(), UserRole.USER);
+
         Email email = new Email();
         email.setTo(user.getEmail());
         email.setMessage("Revert IEO");
@@ -244,7 +251,8 @@ public class IEOServiceImpl implements IEOService {
         }
     }
 
-    private void consumeClaimByPartition(Integer ieoId, Consumer<IEOClaim> c) {
+    @Transactional
+    public void consumeClaimByPartition(Integer ieoId, Consumer<IEOClaim> c) {
         Collection<Integer> allIds = ieoClaimRepository.getAllSuccessClaimIdsByIeoId(ieoId);
         int partitionSize = 50;
         List<Integer> accumulator = new ArrayList<>(partitionSize);

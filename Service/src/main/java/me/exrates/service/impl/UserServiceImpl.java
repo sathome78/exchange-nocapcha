@@ -1097,4 +1097,9 @@ public class UserServiceImpl implements UserService {
         return userDao.findIeoUserStatusByEmail(email);
     }
 
+    @Override
+    public boolean updateUserRole(int userId, UserRole userRole) {
+        return userDao.updateUserRole(userId, userRole);
+    }
+
 }
