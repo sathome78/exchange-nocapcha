@@ -20,6 +20,7 @@ import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.ngService.NgOrderService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
@@ -28,6 +29,7 @@ import me.exrates.service.UserService;
 import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.stopOrder.StopOrderService;
+import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -81,6 +82,7 @@ public class NgDashboardController {
     private final NgOrderService ngOrderService;
     private final ObjectMapper objectMapper;
     private final StopOrderService stopOrderService;
+    private final UserOperationService userOperationService;
 
 
     @Autowired
@@ -91,7 +93,8 @@ public class NgDashboardController {
                                  LocaleResolver localeResolver,
                                  NgOrderService ngOrderService,
                                  ObjectMapper objectMapper,
-                                 StopOrderService stopOrderService) {
+                                 StopOrderService stopOrderService,
+                                 UserOperationService userOperationService) {
         this.dashboardService = dashboardService;
         this.currencyService = currencyService;
         this.orderService = orderService;
@@ -100,12 +103,22 @@ public class NgDashboardController {
         this.ngOrderService = ngOrderService;
         this.objectMapper = objectMapper;
         this.stopOrderService = stopOrderService;
+        this.userOperationService = userOperationService;
     }
 
-    // /info/private/v2/dashboard/order
-    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @PostMapping("/order")
     public ResponseEntity createOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
+        String email = getPrincipalEmail();
+        User user = userService.findByEmail(email);
+        boolean checkStatus =
+                userOperationService.getStatusAuthorityForUserByOperation(user.getId(), UserOperationAuthority.TRADING);
+
+        if(!checkStatus) {
+            String message = String.format("No permission for trade operation, email %s", email);
+            logger.error(message);
+            throw new NgResponseException(ErrorApiTitles.USER_OPERATION_DENIED, message);
+        }
+
         OrderCreateDto prepareNewOrder = ngOrderService.prepareOrder(inputOrder);
 
         String result;
@@ -125,7 +138,6 @@ public class NgDashboardController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @DeleteMapping("/order/{id}")
     public ResponseEntity deleteOrderById(@PathVariable int id) {
         Integer result = (Integer) orderService.deleteOrderByAdmin(id);
@@ -136,7 +148,6 @@ public class NgDashboardController {
         throw new NgResponseException(ErrorApiTitles.DELETE_ORDER_FAILED, message);
     }
 
-    @PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
     @PutMapping("/order")
     public ResponseEntity updateOrder(@RequestBody @Valid InputCreateOrderDto inputOrder) {
 

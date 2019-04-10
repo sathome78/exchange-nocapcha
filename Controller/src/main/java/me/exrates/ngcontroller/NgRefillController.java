@@ -17,12 +17,15 @@ import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissio
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.ngExceptions.NgCurrencyNotFoundException;
 import me.exrates.model.ngExceptions.NgRefillException;
+import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantNotFoundException;
 import me.exrates.service.exception.MerchantServiceNotFoundException;
+import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.userOperation.UserOperationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +66,7 @@ public class NgRefillController {
     private final MessageSource messageSource;
     private final RefillService refillService;
     private final UserService userService;
+    private final UserOperationService userOperationService;
 
     private final GtagRefillService gtagRefillService;
 
@@ -72,13 +76,16 @@ public class NgRefillController {
                               UserService userService,
                               MerchantService merchantService,
                               MessageSource messageSource,
-                              RefillService refillService, GtagRefillService gtagRefillService) {
+                              RefillService refillService,
+                              UserOperationService userOperationService,
+                              GtagRefillService gtagRefillService) {
         this.currencyService = currencyService;
         this.inputOutputService = inputOutputService;
         this.userService = userService;
         this.merchantService = merchantService;
         this.messageSource = messageSource;
         this.refillService = refillService;
+        this.userOperationService = userOperationService;
         this.gtagRefillService = gtagRefillService;
     }
 
@@ -188,6 +195,12 @@ public class NgRefillController {
     public ResponseEntity<Map<String, Object>> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());
+        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(
+                userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.INPUT);
+        if (!accessToOperationForUser) {
+            throw new NgRefillException(messageSource.getMessage("merchant.operationNotAvailable", null, Locale.ENGLISH));
+        }
+
         if (requestParamsDto.getOperationType() != INPUT) {
             logger.warn("Failed to process refill request operation type is not INPUT, but " + requestParamsDto.getOperationType());
             throw new NgRefillException("Request operation type is not INPUT, but " + requestParamsDto.getOperationType());
