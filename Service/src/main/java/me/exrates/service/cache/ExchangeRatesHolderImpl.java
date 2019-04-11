@@ -97,6 +97,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCache(Integer currencyPairId) {
+        log.info("List<ExOrderStatisticsShortByPairsDto> exratesCache is empty: " + exratesCache.isEmpty());
+        log.info("currencyPairId: " + currencyPairId);
         if (isNotEmpty(exratesCache)) {
             return isNull(currencyPairId)
                     ? exratesCache
@@ -104,20 +106,25 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     .filter(cache -> Objects.equals(currencyPairId, cache.getCurrencyPairId()))
                     .collect(Collectors.toList());
         }
+        log.info("Trying to load cache from db .... ");
         return getExratesCacheFromDB(currencyPairId);
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId) {
+        log.info("Getting ratesDataForCache .....");
         Map<Integer, ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(currencyPairId)
                 .stream()
                 .collect(Collectors.toMap(
                         ExOrderStatisticsShortByPairsDto::getCurrencyPairId,
                         Function.identity()
                 ));
+        log.info("Finished ratesDataForCache .....");
+        log.info("Starting getAllDataForCache .....");
         return orderService.getAllDataForCache(currencyPairId)
                 .stream()
                 .filter(statistic -> !statistic.isHidden())
                 .peek(data -> {
+                    log.info("Preparing statistic data for id: " + data.getCurrencyPairId());
                     final Integer id = data.getCurrencyPairId();
                     ExOrderStatisticsShortByPairsDto rate = ratesDataForCache.get(id);
 
@@ -150,6 +157,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
                     data.setPercentChange(calculatePercentChange(data));
                     data.setPriceInUSD(calculatePriceInUSD(data));
+                    log.info("Prepared: {}", data);
                 })
                 .collect(Collectors.toList());
     }
@@ -171,9 +179,13 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private void initExchangePairsCache() {
+        log.info("Obtaining data form app");
         List<ExOrderStatisticsShortByPairsDto> statisticList = getExratesCache(null);
+        log.info("Received data form app");
 
+        log.info("Pushing data form Reddis");
         ratesRedisRepository.batchUpdate(statisticList);
+        log.info("Finished Pushing data form Reddis");
     }
 
     @Override
