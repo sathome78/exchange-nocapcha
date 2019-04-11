@@ -118,12 +118,15 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId) {
+        log.info("<<CACHE>>: Started retrieving last and pred last rates for all currencyPairs ......");
         Map<Integer, ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(currencyPairId)
                 .stream()
                 .collect(Collectors.toMap(
                         ExOrderStatisticsShortByPairsDto::getCurrencyPairId,
                         Function.identity()
                 ));
+        log.info("<<CACHE>>: Finished retrieving last and pred last rates for all currencyPairs ......");
+        log.info("<<CACHE>>: Started retrieving volumes and last 24 hours data for all currencyPairs ......");
         List<ExOrderStatisticsShortByPairsDto> dtos = orderService.getAllDataForCache(currencyPairId)
                 .stream()
                 .filter(statistic -> !statistic.isHidden())
@@ -162,12 +165,14 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     setUSDRates(data);
                 })
                 .collect(Collectors.toList());
-        return dtos
+        log.info("<<CACHE>>: Finished retrieving volumes and last 24 hours data for all currencyPairs ......");
+        log.info("<<CACHE>>: Started calculating price in USD for all currencyPairs ......");
+        List<ExOrderStatisticsShortByPairsDto> finishedItems = dtos
                 .stream()
-                .peek(item -> {
-                    calculatePriceInUsd(item);
-                })
+                .peek(this::calculatePriceInUsd)
                 .collect(Collectors.toList());
+        log.info("<<CACHE>>: Finished calculating price in USD for all currencyPairs ......");
+        return finishedItems;
     }
 
     private Map<String, BigDecimal> getFiatCache() {
