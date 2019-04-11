@@ -198,12 +198,6 @@ public class NgRefillController {
     public ResponseEntity<Map<String, Object>> createRefillRequest(
             @RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = userService.getUserLocaleForMobile(getPrincipalEmail());
-        boolean accessToOperationForUser = userOperationService.getStatusAuthorityForUserByOperation(
-                userService.getIdByEmail(getPrincipalEmail()), UserOperationAuthority.INPUT);
-        if (!accessToOperationForUser) {
-            throw new NgRefillException(messageSource.getMessage("merchant.operationNotAvailable", null, Locale.ENGLISH));
-        }
-
         if (requestParamsDto.getOperationType() != INPUT) {
             logger.warn("Failed to process refill request operation type is not INPUT, but " + requestParamsDto.getOperationType());
             throw new NgRefillException("Request operation type is not INPUT, but " + requestParamsDto.getOperationType());
