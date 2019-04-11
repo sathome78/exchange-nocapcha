@@ -932,7 +932,7 @@ public class WalletServiceImpl implements WalletService {
     private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
         Currency currency = currencyService.findById(wallet.getCurrencyId());
         String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
-                    + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
+                + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
         return Transaction
                 .builder()
                 .userWallet(wallet)
