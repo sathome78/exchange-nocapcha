@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -341,7 +342,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 || item.getCurrencyPairName().endsWith(USDT)) {
             BigDecimal usdtToUsd = BigDecimal.ZERO;
             if (!isZero(BTC_USDT_RATE) && !isZero(BTC_USD_RATE))  {
-                usdtToUsd = new BigDecimal(item.getLastOrderRate()).divide(BTC_USDT_RATE).multiply(BTC_USD_RATE);
+                usdtToUsd = new BigDecimal(item.getLastOrderRate()).divide(BTC_USDT_RATE, RoundingMode.HALF_UP).multiply(BTC_USD_RATE);
             }
             item.setPriceInUSD(usdtToUsd.toPlainString());
         } else if (item.getMarket().equalsIgnoreCase(BTC)
