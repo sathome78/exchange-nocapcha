@@ -95,25 +95,18 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         log.info("<<CACHE>>: Finish init ExchangeRatesHolder");
 
         EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
-            log.info("<<CACHE>>: Scheduler has started");
-            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null, "EXRATES_SCHEDULER");
+            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null);
             exratesCache = new CopyOnWriteArrayList<>(newData);
         }, 2, 1, TimeUnit.MINUTES);
     }
 
     private void initExchangePairsCache() {
-        log.info("<<CACHE>>: Obtaining data form app");
         List<ExOrderStatisticsShortByPairsDto> statisticList = getExratesCache(null);
-        log.info("Received data form app");
 
-        log.info("<<CACHE>>: Pushing data form Reddis");
         ratesRedisRepository.batchUpdate(statisticList);
-        log.info("<<CACHE>>: Finished Pushing data form Reddis");
     }
 
     private List<ExOrderStatisticsShortByPairsDto> getExratesCache(Integer currencyPairId) {
-        log.info("<<CACHE>>: List<ExOrderStatisticsShortByPairsDto> exratesCache is empty: " + exratesCache.isEmpty());
-        log.info("<<CACHE>>: currencyPairId: " + currencyPairId);
         if (isNotEmpty(exratesCache)) {
             return isNull(currencyPairId)
                     ? exratesCache
@@ -121,25 +114,20 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                     .filter(cache -> Objects.equals(currencyPairId, cache.getCurrencyPairId()))
                     .collect(Collectors.toList());
         }
-        log.info("<<CACHE>>: Trying to load cache from db .... ");
-        return getExratesCacheFromDB(currencyPairId, "POST_CONSTRUCT");
+        return getExratesCacheFromDB(currencyPairId);
     }
 
-    private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId, String invoker) {
-        log.info(String.format("<<CACHE>>(%s): Getting ratesDataForCache .....", invoker));
+    private List<ExOrderStatisticsShortByPairsDto> getExratesCacheFromDB(Integer currencyPairId) {
         Map<Integer, ExOrderStatisticsShortByPairsDto> ratesDataForCache = orderService.getRatesDataForCache(currencyPairId)
                 .stream()
                 .collect(Collectors.toMap(
                         ExOrderStatisticsShortByPairsDto::getCurrencyPairId,
                         Function.identity()
                 ));
-        log.info(String.format("<<CACHE>>(%s): Finished ratesDataForCache .....", invoker));
-        log.info(String.format("<<CACHE>>(%s): Starting getAllDataForCache .....", invoker));
         List<ExOrderStatisticsShortByPairsDto> dtos = orderService.getAllDataForCache(currencyPairId)
                 .stream()
                 .filter(statistic -> !statistic.isHidden())
                 .peek(data -> {
-                    log.info(String.format("<<CACHE>>(%s): Preparing statistic data for %d", invoker, data.getCurrencyPairId()));
                     final Integer id = data.getCurrencyPairId();
                     ExOrderStatisticsShortByPairsDto rate = ratesDataForCache.get(id);
 
@@ -172,7 +160,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
                     data.setPercentChange(calculatePercentChange(data));
                     setUSDRates(data);
-                    log.info(String.format("<<CACHE>>(%s):", invoker) + "Prepared: {}", data);
                 })
                 .collect(Collectors.toList());
         return dtos
@@ -303,7 +290,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @Override
     public void addCurrencyPairToCache(int currencyPairId) {
-        final ExOrderStatisticsShortByPairsDto statistic = getExratesCacheFromDB(currencyPairId, "ADD_TO_CACHE").get(0);
+        final ExOrderStatisticsShortByPairsDto statistic = getExratesCacheFromDB(currencyPairId).get(0);
 
         ratesRedisRepository.put(statistic);
     }
