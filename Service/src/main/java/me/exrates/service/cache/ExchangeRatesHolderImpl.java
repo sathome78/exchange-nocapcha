@@ -82,12 +82,6 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
 
     @PostConstruct
     private void init() {
-        EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
-            log.info("<<CACHE>>: Scheduler has started");
-            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null, "EXRATES_SCHEDULER");
-            exratesCache = new CopyOnWriteArrayList<>(newData);
-        }, 0, 1, TimeUnit.MINUTES);
-
         FIAT_SCHEDULER.scheduleAtFixedRate(() -> {
             Map<String, BigDecimal> newData = getFiatCacheFromAPI();
             fiatCache = new ConcurrentHashMap<>(newData);
@@ -98,6 +92,12 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         initExchangePairsCache();
 
         log.info("<<CACHE>>: Finish init ExchangeRatesHolder");
+
+        EXRATES_SCHEDULER.scheduleAtFixedRate(() -> {
+            log.info("<<CACHE>>: Scheduler has started");
+            List<ExOrderStatisticsShortByPairsDto> newData = getExratesCacheFromDB(null, "EXRATES_SCHEDULER");
+            exratesCache = new CopyOnWriteArrayList<>(newData);
+        }, 2, 1, TimeUnit.MINUTES);
     }
 
     private void initExchangePairsCache() {
