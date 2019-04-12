@@ -156,7 +156,7 @@ public class NgPublicController {
     @GetMapping("/ieo")
     @ResponseBody
     public Collection<IEODetails> getAllIeo() {
-        return ieoService.findAll();
+        return ieoService.findAll(null);
     }
 
     @GetMapping(value = "/if_username_exists")
@@ -284,6 +284,12 @@ public class NgPublicController {
         }
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/ieo/refresh")
+    public ResponseEntity<Void> refresh(){
+        ieoService.updateIeoStatuses();
+        return ResponseEntity.ok().build();
     }
 
     private String fromChatMessage(ChatMessage message) {

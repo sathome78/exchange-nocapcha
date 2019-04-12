@@ -28,6 +28,7 @@ import me.exrates.model.ngModel.response.ResponseCustomError;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -140,6 +141,7 @@ public class NgTransferController {
      */
     @CheckActiveUserStatus
     @PostMapping(value = "/accept")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
@@ -193,6 +195,7 @@ public class NgTransferController {
 
     @CheckActiveUserStatus
     @RequestMapping(value = "/voucher/request/create", method = POST)
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     @ResponseBody
     public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
                                                      HttpServletRequest servletRequest) {
@@ -210,6 +213,17 @@ public class NgTransferController {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
+        User user = userService.findByEmail(email);
+        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
+                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
+            }
+        } else {
+            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
+                secureService.sendWithdrawPincode(user);
+                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+            }
+        }
 
         TransferTypeVoucher transferType = TransferTypeVoucher.convert(requestParamsDto.getType());
         MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(requestParamsDto.getCurrency(),
@@ -224,20 +238,6 @@ public class NgTransferController {
                 .orElseThrow(InvalidAmountException::new);
         requestParamsDto.setMerchant(merchant.getMerchantId());
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-
-        if (!DEV_MODE) {
-            User user = userService.findByEmail(email);
-            if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-                if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
-                    throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
-                }
-            } else {
-                if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
-                    secureService.sendWithdrawPincode(user);
-                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
-                }
-            }
-        }
         return transferService.createTransferRequest(transferRequest);
     }
 
@@ -282,6 +282,7 @@ public class NgTransferController {
 
     @CheckActiveUserStatus
     @PostMapping(value = "/request/pin")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
         try {
             User user = userService.findByEmail(getPrincipalEmail());

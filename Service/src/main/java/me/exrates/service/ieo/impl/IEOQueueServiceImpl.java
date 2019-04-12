@@ -6,6 +6,8 @@ import me.exrates.dao.IEOClaimRepository;
 import me.exrates.dao.IEOResultRepository;
 import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.model.IEOClaim;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.ieo.IEOProcessor;
 import me.exrates.service.ieo.IEOQueueService;
@@ -32,7 +34,9 @@ public class IEOQueueServiceImpl implements IEOQueueService {
     private final IEOResultRepository ieoResultRepository;
     private final IeoDetailsRepository ieoDetailsRepository;
     private final ObjectMapper objectMapper;
+    private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
+    private final UserService userService;
 
     @Autowired
     public IEOQueueServiceImpl(IEOClaimRepository claimRepository,
@@ -40,8 +44,12 @@ public class IEOQueueServiceImpl implements IEOQueueService {
                                IEOResultRepository ieoResultRepository,
                                IeoDetailsRepository ieoDetailsRepository,
                                ObjectMapper objectMapper,
-                               StompMessenger stompMessenger) {
+                               SendMailService sendMailService,
+                               StompMessenger stompMessenger,
+                               UserService userService) {
         this.ieoDetailsRepository = ieoDetailsRepository;
+        this.sendMailService = sendMailService;
+        this.userService = userService;
         this.claims = new ConcurrentLinkedQueue<>();
         this.executor = Executors.newSingleThreadExecutor();
         this.claimRepository = claimRepository;
@@ -57,12 +65,13 @@ public class IEOQueueServiceImpl implements IEOQueueService {
         claims.addAll(unprocessedIeoClaims);
     }
 
-    @Scheduled(fixedDelay = 20000)
+    @Scheduled(fixedDelay = 1000)
     public void processClaims() {
         while (!claims.isEmpty()) {
             IEOClaim claim = claims.poll();
             if (claim != null) {
-                executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository, claim, walletService, objectMapper, stompMessenger));
+                executor.execute(new IEOProcessor(ieoResultRepository, claimRepository, ieoDetailsRepository,
+                        sendMailService, userService, claim, walletService, objectMapper, stompMessenger));
             }
         }
     }
