@@ -52,16 +52,6 @@ import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import me.exrates.service.exception.UserCommentNotFoundException;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.service.exception.WrongFinPasswordException;
-import me.exrates.service.exception.AbsentFinPasswordException;
-import me.exrates.service.exception.AuthenticationNotAvailableException;
-import me.exrates.service.exception.CallBackUrlAlreadyExistException;
-import me.exrates.service.exception.CommentNonEditableException;
-import me.exrates.service.exception.ForbiddenOperationException;
-import me.exrates.service.exception.NotConfirmedFinPasswordException;
-import me.exrates.service.exception.ResetPasswordExpirationException;
-import me.exrates.service.exception.TokenNotFoundException;
-import me.exrates.service.exception.UnRegisteredUserDeleteException;
-import me.exrates.service.exception.UserCommentNotFoundException;import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.exception.api.UniqueEmailConstraintException;
 import me.exrates.service.exception.api.UniqueNicknameConstraintException;
 import me.exrates.service.notifications.G2faService;
@@ -95,16 +85,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -351,6 +331,7 @@ public class UserServiceImpl implements UserService {
         return userDao.ifNicknameIsUnique(nickname);
     }
 
+    @Transactional(readOnly = true)
     public boolean ifEmailIsUnique(String email) {
         return userDao.ifEmailIsUnique(email);
     }
@@ -1114,6 +1095,16 @@ public class UserServiceImpl implements UserService {
 
     public IeoUserStatus findIeoUserStatusByEmail(String email) {
         return userDao.findIeoUserStatusByEmail(email);
+    }
+
+    @Override
+    public boolean updateUserRole(int userId, UserRole userRole) {
+        return userDao.updateUserRole(userId, userRole);
+    }
+
+    @Override
+    public boolean existPolicyByUserIdAndPolicy(int id, String name) {
+        return userDao.existPolicyByUserIdAndPolicy(id, name);
     }
 
 }

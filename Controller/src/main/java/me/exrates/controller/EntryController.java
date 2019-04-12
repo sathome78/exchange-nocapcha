@@ -20,19 +20,6 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.News;
-import me.exrates.model.SessionParams;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.dto.ChangePasswordDto;
-import me.exrates.model.dto.Generic2faResponseDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.PinDto;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.enums.CurrencyPairType;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.exceptions.InvalidCredentialsException;
 import me.exrates.model.exceptions.SessionParamTimeExceedException;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
@@ -503,10 +490,13 @@ public class EntryController {
     @ResponseBody
     public Generic2faResponseDto getGoogle2FaState(Principal principal) throws UnsupportedEncodingException {
         User user = userService.findByEmail(principal.getName());
-        Boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
+        boolean isConnected = g2faService.isGoogleAuthenticatorEnable(user.getId());
         Generic2faResponseDto dto = null;
         if (!isConnected) {
-            dto = new Generic2faResponseDto(g2faService.generateQRUrl(principal.getName()), g2faService.getGoogleAuthenticatorCode(user.getId()));
+            final String secretCode = g2faService.getGoogleAuthenticatorCode(user.getId());
+            final String qrURL = g2faService.generateQRUrl(principal.getName(), secretCode);
+
+            dto = new Generic2faResponseDto(qrURL, secretCode);
         }
         return dto;
     }

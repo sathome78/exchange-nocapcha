@@ -27,11 +27,12 @@ public class IEODetails {
     private BigDecimal rate;
     private BigDecimal amount;
     private BigDecimal availableAmount;
+    // not stored in db -> consider pattern visitor
+    private BigDecimal personalAmount;
     private int contributors;
     private IEODetailsStatus status;
     private BigDecimal minAmount;
     private BigDecimal maxAmountPerClaim;
-    @JsonIgnore
     private BigDecimal maxAmountPerUser;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
@@ -42,6 +43,8 @@ public class IEODetails {
     @JsonIgnore
     private int createdBy;
     private int version;
+
+    private boolean readyToIeo;
 
     public IEODetails(int id, String currencyName, int makerId, BigDecimal rate, BigDecimal amount, int contributors,
                       IEODetailsStatus status, BigDecimal minAmount, BigDecimal maxAmountPerClaim, BigDecimal maxAmountPerUser,

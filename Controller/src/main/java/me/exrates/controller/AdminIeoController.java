@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +47,7 @@ public class AdminIeoController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/all", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Collection<IEODetailsFlatDto> getAllIEOs() {
-        return ieoService.findAll()
+        return ieoService.findAll(null)
                 .stream()
                 .map(IEODetailsFlatDto::new)
                 .collect(Collectors.toList());
@@ -69,8 +70,13 @@ public class AdminIeoController {
     @RequestMapping(value = "/2a8fy7b07dxe44/ieo/revert/{id}", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity revertIeo(@PathVariable("id") Integer id) {
-        /*todo implementation and conditions checking*/
+
+        ieoService.startRevertIEO(id, getPrincipalEmail());
         return ResponseEntity.ok(null);
+    }
+
+    private String getPrincipalEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
 

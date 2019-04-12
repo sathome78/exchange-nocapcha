@@ -15,15 +15,17 @@ public interface IEOService {
 
     IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);
 
-    Collection<IEODetails> findAll();
+    Collection<IEODetails> findAll(User user);
 
     IEODetails findOne(int ieoId);
-
-    Collection<IEODetails> findAllExceptForMaker(User user);
 
     @Transactional
     void createIeo(IeoDetailsCreateDto dto);
 
     @Transactional
     void updateIeo(Integer id, IeoDetailsUpdateDto dto);
+
+    void startRevertIEO(Integer idIeo, String email);
+
+    void updateIeoStatuses();
 }
