@@ -400,7 +400,7 @@ public class UserDaoImpl implements UserDao {
     public UserShortDto findShortByEmail(String email) {
         String sql = "SELECT id, email, password, status FROM USER WHERE email = :email";
         try {
-            return namedParameterSlaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
+            return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), (rs, rowNum) -> {
                 UserShortDto dto = new UserShortDto();
                 dto.setEmail(rs.getString("email"));
                 dto.setId(rs.getInt("id"));
