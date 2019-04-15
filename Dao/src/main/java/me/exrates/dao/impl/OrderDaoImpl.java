@@ -62,7 +62,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -283,7 +282,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("operation_type_id", operationTypeId);
         try {
-            return Optional.of(slaveJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+            return Optional.of(masterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -1587,7 +1586,7 @@ public class OrderDaoImpl implements OrderDao {
         params.put("currency_pair_id", currencyPairId);
         params.put("status_id", OrderStatus.OPENED.getStatus());
 
-        return slaveJdbcTemplate.query(sql, params, userOrdersRowMapper);
+        return masterJdbcTemplate.query(sql, params, userOrdersRowMapper);
     }
 
     @Override
