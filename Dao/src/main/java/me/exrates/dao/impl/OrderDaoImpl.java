@@ -268,7 +268,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("currency_pair_id", currencyPairId);
         namedParameters.put("operation_type_id", operationTypeId);
         try {
-            return Optional.of(masterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
+            return Optional.of(slaveJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -790,7 +790,7 @@ public class OrderDaoImpl implements OrderDao {
                         "  ) COMMISSION";
         try {
             Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
-            return masterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+            return slaveJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
                 OrderCommissionsDto orderCommissionsDto = new OrderCommissionsDto();
                 orderCommissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
                 orderCommissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
