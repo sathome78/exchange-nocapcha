@@ -178,7 +178,7 @@ public class BtcGenerator {
 
 
     public static void main(String[] args) throws IOException {
-        generate("WOLF", "WolfCoin", 30, true, true, "172.10.13.195", 8090, 5580);
+        generate("TSL", "TreasureSL", 30, false, false, "172.10.13.6", 8090, 12201);
     }
 
 
