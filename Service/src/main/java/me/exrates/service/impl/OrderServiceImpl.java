@@ -1564,7 +1564,6 @@ public class OrderServiceImpl implements OrderService {
         return (Integer) result;
     }
 
-
     @Override
     public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
         Integer ot = OperationType.valueOf(orderType).getType();
@@ -1800,7 +1799,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getMyOrdersWithState(userService.getIdByEmail(email), currencyPair, statuses, operationType, null, offset, limit, locale);
     }
 
-
     @Override
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
                                                                    BackDealInterval backDealInterval,
@@ -1813,7 +1811,6 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-
     @Override
     public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale) {
         List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, null);
@@ -1824,7 +1821,6 @@ public class OrderServiceImpl implements OrderService {
         });
         return result;
     }
-
 
     @Override
     public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale) {
