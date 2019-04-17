@@ -35,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OpenApiUserInfoOldControllerTest extends OpenApiCommonTest {
 
     @Test
-    @Ignore
     public void userBalances_successTest() throws Exception {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .path("/openapi/v1/user/balances")
