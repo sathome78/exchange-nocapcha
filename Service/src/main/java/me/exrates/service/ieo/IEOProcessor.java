@@ -133,6 +133,7 @@ public class IEOProcessor implements Runnable {
         ieoClaim.setAmount(newAmount);
         BigDecimal newPriceInBtc = newAmount.multiply(ieoClaim.getRate());
         ieoClaim.setPriceInBtc(newPriceInBtc);
+        ieoClaimRepository.updateAmountClaim(ieoClaim.getId(), newAmount);
     }
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
