@@ -829,7 +829,8 @@ public class WalletServiceImpl implements WalletService {
         BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
         makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
 
-        userBtcWallet.setIeoReserved(userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc()));
+        BigDecimal updateIeoReservedUserBalanceBtc = userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc());
+        userBtcWallet.setIeoReserved(updateIeoReservedUserBalanceBtc);
 
         BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
         userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
@@ -837,6 +838,7 @@ public class WalletServiceImpl implements WalletService {
         boolean updateResult = walletDao.update(makerBtcWallet)
                 && walletDao.update(userBtcWallet)
                 && walletDao.update(userIeoWallet);
+        log.info("PerformIeoTransfer(), claimID {}, result update wallet {}", ieoClaim.getId(), updateResult);
         if (updateResult) {
             final Wallet makerWallet = makerBtcWallet;
             final Wallet userWallet = userIeoWallet;
@@ -849,10 +851,10 @@ public class WalletServiceImpl implements WalletService {
 
     private void writeTransActionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
                                         BigDecimal userIeoInitialAmount, Wallet userIeoWallet, Wallet userMainWallet, IeoStatusEnum statusEnum) {
-        Transaction makerTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
+        Transaction makerBtcTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
         Transaction userBtcTransaction = prepareUserBtcTransaction(userMainWallet, ieoClaim, statusEnum);
-        Transaction userTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
-        transactionService.save(ImmutableList.of(makerTransaction, userBtcTransaction, userTransaction));
+        Transaction userIeoTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
+        transactionService.save(ImmutableList.of(makerBtcTransaction, userBtcTransaction, userIeoTransaction));
     }
 
     @Override
