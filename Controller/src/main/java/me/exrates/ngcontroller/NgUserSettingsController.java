@@ -16,6 +16,7 @@ import me.exrates.model.enums.ColorScheme;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngExceptions.WrongPasswordException;
@@ -350,9 +351,8 @@ public class NgUserSettingsController {
                                               @RequestParam(required = false) String message) {
         try {
             UserNotificationType messageType = UserNotificationType.valueOf(status.toUpperCase());
-            UserNotificationMessage userNotificationMessage = new UserNotificationMessage(messageType, message);
-            String payload = objectMapper.writeValueAsString(userNotificationMessage);
-            stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), payload);
+            UserNotificationMessage userNotificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, messageType, message);
+            stompMessenger.sendPersonalMessageToUser(getPrincipalEmail(), userNotificationMessage);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
