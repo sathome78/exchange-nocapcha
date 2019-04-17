@@ -355,6 +355,11 @@ public class CryptocurrencyConfig {
 		return new BitcoinServiceImpl("merchants/wolf_wallet.properties","WOLF","WOLF", 30, 20, false, true);
 	}
 
+	@Bean(name = "tslServiceImpl")
+	public BitcoinService tslServiceImpl() {
+		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", 30, 20, false, false);
+	}
+
 	// LISK-like cryptos
     @Bean(name = "liskServiceImpl")
     public LiskService liskService() {
