@@ -759,12 +759,13 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public boolean update(Wallet wallet) {
-        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance WHERE id = :id";
+        final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance, ieo_reserve = :ieo_reserve WHERE id = :id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("id", wallet.getId());
                 put("activeBalance", wallet.getActiveBalance());
                 put("reservedBalance", wallet.getReservedBalance());
+                put("ieo_reserve", wallet.getIeoReserved());
             }
         };
         return jdbcTemplate.update(sql, params) == 1;

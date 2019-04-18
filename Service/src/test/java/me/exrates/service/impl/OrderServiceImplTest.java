@@ -620,8 +620,7 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
         assertEquals(24, orderCreateDto.getComissionId());
 
-        verify(securityContext, times(1)).getAuthentication();
-        verify(userService, times(1)).getUserRoleFromSecurityContext();
+        verify(userService, times(1)).getUserRoleFromDB(anyString());
         verify(orderDao, times(1)).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
 
         reset(securityContext);
@@ -687,8 +686,7 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), orderCreateDto.getComission());
         assertEquals(24, orderCreateDto.getComissionId());
 
-        verify(securityContext, times(1)).getAuthentication();
-        verify(userService, times(1)).getUserRoleFromSecurityContext();
+        verify(userService, times(1)).getUserRoleFromDB(anyString());
         verify(orderDao, times(1)).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
 
         reset(securityContext);
@@ -3080,7 +3078,7 @@ public class OrderServiceImplTest {
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionId(), walletAndCommission.getCommissionId());
         assertEquals(getMockWalletsAndCommissionsForOrderCreationDto().getCommissionValue(), walletAndCommission.getCommissionValue());
 
-        verify(userService, atLeastOnce()).getUserRoleFromSecurityContext();
+        verify(userService, times(1)).getUserRoleFromDB(anyString());
         verify(orderDao, atLeastOnce()).getWalletAndCommission(anyString(), any(Currency.class), any(OperationType.class), any(UserRole.class));
     }
 

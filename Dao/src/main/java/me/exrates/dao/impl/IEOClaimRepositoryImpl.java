@@ -80,6 +80,16 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
 
+    @Override
+    public boolean updateClaim(IEOClaim ieoClaim) {
+        String sql = "UPDATE IEO_CLAIM SET amount = :amount, price_in_btc = :price_in_btc WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("amount", ieoClaim.getAmount());
+        params.put("price_in_btc", ieoClaim.getPriceInBtc());
+        params.put("id", ieoClaim.getId());
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();
