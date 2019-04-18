@@ -50,7 +50,7 @@ public class BtcYamlGen {
             try {
 
                 BtcProperty p = entry.getValue();
-                b.append("  " + p.getMerchantName().toLowerCase() + ":\n");
+                b.append("  " + p.getCurrencyName().toLowerCase() + ":\n");
                 b.append("    merchant-name: " + p.getMerchantName()).append("\n");
                 b.append("    currency-name: " + p.getCurrencyName()).append("\n");
                 b.append("    min-confirmations: " + p.getMinConf()).append("\n");
