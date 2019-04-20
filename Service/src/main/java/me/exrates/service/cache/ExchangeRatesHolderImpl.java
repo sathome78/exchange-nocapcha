@@ -183,7 +183,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         if (ratesMap.containsKey(order.getCurrencyPairId())) {
             predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
         } else {
+            log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
             String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
+            log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
             predLastOrderRate = new BigDecimal(newRate);
         }
         ExOrderStatisticsShortByPairsDto newSimpleItem = ExOrderStatisticsShortByPairsDto
@@ -200,6 +202,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         } else {
             ratesRedisRepository.put(refreshedItem);
         }
+        log.info("<<CACHE>>: Updated exchange rate for currency pair " + refreshedItem.getCurrencyPairName() + " to " + refreshedItem.getLastOrderRate());
     }
 
     private Map<Integer, ExOrderStatisticsShortByPairsDto> loadRatesFromDB() {
@@ -339,16 +342,39 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         return new CacheLoader<Integer, ExOrderStatisticsShortByPairsDto>() {
             @Override
             public ExOrderStatisticsShortByPairsDto load(Integer currencyPairId) throws Exception {
-                return refreshItem(currencyPairId);
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start loading cache item for id: " + currencyPairId);
+                String currencyName = currencyService.getCurrencyName(currencyPairId);
+                ExOrderStatisticsShortByPairsDto result = ratesRedisRepository.get(currencyName);
+                String message = String.format("<<CACHE>>: Finished loading cache item for id: %d, result: %s, timer: %d s",
+                        currencyPairId, (result != null ? result.getCurrencyPairName() : "FAILED"), timer.getTime(TimeUnit.SECONDS));
+                log.info(message);
+                return result;
             }
 
             @Override
             public ListenableFuture<ExOrderStatisticsShortByPairsDto> reload(final Integer currencyPairId,
                                                                              ExOrderStatisticsShortByPairsDto dto) {
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start refreshing (async) cache item for id: " + currencyPairId);
                 ListenableFutureTask<ExOrderStatisticsShortByPairsDto> command =
                         ListenableFutureTask.create(() -> refreshItem(currencyPairId));
                 EXECUTOR.execute(command);
+                String message = String.format("<<CACHE>>: Finished refreshed (async)  cache item for id: %d, timer: %d s",
+                        currencyPairId, timer.getTime(TimeUnit.SECONDS));
+                log.info(message);
                 return command;
+            }
+
+            @Override
+            public Map<Integer, ExOrderStatisticsShortByPairsDto> loadAll(Iterable<? extends Integer> keys) throws Exception {
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start loading all cache items");
+                Map<Integer, ExOrderStatisticsShortByPairsDto> result = ratesRedisRepository.getAll()
+                        .stream()
+                        .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrencyPairId, Function.identity()));
+                log.info("<<CACHE>>: Finished loading all cache items in " + timer.getTime(TimeUnit.SECONDS) + " s.");
+                return result;
             }
         };
     }
