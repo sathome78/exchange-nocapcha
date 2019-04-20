@@ -52,7 +52,7 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
             return super.queryForObject(sql, paramMap, rowMapper);
         } catch (DataAccessException e) {
             log.error(e.getMessage() + "\n" + completeSql(sql, paramMap));
-            return null;
+            throw e;
         }
     }
 
@@ -63,7 +63,7 @@ public class NamedParameterJdbcTemplateWrapper extends NamedParameterJdbcTemplat
             return super.queryForObject(sql, paramMap, requiredType);
         } catch (DataAccessException e) {
             log.error(e.getMessage() + "\n" + completeSql(sql, paramMap));
-            return null;
+            throw e;
         }
     }
 
