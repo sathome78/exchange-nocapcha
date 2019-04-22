@@ -25,6 +25,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -194,6 +196,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .currencyPairId(order.getCurrencyPairId())
                 .predLastOrderRate(predLastOrderRate.toPlainString())
                 .lastOrderRate(lastOrderRate.toPlainString())
+                .updated(LocalDateTime.now())
+                .lastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()))
                 .build();
         ratesMap.put(order.getCurrencyPairId(), newSimpleItem);
         ExOrderStatisticsShortByPairsDto refreshedItem = refreshItem(order.getCurrencyPairId());
@@ -356,7 +360,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             @Override
             public ListenableFuture<ExOrderStatisticsShortByPairsDto> reload(final Integer currencyPairId,
                                                                              ExOrderStatisticsShortByPairsDto dto) {
-                if (isZero(dto.getLastOrderRate()) && isZero(dto.getPredLastOrderRate())) {
+                if (dto.getUpdated() == null || dto.getUpdated().isBefore(LocalDateTime.now().minus(1, ChronoUnit.DAYS))) {
                     return Futures.immediateFuture(dto);
                 }
                 StopWatch timer = new StopWatch();
