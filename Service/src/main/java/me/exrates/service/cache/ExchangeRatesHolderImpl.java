@@ -15,6 +15,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -191,23 +192,40 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
             predLastOrderRate = new BigDecimal(newRate);
         }
-        ExOrderStatisticsShortByPairsDto newSimpleItem = ExOrderStatisticsShortByPairsDto
-                .builder()
-                .currencyPairId(order.getCurrencyPairId())
-                .predLastOrderRate(predLastOrderRate.toPlainString())
-                .lastOrderRate(lastOrderRate.toPlainString())
-                .updated(LocalDateTime.now())
-                .lastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()))
-                .build();
-        ratesMap.put(order.getCurrencyPairId(), newSimpleItem);
-        ExOrderStatisticsShortByPairsDto refreshedItem = refreshItem(order.getCurrencyPairId());
-        loadingCache.put(order.getCurrencyPairId(), refreshedItem);
-        if (ratesRedisRepository.exist(refreshedItem.getCurrencyPairName())) {
-            ratesRedisRepository.update(refreshedItem);
+
+        ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(order.getCurrencyPairId());
+
+        cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
+        cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
+        cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+        cachedItem.setUpdated(LocalDateTime.now());
+        cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+        setDailyData(cachedItem, lastOrderRate.toPlainString());
+
+        if (StringUtils.isEmpty(cachedItem.getCurrencyVolume())) {
+            cachedItem.setCurrencyVolume(cachedItem.getPriceInUSD());
         } else {
-            ratesRedisRepository.put(refreshedItem);
+            BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+            BigDecimal resultVolume = new BigDecimal(cachedItem.getPriceInUSD());
+            cachedItem.setCurrencyVolume(initialVolume.add(resultVolume).toPlainString());
         }
-        log.info("<<CACHE>>: Updated exchange rate for currency pair " + refreshedItem.getCurrencyPairName() + " to " + refreshedItem.getLastOrderRate());
+
+        if (StringUtils.isEmpty(cachedItem.getVolume())) {
+            cachedItem.setVolume(order.getAmountBase().toPlainString());
+        } else {
+            BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+            cachedItem.setVolume(initialVolume.add(order.getAmountBase()).toPlainString());
+        }
+        cachedItem.setCurrencyVolume(order.getAmountBase().toPlainString());
+
+        ratesMap.put(order.getCurrencyPairId(), cachedItem);
+        loadingCache.put(order.getCurrencyPairId(), cachedItem);
+        if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
+            ratesRedisRepository.update(cachedItem);
+        } else {
+            ratesRedisRepository.put(cachedItem);
+        }
+        log.info("<<CACHE>>: Updated exchange rate for currency pair " + cachedItem.getCurrencyPairName() + " to " + cachedItem.getLastOrderRate());
     }
 
     private Map<Integer, ExOrderStatisticsShortByPairsDto> loadRatesFromDB() {
@@ -250,24 +268,11 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                         ratesMap.put(id, newItem);
                     }
 
-                    BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
-                    if (isZero(high24hr)) {
-                        data.setHigh24hr(lastOrderRate);
-                    }
-                    BigDecimal low24hr = new BigDecimal(data.getLow24hr());
-                    if (isZero(low24hr)) {
-                        data.setLow24hr(lastOrderRate);
-                    }
-                    BigDecimal lastOrderRate24hr = new BigDecimal(data.getLastOrderRate24hr());
-                    if (isZero(lastOrderRate24hr)) {
-                        data.setLastOrderRate24hr(lastOrderRate);
-                    }
+                    setDailyData(data, lastOrderRate);
 
                     data.setLastOrderRate(lastOrderRate);
                     data.setPredLastOrderRate(predLastOrderRate);
                     data.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
-
-                    data.setPercentChange(calculatePercentChange(data));
                     setUSDRates(data);
                 })
                 .collect(Collectors.toList());
@@ -279,6 +284,19 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                 .collect(Collectors.toList());
         log.info("<<CACHE>>: Finished calculating price in USD for all currencyPairs ......, Time: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
         return finishedItems;
+    }
+
+    private void setDailyData(ExOrderStatisticsShortByPairsDto data, String lastOrderRateValue) {
+        BigDecimal lastOrderRate = new BigDecimal(lastOrderRateValue);
+        BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
+        if (isZero(high24hr) || lastOrderRate.compareTo(high24hr) > 0) {
+            data.setHigh24hr(lastOrderRate.toPlainString());
+        }
+        BigDecimal low24hr = new BigDecimal(data.getLow24hr());
+        if (isZero(low24hr) || lastOrderRate.compareTo(high24hr) < 0) {
+            data.setLow24hr(lastOrderRate.toPlainString());
+        }
+        data.setPercentChange(calculatePercentChange(data));
     }
 
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
