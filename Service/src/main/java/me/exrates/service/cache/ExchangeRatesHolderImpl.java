@@ -3,6 +3,7 @@ package me.exrates.service.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import lombok.extern.log4j.Log4j2;
@@ -78,7 +79,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<Integer, ExOrderStatisticsShortByPairsDto> ratesMap = new ConcurrentHashMap<>();
     private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private LoadingCache<Integer, ExOrderStatisticsShortByPairsDto> loadingCache = CacheBuilder.newBuilder()
-            .refreshAfterWrite(30, TimeUnit.MINUTES)
+            .refreshAfterWrite(1, TimeUnit.HOURS)
             .build(createCacheLoader());
     private Map<String, BigDecimal> fiatCache = new ConcurrentHashMap<>();
 
@@ -355,6 +356,9 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             @Override
             public ListenableFuture<ExOrderStatisticsShortByPairsDto> reload(final Integer currencyPairId,
                                                                              ExOrderStatisticsShortByPairsDto dto) {
+                if (isZero(dto.getLastOrderRate()) && isZero(dto.getPredLastOrderRate())) {
+                    return Futures.immediateFuture(dto);
+                }
                 StopWatch timer = new StopWatch();
                 log.info("<<CACHE>>: Start refreshing (async) cache item for id: " + currencyPairId);
                 ListenableFutureTask<ExOrderStatisticsShortByPairsDto> command =
