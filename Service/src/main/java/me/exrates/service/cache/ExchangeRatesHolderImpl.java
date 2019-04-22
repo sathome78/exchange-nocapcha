@@ -78,7 +78,7 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<Integer, ExOrderStatisticsShortByPairsDto> ratesMap = new ConcurrentHashMap<>();
     private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private LoadingCache<Integer, ExOrderStatisticsShortByPairsDto> loadingCache = CacheBuilder.newBuilder()
-            .refreshAfterWrite(2, TimeUnit.MINUTES)
+            .refreshAfterWrite(30, TimeUnit.MINUTES)
             .build(createCacheLoader());
     private Map<String, BigDecimal> fiatCache = new ConcurrentHashMap<>();
 
