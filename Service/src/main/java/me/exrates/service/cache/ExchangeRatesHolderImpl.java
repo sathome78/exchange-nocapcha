@@ -21,24 +21,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -85,6 +79,8 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
             .refreshAfterWrite(1, TimeUnit.HOURS)
             .build(createCacheLoader());
     private Map<String, BigDecimal> fiatCache = new ConcurrentHashMap<>();
+    private Map<Integer, Object> locks = new ConcurrentHashMap<>();
+    private final Object safeSync = new Object();
 
     private static final ScheduledExecutorService FIAT_SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
@@ -181,51 +177,62 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         ratesRedisRepository.batchUpdate(new ArrayList<>(preparedRateItems.values()));
     }
 
-    private synchronized void setRates(ExOrder order) {
-        final BigDecimal lastOrderRate = order.getExRate();
-        BigDecimal predLastOrderRate;
-        if (ratesMap.containsKey(order.getCurrencyPairId())) {
-            predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
-        } else {
-            log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
-            String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
-            log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
-            predLastOrderRate = new BigDecimal(newRate);
+    private void setRates(ExOrder order) {
+        synchronized (getRatesMapSyncSynchronizerSafe(order.getCurrencyPairId())) {
+            final BigDecimal lastOrderRate = order.getExRate();
+            BigDecimal predLastOrderRate;
+            if (ratesMap.containsKey(order.getCurrencyPairId())) {
+                predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
+            } else {
+                log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
+                String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
+                log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
+                predLastOrderRate = new BigDecimal(newRate);
+            }
+
+            ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(order.getCurrencyPairId());
+
+            cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
+            cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
+            cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+            cachedItem.setUpdated(LocalDateTime.now());
+            cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+            setDailyData(cachedItem, lastOrderRate.toPlainString());
+
+            if (StringUtils.isEmpty(cachedItem.getCurrencyVolume())) {
+                cachedItem.setCurrencyVolume(cachedItem.getPriceInUSD());
+            } else {
+                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+                BigDecimal resultVolume = new BigDecimal(cachedItem.getPriceInUSD());
+                cachedItem.setCurrencyVolume(initialVolume.add(resultVolume).toPlainString());
+            }
+
+            if (StringUtils.isEmpty(cachedItem.getVolume())) {
+                cachedItem.setVolume(order.getAmountBase().toPlainString());
+            } else {
+                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+                cachedItem.setVolume(initialVolume.add(order.getAmountBase()).toPlainString());
+            }
+            cachedItem.setCurrencyVolume(order.getAmountBase().toPlainString());
+
+            ratesMap.put(order.getCurrencyPairId(), cachedItem);
+            loadingCache.put(order.getCurrencyPairId(), cachedItem);
+            if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
+                ratesRedisRepository.update(cachedItem);
+            } else {
+                ratesRedisRepository.put(cachedItem);
+            }
+            log.info("<<CACHE>>: Updated exchange rate for currency pair " + cachedItem.getCurrencyPairName() + " to " + cachedItem.getLastOrderRate());
         }
+    }
 
-        ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(order.getCurrencyPairId());
-
-        cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
-        cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
-        cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
-        cachedItem.setUpdated(LocalDateTime.now());
-        cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
-        setDailyData(cachedItem, lastOrderRate.toPlainString());
-
-        if (StringUtils.isEmpty(cachedItem.getCurrencyVolume())) {
-            cachedItem.setCurrencyVolume(cachedItem.getPriceInUSD());
-        } else {
-            BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
-            BigDecimal resultVolume = new BigDecimal(cachedItem.getPriceInUSD());
-            cachedItem.setCurrencyVolume(initialVolume.add(resultVolume).toPlainString());
+    private Object getRatesMapSyncSynchronizerSafe(Integer pairId) {
+        if (!locks.containsKey(pairId)) {
+            synchronized (safeSync) {
+               locks.putIfAbsent(pairId, new Object());
+            }
         }
-
-        if (StringUtils.isEmpty(cachedItem.getVolume())) {
-            cachedItem.setVolume(order.getAmountBase().toPlainString());
-        } else {
-            BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
-            cachedItem.setVolume(initialVolume.add(order.getAmountBase()).toPlainString());
-        }
-        cachedItem.setCurrencyVolume(order.getAmountBase().toPlainString());
-
-        ratesMap.put(order.getCurrencyPairId(), cachedItem);
-        loadingCache.put(order.getCurrencyPairId(), cachedItem);
-        if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
-            ratesRedisRepository.update(cachedItem);
-        } else {
-            ratesRedisRepository.put(cachedItem);
-        }
-        log.info("<<CACHE>>: Updated exchange rate for currency pair " + cachedItem.getCurrencyPairName() + " to " + cachedItem.getLastOrderRate());
+        return locks.get(pairId);
     }
 
     private Map<Integer, ExOrderStatisticsShortByPairsDto> loadRatesFromDB() {
