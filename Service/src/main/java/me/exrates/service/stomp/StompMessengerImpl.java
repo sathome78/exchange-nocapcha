@@ -103,7 +103,7 @@ public class StompMessengerImpl implements StompMessenger {
         BiTuple<String, String> results = orderService.getTradesForRefresh(currencyPair.getId(), null, RefreshObjectsEnum.ALL_TRADES);
         sendMessageToDestination("/app/trades/".concat(String.valueOf(currencyPair.getId())), results.right);
         String destination = "/app/all_trades/".concat(OpenApiUtils.transformCurrencyPairBack(currencyPair.getName()));
-        System.out.println(destination);
+//        System.out.println(destination);
         sendMessageToDestination(destination, results.left);
     }
 

@@ -3,6 +3,7 @@ package me.exrates.service.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import lombok.extern.log4j.Log4j2;
@@ -14,27 +15,24 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.OrderService;
 import me.exrates.service.api.ExchangeApi;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -78,9 +76,11 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
     private Map<Integer, ExOrderStatisticsShortByPairsDto> ratesMap = new ConcurrentHashMap<>();
     private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private LoadingCache<Integer, ExOrderStatisticsShortByPairsDto> loadingCache = CacheBuilder.newBuilder()
-            .refreshAfterWrite(2, TimeUnit.MINUTES)
+            .refreshAfterWrite(1, TimeUnit.HOURS)
             .build(createCacheLoader());
     private Map<String, BigDecimal> fiatCache = new ConcurrentHashMap<>();
+    private Map<Integer, Object> locks = new ConcurrentHashMap<>();
+    private final Object safeSync = new Object();
 
     private static final ScheduledExecutorService FIAT_SCHEDULER = Executors.newSingleThreadScheduledExecutor();
 
@@ -177,29 +177,62 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         ratesRedisRepository.batchUpdate(new ArrayList<>(preparedRateItems.values()));
     }
 
-    private synchronized void setRates(ExOrder order) {
-        final BigDecimal lastOrderRate = order.getExRate();
-        BigDecimal predLastOrderRate;
-        if (ratesMap.containsKey(order.getCurrencyPairId())) {
-            predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
-        } else {
-            String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
-            predLastOrderRate = new BigDecimal(newRate);
+    private void setRates(ExOrder order) {
+        synchronized (getRatesMapSyncSynchronizerSafe(order.getCurrencyPairId())) {
+            final BigDecimal lastOrderRate = order.getExRate();
+            BigDecimal predLastOrderRate;
+            if (ratesMap.containsKey(order.getCurrencyPairId())) {
+                predLastOrderRate = new BigDecimal(ratesMap.get(order.getCurrencyPairId()).getLastOrderRate());
+            } else {
+                log.info("<<CACHE>>: Started retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
+                String newRate = orderService.getBeforeLastRateForCache(order.getCurrencyPairId()).getPredLastOrderRate();
+                log.info("<<CACHE>>: Finished retrieving SINGLE pred last rate for currencyPairId: " + order.getCurrencyPairId());
+                predLastOrderRate = new BigDecimal(newRate);
+            }
+
+            ExOrderStatisticsShortByPairsDto cachedItem = loadingCache.getUnchecked(order.getCurrencyPairId());
+
+            cachedItem.setPriceInUSD(calculatePriceInUsd(cachedItem));
+            cachedItem.setLastOrderRate(lastOrderRate.toPlainString());
+            cachedItem.setPredLastOrderRate(predLastOrderRate.toPlainString());
+            cachedItem.setUpdated(LocalDateTime.now());
+            cachedItem.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+            setDailyData(cachedItem, lastOrderRate.toPlainString());
+
+            if (StringUtils.isEmpty(cachedItem.getCurrencyVolume())) {
+                cachedItem.setCurrencyVolume(cachedItem.getPriceInUSD());
+            } else {
+                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+                BigDecimal resultVolume = new BigDecimal(cachedItem.getPriceInUSD());
+                cachedItem.setCurrencyVolume(initialVolume.add(resultVolume).toPlainString());
+            }
+
+            if (StringUtils.isEmpty(cachedItem.getVolume())) {
+                cachedItem.setVolume(order.getAmountBase().toPlainString());
+            } else {
+                BigDecimal initialVolume = new BigDecimal(cachedItem.getVolume());
+                cachedItem.setVolume(initialVolume.add(order.getAmountBase()).toPlainString());
+            }
+            cachedItem.setCurrencyVolume(order.getAmountBase().toPlainString());
+
+            ratesMap.put(order.getCurrencyPairId(), cachedItem);
+            loadingCache.put(order.getCurrencyPairId(), cachedItem);
+            if (ratesRedisRepository.exist(cachedItem.getCurrencyPairName())) {
+                ratesRedisRepository.update(cachedItem);
+            } else {
+                ratesRedisRepository.put(cachedItem);
+            }
+            log.info("<<CACHE>>: Updated exchange rate for currency pair " + cachedItem.getCurrencyPairName() + " to " + cachedItem.getLastOrderRate());
         }
-        ExOrderStatisticsShortByPairsDto newSimpleItem = ExOrderStatisticsShortByPairsDto
-                .builder()
-                .currencyPairId(order.getCurrencyPairId())
-                .predLastOrderRate(predLastOrderRate.toPlainString())
-                .lastOrderRate(lastOrderRate.toPlainString())
-                .build();
-        ratesMap.put(order.getCurrencyPairId(), newSimpleItem);
-        ExOrderStatisticsShortByPairsDto refreshedItem = refreshItem(order.getCurrencyPairId());
-        loadingCache.put(order.getCurrencyPairId(), refreshedItem);
-        if (ratesRedisRepository.exist(refreshedItem.getCurrencyPairName())) {
-            ratesRedisRepository.update(refreshedItem);
-        } else {
-            ratesRedisRepository.put(refreshedItem);
+    }
+
+    private Object getRatesMapSyncSynchronizerSafe(Integer pairId) {
+        if (!locks.containsKey(pairId)) {
+            synchronized (safeSync) {
+               locks.putIfAbsent(pairId, new Object());
+            }
         }
+        return locks.get(pairId);
     }
 
     private Map<Integer, ExOrderStatisticsShortByPairsDto> loadRatesFromDB() {
@@ -242,24 +275,11 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
                         ratesMap.put(id, newItem);
                     }
 
-                    BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
-                    if (isZero(high24hr)) {
-                        data.setHigh24hr(lastOrderRate);
-                    }
-                    BigDecimal low24hr = new BigDecimal(data.getLow24hr());
-                    if (isZero(low24hr)) {
-                        data.setLow24hr(lastOrderRate);
-                    }
-                    BigDecimal lastOrderRate24hr = new BigDecimal(data.getLastOrderRate24hr());
-                    if (isZero(lastOrderRate24hr)) {
-                        data.setLastOrderRate24hr(lastOrderRate);
-                    }
+                    setDailyData(data, lastOrderRate);
 
                     data.setLastOrderRate(lastOrderRate);
                     data.setPredLastOrderRate(predLastOrderRate);
                     data.setLastUpdateCache(DATE_TIME_FORMATTER.format(LocalDateTime.now()));
-
-                    data.setPercentChange(calculatePercentChange(data));
                     setUSDRates(data);
                 })
                 .collect(Collectors.toList());
@@ -273,8 +293,21 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         return finishedItems;
     }
 
+    private void setDailyData(ExOrderStatisticsShortByPairsDto data, String lastOrderRateValue) {
+        BigDecimal lastOrderRate = new BigDecimal(lastOrderRateValue);
+        BigDecimal high24hr = new BigDecimal(data.getHigh24hr());
+        if (isZero(high24hr) || lastOrderRate.compareTo(high24hr) > 0) {
+            data.setHigh24hr(lastOrderRate.toPlainString());
+        }
+        BigDecimal low24hr = new BigDecimal(data.getLow24hr());
+        if (isZero(low24hr) || lastOrderRate.compareTo(high24hr) < 0) {
+            data.setLow24hr(lastOrderRate.toPlainString());
+        }
+        data.setPercentChange(calculatePercentChange(data));
+    }
+
     private String calculatePercentChange(ExOrderStatisticsShortByPairsDto statistic) {
-        BigDecimal lastOrderRate = new BigDecimal(statistic.getLastOrderRate());
+        BigDecimal lastOrderRate = statistic.getLastOrderRate() == null ? BigDecimal.ZERO : new BigDecimal(statistic.getLastOrderRate());
         BigDecimal lastOrderRate24hr = nonNull(statistic.getLastOrderRate24hr())
                 ? new BigDecimal(statistic.getLastOrderRate24hr())
                 : BigDecimal.ZERO;
@@ -339,16 +372,42 @@ public class ExchangeRatesHolderImpl implements ExchangeRatesHolder {
         return new CacheLoader<Integer, ExOrderStatisticsShortByPairsDto>() {
             @Override
             public ExOrderStatisticsShortByPairsDto load(Integer currencyPairId) throws Exception {
-                return refreshItem(currencyPairId);
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start loading cache item for id: " + currencyPairId);
+                String currencyName = currencyService.getCurrencyName(currencyPairId);
+                ExOrderStatisticsShortByPairsDto result = ratesRedisRepository.get(currencyName);
+                String message = String.format("<<CACHE>>: Finished loading cache item for id: %d, result: %s, timer: %d s",
+                        currencyPairId, (result != null ? result.getCurrencyPairName() : "FAILED"), timer.getTime(TimeUnit.SECONDS));
+                log.info(message);
+                return result;
             }
 
             @Override
             public ListenableFuture<ExOrderStatisticsShortByPairsDto> reload(final Integer currencyPairId,
                                                                              ExOrderStatisticsShortByPairsDto dto) {
+                if (dto.getUpdated() == null || dto.getUpdated().isBefore(LocalDateTime.now().minus(1, ChronoUnit.DAYS))) {
+                    return Futures.immediateFuture(dto);
+                }
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start refreshing (async) cache item for id: " + currencyPairId);
                 ListenableFutureTask<ExOrderStatisticsShortByPairsDto> command =
                         ListenableFutureTask.create(() -> refreshItem(currencyPairId));
                 EXECUTOR.execute(command);
+                String message = String.format("<<CACHE>>: Finished refreshed (async)  cache item for id: %d, timer: %d s",
+                        currencyPairId, timer.getTime(TimeUnit.SECONDS));
+                log.info(message);
                 return command;
+            }
+
+            @Override
+            public Map<Integer, ExOrderStatisticsShortByPairsDto> loadAll(Iterable<? extends Integer> keys) throws Exception {
+                StopWatch timer = new StopWatch();
+                log.info("<<CACHE>>: Start loading all cache items");
+                Map<Integer, ExOrderStatisticsShortByPairsDto> result = ratesRedisRepository.getAll()
+                        .stream()
+                        .collect(Collectors.toMap(ExOrderStatisticsShortByPairsDto::getCurrencyPairId, Function.identity()));
+                log.info("<<CACHE>>: Finished loading all cache items in " + timer.getTime(TimeUnit.SECONDS) + " s.");
+                return result;
             }
         };
     }
