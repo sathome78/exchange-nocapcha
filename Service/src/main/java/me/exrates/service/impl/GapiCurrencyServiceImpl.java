@@ -4,12 +4,19 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.GapiCurrencyService;
+import org.apache.commons.collections4.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -110,17 +117,23 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         private String transaction_id;
     }
 
-//    public String createNewTransaction(){
-//
-//    }
+    public String createNewTransaction(){
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("sprikey", "dfd7692ba056c7af412a732070b52588561bd4ec9b1c4736e41e40961fa962dc");
+        parts.add("receiverwalletallows", "GAPI56d342cbd72cd801170f1724db74b5");
+        parts.add("amount", "0.15");
 
-//    public static void main(String... args){
+        String response = restTemplate.postForObject("http://18.217.228.135/api/v1/sendgapicoin/", parts, String.class);
+        return response;
+    }
+
+    public static void main(String... args){
 //        List<Transaction> transactions = new GapiCurrencyServiceImpl().getAccountTransactions();
 //        for (Transaction elem : transactions){
 //            System.out.println(elem.recieverAddress);
 //        }
-//
-//        System.out.println(4);
-//    }
+        GapiCurrencyServiceImpl gapiCurrencyService = new GapiCurrencyServiceImpl();
+        System.out.println(gapiCurrencyService.createNewTransaction());
+    }
 
 }

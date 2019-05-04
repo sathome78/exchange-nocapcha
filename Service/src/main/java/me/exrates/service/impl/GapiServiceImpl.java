@@ -92,6 +92,7 @@ public class GapiServiceImpl implements GapiService {
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.getTransaction_id());
+        paramsMap.put("sender", transaction.getSenderAddress());
         paramsMap.put("address", transaction.getRecieverAddress());
         paramsMap.put("amount", transaction.getAmount());
         try {
