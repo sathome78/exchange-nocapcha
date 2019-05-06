@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.GapiCurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,9 +26,16 @@ import java.util.List;
 
 @Service
 @Log4j2(topic = "gapi_log")
+@PropertySource("classpath:/merchants/gapi_wallet.properties")
 public class GapiCurrencyServiceImpl implements GapiCurrencyService {
 
     private RestTemplate restTemplate;
+
+    @Value("${gapi.mainaddress}")
+    private String mainaddress;
+
+    @Value("${gapi.server.ip}")
+    private String serverIp;
 
     @Autowired
     public GapiCurrencyServiceImpl (){
@@ -35,7 +44,7 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
 
     public List<String> generateNewAddress() {
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("http://18.217.228.135/api/v1/createnewwallet")
+                .fromHttpUrl("http://" + serverIp + "/api/v1/createnewwallet")
                 .build();
         ResponseEntity<Wallet> responseEntity = null;
         try {
@@ -68,15 +77,13 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
 
         @JsonProperty("wallet_id")
         private String address;
-        //        TODO save private key in database
         @JsonProperty("private_key")
         private String private_key;
     }
 
     public List<Transaction> getAccountTransactions(){
-//        TODO send 18.217.228.135 to properties
         UriComponents builder = UriComponentsBuilder
-                .fromHttpUrl("http://18.217.228.135/api/v1/alltransactions")
+                .fromHttpUrl("http://" + serverIp + "/api/v1/alltransactions")
                 .build();
         ResponseEntity<Transactions> responseEntity = null;
         try {
@@ -87,8 +94,8 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         } catch (Exception ex) {
             log.warn("Error : {}", ex.getMessage());
         }
-
-        return Arrays.asList(responseEntity.getBody().transactions);
+        Transaction[] transactions = responseEntity.getBody().transactions;
+        return Arrays.asList(transactions);
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -116,29 +123,20 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         private String transaction_id;
     }
 
-    public String createNewTransaction(String privKey, String address, String amount){
+    public String createNewTransaction(String privKey, String amount){
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
 
         map.add("sprikey", privKey);
-        map.add("receiverwalletallows", address);
+        map.add("receiverwalletallows", mainaddress);
         map.add("amount", amount);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://18.217.228.135/api/v1/sendgapicoin", request , String.class);
+                "http://" + serverIp + "/api/v1/sendgapicoin", request , String.class);
 
         return response.getBody();
-    }
-
-    public static void main(String... args){
-//        List<Transaction> transactions = new GapiCurrencyServiceImpl().getAccountTransactions();
-//        for (Transaction elem : transactions){
-//            System.out.println(elem.recieverAddress);
-//        }
-        GapiCurrencyServiceImpl gapiCurrencyService = new GapiCurrencyServiceImpl();
-//        System.out.println(gapiCurrencyService.createNewTransaction());
     }
 
 }

@@ -64,8 +64,7 @@ public class GapiServiceImpl implements GapiService {
         List<String> list = gapiCurrencyService.generateNewAddress();
         String address = list.get(0);
         String privKey = list.get(1);
-        // TODO change merchants.refill.aisi for own one
-        String message = messageSource.getMessage("merchants.refill.aisi",
+        String message = messageSource.getMessage("merchants.refill.gapi",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
             put("privKey", privKey);
@@ -95,7 +94,6 @@ public class GapiServiceImpl implements GapiService {
         }
         Map<String, String> paramsMap = new HashMap<>();
         paramsMap.put("hash", transaction.getTransaction_id());
-        paramsMap.put("sender", transaction.getSenderAddress());
         paramsMap.put("address", transaction.getRecieverAddress());
         paramsMap.put("amount", transaction.getAmount());
         try {
@@ -108,7 +106,6 @@ public class GapiServiceImpl implements GapiService {
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         String address = params.get("address");
-        String sender = params.get("sender");
         String amount = params.get("amount");
         String hash = params.get("hash");
         BigDecimal fullAmount = new BigDecimal(amount);
@@ -121,8 +118,8 @@ public class GapiServiceImpl implements GapiService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-        String privKey = refillService.getPrivKeyByAddress(sender);
-        String tempStatus = gapiCurrencyService.createNewTransaction(privKey, address, amount);
+        String privKey = refillService.getPrivKeyByAddress(address);
+        String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
         // compares status ok (1) with actual "Result" given by API
         if (true) {
             try {
@@ -134,7 +131,7 @@ public class GapiServiceImpl implements GapiService {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
             }
         } else {
-//            log.error("STATUS is not OK = " + tempStatus + ". Error in aisiCurrencyService.createNewTransaction(address, fullAmount)");
+            log.error("STATUS is not OK = " + tempStatus + ". Error in gapiCurrencyService.createNewTransaction(privKey, fullAmount)");
         }
     }
 

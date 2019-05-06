@@ -10,5 +10,5 @@ public interface GapiCurrencyService {
 
     List<Transaction> getAccountTransactions();
 
-    String createNewTransaction(String privKey, String address, String amount);
+    String createNewTransaction(String privKey, String amount);
 }
