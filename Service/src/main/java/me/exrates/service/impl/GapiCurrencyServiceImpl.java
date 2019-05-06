@@ -118,13 +118,34 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
     }
 
     public String createNewTransaction(){
-        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        parts.add("sprikey", "dfd7692ba056c7af412a732070b52588561bd4ec9b1c4736e41e40961fa962dc");
-        parts.add("receiverwalletallows", "GAPI56d342cbd72cd801170f1724db74b5");
-        parts.add("amount", "0.15");
+//        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+//        parts.add("sprikey", "dfd7692ba056c7af412a732070b52588561bd4ec9b1c4736e41e40961fa962dc");
+//        parts.add("receiverwalletallows", "GAPI56d342cbd72cd801170f1724db74b5");
+//        parts.add("amount", "0.15");
+//
+//        String response = restTemplate.postForObject("http://18.217.228.135/api/v1/sendgapicoin", parts, String.class);
 
-        String response = restTemplate.postForObject("http://18.217.228.135/api/v1/sendgapicoin/", parts, String.class);
-        return response;
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+//        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+//        map.add("id", "1");
+//        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+//        ResponseEntity<String> response = restTemplate.postForEntity(
+//                fooResourceUrl+"/form", request , String.class);
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+        map.add("sprikey", "dfd7692ba056c7af412a732070b52588561bd4ec9b1c4736e41e40961fa962dc");
+        map.add("receiverwalletallows", "GAPI56d342cbd72cd801170f1724db74b5");
+        map.add("amount", "0.15");
+
+//        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+
+//        ResponseEntity<String> response = restTemplate.postForEntity("http://18.217.228.135/api/v1/sendgapicoin", request , String.class );
+
+//        return response.getBody();
+        return null;
     }
 
     public static void main(String... args){
