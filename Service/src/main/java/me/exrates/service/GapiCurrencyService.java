@@ -6,7 +6,9 @@ import java.util.List;
 
 public interface GapiCurrencyService {
 
-    String generateNewAddress();
+    List<String> generateNewAddress();
 
     List<Transaction> getAccountTransactions();
+
+    String createNewTransaction(String privKey, String address, String amount);
 }
