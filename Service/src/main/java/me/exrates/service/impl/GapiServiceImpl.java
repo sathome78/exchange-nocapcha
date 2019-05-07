@@ -30,6 +30,7 @@ import java.util.Map;
 public class GapiServiceImpl implements GapiService {
 
     public static final String MERCHANT_NAME = "GAPI";
+    private static final String STATUS_OK = "ok";
 
     @Autowired
     private MerchantService merchantService;
@@ -120,8 +121,7 @@ public class GapiServiceImpl implements GapiService {
 
         String privKey = refillService.getPrivKeyByAddress(address);
         String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
-        // compares status ok (1) with actual "Result" given by API
-        if (true) {
+        if (tempStatus.equals(STATUS_OK)) {
             try {
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
             } catch (RefillRequestAppropriateNotFoundException e) {

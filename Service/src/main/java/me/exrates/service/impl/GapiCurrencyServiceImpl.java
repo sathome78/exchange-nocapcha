@@ -133,10 +133,19 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         map.add("amount", amount);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                "http://" + serverIp + "/api/v1/sendgapicoin", request , String.class);
+        ResponseEntity<Response> response = restTemplate.postForEntity(
+                "http://" + serverIp + "/api/v1/sendgapicoin", request , Response.class);
 
-        return response.getBody();
+        return response.getBody().response;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class Response {
+
+        @JsonProperty("response")
+        String response;
     }
 
 }
