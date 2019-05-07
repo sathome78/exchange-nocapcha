@@ -129,7 +129,7 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
 
         map.add("sprikey", privKey);
-        map.add("receiverwalletallows", mainaddress);
+        map.add("receiverwallet", mainaddress);
         map.add("amount", amount);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
