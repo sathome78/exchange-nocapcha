@@ -2162,6 +2162,19 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
                 10);
     }
 
+    @Bean(name = "rwdsServiceImpl")
+    @Conditional(MonolitConditional.class)
+    public XemMosaicService rwdsService() {
+        return new XemMosaicServiceImpl(
+                "RWDS",
+                "RWDS",
+                new MosaicIdDto("rewards4u", "rwds"),
+                100,
+                2,
+                new Supply(100000000L),
+                0);
+    }
+
     @Bean(name = "darcServiceImpl")
     @Conditional(MonolitConditional.class)
     public XemMosaicService darcService() {
