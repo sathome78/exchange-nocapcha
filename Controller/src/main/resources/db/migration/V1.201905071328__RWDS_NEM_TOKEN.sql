@@ -73,7 +73,7 @@ INSERT IGNORE INTO BOT_TRADING_SETTINGS(bot_launch_settings_id, order_type_id)
   WHERE BLCH.currency_pair_id IN (SELECT id FROM CURRENCY_PAIR WHERE name IN ('RWDS/USD', 'RWDS/BTC', 'RWDS/ETH'));
 
 INSERT IGNORE INTO MERCHANT_SPEC_PARAMETERS (merchant_id, param_name, param_value) VALUES
-  ((SELECT id FROM MERCHANT WHERE name = 'RWDS'), 'exrateToNem', '0.01');
+  ((SELECT id FROM MERCHANT WHERE name = 'RWDS'), 'exrateToNem', '40');
 
   INSERT IGNORE INTO INTERNAL_WALLET_BALANCES (currency_id, role_id)
 SELECT cur.id AS currency_id, ur.id AS role_id
