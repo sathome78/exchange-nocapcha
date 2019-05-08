@@ -153,7 +153,7 @@ public class IEOServiceImpl implements IEOService {
         }
 
         boolean policyCheck = userService.existPolicyByUserIdAndPolicy(user.getId(), PolicyEnum.IEO.getName());
-        return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto);
+        return new IEOStatusInfo(kycCheck, policyCheck, checkCountry, countryDto, false, false);
     }
 
     @Override
