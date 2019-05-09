@@ -13,6 +13,4 @@ public class IEOStatusInfo {
     private boolean policyCheck;
     private boolean countryCheck;
     private KycCountryDto country;
-    private boolean mailSubscribeStatus;
-    private boolean telegramSubscribeStatus;
 }

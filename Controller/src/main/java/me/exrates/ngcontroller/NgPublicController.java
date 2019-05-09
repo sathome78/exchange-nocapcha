@@ -9,13 +9,13 @@ import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.IEODetails;
 import me.exrates.model.User;
 import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.ieo.EmailIEORequestDTO;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
@@ -61,6 +61,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -75,7 +76,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.strip;
 
 @RestController
 @RequestMapping(value = "/api/public/v2",
@@ -369,6 +369,28 @@ public class NgPublicController {
             logger.error("Failed to get all fiat names");
             return Collections.emptyList();
         }
+    }
+
+    @PostMapping(value = "/ieo/subscribe/email", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeEmail(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeEmail(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @PostMapping(value = "/ieo/subscribe/telegram", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeTelegram(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeTelegram(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkSubscribe(@RequestParam String email) {
+        Map<String, Boolean> result = new HashMap<>(2);
+        result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
+        result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));
+        return new ResponseModel<>(result);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
