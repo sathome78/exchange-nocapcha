@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -109,6 +110,7 @@ public class NewsParserImpl implements NewsParser {
             }
         } catch (Exception e) {
             logger.error("Error parsing resource {}, e {}", resourceEnum.getUr(), e.getLocalizedMessage());
+            return Collections.emptyList();
         }
         logger.info("Successful parsed resource {}, size list {}", resourceEnum.getUr(), result.size());
         return result;
@@ -116,18 +118,11 @@ public class NewsParserImpl implements NewsParser {
 
     private Date getDateFromString(String time, String pattern) {
         SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.ENGLISH);
-        Date date = null;
-
         try {
-            date = format.parse(time);
+            return format.parse(time);
         } catch (ParseException i) {
-
-        } finally {
-            if (date == null) {
-                date = new Date();
-            }
+            return new Date();
         }
-        return date;
-    }
 
+    }
 }
