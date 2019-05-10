@@ -16,6 +16,7 @@ import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
 import me.exrates.model.dto.ieo.EmailIEORequestDTO;
+import me.exrates.model.dto.news.FeedWrapper;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
@@ -315,8 +316,8 @@ public class NgPublicController {
 
     @GetMapping("/news")
     public ResponseModel<FeedWrapper> getNews(@RequestParam(required = false, defaultValue = "0") String offset,
-                                    @RequestParam(required = false, defaultValue = "10") String count,
-                                    @RequestParam(required = false, defaultValue = "0") String index) {
+                                              @RequestParam(required = false, defaultValue = "10") String count,
+                                              @RequestParam(required = false, defaultValue = "0") String index) {
 
         FeedWrapper result = newsParser.getFeeds(Integer.valueOf(offset), Integer.valueOf(count),
                 Integer.valueOf(index));
