@@ -1,5 +1,5 @@
 ###
-@api {get} api/public/v2/news Get partner news
+@api {get} /api/public/v2/news Get partner news
 @apiName Get partner news
 @apiVersion 0.0.1
 @apiGroup News
