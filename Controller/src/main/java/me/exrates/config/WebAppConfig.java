@@ -951,11 +951,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService simService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x7528e3040376edd5db8263db2f5bd1bed91467fb");
+        tokensList.add("0xd7cd762f3ebc2c9a3d9bcf0133e06d04c59a1f7d");
         return new EthTokenServiceImpl(
                 tokensList,
                 "SIM",
-                "SIM", false, ExConvert.Unit.ETHER);
+                "SIM", true, ExConvert.Unit.ETHER);
     }
 
     @Bean(name = "amnServiceImpl")
