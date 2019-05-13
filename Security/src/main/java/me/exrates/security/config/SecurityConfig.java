@@ -231,6 +231,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/generateReferral").permitAll()
             .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
             .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
+            .antMatchers(POST, "/merchants/lht/payment/received").permitAll()
             .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
             .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
@@ -327,6 +328,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/advcash/payment/status",
                     "/merchants/edrcoin/payment/received",
                     "/merchants/edc/payment/received",
+                    "/merchants/lht/payment/received",
                     "/merchants/liqpay/payment/failure",
                     "/merchants/liqpay/payment/success",
                     "/merchants/liqpay/payment/status",
