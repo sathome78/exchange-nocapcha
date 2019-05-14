@@ -6,10 +6,20 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -23,6 +33,8 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
 
+    private static final String KEY_TYPE = "AES";
+    private static String KEY = "rfetgget24";
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
@@ -36,7 +48,23 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Autowired
     private CurrencyService currencyService;
 
+    public static void main(String[] args){
 
+    }
+
+    private String encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(KEY_TYPE);
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(KEY.getBytes(), KEY_TYPE));
+
+        return DatatypeConverter.printBase64Binary(cipher.doFinal(data.getBytes()));
+    }
+
+    private String decrypt(String data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(KEY_TYPE);
+        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(KEY.getBytes(), KEY_TYPE));
+
+        return new String(cipher.doFinal(DatatypeConverter.parseBase64Binary(data)));
+    }
 
     @Override
     public String computeMD5Hash(String string) {
