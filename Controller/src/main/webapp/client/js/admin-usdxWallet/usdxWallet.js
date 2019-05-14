@@ -36,8 +36,26 @@ $(function () {
             }
         })
     });
+
+    $('#accountNameUsdxWallet').on("change keyup", function(){
+        checkSendTransactionForm();
+    });
+    $('#amountUsdxWallet').on("change keyup", function(){
+        checkSendTransactionForm();
+    });
 });
 
+function checkSendTransactionForm() {
+    var accountName = $('#accountNameUsdxWallet').val();
+    var amount = $('#amountUsdxWallet').val();
+    var currency = $('#currencyUsdxWallet').val();
+
+    if (accountName && amount && currency) {
+        $("#button-send-trans").prop('disabled', false);
+    } else {
+        $("#button-send-trans").prop('disabled', true);
+    }
+}
 
 function updateTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');

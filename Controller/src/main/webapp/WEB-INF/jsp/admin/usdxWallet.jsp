@@ -41,45 +41,46 @@
                 <form id="usdx-transaction">
                 <div class="input-block-wrapper clearfix">
                     <div class="col-md-4 input-block-wrapper__label-wrapper">
-                        <label for="accountName" class="input-block-wrapper__label">Account name></label>
+                        <label for="accountNameUsdxWallet" class="input-block-wrapper__label">Account name</label>
                     </div>
                     <div class="col-md-8 input-block-wrapper__input-wrapper">
-                        <input name="accountName" class="form-control input-block-wrapper__input" id="accountName"/>
+                        <input name="accountName" class="form-control input-block-wrapper__input" id="accountNameUsdxWallet"/>
                     </div>
                 </div>
                 <div class="input-block-wrapper clearfix">
                     <div class="col-md-4 input-block-wrapper__label-wrapper">
-                        <label for="amount" class="input-block-wrapper__label">Amount</label>
+                        <label for="amountUsdxWallet" class="input-block-wrapper__label">Amount</label>
                     </div>
                     <div class="col-md-8 input-block-wrapper__input-wrapper">
-                        <input name="amount" class="form-control input-block-wrapper__input" id="amount"/>
+                        <input name="amount" class="form-control input-block-wrapper__input" id="amountUsdxWallet"/>
                     </div>
                 </div>
                 <div class="input-block-wrapper clearfix">
                     <div class="col-md-4 input-block-wrapper__label-wrapper">
-                        <label for="currency" class="input-block-wrapper__label">Сurrency</label>
+                        <label for="currencyUsdxWallet" class="input-block-wrapper__label">Сurrency</label>
                     </div>
                     <div class="col-md-8 input-block-wrapper__input-wrapper">
-                        <input name="currency" class="form-control input-block-wrapper__input" id="currency" value="LHT" readonly/>
+                        <input name="currency" class="form-control input-block-wrapper__input" id="currencyUsdxWallet" value="LHT" readonly/>
                     </div>
                 </div>
                 <div class="input-block-wrapper clearfix">
                     <div class="col-md-4 input-block-wrapper__label-wrapper">
-                        <label for="memo" class="input-block-wrapper__label">Memo</label>
+                        <label for="memoUsdxWallet" class="input-block-wrapper__label">Memo (Optional)</label>
                     </div>
                     <div class="col-md-8 input-block-wrapper__input-wrapper">
-                    <input name="memo" class="form-control input-block-wrapper__input" id="memo"/>
+                    <input name="memo" class="form-control input-block-wrapper__input" id="memoUsdxWallet" placeholder="Optional field"/>
+                    </div>
                 </div>
                 <div class="input-block-wrapper clearfix">
                     <div class="col-md-4 input-block-wrapper__label-wrapper">
-                        <label for="customData" class="input-block-wrapper__label">Custom data (Optional)</label>
+                        <label for="customDataUsdxWallet" class="input-block-wrapper__label">Custom data (Optional)</label>
                     </div>
                     <div class="col-md-8 input-block-wrapper__input-wrapper">
-                        <input name="customData" class="form-control input-block-wrapper__input" id="customData" placeholder="Optional field"/>
+                        <input name="customData" class="form-control input-block-wrapper__input" id="customDataUsdxWallet" placeholder="Optional field"/>
                     </div>
                 </div>
 
-                <button id="button-send-trans" class="btn btn-primary" style="margin-top:15px; margin-bottom:15px; width:100%;text-align: center;">
+                <button id="button-send-trans" class="btn btn-primary" style="margin-top:15px; margin-bottom:15px; width:100%;text-align: center;" disabled>
                     <loc:message code="admin.submit"/>
                 </button>
                 </form>
