@@ -1,15 +1,26 @@
 package me.exrates.service.impl;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -41,8 +52,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     private static BASE64Encoder enc = new BASE64Encoder();
     private static BASE64Decoder dec = new BASE64Decoder();
     // TODO: save key to the base
-    private static String key = "ell+cTISVmFhYHxXJ1JfByc9QVJ/dlN8aV44emVYCwVWeUMGYQF7Y28HeTQ0BXUGJ3B/dG1ad3hyn" +
-            "N1h8IERJVQ==";
+    private static String key = "ell+cTISVmFhYHxXJ1JfByc9QVJ/dlN8aV44emVYCwVWeUMGYQF7Y28HeTQ0BXUGJ3B/dG1ad3hynN1h8IERJVQ==";
+    private RestTemplate restTemplate;
 
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
@@ -56,6 +67,35 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Autowired
     private CurrencyService currencyService;
+
+    @Autowired
+    public AlgorithmServiceImpl (){
+        restTemplate = new RestTemplate();
+        key = getKeyFromVault();
+    }
+
+    private String getKeyFromVault(){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+
+        map.add("SecretId", "...........");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+        ResponseEntity<Response> response = restTemplate.postForEntity(
+                "http://......../api/v1/sendgapicoin", request , Response.class);
+
+        return response.getBody().secretString;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+    private static class Response {
+
+        @JsonProperty("SecretString")
+        String secretString;
+    }
 
     @Override
     public String computeMD5Hash(String string) {
@@ -189,10 +229,10 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         }
     }
 
-    public static void main(String[] args){
-    AlgorithmService algorithmService = new AlgorithmServiceImpl();
-    String temp = algorithmService.encodeByKey("0576de547126dcfade59540419a6013b01744023967cbb8af12352690f36b396");
-        System.out.println(temp);
-        System.out.println(algorithmService.decodeByKey(temp));
-    }
+//    public static void main(String[] args){
+//    AlgorithmService algorithmService = new AlgorithmServiceImpl();
+//    String temp = algorithmService.encodeByKey("0576de547126dcfade59540419a6013b01744023967cbb8af12352690f36b396");
+//        System.out.println(temp);
+//        System.out.println(algorithmService.decodeByKey(temp));
+//    }
 }
