@@ -35,10 +35,11 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2(topic = "stellar_log")
+@Log4j2(topic = "usdx_log")
+@Service
 @PropertySource("classpath:/merchants/usdx.properties")
 @Conditional(MonolitConditional.class)
-public class UsdxServiceImpl implements UsdxService {
+public class LightHouseServiceImpl implements UsdxService {
 
     private static final String LIGHTHOUSE_CURRENCY_NAME = UsdxWalletAsset.LHT.name();
     private static final int MAX_TAG_DESTINATION_DIGITS = 8;
@@ -61,7 +62,7 @@ public class UsdxServiceImpl implements UsdxService {
 
     private Merchant merchant;
     private Currency currency;
-    private static final String DESTINATION_TAG_ERR_MSG = "message.stellar.tagError";
+    private static final String DESTINATION_TAG_ERR_MSG = "message.usdx.tagError";
 
     @PostConstruct
     public void init() {
@@ -75,7 +76,7 @@ public class UsdxServiceImpl implements UsdxService {
         String destinationTag = CryptoUtils.generateUniqDestinationTagForUserForSpecificCurrency(request.getUserId(),
                 MAX_TAG_DESTINATION_DIGITS, refillService, currency.getName(), currency.getId(), merchant.getId());
 
-        String message = messageSource.getMessage("merchants.refill.xlm", new Object[]{usdxRestApiService.getAccountName(), destinationTag}, request.getLocale());
+        String message = messageSource.getMessage("merchants.refill.usdx", new Object[]{usdxRestApiService.getAccountName(), destinationTag}, request.getLocale());
 
         return new HashMap<String, String>() {{
             put("address", destinationTag);
@@ -106,11 +107,11 @@ public class UsdxServiceImpl implements UsdxService {
             throw new RefillRequestMemoIsNullException(String.format("USDX Wallet transaction with transfer id: %s. MEMO is NULL", merchantTransactionId));
         }
 
-        //TODO
-/*        if(usdxRestApiService.getTransactionStatus(merchantTransactionId) == null){
+        if(usdxRestApiService.getTransactionStatus(merchantTransactionId) == null){
             log.warn("USDX Wallet transaction with transfer id {} not exists in transactions history.", merchantTransactionId);
-            throw new RefillRequestFakePaymentReceivedException(params.toString());
-        }*/
+            throw new RefillRequestFakePaymentReceivedException(String.format("USDX Wallet transaction with transfer id {} not exists in transactions history. Params: %s",
+                    params.toString()));
+        }
 
         RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
                 .address(memo)

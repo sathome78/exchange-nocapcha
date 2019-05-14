@@ -21,6 +21,21 @@ $(function () {
             }
         })
     });
+
+    $('#button-send-trans').click(function () {
+        var formData = $('#usdx-transaction').serialize();
+        $.ajax({
+            url: urlBase + 'sendTransaction',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: formData,
+            success: function (data) {
+                alert(data);
+            }
+        })
+    });
 });
 
 
@@ -46,7 +61,7 @@ function updateTxHistoryTable() {
                 {
                     "data": "createdAt",
                     "render": function (data) {
-                        return new Date(data*1000).toLocaleString();
+                        return new Date(data).toLocaleString();
                     },
                     "className": "text-center"
                 },
@@ -84,13 +99,7 @@ function updateTxHistoryTable() {
                     "data": "amount"
                 },
                 {
-                    "data": "propertyid"
-                },
-                {
-                    "data": "errorCode"
-                },
-                {
-                    "data": "failReason"
+                    "data": "status"
                 },
                 {
                     "data": "",
@@ -112,7 +121,7 @@ function updateTxHistoryTable() {
                     bom: true,
                     charset: 'UTF8',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6]
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
                     }
 
                 }

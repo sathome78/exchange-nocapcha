@@ -38,8 +38,7 @@ public class LightHouseController {
         log.info("Response from USDX Wallet: " + usdxTransaction);
 
         try {
-            if(usdxTransaction.getCurrency().equals(UsdxWalletAsset.LHT)
-                    && usdxTransaction.getAccountName().equals(usdxService.getMainAddress())){
+            if(usdxTransaction.getCurrency().equals(UsdxWalletAsset.LHT)){
 
                 if (usdxTransaction.getType().equals(UsdxTransactionType.INCOMING)
                         && usdxTransaction.getStatus().equals(UsdxTransactionStatus.SUCCESS)){
@@ -54,14 +53,11 @@ public class LightHouseController {
 
                 usdxService.processPayment(params);
                 }
-
-                return ResponseEntity.ok().build();
-
             } else {
                 log.info("USDX Wallet recieve transaction with bad currency. Currency: " + usdxTransaction.getCurrency());
-                return new ResponseEntity<>(BAD_REQUEST);
             }
-
+            return ResponseEntity.ok().build();
+            
         } catch (RefillRequestAlreadyAcceptedException | RefillRequestMemoIsNullException exception) {
             return ResponseEntity.ok().build();
         } catch (Exception e) {

@@ -27,11 +27,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Log4j2
+@Log4j2(topic = "usdx_log")
 @Service
 @PropertySource("classpath:/merchants/usdx.properties")
 public class UsdxRestApiServiceImpl implements UsdxRestApiService {
@@ -91,7 +93,7 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
                 transactionUsdxApiResponse.getData().getErrorCode(), transactionUsdxApiResponse.getData().getFailReason());
 
         return Arrays.asList(transactionUsdxApiResponse.getData().getHistory());
-    };
+    }
 
     @Override
     public List<UsdxTransaction> getTransactionsHistory(String fromId, int limit) {

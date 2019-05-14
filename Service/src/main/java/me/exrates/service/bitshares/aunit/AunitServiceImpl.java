@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.websocket.ClientEndpoint;
 
-@Service("aunitServiceImpl")
+//@Service("aunitServiceImpl")
 @ClientEndpoint
 @Conditional(MonolitConditional.class)
 public class AunitServiceImpl extends BitsharesServiceImpl {

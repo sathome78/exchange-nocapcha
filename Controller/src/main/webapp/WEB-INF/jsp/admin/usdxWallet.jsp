@@ -38,49 +38,51 @@
             </div>
 
             <div>
-                <form:form class="form-horizontal form_full_height_width" action="/2a8fy7b07dxe44/usdxWallet/sendTransaction" method="post">
-                    <form:input path="currency" hidden="true" value='LHT'/>
-
-                    <div class="input-block-wrapper">
-                        <div class="input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">Account name</label>
-                        </div>
-
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:input path="accountName" class="input-block-wrapper__input admin-form-input"/>
-                        </div>
+                <form id="usdx-transaction">
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                        <label for="accountName" class="input-block-wrapper__label">Account name></label>
                     </div>
-
-                    <div class="input-block-wrapper">
-                        <div class="input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">Amount</label>
-                        </div>
-
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <form:input path="amount" class="input-block-wrapper__input admin-form-input"/>
-                        </div>
+                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                        <input name="accountName" class="form-control input-block-wrapper__input" id="accountName"/>
                     </div>
-
-                    <div class="input-block-wrapper">
-                        <div class="input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">Memo</label>
-                        </div>
-
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <form:input path="memo" class="input-block-wrapper__input admin-form-input"/>
-                        </div>
+                </div>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                        <label for="amount" class="input-block-wrapper__label">Amount</label>
                     </div>
-
-                    <div class="input-block-wrapper">
-                        <div class="input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">Custom data</label>
-                        </div>
-
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <form:input path="customData" class="input-block-wrapper__input admin-form-input"/>
-                        </div>
+                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                        <input name="amount" class="form-control input-block-wrapper__input" id="amount"/>
                     </div>
-                </form:form>
+                </div>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                        <label for="currency" class="input-block-wrapper__label">Сurrency</label>
+                    </div>
+                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                        <input name="currency" class="form-control input-block-wrapper__input" id="currency" value="LHT" readonly/>
+                    </div>
+                </div>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                        <label for="memo" class="input-block-wrapper__label">Memo</label>
+                    </div>
+                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                    <input name="memo" class="form-control input-block-wrapper__input" id="memo"/>
+                </div>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                        <label for="customData" class="input-block-wrapper__label">Custom data (Optional)</label>
+                    </div>
+                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                        <input name="customData" class="form-control input-block-wrapper__input" id="customData" placeholder="Optional field"/>
+                    </div>
+                </div>
+
+                <button id="button-send-trans" class="btn btn-primary" style="margin-top:15px; margin-bottom:15px; width:100%;text-align: center;">
+                    <loc:message code="admin.submit"/>
+                </button>
+                </form>
             </div>
 
             <div class="tab-content">
@@ -92,13 +94,11 @@
                             <th><loc:message code="btcWallet.history.time"/></th>
                             <th><loc:message code="btcWallet.history.txid"/></th>
                             <th><loc:message code="btcWallet.history.type"/></th>
-                            <th><loc:message code="btcWallet.addressFrom"/></th>
-                            <th><loc:message code="btcWallet.recipientAddress"/></th>
-                            <th><loc:message code="btcWallet.blockhash"/></th>
+                            <th><loc:message code="transaction.currency"/></th>
+                            <th>Memo</th>
+                            <th>Custom data</th>
                             <th><loc:message code="btcWallet.history.amount"/></th>
-                            <th><loc:message code="btcWallet.history.propertyId"/></th>
-                            <th><loc:message code="btcWallet.history.fee"/></th>
-                            <th><loc:message code="btcWallet.history.confirmations"/></th>
+                            <th><loc:message code="transaction.status"/></th>
                             <th></th>
                         </tr>
                         </thead>
