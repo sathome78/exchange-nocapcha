@@ -126,7 +126,6 @@ public class IEOServiceImpl implements IEOService {
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
             String message = "Failed to create claim, as user KYC status check failed for ieo: " + claimDto.getCurrencyName();
             logger.warn(message);
-            logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
         }
