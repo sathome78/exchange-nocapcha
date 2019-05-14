@@ -30,8 +30,8 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public IEOClaim save(IEOClaim ieoClaim) {
-        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc) " +
-                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc)";
+        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc, uuid) " +
+                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc, :uuid)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_name", ieoClaim.getCurrencyName())
@@ -40,7 +40,8 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
                 .addValue("user_id", ieoClaim.getUserId())
                 .addValue("rate", ieoClaim.getRate())
                 .addValue("price_in_btc", ieoClaim.getPriceInBtc())
-                .addValue("amount", ieoClaim.getAmount());
+                .addValue("amount", ieoClaim.getAmount())
+                .addValue("uuid", ieoClaim.getUuid());
         if (jdbcTemplate.update(sql, params, keyHolder) > 0) {
             ieoClaim.setId(keyHolder.getKey().intValue());
             return ieoClaim;
@@ -103,6 +104,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
             ieoClaim.setPriceInBtc(rs.getBigDecimal("price_in_btc"));
             ieoClaim.setCreated(rs.getDate("created"));
             ieoClaim.setStatus(IEOResult.IEOResultStatus.valueOf(rs.getString("status")));
+            ieoClaim.setUuid(rs.getString("uuid"));
             return ieoClaim;
         };
     }

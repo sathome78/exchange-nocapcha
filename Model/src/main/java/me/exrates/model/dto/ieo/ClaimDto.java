@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 public class ClaimDto {
 
     private int id;
+    private String email;
+    private String uuid;
 
     @NotNull
     private String currencyName;

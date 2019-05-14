@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 
 public interface IEOService {
+
+    void saveClaim(ClaimDto claimDto);
+
     ClaimDto addClaim(ClaimDto claimDto, String email);
 
     IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);
