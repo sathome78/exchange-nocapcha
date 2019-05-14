@@ -48,22 +48,19 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Autowired
     private CurrencyService currencyService;
 
-    public static void main(String[] args){
-
-    }
-
-    private String encrypt(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Cipher cipher = Cipher.getInstance(KEY_TYPE);
-        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(KEY.getBytes(), KEY_TYPE));
-
-        return DatatypeConverter.printBase64Binary(cipher.doFinal(data.getBytes()));
-    }
-
-    private String decrypt(String data) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Cipher cipher = Cipher.getInstance(KEY_TYPE);
-        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(KEY.getBytes(), KEY_TYPE));
-
-        return new String(cipher.doFinal(DatatypeConverter.parseBase64Binary(data)));
+    public static void main(String[] args)  {
+        final String password = "Here is the password";
+        String textToEncrypt = "Hello";
+        for (int i = 0; i < 3; i++) {
+            String salt = KeyGenerators.string().generateKey();
+            TextEncryptor encryptor = Encryptors.text(password, salt);
+            String cipherText = encryptor.encrypt(textToEncrypt);
+            String decryptedText = encryptor.decrypt(cipherText);
+            System.out.println("Src: " + textToEncrypt);
+            System.out.println("Cipher: " + cipherText);
+            System.out.println("Decrypted: " + decryptedText);
+            System.out.println("__________________");
+        }
     }
 
     @Override
