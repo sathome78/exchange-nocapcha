@@ -41,7 +41,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     private static BASE64Encoder enc = new BASE64Encoder();
     private static BASE64Decoder dec = new BASE64Decoder();
     // TODO: save key to the base
-    private static String key = "Dfgdfr4398fhhIUF#7f23fIEIBFf465gdfg";
+    private static String key = "ell+cTISVmFhYHxXJ1JfByc9QVJ/dlN8aV44emVYCwVWeUMGYQF7Y28HeTQ0BXUGJ3B/dG1ad3hyn" +
+            "N1h8IERJVQ==";
 
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
@@ -186,5 +187,12 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static void main(String[] args){
+    AlgorithmService algorithmService = new AlgorithmServiceImpl();
+    String temp = algorithmService.encodeByKey("0576de547126dcfade59540419a6013b01744023967cbb8af12352690f36b396");
+        System.out.println(temp);
+        System.out.println(algorithmService.decodeByKey(temp));
     }
 }
