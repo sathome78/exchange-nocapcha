@@ -16,7 +16,7 @@ import java.io.IOException;
 
 
 @ClientEndpoint
-//@Service("ppyServiceImpl")
+@Service("ppyServiceImpl")
 @Conditional(MonolitConditional.class)
 public class PPYServiceImpl extends BitsharesServiceImpl {
 

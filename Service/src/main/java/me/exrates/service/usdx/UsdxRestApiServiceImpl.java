@@ -76,6 +76,9 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
         UsdxApiResponse<UsdxTransaction> transactionUsdxApiResponse = restTemplate.exchange(baseUrl + SEND_TRANSACTION.replace(EXCHANGE_ID_TEXT_FOR_REPLACE, exchangeId), HttpMethod.POST,
                 entity, new ParameterizedTypeReference<UsdxApiResponse<UsdxTransaction>>() {}).getBody();
 
+        log.debug("Method: transferAssetsToUserAccount. Params (object): {}. Status: {}. Response (object): {}",
+                usdxTransaction, transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getData());
+
         checkResponseAndThrowUsdxApiExceptionWhenHasErrorOrFail(transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getMessage(),
                 transactionUsdxApiResponse.getData().getErrorCode(), transactionUsdxApiResponse.getData().getFailReason());
 
@@ -88,6 +91,8 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
 
         UsdxApiResponse<UsdxHistoryTransaction> transactionUsdxApiResponse = restTemplate.exchange(baseUrl + GET_TRANSACTIONS_HISTORY.replace(EXCHANGE_ID_TEXT_FOR_REPLACE, exchangeId),
                 HttpMethod.GET, null, new ParameterizedTypeReference<UsdxApiResponse<UsdxHistoryTransaction>>() {}).getBody();
+
+        log.debug("Method: getAllTransactions(). Status: {}", transactionUsdxApiResponse.getStatus());
 
         checkResponseAndThrowUsdxApiExceptionWhenHasErrorOrFail(transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getMessage(),
                 transactionUsdxApiResponse.getData().getErrorCode(), transactionUsdxApiResponse.getData().getFailReason());
@@ -107,6 +112,9 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
         UsdxApiResponse<UsdxHistoryTransaction> transactionUsdxApiResponse = restTemplate.exchange(builder.toUriString(), HttpMethod.GET,
                 null, new ParameterizedTypeReference<UsdxApiResponse<UsdxHistoryTransaction>>() {}).getBody();
 
+        log.debug("Method: getTransactionsHistory(String fromId, int limit). Params: fromId {}, limit {}. Status: {}",
+                fromId, limit, transactionUsdxApiResponse.getStatus());
+
         checkResponseAndThrowUsdxApiExceptionWhenHasErrorOrFail(transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getMessage(),
                 transactionUsdxApiResponse.getData().getErrorCode(), transactionUsdxApiResponse.getData().getFailReason());
 
@@ -120,6 +128,8 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
         UsdxApiResponse<UsdxAccountBalance> accountBalanceUsdxApiResponse = restTemplate.exchange(baseUrl + GET_ACCOUNT_BALANCE.replace(EXCHANGE_ID_TEXT_FOR_REPLACE, exchangeId), HttpMethod.GET,
                 null, new ParameterizedTypeReference<UsdxApiResponse<UsdxAccountBalance>>() {}).getBody();
 
+        log.debug("Method: getAccountBalance(). Status: {}", accountBalanceUsdxApiResponse.getStatus());
+
         checkResponseAndThrowUsdxApiExceptionWhenHasErrorOrFail(accountBalanceUsdxApiResponse.getStatus(), accountBalanceUsdxApiResponse.getMessage(),
                 accountBalanceUsdxApiResponse.getData().getErrorCode(), accountBalanceUsdxApiResponse.getData().getFailReason());
 
@@ -132,6 +142,9 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
 
         UsdxApiResponse<UsdxTransaction> transactionUsdxApiResponse = restTemplate.exchange(baseUrl + GET_TRANSACTION.replace(EXCHANGE_ID_TEXT_FOR_REPLACE, exchangeId), HttpMethod.GET,
                 null, new ParameterizedTypeReference<UsdxApiResponse<UsdxTransaction>>() {}, transferId).getBody();
+
+        log.debug("Method: getTransactionStatus(String transferId). Params: transferId {}. Status: {}. Response (object): {}",
+                transferId, transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getData());
 
         checkResponseAndThrowUsdxApiExceptionWhenHasErrorOrFail(transactionUsdxApiResponse.getStatus(), transactionUsdxApiResponse.getMessage(),
                 transactionUsdxApiResponse.getData().getErrorCode(), transactionUsdxApiResponse.getData().getFailReason());
