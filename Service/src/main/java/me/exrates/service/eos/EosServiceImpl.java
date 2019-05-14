@@ -101,6 +101,35 @@ public class EosServiceImpl implements EosService {
 
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+
+//        String address = params.get("address");
+//        String amount = params.get("amount");
+//        String hash = params.get("hash");
+//        BigDecimal fullAmount = new BigDecimal(amount);
+//        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+//                .address(address)
+//                .merchantId(merchant.getId())
+//                .currencyId(currency.getId())
+//                .amount(fullAmount)
+//                .merchantTransactionId(hash)
+//                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
+//                .build();
+//
+//        String encodedStr = refillService.getPrivKeyByAddress(address);
+//        String privKey = algorithmService.decodeByKey(encodedStr);
+//        String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
+//        if (tempStatus.equals(STATUS_OK)) {
+//            try {
+//                refillService.autoAcceptRefillRequest(requestAcceptDto);
+//            } catch (RefillRequestAppropriateNotFoundException e) {
+//                log.debug("RefillRequestNotFountException: " + params);
+//                Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+//                requestAcceptDto.setRequestId(requestId);
+//                refillService.autoAcceptRefillRequest(requestAcceptDto);
+//            }
+//        } else {
+//            log.error("STATUS is not OK = " + tempStatus + ". Error in gapiCurrencyService.createNewTransaction(privKey, fullAmount)");
+//        }
     }
 
     @Override
