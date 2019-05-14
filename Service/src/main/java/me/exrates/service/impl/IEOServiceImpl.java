@@ -117,11 +117,7 @@ public class IEOServiceImpl implements IEOService {
             String message = String.format("Failed to create claim while IEO for %s not started or already finished",
                     claimDto.getCurrencyName());
             logger.warn(message);
-            Email emailError = new Email();
-            emailError.setSubject("IEO claim");
-            emailError.setMessage(message);
-            emailError.setTo(claimDto.getEmail());
-            sendMailService.sendInfoMail(emailError);
+            sendErrorEmail(message, claimDto.getEmail());
             return;
         }
 
@@ -131,11 +127,7 @@ public class IEOServiceImpl implements IEOService {
             String message = "Failed to create claim, as user KYC status check failed for ieo: " + claimDto.getCurrencyName();
             logger.warn(message);
             logger.warn(message);
-            Email emailError = new Email();
-            emailError.setSubject("IEO claim");
-            emailError.setMessage(message);
-            emailError.setTo(claimDto.getEmail());
-            sendMailService.sendInfoMail(emailError);
+            sendErrorEmail(message, claimDto.getEmail());
             return;
         }
 
@@ -152,11 +144,7 @@ public class IEOServiceImpl implements IEOService {
             String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
                     available.toPlainString(), ieoClaim.getPriceInBtc());
             logger.warn(message);
-            Email emailError = new Email();
-            emailError.setSubject("IEO claim");
-            emailError.setMessage(message);
-            emailError.setTo(claimDto.getEmail());
-            sendMailService.sendInfoMail(emailError);
+            sendErrorEmail(message, claimDto.getEmail());
             return;
         }
 
@@ -165,22 +153,14 @@ public class IEOServiceImpl implements IEOService {
         if (ieoClaim == null) {
             String message = "Failed to save user's claim";
             logger.warn(message);
-            Email emailError = new Email();
-            emailError.setSubject("IEO claim");
-            emailError.setMessage(message);
-            emailError.setTo(claimDto.getEmail());
-            sendMailService.sendInfoMail(emailError);
+            sendErrorEmail(message, claimDto.getEmail());
             return;
         }
         boolean result = walletService.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
         if (!result) {
             String message = String.format("Failed to reserve %s BTC from user's account", ieoClaim.getPriceInBtc());
             logger.warn(message);
-            Email emailError = new Email();
-            emailError.setSubject("IEO claim");
-            emailError.setMessage(message);
-            emailError.setTo(claimDto.getEmail());
-            sendMailService.sendInfoMail(emailError);
+            sendErrorEmail(message, claimDto.getEmail());
             return;
         }
         ieoClaim.setCreatorEmail(email);
@@ -487,5 +467,13 @@ public class IEOServiceImpl implements IEOService {
     private void updateIeoStatusesForAll() {
         ieoDetailsRepository.updateIeoStatusesToRunning();
         ieoDetailsRepository.updateIeoStatusesToTerminated();
+    }
+
+    private void sendErrorEmail(String message, String email) {
+        Email emailError = new Email();
+        emailError.setSubject("IEO claim");
+        emailError.setMessage(message);
+        emailError.setTo(email);
+        sendMailService.sendInfoMail(emailError);
     }
 }
