@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GapiCurrencyService;
 import me.exrates.service.impl.GapiCurrencyServiceImpl.Transaction;
@@ -40,6 +41,8 @@ public class GapiServiceImpl implements GapiService {
     private RefillService refillService;
     @Autowired
     private WithdrawUtils withdrawUtils;
+    @Autowired
+    private AlgorithmService algorithmService;
 
     @Autowired
     private final GapiCurrencyService gapiCurrencyService;
@@ -64,11 +67,11 @@ public class GapiServiceImpl implements GapiService {
     public Map<String, String> refill(RefillRequestCreateDto request) {
         List<String> list = gapiCurrencyService.generateNewAddress();
         String address = list.get(0);
-        String privKey = list.get(1);
+        String encodedStr = algorithmService.encodeByKey(list.get(1));
         String message = messageSource.getMessage("merchants.refill.gapi",
                 new Object[] {address}, request.getLocale());
         return new HashMap<String, String>(){{
-            put("privKey", privKey);
+            put("privKey", encodedStr);
             put("address", address);
             put("message", message);
             put("qr", address);
@@ -119,7 +122,8 @@ public class GapiServiceImpl implements GapiService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-        String privKey = refillService.getPrivKeyByAddress(address);
+        String encodedStr = refillService.getPrivKeyByAddress(address);
+        String privKey = algorithmService.decodeByKey(encodedStr);
         String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
         if (tempStatus.equals(STATUS_OK)) {
             try {
