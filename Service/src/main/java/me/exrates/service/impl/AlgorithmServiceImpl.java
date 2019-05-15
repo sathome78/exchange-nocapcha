@@ -1,40 +1,28 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.secretsmanager.model.DecryptionFailureException;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
+import com.amazonaws.services.secretsmanager.model.InternalServiceErrorException;
+import com.amazonaws.services.secretsmanager.model.InvalidRequestException;
+import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
-import javax.annotation.PostConstruct;
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -46,14 +34,12 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
+@Log4j2(topic = "algorithm_log")
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
     private static BASE64Encoder enc = new BASE64Encoder();
     private static BASE64Decoder dec = new BASE64Decoder();
-    // TODO: save key to the base
-    private static String key = "ell+cTISVmFhYHxXJ1JfByc9QVJ/dlN8aV44emVYCwVWeUMGYQF7Y28HeTQ0BXUGJ3B/dG1ad3hynN1h8IERJVQ==";
-    private RestTemplate restTemplate;
 
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
@@ -69,32 +55,70 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     private CurrencyService currencyService;
 
     @Autowired
-    public AlgorithmServiceImpl (){
-        restTemplate = new RestTemplate();
-        key = getKeyFromVault();
+    public AlgorithmServiceImpl(){
+
     }
 
-    private String getKeyFromVault(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+    // Use this code snippet in your app.
+// If you need more information about configurations or implementing the sample code, visit the AWS docs:
+// https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-samples.html#prerequisites
 
-        map.add("SecretId", "...........");
+    private String getSecret() {
+        String secretName = "greg_token";
+        String region = "us-east-2";
 
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-        ResponseEntity<Response> response = restTemplate.postForEntity(
-                "http://......../api/v1/sendgapicoin", request , Response.class);
+        // Create a Secrets Manager client
+        AWSSecretsManager client  = AWSSecretsManagerClientBuilder.standard()
+                .withRegion(region)
+                .build();
 
-        return response.getBody().secretString;
-    }
+        // In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
+        // See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        // We rethrow the exception by default.
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-    private static class Response {
+        String secret = null, decodedBinarySecret = null;
+        GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest()
+                .withSecretId(secretName);
+        GetSecretValueResult getSecretValueResult = null;
 
-        @JsonProperty("SecretString")
-        String secretString;
+        try {
+            getSecretValueResult = client.getSecretValue(getSecretValueRequest);
+        } catch (DecryptionFailureException e) {
+            // Secrets Manager can't decrypt the protected secret text using the provided KMS key.
+            // Deal with the exception here, and/or rethrow at your discretion.
+            log.error(e);
+            throw e;
+        } catch (InternalServiceErrorException e) {
+            // An error occurred on the server side.
+            // Deal with the exception here, and/or rethrow at your discretion.
+            log.error(e);
+            throw e;
+        } catch (InvalidParameterException e) {
+            // You provided an invalid value for a parameter.
+            // Deal with the exception here, and/or rethrow at your discretion.
+            log.error(e);
+            throw e;
+        } catch (InvalidRequestException e) {
+            // You provided a parameter value that is not valid for the current state of the resource.
+            // Deal with the exception here, and/or rethrow at your discretion.
+            log.error(e);
+            throw e;
+        } catch (ResourceNotFoundException e) {
+            // We can't find the resource that you asked for.
+            // Deal with the exception here, and/or rethrow at your discretion.
+            log.error(e);
+            throw e;
+        }
+
+        // Decrypts secret using the associated KMS CMK.
+        // Depending on whether the secret is a string or binary, one of these fields will be populated.
+        if (getSecretValueResult.getSecretString() != null) {
+            secret = getSecretValueResult.getSecretString();
+        }
+        else {
+            decodedBinarySecret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
+        }
+        return secret != null ? secret : decodedBinarySecret;
     }
 
     @Override
@@ -190,6 +214,11 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public String encodeByKey(String txt) {
+        long start = System.currentTimeMillis();
+        String key = getSecret();
+        long finish = System.currentTimeMillis();
+        log.info(finish - start);
+
         String text = xorMessage(txt, key);
         try {
             return enc.encode(text.getBytes(DEFAULT_ENCODING));
@@ -201,11 +230,17 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public String decodeByKey(String text) {
         String txt;
+        String key;
         try {
             txt = new String(dec.decodeBuffer(text), DEFAULT_ENCODING);
         } catch (IOException e) {
             return null;
         }
+        long start = System.currentTimeMillis();
+        key = getSecret();
+        long finish = System.currentTimeMillis();
+        log.info(finish - start);
+
         return xorMessage(txt, key);
     }
 
@@ -228,11 +263,4 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             return null;
         }
     }
-
-//    public static void main(String[] args){
-//    AlgorithmService algorithmService = new AlgorithmServiceImpl();
-//    String temp = algorithmService.encodeByKey("0576de547126dcfade59540419a6013b01744023967cbb8af12352690f36b396");
-//        System.out.println(temp);
-//        System.out.println(algorithmService.decodeByKey(temp));
-//    }
 }

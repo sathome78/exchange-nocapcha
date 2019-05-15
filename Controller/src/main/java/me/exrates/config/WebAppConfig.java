@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -2314,5 +2313,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         build.register(new LoggingFilter());
         return build;
     }
-
 }
