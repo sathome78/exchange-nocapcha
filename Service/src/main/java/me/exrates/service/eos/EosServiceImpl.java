@@ -61,7 +61,6 @@ public class EosServiceImpl implements EosService {
     }
 
 
-
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
@@ -102,19 +101,7 @@ public class EosServiceImpl implements EosService {
         log.debug("Process of sending data to Google Analytics...");
         gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
 
-//        String address = params.get("address");
-//        String amount = params.get("amount");
-//        String hash = params.get("hash");
-//        BigDecimal fullAmount = new BigDecimal(amount);
-//        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-//                .address(address)
-//                .merchantId(merchant.getId())
-//                .currencyId(currency.getId())
-//                .amount(fullAmount)
-//                .merchantTransactionId(hash)
-//                .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
-//                .build();
-//
+//for test
 //        String encodedStr = refillService.getPrivKeyByAddress(address);
 //        String privKey = algorithmService.decodeByKey(encodedStr);
 //        String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
