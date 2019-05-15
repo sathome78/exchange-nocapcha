@@ -103,6 +103,7 @@ public class IEOServiceImpl implements IEOService {
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
+        logger.info("Add claim to queue {}, uuid claim ", claimDto.getUuid());
         rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
         return claimDto;
     }
@@ -111,11 +112,12 @@ public class IEOServiceImpl implements IEOService {
     @RabbitListener(queues = IEO_CLAIM_QUEUE, containerFactory = "ieoListenerContainerFactory")
     @Transactional
     public void saveClaim(ClaimDto claimDto) {
+        logger.info("Starting save claim uuid {}", claimDto.getUuid());
         String email = claimDto.getEmail();
         IEODetails ieoDetails = ieoDetailsRepository.findOpenIeoByCurrencyName(claimDto.getCurrencyName());
         if (ieoDetails == null) {
-            String message = String.format("Failed to create claim while IEO for %s not started or already finished",
-                    claimDto.getCurrencyName());
+            String message = String.format("Failed to create claim %s while IEO for %s not started or already finished",
+                    claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
@@ -124,7 +126,8 @@ public class IEOServiceImpl implements IEOService {
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
 
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
-            String message = "Failed to create claim, as user KYC status check failed for ieo: " + claimDto.getCurrencyName();
+            String message = String.format("Failed to create claim %s, as user KYC status check failed for ieo: %s ",
+                    claimDto.getUuid(), claimDto.getCurrencyName());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
@@ -140,8 +143,8 @@ public class IEOServiceImpl implements IEOService {
         int currencyId = currencyService.findByName("BTC").getId();
         BigDecimal available = walletService.getAvailableAmountInBtcLocked(user.getId(), currencyId);
         if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
-            String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC",
-                    available.toPlainString(), ieoClaim.getPriceInBtc());
+            String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC, claim %s",
+                    available.toPlainString(), ieoClaim.getPriceInBtc(), claimDto.getUuid());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
@@ -157,13 +160,15 @@ public class IEOServiceImpl implements IEOService {
         }
         boolean result = walletService.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
         if (!result) {
-            String message = String.format("Failed to reserve %s BTC from user's account", ieoClaim.getPriceInBtc());
+            String message = String.format("Failed to reserve %s BTC from user's account, claim %s",
+                    ieoClaim.getPriceInBtc(), claimDto.getUuid());
             logger.warn(message);
             sendErrorEmail(message, claimDto.getEmail());
             return;
         }
         ieoClaim.setCreatorEmail(email);
         ieoQueueService.add(ieoClaim);
+        logger.info("Add claim {} to IEO processor", claimDto.getUuid());
         claimDto.setId(ieoClaim.getId());
     }
 
@@ -315,7 +320,6 @@ public class IEOServiceImpl implements IEOService {
     public boolean approveSuccessIeo(int ieoId, String adminEmail) {
         // 1. change currency to main
         // 2. change role for maker to simple user
-        // 3. move btc amount from ieo reserved to active balance
         logger.info("Start approve to success IEO id {}, email {}", ieoId, adminEmail);
         User user = userService.findByEmail(adminEmail);
         if (user.getRole() != UserRole.ADMIN_USER) {
@@ -341,7 +345,6 @@ public class IEOServiceImpl implements IEOService {
             throw new IeoException(ErrorApiTitles.IEO_FAILED_MOVE_TO_SUCCESS, message);
         }
 
-        //todo check all currency pair ??? create currency pairs ???
         CurrencyPair ieoBtcPair = currencyService.getCurrencyPairByName(ieoDetails.getCurrencyName() + "/" + "BTC");
         if (ieoBtcPair != null) {
             ieoBtcPair.setPairType(CurrencyPairType.MAIN);
