@@ -108,7 +108,7 @@ public class IEOServiceImpl implements IEOService {
     }
 
 
-    @RabbitListener(queues = IEO_CLAIM_QUEUE)
+    @RabbitListener(queues = IEO_CLAIM_QUEUE, containerFactory = "ieoListenerContainerFactory")
     @Transactional
     public void saveClaim(ClaimDto claimDto) {
         String email = claimDto.getEmail();
