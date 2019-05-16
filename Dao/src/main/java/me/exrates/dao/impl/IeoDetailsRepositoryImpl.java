@@ -80,8 +80,8 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         try {
             jdbcTemplate.update(sql, params);
         } catch (DataAccessException e) {
-            log.error("Failed to insert IEO Details ", e);
-            throw new RuntimeException(String.format("Error insert ieo details for %s to DB", ieoDetails.getCurrencyName()));
+            log.error("Failed to update IEO Details ", e);
+            throw new RuntimeException(String.format("Error update ieo details for %s to DB", ieoDetails.getCurrencyName()));
         }
         return ieoDetails;
     }

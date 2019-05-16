@@ -168,7 +168,7 @@ public class IEOServiceImpl implements IEOService {
         }
         ieoClaim.setCreatorEmail(email);
         ieoQueueService.add(ieoClaim);
-        logger.info("Add claim {} to IEO processor", claimDto.getUuid());
+        logger.info("Added claim {} to IEO processor", claimDto.getUuid());
     }
 
     @Override

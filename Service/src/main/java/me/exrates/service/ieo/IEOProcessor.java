@@ -73,9 +73,21 @@ public class IEOProcessor implements Runnable {
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             log.info("{} {} has 0 available balance", ieoDetails.getCurrencyName(), ieoDetails.getCurrencyDescription());
-            String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s)", ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName());
+            String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s), asked amount %s %s",
+                    ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount(),
+                    ieoDetails.getCurrencyName());
             notificationMessage.setNotificationType(UserNotificationType.ERROR);
             notificationMessage.setText(text);
+            IEOResult ieoResult = IEOResult.builder()
+                    .claimId(ieoClaim.getId())
+                    .ieoId(ieoClaim.getIeoId())
+                    .availableAmount(availableAmount)
+                    .status(IEOResult.IEOResultStatus.FAILED)
+                    .message(String.format("no tokens available in IEO %s", ieoDetails.getCurrencyName()))
+                    .build();
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
+            ieoResultRepository.save(ieoResult);
+            walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
             stompMessenger.sendPersonalMessageToUser(principalEmail, notificationMessage);
             sendMailService.sendInfoMail(prepareEmail(principalEmail, notificationMessage));
             return;
@@ -114,8 +126,7 @@ public class IEOProcessor implements Runnable {
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
         ieoDetails.setAvailableAmount(availableAmount);
-        ieoDetailsRepository.updateSafe(ieoDetails);
-        ieoDetails.setAvailableAmount(availableAmount);
+        ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), ieoDetails.getAvailableAmount());
         ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
         CompletableFuture.runAsync(() -> sendNotifications(principalEmail, ieoDetails, notificationMessage));
     }
