@@ -169,7 +169,6 @@ public class IEOServiceImpl implements IEOService {
         ieoClaim.setCreatorEmail(email);
         ieoQueueService.add(ieoClaim);
         logger.info("Add claim {} to IEO processor", claimDto.getUuid());
-        claimDto.setId(ieoClaim.getId());
     }
 
     @Override
@@ -473,7 +472,7 @@ public class IEOServiceImpl implements IEOService {
 
     private void sendErrorEmail(String message, String email) {
         Email emailError = new Email();
-        emailError.setSubject("IEO claim");
+        emailError.setSubject("IEO claim save error");
         emailError.setMessage(message);
         emailError.setTo(email);
         sendMailService.sendInfoMail(emailError);
