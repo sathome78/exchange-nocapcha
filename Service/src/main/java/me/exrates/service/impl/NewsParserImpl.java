@@ -46,7 +46,7 @@ public class NewsParserImpl implements NewsParser {
                 }
             });
 
-//    @PostConstruct()
+    @PostConstruct()
     public void init() {
         CACHE.put(ResourceEnum.AMB_CRYPTO.getId(), parseStandardRss(ResourceEnum.AMB_CRYPTO));
         CACHE.put(ResourceEnum.COIN_CODEX.getId(), parseStandardRss(ResourceEnum.COIN_CODEX));
