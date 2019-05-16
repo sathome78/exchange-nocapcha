@@ -58,11 +58,13 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     public AlgorithmServiceImpl(){
 
     }
-
     // Use this code snippet in your app.
 // If you need more information about configurations or implementing the sample code, visit the AWS docs:
 // https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-samples.html#prerequisites
 
+
+
+//    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
     private String getSecret() {
         String secretName = "greg_token";
         String region = "us-east-2";
@@ -118,7 +120,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         else {
             decodedBinarySecret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
         }
-        return secret != null ? secret : decodedBinarySecret;
+        return secret != null ?
+                secret.substring(secret.indexOf(":") + 2,secret.length() - 2) :
+                decodedBinarySecret.substring(decodedBinarySecret.indexOf(":") + 2,decodedBinarySecret.length() - 2);
     }
 
     @Override
@@ -214,11 +218,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public String encodeByKey(String txt) {
-        long start = System.currentTimeMillis();
         String key = getSecret();
-        long finish = System.currentTimeMillis();
-        log.info(finish - start);
-
         String text = xorMessage(txt, key);
         try {
             return enc.encode(text.getBytes(DEFAULT_ENCODING));
@@ -236,11 +236,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         } catch (IOException e) {
             return null;
         }
-        long start = System.currentTimeMillis();
         key = getSecret();
-        long finish = System.currentTimeMillis();
-        log.info(finish - start);
-
         return xorMessage(txt, key);
     }
 
