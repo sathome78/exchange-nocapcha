@@ -11,90 +11,118 @@ import me.exrates.model.IEOClaim;
 import me.exrates.model.IEODetails;
 import me.exrates.model.IEOResult;
 import me.exrates.model.Wallet;
-import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.exceptions.IeoException;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collection;
+import java.util.List;
 
+@Service
 @Log4j2
-public class IEOProcessor implements Runnable {
-
-    private final IEOResultRepository ieoResultRepository;
-    private final IEOClaimRepository ieoClaimRepository;
-    private final IeoDetailsRepository ieoDetailsRepository;
-    private final SendMailService sendMailService;
+public class IEOServiceProcessing {
+    private static final Logger logger = LogManager.getLogger(IEOServiceProcessing.class);
+    private static final int CHUNK = 10;
     private final WalletService walletService;
-    private final UserService userService;
-    private final IEOClaim ieoClaim;
+    private final IEOResultRepository ieoResultRepository;
+    private final IeoDetailsRepository ieoDetailsRepository;
     private final ObjectMapper objectMapper;
+    private final SendMailService sendMailService;
     private final StompMessenger stompMessenger;
+    private final UserService userService;
+    private final IEOClaimRepository ieoClaimRepository;
+    private final CurrencyService currencyService;
+    private int CURRENCY_BTC_ID;
 
-    public IEOProcessor(IEOResultRepository ieoResultRepository,
-                        IEOClaimRepository ieoClaimRepository,
-                        IeoDetailsRepository ieoDetailsRepository,
-                        SendMailService sendMailService,
-                        UserService userService,
-                        IEOClaim ieoClaim,
-                        WalletService walletService,
-                        ObjectMapper objectMapper,
-                        StompMessenger stompMessenger) {
-        this.ieoResultRepository = ieoResultRepository;
-        this.ieoClaimRepository = ieoClaimRepository;
+    @Autowired
+    public IEOServiceProcessing(WalletService walletService,
+                                IEOResultRepository ieoResultRepository,
+                                IeoDetailsRepository ieoDetailsRepository,
+                                ObjectMapper objectMapper,
+                                SendMailService sendMailService,
+                                StompMessenger stompMessenger,
+                                UserService userService,
+                                IEOClaimRepository ieoClaimRepository,
+                                CurrencyService currencyService) {
         this.ieoDetailsRepository = ieoDetailsRepository;
         this.sendMailService = sendMailService;
         this.userService = userService;
         this.walletService = walletService;
-        this.ieoClaim = ieoClaim;
+        this.ieoResultRepository = ieoResultRepository;
         this.objectMapper = objectMapper;
         this.stompMessenger = stompMessenger;
+        this.ieoClaimRepository = ieoClaimRepository;
+        this.currencyService = currencyService;
+        this.CURRENCY_BTC_ID = currencyService.findByName("BTC").getId();
     }
 
-    @Override
-    public void run() {
-        String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
-        final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
-        IEODetails ieoDetails = ieoDetailsRepository.findOne(ieoClaim.getIeoId());
-        String principalEmail = userService.findEmailById(ieoClaim.getUserId());
+    @Scheduled(fixedDelay = 1000)
+    public void processClaims() {
+        Collection<IEODetails> ieos = ieoDetailsRepository.findAllRunningAndAvailableIeo();
+        for (IEODetails ieoDetail : ieos) {
+            boolean filled = true;
+            while (filled) {
+                List<IEOClaim> claims = ieoClaimRepository.findUnprocessedIeoClaimsByIeoId(ieoDetail.getId(), CHUNK);
+                if (claims.isEmpty()) {
+                    filled = false;
+                }
+                for (IEOClaim claim : claims) {
+                    processIeoClaim(claim, ieoDetail);
+                }
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void processIeoClaim(IEOClaim ieoClaim, IEODetails ieoDetails) {
         if (ieoDetails == null) {
             String message = String.format("Failed to find ieo details for id: %d", ieoClaim.getIeoId());
             log.warn(message);
-            throw new IeoException(ErrorApiTitles.IEO_DETAILS_NOT_FOUND, message);
+            return;
         }
+        logger.info("Starting process ieoClaim {}", ieoClaim.getUuid());
+        String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
+        final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
+        String principalEmail = userService.findEmailById(ieoClaim.getUserId());
+        BigDecimal amountInBtcLocked = walletService.getAvailableAmountInBtcLocked(ieoClaim.getUserId(), CURRENCY_BTC_ID);
+
+        if (amountInBtcLocked.compareTo(ieoClaim.getPriceInBtc()) < 0) {
+            log.info("User active balance less claim amount, active {}, required {}", amountInBtcLocked, ieoClaim.getPriceInBtc());
+            String text = String.format("Unfortunately, You doesn't have required amount in BTC for purchase %s %s. Your amount is %s BTC",
+                    ieoDetails.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
+            String resultIeoMessage = String.format("Not enough user BTC amount %s", amountInBtcLocked);
+            failedClaim(ieoClaim, ieoDetails.getAvailableAmount(), principalEmail, notificationMessage,
+                    resultIeoMessage, text);
+            return;
+        }
+
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             log.info("{} {} has 0 available balance", ieoDetails.getCurrencyName(), ieoDetails.getCurrencyDescription());
             String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s), asked amount %s %s",
                     ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount(),
                     ieoDetails.getCurrencyName());
-            notificationMessage.setNotificationType(UserNotificationType.ERROR);
-            notificationMessage.setText(text);
-            IEOResult ieoResult = IEOResult.builder()
-                    .claimId(ieoClaim.getId())
-                    .ieoId(ieoClaim.getIeoId())
-                    .availableAmount(availableAmount)
-                    .status(IEOResult.IEOResultStatus.FAILED)
-                    .message(String.format("no tokens available in IEO %s", ieoDetails.getCurrencyName()))
-                    .build();
-            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
-            ieoResultRepository.save(ieoResult);
-            walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
-            stompMessenger.sendPersonalMessageToUser(principalEmail, notificationMessage);
-            sendMailService.sendInfoMail(prepareEmail(principalEmail, notificationMessage));
+            String resultIeoMessage = String.format("No tokens available in IEO %s", ieoDetails.getCurrencyName());
+            failedClaim(ieoClaim, availableAmount, principalEmail, notificationMessage, resultIeoMessage, text);
             return;
         } else if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
             String text = String.format("Token purchase successful! You purchased a maximal available sum: %s %s", availableAmount.toPlainString(), ieoDetails.getCurrencyName());
             notificationMessage.setText(text);
-            refactorClaim(availableAmount);
+            refactorClaim(availableAmount, ieoClaim);
             availableAmount = BigDecimal.ZERO;
             ieoDetails.setStatus(IEODetailsStatus.TERMINATED);
         } else if (ieoDetails.getMaxAmountPerUser().compareTo(BigDecimal.ZERO) > 0) {
@@ -105,7 +133,7 @@ public class IEOProcessor implements Runnable {
                     String text = String.format("Token purchase successful! You purchased a maximal available sum: %s %s",
                             availableForUser.toPlainString(), ieoDetails.getCurrencyName());
                     notificationMessage.setText(text);
-                    refactorClaim(availableForUser);
+                    refactorClaim(availableForUser, ieoClaim);
                     availableAmount = availableAmount.subtract(ieoClaim.getAmount());
                 }
             }
@@ -128,14 +156,28 @@ public class IEOProcessor implements Runnable {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), ieoDetails.getAvailableAmount());
         ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
-        CompletableFuture.runAsync(() -> sendNotifications(principalEmail, ieoDetails, notificationMessage));
+        sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
-    private void refactorClaim(BigDecimal newAmount) {
-        BigDecimal oldAmount = ieoClaim.getAmount();
-        BigDecimal remainingAmount = oldAmount.subtract(newAmount);
-        BigDecimal btcRollBack = remainingAmount.multiply(ieoClaim.getRate());
-        walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), btcRollBack);
+    private void failedClaim(IEOClaim ieoClaim, BigDecimal availableAmount, String email,
+                             UserNotificationMessage notificationMessage, String resultIEOMessage, String text) {
+        notificationMessage.setNotificationType(UserNotificationType.ERROR);
+        notificationMessage.setText(text);
+        IEOResult ieoResult = IEOResult.builder()
+                .claimId(ieoClaim.getId())
+                .ieoId(ieoClaim.getIeoId())
+                .availableAmount(availableAmount)
+                .status(IEOResult.IEOResultStatus.FAILED)
+                .message(resultIEOMessage)
+                .build();
+        ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
+        ieoResultRepository.save(ieoResult);
+        walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
+        stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
+        sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
+    }
+
+    private void refactorClaim(BigDecimal newAmount, IEOClaim ieoClaim) {
         ieoClaim.setAmount(newAmount);
         BigDecimal newPriceInBtc = newAmount.multiply(ieoClaim.getRate());
         ieoClaim.setPriceInBtc(newPriceInBtc);

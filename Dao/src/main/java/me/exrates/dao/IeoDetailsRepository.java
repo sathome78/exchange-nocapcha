@@ -1,7 +1,6 @@
 package me.exrates.dao;
 
 import me.exrates.model.IEODetails;
-import me.exrates.model.User;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -29,4 +28,6 @@ public interface IeoDetailsRepository {
     boolean updateIeoStatusesToRunning();
 
     boolean updateIeoStatusesToTerminated();
+
+    Collection<IEODetails> findAllRunningAndAvailableIeo();
 }

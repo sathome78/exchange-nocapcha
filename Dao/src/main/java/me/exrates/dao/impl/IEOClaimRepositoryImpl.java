@@ -91,6 +91,13 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk) {
+        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' ORDER BY created DESC LIMIT " + chunk;
+        MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
+        return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
+    }
+
     private RowMapper<IEOClaim> ieoClaimRowMapper() {
         return (rs, row) -> {
             IEOClaim ieoClaim = new IEOClaim();

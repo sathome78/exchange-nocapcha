@@ -170,6 +170,12 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return jdbcTemplate.update(sql, new HashMap<>()) > 0;
     }
 
+    @Override
+    public Collection<IEODetails> findAllRunningAndAvailableIeo() {
+        String sql = "SELECT * FROM IEO_DETAILS WHERE status = 'RUNNING'";
+        return jdbcTemplate.query(sql, ieoDetailsRowMapper());
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
