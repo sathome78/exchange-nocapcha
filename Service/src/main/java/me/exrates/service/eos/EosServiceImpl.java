@@ -97,15 +97,12 @@ public class EosServiceImpl implements EosService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-//        client.pushTransaction();
-        if(true) {
             int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
             final String username = refillService.getUsernameByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
-        }
     }
 
     @Override
