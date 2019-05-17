@@ -4,21 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jafka.jeos.EosApi;
 import io.jafka.jeos.EosApiFactory;
 import io.jafka.jeos.core.response.chain.Block;
-import io.jafka.jeos.core.response.chain.code.Action;
-import io.jafka.jeos.core.response.history.action.Actions;
 import io.jafka.jeos.core.response.history.transaction.Transaction;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.dto.EosDataDto;
 import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.BasicConfigurator;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -47,6 +43,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
 
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
+    @Autowired
+    private EosService eosService;
 
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -95,6 +93,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         map.put("address", dataDto.getMemo());
         map.put("hash", hash);
         map.put("amount", dataDto.getAmount().toPlainString());
+
+        eosService.processPayment(map);
     }
 
 

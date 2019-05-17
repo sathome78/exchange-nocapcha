@@ -1,5 +1,6 @@
 package me.exrates.service.eos;
 
+import io.jafka.jeos.EosApi;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
@@ -44,6 +45,8 @@ public class EosServiceImpl implements EosService {
     private GtagService gtagService;
     @Autowired
     private WithdrawUtils withdrawUtils;
+
+    private EosApi client;
 
 
 
@@ -94,29 +97,15 @@ public class EosServiceImpl implements EosService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-        int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
+//        client.pushTransaction();
+        if(true) {
+            int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUsernameByRequestId(requestId);
 
-        log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
-
-//for test
-//        String encodedStr = refillService.getPrivKeyByAddress(address);
-//        String privKey = algorithmService.decodeByKey(encodedStr);
-//        String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
-//        if (tempStatus.equals(STATUS_OK)) {
-//            try {
-//                refillService.autoAcceptRefillRequest(requestAcceptDto);
-//            } catch (RefillRequestAppropriateNotFoundException e) {
-//                log.debug("RefillRequestNotFountException: " + params);
-//                Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
-//                requestAcceptDto.setRequestId(requestId);
-//                refillService.autoAcceptRefillRequest(requestAcceptDto);
-//            }
-//        } else {
-//            log.error("STATUS is not OK = " + tempStatus + ". Error in gapiCurrencyService.createNewTransaction(privKey, fullAmount)");
-//        }
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        }
     }
 
     @Override
