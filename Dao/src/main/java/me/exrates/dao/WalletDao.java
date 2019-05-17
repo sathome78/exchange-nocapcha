@@ -1,5 +1,7 @@
 package me.exrates.dao;
 
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEOClaim;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -25,8 +27,10 @@ import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public interface WalletDao {
@@ -41,7 +45,7 @@ public interface WalletDao {
 
     int getUserIdFromWallet(int walletId);
 
-    List<Wallet> findAllByUser(int userId);
+    List<Wallet> findAllForNotHiddenCurByUser(int userId);
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserAndCurrenciesReduced(String email, Locale locale, Set<Integer> currencyIds);
 
@@ -61,13 +65,19 @@ public interface WalletDao {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
+    List<Wallet> findAllByUser(int userId);
+
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
+    Wallet findByUserAndCurrency(int userId, String currencyName);
+
     Wallet findById(Integer walletId);
 
     Wallet createWallet(User user, int currencyId);
+
+    Wallet createWallet(int userId, int currencyId);
 
     boolean update(Wallet wallet);
 
@@ -91,7 +101,13 @@ public interface WalletDao {
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
-    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
+    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair);
+
+    BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId);
+
+    boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
+
+    boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc, int currencyId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 
@@ -132,4 +148,8 @@ public interface WalletDao {
     BigDecimal retrieveSummaryBTC();
 
     void updateExternalReservedWalletBalances(int currencyId, String walletAddress, BigDecimal balance, LocalDateTime lastReservedBalanceUpdate);
+
+    Map<String, String> findUserCurrencyBalances(User user, Collection<String> currencyNames);
+
+    BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim);
 }

@@ -36,13 +36,13 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Log4j2(topic = "qtum_log")
 @PropertySource("classpath:/merchants/qtum.properties")
@@ -130,7 +130,7 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(merchant.getName(),
                 qtumSpecParamName).getParamValue());
 
-        Set<String> addresses = refillService.findAllAddresses(merchant.getId(), currency.getId()).stream().distinct().collect(Collectors.toSet());
+        Set<String> addresses = new HashSet<>(refillService.findAllAddresses(merchant.getId(), currency.getId()));
 
         List<QtumTokenTransaction> tokenTransactions = qtumNodeService.getTokenHistory(lastReceivedBlock, contractAddress);
         log.info("token transactions:" + tokenTransactions.toString());
@@ -179,10 +179,10 @@ public class QtumTokenServiceImpl implements QtumTokenService {
         refillService.updateAddressNeedTransfer(String.valueOf(params.get("address")), merchant.getId(),
                 currency.getId(), true);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     private void checkBalanceAndTransfer() {

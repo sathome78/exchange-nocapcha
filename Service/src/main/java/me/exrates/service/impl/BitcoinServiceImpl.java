@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.MerchantSpecParamDto;
@@ -15,6 +16,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.merchants.btc.BtcAdminPreparedTxDto;
 import me.exrates.model.dto.merchants.btc.BtcBlockDto;
 import me.exrates.model.dto.merchants.btc.BtcPaymentFlatDto;
@@ -127,10 +129,10 @@ public class BitcoinServiceImpl implements BitcoinService {
         this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, true);
     }
 
-    public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
-                              Boolean rawTxEnabled, Boolean supportSubtractFee) {
-        this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
-    }
+  public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
+                            Boolean rawTxEnabled, Boolean supportSubtractFee) {
+    this(propertySource, merchantName, currencyName, minConfirmations, blockTargetForFee, rawTxEnabled, supportSubtractFee, true);
+  }
 
     public BitcoinServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations, Integer blockTargetForFee,
                               Boolean rawTxEnabled, Boolean supportSubtractFee, Boolean supportWalletNotifications) {
@@ -175,6 +177,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @PostConstruct
     void startBitcoin() {
+        System.out.println("::Starting " + merchantName);
         Properties passSource;
         if (nodeEnabled) {
             try {
@@ -430,10 +433,10 @@ public class BitcoinServiceImpl implements BitcoinService {
 
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-                final String username = refillService.getUsernameByRequestId(requestId);
+                final String gaTag = refillService.getUserGAByRequestId(requestId);
 
                 log.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, gaTag);
             }
         } catch (Exception e) {
             log.error(e);
@@ -456,10 +459,31 @@ public class BitcoinServiceImpl implements BitcoinService {
         return bitcoinWalletService.listAllTransactions();
     }
 
-    @Override
-    public BigDecimal estimateFee() {
-        return bitcoinWalletService.estimateFee(40);
-    }
+  @Override
+  public List<BtcTransactionHistoryDto> listTransactions(int page) {
+    return bitcoinWalletService.listTransaction(page);
+  }
+
+  @Override
+  public DataTable<List<BtcTransactionHistoryDto>> listTransactions(Map<String, String> tableParams) throws BitcoindException, CommunicationException{
+      Integer start = Integer.parseInt(tableParams.getOrDefault("start", "0"));
+      Integer length = Integer.parseInt(tableParams.getOrDefault("length", "10"));
+      String searchValue = tableParams.get("search[value]");
+
+      PagingData<List<BtcTransactionHistoryDto>> searchResult = bitcoinWalletService.listTransaction(start, length, searchValue);
+
+      DataTable<List<BtcTransactionHistoryDto>> output = new DataTable<>();
+      output.setData(searchResult.getData());
+      output.setRecordsTotal(searchResult.getTotal());
+      output.setRecordsFiltered(searchResult.getFiltered());
+
+    return output;
+  }
+
+  @Override
+  public BigDecimal estimateFee() {
+    return bitcoinWalletService.estimateFee(40);
+  }
 
     @Override
     public String getEstimatedFeeString() {

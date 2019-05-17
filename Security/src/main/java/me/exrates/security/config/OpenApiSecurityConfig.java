@@ -2,6 +2,9 @@ package me.exrates.security.config;
 
 import me.exrates.security.entryPoint.OpenApiAuthenticationEntryPoint;
 import me.exrates.security.filter.OpenApiAuthenticationFilter;
+import me.exrates.security.filter.RestAlterdiceFilterExp;
+import me.exrates.service.openapi.OpenApiCommonService;
+import me.exrates.service.openapi.impl.OpenApiCommonServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -38,7 +41,6 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.antMatcher("/openapi/v1/**").authorizeRequests()
@@ -47,6 +49,7 @@ public class OpenApiSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .and()
+                .addFilterBefore(new RestAlterdiceFilterExp(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(openApiAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()

@@ -1,9 +1,11 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.GtagRefillRequests;
+import me.exrates.dao.UserDao;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.service.GtagService;
 import me.exrates.service.api.ExchangeApi;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -33,16 +35,24 @@ public class GtagServiceImpl implements GtagService {
     @Autowired
     private ExchangeApi exchangeApi;
 
-    public void sendGtagEvents(String coinsCount, String tiker, String userName) {
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private GtagRefillRequests gtagRefillRequests;
+
+    public void sendGtagEvents(String coinsCount, String tiker, String gaTag) {
         if (!enable) return;
         try {
-            Pair<BigDecimal, BigDecimal> pair = exchangeApi.getRates().get(tiker);
-            String price = pair.getKey().multiply(new BigDecimal(coinsCount)).toString();
-            String transactionId = sendTransactionHit(userName, price, tiker);
+            RateDto rateDto = exchangeApi.getRates().getOrDefault(tiker, RateDto.zeroRate(tiker));
+            String price = rateDto.getUsdRate().multiply(new BigDecimal(coinsCount)).toString();
+            String transactionId = sendTransactionHit(gaTag, price, tiker);
             log.info("Successfully send transaction hit to gtag");
-            sendItemHit(userName, transactionId, tiker, coinsCount, pair.getKey().toString());
+            sendItemHit(gaTag, transactionId, tiker, coinsCount, rateDto.getUsdRate().toString());
             log.info("Successfully send item hit to gtag");
             log.info("Send all analytics");
+            saveGtagRefillRequest(gaTag);
         } catch (Throwable exception) {
             log.warn("Unable to send statistic to gtag ", exception);
         }
@@ -93,4 +103,19 @@ public class GtagServiceImpl implements GtagService {
 
         log.info("Response is " + jsonResponse);
     }
+
+    public void saveGtagRefillRequest(String gaTag) {
+        Integer userIdByGa = userDao.getUserIdByGaTag(gaTag);
+        try {
+            Integer userId = gtagRefillRequests.getUserIdOfGtagRequests(userIdByGa);
+            if (userId == null) {
+                gtagRefillRequests.addFirstCount(userIdByGa);
+            } else {
+                gtagRefillRequests.updateUserRequestsCount(userIdByGa);
+            }
+        } catch (Exception e) {
+            log.warn("Unable to update number of User requests count");
+        }
+    }
+
 }

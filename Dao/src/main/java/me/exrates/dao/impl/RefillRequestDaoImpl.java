@@ -6,12 +6,15 @@ import me.exrates.model.InvoiceBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.RefillRequestAddressShortDto;
 import me.exrates.model.dto.OperationUserDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestBtcInfoDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestFlatForReportDto;
+import me.exrates.model.condition.MonolitConditional;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -26,6 +29,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -39,14 +44,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -270,7 +268,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             put("hash", hash);
         }};
         try {
-            return Optional.ofNullable(namedParameterJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
+            return Optional.ofNullable(slaveJdbcTemplate.queryForObject(sql, params, refillRequestFlatDtoRowMapper));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -388,6 +386,28 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<Integer> autoCreate(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum) {
+        final String sql = "INSERT INTO REFILL_REQUEST " +
+                " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
+                "  date_creation, status_modification_date, merchant_transaction_id) " +
+                " VALUES " +
+                " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
+                " NOW(), NOW())";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("amount", request.getAmount())
+                .addValue("status_id", statusEnum.getCode())
+                .addValue("currency_id", request.getCurrencyId())
+                .addValue("user_id", userId)
+                .addValue("commission_id", commissionId)
+                .addValue("merchant_id", request.getMerchantId())
+                .addValue("merchant_transaction_id", request.getMerchantTransactionId());
+        namedParameterJdbcTemplate.update(sql, params, keyHolder);
+        return  Optional.of((int) keyHolder.getKey().longValue());
+    }
+
 
     @Override
     public Optional<Integer> create(RefillRequestCreateDto request) {
@@ -1373,7 +1393,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             put("merchant_id", merchantId);
             put("currency_id", currencyId);
             put("blocked", blocked);
-        }}) > 0 ;
+        }}) > 0;
     }
 
     @Override
@@ -1437,6 +1457,22 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
             dto.setMerchantId(rs.getInt("merchantId"));
             return dto;
         });
+    }
+
+    @Override
+    public Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int merchantId, int currencyId) {
+        String sql = "SELECT id FROM REFILL_REQUEST " +
+                " WHERE user_id = :user_id AND currency_id = :currency_id AND merchant_id = :merchant_id ";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("merchant_id", merchantId);
+            put("user_id", userId);
+            put("currency_id", currencyId);
+        }};
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+        } catch (EmptyResultDataAccessException e) {
+            return 0;
+        }
     }
 }
 

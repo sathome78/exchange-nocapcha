@@ -5,6 +5,7 @@ import me.exrates.dao.TransferRequestDao;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.PagingData;
 import me.exrates.model.TransferRequest;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -26,6 +27,7 @@ import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.exception.invoice.TransferRequestAcceptExeption;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.ITransferable;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -34,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -174,7 +177,7 @@ public class TransferServiceImpl implements TransferService {
               transferRequestCreateDto.getRecipientId(),
               transferRequestCreateDto.getAmount(),
               transferRequestCreateDto.getCommission(),
-              transferRequestCreateDto.getLocale(),
+              Locale.ENGLISH,
               createdTransferRequestId);
         }
       }
@@ -274,7 +277,7 @@ public class TransferServiceImpl implements TransferService {
     String notificationMessageCode;
     notificationMessageCode = "merchants.transferNotification.".concat(transferRequest.getStatus().name());
     notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
+        .getMessage(notificationMessageCode, messageParams, Locale.ENGLISH);
     notificationService.notifyUser(transferRequest.getUserEmail(), NotificationEvent.IN_OUT,
         "merchants.transferNotification.header", notificationMessageCode, messageParams);
     return notification;
@@ -383,5 +386,27 @@ public class TransferServiceImpl implements TransferService {
       throw new InvoiceNotFoundException("");
     }
     return transferRequestDao.getHashById(id);
+  }
+
+  @Override
+  public void revokeTransferRequest(Integer requestId) {
+    TransferRequestFlatDto transferRequest = transferRequestDao.getFlatByIdAndBlock(requestId)
+            .orElseThrow(() -> new TransferRequestNotFoundException(String.format("transfer request id: %s", requestId)));
+    TransferStatusEnum currentStatus = transferRequest.getStatus();
+    InvoiceActionTypeEnum action = REVOKE;
+    TransferStatusEnum newStatus = (TransferStatusEnum) currentStatus.nextState(action);
+    transferRequestDao.setStatusById(requestId, newStatus);
+    /**/
+    Integer userWalletId = walletService.getWalletId(transferRequest.getUserId(), transferRequest.getCurrencyId());
+    String description = transactionDescription.get(currentStatus, action);
+    WalletTransferStatus result = walletService.walletInnerTransfer(
+            userWalletId,
+            transferRequest.getAmount(),
+            TransactionSourceType.USER_TRANSFER,
+            transferRequest.getId(),
+            description);
+    if (result != SUCCESS) {
+      throw new TransferRequestRevokeException(result.toString());
+    }
   }
 }

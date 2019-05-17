@@ -12,6 +12,7 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.AlgorithmService;
@@ -30,6 +31,7 @@ import org.nem.core.model.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,7 @@ import java.util.Optional;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemServiceImpl implements NemService {
 
     @Autowired
@@ -76,7 +79,7 @@ public class NemServiceImpl implements NemService {
     @Autowired
     private GtagService gtagService;
 
-    private static final String NEM_MERCHANT = "NEM";
+    public static final String NEM_MERCHANT = "NEM";
     private static final int CONFIRMATIONS_COUNT_WITHDRAW = 2; /*must be 20, but in this case its safe for us to check only 2 confirmations*/
     private static final int CONFIRMATIONS_COUNT_REFILL = 20;
 
@@ -153,7 +156,7 @@ public class NemServiceImpl implements NemService {
         return algorithmService.sha256(String.valueOf(id)).substring(0, 8);
     }
 
-
+    @Transactional
     @Synchronized
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
@@ -193,13 +196,14 @@ public class NemServiceImpl implements NemService {
         } else {
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
         }
     }
 
+    @Transactional
     @Synchronized
     @Override
     public void processMosaicPayment(List<NemMosaicTransferDto> mosaics, Map<String, String> params) {
@@ -241,7 +245,7 @@ public class NemServiceImpl implements NemService {
                 } else {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-                    final String username = refillService.getUsernameByRequestId(requestId);
+                    final String username = refillService.getUserGAByRequestId(requestId);
 
                     log.debug("Process of sending data to Google Analytics...");
                     gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
@@ -277,7 +281,7 @@ public class NemServiceImpl implements NemService {
 
             refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+            final String username = refillService.getUserGAByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
             gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currency.getName(), username);

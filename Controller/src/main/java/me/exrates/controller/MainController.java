@@ -3,7 +3,6 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.exception.PasswordCreationException;
-import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.UserEmailDto;
@@ -21,18 +20,14 @@ import me.exrates.security.exception.BannedIpException;
 import me.exrates.security.exception.IncorrectPinException;
 import me.exrates.security.exception.PinCodeCheckNeedException;
 import me.exrates.security.exception.UnconfirmedUserException;
-import me.exrates.security.service.SecureService;
 import me.exrates.service.QRCodeService;
 import me.exrates.service.ReferralService;
-import me.exrates.service.SendMailService;
-import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
 import me.exrates.service.exception.NotConfirmedFinPasswordException;
 import me.exrates.service.exception.WrongFinPasswordException;
 import me.exrates.service.geetest.GeetestLib;
 import me.exrates.service.util.IpUtils;
-import org.apache.axis.utils.SessionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +38,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -280,7 +274,7 @@ public class MainController {
             attr.addFlashAttribute("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
             WebUtils.setSessionAttribute(request, "reg_user", null);
             if (view != null && view.equals("ico_dashboard")) {
-                return new ModelAndView("redirect:/ico_dashboard?login");
+                return new ModelAndView("redirect:/ieo_dashboard?login");
             }
             return new ModelAndView("redirect:/dashboard?login");
         }
@@ -299,7 +293,7 @@ public class MainController {
                 WebUtils.setSessionAttribute(request, "reg_user", user);
                 attr.addFlashAttribute("successConfirm", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
                 user.setRole(UserRole.ROLE_CHANGE_PASSWORD);
-                user.setStatus(UserStatus.REGISTERED);
+                user.setUserStatus(UserStatus.REGISTERED);
                 user.setPassword(null);
                 if (view != null) {
                     model.addObject("view", view);
@@ -331,7 +325,7 @@ public class MainController {
         if (principal != null) {
             return new ModelAndView(new RedirectView("/dashboard"));
         }
-        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION"));
+        logger.info("login(), last security exception " + httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") + " sessionId " + httpSession.getId());
         if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
                 String exceptionClass = parts[parts.length - 1];

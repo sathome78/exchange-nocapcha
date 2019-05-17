@@ -4,30 +4,22 @@ import me.exrates.dao.exception.DuplicatedMerchantTransactionIdOrAttemptToRewrit
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.RefillRequestAddressShortDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestAddressDto;
-import me.exrates.model.dto.RefillRequestBtcInfoDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestFlatForReportDto;
-import me.exrates.model.dto.RefillRequestManualDto;
-import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
-import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -52,6 +44,8 @@ public interface RefillService {
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
     Integer createRefillRequestByFact(RefillRequestAcceptDto request);
+
+    Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum);
 
     void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
 
@@ -144,8 +138,6 @@ public interface RefillService {
 
     List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses);
 
-    String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
-
     List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     int getTxOffsetForAddress(String address);
@@ -175,7 +167,7 @@ public interface RefillService {
 
     String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
 
-    String getUsernameByRequestId(int requestId);
+    String getUserGAByRequestId(int requestId);
 
     Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
@@ -195,4 +187,10 @@ public interface RefillService {
     List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
 
     List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
+
+    Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId);
+
+    default void processRefillRequest(WalletOperationMsDto walletOperationMsDto){
+        throw new NotImplementedException();
+    }
 }

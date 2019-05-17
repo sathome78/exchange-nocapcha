@@ -35,6 +35,7 @@ import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -153,7 +154,11 @@ public class NeoServiceImpl implements NeoService {
     public void scanLastBlocksAndUpdatePayments() {
         log.debug("Start scanning blocks");
         ProfileData profileData = new ProfileData(500);
-        scanBlocks();
+        try {
+            scanBlocks();
+        } catch (Exception e){
+            log.error(e + "scanBlocks()");
+        }
         profileData.setTime1();
         updateExistingPayments();
         profileData.setTime2();
@@ -166,7 +171,7 @@ public class NeoServiceImpl implements NeoService {
         final int lastReceivedBlock = Integer.parseInt(specParamsDao.getByMerchantNameAndParamName(mainMerchant.getName(),
                 neoSpecParamName).getParamValue());
         final int blockCount = neoNodeService.getBlockCount();
-        Set<String> addresses = refillService.findAllAddresses(merchantNeo.getId(), currencyNeo.getId()).stream().distinct().collect(Collectors.toSet());
+        Set<String> addresses = new HashSet<>(refillService.findAllAddresses(merchantNeo.getId(), currencyNeo.getId()));
         List<NeoVout> outputs = IntStream.range(lastReceivedBlock, blockCount).parallel().mapToObj(neoNodeService::getBlock).filter(Optional::isPresent).map(Optional::get)
                 .flatMap(block -> block.getTx().stream().filter(tx -> "ContractTransaction".equals(tx.getType()))
                         .flatMap(tx -> tx.getVout().stream().filter(vout -> addresses.contains(vout.getAddress()))
@@ -291,10 +296,9 @@ public class NeoServiceImpl implements NeoService {
                     refillService.autoAcceptRefillRequest(requestAcceptDto);
                     transferCostsToMainAccount(assetId, dto.getAmount());
 
-                    final String username = refillService.getUsernameByRequestId(requestId);
-
+                    final String gaTag = refillService.getUserGAByRequestId(requestId);
                     log.debug("Process of sending data to Google Analytics...");
-                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), username);
+                    gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), mainCurency.getName(), gaTag);
                 }
             }
         } catch (RefillRequestAppropriateNotFoundException e) {

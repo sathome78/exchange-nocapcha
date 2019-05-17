@@ -23,27 +23,27 @@ public class UserPersonalOrdersHandler {
 
     private final StompMessenger stompMessenger;
     private final ObjectMapper objectMapper;
-    private final Integer pairId;
+    private final String pairName;
     private final long refreshTime = 1000; /*in millis*/
-    private Timer timer;
 
 
-    public UserPersonalOrdersHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, Integer pairId) {
+
+    public UserPersonalOrdersHandler(StompMessenger stompMessenger, ObjectMapper objectMapper, String pairName) {
         this.stompMessenger = stompMessenger;
         this.objectMapper = objectMapper;
-        this.pairId = pairId;
-        this.timer = new Timer();
+        this.pairName = pairName;
     }
 
-    void addToQueueForSend(OrderWsDetailDto dto, Integer userId) {
+    void addToQueueForSend(List<OrderWsDetailDto> dto, Integer userId) {
         if (!synchronizersMap.containsKey(userId)) {
             checkAndCreateSynchronizersAndList(userId);
         }
         synchronized(synchronizersMap.get(userId).getObjectSync()) {
-            orders.get(userId).add(dto);
+            orders.get(userId).addAll(dto);
         }
         send(userId);
     }
+
 
     private void send(Integer userId) {
         //достаю синхронизатор
@@ -77,13 +77,13 @@ public class UserPersonalOrdersHandler {
     }
 
     /*to instant send without timings and groupings*/
-    void sendInstant(OrderWsDetailDto dto, Integer userId) {
-        sendMessage(new ArrayList<OrderWsDetailDto>(){{add(dto);}}, userId);
+    void sendInstant(List<OrderWsDetailDto> dtos, Integer userId) {
+        sendMessage(dtos, userId);
     }
 
     private void sendMessage(List<OrderWsDetailDto> dtos, Integer userId) {
         try {
-            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairId, objectMapper.writeValueAsString(dtos));
+            stompMessenger.sendPersonalOpenOrdersAndDealsToUser(userId, pairName, objectMapper.writeValueAsString(dtos));
         } catch (Exception e) {
             log.error(e);
         }

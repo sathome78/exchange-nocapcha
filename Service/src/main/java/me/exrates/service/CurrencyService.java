@@ -8,6 +8,8 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.CurrencyReportInfoDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.dto.openAPI.CurrencyPairInfoItem;
@@ -18,6 +20,7 @@ import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,11 +51,16 @@ public interface CurrencyService {
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
+    @Transactional(readOnly = true)
+    BigDecimal retrieveMaxDailyRequestForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
+
     List<CurrencyPair> getAllCurrencyPairs(CurrencyPairType type);
 
     List<CurrencyPair> getAllCurrencyPairsWithHidden(CurrencyPairType type);
 
     List<CurrencyPair> getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType type);
+
+    List<CurrencyPair> getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType type);
 
     CurrencyPair findCurrencyPairById(int currencyPairId);
 
@@ -66,9 +74,15 @@ public interface CurrencyService {
 
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail);
 
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForRefill(String userEmail);
+
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail);
 
     List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection);
+
+    @Transactional(readOnly = true)
+    List<UserCurrencyOperationPermissionDto> getAllCurrencyOperationPermittedForWithdraw(String userEmail);
 
     Set<String> getCurrencyPermittedNameList(String userEmail);
 
@@ -130,10 +144,27 @@ public interface CurrencyService {
 
     void updateWithdrawLimits();
 
-    List<Currency> getCurrencies(MerchantProcessType ... processType);
+    List<Currency> getCurrencies(MerchantProcessType... processType);
 
     List<CurrencyPair> getPairsByFirstPartName(String partName);
 
     List<CurrencyPair> getPairsBySecondPartName(String partName);
 
+    boolean isCurrencyPairHidden(int currencyPairId);
+
+    @Transactional
+    void addCurrencyForIco(String name, String description);
+
+    @Transactional
+    void addCurrencyPairForIco(String firstCurrencyName, String secondCurrencyName);
+
+    void updateCurrencyExchangeRates(List<RateDto> rates);
+
+    List<RateDto> getCurrencyRates();
+
+    void updateCurrencyBalances(List<BalanceDto> balances);
+
+    List<BalanceDto> getCurrencyBalances();
+
+    boolean updateCurrencyPair(CurrencyPair currencyPair);
 }

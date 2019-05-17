@@ -1,5 +1,6 @@
 package me.exrates.security.service;
 
+import me.exrates.model.User;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,7 +25,11 @@ public interface AuthTokenService {
 
     Optional<AuthTokenDto> retrieveTokenNg(String email);
 
+    AuthTokenDto refreshTokenNg(String email, HttpServletRequest request);
+
     boolean isValid(HttpServletRequest request);
 
     UserDetails getUserByToken(String token, String ip);
+
+    boolean sessionExpiredProcessing(String token, User user);
 }

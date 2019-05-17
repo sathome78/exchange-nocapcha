@@ -5,14 +5,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.dao.chat.telegram.TelegramChatDao;
-import me.exrates.dao.exception.UserNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEODetails;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.ChatHistoryDateWrapperDto;
 import me.exrates.model.dto.ChatHistoryDto;
 import me.exrates.model.dto.OrderBookWrapperDto;
+import me.exrates.model.dto.ieo.EmailIEORequestDTO;
+import me.exrates.model.dto.news.FeedWrapper;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.enums.ChatLang;
@@ -20,23 +24,26 @@ import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.MerchantProcessType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngModel.ResponseInfoCurrencyPairDto;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.exception.NgResponseException;
-import me.exrates.ngcontroller.model.ResponseInfoCurrencyPairDto;
-import me.exrates.ngcontroller.model.response.ResponseModel;
-import me.exrates.ngcontroller.service.NgOrderService;
-import me.exrates.ngcontroller.service.NgUserService;
+import me.exrates.ngService.NgOrderService;
 import me.exrates.security.ipsecurity.IpBlockingService;
 import me.exrates.security.ipsecurity.IpTypesOfChecking;
+import me.exrates.security.service.NgUserService;
 import me.exrates.service.ChatService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.IEOService;
+import me.exrates.service.NewsParser;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.cache.ExchangeRatesHolder;
 import me.exrates.service.exception.IllegalChatMessageException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.util.IpUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +63,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -81,58 +91,67 @@ public class NgPublicController {
     private final ChatService chatService;
     private final CurrencyService currencyService;
     private final IpBlockingService ipBlockingService;
+    private final IEOService ieoService;
     private final UserService userService;
     private final NgUserService ngUserService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
     private final OrderService orderService;
     private final G2faService g2faService;
     private final NgOrderService ngOrderService;
     private final TelegramChatDao telegramChatDao;
     private final ExchangeRatesHolder exchangeRatesHolder;
+    private final NewsParser newsParser;
 
     @Autowired
     public NgPublicController(ChatService chatService,
-                              CurrencyService currencyService, IpBlockingService ipBlockingService,
+                              CurrencyService currencyService,
+                              IpBlockingService ipBlockingService,
+                              IEOService ieoService,
                               UserService userService,
-                              NgUserService ngUserService, SimpMessagingTemplate messagingTemplate,
+                              NgUserService ngUserService,
+                              SimpMessagingTemplate simpMessagingTemplate,
                               OrderService orderService,
                               G2faService g2faService,
                               NgOrderService ngOrderService,
                               TelegramChatDao telegramChatDao,
-                              ExchangeRatesHolder exchangeRatesHolder) {
+                              ExchangeRatesHolder exchangeRatesHolder,
+                              NewsParser newsParser) {
         this.chatService = chatService;
         this.currencyService = currencyService;
         this.ipBlockingService = ipBlockingService;
+        this.ieoService = ieoService;
         this.userService = userService;
         this.ngUserService = ngUserService;
-        this.messagingTemplate = messagingTemplate;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         this.orderService = orderService;
         this.g2faService = g2faService;
         this.ngOrderService = ngOrderService;
         this.exchangeRatesHolder = exchangeRatesHolder;
         this.telegramChatDao = telegramChatDao;
+        this.newsParser = newsParser;
     }
 
     @GetMapping(value = "/if_email_exists")
-    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email) {
+    public ResponseEntity<Boolean> checkIfNewUserEmailExists(@RequestParam("email") String email, HttpServletRequest request) {
+        logger.info("Url request url {}, scheme {}, port {}", request.getRequestURI(), request.getScheme(), request.getServerPort());
         User user;
         try {
             user = userService.findByEmail(email);
         } catch (UserNotFoundException esc) {
             String message = String.format("User with email %s not found", email);
             logger.warn(message, esc);
-            throw new NgResponseException("USER_EMAIL_NOT_FOUND", message);
+            throw new NgResponseException(ErrorApiTitles.USER_EMAIL_NOT_FOUND, message);
         }
-        if (user.getStatus() == UserStatus.REGISTERED) {
+        if (user.getUserStatus() == UserStatus.REGISTERED) {
             ngUserService.resendEmailForFinishRegistration(user);
             String message = String.format("User with email %s registration is not complete", email);
             logger.debug(message);
-            throw new NgResponseException("USER_REGISTRATION_NOT_COMPLETED", message);
+            throw new NgResponseException(ErrorApiTitles.USER_REGISTRATION_NOT_COMPLETED, message);
         }
-        if (user.getStatus() == UserStatus.DELETED) {
+        if (user.getUserStatus() == UserStatus.DELETED) {
             String message = String.format("User with email %s is not active", email);
             logger.debug(message);
-            throw new NgResponseException("USER_NOT_ACTIVE", message);
+            throw new NgResponseException(ErrorApiTitles.USER_NOT_ACTIVE, message);
         }
         return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
     }
@@ -141,6 +160,12 @@ public class NgPublicController {
     @ResponseBody
     public Boolean isGoogleTwoFAEnabled(@RequestParam("email") String email) {
         return g2faService.isGoogleAuthenticatorEnable(email);
+    }
+
+    @GetMapping("/ieo")
+    @ResponseBody
+    public Collection<IEODetails> getAllIeo() {
+        return ieoService.findAll(null);
     }
 
     @GetMapping(value = "/if_username_exists")
@@ -159,7 +184,6 @@ public class NgPublicController {
             return Lists.newArrayList(new ChatHistoryDateWrapperDto(LocalDate.now(), msgs));
         } catch (Exception e) {
             return Collections.emptyList();
-
         }
     }
 
@@ -181,16 +205,20 @@ public class NgPublicController {
         String simpleMessage = body.get("MESSAGE");
         String email = body.getOrDefault("EMAIL", "");
         if (isEmpty(simpleMessage)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String message = "Chat message cannot be empty.";
+            logger.warn(message);
+            throw new NgResponseException(ErrorApiTitles.EMPTY_CHAT_MESSAGE, message);
         }
         final ChatMessage message;
         try {
             message = chatService.persistPublicMessage(simpleMessage, email, chatLang);
         } catch (IllegalChatMessageException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String msg = "Chat message cannot persist " + e.getMessage();
+            logger.warn(msg, e);
+            throw new NgResponseException(ErrorApiTitles.FAIL_TO_PERSIST_CHAT_MESSAGE, msg);
         }
         String destination = "/topic/chat/".concat(language.toLowerCase());
-        messagingTemplate.convertAndSend(destination, fromChatMessage(message));
+        simpMessagingTemplate.convertAndSend(destination, fromChatMessage(message));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -201,7 +229,7 @@ public class NgPublicController {
     public List<OrderBookWrapperDto> getOpenOrders(@PathVariable Integer pairId, @PathVariable Integer precision) {
         return ImmutableList.of(
                 orderService.findAllOrderBookItems(OrderType.SELL, pairId, precision),
-                orderService.findAllOrderBookItems(OrderType.BUY ,pairId, precision));
+                orderService.findAllOrderBookItems(OrderType.BUY, pairId, precision));
     }
 
     @GetMapping("/info/{currencyPairId}")
@@ -210,10 +238,10 @@ public class NgPublicController {
             ResponseInfoCurrencyPairDto currencyPairInfo = ngOrderService.getCurrencyPairInfo(currencyPairId);
             return new ResponseEntity<>(currencyPairInfo, HttpStatus.OK);
         } catch (Exception e) {
-            logger.error("Error - {}", e);
+            String msg = "Cannot get to currency pair info " + e.getMessage();
+            logger.error(msg, e);
+            throw new NgResponseException(ErrorApiTitles.FAIL_TO_GET_CURRENCY_PAIR_INFO, msg);
         }
-
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/info/max/{name}")
@@ -229,6 +257,19 @@ public class NgPublicController {
                 .findFirst()
                 .orElseThrow(() -> new NgDashboardException("No results")));
 
+        return new ResponseModel<>(result);
+    }
+
+    @GetMapping("/info/rates")
+    public ResponseModel getCurrencyPairRates(@RequestParam(required = false) String namePart) {
+        Map<String, String> result = new HashMap<>();
+        for (ExOrderStatisticsShortByPairsDto dto : exchangeRatesHolder.getAllRates()) {
+            if (StringUtils.isNotEmpty(namePart) && dto.getCurrencyPairName().contains(namePart.toUpperCase())) {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            } else {
+                result.put(dto.getCurrencyPairName(), dto.getLastOrderRate());
+            }
+        }
         return new ResponseModel<>(result);
     }
 
@@ -265,6 +306,22 @@ public class NgPublicController {
         }
 
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/ieo/refresh")
+    public ResponseEntity<Void> refresh() {
+        ieoService.updateIeoStatuses();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/news")
+    public ResponseModel<FeedWrapper> getNews(@RequestParam(required = false, defaultValue = "0") String offset,
+                                              @RequestParam(required = false, defaultValue = "10") String count,
+                                              @RequestParam(required = false, defaultValue = "0") String index) {
+
+        FeedWrapper result = newsParser.getFeeds(Integer.valueOf(offset), Integer.valueOf(count),
+                Integer.valueOf(index));
+        return new ResponseModel<>(result);
     }
 
     private String fromChatMessage(ChatMessage message) {
@@ -327,6 +384,28 @@ public class NgPublicController {
             logger.error("Failed to get all fiat names");
             return Collections.emptyList();
         }
+    }
+
+    @PostMapping(value = "/ieo/subscribe/email", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeEmail(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeEmail(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @PostMapping(value = "/ieo/subscribe/telegram", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> ieoSubscribeTelegram(@RequestBody @Valid EmailIEORequestDTO requestDTO) {
+        boolean result = ieoService.subscribeTelegram(requestDTO.getEmail());
+        return new ResponseModel<>(result);
+    }
+
+    @GetMapping(value = "/ieo/subscribe", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseModel<?> checkSubscribe(@RequestParam String email) {
+        Map<String, Boolean> result = new HashMap<>(2);
+        result.put("email", ieoService.isUserSubscribeForIEOEmail(email));
+        result.put("telegram", ieoService.isUserSubscribeForIEOTelegram(email));
+        return new ResponseModel<>(result);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

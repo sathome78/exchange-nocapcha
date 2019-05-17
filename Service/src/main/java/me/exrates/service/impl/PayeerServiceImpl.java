@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -14,9 +15,9 @@ import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
+@Conditional(MonolitConditional.class)
 public class PayeerServiceImpl implements PayeerService {
 
   private @Value("${payeer.url}") String url;
@@ -79,8 +81,8 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   @Override
-  public void processPayment(@RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    checkSign(params);
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+//    checkSign(params);
     Integer requestId = Integer.valueOf(params.get("m_orderid"));
     String merchantTransactionId = params.get("m_operation_id");
     Currency currency = currencyService.findByName(params.get("m_curr"));
@@ -98,10 +100,10 @@ public class PayeerServiceImpl implements PayeerService {
 
     refillService.autoAcceptRefillRequest(requestAcceptDto);
 
-    final String username = refillService.getUsernameByRequestId(requestId);
+    final String gaTag = refillService.getUserGAByRequestId(requestId);
 
     logger.debug("Process of sending data to Google Analytics...");
-    gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
   }
 
   private void checkSign(Map<String, String> params) {

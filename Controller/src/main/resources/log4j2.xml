@@ -287,7 +287,7 @@
         </RollingFile>
         <RollingFile name="nem_log" fileName="${sys:catalina.home}/logs/crypto/nem_log.log"
                      filePattern="${sys:catalina.home}/logs/crypto/nem_log%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <PatternLayout pattern="%d{dd MM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -609,6 +609,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="rabbit_refill" fileName="${sys:catalina.home}/logs/rabbit/rabbit_refill.log"
+                     filePattern="${sys:catalina.home}/logs/rabbit/rabbit_refill%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="crea" fileName="${sys:catalina.home}/logs/crypto/crea.log"
+                     filePattern="${sys:catalina.home}/logs/crypto/crea%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="ppy" fileName="${sys:catalina.home}/logs/crypto/ppy.log"
                      filePattern="${sys:catalina.home}/logs/crypto/ppy%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
@@ -645,8 +663,17 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="eos_log" fileName="${sys:catalina.home}/logs/crypto/eos.log"
-                     filePattern="${sys:catalina.home}/logs/crypto/eos_log%d_%i.log" append="true">
+        <RollingFile name="jdbc_log" fileName="${sys:catalina.home}/logs/jdbc/jdbc_log.log"
+                     filePattern="${sys:catalina.home}/logs/jdbc/jdbc_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+        <RollingFile name="aisi_log" fileName="${sys:catalina.home}/logs/merchants/aisi.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/aisi_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -654,8 +681,35 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="jdbc_log" fileName="${sys:catalina.home}/logs/jdbc/jdbc_log.log"
-                     filePattern="${sys:catalina.home}/logs/jdbc/jdbc_log%d_%i.log" append="true">
+        <RollingFile name="nixmoney_log" fileName="${sys:catalina.home}/logs/merchants/nixmoney_log.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/nixmoney_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="inout" fileName="${sys:catalina.home}/logs/inout/inout.log"
+                     filePattern="${sys:catalina.home}/logs/inout/inout%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="ordersTxLogger" fileName="${sys:catalina.home}/logs/orders/tx_log.log"
+                     filePattern="${sys:catalina.home}/logs/orders/tx_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="1000 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="1"/>
+        </RollingFile>
+        <RollingFile name="alterdice_logger" fileName="${sys:catalina.home}/logs/api/alterdice/requests_log.log"
+                     filePattern="${sys:catalina.home}/logs/api/alterdice/requests_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -817,6 +871,9 @@
         <logger name="ethereum_classic_log" level="ALL" additivity="false">
             <AppenderRef ref="ethereum_classic_log"/>
         </logger>
+        <logger name="rabbit_refill" level="ALL" additivity="false">
+            <AppenderRef ref="rabbit_refill"/>
+        </logger>
         <logger name="etherzero_log" level="ALL" additivity="false">
             <AppenderRef ref="etherzero_log"/>
         </logger>
@@ -919,6 +976,9 @@
         <logger name="aunit" level="ALL" additivity="false">
             <AppenderRef ref="aunit"/>
         </logger>
+        <logger name="crea" level="ALL" additivity="false">
+            <AppenderRef ref="crea"/>
+        </logger>
         <logger name="ppy" level="ALL" additivity="false">
             <AppenderRef ref="ppy"/>
         </logger>
@@ -931,8 +991,20 @@
         <logger name="omni_log" level="ALL" additivity="false">
             <AppenderRef ref="omni_log"/>
         </logger>
-        <logger name="eos_log" level="ALL" additivity="false">
-            <AppenderRef ref="eos_log"/>
+        <logger name="aisi_log" level="ALL" additivity="false">
+            <AppenderRef ref="aisi_log"/>
+        </logger>
+        <logger name="nixmoney_log" level="ALL" additivity="false">
+            <AppenderRef ref="nixmoney_log"/>
+        </logger>
+        <logger name="ordersTxLogger" level="ALL" additivity="false">
+            <AppenderRef ref="ordersTxLogger"/>
+        </logger>
+        <logger name="alterdice_api_logger" level="ALL" additivity="false">
+            <AppenderRef ref="alterdice_logger"/>
+        </logger>
+        <logger name="inout" level="ALL" additivity="false">
+            <AppenderRef ref="inout"/>
         </logger>
         <Root level="INFO">
             <AppenderRef ref="Console"/>

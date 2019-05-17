@@ -4,7 +4,10 @@ import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.TronReceivedTransactionDto;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Set;
 
 public interface TronService extends IRefillable, IWithdrawable {
@@ -49,11 +52,17 @@ public interface TronService extends IRefillable, IWithdrawable {
         return true;
     }
 
+    @Override
+    default BigDecimal countSpecCommission(java.math.BigDecimal amount, String destinationTag, Integer merchantId) {
+        return new BigDecimal(0.1).setScale(3, RoundingMode.HALF_UP);
+    }
+
     Set<String> getAddressesHEX();
 
     RefillRequestAcceptDto createRequest(TronReceivedTransactionDto dto);
 
-    void putOnBchExam(RefillRequestAcceptDto requestAcceptDto);
+    @Transactional
+    void createAndPutOnBchExam(TronReceivedTransactionDto tronDto);
 
     int getMerchantId();
 

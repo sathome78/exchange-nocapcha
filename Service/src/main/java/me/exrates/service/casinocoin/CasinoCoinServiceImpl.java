@@ -4,6 +4,7 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -14,11 +15,11 @@ import me.exrates.service.RefillService;
 import me.exrates.service.exception.CheckDestinationTagException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,7 @@ import java.util.*;
 @Log4j2(topic = "casinocoin_log")
 @Service
 @PropertySource("classpath:/merchants/casinocoin.properties")
+@Conditional(MonolitConditional.class)
 public class CasinoCoinServiceImpl implements CasinoCoinService {
 
     private static final String DESTINATION_TAG_ERR_MSG = "message.casinocoin.tagError";
@@ -124,10 +126,10 @@ public class CasinoCoinServiceImpl implements CasinoCoinService {
 
         int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
-        final String username = refillService.getUsernameByRequestId(requestId);
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
 
         log.debug("Process of sending data to Google Analytics...");
-        gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     private Integer generateUniqDestinationTag(int userId) {

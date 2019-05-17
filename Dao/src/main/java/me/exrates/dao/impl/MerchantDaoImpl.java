@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -102,7 +103,12 @@ public class MerchantDaoImpl implements MerchantDao {
     public Merchant findByName(String name) {
         final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
         final Map<String, String> params = Collections.singletonMap("name", name);
-        return masterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+        try {
+            return slaveJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+        } catch (EmptyResultDataAccessException ex) {
+            log.debug("Method 'MerchantDaoImpl::findByName' did not return any result");
+            return null;
+        }
     }
 
     @Override
@@ -197,7 +203,7 @@ public class MerchantDaoImpl implements MerchantDao {
             blockClause = " AND MERCHANT_CURRENCY.transfer_block = 0";
         }
 
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, " +
+        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description, MERCHANT.process_type, MERCHANT_CURRENCY.refill_block, MERCHANT.needVerification AS needVerification," +
                 " MERCHANT_CURRENCY.min_sum, " +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
@@ -223,6 +229,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("merchant_id", resultSet.getInt("merchant_id"));
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(masterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+                merchantCurrency.setNeedVerification(resultSet.getBoolean("needVerification"));
+                merchantCurrency.setAvailableForRefill(resultSet.getInt("refill_block") == 0);
                 return merchantCurrency;
             });
         } catch (EmptyResultDataAccessException e) {
@@ -720,7 +728,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 "FROM MERCHANT_CURRENCY " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id";
 
-        return masterJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
+        return slaveJdbcTemplate.query(sql, (rs, row) -> MerchantCurrencyOptionsDto.builder()
                 .merchantId(rs.getInt("merchant_id"))
                 .currencyId(rs.getInt("currency_id"))
                 .currencyName(rs.getString("currency_name"))
@@ -790,11 +798,13 @@ public class MerchantDaoImpl implements MerchantDao {
         });
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void updateMerchantCommissionsLimits(List<MerchantCurrencyOptionsDto> merchantCommissionsLimits) {
         String sql = "UPDATE MERCHANT_CURRENCY " +
-                "SET merchant_fixed_commission = ?, merchant_fixed_commission_usd = ?, usd_rate = ? " +
+                "SET merchant_fixed_commission = ?, " +
+                "merchant_fixed_commission_usd = ?, " +
+                "usd_rate = ? " +
                 "WHERE merchant_id = ? AND currency_id = ?";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {

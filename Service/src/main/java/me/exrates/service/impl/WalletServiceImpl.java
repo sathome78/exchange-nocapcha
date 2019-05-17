@@ -1,11 +1,21 @@
 package me.exrates.service.impl;
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.IEOClaimRepository;
+import me.exrates.dao.IeoDetailsRepository;
 import me.exrates.dao.WalletDao;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.dao.exception.notfound.WalletNotFoundException;
 import me.exrates.model.Commission;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.IEOClaim;
+import me.exrates.model.IEODetails;
+import me.exrates.model.IEOResult;
+import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.ExternalReservedWalletAddressDto;
@@ -15,12 +25,13 @@ import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.OrderDetailDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.UserGroupBalanceDto;
-import me.exrates.model.dto.UserRoleBalanceDto;
 import me.exrates.model.dto.UserRoleTotalBalancesReportDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletFormattedDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.api.BalanceDto;
+import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -31,8 +42,8 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.ReportGroupUserRole;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.invoice.IeoStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -41,25 +52,20 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CryptoCurrencyBalances;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
-import me.exrates.service.OrderService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
-import me.exrates.service.UserTransferService;
 import me.exrates.service.WalletService;
 import me.exrates.service.api.ExchangeApi;
 import me.exrates.service.api.WalletsApi;
 import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.ForbiddenOperationException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UserNotFoundException;
-import me.exrates.service.exception.WalletNotFoundException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -72,11 +78,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -84,9 +94,9 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 @Log4j2
 @Service
@@ -112,21 +122,32 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private MessageSource messageSource;
     @Autowired
-    private UserTransferService userTransferService;
-    @Autowired
-    private CryptoCurrencyBalances cryptoCurrencyBalances;
-    @Autowired
-    private OrderService orderService;
-    @Autowired
     private ExchangeApi exchangeApi;
     @Autowired
     private WalletsApi walletsApi;
+    @Autowired
+    private TransactionService transactionService;
+    @Autowired
+    private IeoDetailsRepository ieoDetailsRepository;
+    @Autowired
+    private IEOClaimRepository ieoClaimRepository;
+    @Autowired
+    private CurrencyDao currencyDao;
+
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
         wallet
                 .setActiveBalance(wallet.getActiveBalance());
 //				.setScale(currencyService.resolvePrecision(wallet.getName()), ROUND_CEILING));
+    }
+
+    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Override
+    public List<Wallet> getAllForNotHiddenCurWallets(int userId) {
+        final List<Wallet> wallets = walletDao.findAllForNotHiddenCurByUser(userId);
+        wallets.forEach(this::balanceRepresentation);
+        return wallets;
     }
 
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
@@ -141,9 +162,20 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<WalletFormattedDto> getAllUserWalletsForAdminDetailed(Integer userId) {
         return walletDao.getAllUserWalletsForAdminDetailed(userId,
-                WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                WithdrawStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()),
-                RefillStatusEnum.getEndStatesSet().stream().filter(InvoiceStatus::isSuccessEndStatus).map(InvoiceStatus::getCode).collect(Collectors.toList()));
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                WithdrawStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()),
+                RefillStatusEnum.getEndStatesSet()
+                        .stream()
+                        .filter(InvoiceStatus::isSuccessEndStatus)
+                        .map(InvoiceStatus::getCode)
+                        .collect(Collectors.toList()));
     }
 
 
@@ -151,7 +183,10 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                    String email, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<MyWalletsDetailedDto>() {{
@@ -165,8 +200,14 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale, CurrencyPairType type) {
         List<CurrencyPair> pairList = currencyService.getAllCurrencyPairs(type);
-        Set<Integer> currencies = pairList.stream().map(p -> p.getCurrency2().getId()).collect(Collectors.toSet());
-        currencies.addAll(pairList.stream().map(p -> p.getCurrency1().getId()).collect(toSet()));
+        Set<Integer> currencies = pairList
+                .stream()
+                .map(p -> p.getCurrency2().getId())
+                .collect(Collectors.toSet());
+        currencies.addAll(pairList
+                .stream()
+                .map(p -> p.getCurrency1().getId())
+                .collect(Collectors.toSet()));
         return walletDao.getAllWalletsForUserAndCurrenciesReduced(email, locale, currencies);
     }
 
@@ -298,7 +339,10 @@ public class WalletServiceImpl implements WalletService {
     @Transactional(transactionManager = "slaveTxManager", readOnly = true)
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
-        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+        List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList());
         return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
     }
 
@@ -372,7 +416,7 @@ public class WalletServiceImpl implements WalletService {
             throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
         }
         Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
-        Integer currencyId = fromUserWallet.getCurrencyId();
+        int currencyId = fromUserWallet.getCurrencyId();
         BigDecimal inputAmount = BigDecimalProcessing.doAction(amount, commissionAmount, ActionType.SUBTRACT);
         log.debug(commissionAmount.toString());
         log.debug(inputAmount.toString());
@@ -406,7 +450,7 @@ public class WalletServiceImpl implements WalletService {
     public String transferCostsToUser(Integer userId, Integer fromUserWalletId, Integer toUserId, BigDecimal amount,
                                       BigDecimal comission, Locale locale, int sourceId) {
         User toUser = userService.getUserById(toUserId);
-        String toUserNickname = toUser.getNickname() != null ? toUser.getNickname() : toUser.getEmail();
+        String toUserNickname = toUser.getEmail();
         if (toUserId == 0) {
             throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
         }
@@ -450,7 +494,11 @@ public class WalletServiceImpl implements WalletService {
             if (!userWalletSummaryDtos.contains(item)) {
                 userWalletSummaryDtos.add(new UserWalletSummaryDto(item));
             } else {
-                UserWalletSummaryDto storedItem = userWalletSummaryDtos.stream().filter(e -> e.equals(item)).findAny().get();
+                UserWalletSummaryDto storedItem = userWalletSummaryDtos
+                        .stream()
+                        .filter(e -> e.equals(item))
+                        .findAny()
+                        .get();
                 storedItem.increment(item);
             }
         }
@@ -480,7 +528,8 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
-        return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPairId);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPair);
     }
 
     @Override
@@ -493,31 +542,21 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public List<UserRoleTotalBalancesReportDto<ReportGroupUserRole>> getWalletBalancesSummaryByGroups() {
         Supplier<Map<String, BigDecimal>> balancesMapSupplier = () -> Arrays.stream(ReportGroupUserRole.values())
-                .collect(toMap(Enum::name, val -> BigDecimal.ZERO));
-        return walletDao.getWalletBalancesSummaryByGroups().stream()
-                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet().stream()
-
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
-                        .collect(toMap(dto -> dto.getReportGroupUserRole().name(),
+                .collect(Collectors.toMap(Enum::name, val -> BigDecimal.ZERO));
+        return walletDao.getWalletBalancesSummaryByGroups()
+                .stream()
+                .collect(Collectors.groupingBy(UserGroupBalanceDto::getCurAndId)).entrySet()
+                .stream()
+                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue()
+                        .stream()
+                        .collect(Collectors.toMap(dto -> dto.getReportGroupUserRole().name(),
                                 UserGroupBalanceDto::getTotalBalance, (oldValue, newValue) -> newValue,
                                 balancesMapSupplier)), ReportGroupUserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
+                .sorted(comparing(UserRoleTotalBalancesReportDto::getCurId))
                 .collect(Collectors.toList());
 
     }
 
-
-    @Override
-    public List<UserRoleTotalBalancesReportDto<UserRole>> getWalletBalancesSummaryByRoles(List<UserRole> roles) {
-        return walletDao.getWalletBalancesSummaryByRoles(roles.stream().map(UserRole::getRole).collect(Collectors.toList()))
-                .stream()
-                //wolper 19.04.18
-                .collect(Collectors.groupingBy(UserRoleBalanceDto::getCurAndId)).entrySet().stream()
-                .map(entry -> new UserRoleTotalBalancesReportDto<>(entry.getKey().getCurrency(), entry.getKey().getId(), entry.getValue().stream()
-                        .collect(Collectors.toMap(dto -> dto.getUserRole().name(), UserRoleBalanceDto::getTotalBalance)), UserRole.class))
-                .sorted(comparing(dto -> dto.getCurId()))
-                .collect(Collectors.toList());
-    }
 
     @Override
     public int getWalletIdAndBlock(Integer userId, Integer currencyId) {
@@ -532,48 +571,46 @@ public class WalletServiceImpl implements WalletService {
 
         List<Currency> currencies = currencyService.getAllCurrencies();
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, Pair<BigDecimal, LocalDateTime>> balances = walletsApi.getBalances();
+        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, BalanceDto> balances = walletsApi.getBalances();
+        final Map<String, ExternalWalletBalancesDto> mainBalancesMap = walletDao.getExternalMainWalletBalances()
+                .stream()
+                .collect(toMap(
+                        ExternalWalletBalancesDto::getCurrencyName,
+                        Function.identity()
+                ));
 
-        if (rates.isEmpty() || balances.isEmpty()) {
+        if (rates.isEmpty() || balances.isEmpty() || mainBalancesMap.isEmpty()) {
             log.info("Exchange or wallet api did not return any data");
             return;
         }
 
         for (Currency currency : currencies) {
-            final int currencyId = currency.getId();
             final String currencyName = currency.getName();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
-            Pair<BigDecimal, LocalDateTime> pairBalances = balances.get(currencyName);
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
+            BalanceDto balanceDto = balances.getOrDefault(currencyName, BalanceDto.zeroBalance(currencyName));
 
-            BigDecimal usdRate;
-            BigDecimal btcRate;
-            if (isNull(pairRates)) {
-                usdRate = BigDecimal.ZERO;
-                btcRate = BigDecimal.ZERO;
-            } else {
-                usdRate = pairRates.getLeft();
-                btcRate = pairRates.getRight();
+            BigDecimal usdRate = rateDto.getUsdRate();
+            BigDecimal btcRate = rateDto.getBtcRate();
+
+            BigDecimal mainBalance = balanceDto.getBalance();
+            LocalDateTime lastBalanceUpdate = balanceDto.getLastUpdatedAt();
+
+            ExternalWalletBalancesDto exWallet = mainBalancesMap.get(currencyName);
+
+            if (isNull(exWallet)) {
+                continue;
             }
-
-            BigDecimal mainBalance;
-            LocalDateTime lastBalanceUpdate;
-            if (isNull(pairBalances)) {
-                mainBalance = BigDecimal.ZERO;
-                lastBalanceUpdate = LocalDateTime.now();
-            } else {
-                mainBalance = pairBalances.getLeft();
-                lastBalanceUpdate = pairBalances.getRight();
-            }
-
-            ExternalWalletBalancesDto exWallet = ExternalWalletBalancesDto.builder()
-                    .currencyId(currencyId)
+            ExternalWalletBalancesDto.Builder builder = exWallet.toBuilder()
                     .usdRate(usdRate)
                     .btcRate(btcRate)
-                    .mainBalance(mainBalance)
-                    .lastUpdatedDate(lastBalanceUpdate)
-                    .build();
+                    .mainBalance(mainBalance);
+
+            if (nonNull(lastBalanceUpdate)) {
+                builder.lastUpdatedDate(lastBalanceUpdate);
+            }
+            exWallet = builder.build();
             walletDao.updateExternalMainWalletBalances(exWallet);
         }
         log.info("Process of updating external main wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
@@ -610,7 +647,7 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating external reserved wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<ExternalWalletBalancesDto> getExternalWalletBalances() {
         return walletDao.getExternalMainWalletBalances();
@@ -624,26 +661,27 @@ public class WalletServiceImpl implements WalletService {
 
         List<Currency> currencies = currencyService.getAllCurrencies();
 
-        final Map<String, Pair<BigDecimal, BigDecimal>> rates = exchangeApi.getRates();
-        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances().stream()
+        final Map<String, RateDto> rates = exchangeApi.getRates();
+        final Map<String, List<InternalWalletBalancesDto>> balances = this.getWalletBalances()
+                .stream()
                 .collect(groupingBy(InternalWalletBalancesDto::getCurrencyName));
 
         if (rates.isEmpty() || balances.isEmpty()) {
-            log.info("Exchange or wallet api did not return data");
+            log.info("Exchange or wallet api did not return any data");
             return;
         }
 
         for (Currency currency : currencies) {
             final String currencyName = currency.getName();
 
-            Pair<BigDecimal, BigDecimal> pairRates = rates.get(currencyName);
+            RateDto rateDto = rates.getOrDefault(currencyName, RateDto.zeroRate(currencyName));
             List<InternalWalletBalancesDto> balancesByRoles = balances.get(currencyName);
 
-            if (isNull(pairRates) || isNull(balancesByRoles)) {
+            if (isNull(balancesByRoles)) {
                 continue;
             }
-            final BigDecimal usdRate = pairRates.getLeft();
-            final BigDecimal btcRate = pairRates.getRight();
+            final BigDecimal usdRate = rateDto.getUsdRate();
+            final BigDecimal btcRate = rateDto.getBtcRate();
 
             for (InternalWalletBalancesDto balance : balancesByRoles) {
                 balance = balance.toBuilder()
@@ -656,13 +694,13 @@ public class WalletServiceImpl implements WalletService {
         log.info("Process of updating internal wallets end... Time: {}", stopWatch.getTime(TimeUnit.MILLISECONDS));
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getInternalWalletBalances() {
         return walletDao.getInternalWalletBalances();
     }
 
-    @Transactional(transactionManager = "slaveTxManager", readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public List<InternalWalletBalancesDto> getWalletBalances() {
         return walletDao.getWalletBalances();
@@ -737,5 +775,210 @@ public class WalletServiceImpl implements WalletService {
             return null;
         }
         return walletsApi.getBalanceByCurrencyAndWallet(currency.getName(), walletAddress);
+    }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, int currencyId) {
+        return walletDao.findByUserAndCurrency(userId, currencyId);
+    }
+
+    @Override
+    public Wallet findByUserAndCurrency(int userId, String currencyName) {
+        return walletDao.findByUserAndCurrency(userId, currencyName);
+    }
+
+    @Override
+    public Map<String, Wallet> findAllByUserAndCurrencyNames(int userId, Collection<String> currencyNames) {
+        List<Currency> currencies = currencyDao.findAllByNames(currencyNames);
+        List<Wallet> wallets = walletDao.findAllByUser(userId);
+        Map<String, Wallet> userWallets = new HashMap<>(currencies.size());
+        currencies.forEach(currency -> {
+            Wallet wallet = wallets.stream().filter(w -> w.getCurrencyId() == currency.getId()).findFirst().orElse(null);
+            userWallets.put(currency.getName(), wallet);
+        });
+        return userWallets;
+    }
+
+    @Override
+    public boolean reserveUserBtcForIeo(int userId, BigDecimal amountInBtc) {
+        int currencyId = currencyService.findByName("BTC").getId();
+        return walletDao.reserveUserBtcForIeo(userId, amountInBtc, currencyId);
+    }
+
+    @Override
+    public boolean rollbackUserBtcForIeo(int userId, BigDecimal amountInBtc) {
+        int currencyId = currencyService.findByName("BTC").getId();
+        return walletDao.rollbackUserBtcForIeo(userId, amountInBtc, currencyId);
+    }
+
+    @Override
+    @Transactional()
+    public boolean performIeoTransfer(IEOClaim ieoClaim) {
+        Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
+        if (makerBtcWallet == null) {
+            int currencyId = currencyService.findByName("BTC").getId();
+            makerBtcWallet = walletDao.createWallet(ieoClaim.getMakerId(), currencyId);
+        }
+        Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
+        Wallet userIeoWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), ieoClaim.getCurrencyName());
+        if (userIeoWallet == null) {
+            int currencyId = currencyService.findByName(ieoClaim.getCurrencyName()).getId();
+            userIeoWallet = walletDao.createWallet(ieoClaim.getUserId(), currencyId);
+        }
+
+        BigDecimal makerBtcInitialAmount = makerBtcWallet.getIeoReserved();
+        makerBtcWallet.setIeoReserved(makerBtcInitialAmount.add(ieoClaim.getPriceInBtc()));
+
+        BigDecimal updateIeoReservedUserBalanceBtc = userBtcWallet.getIeoReserved().subtract(ieoClaim.getPriceInBtc());
+        userBtcWallet.setIeoReserved(updateIeoReservedUserBalanceBtc);
+
+        BigDecimal userIeoInitialAmount = userIeoWallet.getActiveBalance();
+        userIeoWallet.setActiveBalance(userIeoInitialAmount.add(ieoClaim.getAmount()));
+
+        boolean updateResult = walletDao.update(makerBtcWallet)
+                && walletDao.update(userBtcWallet)
+                && walletDao.update(userIeoWallet);
+        log.info("PerformIeoTransfer(), claimID {}, result update wallet {}", ieoClaim.getId(), updateResult);
+        if (updateResult) {
+            final Wallet makerWallet = makerBtcWallet;
+            final Wallet userWallet = userIeoWallet;
+            final Wallet userMainWallet = userBtcWallet;
+            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcInitialAmount, makerWallet,
+                    userIeoInitialAmount, userWallet, userMainWallet, IeoStatusEnum.PROCESSED_BY_CLAIM));
+        }
+        return updateResult;
+    }
+
+    private void writeTransActionsAsync(IEOClaim ieoClaim, BigDecimal makerBtcInitialAmount, Wallet makerBtcWallet,
+                                        BigDecimal userIeoInitialAmount, Wallet userIeoWallet, Wallet userMainWallet, IeoStatusEnum statusEnum) {
+        Transaction makerBtcTransaction = prepareTransaction(makerBtcInitialAmount, ieoClaim.getPriceInBtc(), makerBtcWallet, ieoClaim, statusEnum);
+        Transaction userBtcTransaction = prepareUserBtcTransaction(userMainWallet, ieoClaim, statusEnum);
+        Transaction userIeoTransaction = prepareTransaction(userIeoInitialAmount, ieoClaim.getAmount(), userIeoWallet, ieoClaim, statusEnum);
+        transactionService.save(ImmutableList.of(makerBtcTransaction, userBtcTransaction, userIeoTransaction));
+    }
+
+    @Override
+    public BigDecimal getAvailableAmountInBtcLocked(int userId, int currencyId) {
+        return walletDao.getAvailableAmountInBtcLocked(userId, currencyId);
+    }
+
+    @Override
+    public Map<String, String> findUserCurrencyBalances(User user) {
+        List<String> ieoCurrencyNames = ieoDetailsRepository.findAll()
+                .stream()
+                .map(IEODetails::getCurrencyName)
+                .collect(Collectors.toList());
+        return walletDao.findUserCurrencyBalances(user, ieoCurrencyNames);
+    }
+
+    @Override
+    public BigDecimal findUserCurrencyBalance(IEOClaim ieoClaim) {
+        return walletDao.findUserCurrencyBalance(ieoClaim);
+    }
+
+    @Override
+    @Transactional()
+    public boolean performIeoRollbackTransfer(IEOClaim ieoClaim) {
+
+        Wallet userBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), "BTC");
+        Wallet userIeoWallet = walletDao.findByUserAndCurrency(ieoClaim.getUserId(), ieoClaim.getCurrencyName());
+
+        Wallet makerBtcWallet = walletDao.findByUserAndCurrency(ieoClaim.getMakerId(), "BTC");
+
+        BigDecimal userBtcInitActiveBalance = userBtcWallet.getActiveBalance();
+        userBtcWallet.setActiveBalance(userBtcInitActiveBalance.add(ieoClaim.getPriceInBtc()));
+
+        BigDecimal userIeoWalletActiveBalance = userIeoWallet.getActiveBalance();
+        userIeoWallet.setActiveBalance(userIeoWalletActiveBalance.subtract(ieoClaim.getAmount()));
+
+        BigDecimal makerBtcActiveBalance = makerBtcWallet.getIeoReserved();
+        makerBtcWallet.setIeoReserved(makerBtcActiveBalance.subtract(ieoClaim.getPriceInBtc()));
+
+        boolean updateResult = walletDao.update(makerBtcWallet)
+                && walletDao.update(userBtcWallet)
+                && walletDao.update(userIeoWallet);
+        if (updateResult) {
+            final Wallet makerWallet = makerBtcWallet;
+            final Wallet userWallet = userIeoWallet;
+            final Wallet userMainWallet = userBtcWallet;
+
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), IEOResult.IEOResultStatus.REVOKED);
+
+            CompletableFuture.runAsync(() -> writeTransActionsAsync(ieoClaim, makerBtcActiveBalance, makerWallet,
+                    userIeoWalletActiveBalance, userWallet, userMainWallet, IeoStatusEnum.REVOKED_BY_IEO_FAILURE));
+        }
+        return updateResult;
+    }
+
+    @Override
+    public boolean moveBalanceFromIeoReservedToActive(int userId, String currencyName) {
+        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyName);
+        BigDecimal ieoReservedBalance = wallet.getIeoReserved();
+        BigDecimal activeBalance = wallet.getActiveBalance();
+
+        wallet.setActiveBalance(activeBalance.add(ieoReservedBalance));
+        wallet.setIeoReserved(BigDecimal.ZERO);
+
+        boolean result = walletDao.update(wallet);
+
+        if (result) {
+            Currency currency = currencyService.findById(wallet.getCurrencyId());
+            Transaction transaction = Transaction
+                    .builder()
+                    .userWallet(wallet)
+                    .amount(ieoReservedBalance)
+                    .commissionAmount(ZERO)
+                    .operationType(OperationType.INPUT)
+                    .invoiceStatus(IeoStatusEnum.SUCCESS_IEO)
+                    .currency(currency)
+                    .datetime(LocalDateTime.now())
+                    .activeBalanceBefore(activeBalance)
+                    .reservedBalanceBefore(ieoReservedBalance)
+                    .sourceType(TransactionSourceType.IEO)
+                    .description("Success IEO processing, finish process.")
+                    .build();
+            transactionService.save(transaction);
+        }
+        return result;
+    }
+
+    private Transaction prepareTransaction(BigDecimal initialAmount, BigDecimal amount, Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
+        Currency currency = currencyService.findById(wallet.getCurrencyId());
+        String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
+                + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
+        return Transaction
+                .builder()
+                .userWallet(wallet)
+                .amount(amount)
+                .commissionAmount(ZERO)
+                .operationType(OperationType.INPUT)
+                .invoiceStatus(status)
+                .currency(currency)
+                .datetime(LocalDateTime.now())
+                .activeBalanceBefore(initialAmount)
+                .reservedBalanceBefore(wallet.getReservedBalance())
+                .sourceType(TransactionSourceType.IEO)
+                .description(description)
+                .build();
+    }
+
+    private Transaction prepareUserBtcTransaction(Wallet wallet, IEOClaim ieoClaim, InvoiceStatus status) {
+        Currency currency = currencyService.findById(wallet.getCurrencyId());
+        String description = "Purchase of " + ieoClaim.getAmount().toPlainString() + " " + ieoClaim.getCurrencyName() + " within IEO: "
+                + "1 " + ieoClaim.getCurrencyName() + " x " + ieoClaim.getRate() + " BTC";
+        return Transaction
+                .builder()
+                .userWallet(wallet)
+                .amount(ieoClaim.getPriceInBtc())
+                .commissionAmount(ZERO)
+                .operationType(OperationType.OUTPUT)
+                .currency(currency)
+                .datetime(LocalDateTime.now())
+                .activeBalanceBefore(wallet.getActiveBalance().add(ieoClaim.getPriceInBtc()))
+                .reservedBalanceBefore(wallet.getReservedBalance())
+                .sourceType(TransactionSourceType.IEO)
+                .invoiceStatus(status)
+                .description(description)
+                .build();
     }
 }

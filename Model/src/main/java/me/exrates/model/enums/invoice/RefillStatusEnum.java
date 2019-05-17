@@ -190,13 +190,9 @@ public enum RefillStatusEnum implements InvoiceStatus {
         .collect(Collectors.toList());
   }
 
-  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
-    schemaMap.keySet().forEach(InvoiceActionTypeEnum::checkRestrictParamNeeded);
-    return schemaMap.keySet();
-  }
-
-  public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue) {
-    return schemaMap.keySet().stream()
+    public Set<InvoiceActionTypeEnum> getAvailableActionList(InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue) {
+    return schemaMap.keySet()
+            .stream()
         .filter(e->e.isMatchesTheParamsValue(paramsValue))
         .collect(Collectors.toSet());
   }

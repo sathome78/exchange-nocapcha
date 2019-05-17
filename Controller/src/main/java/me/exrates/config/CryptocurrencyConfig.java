@@ -2,25 +2,24 @@ package me.exrates.config;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.neo.AssetMerchantCurrencyDto;
 import me.exrates.model.dto.merchants.neo.NeoAsset;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.bitshares.BitsharesService;
-import me.exrates.service.bitshares.BitsharesServiceImpl;
+import me.exrates.service.bitshares.crea.CreaServiceImpl;
 import me.exrates.service.impl.BitcoinServiceImpl;
 import me.exrates.service.lisk.*;
 import me.exrates.service.neo.NeoService;
 import me.exrates.service.neo.NeoServiceImpl;
 import me.exrates.service.tron.TronTrc10Token;
-import me.exrates.service.ppy.PPYServiceImpl;
-import me.exrates.service.ppy.PPYServiceImpl;
-import me.exrates.service.tron.TronTrc10Token;
 import me.exrates.service.waves.WavesService;
 import me.exrates.service.waves.WavesServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
@@ -29,6 +28,7 @@ import java.util.Map;
 
 @Log4j2(topic = "config")
 @Configuration
+@Conditional(MonolitConditional.class)
 public class CryptocurrencyConfig {
 
     @Autowired
@@ -340,14 +340,29 @@ public class CryptocurrencyConfig {
     }
 
 
-@Bean(name = "diviServiceImpl")
+    @Bean(name = "diviServiceImpl")
 	public BitcoinService diviServiceImpl() {
 		return new BitcoinServiceImpl("merchants/divi_wallet.properties","DIVI","DIVI", 30, 20, false, false);
 	}
 
-@Bean(name = "owcServiceImpl")
+    @Bean(name = "owcServiceImpl")
 	public BitcoinService owcServiceImpl() {
 		return new BitcoinServiceImpl("merchants/owc_wallet.properties","OWC","OWC", 30, 20, false, false);
+	}
+
+	@Bean(name = "vollarServiceImpl")
+	public BitcoinService vollarServiceImpl() {
+		return new BitcoinServiceImpl("merchants/vollar_wallet.properties","VOLLAR","VOLLAR", 30, 20, false, true);
+  }
+
+	@Bean(name = "wolfServiceImpl")
+	public BitcoinService wolfServiceImpl() {
+		return new BitcoinServiceImpl("merchants/wolf_wallet.properties","WOLF","WOLF", 30, 20, false, true);
+	}
+
+	@Bean(name = "tslServiceImpl")
+	public BitcoinService tslServiceImpl() {
+		return new BitcoinServiceImpl("merchants/tsl_wallet.properties","TSL","TSL", 30, 20, false, false);
 	}
 
 	// LISK-like cryptos
@@ -424,21 +439,26 @@ public class CryptocurrencyConfig {
         return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/kaze.properties");
     }
 
+    @Bean(name = "cronServiceImpl")
+    public NeoService cronService() {
+        Merchant mainMerchant = merchantService.findByName(NeoAsset.CRON.name());
+        me.exrates.model.Currency mainCurrency = currencyService.findByName(NeoAsset.CRON.name());
+        Map<String, AssetMerchantCurrencyDto> neoAssetMap = new HashMap<String, AssetMerchantCurrencyDto>() {{
+            put(NeoAsset.CRON.getId(), new AssetMerchantCurrencyDto(NeoAsset.CRON, merchantService.findByName(NeoAsset.CRON.name()), currencyService.findByName(NeoAsset.CRON.name())));
+        }};
+        return new NeoServiceImpl(mainMerchant, mainCurrency, neoAssetMap, "merchants/cron.properties");
+    }
+
     @Bean(name = "bitTorrentServiceImpl")
     public TronTrc10Token bitTorrentService() {
        return new TronTrc10Token("BTT", "BTT", 6, "1002000", "31303032303030", "1002000");
     }
 
+
     //Bitshares
-    @Bean(name = "ppyServiceImpl")
+    @Bean(name = "creaServiceImpl")
     public BitsharesService bitsharesService(){
-        return new PPYServiceImpl("PPY", "PPY", "merchants/ppy.properties", 6); // TODO
+        return new CreaServiceImpl("CREA", "CREA", "merchants/crea.properties", 6, 3);
     }
-
-    @Bean(name = "aunitServiceImpl")
-    public BitsharesService aunitServiceImpl(){
-        return new BitsharesServiceImpl("AUNIT", "AUNIT", "merchants/aunit.properties", 5){};
-    }
-
 }
 

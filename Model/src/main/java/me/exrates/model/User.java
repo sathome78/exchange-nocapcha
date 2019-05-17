@@ -1,20 +1,21 @@
 package me.exrates.model;
 
-import me.exrates.model.dto.ChangePasswordDto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class User  {
+public class User implements Serializable {
 
 	private int id;
 	private String nickname;
 	private String email;
 	private String phone;
-	private UserStatus status = UserStatus.REGISTERED;
+	@JsonProperty("status")
 	private UserStatus userStatus = UserStatus.REGISTERED;
 	private String password;
 	private String finpassword;
@@ -26,9 +27,22 @@ public class User  {
 	private UserRole role = UserRole.USER;
 	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
-
+	private String kycStatus;
+	private String country;
+	private String firstName;
+	private String lastName;
+	private Date birthDay;
+	private String publicId;
 
 	public User() {
+	}
+
+	public String getPublicId() {
+		return publicId;
+	}
+
+	public void setPublicId(String publicId) {
+		this.publicId = publicId;
 	}
 
 	public UserRole getRole() {
@@ -95,13 +109,12 @@ public class User  {
 		this.phone = phone;
 	}
 
-	
-	public UserStatus getStatus() {
-		return status;
+    public UserStatus getUserStatus() {
+		return userStatus;
 	}
 
-	public void setStatus(UserStatus status) {
-		this.status = status;
+    public void setUserStatus(UserStatus userStatus) {
+		this.userStatus = userStatus;
 	}
 
 	public String getPassword() {
@@ -144,6 +157,46 @@ public class User  {
 		this.parentEmail = parentEmail;
 	}
 
+	public String getKycStatus() {
+		return kycStatus;
+	}
+
+	public void setKycStatus(String kycStatus) {
+		this.kycStatus = kycStatus;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
+	public Date getBirthDay() {
+		return birthDay;
+	}
+
+	public void setBirthDay(Date birthDay) {
+		this.birthDay = birthDay;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
@@ -151,7 +204,7 @@ public class User  {
 				", nickname='" + nickname + '\'' +
 				", email='" + email + '\'' +
 				", phone='" + phone + '\'' +
-				", status=" + status +
+				", userStatus=" + userStatus +
 				", regdate=" + regdate +
 				", ipaddress='" + ipaddress + '\'' +
 				", readRules=" + readRules +
@@ -159,13 +212,5 @@ public class User  {
 				", parentEmail='" + parentEmail + '\'' +
 				", userFiles=" + userFiles +
 				'}';
-	}
-
-	public UserStatus getUserStatus() {
-		return userStatus;
-	}
-
-	public void setUserStatus(UserStatus userStatus) {
-		this.userStatus = userStatus;
 	}
 }

@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import com.beust.jcommander.internal.Sets;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.Commission;
@@ -13,6 +14,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.adapters.TransactionSqlAdapter;
 import me.exrates.model.dto.InOutReportDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
@@ -37,6 +39,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -47,15 +51,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Log4j2
 @Repository
@@ -488,8 +498,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      null AS source_type, null AS source_id, " +
                 "      null AS status_id, null AS merchant_name, null AS user_id" +
                 "    FROM WALLET  " +
-                "    JOIN CURRENCY ON CURRENCY.id=WALLET.currency_id  " +
-                "    WHERE WALLET.id=:wallet_id " +
+                "    JOIN CURRENCY ON CURRENCY.id = WALLET.currency_id  " +
+                "    WHERE WALLET.id = :wallet_id " +
                 "  UNION ALL " +
                 "    (" +
                 "    SELECT TRANSACTION.datetime, TRANSACTION.id, " +
@@ -501,82 +511,81 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "    FROM TRANSACTION " +
                 "    JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
                 "    LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
-                "    WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id " +
+                "    WHERE TRANSACTION.provided = 1 AND TRANSACTION.user_wallet_id = :wallet_id " +
                 "    ORDER BY -TRANSACTION.datetime ASC, -TRANSACTION.id ASC " +
-                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset) +
+                (limit == -1 ? EMPTY : "  LIMIT " + limit + " OFFSET " + offset) +
                 "    )" +
                 "  ) T " +
                 "  ORDER BY -date_time ASC, -transaction_id ASC";
+
         final Map<String, Object> params = new HashMap<>();
         params.put("wallet_id", walletId);
-        return slaveJdbcTemplate.query(sql, params, new RowMapper<AccountStatementDto>() {
-            @Override
-            public AccountStatementDto mapRow(ResultSet rs, int i) throws SQLException {
-                AccountStatementDto accountStatementDto = new AccountStatementDto();
-                accountStatementDto.setDatetime(rs.getTimestamp("date_time") == null ? null : rs.getTimestamp("date_time").toLocalDateTime());
-                accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
-                accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
-                accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
-                accountStatementDto.setOperationType(rs.getObject("date_time") == null ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
-                accountStatementDto.setAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
-                accountStatementDto.setCommissionAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
-                TransactionSourceType transactionSourceType = rs.getObject("source_type") == null ? null : TransactionSourceType.convert(rs.getString("source_type"));
-                accountStatementDto.setSourceType(transactionSourceType == null ? "" : transactionSourceType.toString(messageSource, locale));
-                accountStatementDto.setSourceTypeId(rs.getString("source_type"));
-                accountStatementDto.setSourceId(rs.getInt("source_id"));
-                accountStatementDto.setTransactionStatus(rs.getObject("status_id") == null ? null : TransactionStatus.convert(rs.getInt("status_id")));
-                /**/
-                int otid = rs.getObject("date_time") == null ? 0 : rs.getInt("operation_type_id");
-                if (otid != 0) {
-                    OperationType ot = OperationType.convert(otid);
-                    switch (ot) {
-                        case INPUT: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
-                        case OUTPUT: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
-                        case WALLET_INNER_TRANSFER: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
-                                            , locale, true));
-                            break;
-                        }
-                        case MANUAL: {
-                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
-                                    .formatLocale(BigDecimalProcessing
-                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
-                                            , locale, true));
-                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
-                            break;
-                        }
+
+        return slaveJdbcTemplate.query(sql, params, (rs, i) -> {
+            AccountStatementDto accountStatementDto = new AccountStatementDto();
+            accountStatementDto.setDatetime(isNull(rs.getTimestamp("date_time")) ? null : rs.getTimestamp("date_time").toLocalDateTime());
+            accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
+            accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
+            accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
+            accountStatementDto.setOperationType(isNull(rs.getObject("date_time")) ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
+            accountStatementDto.setAmount(isNull(rs.getTimestamp("date_time")) ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
+            accountStatementDto.setCommissionAmount(isNull(rs.getTimestamp("date_time")) ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
+            TransactionSourceType transactionSourceType = isNull(rs.getObject("source_type")) ? null : TransactionSourceType.convert(rs.getString("source_type"));
+            accountStatementDto.setSourceType(isNull(transactionSourceType) ? EMPTY : transactionSourceType.toString(messageSource, locale));
+            accountStatementDto.setSourceTypeId(rs.getString("source_type"));
+            accountStatementDto.setSourceId(rs.getInt("source_id"));
+            accountStatementDto.setTransactionStatus(isNull(rs.getObject("status_id")) ? null : TransactionStatus.convert(rs.getInt("status_id")));
+            /**/
+            int otid = rs.getObject("date_time") == null ? 0 : rs.getInt("operation_type_id");
+            if (otid != 0) {
+                OperationType ot = OperationType.convert(otid);
+                switch (ot) {
+                    case INPUT: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
+                    }
+                    case OUTPUT: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
+                    }
+                    case WALLET_INNER_TRANSFER: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                        , locale, true));
+                        break;
+                    }
+                    case MANUAL: {
+                        accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                .formatLocale(BigDecimalProcessing
+                                                .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                        , locale, true));
+                        accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        break;
                     }
                 }
-                String merchantName = rs.getString("merchant_name");
-                if (StringUtils.isEmpty(merchantName)) {
-                    merchantName = accountStatementDto.getSourceType();
-                }
-                accountStatementDto.setMerchantName(merchantName);
-                accountStatementDto.setWalletId(walletId);
-                accountStatementDto.setUserId(rs.getInt("user_id"));
-                /**/
-                return accountStatementDto;
             }
+            String merchantName = rs.getString("merchant_name");
+            if (StringUtils.isEmpty(merchantName)) {
+                merchantName = accountStatementDto.getSourceType();
+            }
+            accountStatementDto.setMerchantName(merchantName);
+            accountStatementDto.setWalletId(walletId);
+            accountStatementDto.setUserId(rs.getInt("user_id"));
+            /**/
+            return accountStatementDto;
         });
     }
 
@@ -594,6 +603,21 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " FROM TRANSACTION ";
         return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
 
+    }
+
+    @Override
+    public Set<TransactionSourceType> findAllTransactionSourceTypes() {
+        String sql = "SELECT id FROM TRANSACTION_SOURCE_TYPE";
+        List<TransactionSourceType> types = jdbcTemplate.query(sql, (rs, i) -> TransactionSourceType.convert(rs.getInt("id")));
+        return new HashSet<>(types);
+    }
+
+    @Override
+    public boolean updateStoredTransactionSourceType(Set<TransactionSourceType> values) {
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(values.toArray());
+        String sql = "INSERT INTO TRANSACTION_SOURCE_TYPE VALUES (:code, :name)";
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
     }
 
     @Override
@@ -676,10 +700,12 @@ public final class TransactionDaoImpl implements TransactionDao {
         String sql = "UPDATE TRANSACTION " +
                 " SET status_id = :status_id" +
                 " WHERE id = :transaction_id ";
+
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("transaction_id", trasactionId);
             put("status_id", statusId);
         }};
+
         return jdbcTemplate.update(sql, params) > 0;
     }
 
@@ -692,9 +718,11 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " WHERE RTX.order_id = :orderId AND RTX.status = 'PAYED' ";
+
         Map<String, Object> namedParameters = new HashMap<String, Object>() {{
             put("orderId", orderId);
         }};
+
         return jdbcTemplate.query(sql, namedParameters, transactionRowMapper);
     }
 
@@ -834,4 +862,21 @@ public final class TransactionDaoImpl implements TransactionDao {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public boolean saveInBatch(Collection<Transaction> transactions) {
+        TransactionSqlAdapter[] adapters = transactions
+                .stream()
+                .map(TransactionSqlAdapter::valueOf)
+                .collect(Collectors.toList())
+                .toArray(new TransactionSqlAdapter[]{});
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(adapters);
+        String sql = "INSERT INTO TRANSACTION (user_wallet_id, amount, commission_amount, operation_type_id, currency_id,"
+                + " provided, active_balance_before, source_type, status_id, description)"
+                + " VALUES (:userWalletId, :amount, :commissionAmount, :operationTypeId, :currencyId, :provided," +
+                " :activeBalanceBefore, :sourceType, :statusId, :description)";
+        int[] updateCounts = jdbcTemplate.batchUpdate(sql, batch);
+        return updateCounts.length > 0;
+    }
+
 }

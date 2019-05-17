@@ -10,6 +10,7 @@ import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
 import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import me.exrates.service.CurrencyService;
@@ -26,6 +27,7 @@ import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.crypto.MnemonicException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -44,6 +46,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "lisk_log")
+@Conditional(MonolitConditional.class)
 public class LiskServiceImpl implements LiskService {
 
     private final BigDecimal DEFAULT_LSK_TX_FEE = BigDecimal.valueOf(0.1);
@@ -209,10 +212,9 @@ public class LiskServiceImpl implements LiskService {
                 RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
 
-                final String username = refillService.getUsernameByRequestId(requestId);
-
+                final String gaTag = refillService.getUserGAByRequestId(requestId);
                 log.debug("Process of sending data to Google Analytics...");
-                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, username);
+                gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyName, gaTag);
             }
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.error(e);

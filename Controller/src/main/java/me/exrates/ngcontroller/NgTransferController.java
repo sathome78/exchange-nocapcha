@@ -3,10 +3,14 @@ package me.exrates.ngcontroller;
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.annotation.CheckActiveUserStatus;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.User;
+import me.exrates.model.constants.ErrorApiTitles;
+import me.exrates.model.dto.PinOrderInfoDto;
 import me.exrates.model.dto.TransferDto;
 import me.exrates.model.dto.TransferRequestCreateDto;
 import me.exrates.model.dto.TransferRequestFlatDto;
@@ -19,11 +23,13 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
 import me.exrates.model.exceptions.UnsupportedTransferProcessTypeException;
+import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgResponseException;
+import me.exrates.model.ngModel.response.ResponseCustomError;
+import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.userOperation.enums.UserOperationAuthority;
-import me.exrates.ngcontroller.exception.NgDashboardException;
-import me.exrates.ngcontroller.model.response.ResponseCustomError;
-import me.exrates.ngcontroller.model.response.ResponseModel;
 import me.exrates.security.exception.IncorrectPinException;
+import me.exrates.security.service.CheckUserAuthority;
 import me.exrates.security.service.SecureService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.InputOutputService;
@@ -32,12 +38,13 @@ import me.exrates.service.TransferService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.UserOperationAccessException;
 import me.exrates.service.notifications.G2faService;
 import me.exrates.service.userOperation.UserOperationService;
 import me.exrates.service.util.CharUtils;
 import me.exrates.service.util.RateLimitService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -45,6 +52,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,6 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -69,12 +78,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @RestController
+@PreAuthorize("!hasRole('ICO_MARKET_MAKER')")
 @RequestMapping(value = "/api/private/v2/balances/transfer",
         consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
         produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Log4j
 @PropertySource(value = {"classpath:/angular.properties"})
 public class NgTransferController {
+
+    private static final Logger logger = LoggerFactory.getLogger(NgTransferController.class);
 
     private final RateLimitService rateLimitService;
     private final TransferService transferService;
@@ -130,17 +142,20 @@ public class NgTransferController {
      */
     @CheckActiveUserStatus
     @PostMapping(value = "/accept")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     public ResponseEntity<TransferDto> acceptTransfer(@RequestBody Map<String, String> params) {
         String email = getPrincipalEmail();
         if (!rateLimitService.checkLimitsExceed(email)) {
             log.info("Limits exceeded for user " + email);
-            return ResponseEntity.badRequest().build();
+            String message = String.format("Limits exceeded for user %s", email);
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
         }
         InvoiceActionTypeEnum action = PRESENT_VOUCHER;
         List<InvoiceStatus> requiredStatus = TransferStatusEnum.getAvailableForActionStatusesList(action);
         if (requiredStatus.size() > 1) {
             log.info("To many invoices: " + requiredStatus.size());
-            return ResponseEntity.badRequest().build();
+            String message = String.format("To many invoices: %s", requiredStatus.size());
+            throw new NgResponseException(ErrorApiTitles.FAILED_ACCEPT_TRANSFER, message);
         }
         String code = params.getOrDefault("CODE", "");
         Optional<TransferRequestFlatDto> dto = transferService
@@ -181,6 +196,7 @@ public class NgTransferController {
 
     @CheckActiveUserStatus
     @RequestMapping(value = "/voucher/request/create", method = POST)
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
     @ResponseBody
     public Map<String, Object> createTransferRequest(@RequestBody TransferRequestParamsDto requestParamsDto,
                                                      HttpServletRequest servletRequest) {
@@ -198,6 +214,18 @@ public class NgTransferController {
             throw new IllegalArgumentException(messageSource.getMessage(
                     "message.only.latin.symblos", null, locale));
         }
+        User user = userService.findByEmail(email);
+        if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+            if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
+                throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
+            }
+        } else {
+            if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.TRANSFER)) {
+                Currency currency = currencyService.getById(requestParamsDto.getCurrency());
+                secureService.sendTransferPinCode(user, requestParamsDto.getSum().toPlainString(), currency.getName());
+                throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
+            }
+        }
 
         TransferTypeVoucher transferType = TransferTypeVoucher.convert(requestParamsDto.getType());
         MerchantCurrency merchant = merchantService.findMerchantForTransferByCurrencyId(requestParamsDto.getCurrency(),
@@ -212,20 +240,6 @@ public class NgTransferController {
                 .orElseThrow(InvalidAmountException::new);
         requestParamsDto.setMerchant(merchant.getMerchantId());
         TransferRequestCreateDto transferRequest = new TransferRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-
-        if (!DEV_MODE) {
-            User user = userService.findByEmail(email);
-            if (g2faService.isGoogleAuthenticatorEnable(user.getId())) {
-                if (!g2faService.checkGoogle2faVerifyCode(requestParamsDto.getPin(), user.getId())) {
-                    throw new IncorrectPinException("Incorrect Google 2FA oauth code: " + requestParamsDto.getPin());
-                }
-            } else {
-                if (!userService.checkPin(getPrincipalEmail(), requestParamsDto.getPin(), NotificationMessageEventEnum.WITHDRAW)) {
-                    secureService.sendWithdrawPincode(user);
-                    throw new IncorrectPinException("Incorrect pin: " + requestParamsDto.getPin());
-                }
-            }
-        }
         return transferService.createTransferRequest(transferRequest);
     }
 
@@ -266,6 +280,25 @@ public class NgTransferController {
     @GetMapping("/currencies")
     public ResponseModel getAllCurrenciesForTransfer() {
         return new ResponseModel<>(currencyService.getCurrencies(MerchantProcessType.TRANSFER));
+    }
+
+    @CheckActiveUserStatus
+    @PostMapping(value = "/request/pin")
+    @CheckUserAuthority(authority = UserOperationAuthority.TRANSFER)
+    public ResponseEntity<Void> sendUserPinCode(@RequestBody @Valid PinOrderInfoDto pinOrderInfoDto) {
+        try {
+            User user = userService.findByEmail(getPrincipalEmail());
+            if (!g2faService.isGoogleAuthenticatorEnable(user.getId())) {
+                secureService.sendTransferPinCode(user, pinOrderInfoDto.getAmount().toPlainString(),
+                        pinOrderInfoDto.getCurrencyName());
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            }
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Failed to send user email", e);
+            String message = String.format("Failed to send user email");
+            throw new NgResponseException(ErrorApiTitles.FAILED_TO_SEND_USER_EMAIL, message);
+        }
     }
 
     private String getPrincipalEmail() {

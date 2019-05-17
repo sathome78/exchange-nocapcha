@@ -6,19 +6,29 @@ import me.exrates.model.enums.EmailSenderType;
 import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
 import me.exrates.service.util.MessageFormatterUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,49 +36,43 @@ import java.util.stream.Stream;
 
 @Log4j2(topic = "email_log")
 @Service
-@PropertySource(value = {"classpath:/mail.properties"})
+@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties"})
 public class SendMailServiceImpl implements SendMailService {
 
+    private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
+    private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newCachedThreadPool();
+    private static final String UTF8 = "UTF-8";
     @Autowired
     @Qualifier("SupportMailSender")
     private JavaMailSender supportMailSender;
-
     @Autowired
     @Qualifier("MandrillMailSender")
     private JavaMailSender mandrillMailSender;
-
     @Autowired
     @Qualifier("InfoMailSender")
     private JavaMailSender infoMailSender;
-
     @Value("${mail_info.allowedOnly}")
     private Boolean allowedOnly;
-
     @Value("${mail_info.allowedEmails}")
     private String allowedEmailsList;
-
     @Value("${default_mail_type}")
     private String mailType;
-
     @Value("${support.email}")
     private String supportEmail;
-
     @Value("${mandrill.email}")
     private String mandrillEmail;
-
     @Value("${info.email}")
     private String infoEmail;
-
     @Value("${listing.email}")
     private String listingEmail;
-
     @Value("${listing.subject}")
     private String listingSubject;
 
-    private final static ExecutorService EXECUTORS = Executors.newFixedThreadPool(8);
-    private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newFixedThreadPool(3);
+    @Value("${spring.profile}")
+    private String springProfile;
 
-    private static final String UTF8 = "UTF-8";
+    @Value("${front-host}")
+    private String server;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void sendMail(Email email) {
@@ -133,7 +137,7 @@ public class SendMailServiceImpl implements SendMailService {
                 sendMail(email.toBuilder()
                                 .from(infoEmail)
                                 .build(),
-                        infoMailSender);
+                        springProfile.equalsIgnoreCase("prod") ? mandrillMailSender : infoMailSender);
             } catch (MailException ex) {
                 log.error(ex);
                 sendMail(email.toBuilder()
@@ -154,7 +158,7 @@ public class SendMailServiceImpl implements SendMailService {
                 message.setFrom(email.getFrom());
                 message.setTo(email.getTo());
                 message.setSubject(email.getSubject());
-                message.setText(email.getMessage(), true);
+                message.setText(prepareTemplate(email.getMessage()), true);
                 if (email.getAttachments() != null) {
                     for (Email.Attachment attachment : email.getAttachments())
                         message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
@@ -193,5 +197,19 @@ public class SendMailServiceImpl implements SendMailService {
     public void destroy() {
         EXECUTORS.shutdown();
         SUPPORT_MAIL_EXECUTORS.shutdown();
+    }
+
+    private String prepareTemplate(String text) {
+        File file;
+        String html;
+        try {
+            file = ResourceUtils.getFile("classpath:email/template.html");
+            byte[] encoded = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+            html = new String(encoded, StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            return text;
+        }
+        html = html.replace("{::text::}", text);
+        return html;
     }
 }

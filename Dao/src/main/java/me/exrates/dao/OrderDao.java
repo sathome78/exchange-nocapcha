@@ -4,7 +4,19 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.CurrencyPairTurnoverReportDto;
+import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderReportInfoDto;
+import me.exrates.model.dto.StatisticForMarket;
+import me.exrates.model.dto.UserSummaryOrdersByCurrencyPairsDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
@@ -45,6 +57,8 @@ public interface OrderDao {
     Optional<BigDecimal> getLowestOpenOrderPriceByCurrencyPairAndOperationType(int currencyPairId, int operationTypeId);
 
     ExOrder getOrderById(int orderid);
+
+    ExOrder getOrderById(int orderId, int userId);
 
     boolean setStatus(int orderId, OrderStatus status);
 
@@ -88,11 +102,17 @@ public interface OrderDao {
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
+    int getUnfilteredOrdersCount(int id, CurrencyPair currencyPair, List<OrderStatus> statuses, OperationType operationType,
+                                 String scope, int offset, int limit, Locale locale);
+
     List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
 
-    List<OrderWideListDto> getMyOrdersWithState(OrderFilterDataDto filterDataDto, Locale locale);
+    List<OrderWideListDto> getMyOrdersWithState(Integer userId, CurrencyPair currencyPair, String currencyName,
+                                                OrderStatus orderStatus, String scope, Integer limit, Integer offset,
+                                                Boolean hideCanceled, String sortByCreated,
+                                                LocalDateTime dateTimeFrom, LocalDateTime dateTimeTo, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 
@@ -139,7 +159,9 @@ public interface OrderDao {
 
     List<UserOrdersDto> getUserOrders(Integer userId, Integer currencyPairId, int queryLimit, int queryOffset);
 
-    Integer getMyOrdersWithStateCount(OrderFilterDataDto filterDataDto);
+    Integer getMyOrdersWithStateCount(Integer userId, CurrencyPair currencyPair, String currencyName, OrderStatus orderStatus,
+                                      String scope, Boolean hideCanceled, LocalDateTime dateTimeFrom,
+                                      LocalDateTime dateTimeTo);
 
     List<OrderWideListDto> getAllOrders(Integer userId, OrderStatus status, CurrencyPair currencyPair, Locale locale,
                                         String scope, LocalDate dateFrom, LocalDate dateTo, boolean hideCanceled);
@@ -150,4 +172,9 @@ public interface OrderDao {
 
     List<OrderListDto> findAllByOrderTypeAndCurrencyId(Integer currencyId, OrderType... orderType);
 
+    List<ExOrderStatisticsShortByPairsDto> getRatesDataForCache(Integer currencyPairId);
+
+    ExOrderStatisticsShortByPairsDto getBeforeLastRateForCache(Integer currencyPairId);
+
+    List<ExOrderStatisticsShortByPairsDto> getAllDataForCache(Integer currencyPairId);
 }

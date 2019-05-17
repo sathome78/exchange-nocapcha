@@ -1,11 +1,12 @@
 package me.exrates.controller;
 
 import com.google.common.base.Preconditions;
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.AdminLoggable;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
-import me.exrates.controller.exception.NoRequestedBeansFoundException;
 import me.exrates.controller.exception.NotAcceptableOrderException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.RegisterFormValidation;
@@ -85,7 +86,6 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.BotService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.EDCServiceNode;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.OrderService;
@@ -102,19 +102,18 @@ import me.exrates.service.WalletService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.aidos.AdkService;
 import me.exrates.service.aidos.AdkServiceImpl;
-import me.exrates.service.exception.NotCreatableOrderException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.OrderAcceptionException;
-import me.exrates.service.exception.OrderCancellingException;
-import me.exrates.service.exception.OrderCreationException;
+import me.exrates.service.exception.NoRequestedBeansFoundException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.impl.B2XTransferToReserveAccount;
-import me.exrates.service.impl.EDCServiceNodeImpl;
+import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
+import me.exrates.service.exception.process.OrderCreationException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.notifications.NotificatorsService;
 import me.exrates.service.notifications.Subscribable;
-import me.exrates.service.omni.OmniServiceImpl;
+import me.exrates.service.omni.OmniService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.userOperation.UserOperationService;
@@ -187,7 +186,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toMap;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.BOT;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
@@ -241,8 +239,6 @@ public class AdminController {
     @Autowired
     private ReferralService referralService;
     @Autowired
-    private Map<String, BitcoinService> bitcoinLikeServices;
-    @Autowired
     private NotificationService notificationService;
     @Autowired
     private PhraseTemplateService phraseTemplateService;
@@ -265,18 +261,14 @@ public class AdminController {
     @Autowired
     private NotificatorsService notificatorsService;
     @Autowired
-    private EDCServiceNode edcServiceNode;
-    @Autowired
     private UsersAlertsService alertsService;
     @Autowired
     private UserSessionService userSessionService;
     @Autowired
     private AdkService adkService;
     @Autowired
-    private OmniServiceImpl omniService;
+    private OmniService omniService;
 
-    @Autowired
-    private B2XTransferToReserveAccount b2XTransferToReserveAccount;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -301,7 +293,10 @@ public class AdminController {
 
     private String retrieveHasAuthorityStringByBusinessRole(BusinessUserRoleEnum businessUserRole) {
         List<UserRole> roles = userRoleService.getRealUserRoleByBusinessRoleList(businessUserRole);
-        return roles.stream().map(e -> "'" + e.name() + "'").collect(Collectors.joining(",", "hasAnyAuthority(", ")"));
+        return roles
+                .stream()
+                .map(e -> "'" + e.name() + "'")
+                .collect(Collectors.joining(",", "hasAnyAuthority(", ")"));
     }
 
     @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
@@ -334,7 +329,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
         ModelAndView model = new ModelAndView();
-        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL);
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairsWithHiddenInAlphabeticOrder(CurrencyPairType.ALL);
         model.addObject("currencyPairList", currencyPairList);
         model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
         model.addObject("statusList", Arrays.asList(OrderStatus.values()));
@@ -442,7 +437,10 @@ public class AdminController {
     public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id, @RequestParam(defaultValue = "false") Boolean onlyBalances) {
         boolean getExtendedInfo = userService.getUserRoleFromDB(id).showExtendedOrderInfo();
         return getExtendedInfo && !onlyBalances ? walletService.getAllUserWalletsForAdminDetailed(id) :
-                walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
+                walletService.getAllForNotHiddenCurWallets(id)
+                        .stream()
+                        .map(WalletFormattedDto::new)
+                        .collect(Collectors.toList());
     }
 
     @AdminLoggable
@@ -506,60 +504,71 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
-                                                final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
-
-        CurrencyPair currencyPair;
+    @GetMapping(value = "/2a8fy7b07dxe44/orders", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public DataTable<List<OrderWideListDto>> getUserOrders(@RequestParam int id,
+                                                           @RequestParam String tableType,
+                                                           @RequestParam int currencyPairId,
+                                                           @RequestParam Map<String, String> params,
+                                                           HttpServletRequest request) {
+        CurrencyPair currencyPair = null;
         if (currencyPairId != 0) {
             currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        } else {
-            currencyPair = null;
         }
-        String email = userService.getUserById(id).getEmail();
-        return getOrderWideListDtos(tableType, currencyPair, email, localeResolver.resolveLocale(request));
+        final Locale locale = localeResolver.resolveLocale(request);
+
+        return getOrderWideListDtos(tableType, currencyPair, id, locale, params);
     }
 
-    private List<OrderWideListDto> getOrderWideListDtos(@RequestParam("tableType") String tableType, CurrencyPair currencyPair, String email, Locale locale) {
-        List<OrderWideListDto> result = new ArrayList<>();
+    private DataTable<List<OrderWideListDto>> getOrderWideListDtos(String tableType, CurrencyPair currencyPair, int id, Locale locale, Map<String, String> params) {
+        OrderStatus orderStatus = null;
+        OperationType operationType = null;
         switch (tableType) {
             case "ordersBuyClosed":
-                List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyClosed;
+                orderStatus = OrderStatus.CLOSED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellClosed":
-                List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellClosed;
+                orderStatus = OrderStatus.CLOSED;
+                operationType = OperationType.SELL;
                 break;
             case "ordersBuyOpened":
-                List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyOpened;
+                orderStatus = OrderStatus.OPENED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellOpened":
-                List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellOpened;
+                orderStatus = OrderStatus.OPENED;
+                operationType = OperationType.SELL;
                 break;
             case "ordersBuyCancelled":
-                List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, locale);
-                result = ordersBuyCancelled;
+                orderStatus = OrderStatus.CANCELLED;
+                operationType = OperationType.BUY;
                 break;
             case "ordersSellCancelled":
-                List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, locale);
-                result = ordersSellCancelled;
+                orderStatus = OrderStatus.CANCELLED;
+                operationType = OperationType.SELL;
                 break;
             case "stopOrdersCancelled":
-                List<OrderWideListDto> stopOrdersCancelled = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, null, 0, -1, locale);
-                result = stopOrdersCancelled;
+                orderStatus = OrderStatus.CANCELLED;
                 break;
             case "stopOrdersClosed":
-                List<OrderWideListDto> stopOrdersClosed = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, null, 0, -1, locale);
-                result = stopOrdersClosed;
+                orderStatus = OrderStatus.CLOSED;
                 break;
             case "stopOrdersOpened":
-                List<OrderWideListDto> stopOrdersOpened = stopOrderService.getUsersStopOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, null, 0, -1, locale);
-                result = stopOrdersOpened;
+                orderStatus = OrderStatus.OPENED;
                 break;
         }
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+
+        final int notFilteredAmount = orderService.getUsersOrdersWithStateForAdminCount(id, currencyPair, orderStatus, operationType, 0, -1, locale);
+
+        List<OrderWideListDto> filteredOrders = Collections.emptyList();
+        if (notFilteredAmount > 0) {
+            filteredOrders = orderService.getUsersOrdersWithStateForAdmin(id, currencyPair, orderStatus, operationType, dataTableParams.getStart(), dataTableParams.getLength(), locale);
+        }
+        DataTable<List<OrderWideListDto>> result = new DataTable<>();
+        result.setRecordsFiltered(notFilteredAmount);
+        result.setRecordsTotal(notFilteredAmount);
+        result.setData(filteredOrders);
         return result;
     }
 
@@ -586,7 +595,7 @@ public class AdminController {
 
         model.addObject("user", user);
         model.addObject("roleSettings", userRoleService.retrieveSettingsForRole(user.getRole().getRole()));
-        model.addObject("currencies", currencyService.findAllCurrencies());
+        model.addObject("currencies", currencyService.findAllCurrenciesWithHidden());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairsInAlphabeticOrder(CurrencyPairType.ALL));
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(user.getId()));
@@ -594,8 +603,10 @@ public class AdminController {
         List<Merchant> merchantList = merchantService.findAll();
         merchantList.sort(Comparator.comparing(Merchant::getName));
         model.addObject("merchants", merchantList);
-        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
         AuthorityOptionsForm form = new AuthorityOptionsForm();
         form.setUserId(user.getId());
         form.setOptions(userService.getAuthorityOptionsForUser(user.getId(), allowedAuthorities, localeResolver.resolveLocale(request)));
@@ -604,7 +615,10 @@ public class AdminController {
         userOperationForm.setOptions(userOperationService.getUserOperationAuthorityOptions(user.getId(), localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
         model.addObject("userOperationAuthorityOptionsForm", userOperationForm);
-        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId()).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
+        model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(user.getId())
+                .stream()
+                .map(e -> e.getAdminAuthority().name())
+                .collect(Collectors.joining(",")));
         model.addObject("userLang", userService.getPreferedLang(user.getId()).toUpperCase());
         model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
         model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
@@ -927,7 +941,8 @@ public class AdminController {
             return redirectView;
         }
         String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
-        sessionRegistry.getAllPrincipals().stream()
+        sessionRegistry.getAllPrincipals()
+                .stream()
                 .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
                 .findFirst()
                 .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
@@ -995,7 +1010,8 @@ public class AdminController {
             return redirectView;
         }
         String updatedUserEmail = userService.getUserById(userOperationAuthorityOptionsForm.getUserId()).getEmail();
-        sessionRegistry.getAllPrincipals().stream()
+        sessionRegistry.getAllPrincipals()
+                .stream()
                 .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
                 .findFirst()
                 .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
@@ -1121,11 +1137,12 @@ public class AdminController {
         String lang = userService.getPreferedLangByEmail(email);
         Locale userLocale = Locale.forLanguageTag(StringUtils.isEmpty(lang) ? "EN" : lang);
         UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
-        List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
+        List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic)
+                .stream()
                 .map(e -> messageSource.getMessage(e, null, userLocale))
                 .collect(Collectors.toList());
         return new HashMap<String, List<String>>() {{
-            put("lang", Arrays.asList(userLocale.getLanguage()));
+            put("lang", Collections.singletonList(userLocale.getLanguage()));
             put("list", phrases);
         }};
     }
@@ -1157,10 +1174,9 @@ public class AdminController {
     }
 
     private BitcoinService getBitcoinServiceByMerchantName(String merchantName) {
-        String serviceBeanName = merchantService.findByName(merchantName).getServiceBeanName();
-        IMerchantService merchantService = serviceContext.getMerchantService(serviceBeanName);
+        IMerchantService merchantService = serviceContext.getBitcoinServiceByMerchantName(merchantName);
         if (merchantService == null || !(merchantService instanceof BitcoinService)) {
-            throw new NoRequestedBeansFoundException(serviceBeanName);
+            throw new NoRequestedBeansFoundException("Merchant name: " + merchantName);
         }
         return (BitcoinService) merchantService;
     }
@@ -1204,6 +1220,24 @@ public class AdminController {
     @ResponseBody
     public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
         return getBitcoinServiceByMerchantName(merchantName).listAllTransactions();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions/pagination", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public DataTable<List<BtcTransactionHistoryDto>> getAllTransactionByCoinLikeBitcoin(@PathVariable String merchantName, @RequestParam Map<String, String> tableParams) throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(tableParams);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/pageableTransactions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> getBtcTransactionByPage(@PathVariable String merchantName, @RequestParam("page") int page) {
+        return getBitcoinServiceByMerchantName(merchantName).listTransactions(page);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/findTransactions", method = GET)
+    @ResponseBody
+    public List<BtcTransactionHistoryDto> findTransactions(@PathVariable String merchantName, @RequestParam("value") String value) throws BitcoindException, CommunicationException {
+        return getBitcoinServiceByMerchantName(merchantName).findTransactions(value);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/omniWallet/getUsdtTransactions", method = RequestMethod.GET)
@@ -1354,28 +1388,8 @@ public class AdminController {
     @GetMapping(value = "/getWalletBalanceByCurrencyName")
     public ResponseEntity<Map<String, String>> getWalletBalanceByCurrencyName(@RequestParam("currency") String currencyName,
                                                                               @RequestParam("token") String token,
-                                                                              @RequestParam(value = "address", required = false) String address) throws IOException {
-
-        if (!token.equals("ZXzG8z13nApRXDzvOv7hU41kYHAJSLET")) {
-            throw new RuntimeException("Some unexpected exception");
-        }
-        if (currencyName.equals("EDR")) {
-            String balance = edcServiceNode.extractBalance(address, 0);
-            Map<String, String> response = new HashMap<>();
-            response.put("EDR", balance);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-        Currency byName = currencyService.findByName(currencyName);
-
-        List<Merchant> allByCurrency = merchantService.findAllByCurrency(byName);
-        List<Merchant> collect = allByCurrency.stream().
-                filter(merchant -> merchant.getProcessType() == MerchantProcessType.CRYPTO).collect(Collectors.toList());
-        Map<String, String> collect1 = collect.
-                stream().
-                collect(toMap(Merchant::getName, merchant -> getBitcoinServiceByMerchantName(merchant.getName()).getWalletInfo().getBalance()));
-
-
-        return new ResponseEntity<>(collect1, HttpStatus.OK);
+                                                                              @RequestParam(value = "address", required = false) String address) {
+        return ResponseEntity.ok(merchantService.getWalletBalanceByCurrencyName(currencyName, token, address));
     }
 
     @AdminLoggable
@@ -1508,8 +1522,11 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/generalStats", method = GET)
     public ModelAndView generalStats() {
         Map<UserRole, Boolean> defaultRoleFilter = new EnumMap<>(UserRole.class);
-        defaultRoleFilter.putAll(Stream.of(UserRole.values()).filter(value -> value != ROLE_CHANGE_PASSWORD)
-                .collect(toMap(value -> value, value -> false)));
+        defaultRoleFilter.putAll(Stream.of(UserRole.values())
+                .filter(value -> value != ROLE_CHANGE_PASSWORD)
+                .collect(Collectors.toMap(
+                        value -> value,
+                        value -> false)));
         userRoleService.getRolesUsingRealMoney().forEach(role -> defaultRoleFilter.replace(role, true));
         ModelAndView modelAndView = new ModelAndView("admin/generalStats");
         modelAndView.addObject("defaultRoleFilter", defaultRoleFilter);
@@ -1740,14 +1757,6 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUsersInfoFromCache(startTime, endTime, userRoles));
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve", method = POST)
-    public ResponseEntity sendMoneyToReserveAddress(@RequestParam("transactionCount") int transactionCount,
-                                       @RequestParam("transactionAmount") String amount) {
-        b2XTransferToReserveAccount.transferToReserveAccountFromNode(transactionCount, amount);
-        return ResponseEntity.ok().build();
-    }
-
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler({NotEnoughMoneyException.class, NotEnoughUserWalletMoneyException.class, OrderCreationException.class,
             OrderAcceptionException.class, OrderCancellingException.class, NotAcceptableOrderException.class,
@@ -1781,7 +1790,10 @@ public class AdminController {
     }
 
     public static void main(String[] args) {
-        System.out.println(WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
+        System.out.println(WithdrawStatusEnum.getEndStatesSet()
+                .stream()
+                .map(InvoiceStatus::getCode)
+                .collect(Collectors.toList()));
     }
 
 }
