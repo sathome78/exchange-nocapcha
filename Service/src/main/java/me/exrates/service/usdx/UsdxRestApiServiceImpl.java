@@ -176,7 +176,7 @@ public class UsdxRestApiServiceImpl implements UsdxRestApiService {
         try {
             transactionJsonAsString = objectMapper.writeValueAsString(usdxTransaction);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Error:" + e);
         }
         return transactionJsonAsString;
     }

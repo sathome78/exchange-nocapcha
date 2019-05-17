@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.service.exception.RefillRequestAlreadyAcceptedException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestMemoIsNullException;
+import me.exrates.service.exception.UsdxApiException;
 import me.exrates.service.usdx.UsdxService;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxTransactionStatus;
@@ -22,8 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @Log4j2
 @Controller
@@ -60,9 +60,12 @@ public class LightHouseController {
             
         } catch (RefillRequestAlreadyAcceptedException | RefillRequestMemoIsNullException exception) {
             return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.info("USDX Wallet. Error in controller with object: " + usdxTransaction + " | Error: " + e.getMessage());
+        } catch (UsdxApiException usdxApiException){
+            log.error("USDX Wallet. API Exception. Error in controller with object: " + usdxTransaction + " | Error: " + usdxApiException);
             return new ResponseEntity<>(BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("USDX Wallet. Error in controller with object: " + usdxTransaction + " | Error: " + e);
+            return new ResponseEntity<>(INTERNAL_SERVER_ERROR);
         }
     }
 
