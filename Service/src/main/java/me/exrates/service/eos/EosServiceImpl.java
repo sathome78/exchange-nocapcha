@@ -99,10 +99,10 @@ public class EosServiceImpl implements EosService {
 
             int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
 
-            final String username = refillService.getUsernameByRequestId(requestId);
+//            final String username = refillService.getUsernameByRequestId(requestId);
 
             log.debug("Process of sending data to Google Analytics...");
-            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+//            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
     }
 
     @Override
