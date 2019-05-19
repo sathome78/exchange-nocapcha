@@ -177,7 +177,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @PostConstruct
     void startBitcoin() {
-        System.out.println("::Starting " + merchantName);
         Properties passSource;
         if (nodeEnabled) {
             try {

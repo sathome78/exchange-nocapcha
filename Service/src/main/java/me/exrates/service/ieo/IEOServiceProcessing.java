@@ -103,7 +103,7 @@ public class IEOServiceProcessing {
         if (amountInBtcLocked.compareTo(ieoClaim.getPriceInBtc()) < 0) {
             log.info("User active balance less claim amount, active {}, required {}", amountInBtcLocked, ieoClaim.getPriceInBtc());
             String text = String.format("Unfortunately, You doesn't have required amount in BTC for purchase %s %s. Your amount is %s BTC",
-                    ieoDetails.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
+                    ieoClaim.getAmount(), ieoDetails.getCurrencyName(), amountInBtcLocked);
             String resultIeoMessage = String.format("Not enough user BTC amount %s", amountInBtcLocked);
             failedClaim(ieoClaim, ieoDetails.getAvailableAmount(), principalEmail, notificationMessage,
                     resultIeoMessage, text);
@@ -114,13 +114,15 @@ public class IEOServiceProcessing {
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             log.info("{} {} has 0 available balance", ieoDetails.getCurrencyName(), ieoDetails.getCurrencyDescription());
             String text = String.format("Unfortunately, there are no tokens available in IEO %s (%s), asked amount %s %s",
-                    ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount(),
+                    ieoDetails.getCurrencyDescription(), ieoDetails.getCurrencyName(), ieoClaim.getAmount().toPlainString(),
                     ieoDetails.getCurrencyName());
             String resultIeoMessage = String.format("No tokens available in IEO %s", ieoDetails.getCurrencyName());
             failedClaim(ieoClaim, availableAmount, principalEmail, notificationMessage, resultIeoMessage, text);
             return;
         } else if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
-            String text = String.format("Token purchase successful! You purchased a maximal available sum: %s %s", availableAmount.toPlainString(), ieoDetails.getCurrencyName());
+            String text = String.format("Token purchase successful! You purchased a maximal available sum: %s %s",
+                    availableAmount.toPlainString(),
+                    ieoDetails.getCurrencyName());
             notificationMessage.setText(text);
             refactorClaim(availableAmount, ieoClaim);
             availableAmount = BigDecimal.ZERO;
@@ -155,7 +157,10 @@ public class IEOServiceProcessing {
         ieoResultRepository.save(ieoResult);
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), ieoDetails.getAvailableAmount());
-        ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
+        if (ieoDetails.getAvailableAmount().compareTo(BigDecimal.ZERO) == 0) {
+            ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
+        }
+//        ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
@@ -172,7 +177,7 @@ public class IEOServiceProcessing {
                 .build();
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
-        walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
+//        walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
         stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
         sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
     }

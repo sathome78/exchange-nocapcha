@@ -30,4 +30,6 @@ public interface IeoDetailsRepository {
     boolean updateIeoStatusesToTerminated();
 
     Collection<IEODetails> findAllRunningAndAvailableIeo();
+
+    boolean updateIeoSoldOutTime(int ieoId);
 }

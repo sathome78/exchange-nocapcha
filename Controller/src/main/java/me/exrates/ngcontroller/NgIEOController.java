@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RequestMapping("/api/private/v2/ieo")
@@ -39,8 +40,8 @@ public class NgIEOController {
 
     @CheckUserAuthority(authority = UserOperationAuthority.TRADING)
     @PostMapping(value = "/claim", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto) {
-        return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail()));
+    public ResponseModel<?> saveClaim(@RequestBody @Valid ClaimDto claimDto, HttpServletRequest request) {
+        return new ResponseModel<>(ieoService.addClaim(claimDto, getPrincipalEmail(), request));
     }
 
     @GetMapping(value = "/check/{idIeo}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

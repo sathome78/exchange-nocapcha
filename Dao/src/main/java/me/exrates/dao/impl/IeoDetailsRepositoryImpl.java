@@ -176,6 +176,13 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return jdbcTemplate.query(sql, ieoDetailsRowMapper());
     }
 
+    @Override
+    public boolean updateIeoSoldOutTime(int ieoId) {
+        String sql = "UPDATE IEO_DETAILS SET sold_out_at = CURRENT_TIMESTAMP WHERE id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))
@@ -196,6 +203,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .endDate(rs.getTimestamp("terminates_at") == null ? null : rs.getTimestamp("terminates_at").toLocalDateTime())
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .createdBy(rs.getInt("created_by"))
+                .soldOutAt(rs.getTimestamp("sold_out_at") == null ? null : rs.getTimestamp("sold_out_at").toLocalDateTime())
                 .build();
     }
 

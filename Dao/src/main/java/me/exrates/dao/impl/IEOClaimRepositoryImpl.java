@@ -93,7 +93,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public List<IEOClaim> findUnprocessedIeoClaimsByIeoId(Integer ieoId, int chunk) {
-        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' ORDER BY created DESC LIMIT " + chunk;
+        String sql = "SElECT * FROM IEO_CLAIM WHERE ieo_id = :id AND status = 'NONE' ORDER BY created ASC LIMIT " + chunk;
         MapSqlParameterSource params = new MapSqlParameterSource("id", ieoId);
         return jdbcTemplate.query(sql, params, ieoClaimRowMapper());
     }
@@ -109,7 +109,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
             ieoClaim.setAmount(rs.getBigDecimal("amount"));
             ieoClaim.setRate(rs.getBigDecimal("rate"));
             ieoClaim.setPriceInBtc(rs.getBigDecimal("price_in_btc"));
-            ieoClaim.setCreated(rs.getDate("created"));
+            ieoClaim.setCreated(rs.getTimestamp("created"));
             ieoClaim.setStatus(IEOResult.IEOResultStatus.valueOf(rs.getString("status")));
             ieoClaim.setUuid(rs.getString("uuid"));
             return ieoClaim;

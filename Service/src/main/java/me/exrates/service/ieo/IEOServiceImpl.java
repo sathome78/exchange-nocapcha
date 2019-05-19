@@ -36,10 +36,13 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +56,8 @@ import java.util.stream.Collectors;
 @EnableRabbit
 @Service
 @Log4j2
+@PropertySource(value = {
+        "classpath:/ieo.properties"})
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
@@ -68,6 +73,12 @@ public class IEOServiceImpl implements IEOService {
     private final ObjectMapper objectMapper;
     private final IEOSubscribeRepository ieoSubscribeRepository;
     private final RabbitTemplate rabbitTemplate;
+
+    @Value("${ieo.bot_enable}")
+    private Boolean botEnabled;
+
+    @Value("${ieo.key}")
+    private String apiKey;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -96,10 +107,17 @@ public class IEOServiceImpl implements IEOService {
 
 
     @Override
-    public ClaimDto addClaim(ClaimDto claimDto, String email) {
+    public ClaimDto addClaim(ClaimDto claimDto, String email, HttpServletRequest request) {
+        if (botEnabled) {
+            String key = request.getHeader("api_key");
+            if (!key.equalsIgnoreCase(apiKey)) {
+                //todo confirm
+                return null;
+            }
+        }
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
-        logger.info("Add claim to queue {}, uuid claim ", claimDto.getUuid());
+        logger.info("Add claim to queue {}", claimDto.getUuid());
         rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
         return claimDto;
     }
