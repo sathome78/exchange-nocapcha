@@ -1,11 +1,13 @@
 package config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closeables;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -34,8 +37,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,8 +49,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static java.io.File.separator;
 
@@ -78,7 +87,7 @@ public abstract class AbstractDatabaseContextTest {
 
     @PostConstruct
     public void prepareTestSchema() throws SQLException {
-        Preconditions.checkNotNull(dbConfig.getSchemaName(), "Schema name must be defined");
+        Preconditions.checkNotNull(dbConfig.getSchemaName(), "Scheme name must be defined");
         String testSchemaUrl = createConnectionURL(dbConfig.getUrl(), dbConfig.getSchemaName());
         try {
             DriverManager.getConnection(testSchemaUrl, dbConfig.getUser(), dbConfig.getPassword());
@@ -130,76 +139,35 @@ public abstract class AbstractDatabaseContextTest {
     }
 
     @Configuration
-    @PropertySource("classpath:/db.properties")
     public static abstract class AppContextConfig {
 
         protected abstract String getSchema();
 
-        @Value("#{systemProperties['db.master.url'] ?: 'jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true'}")
-        private String url;
-
-        @Value("#{systemProperties['db.master.classname'] ?: 'com.mysql.jdbc.Driver'}")
-        private String driverClassName;
-
-        @Value("#{systemProperties['db.master.user'] ?: 'root'}")
-        private String user;
-
-        @Value("#{systemProperties['db.master.password'] ?: 'root'}")
-        private String password;
-
         @Autowired
-        private DatabaseConfig dbConfig;
-
-        @Autowired
-        private ResourceLoader resourceLoader;
-
-        @PostConstruct
-        public void loadProps() throws IOException {
-            Resource resource = resourceLoader.getResource("classpath:db.properties");
-            if (resource.exists()) {
-                final Properties systemProperties = System.getProperties();
-                final InputStream inputStream = resource.getInputStream();
-                try {
-                    systemProperties.load(inputStream);
-                    log.info("LOAD PROPS: " + System.getProperty("db.master.url"));
-                } finally {
-                    // Guava
-                    Closeables.closeQuietly(inputStream);
-                }
-            } else {
-                String message = "Failed to find file db.properties to load db props";
-                log.error(message);
-                throw new RuntimeException(message);
-            }
-        }
-
-        @Bean(name = "testDataSource")
-        public DataSource dataSource() {
-            String dbUrl = createConnectionURL(dbConfig.getUrl(), dbConfig.getSchemaName());
-            return createDataSource(dbConfig.getUser(), dbConfig.getPassword(), dbUrl);
-        }
+        private DatabaseConfig databaseConfig;
 
         @Bean
         public DatabaseConfig databaseConfig() {
+            Properties properties = getProperties();
             return new DatabaseConfig() {
                 @Override
                 public String getUrl() {
-                    return url;
+                    return properties.getProperty("db.master.url");
                 }
 
                 @Override
                 public String getDriverClassName() {
-                    return driverClassName;
+                    return properties.getProperty("db.master.classname");
                 }
 
                 @Override
                 public String getUser() {
-                    return user;
+                    return properties.getProperty("db.master.user");
                 }
 
                 @Override
                 public String getPassword() {
-                    return password;
+                    return properties.getProperty("db.master.password");
                 }
 
                 @Override
@@ -207,6 +175,13 @@ public abstract class AbstractDatabaseContextTest {
                     return getSchema();
                 }
             };
+        }
+
+        @Bean(name = "testDataSource")
+        public DataSource dataSource() {
+            log.debug("DB PROPS: DB URL: " + databaseConfig.getUrl());
+            String dbUrl = createConnectionURL(databaseConfig.getUrl(), getSchema());
+            return createDataSource(databaseConfig.getUser(), databaseConfig.getPassword(), dbUrl);
         }
 
         @Bean(name = "slaveTemplate")
@@ -242,6 +217,42 @@ public abstract class AbstractDatabaseContextTest {
             config.addDataSourceProperty("useServerPrepStmts", "true");
             return new HikariDataSource(config);
         }
+
+        private Properties getProperties() {
+            final Properties properties = new Properties();
+            String resourceDirectory = System.getProperty("profileId");
+            List<String> allowedDirs = ImmutableList.of("dev", "devtest", "uat", "prod");
+
+            if (StringUtils.isBlank(resourceDirectory)
+                    || allowedDirs.stream().noneMatch(resourceDirectory::equalsIgnoreCase)) {
+                log.debug("Maven profile is not defined");
+                properties.setProperty("db.master.url", "jdbc:mysql://localhost:3306/birzha?useUnicode=true&characterEncoding=UTF-8&useSSL=false&autoReconnect=true");
+                properties.setProperty("db.master.classname", "com.mysql.jdbc.Driver");
+                properties.setProperty("db.master.user", "root");
+                properties.setProperty("db.master.password", "root");
+                return properties;
+            }
+            String path = "./../Controller/src/main/" + resourceDirectory + "/db.properties";
+            File propsFile = new File(path);
+            String message = "Failed to find file db.properties to load db props";
+            if (propsFile.exists()) {
+                log.debug("RESOURCE EXISTS: ");
+                InputStream inputStream = null;
+                try {
+                    inputStream = new FileInputStream(propsFile);
+                    properties.load(inputStream);
+                } catch (IOException e) {
+                    log.error(message, e);
+                    throw new RuntimeException(message, e);
+                } finally {
+                    Closeables.closeQuietly(inputStream);
+                }
+            } else {
+                log.error(message);
+                throw new RuntimeException(message);
+            }
+            return properties;
+        }
     }
 
     protected static String formatLine(Object key, Object value) {
@@ -264,20 +275,6 @@ public abstract class AbstractDatabaseContextTest {
             return AbstractDatabaseContextTest.this.getClass().getSimpleName() + separator + getMethodName();
         }
     }
-
-//    private void migrateSchema(DataSource rootDataSource) {
-//        final boolean canAccessDefaultMigrations = new ClassPathResource("db/migration").exists();
-//
-//        Flyway flyway = new Flyway();
-//        if (!canAccessDefaultMigrations) {
-//            final File migrationDirectory = new File("./../Controller/src/main/resources/db/migration").getAbsoluteFile();
-//            Preconditions.checkArgument(migrationDirectory.exists(), "Default directory with db migrations not found");
-//            flyway.setLocations("filesystem:" + migrationDirectory.getPath());
-//        }
-//        flyway.setDataSource(rootDataSource);
-//        flyway.setSchemas(schemaName);
-//        flyway.migrate();
-//    }
 
     private void populateSchema(DataSource rootDataSource) throws SQLException {
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
