@@ -30,8 +30,8 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
 
     @Override
     public IEOClaim save(IEOClaim ieoClaim) {
-        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc, uuid) " +
-                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc, :uuid)";
+        final String sql = "INSERT INTO IEO_CLAIM (currency_name, ieo_id, maker_id, user_id, amount, rate, price_in_btc, uuid, fake) " +
+                "VALUES (:currency_name, :ieo_id, :maker_id, :user_id, :amount, :rate, :price_in_btc, :uuid, :fake)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currency_name", ieoClaim.getCurrencyName())
@@ -41,6 +41,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
                 .addValue("rate", ieoClaim.getRate())
                 .addValue("price_in_btc", ieoClaim.getPriceInBtc())
                 .addValue("amount", ieoClaim.getAmount())
+                .addValue("fake", ieoClaim.isFakeClaim())
                 .addValue("uuid", ieoClaim.getUuid());
         if (jdbcTemplate.update(sql, params, keyHolder) > 0) {
             ieoClaim.setId(keyHolder.getKey().intValue());
@@ -112,6 +113,7 @@ public class IEOClaimRepositoryImpl implements IEOClaimRepository {
             ieoClaim.setCreated(rs.getTimestamp("created"));
             ieoClaim.setStatus(IEOResult.IEOResultStatus.valueOf(rs.getString("status")));
             ieoClaim.setUuid(rs.getString("uuid"));
+            ieoClaim.setFakeClaim(rs.getBoolean("fake"));
             return ieoClaim;
         };
     }

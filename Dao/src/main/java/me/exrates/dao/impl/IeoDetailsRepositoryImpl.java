@@ -204,6 +204,8 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .createdBy(rs.getInt("created_by"))
                 .soldOutAt(rs.getTimestamp("sold_out_at") == null ? null : rs.getTimestamp("sold_out_at").toLocalDateTime())
+                .fakeIeo(rs.getBoolean("fake_ieo"))
+                .countFakeTransaction(rs.getInt("count_fake_transaction"))
                 .build();
     }
 

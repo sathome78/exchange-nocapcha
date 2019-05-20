@@ -24,10 +24,11 @@ public class IEOClaim {
     private String creatorEmail;
     private IEOResult.IEOResultStatus status;
     private String uuid;
+    private boolean fakeClaim;
 
 
     public IEOClaim(int ieoId, String currencyName, int makerId, int userId, BigDecimal amount, BigDecimal rate, String uuid,
-                    String creatorEmail) {
+                    String creatorEmail, Boolean fakeClaim) {
         this.ieoId = ieoId;
         this.currencyName = currencyName;
         this.makerId = makerId;
@@ -39,5 +40,6 @@ public class IEOClaim {
         this.priceInBtc = amount.multiply(rate);
         this.uuid = uuid;
         this.creatorEmail = creatorEmail;
+        this.fakeClaim = fakeClaim;
     }
 }

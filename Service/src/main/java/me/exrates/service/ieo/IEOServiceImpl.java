@@ -18,11 +18,13 @@ import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
 import me.exrates.model.dto.kyc.KycCountryDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyPairType;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.enums.PolicyEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.exceptions.IeoException;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.IEOService;
 import me.exrates.service.SendMailService;
@@ -46,12 +48,14 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @EnableRabbit
 @Service
@@ -61,6 +65,7 @@ import java.util.stream.Collectors;
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
+    private static Map<String, Boolean> fakePopulatedMap = new HashMap<>();
 
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
@@ -79,6 +84,9 @@ public class IEOServiceImpl implements IEOService {
 
     @Value("${ieo.key}")
     private String apiKey;
+
+    @Value("${fake.ieo.list}")
+    private String fakeIeoList;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -108,15 +116,13 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email, HttpServletRequest request) {
-        if (botEnabled) {
-            String key = request.getHeader("api_key");
-            if (!key.equalsIgnoreCase(apiKey)) {
-                //todo confirm
-                return null;
-            }
+        String currencyName = claimDto.getCurrencyName();
+        if (isFakeIeo(currencyName)) {
+            populateFakeIeo(currencyName);
         }
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
+        claimDto.setVerification(false);
         logger.info("Add claim to queue {}", claimDto.getUuid());
         rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
         return claimDto;
@@ -137,6 +143,13 @@ public class IEOServiceImpl implements IEOService {
             return;
         }
 
+        if (claimDto.isVerification()) {
+            IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), 0, claimDto.getAmount(),
+                    ieoDetails.getRate(), claimDto.getUuid(), email, claimDto.isVerification());
+            ieoClaimRepository.save(ieoClaim);
+            return;
+        }
+
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
 
         if (!statusInfo.isPolicyCheck() || !statusInfo.isCountryCheck() || !statusInfo.isKycCheck()) {
@@ -152,7 +165,7 @@ public class IEOServiceImpl implements IEOService {
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
 
         IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), user.getId(), claimDto.getAmount(),
-                ieoDetails.getRate(), claimDto.getUuid(), email);
+                ieoDetails.getRate(), claimDto.getUuid(), email, claimDto.isVerification());
 
 //        int currencyId = currencyService.findByName("BTC").getId();
 //        BigDecimal available = walletService.getAvailableAmountInBtcLocked(user.getId(), currencyId);
@@ -489,5 +502,41 @@ public class IEOServiceImpl implements IEOService {
         emailError.setMessage(message);
         emailError.setTo(email);
         sendMailService.sendInfoMail(emailError);
+    }
+
+    private boolean isFakeIeo(String currencyName) {
+        String[] fakeIeoArray = fakeIeoList.split(",");
+        return Stream.of(fakeIeoArray).anyMatch(o -> o.equalsIgnoreCase(currencyName));
+    }
+
+    private void populateFakeIeo(String currencyName) {
+        if (isPopulateAlready(currencyName)) {
+            return;
+        }
+        IEODetails ieoDetail = ieoDetailsRepository.findOpenIeoByCurrencyName(currencyName);
+        int countTransactions = ieoDetail.getCountFakeTransaction();
+        BigDecimal availableAmount = ieoDetail.getAvailableAmount();
+        BigDecimal averageSumTransaction = BigDecimalProcessing.doAction(availableAmount,
+                new BigDecimal(countTransactions),
+                ActionType.DEVIDE);
+
+        for (int i = 0; i < countTransactions + 1; i++) {
+            ClaimDto claimDto = new ClaimDto();
+            claimDto.setUuid(UUID.randomUUID().toString());
+            claimDto.setEmail("fake@gmail.com");
+            claimDto.setAmount(averageSumTransaction);
+            claimDto.setVerification(true);
+            claimDto.setCurrencyName(currencyName);
+            rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
+        }
+        fakePopulatedMap.put(currencyName, true);
+    }
+
+    private boolean isPopulateAlready(String currencyName) {
+        Boolean result = fakePopulatedMap.get(currencyName);
+        if (result == null) {
+            return false;
+        }
+        return result;
     }
 }

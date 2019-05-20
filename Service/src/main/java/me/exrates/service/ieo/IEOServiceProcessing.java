@@ -95,6 +95,10 @@ public class IEOServiceProcessing {
             return;
         }
         logger.info("Starting process ieoClaim {}", ieoClaim.getUuid());
+        if (ieoClaim.isFakeClaim()) {
+            processFakeClaim(ieoDetails, ieoClaim);
+            return;
+        }
         String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
         final UserNotificationMessage notificationMessage = new UserNotificationMessage(WsSourceTypeEnum.IEO, UserNotificationType.SUCCESS, msg);
         String principalEmail = userService.findEmailById(ieoClaim.getUserId());
@@ -217,5 +221,42 @@ public class IEOServiceProcessing {
         email.setMessage(message.getText());
         email.setSubject(message.getNotificationType().name());
         return email;
+    }
+
+    private void processFakeClaim(IEODetails ieoDetails, IEOClaim ieoClaim) {
+
+        BigDecimal availableAmount = ieoDetails.getAvailableAmount();
+
+        if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
+            logger.info("Available amount for fake processing is ZERO");
+            return;
+        }
+
+        if (availableAmount.compareTo(ieoClaim.getAmount()) < 0) {
+            refactorClaim(availableAmount, ieoClaim);
+            availableAmount = BigDecimal.ZERO;
+        } else {
+            availableAmount = availableAmount.subtract(ieoClaim.getAmount());
+        }
+
+        IEOResult ieoResult = IEOResult.builder()
+                .claimId(ieoClaim.getId())
+                .ieoId(ieoClaim.getIeoId())
+                .availableAmount(availableAmount)
+                .status(IEOResult.IEOResultStatus.SUCCESS)
+                .build();
+
+        ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
+        ieoResultRepository.save(ieoResult);
+        ieoDetails.setAvailableAmount(availableAmount);
+        ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), availableAmount);
+        if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
+            ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
+        }
+        try {
+            stompMessenger.sendDetailsIeo(ieoDetails.getId(), objectMapper.writeValueAsString(ieoDetails));
+        } catch (Exception e) {
+            /*ignore*/
+        }
     }
 }
