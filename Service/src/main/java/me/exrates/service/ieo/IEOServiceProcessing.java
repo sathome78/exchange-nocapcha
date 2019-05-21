@@ -181,7 +181,6 @@ public class IEOServiceProcessing {
                 .build();
         ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), ieoResult.getStatus());
         ieoResultRepository.save(ieoResult);
-//        walletService.rollbackUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
         stompMessenger.sendPersonalMessageToUser(email, notificationMessage);
         sendMailService.sendInfoMail(prepareEmail(email, notificationMessage));
     }

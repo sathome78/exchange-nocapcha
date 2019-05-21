@@ -60,8 +60,7 @@ import java.util.stream.Stream;
 @EnableRabbit
 @Service
 @Log4j2
-@PropertySource(value = {
-        "classpath:/ieo.properties"})
+@PropertySource(value = {"classpath:/ieo.properties"})
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
@@ -78,12 +77,6 @@ public class IEOServiceImpl implements IEOService {
     private final ObjectMapper objectMapper;
     private final IEOSubscribeRepository ieoSubscribeRepository;
     private final RabbitTemplate rabbitTemplate;
-
-    @Value("${ieo.bot_enable}")
-    private Boolean botEnabled;
-
-    @Value("${ieo.key}")
-    private String apiKey;
 
     @Value("${fake.ieo.list}")
     private String fakeIeoList;
@@ -112,7 +105,6 @@ public class IEOServiceImpl implements IEOService {
         this.ieoSubscribeRepository = ieoSubscribeRepository;
         this.rabbitTemplate = rabbitTemplate;
     }
-
 
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email, HttpServletRequest request) {
@@ -161,21 +153,9 @@ public class IEOServiceImpl implements IEOService {
         }
 
         User user = userService.findByEmail(email);
-
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
-
         IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), user.getId(), claimDto.getAmount(),
                 ieoDetails.getRate(), claimDto.getUuid(), email, claimDto.isVerification());
-
-//        int currencyId = currencyService.findByName("BTC").getId();
-//        BigDecimal available = walletService.getAvailableAmountInBtcLocked(user.getId(), currencyId);
-//        if (available.compareTo(ieoClaim.getPriceInBtc()) < 0) {
-//            String message = String.format("Failed to apply as user has insufficient funds: suggested %s BTC, but available is %s BTC, claim %s",
-//                    available.toPlainString(), ieoClaim.getPriceInBtc(), claimDto.getUuid());
-//            logger.warn(message);
-//            sendErrorEmail(message, claimDto.getEmail());
-//            return;
-//        }
 
         ieoClaim = ieoClaimRepository.save(ieoClaim);
 
@@ -185,15 +165,7 @@ public class IEOServiceImpl implements IEOService {
             sendErrorEmail(message, claimDto.getEmail());
             return;
         }
-//        boolean result = walletService.reserveUserBtcForIeo(ieoClaim.getUserId(), ieoClaim.getPriceInBtc());
-//        if (!result) {
-//            String message = String.format("Failed to reserve %s BTC from user's account, claim %s",
-//                    ieoClaim.getPriceInBtc(), claimDto.getUuid());
-//            logger.warn(message);
-//            sendErrorEmail(message, claimDto.getEmail());
-//            return;
-//        }
-//        ieoQueueService.add(ieoClaim);
+
         logger.info("Added claim {} to IEO processor", claimDto.getUuid());
     }
 
