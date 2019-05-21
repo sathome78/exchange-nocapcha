@@ -1,6 +1,5 @@
 package me.exrates.service.usdx;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
@@ -10,31 +9,27 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.*;
-import me.exrates.service.usdx.model.UsdxApiResponse;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxWalletAsset;
 import me.exrates.service.util.CryptoUtils;
 import me.exrates.service.util.WithdrawUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.stellar.sdk.responses.TransactionResponse;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -208,5 +203,15 @@ public class LightHouseServiceImpl implements UsdxService {
 
         processPayment(paramsMap);
     }
+
+    @Override
+    public UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction){
+        if(!password.equals(merchantService.getPassMerchantProperties(merchant.getName()).getProperty("wallet.password"))){
+            log.info("USDX Wallet. Invalid password.");
+            throw new IncorrectCoreWalletPasswordException("USDX Wallet. Invalid password. Time to try: {}" + LocalDateTime.now());
+        }
+        return usdxRestApiService.transferAssetsToUserAccount(usdxTransaction);
+    }
+
 
 }

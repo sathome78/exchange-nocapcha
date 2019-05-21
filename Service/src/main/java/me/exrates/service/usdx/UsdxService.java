@@ -70,4 +70,6 @@ public interface UsdxService extends IRefillable, IWithdrawable {
     void checkHeaderOnValidForSecurity(String securityHeaderValue, UsdxTransaction usdxTransaction);
 
     void createRefillRequestAdmin(Map<String, String> params);
+
+    UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction);
 }
