@@ -196,8 +196,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         try {
             getSecretValueResult = client.getSecretValue(getSecretValueRequest);
         } catch (DecryptionFailureException e) {
-            // Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-            // Deal with the exception here, and/or rethrow at your discretion.
             log.error(e);
             throw e;
         } catch (InternalServiceErrorException e) {
@@ -206,18 +204,12 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             log.error(e);
             throw e;
         } catch (InvalidParameterException e) {
-            // You provided an invalid value for a parameter.
-            // Deal with the exception here, and/or rethrow at your discretion.
             log.error(e);
             throw e;
         } catch (InvalidRequestException e) {
-            // You provided a parameter value that is not valid for the current state of the resource.
-            // Deal with the exception here, and/or rethrow at your discretion.
             log.error(e);
             throw e;
         } catch (ResourceNotFoundException e) {
-            // We can't find the resource that you asked for.
-            // Deal with the exception here, and/or rethrow at your discretion.
             log.error(e);
             throw e;
         }
