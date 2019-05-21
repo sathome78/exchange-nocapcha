@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -207,8 +208,8 @@ public class LightHouseServiceImpl implements UsdxService {
     @Override
     public UsdxTransaction sendUsdxTransactionToExternalWallet(String password, UsdxTransaction usdxTransaction){
         if(!password.equals(merchantService.getPassMerchantProperties(merchant.getName()).getProperty("wallet.password"))){
-            log.info("USDX Wallet. Invalid password.");
-            throw new IncorrectCoreWalletPasswordException("USDX Wallet. Invalid password. Time to try: {}" + LocalDateTime.now());
+            log.info("USDX Wallet. Invalid password. Time to try: {}", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            throw new IncorrectCoreWalletPasswordException("Invalid password");
         }
         return usdxRestApiService.transferAssetsToUserAccount(usdxTransaction);
     }

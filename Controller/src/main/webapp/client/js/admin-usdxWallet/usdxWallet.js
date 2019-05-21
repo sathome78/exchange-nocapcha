@@ -50,6 +50,7 @@ $(function () {
             success: function () {
                 resetUsdxTransactionForm();
                 $($passwordModal).modal('hide');
+                location.reload();
             }
         })
     });
