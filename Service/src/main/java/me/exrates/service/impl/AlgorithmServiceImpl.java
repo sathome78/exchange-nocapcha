@@ -199,8 +199,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             log.error(e);
             throw e;
         } catch (InternalServiceErrorException e) {
-            // An error occurred on the server side.
-            // Deal with the exception here, and/or rethrow at your discretion.
             log.error(e);
             throw e;
         } catch (InvalidParameterException e) {
