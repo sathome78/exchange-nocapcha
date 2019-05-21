@@ -37,7 +37,6 @@ import java.util.Map;
 @Log4j2(topic = "usdx_log")
 @Service
 @PropertySource("classpath:/merchants/usdx.properties")
-@Conditional(MonolitConditional.class)
 public class LightHouseServiceImpl implements UsdxService {
 
     private static final String LIGHTHOUSE_CURRENCY_NAME = UsdxWalletAsset.LHT.name();
