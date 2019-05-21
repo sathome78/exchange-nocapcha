@@ -21,7 +21,7 @@ CREATE PROCEDURE Alter_Table()
                    FROM INFORMATION_SCHEMA.COLUMNS
                    WHERE table_name = 'IEO_CLAIM' AND column_name = 'test')  THEN
 
-      ALTER
+      ALTER TABLE IEO_CLAIM ADD COLUMN test TINYINT(1) NOT NULL;
 
   END;;
 
