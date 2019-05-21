@@ -172,7 +172,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
     @Override
     public Collection<IEODetails> findAllRunningAndAvailableIeo() {
-        String sql = "SELECT * FROM IEO_DETAILS WHERE status = 'RUNNING'";
+        String sql = "SELECT * FROM IEO_DETAILS WHERE status = 'RUNNING' AND starts_at < NOW() AND terminates_at > NOW()";
         return jdbcTemplate.query(sql, ieoDetailsRowMapper());
     }
 
