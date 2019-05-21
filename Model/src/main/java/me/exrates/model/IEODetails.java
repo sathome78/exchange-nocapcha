@@ -47,9 +47,9 @@ public class IEODetails {
     private int version;
 
     @JsonIgnore
-    private Boolean fakeIeo;
+    private Boolean testIeo;
     @JsonIgnore
-    private int countFakeTransaction;
+    private int countTestTransaction;
 
     private boolean readyToIeo;
 

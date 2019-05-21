@@ -95,8 +95,8 @@ public class IEOServiceProcessing {
             return;
         }
         logger.info("Starting process ieoClaim {}", ieoClaim.getUuid());
-        if (ieoClaim.isFakeClaim()) {
-            processFakeClaim(ieoDetails, ieoClaim);
+        if (ieoClaim.isTestClaim()) {
+            processTestClaim(ieoDetails, ieoClaim);
             return;
         }
         String msg = String.format("Congrats! You successfully purchased %s %s", ieoClaim.getAmount().toPlainString(), ieoClaim.getCurrencyName());
@@ -222,7 +222,7 @@ public class IEOServiceProcessing {
         return email;
     }
 
-    private void processFakeClaim(IEODetails ieoDetails, IEOClaim ieoClaim) {
+    private void processTestClaim(IEODetails ieoDetails, IEOClaim ieoClaim) {
 
         BigDecimal availableAmount = ieoDetails.getAvailableAmount();
 
@@ -250,6 +250,7 @@ public class IEOServiceProcessing {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), availableAmount);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
+            //todo change status in ieo ???
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
         try {

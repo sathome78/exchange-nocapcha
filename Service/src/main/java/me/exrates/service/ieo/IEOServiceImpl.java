@@ -38,8 +38,6 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,23 +45,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @EnableRabbit
 @Service
 @Log4j2
-@PropertySource(value = {"classpath:/ieo.properties"})
 public class IEOServiceImpl implements IEOService {
     private static final Logger logger = LogManager.getLogger(IEOServiceImpl.class);
     private final static String IEO_CLAIM_QUEUE = "ieo_claims";
-    private static Map<String, Boolean> fakePopulatedMap = new HashMap<>();
+    private static Set<String> fakePopulatedSet = new HashSet<>();
 
     private final CurrencyService currencyService;
     private final IEOClaimRepository ieoClaimRepository;
@@ -76,9 +73,6 @@ public class IEOServiceImpl implements IEOService {
     private final ObjectMapper objectMapper;
     private final IEOSubscribeRepository ieoSubscribeRepository;
     private final RabbitTemplate rabbitTemplate;
-
-    @Value("${fake.ieo.list}")
-    private String fakeIeoList;
 
     @Autowired
     public IEOServiceImpl(IEOClaimRepository ieoClaimRepository,
@@ -107,13 +101,8 @@ public class IEOServiceImpl implements IEOService {
 
     @Override
     public ClaimDto addClaim(ClaimDto claimDto, String email) {
-        String currencyName = claimDto.getCurrencyName();
-        if (isFakeIeo(currencyName)) {
-            populateFakeIeo(currencyName);
-        }
         claimDto.setEmail(email);
         claimDto.setUuid(UUID.randomUUID().toString());
-        claimDto.setVerification(false);
         logger.info("Add claim to queue {}", claimDto.getUuid());
         rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
         return claimDto;
@@ -134,11 +123,8 @@ public class IEOServiceImpl implements IEOService {
             return;
         }
 
-        if (claimDto.isVerification()) {
-            IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), 0, claimDto.getAmount(),
-                    ieoDetails.getRate(), claimDto.getUuid(), email, claimDto.isVerification());
-            ieoClaimRepository.save(ieoClaim);
-            return;
+        if (ieoDetails.getTestIeo()) {
+            populateTestIeo(ieoDetails.getCurrencyName());
         }
 
         IEOStatusInfo statusInfo = checkUserStatusForIEO(email, ieoDetails.getId());
@@ -154,7 +140,7 @@ public class IEOServiceImpl implements IEOService {
         User user = userService.findByEmail(email);
         validateUserAmountRestrictions(ieoDetails, user, claimDto);
         IEOClaim ieoClaim = new IEOClaim(ieoDetails.getId(), claimDto.getCurrencyName(), ieoDetails.getMakerId(), user.getId(), claimDto.getAmount(),
-                ieoDetails.getRate(), claimDto.getUuid(), email, claimDto.isVerification());
+                ieoDetails.getRate(), claimDto.getUuid(), email, false);
 
         ieoClaim = ieoClaimRepository.save(ieoClaim);
 
@@ -475,39 +461,33 @@ public class IEOServiceImpl implements IEOService {
         sendMailService.sendInfoMail(emailError);
     }
 
-    private boolean isFakeIeo(String currencyName) {
-        String[] fakeIeoArray = fakeIeoList.split(",");
-        return Stream.of(fakeIeoArray).anyMatch(o -> o.equalsIgnoreCase(currencyName));
-    }
-
-    private void populateFakeIeo(String currencyName) {
+    private void populateTestIeo(String currencyName) {
         if (isPopulateAlready(currencyName)) {
             return;
         }
         IEODetails ieoDetail = ieoDetailsRepository.findOpenIeoByCurrencyName(currencyName);
-        int countTransactions = ieoDetail.getCountFakeTransaction();
+        int countTransactions = ieoDetail.getCountTestTransaction();
         BigDecimal availableAmount = ieoDetail.getAvailableAmount();
         BigDecimal averageSumTransaction = BigDecimalProcessing.doAction(availableAmount,
                 new BigDecimal(countTransactions),
                 ActionType.DEVIDE);
-
         for (int i = 0; i < countTransactions + 1; i++) {
-            ClaimDto claimDto = new ClaimDto();
-            claimDto.setUuid(UUID.randomUUID().toString());
-            claimDto.setEmail("fake@gmail.com");
-            claimDto.setAmount(averageSumTransaction);
-            claimDto.setVerification(true);
-            claimDto.setCurrencyName(currencyName);
-            rabbitTemplate.convertAndSend(IEO_CLAIM_QUEUE, claimDto);
+            IEOClaim ieoClaim = new IEOClaim(ieoDetail.getId(),
+                    ieoDetail.getCurrencyName(),
+                    ieoDetail.getMakerId(),
+                    -2,
+                    averageSumTransaction,
+                    ieoDetail.getRate(),
+                    UUID.randomUUID().toString(),
+                    "test_ieo@gmail.com",
+                    true);
+            ieoClaimRepository.save(ieoClaim);
         }
-        fakePopulatedMap.put(currencyName, true);
+
+        fakePopulatedSet.add(currencyName);
     }
 
     private boolean isPopulateAlready(String currencyName) {
-        Boolean result = fakePopulatedMap.get(currencyName);
-        if (result == null) {
-            return false;
-        }
-        return result;
+        return fakePopulatedSet.contains(currencyName);
     }
 }
