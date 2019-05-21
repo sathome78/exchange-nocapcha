@@ -154,7 +154,6 @@
                 <div hidden>
                     <form id="createRefillForm">
                         <input name="txId">
-                        <input name="address">
                     </form>
                 </div>
 

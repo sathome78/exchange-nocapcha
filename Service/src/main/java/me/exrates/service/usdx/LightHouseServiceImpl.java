@@ -1,5 +1,7 @@
 package me.exrates.service.usdx;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
@@ -8,6 +10,7 @@ import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.merchants.omni.OmniTxDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
@@ -181,13 +184,29 @@ public class LightHouseServiceImpl implements UsdxService {
 
     @Override
     public void checkHeaderOnValidForSecurity(String securityHeaderValue, UsdxTransaction usdxTransaction) {
-        String usdxTransactionValueForSignature = usdxRestApiService.generateSecurityHeaderValue(usdxRestApiService.getStringJsonUsdxTransaction(usdxTransaction));
+        String timestampFromRequest = securityHeaderValue.substring(securityHeaderValue.indexOf("t=")+2, securityHeaderValue.indexOf(","));
+        String usdxTransactionValueForSignature = usdxRestApiService.generateSecurityHeaderValue(timestampFromRequest, usdxRestApiService.getStringJsonUsdxTransaction(usdxTransaction));
 
         if(!securityHeaderValue.equals(usdxTransactionValueForSignature)){
             log.error("USDX Wallet ERROR with transfer id: {} IS FAKE. Header value: {}", usdxTransaction.getTransferId(), usdxTransactionValueForSignature);
             throw new RefillRequestFakePaymentReceivedException(String.format("USDX Wallet ERROR with transfer id: %s IS FAKE. Header value: %s",
                     usdxTransaction.getTransferId(), usdxTransactionValueForSignature));
         }
+    }
+
+    @SneakyThrows
+    @Override
+    public void createRefillRequestAdmin(Map<String, String> params){
+        String merchantTransactionId = params.get("txId");
+
+        UsdxTransaction usdxTransaction = usdxRestApiService.getTransactionStatus(merchantTransactionId);
+
+        Map<String, String> paramsMap = new HashMap<>();
+        paramsMap.put("transferId", usdxTransaction.getTransferId());
+        paramsMap.put("memo", usdxTransaction.getMemo());
+        paramsMap.put("amount", usdxTransaction.getAmount().toPlainString());
+
+        processPayment(paramsMap);
     }
 
 }

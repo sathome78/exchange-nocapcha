@@ -168,7 +168,6 @@ function viewTransactionData($elem) {
                 $('#create-refill').show();
                 var $form = $('#createRefillForm');
                 $($form).find('input[name="txId"]').val(rowData.transferId);
-                $($form).find('input[name="address"]').val(rowData.memo);
             } else {
                 $('#create-refill').hide();
             }
