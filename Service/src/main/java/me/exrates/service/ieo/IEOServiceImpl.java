@@ -44,7 +44,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,7 +106,7 @@ public class IEOServiceImpl implements IEOService {
     }
 
     @Override
-    public ClaimDto addClaim(ClaimDto claimDto, String email, HttpServletRequest request) {
+    public ClaimDto addClaim(ClaimDto claimDto, String email) {
         String currencyName = claimDto.getCurrencyName();
         if (isFakeIeo(currencyName)) {
             populateFakeIeo(currencyName);

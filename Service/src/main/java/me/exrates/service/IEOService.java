@@ -15,7 +15,7 @@ public interface IEOService {
 
     void saveClaim(ClaimDto claimDto);
 
-    ClaimDto addClaim(ClaimDto claimDto, String email, HttpServletRequest request);
+    ClaimDto addClaim(ClaimDto claimDto, String email);
 
     IEOStatusInfo checkUserStatusForIEO(String email, int idIeo);
 
