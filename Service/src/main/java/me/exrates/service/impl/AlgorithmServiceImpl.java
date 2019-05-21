@@ -58,7 +58,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     private CurrencyService currencyService;
 
     @Value("${gapi.secret.name}")
-    private String secretName;
+    private String environment;
 
     @Autowired
     public AlgorithmServiceImpl(){
@@ -193,9 +193,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         // See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
         // We rethrow the exception by default.
 
-        String secret = null, decodedBinarySecret = null;
+        String secret = null;
         GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest()
-                .withSecretId(secretName);
+                .withSecretId(environment);
         GetSecretValueResult getSecretValueResult = null;
 
         try {
@@ -223,11 +223,13 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             secret = getSecretValueResult.getSecretString();
         }
         else {
-            decodedBinarySecret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
+            secret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
         }
-        return secret != null ?
-                secret.substring(secret.indexOf(":") + 2,secret.length() - 2) :
-                decodedBinarySecret.substring(decodedBinarySecret.indexOf(":") + 2,decodedBinarySecret.length() - 2);
+
+        secret = secret.substring(secret.indexOf("gapi_encoding_hash\":") + 21);
+        secret = secret.substring(0, secret.indexOf("\""));
+        return secret;
+
     }
 
     private String xorMessage(String message, String key) {
