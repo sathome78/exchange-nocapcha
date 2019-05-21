@@ -15,6 +15,8 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
@@ -35,6 +37,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 @Service
 @Log4j2(topic = "algorithm_log")
+@PropertySource("classpath:/merchants/gapi_wallet.properties")
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
@@ -53,6 +56,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Autowired
     private CurrencyService currencyService;
+
+    @Value("${gapi.secret.name}")
+    private String secretName;
 
     @Autowired
     public AlgorithmServiceImpl(){
@@ -176,7 +182,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
     private String getSecret() {
-        String secretName = "greg_token";
         String region = "us-east-2";
 
         // Create a Secrets Manager client
