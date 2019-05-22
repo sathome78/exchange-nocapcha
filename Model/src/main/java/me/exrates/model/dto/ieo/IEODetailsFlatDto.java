@@ -43,8 +43,10 @@ public class IEODetailsFlatDto {
     private String currencyInPairName;
     private String logo;
     private String description;
-    private Boolean isTestIeo;
+    private Boolean testIeo;
     private Integer countTestTransactions;
+    private String content;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime soldAt;
 
@@ -69,8 +71,9 @@ public class IEODetailsFlatDto {
         this.availableBalance = ieoDetails.getAvailableAmount();
         this.logo = ieoDetails.getLogo();
         this.description = ieoDetails.getDescription();
-        this.isTestIeo = ieoDetails.getTestIeo();
+        this.testIeo = ieoDetails.getTestIeo();
         this.countTestTransactions = ieoDetails.getCountTestTransaction();
         this.soldAt = ieoDetails.getSoldOutAt();
+        this.content = ieoDetails.getContent();
     }
 }

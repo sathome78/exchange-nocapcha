@@ -33,7 +33,7 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     public IEODetails save(IEODetails ieoDetails) {
 
         String sql = "INSERT INTO IEO_DETAILS"
-                + " (currency_name, currency_description, descirption, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
+                + " (currency_name, currency_description, description, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
                 " max_amount_per_user, starts_at, terminates_at, created_by, content, test_ieo, count_test_transaction, logo)"
                 + " VALUES(:currency_name, :currency_description, :description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
                 + " :max_amount_per_user, :starts_at, :terminates_at, :created_by, :content, :test_ieo, :count_test_transaction, :logo)";
@@ -54,9 +54,12 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
     @Override
     public IEODetails update(IEODetails ieoDetails) {
 
-        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, maker_id = :maker_id, rate = :rate, amount = :amount," +
+        String sql = "UPDATE IEO_DETAILS SET currency_name = :currency_name, currency_description = :currency_description, " +
+                "maker_id = :maker_id, rate = :rate, amount = :amount," +
                 " contributors = :contributors, status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at, " +
+                " description = :description, content = :content, logo = :logo, test_ieo = :test_ieo " +
+                "  WHERE id = :id";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
@@ -74,7 +77,9 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "UPDATE IEO_DETAILS SET rate = :rate, amount = :amount," +
                 " status = :status, min_amount = :min_amount, max_amount_per_claim = :max_amount_per_claim," +
-                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at WHERE id = :id ";
+                " max_amount_per_user = :max_amount_per_user, starts_at = :starts_at, terminates_at = :terminates_at, " +
+                " description = :description, content = :content, logo = :logo, test_ieo = :test_ieo" +
+                " WHERE id = :id ";
 
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
         try {
