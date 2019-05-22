@@ -1023,6 +1023,10 @@
         </logger>
         <logger name="aisi_log" level="ALL" additivity="false">
             <AppenderRef ref="aisi_log"/>
+        </logger>
+        <logger name="algorithm_log" level="ALL" additivity="false">
+            <AppenderRef ref="algorithm_log"/>
+        </logger>
         <logger name="gapi_log" level="ALL" additivity="false">
             <AppenderRef ref="gapi_log"/>
         </logger>
