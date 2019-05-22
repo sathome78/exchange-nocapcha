@@ -45,11 +45,12 @@ public class IEODetails {
     @JsonIgnore
     private int createdBy;
     private int version;
+    private String content;
 
     @JsonIgnore
     private Boolean testIeo;
     @JsonIgnore
-    private int countTestTransaction;
+    private Integer countTestTransaction;
 
     private boolean readyToIeo;
 

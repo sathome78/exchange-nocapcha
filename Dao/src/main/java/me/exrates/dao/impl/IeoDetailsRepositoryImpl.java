@@ -34,9 +34,9 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
 
         String sql = "INSERT INTO IEO_DETAILS"
                 + " (currency_name, currency_description, descirption, maker_id, rate, amount, available_amount, contributors, status, min_amount, max_amount_per_claim," +
-                " max_amount_per_user, starts_at, terminates_at, created_by)"
+                " max_amount_per_user, starts_at, terminates_at, created_by, content, test_ieo, count_test_transaction, logo)"
                 + " VALUES(:currency_name, :currency_description, :description, :maker_id, :rate, :amount, :available_amount, :contributors, :status, :min_amount, :max_amount_per_claim,"
-                + " :max_amount_per_user, :starts_at, :terminates_at, :created_by)";
+                + " :max_amount_per_user, :starts_at, :terminates_at, :created_by, :content, :test_ieo, :count_test_transaction, :logo)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = getGeneralParams(ieoDetails);
@@ -204,8 +204,9 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                 .createdBy(rs.getInt("created_by"))
                 .soldOutAt(rs.getTimestamp("sold_out_at") == null ? null : rs.getTimestamp("sold_out_at").toLocalDateTime())
-                .testIeo(rs.getBoolean("test_ieo"))
-                .countTestTransaction(rs.getInt("count_test_transaction"))
+                .testIeo(rs.getObject("test_ieo") == null ? false : rs.getBoolean("test_ieo"))
+                .countTestTransaction(rs.getObject("count_test_transaction") == null ? null : rs.getInt("count_test_transaction"))
+                .content(rs.getString("content"))
                 .build();
     }
 
@@ -226,6 +227,10 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
                 .addValue("max_amount_per_user", ieoDetails.getMaxAmountPerUser())
                 .addValue("starts_at", ieoDetails.getStartDate())
                 .addValue("terminates_at", ieoDetails.getEndDate())
+                .addValue("content", ieoDetails.getContent())
+                .addValue("test_ieo", ieoDetails.getTestIeo())
+                .addValue("count_test_transaction", ieoDetails.getCountTestTransaction())
+                .addValue("logo", ieoDetails.getLogo())
                 .addValue("version", ieoDetails.getVersion());
     }
 }

@@ -24,6 +24,13 @@ CREATE PROCEDURE Alter_Table()
       ALTER TABLE IEO_DETAILS ADD COLUMN count_test_transaction int(11) DEFAULT 20 NULL;
     END IF;
 
+    IF NOT EXISTS( SELECT NULL
+                   FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE table_name = 'IEO_DETAILS' AND column_name = 'content')  THEN
+
+      ALTER TABLE IEO_DETAILS ADD COLUMN content TEXT NULL;
+    END IF;
+
   END;;
 
 DELIMITER ;
