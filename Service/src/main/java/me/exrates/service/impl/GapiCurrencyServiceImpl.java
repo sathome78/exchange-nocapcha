@@ -114,7 +114,7 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
     public static class Transaction {
 
         @JsonProperty("senderwallet")
-        private String senderAddress;//
+        private String senderAddress;
         @JsonProperty("receiver")
         private String recieverAddress;
         @JsonProperty("amount")
