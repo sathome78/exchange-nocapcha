@@ -162,9 +162,9 @@ public class IEOServiceProcessing {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), ieoDetails.getAvailableAmount());
         if (ieoDetails.getAvailableAmount().compareTo(BigDecimal.ZERO) == 0) {
+            ieoDetailsRepository.updateIeoStatusesToTerminated();
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
-//        ieoDetails.setPersonalAmount(walletService.findUserCurrencyBalance(ieoClaim));
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
@@ -250,7 +250,7 @@ public class IEOServiceProcessing {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), availableAmount);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
-            //todo change status in ieo ???
+            ieoDetailsRepository.updateIeoStatusesToTerminated();
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
         try {
