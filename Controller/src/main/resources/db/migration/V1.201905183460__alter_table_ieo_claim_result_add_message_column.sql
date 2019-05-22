@@ -22,6 +22,7 @@ CREATE PROCEDURE Alter_Table()
                    WHERE table_name = 'IEO_CLAIM' AND column_name = 'test')  THEN
 
       ALTER TABLE IEO_CLAIM ADD COLUMN test TINYINT(1) NOT NULL;
+    END IF;
 
   END;;
 

@@ -45,7 +45,6 @@ public class IeoDetailsCreateDto {
     private LocalDateTime startDate;
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime endDate;
-
     private String content;
     private Boolean isTestIeo;
     private Integer countTestTransaction;

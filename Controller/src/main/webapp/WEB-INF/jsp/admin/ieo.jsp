@@ -194,6 +194,54 @@
                         </div>
                     </div>
 
+                    <%--Is test ieo--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                               <loc:message code="ieo.is_tet_ieo"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="checkbox" value="true" id="isTestIeo" name="isTestIeo">
+                        </div>
+                    </div>
+
+                    <%--Count Test Transactions--%>
+                    <div class="input-block-wrapper" id="testTxCountWrapper" style="display: none">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                 <loc:message code="ieo.count_test_transactions"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="number" id="testTxCount" name="countTestTransaction">
+                        </div>
+                    </div>
+
+                    <%--logo--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.logo"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="text"  name="logo">
+                        </div>
+                    </div>
+
+                    <%--Contents--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.content"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                            <textarea name="content"></textarea>
+                        </div>
+                    </div>
+
                 </form>
                 <button id="ieo_create_send" class="blue-box" style="cursor: pointer"><loc:message
                         code="ieo.create_new"/></button>
@@ -217,6 +265,9 @@
                     <th class="col-3 right blue-white"><loc:message code="ieo.minamount"/></th>
                     <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerClime"/></th>
                     <th class="col-3 right blue-white"><loc:message code="ieo.maxAmountPerUser"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.description"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.is_tet_ieo"/></th>
+                    <th class="col-3 right blue-white"><loc:message code="ieo.soldAt"/></th>
                 </tr>
                 </thead>
             </table>
@@ -239,7 +290,7 @@
                             <input type="text" id="currencyName" name="currencyName" disabled>
                         </div>
                     </div>
-                    <%--Description--%>
+                    <%--coin Description--%>
                     <div class="input-block-wrapper" hidden>
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label">
@@ -247,7 +298,19 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="text" id="coinDescription" name="description">
+                            <input type="text" id="coinDescription" name="coinDescription">
+                        </div>
+                    </div>
+
+                    <%--general Description--%>
+                    <div class="input-block-wrapper" hidden>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.description"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="text" id="generalDescription" name="description">
                         </div>
                     </div>
                     <%--maker email--%>
@@ -409,6 +472,20 @@
                         </div>
                     </div>
 
+
+                    <%--is test ieo--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.is_tet_ieo"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="checkbox" value="true" id="is_test_ieo" name="testIeo">
+                        </div>
+                    </div>
+
+
                     <%--count test transaction--%>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -417,33 +494,10 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="count_test_transactions" name="Count test transactions">
+                            <input type="number" id="count_test_transactions" disabled>
                         </div>
                     </div>
 
-                    <%--is test transaction--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.is_tet_ieo"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="checkbox" id="is_test_ieo" name="Is test IEO">
-                        </div>
-                    </div>
-
-                    <%--Description--%>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label">
-                                <loc:message code="ieo.description"/>
-                            </label>
-                        </div>
-                        <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="test" id="description" name="Description">
-                        </div>
-                    </div>
 
                     <%--Logo--%>
                     <div class="input-block-wrapper">
@@ -453,7 +507,7 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="test" id="logo" name="Logo">
+                            <input type="text" id="logo_upd" name="logo">
                         </div>
                     </div>
 
@@ -465,9 +519,23 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="sold_date_upd" name="soldAt" autocomplete="off">
+                            <input id="soldAt" autocomplete="off" disabled>
                         </div>
                     </div>
+
+                    <%--Content--%>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ieo.content"/>
+                            </label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
+                            <textarea id="content_upd" name="content"></textarea>
+                        </div>
+                    </div>
+
+                    <br>
 
                     <a id="ieo_update_send" class="blue-box" style="cursor: pointer"><loc:message
                             code="button.update"/></a>
