@@ -53,6 +53,13 @@ $(function () {
         lang: 'ru'
     });
 
+    $('#sold_date_upd').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm:ss',
+        lang: 'ru'
+    });
+
 
     $('#ieoTable').on('click', 'tbody tr', function () {
         var row = ieoDataTable.row( this );
@@ -118,8 +125,7 @@ $(function () {
     function showUpdate(data) {
         $('#id_upd').val(data.id);
         $('#currencyName').val(data.currencyName);
-        $('#currencyDescription').val(data.currencyDescription);
-        $('#description').val(data.description);
+        $('#coinDescription').val(data.currencyDescription);
         /*$('#makerEmail').val(data.makerEmail);*/
         $('#status').val(data.status);
         $('#rate').val(data.rate);
@@ -133,6 +139,11 @@ $(function () {
         $('#createdAt').val(data.createdAt);
         $('#createdBy').val(data.createdBy);
         $('#version').val(data.version);
+        $('#count_test_transactions').val(data.countTestTransactions);
+        $('#is_test_ieo').checked = data.isTestIeo;
+        $('#description').val(data.description);
+        $('#logo').val(data.logo);
+        $('#soldAt').val(data.soldAt);
         $('#update_ieo').show();
     }
 
@@ -206,9 +217,6 @@ $(function () {
 
                     {
                         "data": "currencyDescription"
-                    },
-                    {
-                        "data": "description"
                     },
                     {
                         "data": "currencyName"
