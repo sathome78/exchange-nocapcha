@@ -121,7 +121,7 @@ public class ApiAuthTokenDaoTest extends DataComparisonTest {
                 .withSQL(SELECT_ALL)
                 .run(() -> numberOfAffectedRows.setValue(apiAuthTokenDao.deleteAllExpired()));
 
-        assertTrue(numberOfAffectedRows.getValue() == 1);
+        assertEquals(1, (int) numberOfAffectedRows.getValue());
     }
 
     @Test
