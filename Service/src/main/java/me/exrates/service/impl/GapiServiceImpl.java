@@ -127,6 +127,9 @@ public class GapiServiceImpl implements GapiService {
         String tempStatus = gapiCurrencyService.createNewTransaction(privKey, amount);
         if (tempStatus.equals(STATUS_OK)) {
             try {
+                Integer requestId = refillService.getRequestId(requestAcceptDto);
+                requestAcceptDto.setRequestId(requestId);
+
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
             } catch (RefillRequestAppropriateNotFoundException e) {
                 log.debug("RefillRequestNotFountException: " + params);

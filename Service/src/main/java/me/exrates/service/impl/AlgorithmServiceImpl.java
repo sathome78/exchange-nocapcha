@@ -62,7 +62,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Autowired
     public AlgorithmServiceImpl(){
-
     }
 
     @Override
