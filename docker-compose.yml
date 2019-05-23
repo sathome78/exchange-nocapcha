@@ -13,7 +13,7 @@ services:
 #    environment:
 #      MYSQL_ROOT_PASSWORD: root
 #      MYSQL_DATABASE: birzha
-#    command: mysqld --character-set-server=utf8 --lower_case_table_names=1
+#    command: mysqld --character-set-server=utf8 --lower_case_table_names=1 --max_connections=10000
 #  rabbitmq:
 #    image: bitnami/rabbitmq:latest
 #    ports:

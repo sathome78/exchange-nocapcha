@@ -188,6 +188,15 @@ public class IeoDetailsRepositoryImpl implements IeoDetailsRepository {
         return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
+    public boolean updateIeoDetailStatus(IEODetailsStatus status, int idIeo) {
+        String sql = "UPDATE IEO_DETAILS SET status = :status WHERE id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource("id", idIeo);
+        params.addValue("status", status.name());
+        return jdbcTemplate.update(sql, params) > 0;
+
+    }
+
     private RowMapper<IEODetails> ieoDetailsRowMapper() {
         return (rs, row) -> IEODetails.builder()
                 .id(rs.getInt("id"))

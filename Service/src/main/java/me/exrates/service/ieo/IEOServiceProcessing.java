@@ -162,7 +162,7 @@ public class IEOServiceProcessing {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), ieoDetails.getAvailableAmount());
         if (ieoDetails.getAvailableAmount().compareTo(BigDecimal.ZERO) == 0) {
-            ieoDetailsRepository.updateIeoStatusesToTerminated();
+            ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
@@ -228,6 +228,15 @@ public class IEOServiceProcessing {
 
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
             logger.info("Available amount for fake processing is ZERO");
+            ieoClaimRepository.updateStatusIEOClaim(ieoClaim.getId(), IEOResult.IEOResultStatus.FAILED);
+            IEOResult ieoResult = IEOResult.builder()
+                    .claimId(ieoClaim.getId())
+                    .ieoId(ieoClaim.getIeoId())
+                    .availableAmount(availableAmount)
+                    .status(IEOResult.IEOResultStatus.FAILED)
+                    .message("No available tokens")
+                    .build();
+            ieoResultRepository.save(ieoResult);
             return;
         }
 
@@ -250,7 +259,7 @@ public class IEOServiceProcessing {
         ieoDetails.setAvailableAmount(availableAmount);
         ieoDetailsRepository.updateAvailableAmount(ieoDetails.getId(), availableAmount);
         if (availableAmount.compareTo(BigDecimal.ZERO) == 0) {
-            ieoDetailsRepository.updateIeoStatusesToTerminated();
+            ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
         try {
