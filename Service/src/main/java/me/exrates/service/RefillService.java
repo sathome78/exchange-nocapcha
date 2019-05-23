@@ -195,4 +195,6 @@ public interface RefillService {
     }
 
     String getPrivKeyByAddress(String address);
+
+    boolean changeRefillRequestStatusToOnPending(int id);
 }
