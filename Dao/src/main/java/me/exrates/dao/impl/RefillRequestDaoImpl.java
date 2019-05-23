@@ -1268,10 +1268,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         List<RefillRequestAddressShortDto> addresses = namedParameterJdbcTemplate.query(sqlMain, params, (rs, i) -> {
             RefillRequestAddressShortDto dto = new RefillRequestAddressShortDto();
             dto.setUserEmail(rs.getString("email"));
+            dto.setUserId(rs.getInt("user_id"));
             dto.setAddress(rs.getString("address"));
             dto.setCurrencyName(rs.getString("currency_name"));
+            dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setGenerationDate(rs.getTimestamp("date_generation").toLocalDateTime());
             dto.setMerchantId(rs.getInt("merchant_id"));
+            dto.setNeedTransfer(rs.getBoolean("need_transfer"));
             return dto;
         });
         Integer totalQuantity = namedParameterJdbcTemplate.queryForObject(sqlCount, params, Integer.class);
