@@ -181,6 +181,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
         int wrongUserId = 5;
 
+
         around()
                 .withSQL(sql)
                 .run(() -> orderDao.getAllOpenedOrdersByUserId(wrongUserId));
