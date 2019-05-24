@@ -13,7 +13,7 @@
     "user_acceptor_id" : null,
     "date_creation" : "p(any)",
     "date_acception" : null,
-    "status_id" : "1",
+    "status_id" : "2",
     "status_modification_date" : null,
     "order_source_id" : "1",
     "counter_order_id" : null,
@@ -35,7 +35,7 @@
     "status_modification_date" : null,
     "order_source_id" : "1",
     "counter_order_id" : null,
-    "base_type" : "LIMIT"
+    "base_type" : "ICO"
   }, {
     "id" : "3",
     "user_id" : "1",

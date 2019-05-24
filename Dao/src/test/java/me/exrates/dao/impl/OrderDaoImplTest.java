@@ -4,11 +4,18 @@ import config.DataComparisonTest;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.dto.openAPI.OpenOrderDto;
+import me.exrates.model.dto.openAPI.OrderBookItem;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.OrderType;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -21,9 +28,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {OrderDaoImplTest.InnerConf.class})
@@ -38,10 +52,10 @@ public class OrderDaoImplTest extends DataComparisonTest {
     protected void before() {
         try {
             truncateTables(TABLE_EXORDERS);
-            String sql = "INSERT INTO EXORDERS" +
-                    "  (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id, base_type)" +
-                    "  VALUES " +
-                    "  (1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\'), (2, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\')";
+            String sql = "INSERT INTO EXORDERS"
+                    + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id, base_type)"
+                    + " VALUES "
+                    + " (1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\'), (2, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'ICO\')";
             prepareTestData(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -58,6 +72,20 @@ public class OrderDaoImplTest extends DataComparisonTest {
     }
 
     @Test
+    public void createOrder_Error() {
+        ExOrder wrongOrder = getTestOrder();
+        wrongOrder.setOrderBaseType(OrderBaseType.STOP_LIMIT);
+        String errorMsg = "Data truncated for column 'base_type' at row 1";
+
+        try {
+            orderDao.createOrder(wrongOrder);
+        } catch (Exception e) {
+            assertEquals(e.getCause().getClass(), SQLException.class);
+            assertEquals(e.getCause().getMessage(), errorMsg);
+        }
+    }
+
+    @Test
     public void getOrderById_Ok() {
         ExOrder order = orderDao.getOrderById(1);
         assertEquals(1, order.getId());
@@ -65,7 +93,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getOrderById_NotFound() {
-        ExOrder order = orderDao.getOrderById(2);
+        ExOrder order = orderDao.getOrderById(5);
         assertNull(order);
     }
 
@@ -166,25 +194,389 @@ public class OrderDaoImplTest extends DataComparisonTest {
 
     @Test
     public void getAllOpenedOrdersByUserId_Ok() {
-        String sql = "SELECT * FROM " + TABLE_EXORDERS;
-
         int userId = 1;
 
-        around()
-                .withSQL(sql)
-                .run(() -> orderDao.getAllOpenedOrdersByUserId(userId));
+        List<ExOrder> actual = orderDao.getAllOpenedOrdersByUserId(userId);
+        assertEquals(1, actual.size());
     }
 
     @Test
     public void getAllOpenedOrdersByUserId_NotFound() {
-        String sql = "SELECT * FROM " + TABLE_EXORDERS;
-
         int wrongUserId = 5;
 
+        List<ExOrder> actual = orderDao.getAllOpenedOrdersByUserId(wrongUserId);
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    public void getMyOpenOrdersForCurrencyPair_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 1, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(1);
+        OrderType orderType = OrderType.SELL;
+        int userId = 3;
+
+        List<OrderListDto> actual = orderDao.getMyOpenOrdersForCurrencyPair(currencyPair, orderType, userId);
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getMyOpenOrdersForCurrencyPair_NotFound() {
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(1);
+        OrderType orderType = OrderType.SELL;
+        int userId = 3;
+
+        List<OrderListDto> actual = orderDao.getMyOpenOrdersForCurrencyPair(currencyPair, orderType, userId);
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPairAndOperationType_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 1, 3, 0.5, 1, 0.5, 1, 0.01, 3, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        int currencyPairId = 1;
+        int operationTypeId = 3;
+
+        Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(currencyPairId, operationTypeId);
+        assertTrue(actual.isPresent());
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPairAndOperationType_NotFound() {
+        int wrongCurrencyPairId = 1;
+        int wrongOperationTypeId = 3;
+
+        Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPairAndOperationType(wrongCurrencyPairId, wrongOperationTypeId);
+        assertFalse(actual.isPresent());
+    }
+
+    @Test
+    public void getLowestOpenOrderPriceByCurrencyPairAndOperationType_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 1, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        int currencyPairId = 1;
+        int operationTypeId = 3;
+
+        Optional<BigDecimal> actual = orderDao.getLowestOpenOrderPriceByCurrencyPairAndOperationType(currencyPairId, operationTypeId);
+        assertTrue(actual.isPresent());
+    }
+
+    @Test
+    public void getLowestOpenOrderPriceByCurrencyPairAndOperationType_NotFound() throws SQLException {
+        int currencyPairId = 1;
+        int operationTypeId = 3;
+
+        Optional<BigDecimal> actual = orderDao.getLowestOpenOrderPriceByCurrencyPairAndOperationType(currencyPairId, operationTypeId);
+        assertFalse(actual.isPresent());
+    }
+
+    @Test
+    public void setStatus_Ok() {
+        String sql = "SELECT * FROM " + TABLE_EXORDERS;
+
+        int orderId = 1;
+        OrderStatus status = OrderStatus.DRAFT;
 
         around()
                 .withSQL(sql)
-                .run(() -> orderDao.getAllOpenedOrdersByUserId(wrongUserId));
+                .run(() -> orderDao.setStatus(orderId, status));
+    }
+
+    @Test
+    public void setStatus_NotUpdate_WrongOrderId() {
+        String sql = "SELECT * FROM " + TABLE_EXORDERS;
+
+        int wrongOrderId = 17;
+        OrderStatus status = OrderStatus.DRAFT;
+
+        around()
+                .withSQL(sql)
+                .run(() -> orderDao.setStatus(wrongOrderId, status));
+    }
+
+    @Test
+    public void setStatus_NotUpdate_The_Same_Args() {
+        String sql = "SELECT * FROM " + TABLE_EXORDERS;
+
+        int wrongOrderId = 1;
+        OrderStatus status = OrderStatus.SPLIT_CLOSED;
+
+        around()
+                .withSQL(sql)
+                .run(() -> orderDao.setStatus(wrongOrderId, status));
+    }
+
+    @Test
+    public void searchOrderByAdmin_Ok() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        Integer currencyPair = 1;
+        Integer orderType = 1;
+        String orderDate = formatter.format(LocalDateTime.now());
+        BigDecimal orderRate = BigDecimal.valueOf(0.5);
+        BigDecimal orderVolume = BigDecimal.ONE;
+
+        int actual = orderDao.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
+        assertEquals(1, actual);
+    }
+
+    @Test
+    public void searchOrderByAdmin_EmptyResultDataAccessException() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        Integer currencyPair = 2;
+        Integer orderType = 1;
+        String orderDate = formatter.format(LocalDateTime.now());
+        BigDecimal orderRate = BigDecimal.valueOf(0.5);
+        BigDecimal orderVolume = BigDecimal.ONE;
+
+        int actual = orderDao.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
+        assertEquals(-1, actual);
+    }
+
+    @Test
+    public void lockOrdersListForAcception_True() {
+        boolean actual = orderDao.lockOrdersListForAcception(Collections.singletonList(1));
+        assertTrue(actual);
+    }
+
+    @Test
+    public void lockOrdersListForAcception_False() {
+        boolean actual = orderDao.lockOrdersListForAcception(Collections.singletonList(8));
+        assertFalse(actual);
+    }
+
+    @Test
+    public void getOrderBookItems_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        List<OrderBookItem> actual = orderDao.getOrderBookItems(2);
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getOrderBookItems_NotFound() {
+        List<OrderBookItem> actual = orderDao.getOrderBookItems(2);
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    public void getOrderBookItems_IllegalArgumentException() {
+        String errorMsg = "Operation type INPUT not convertible to order type";
+        try {
+            orderDao.getOrderBookItems(1);
+        } catch (Exception e) {
+            assertTrue(e instanceof IllegalArgumentException);
+            assertEquals(e.getMessage(), errorMsg);
+        }
+    }
+
+    @Test
+    public void getOpenOrders_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        Integer currencyPairId = 2;
+        OrderType orderType = OrderType.SELL;
+
+        List<OpenOrderDto> actual = orderDao.getOpenOrders(currencyPairId, orderType);
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getOpenOrders_NotFound() {
+        Integer currencyPairId = 1;
+        OrderType orderType = OrderType.BUY;
+
+        List<OpenOrderDto> actual = orderDao.getOpenOrders(currencyPairId, orderType);
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPair_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 3, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        int currencyPairId = 2;
+
+        Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPair(currencyPairId);
+        assertTrue(actual.isPresent());
+    }
+
+    @Test
+    public void getLastOrderPriceByCurrencyPair_NotFound() {
+        int currencyPairId = 2;
+
+        Optional<BigDecimal> actual = orderDao.getLastOrderPriceByCurrencyPair(currencyPairId);
+        assertFalse(actual.isPresent());
+    }
+
+    @Test
+    public void findAllByOrderTypeAndCurrencyId_Ok() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+        int currencyId = 2;
+        OrderType[] orderTypes = {OrderType.SELL, OrderType.BUY};
+
+        List<OrderListDto> actual = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderTypes);
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void findAllByOrderTypeAndCurrencyId_NotFound() {
+        int currencyId = 2;
+        OrderType[] orderTypes = {OrderType.SELL, OrderType.BUY};
+
+        List<OrderListDto> actual = orderDao.findAllByOrderTypeAndCurrencyId(currencyId, orderTypes);
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_Scope_OTHER() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+
+        Integer userId = 3;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(2);
+        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OperationType operationType = OperationType.SELL;
+        String scopeDefault = "";
+        Integer offset = 0;
+        Integer limit = 10;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                statuses,
+                operationType,
+                scopeDefault, offset, limit, locale);
+
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getMyOrdersWithState_Ok_Scope_ALL() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 3, 0.5, 1, 0.5, 1, 0.01, 2, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+
+        Integer userId = 3;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(2);
+        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OperationType operationType = OperationType.SELL;
+        String scopeDefault = "ALL";
+        Integer offset = 0;
+        Integer limit = 10;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                statuses,
+                operationType,
+                scopeDefault, offset, limit, locale);
+
+        assertEquals(1, actual.size());
+    }
+
+    @Ignore
+    public void getMyOrdersWithState_Ok_Scope_ACCEPTED() throws SQLException {
+        String sql = "INSERT INTO EXORDERS"
+                + " (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, "
+                + "commission_id, commission_fixed_amount, status_id, order_source_id, base_type) VALUES "
+                + " (3, 3, 2, 4, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\')";
+
+        prepareTestData(sql);
+
+
+        Integer userId = 3;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(2);
+        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.INPROCESS);
+        OperationType operationType = OperationType.BUY;
+        String scopeDefault = "ACCEPTED";
+        Integer offset = 0;
+        Integer limit = 10;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                statuses,
+                operationType,
+                scopeDefault,
+                offset,
+                limit,
+                locale
+        );
+        assertEquals(1, actual.size());
+    }
+
+    @Test
+    public void getMyOrdersWithState_NotFound() {
+        Integer userId = 3;
+        CurrencyPair currencyPair = new CurrencyPair();
+        currencyPair.setId(2);
+        List<OrderStatus> statuses = Collections.singletonList(OrderStatus.OPENED);
+        OperationType operationType = OperationType.SELL;
+        String scopeDefault = "ACCEPTED";
+        Integer offset = 0;
+        Integer limit = 10;
+        Locale locale = Locale.ENGLISH;
+
+        List<OrderWideListDto> actual = orderDao.getMyOrdersWithState(
+                userId,
+                currencyPair,
+                statuses,
+                operationType,
+                scopeDefault, offset, limit, locale);
+
+        assertEquals(0, actual.size());
     }
 
     private ExOrder getTestOrder() {
