@@ -41,7 +41,7 @@ public class OrderDaoImplTest extends DataComparisonTest {
             String sql = "INSERT INTO EXORDERS" +
                     "  (id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id, base_type)" +
                     "  VALUES " +
-                    "  (1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\')";
+                    "  (1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\'), (2, 1, 1, 1, 0.5, 1, 0.5, 1, 0.01, 1, 1, \'LIMIT\')";
             prepareTestData(sql);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -162,6 +162,28 @@ public class OrderDaoImplTest extends DataComparisonTest {
         around()
                 .withSQL(sql)
                 .run(() -> orderDao.postAcceptedOrderToDB(getTestOrder()));
+    }
+
+    @Test
+    public void getAllOpenedOrdersByUserId_Ok() {
+        String sql = "SELECT * FROM " + TABLE_EXORDERS;
+
+        int userId = 1;
+
+        around()
+                .withSQL(sql)
+                .run(() -> orderDao.getAllOpenedOrdersByUserId(userId));
+    }
+
+    @Test
+    public void getAllOpenedOrdersByUserId_NotFound() {
+        String sql = "SELECT * FROM " + TABLE_EXORDERS;
+
+        int wrongUserId = 5;
+
+        around()
+                .withSQL(sql)
+                .run(() -> orderDao.getAllOpenedOrdersByUserId(wrongUserId));
     }
 
     private ExOrder getTestOrder() {
