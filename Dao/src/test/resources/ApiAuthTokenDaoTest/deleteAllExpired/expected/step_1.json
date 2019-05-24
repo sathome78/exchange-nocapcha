@@ -4,11 +4,6 @@
     "id" : "1",
     "username" : "username",
     "value" : "value",
-    "last_request" : "p(any)"
-  }, {
-    "id" : "2",
-    "username" : "user",
-    "value" : "value1",
-    "last_request" : "p(any)"
+    "expired_at" : "p(any)"
   } ]
 }
