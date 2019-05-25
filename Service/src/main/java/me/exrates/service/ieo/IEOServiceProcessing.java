@@ -165,6 +165,8 @@ public class IEOServiceProcessing {
             ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
+        Email email = prepareEmail(principalEmail, notificationMessage);
+        sendMailService.sendInfoMail(email);
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
