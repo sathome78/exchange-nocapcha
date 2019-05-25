@@ -9,6 +9,7 @@ import me.exrates.model.IEODetails;
 import me.exrates.model.enums.IEODetailsStatus;
 import me.exrates.model.serializer.LocalDateTimeDeserializer;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class IeoDetailsCreateDto {
 
+    @Min(value = 3, message = "Name must be contain minimal 3 chars")
     @NotNull(message = "Name must not be null")
     private String currencyName;
     @NotNull(message = "Currency description must not be null")
