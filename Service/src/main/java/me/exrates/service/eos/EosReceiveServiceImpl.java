@@ -109,67 +109,62 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         map.put("amount", dataDto.getAmount().toPlainString());
         map.put("to", dataDto.getToAccount());
         map.put("from", dataDto.getFromAccount());
-        try{
-            if(transfer(client, map)){
-                eosService.processPayment(map);
-            }
-        } catch(Exception e){
-        log.error(e);
-        }
+
+        eosService.processPayment(map);
     }
 
-    private boolean transfer(EosApi client, Map<String,String> map) throws Exception {
-        ObjectMapper mapper = EosApiServiceGenerator.getMapper();
-
-        // ① pack transfer data
-        TransferArg transferArg = new TransferArg(map.get("to"), mainAccount, map.get("amount"), map.get("address"));
-        AbiJsonToBin data = client.abiJsonToBin("eosio.token", "transfer", transferArg);
-        System.out.println("bin= " + data.getBinargs());
-
-        // ② get the latest block info
-        Block block = client.getBlock(client.getChainInfo().getHeadBlockId());
-        System.out.println("blockNum=" + block.getBlockNum());
-
-        // ③ create the authorization
-        List<TransactionAuthorization> authorizations = Arrays.asList(new TransactionAuthorization(map.get("to"), "active"));
-
-        // ④ build the all actions
-        List<TransactionAction> actions = Arrays.asList(//
-                new TransactionAction("eosio.token", "transfer", authorizations, data.getBinargs())//
-        );
-
-        // ⑤ build the packed transaction
-        PackedTransaction packedTransaction = new PackedTransaction();
-        packedTransaction.setRefBlockPrefix(block.getRefBlockPrefix());
-        packedTransaction.setRefBlockNum(block.getBlockNum());
-        // expired after 3 minutes
-        String expiration = ZonedDateTime.now(ZoneId.of("GMT")).plusMinutes(3).truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        packedTransaction.setExpiration(LocalDateTime.parse(expiration));
-        packedTransaction.setRegion("0");
-        packedTransaction.setMaxNetUsageWords(0);
-        packedTransaction.setMaxCpuUsageMs(0);
-        packedTransaction.setActions(actions);
-
-        // ⑥ unlock the creator's wallet
-        try {
-            client.unlockWallet(map.get("from"), "PW5KGXiGoDXEM54YWn6yhjCmNkAwpyDemLUqRaniAwuhTArciS6j9");
-        } catch (EosApiException ex) {
-            System.err.println(ex.getMessage());
-        }
-
-        // ⑦ sign the transaction
-        SignedPackedTransaction signedPackedTransaction = client.signTransaction(packedTransaction, //
-                Arrays.asList(map.get("to")), //
-                "038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca");
-
-        System.out.println("signedPackedTransaction=" + mapper.writeValueAsString(signedPackedTransaction));
-        System.out.println("\n--------------------------------\n");
-
-        // ⑧ push the signed transaction
-        PushedTransaction pushedTransaction = client.pushTransaction("none", signedPackedTransaction);
-        System.out.println("pushedTransaction=" + mapper.writeValueAsString(pushedTransaction));
-        return !pushedTransaction.getTransactionId().equals(null);
-    }
+//    private boolean transfer(EosApi client, Map<String,String> map) throws Exception {
+//        ObjectMapper mapper = EosApiServiceGenerator.getMapper();
+//
+//        // ① pack transfer data
+//        TransferArg transferArg = new TransferArg(map.get("to"), mainAccount, map.get("amount"), map.get("address"));
+//        AbiJsonToBin data = client.abiJsonToBin("eosio.token", "transfer", transferArg);
+//        System.out.println("bin= " + data.getBinargs());
+//
+//        // ② get the latest block info
+//        Block block = client.getBlock(client.getChainInfo().getHeadBlockId());
+//        System.out.println("blockNum=" + block.getBlockNum());
+//
+//        // ③ create the authorization
+//        List<TransactionAuthorization> authorizations = Arrays.asList(new TransactionAuthorization(map.get("to"), "active"));
+//
+//        // ④ build the all actions
+//        List<TransactionAction> actions = Arrays.asList(//
+//                new TransactionAction("eosio.token", "transfer", authorizations, data.getBinargs())//
+//        );
+//
+//        // ⑤ build the packed transaction
+//        PackedTransaction packedTransaction = new PackedTransaction();
+//        packedTransaction.setRefBlockPrefix(block.getRefBlockPrefix());
+//        packedTransaction.setRefBlockNum(block.getBlockNum());
+//        // expired after 3 minutes
+//        String expiration = ZonedDateTime.now(ZoneId.of("GMT")).plusMinutes(3).truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+//        packedTransaction.setExpiration(LocalDateTime.parse(expiration));
+//        packedTransaction.setRegion("0");
+//        packedTransaction.setMaxNetUsageWords(0);
+//        packedTransaction.setMaxCpuUsageMs(0);
+//        packedTransaction.setActions(actions);
+//
+//        // ⑥ unlock the creator's wallet
+//        try {
+//            client.unlockWallet(map.get("from"), "PW5KGXiGoDXEM54YWn6yhjCmNkAwpyDemLUqRaniAwuhTArciS6j9");
+//        } catch (EosApiException ex) {
+//            System.err.println(ex.getMessage());
+//        }
+//
+//        // ⑦ sign the transaction
+//        SignedPackedTransaction signedPackedTransaction = client.signTransaction(packedTransaction, //
+//                Arrays.asList(map.get("to")), //
+//                "038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca");
+//
+//        System.out.println("signedPackedTransaction=" + mapper.writeValueAsString(signedPackedTransaction));
+//        System.out.println("\n--------------------------------\n");
+//
+//        // ⑧ push the signed transaction
+//        PushedTransaction pushedTransaction = client.pushTransaction("none", signedPackedTransaction);
+//        System.out.println("pushedTransaction=" + mapper.writeValueAsString(pushedTransaction));
+//        return !pushedTransaction.getTransactionId().equals(null);
+//    }
 
 
     private void saveLastBlock(long blockNum) {
