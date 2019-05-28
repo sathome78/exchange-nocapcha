@@ -50,10 +50,10 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         try {
             responseEntity = restTemplate.getForEntity(builder.toUriString(), Wallet.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                log.warn("Error : {}", responseEntity.getStatusCodeValue());
+                log.error("Error : {}", responseEntity.getStatusCodeValue());
             }
         } catch (Exception ex) {
-            log.warn("Error : {}", ex.getMessage());
+            log.error("Error : {}", ex.getMessage());
         }
 
         String address = responseEntity.getBody().wallet.address;
@@ -89,10 +89,10 @@ public class GapiCurrencyServiceImpl implements GapiCurrencyService {
         try {
             responseEntity = restTemplate.getForEntity(builder.toUriString(), Transactions.class);
             if (responseEntity.getStatusCodeValue() != 200) {
-                log.warn("Error : {}", responseEntity.getStatusCodeValue());
+                log.error("Error : {}", responseEntity.getStatusCodeValue());
             }
         } catch (Exception ex) {
-            log.warn("Error : {}", ex.getMessage());
+            log.error("Error : {}", ex.getMessage());
         }
         Transaction[] transactions = responseEntity.getBody().transactions;
         return Arrays.asList(transactions);
