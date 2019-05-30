@@ -165,6 +165,13 @@ public class IEOServiceProcessing {
             ieoDetailsRepository.updateIeoDetailStatus(IEODetailsStatus.TERMINATED, ieoDetails.getId());
             ieoDetailsRepository.updateIeoSoldOutTime(ieoDetails.getId());
         }
+        BigDecimal amount = walletService.findUserCurrencyBalance(ieoClaim);
+        ieoDetails.setPersonalAmount(amount);
+        ieoDetails.setReadyToIeo(true);
+        Email email = prepareEmail(principalEmail, notificationMessage);
+        if (!ieoDetails.getTestIeo()) {
+            sendMailService.sendInfoMail(email);
+        }
         sendNotifications(principalEmail, ieoDetails, notificationMessage);
     }
 
@@ -194,7 +201,7 @@ public class IEOServiceProcessing {
 
     private void sendNotifications(String userEmail, IEODetails ieoDetails, UserNotificationMessage message) {
         try {
-            if (StringUtils.isNotEmpty(userEmail)) {
+            if (StringUtils.isNotEmpty(userEmail) && !ieoDetails.getTestIeo()) {
                 stompMessenger.sendPersonalMessageToUser(userEmail, message);
             }
         } catch (Exception e) {
