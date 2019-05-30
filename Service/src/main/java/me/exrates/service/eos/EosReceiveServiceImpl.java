@@ -21,6 +21,8 @@ import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.log4j.BasicConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "eos_log")
 @Service
+@PropertySource("classpath:/merchants/eos.properties")
 public class EosReceiveServiceImpl implements EosReceiveService {
 
     private EosApi client;
@@ -53,7 +56,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     private static final String EOSIO_ACCOUNT = "eosio.token";
     private static final String EXECUTED = "executed";
 
-    private String mainAccount = "";
+    @Value("${eos.main.address}")
+    private String mainAccount;
 
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
@@ -78,16 +82,17 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         while (lastBlock < blockchainHeight) {
             Block block = client.getBlock(String.valueOf(++lastBlock));
             List<Transaction> transactionList = Arrays.asList(block.getTransactions());
-            transactionList.forEach(p -> {
-                if (p.getStatus().equals(EXECUTED)) {
-                    p.getTrx().ifPresent(s -> {
-                        List<io.jafka.jeos.core.common.Action> actions = s.getTransaction().getActions();
-                        actions.forEach(a -> {
-                            String operation = a.getName();
-                            if (operation.equalsIgnoreCase(TRANSFER) && a.getAccount().equals(EOSIO_ACCOUNT)) {
-                                EosDataDto dataDto = new EosDataDto((LinkedHashMap) a.getData());
+            transactionList.forEach(transaction -> {
+                if (transaction.getStatus().equals(EXECUTED)) {
+                    transaction.getTrx().ifPresent(trx -> {
+                        List<io.jafka.jeos.core.common.Action> actions = trx.getTransaction().getActions();
+                        actions.forEach(action -> {
+                            String operation = action.getName();
+                            if (operation.equalsIgnoreCase(TRANSFER) && action.getAccount().equals(EOSIO_ACCOUNT)) {
+                                EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
                                 if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
-                                    processTransaction(dataDto, s.getId());
+                                    processTransaction(dataDto, trx.getId());
+                                    log.info("**************hash EOS: " + trx.getId() + "   in processTransaction(dataDto, trx.getId())");
                                 }
                             }
                         });
@@ -107,67 +112,12 @@ public class EosReceiveServiceImpl implements EosReceiveService {
         map.put("address", dataDto.getMemo());
         map.put("hash", hash);
         map.put("amount", dataDto.getAmount().toPlainString());
-        map.put("to", dataDto.getToAccount());
-        map.put("from", dataDto.getFromAccount());
 
         eosService.processPayment(map);
     }
 
-//    private boolean transfer(EosApi client, Map<String,String> map) throws Exception {
-//        ObjectMapper mapper = EosApiServiceGenerator.getMapper();
-//
-//        // ① pack transfer data
-//        TransferArg transferArg = new TransferArg(map.get("to"), mainAccount, map.get("amount"), map.get("address"));
-//        AbiJsonToBin data = client.abiJsonToBin("eosio.token", "transfer", transferArg);
-//        System.out.println("bin= " + data.getBinargs());
-//
-//        // ② get the latest block info
-//        Block block = client.getBlock(client.getChainInfo().getHeadBlockId());
-//        System.out.println("blockNum=" + block.getBlockNum());
-//
-//        // ③ create the authorization
-//        List<TransactionAuthorization> authorizations = Arrays.asList(new TransactionAuthorization(map.get("to"), "active"));
-//
-//        // ④ build the all actions
-//        List<TransactionAction> actions = Arrays.asList(//
-//                new TransactionAction("eosio.token", "transfer", authorizations, data.getBinargs())//
-//        );
-//
-//        // ⑤ build the packed transaction
-//        PackedTransaction packedTransaction = new PackedTransaction();
-//        packedTransaction.setRefBlockPrefix(block.getRefBlockPrefix());
-//        packedTransaction.setRefBlockNum(block.getBlockNum());
-//        // expired after 3 minutes
-//        String expiration = ZonedDateTime.now(ZoneId.of("GMT")).plusMinutes(3).truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-//        packedTransaction.setExpiration(LocalDateTime.parse(expiration));
-//        packedTransaction.setRegion("0");
-//        packedTransaction.setMaxNetUsageWords(0);
-//        packedTransaction.setMaxCpuUsageMs(0);
-//        packedTransaction.setActions(actions);
-//
-//        // ⑥ unlock the creator's wallet
-//        try {
-//            client.unlockWallet(map.get("from"), "PW5KGXiGoDXEM54YWn6yhjCmNkAwpyDemLUqRaniAwuhTArciS6j9");
-//        } catch (EosApiException ex) {
-//            System.err.println(ex.getMessage());
-//        }
-//
-//        // ⑦ sign the transaction
-//        SignedPackedTransaction signedPackedTransaction = client.signTransaction(packedTransaction, //
-//                Arrays.asList(map.get("to")), //
-//                "038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca");
-//
-//        System.out.println("signedPackedTransaction=" + mapper.writeValueAsString(signedPackedTransaction));
-//        System.out.println("\n--------------------------------\n");
-//
-//        // ⑧ push the signed transaction
-//        PushedTransaction pushedTransaction = client.pushTransaction("none", signedPackedTransaction);
-//        System.out.println("pushedTransaction=" + mapper.writeValueAsString(pushedTransaction));
-//        return !pushedTransaction.getTransactionId().equals(null);
-//    }
-
-
     private void saveLastBlock(long blockNum) {
+
         specParamsDao.updateParam(MERCHANT_NAME, LAST_BLOCK_PARAM, String.valueOf(blockNum));
     }
 
@@ -177,13 +127,13 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     }
 
 
-
     public static void main(String[] args) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        BasicConfigurator.configure();
-        EosApi client = EosApiFactory.create("http://127.0.0.1:8900", //
-                "https://api.eosnewyork.io",//
-                "https://api.eosnewyork.io");
+
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        BasicConfigurator.configure();
+//        EosApi client = EosApiFactory.create("http://127.0.0.1:8900", //
+//                "https://api.eosnewyork.io",//
+//                "https://api.eosnewyork.io");
         // ------------------------------------------------------------------------
 
         /*Block block = client.getBlock("14643107");
@@ -209,6 +159,6 @@ public class EosReceiveServiceImpl implements EosReceiveService {
             });
         });*/
 
-        System.out.println(client.getChainInfo());
+//        System.out.println(client.getChainInfo());
     }
 }

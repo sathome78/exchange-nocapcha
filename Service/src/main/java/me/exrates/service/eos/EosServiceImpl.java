@@ -32,6 +32,12 @@ import java.util.Map;
 @PropertySource("classpath:/merchants/eos.properties")
 public class EosServiceImpl implements EosService {
 
+    private static final String CURRENCY_NAME = "EOS";
+    private Merchant merchant;
+    private Currency currency;
+
+    @Value("${eos.main.address}")
+    private String mainAddress;
 
     @Autowired
     private CurrencyService currencyService;
@@ -49,25 +55,21 @@ public class EosServiceImpl implements EosService {
     private EosApi client;
 
 
-
-    private Merchant merchant;
-    private Currency currency;
-    private static final String CURRENCY_NAME = "EOS";
-
-    @Value("${eos.main.address}")
-    private String mainAddress;
-
     @PostConstruct
     public void init() {
         currency = currencyService.findByName(CURRENCY_NAME);
         merchant = merchantService.findByName(CURRENCY_NAME);
     }
 
+    @Override
+    public String getMainAddress(){
+        return mainAddress;
+    }
 
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 15, currency.getName());
+        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 9, currency.getName());
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -123,4 +125,5 @@ public class EosServiceImpl implements EosService {
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         throw new RuntimeException("not supported");
     }
+
 }
