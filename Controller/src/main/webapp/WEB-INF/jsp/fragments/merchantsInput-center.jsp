@@ -145,7 +145,7 @@
 
                               <c:choose>
                                   <c:when test="${merchantCurrency.name == 'LHT'}">
-                                      <c:out value='usdx%3A${merchantCurrency.mainAddress}%3Fcurrency%3D${merchantCurrency.name}%26memo%3D${merchantCurrency.address}%26ro%3Dtrue&chld=H|0'/>
+                                      <c:out value='usdx%3A${merchantCurrency.mainAddress}%3Fcurrency%3D${merchantCurrency.name}%26memo%3D${merchantCurrency.address}'/>
                                   </c:when>
                                   <c:otherwise>
                                       <c:out value="${merchantCurrency.address}"/>'

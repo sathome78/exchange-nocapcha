@@ -6,6 +6,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
+import me.exrates.model.dto.RefillRequestAddressDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
@@ -245,11 +246,24 @@ public class NgRefillController {
             );
             if (address.isPresent()) {
                 String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
-                HashMap<String, Object> response = new HashMap<String, Object>() {{
-                    put("address", address.get());
-                    put("message", message);
-                    put("qr", address.get());
-                }};
+
+                String qrCode = address.get();
+
+                //TODO uniq qr code for coin LHT
+                String coinNameLHT = "LHT";
+                if(currencyService.getById(requestParamsDto.getCurrency()).getName().equals(coinNameLHT)){
+                    List<RefillRequestAddressDto> listOfAddress = refillService.findByAddressMerchantAndCurrency(address.get(),
+                            requestParamsDto.getMerchant(), requestParamsDto.getCurrency());
+
+                    qrCode = "usdx%3A" + merchantServiceContext.getMerchantService(requestParamsDto.getMerchant()).getMainAddress()
+                            + "%3Fcurrency%3D" + coinNameLHT + "%26memo%3D" + listOfAddress.get(0).getAddress();
+                }
+
+                HashMap<String, Object> response = new HashMap<>();
+                response.put("address", address.get());
+                response.put("message", message);
+                response.put("qr", qrCode);
+
                 HashMap<String, Object> result = new HashMap<String, Object>() {{
                     put("params", response);
                 }};
