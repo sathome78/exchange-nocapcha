@@ -141,11 +141,12 @@
                             </c:forEach>
                           </div>
                           <div>
+                            <%-- TODO uniq qr code for coin LHT || Solution only for one coin - LHT. When not need - delete condition --%>
                             <img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=
 
                               <c:choose>
                                   <c:when test="${merchantCurrency.name == 'LHT'}">
-                                      <c:out value='usdx%3A${merchantCurrency.mainAddress}%3Fcurrency%3D${merchantCurrency.name}%26memo%3D${merchantCurrency.address}'/>
+                                      <c:out value='usdx%3A${merchantCurrency.mainAddress}%3Fcurrency%3D${merchantCurrency.name}%26memo%3D${merchantCurrency.address}%26ro%3Dtrue'/>'
                                   </c:when>
                                   <c:otherwise>
                                       <c:out value="${merchantCurrency.address}"/>'

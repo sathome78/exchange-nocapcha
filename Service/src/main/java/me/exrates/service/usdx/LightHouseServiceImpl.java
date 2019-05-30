@@ -76,7 +76,7 @@ public class LightHouseServiceImpl implements UsdxService {
 
         String message = messageSource.getMessage("merchants.refill.usdx", new Object[]{usdxRestApiService.getAccountName(), destinationTag}, request.getLocale());
 
-        String qrCode = "usdx%3A" + getMainAddress() + "%3Fcurrency%3D" + LIGHTHOUSE_CURRENCY_NAME + "%26memo%3D" + destinationTag;
+        String qrCode = "usdx%3A" + getMainAddress() + "%3Fcurrency%3D" + LIGHTHOUSE_CURRENCY_NAME + "%26memo%3D" + destinationTag + "%26ro%3Dtrue";
 
         return new HashMap<String, String>() {{
             put("address", destinationTag);
