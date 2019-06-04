@@ -1,6 +1,5 @@
 package me.exrates.service.eos;
 
-import io.jafka.jeos.EosApi;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
@@ -52,8 +51,6 @@ public class EosServiceImpl implements EosService {
     @Autowired
     private WithdrawUtils withdrawUtils;
 
-    private EosApi client;
-
 
     @PostConstruct
     public void init() {
@@ -100,14 +97,12 @@ public class EosServiceImpl implements EosService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
-        // TODO requestId
-            int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
-        System.out.println(requestId);
+        refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
     }
 
     @Override
     public void checkDestinationTag(String destinationTag) {
-      /*todo*/
+      // checking by EOS Coin
     }
 
     @Override
