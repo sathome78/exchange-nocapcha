@@ -102,7 +102,7 @@ public class EosServiceImpl implements EosService {
 
     @Override
     public void checkDestinationTag(String destinationTag) {
-      // checking by EOS Coin
+      // It checks by EOS Coin
     }
 
     @Override

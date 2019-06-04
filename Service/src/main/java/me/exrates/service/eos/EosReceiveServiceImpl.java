@@ -39,6 +39,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     private static final String TRANSFER = "transfer";
     private static final String EOSIO_ACCOUNT = "eosio.token";
     private static final String EXECUTED = "executed";
+    private static final int CONFIRMATIONS_NEEDED = 500;
+
 
     @Value("${eos.main.address}")
     private String mainAccount;
@@ -63,7 +65,7 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     private void checkRefills() {
         long lastBlock = loadLastBlock();
         long blockchainHeight = getLastBlockNum();
-        while (lastBlock < blockchainHeight) {
+        while (lastBlock < blockchainHeight - CONFIRMATIONS_NEEDED) {
             Block block = client.getBlock(String.valueOf(++lastBlock));
             List<Transaction> transactionList = Arrays.asList(block.getTransactions());
             transactionList.forEach(transaction -> {
