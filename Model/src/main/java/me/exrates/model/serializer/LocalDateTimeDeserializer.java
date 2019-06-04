@@ -37,7 +37,8 @@ public class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
                 } catch (DateTimeParseException ex) {
                     return LocalDateTime.parse(str, FORMATTER);
                 }
-            } catch (Exception ex){
+                //Additional catch block for InOut microservice
+            } catch (DateTimeParseException ex){
                 String[] dateTime = str.split(" ");
                 return LocalDateTime.of(LocalDate.parse(dateTime[0]), LocalTime.parse(dateTime[1]));
             }

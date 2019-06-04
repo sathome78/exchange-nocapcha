@@ -1,7 +1,7 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.condition.MicroserviceConditional;
@@ -78,7 +78,6 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto) {
         try {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
@@ -140,11 +139,17 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_CALL_REFILL_IREFILLABLE);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        HttpEntity<?> entity = null;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "RefillRequestCreateDto: %s", request));
+        }
         ResponseEntity<Map<String, String>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -154,14 +159,20 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES)
                 .queryParam("userEmail", userEmail);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
+        HttpEntity<?> entity = null;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "User email: %s | List<MerchantCurrency>: %s", userEmail, merchantCurrencies));
+        }
 
-            ResponseEntity<List<MerchantCurrency>> response = template.exchange(
+        ResponseEntity<List<MerchantCurrency>> response = template.exchange(
                     builder.toUriString(),
                     HttpMethod.POST,
                     entity, new ParameterizedTypeReference<List<MerchantCurrency>>() {});

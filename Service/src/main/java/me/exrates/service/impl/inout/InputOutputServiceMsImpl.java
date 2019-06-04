@@ -1,8 +1,8 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
@@ -43,12 +43,18 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
     private final MessageSource messageSource;
 
     @Override
-    @SneakyThrows
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail, Locale locale) {
         setUserRecipient(locale, payment);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_PREPARE_CREDITS_OPERATION);
-        HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), requestUtil.prepareHeaders(userEmail));
+        HttpEntity<String> entity = null;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), requestUtil.prepareHeaders(userEmail));
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "User email: %s | Locale: %s | Payment: %s", userEmail, locale, payment));
+        }
 
         ResponseEntity<CreditsOperation> response = template.exchange(
                     builder.toUriString(),
