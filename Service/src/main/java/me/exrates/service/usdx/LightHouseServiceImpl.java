@@ -14,6 +14,7 @@ import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.*;
+import me.exrates.service.usdx.model.UsdxAccountBalance;
 import me.exrates.service.usdx.model.UsdxTransaction;
 import me.exrates.service.usdx.model.enums.UsdxWalletAsset;
 import me.exrates.service.util.CryptoUtils;
@@ -32,11 +33,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Log4j2(topic = "usdx_log")
 @Service
 @PropertySource("classpath:/merchants/usdx.properties")
+@Conditional(MonolitConditional.class)
 public class LightHouseServiceImpl implements UsdxService {
 
     private static final String LIGHTHOUSE_CURRENCY_NAME = UsdxWalletAsset.LHT.name();
@@ -163,7 +166,7 @@ public class LightHouseServiceImpl implements UsdxService {
 
     @Override
     public boolean isValidDestinationAddress(String address) {
-        return withdrawUtils.isValidDestinationAddress(usdxRestApiService.getAccountName(), address);
+        return withdrawUtils.isValidDestinationAddress(getMainAddress(), address);
     }
 
     @Override
@@ -177,8 +180,18 @@ public class LightHouseServiceImpl implements UsdxService {
     }
 
     @Override
-    public UsdxRestApiService getUsdxRestApiService(){
-        return usdxRestApiService;
+    public UsdxAccountBalance getUsdxAccountBalance(){
+        return usdxRestApiService.getAccountBalance();
+    }
+
+    @Override
+    public List<UsdxTransaction> getAllTransactions(){
+        return usdxRestApiService.getAllTransactions();
+    }
+
+    @Override
+    public UsdxTransaction getTransactionByTransferId(String transferId){
+        return usdxRestApiService.getTransactionStatus(transferId);
     }
 
     @Override
