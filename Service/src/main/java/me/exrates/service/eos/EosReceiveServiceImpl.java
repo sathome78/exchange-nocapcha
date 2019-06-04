@@ -69,8 +69,8 @@ public class EosReceiveServiceImpl implements EosReceiveService {
     @PostConstruct
     private void init() {
         BasicConfigurator.configure();
-        client = EosApiFactory.create("http://127.0.0.1:8900", //
-                "https://api.eosnewyork.io",//
+        client = EosApiFactory.create("http://127.0.0.1:8900",
+                "https://api.eosnewyork.io",
                 "https://api.eosnewyork.io");
         scheduler.scheduleAtFixedRate(this::checkRefills, 5, 5, TimeUnit.MINUTES);
     }
@@ -92,7 +92,6 @@ public class EosReceiveServiceImpl implements EosReceiveService {
                                 EosDataDto dataDto = new EosDataDto((LinkedHashMap) action.getData());
                                 if (dataDto.getToAccount().equals(mainAccount) && dataDto.getCurrency().equals(CURRENCY_NAME)) {
                                     processTransaction(dataDto, trx.getId());
-                                    log.info("**************hash EOS: " + trx.getId() + "   in processTransaction(dataDto, trx.getId())");
                                 }
                             }
                         });

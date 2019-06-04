@@ -69,7 +69,8 @@ public class EosServiceImpl implements EosService {
     @Transactional
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(), 9, currency.getName());
+        String destinationTag = CryptoUtils.generateDestinationTag(request.getUserId(),
+                9 + request.getUserId().toString().length(), currency.getName());
         String message = messageSource.getMessage("merchants.refill.xlm",
                 new Object[]{mainAddress, destinationTag}, request.getLocale());
         return new HashMap<String, String>() {{
@@ -99,12 +100,9 @@ public class EosServiceImpl implements EosService {
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
 
+        // TODO requestId
             int requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto);
-
-//            final String username = refillService.getUsernameByRequestId(requestId);
-
-            log.debug("Process of sending data to Google Analytics...");
-//            gtagService.sendGtagEvents(amount.toString(), currency.getName(), username);
+        System.out.println(requestId);
     }
 
     @Override
