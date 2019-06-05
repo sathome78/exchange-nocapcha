@@ -6,7 +6,6 @@ import me.exrates.model.Merchant;
 import me.exrates.service.merchantStrategy.IRefillable;
 import me.exrates.service.merchantStrategy.IWithdrawable;
 import me.exrates.service.usdx.model.UsdxAccountBalance;
-import me.exrates.service.usdx.model.UsdxTxSendAdmin;
 import me.exrates.service.usdx.model.UsdxTransaction;
 
 import java.util.List;
