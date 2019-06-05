@@ -3,7 +3,6 @@ package me.exrates.service.impl.inout;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
 import me.exrates.model.CreditsOperation;
@@ -15,6 +14,7 @@ import me.exrates.service.impl.InputOutputServiceImpl;
 import me.exrates.service.properties.InOutProperties;
 import me.exrates.service.util.RequestUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.ParameterizedTypeReference;
@@ -35,7 +35,7 @@ import java.util.Optional;
 public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
 
     private static final String API_PREPARE_CREDITS_OPERATION = "/api/prepareCreditsOperation";
-    private final RestTemplate template;
+    private final @Qualifier("inoutRestTemplate") RestTemplate template;
     private final RequestUtil requestUtil;
     private final InOutProperties properties;
     private final ObjectMapper objectMapper;
@@ -51,13 +51,16 @@ public class InputOutputServiceMsImpl extends InputOutputServiceImpl {
         try {
             entity = new HttpEntity<>(objectMapper.writeValueAsString(payment), requestUtil.prepareHeaders(userEmail));
         } catch (JsonProcessingException e) {
-            log.error("error prepareCreditsOperation", e);
-            throw new RuntimeException(e);
+            log.error(e);
+            throw new RuntimeException(String.format("Object mapper error. " +
+                    "User email: %s | Locale: %s | Payment: %s", userEmail, locale, payment));
         }
+
         ResponseEntity<CreditsOperation> response = template.exchange(
-                builder.toUriString(),
-                HttpMethod.POST,
-                entity, new ParameterizedTypeReference<CreditsOperation>() {});
+                    builder.toUriString(),
+                    HttpMethod.POST,
+                    entity, new ParameterizedTypeReference<CreditsOperation>() {
+                    });
 
         return Optional.ofNullable(response.getBody());
     }
