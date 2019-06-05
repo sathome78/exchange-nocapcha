@@ -1,5 +1,6 @@
 package me.exrates.service.impl.inout;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import me.exrates.dao.RefillRequestDao;
@@ -79,10 +80,15 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + CREATE_REFILL_REQUEST);
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
+        HttpEntity<?> entity;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(requestCreateDto), requestUtil.prepareHeaders(requestCreateDto.getUserId()));
+        } catch (JsonProcessingException e) {
+            log.error("error createRefillRequest", e);
+            throw new RuntimeException(e);
+        }
         ResponseEntity<Map<String, Object>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -135,11 +141,16 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public Map<String, String> callRefillIRefillable(RefillRequestCreateDto request) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_CALL_REFILL_IREFILLABLE);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        HttpEntity<?> entity;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.error("error callRefillIRefillable", e);
+            throw new RuntimeException(e);
+        }
         ResponseEntity<Map<String, String>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
@@ -149,12 +160,17 @@ public class RefillServiceMsImpl extends RefillServiceImpl {
     }
 
     @Override
-    @SneakyThrows
     public List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(properties.getUrl() + API_MERCHANT_RETRIEVE_ADDRESS_AND_ADDITIONAL_PARAMS_FOR_REFILL_FOR_MERCHANT_CURRENCIES)
                 .queryParam("userEmail", userEmail);
 
-        HttpEntity<?> entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
+        HttpEntity<?> entity;
+        try {
+            entity = new HttpEntity<>(objectMapper.writeValueAsString(merchantCurrencies));
+        } catch (JsonProcessingException e) {
+            log.error("error retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies", e);
+            throw new RuntimeException(e);
+        }
         ResponseEntity<List<MerchantCurrency>> response = template.exchange(
                 builder.toUriString(),
                 HttpMethod.POST,
