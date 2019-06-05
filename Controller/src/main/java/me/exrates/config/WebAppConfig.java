@@ -2254,7 +2254,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MicroserviceConditional.class)
     public RestTemplate inoutRestTemplate(LogableErrorHandler errorHandler) {
         RestTemplate restTemplate = new RestTemplate();
-        HttpClientBuilder b = HttpClientBuilder.create();
+
+/*        HttpClientBuilder b = HttpClientBuilder.create();
         List<Header> headers = Lists.newArrayList();
         headers.add(new BasicHeader(inOutProperties.getTokenName(), inOutProperties.getTokenValue()));
         b.setDefaultHeaders(headers);
@@ -2262,8 +2263,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(client);
         restTemplate.setRequestFactory(requestFactory);
-        restTemplate.setErrorHandler(errorHandler);
+        restTemplate.setErrorHandler(errorHandler);*/
         restTemplate.setInterceptors(Collections.singletonList(new JsonMimeInterceptor()));
+
         return restTemplate;
     }
 
