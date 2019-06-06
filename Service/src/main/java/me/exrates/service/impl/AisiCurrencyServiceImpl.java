@@ -184,6 +184,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
         }
         return responseEntity.getBody().balance;
 
+
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
