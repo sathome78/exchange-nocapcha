@@ -183,6 +183,7 @@ public class AisiCurrencyServiceImpl implements AisiCurrencyService {
             log.warn("Error : {}", ex.getMessage());
         }
         return responseEntity.getBody().balance;
+
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
