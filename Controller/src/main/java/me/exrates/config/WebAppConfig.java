@@ -1446,7 +1446,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Conditional(MonolitConditional.class)
     public EthTokenService crbtService() {
         List<String> tokensList = new ArrayList<>();
-        tokensList.add("0x2cf618c19041d9db330d8222b860a624021f30fb");
+        tokensList.add("0x6b7734c5ecc51116b806e2ea6decbb3b97f4f92e");
         return new EthTokenServiceImpl(
                 tokensList,
                 "CRBT",
