@@ -406,7 +406,9 @@ public class KYCServiceImpl implements KYCService {
 
         UserNotificationType type;
         String msg = String.format(emailMessagePattern, eventStatus);
-        if (eventStatus.equalsIgnoreCase("success")) {
+        if (eventStatus.equalsIgnoreCase("success")
+                || eventStatus.equalsIgnoreCase("verification.accepted")
+                || eventStatus.equalsIgnoreCase("verification.status.changed")) {
             type = UserNotificationType.SUCCESS;
         } else {
             type = UserNotificationType.ERROR;
