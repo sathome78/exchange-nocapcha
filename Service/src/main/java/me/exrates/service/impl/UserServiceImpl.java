@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -26,14 +27,7 @@ import me.exrates.model.dto.api.RateDto;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.NotificationTypeEnum;
-import me.exrates.model.enums.PolicyEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
@@ -59,6 +53,7 @@ import me.exrates.service.notifications.G2faService;
 import me.exrates.service.notifications.NotificationsSettingsService;
 import me.exrates.service.session.UserSessionService;
 import me.exrates.service.token.TokenScheduler;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +88,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.Validate.notNull;
 
 @Log4j2
 @Service
@@ -320,14 +318,10 @@ public class UserServiceImpl implements UserService {
         return userDao.userExistByEmail(email);
     }
 
-    public String logIP(String email, String host) {
-        int id = userDao.getIdByEmail(email);
-        String userIP = userDao.getIP(id);
-        if (userIP == null) {
-            userDao.setIP(id, host);
-        }
-        userDao.addIPToLog(id, host);
-        return userIP;
+    @Override
+    public void logIP(Integer id, String ip, UserEventEnum eventEnum, String url) {
+        Preconditions.checkState(nonNull(id) && !StringUtils.isEmpty(ip));
+        userDao.addIpToLog(id, ip, eventEnum, url);
     }
 
     private String generateRegistrationToken() {
