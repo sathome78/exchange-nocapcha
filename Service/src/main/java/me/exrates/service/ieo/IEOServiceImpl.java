@@ -17,6 +17,7 @@ import me.exrates.model.dto.ieo.ClaimDto;
 import me.exrates.model.dto.ieo.IEOStatusInfo;
 import me.exrates.model.dto.ieo.IeoDetailsCreateDto;
 import me.exrates.model.dto.ieo.IeoDetailsUpdateDto;
+import me.exrates.model.dto.kyc.EventStatus;
 import me.exrates.model.dto.kyc.KycCountryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.CurrencyPairType;
@@ -159,7 +160,7 @@ public class IEOServiceImpl implements IEOService {
         User user = userService.findByEmail(email);
 
         String statusKyc = userService.getUserKycStatusByEmail(email);
-        boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS");
+        boolean kycCheck = statusKyc.equalsIgnoreCase("SUCCESS") || statusKyc.equalsIgnoreCase(EventStatus.ACCEPTED.name());
         boolean checkCountry = false;
         KycCountryDto countryDto = null;
         if (kycCheck) {

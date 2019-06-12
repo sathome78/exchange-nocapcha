@@ -1056,6 +1056,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean updateKycStatus(String status) {
+        return userDao.updateKycStatusByEmail(getUserEmailFromSecurityContext(), status);
+    }
+
+    @Override
     public String getKycReferenceByEmail(String email) {
         return userDao.findKycReferenceByUserEmail(email);
     }

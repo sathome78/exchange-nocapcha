@@ -266,6 +266,8 @@ public interface UserService {
 
     boolean updateKycStatusByEmail(String email, String status);
 
+    boolean updateKycStatus(String status);
+
     String getKycReferenceByEmail(String email);
 
     boolean addPolicyToUser(String email, String policy);

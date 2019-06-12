@@ -416,10 +416,12 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean updateKycStatusByEmail(String email, String result) {
-        String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+        final String sql = "UPDATE USER SET kyc_status = :value WHERE email = :email";
+
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("value", result);
         params.addValue("email", email);
+
         try {
             return masterTemplate.update(sql, params) > 0;
         } catch (EmptyResultDataAccessException e) {
