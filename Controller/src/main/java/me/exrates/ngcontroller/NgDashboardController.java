@@ -2,6 +2,7 @@ package me.exrates.ngcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.OrdersValidationErrorInfo;
 import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -17,6 +18,7 @@ import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.exceptions.RabbitMqException;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgOrderValidationException;
 import me.exrates.model.ngExceptions.NgResponseException;
 import me.exrates.model.ngModel.response.ResponseModel;
 import me.exrates.model.ngUtil.PagedResult;
@@ -415,6 +417,14 @@ public class NgDashboardController {
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler({NgOrderValidationException.class})
+    @ResponseBody
+    public OrdersValidationErrorInfo OrderValidationErrorsHandler(HttpServletRequest req, Exception exception) {
+        NgOrderValidationException ex = (NgOrderValidationException) exception;
+        return new OrdersValidationErrorInfo(req.getRequestURL(), ex);
     }
 
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
