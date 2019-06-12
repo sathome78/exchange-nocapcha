@@ -14,10 +14,7 @@ import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.CallBackUrlAlreadyExistException;
@@ -64,14 +61,14 @@ public interface UserService {
 
     boolean userExistByEmail(String email);
 
-    String logIP(String email, String host);
-
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
     @Transactional(rollbackFor = Exception.class)
     boolean createUserRest(User user, Locale locale);
 
     int verifyUserEmail(String token);
+
+    void logIP(Integer userId, String ip, UserEventEnum eventEnum, String url);
 
     List<UserRole> getAllRoles();
 
