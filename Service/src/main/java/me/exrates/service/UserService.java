@@ -239,6 +239,8 @@ public interface UserService {
 
     VerificationStep getVerificationStep();
 
+    VerificationStep getVerificationStep(String userEmail);
+
     int updateReferenceId(String referenceId);
 
     String getEmailByReferenceId(String referenceId);
@@ -265,6 +267,8 @@ public interface UserService {
     User findByKycReferenceId(String referenceId);
 
     boolean updateKycStatusByEmail(String email, String status);
+
+    boolean updateKycStatus(String status);
 
     String getKycReferenceByEmail(String email);
 
