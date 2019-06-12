@@ -20,13 +20,7 @@ import me.exrates.model.dto.UserShortDto;
 import me.exrates.model.dto.UsersInfoDto;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.AdminAuthority;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.PolicyEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserIpState;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
@@ -578,11 +572,14 @@ public class UserDaoImpl implements UserDao {
         return masterTemplate.update(sql, namedParameters) > 0;
     }
 
-    public boolean addIPToLog(int userId, String ip) {
-        String sql = "insert INTO IP_Log (ip,user_id) values(:ip,:userId)";
-        Map<String, String> namedParameters = new HashMap<String, String>();
+    @Override
+    public boolean addIpToLog(Integer userId, String ip, UserEventEnum eventEnum, String url) {
+        String sql = "insert INTO IP_Log (ip, user_id, event, url) values(:ip, :userId, :event, :url)";
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("ip", ip);
-        namedParameters.put("userId", String.valueOf(userId));
+        namedParameters.put("userId", userId);
+        namedParameters.put("event", eventEnum.name());
+        namedParameters.put("url", url);
         return masterTemplate.update(sql, namedParameters) > 0;
     }
 
