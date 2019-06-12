@@ -1,5 +1,5 @@
 UPDATE MERCHANT
-SET tokens_parrent_id = 16
+SET tokens_parrent_id = 16, service_bean_name = 'ethereumServiceImpl'
 WHERE name = 'GAPI';
 
 UPDATE MERCHANT_CURRENCY
