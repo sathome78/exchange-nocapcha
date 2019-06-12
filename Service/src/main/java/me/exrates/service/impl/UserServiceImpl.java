@@ -915,6 +915,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public VerificationStep getVerificationStep(String userEmail) {
+        final int verificationStep = userDao.getVerificationStep(userEmail);
+
+        return VerificationStep.of(verificationStep);
+    }
+
+    @Override
     public int updateReferenceId(String referenceId) {
         return userDao.updateReferenceId(referenceId, getUserEmailFromSecurityContext());
     }
@@ -1053,6 +1060,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updateKycStatusByEmail(String email, String status) {
         return userDao.updateKycStatusByEmail(email, status);
+    }
+
+    @Override
+    public boolean updateKycStatus(String status) {
+        return userDao.updateKycStatusByEmail(getUserEmailFromSecurityContext(), status);
     }
 
     @Override
