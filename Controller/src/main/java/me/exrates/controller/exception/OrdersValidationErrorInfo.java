@@ -6,10 +6,10 @@ import me.exrates.model.ngExceptions.NgOrderValidationException;
 
 public class OrdersValidationErrorInfo extends ErrorInfo {
 
-    private OrderValidationDto validationResults;
+    public OrderValidationDto validationResults;
 
     public OrdersValidationErrorInfo(CharSequence url, NgOrderValidationException ex) {
         super(url, ex);
-        validationResults = ex.getValidationResults();
+        this.validationResults = ex.getValidationResults();
     }
 }
