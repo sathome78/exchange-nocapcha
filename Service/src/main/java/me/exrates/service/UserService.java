@@ -239,6 +239,8 @@ public interface UserService {
 
     VerificationStep getVerificationStep();
 
+    VerificationStep getVerificationStep(String userEmail);
+
     int updateReferenceId(String referenceId);
 
     String getEmailByReferenceId(String referenceId);
