@@ -310,12 +310,12 @@
             <version>${scala.version}</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.imagination</groupId>-->
-<!--            <artifactId>comparator</artifactId>-->
-<!--            <version>1.1</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.imagination</groupId>-->
+        <!--            <artifactId>comparator</artifactId>-->
+        <!--            <version>1.1</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>comparator</groupId>
             <artifactId>comparator</artifactId>
@@ -536,6 +536,11 @@
             <groupId>me.exrates</groupId>
             <artifactId>ssm-integration</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>me.exrates</groupId>
+            <artifactId>shaded</artifactId>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.yandex.money.api</groupId>
