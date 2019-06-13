@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantSpecParamsDao;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.MerchantSpecParamDto;
 import me.exrates.model.dto.MosaicIdDto;
 import me.exrates.model.dto.NemMosaicTransferDto;
@@ -20,13 +21,15 @@ import org.nem.core.serialization.JsonDeserializer;
 import org.nem.core.serialization.SimpleAccountLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemRecieveTransactionsService {
 
     @Autowired
@@ -68,7 +72,7 @@ public class NemRecieveTransactionsService {
 
     @PostConstruct
     private void init() {
-        scheduler.scheduleAtFixedRate(this::checkTransactions, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::checkTransactions, 0, 5, TimeUnit.MINUTES);
     }
 
 

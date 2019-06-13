@@ -8,8 +8,10 @@
 <head>
   <meta charset="utf-8"/>
   <!--[if lt IE 9]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <%--script not found--%>
+  <!--<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script-->><![endif]-->
   <title><loc:message code="admin.withdrawRequests"/></title>
+  <%@include file="../jsp/tools/google_head.jsp"%>
   <meta name="keywords" content=""/>
   <meta name="description" content=""/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -19,13 +21,23 @@
   <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
+  <%--delete?--%>
   <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
+
   <script type="text/javascript" src="<c:url value='/client/js/inputOutput/withdrawal.js'/>"></script>
 
+  <style>
+    img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
 </head>
 
 <body id="withdraw-requests-admin">
 <%@include file='fragments/header-simple.jsp' %>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>

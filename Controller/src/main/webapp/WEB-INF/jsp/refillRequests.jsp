@@ -9,6 +9,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
     <title><loc:message code="admin.refillRequests"/></title>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <meta name="keywords" content="" />
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,6 +27,7 @@
 
 <body id="refill-requests-admin">
 <%@include file='fragments/header-simple.jsp'%>
+<%@include file="../jsp/tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
@@ -40,6 +42,8 @@
                         <loc:message code="admin.refill.confirmationCollecting"/></button>
                     <button id="refill-requests-All" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.refill.All"/></button>
+                    <button id="refill-requests-created-by-fact" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.createdByFact"/></button>
                     <button id="refill-requests-accepted" class="myorders__button green-box margin-box">
                         <loc:message code="admin.refill.accepted"/></button>
                     <button id="refill-requests-declined" class="myorders__button red-box margin-box">
@@ -224,6 +228,8 @@
                     <th><loc:message code="refill.commission"/></th>
                     <th><loc:message code="refill.enrolledAmount"/></th>
                     <th><loc:message code="refill.merchant"/></th>
+                    <th><loc:message code="refill.status"/></th>
+                    <th><loc:message code="refill.action"/></th>
                     <th></th>
                 </tr>
                 </thead>

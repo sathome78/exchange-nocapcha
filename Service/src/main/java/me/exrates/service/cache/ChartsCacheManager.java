@@ -42,7 +42,6 @@ public class ChartsCacheManager {
 
     @Async
     public void onUpdateEvent(int pairId) {
-        log.debug("trigger update for {}", pairId);
         List<ChartTimeFrame> allIntervals = orderService.getChartTimeFrames();
         allIntervals.forEach(p -> setNeedUpdate(pairId, p));
         /*List<ChartTimeFrame> subscribedTimeFrames = stompMessenger.getSubscribedTimeFramesForCurrencyPair(pairId);
@@ -56,7 +55,6 @@ public class ChartsCacheManager {
 
 
     private void setNeedUpdate(Integer pairId, ChartTimeFrame timeFrame) {
-        log.debug("set need update {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
         cacheUnit.setNeedToUpdate();
     }
@@ -67,7 +65,6 @@ public class ChartsCacheManager {
     }
 
     public List<CandleChartItemDto> getData(Integer pairId, ChartTimeFrame timeFrame, boolean lastOnly) {
-        log.debug("get data for {} - {}", pairId, timeFrame.getResolution());
         ChartsCacheInterface cacheUnit = getRequiredCache(pairId, timeFrame);
         return lastOnly ? cacheUnit.getLastData() : cacheUnit.getData();
     }
@@ -91,7 +88,7 @@ public class ChartsCacheManager {
     }
 
 
-    @Async
+    /*@Async
     @EventListener
     void handleChartUpdate(ChartCacheUpdateEvent event) {
         List<CandleChartItemDto> data = (List<CandleChartItemDto>)event.getSource();
@@ -99,10 +96,13 @@ public class ChartsCacheManager {
         stompMessenger.sendChartData(event.getPairId(),
                 event.getTimeFrame().getResolution().toString(),
                 dataToSend);
-    }
+    }*/
 
     private String prepareDataToSend(List<CandleChartItemDto> data, Integer currencyPairId, final ChartTimeFrame backDealInterval) {
-        List<CandleDto> resultData = data.stream().map(CandleDto::new).collect(Collectors.toList());
+        List<CandleDto> resultData = data
+                .stream()
+                .map(CandleDto::new)
+                .collect(Collectors.toList());
         try {
             return objectMapper.writeValueAsString(resultData);
         } catch (JsonProcessingException e) {

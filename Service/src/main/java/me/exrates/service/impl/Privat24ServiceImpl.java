@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.OkHttpClient;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
@@ -10,10 +11,12 @@ import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ import java.util.Map;
 
 @Service
 @PropertySource("classpath:/merchants/privat24.properties")
+@Conditional(MonolitConditional.class)
 public class Privat24ServiceImpl implements Privat24Service {
 
     private @Value("${privat24.url}") String url;
@@ -46,6 +50,8 @@ public class Privat24ServiceImpl implements Privat24Service {
     @Autowired
     private AlgorithmService algorithmService;
 
+    @Autowired
+    private WithdrawUtils withdrawUtils;
 
     @Override
     @Transactional
@@ -109,6 +115,12 @@ public class Privat24ServiceImpl implements Privat24Service {
     @Override
     public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         throw new NotImplimentedMethod("for "+params);
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 }

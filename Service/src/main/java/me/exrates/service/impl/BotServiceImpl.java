@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.BotDao;
 import me.exrates.model.*;
@@ -8,10 +7,9 @@ import me.exrates.model.dto.BotTradingSettingsShortDto;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.*;
 import me.exrates.service.*;
-import me.exrates.service.events.CreateOrderEvent;
 import me.exrates.service.exception.BotException;
-import me.exrates.service.exception.InsufficientCostsForAcceptionException;
-import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.process.InsufficientCostsForAcceptionException;
+import me.exrates.service.exception.process.OrderAcceptionException;
 import me.exrates.service.job.bot.BotCreateOrderJob;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.quartz.*;
@@ -21,7 +19,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -74,6 +71,7 @@ public class BotServiceImpl implements BotService {
     @PostConstruct
     private void initBot() {
         retrieveBotFromDB().ifPresent(botTrader -> {
+            log.debug("init bot {}", botTrader);
             if (botTrader.isEnabled()) {
                 scheduleJobsForActiveCurrencyPairs(botTrader.getId());
             }
@@ -111,7 +109,7 @@ public class BotServiceImpl implements BotService {
                         try {
                             Thread.sleep(botTrader.getAcceptDelayInMillis());
                             log.debug("Accepting order: {}", exOrder);
-                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH);
+                            orderService.acceptOrdersList(botTrader.getUserId(), Collections.singletonList(exOrder.getId()), Locale.ENGLISH, null, false);
                         } catch (InsufficientCostsForAcceptionException e) {
                             Email email = new Email();
                             email.setMessage("Insufficient costs on bot account");
@@ -152,7 +150,7 @@ public class BotServiceImpl implements BotService {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(UserRole.BOT_TRADER);
-        user.setStatus(UserStatus.ACTIVE);
+        user.setUserStatus(UserStatus.ACTIVE);
 
         userService.createUserByAdmin(user);
         Integer userId = userService.getIdByEmail(email);
@@ -191,6 +189,7 @@ public class BotServiceImpl implements BotService {
 
     private void runOrderCreationSequence(CurrencyPair currencyPair, OrderType orderType, BotTrader botTrader) {
         botDao.retrieveBotTradingSettingsForCurrencyPairAndOrderType(botTrader.getId(), currencyPair.getId(), orderType).ifPresent(settings -> {
+            log.debug(botTrader.getId() + " cp " + currencyPair.getId() + " type " + orderType + settings);
             BotTradingCalculator calculator = new BotTradingCalculator(settings);
             String userEmail = userService.getEmailById(botTrader.getUserId());
             OperationType operationType = OperationType.valueOf(orderType.name());
@@ -231,6 +230,7 @@ public class BotServiceImpl implements BotService {
     @Transactional(rollbackFor = Exception.class)
     public void enableBotForCurrencyPair(Integer currencyPairId, Locale locale) {
         retrieveBotFromDB().ifPresent(bot -> {
+            log.debug(bot);
             if (bot.isEnabled()) {
                 BotLaunchSettings launchSettings =  botDao.retrieveBotLaunchSettingsForCurrencyPair(bot.getId(), currencyPairId);
                 if (!launchSettings.isEnabledForPair()) {

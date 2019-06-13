@@ -6,6 +6,7 @@ import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.CacheData;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,5 +50,7 @@ public interface NotificationService {
   List<NotificationOption> getNotificationOptionsByUser(Integer userId);
 
   void updateUserNotifications(List<NotificationOption> options);
+
+  void updateNotificationOptionsForUser(int userId, List<NotificationOption> options);
 
 }

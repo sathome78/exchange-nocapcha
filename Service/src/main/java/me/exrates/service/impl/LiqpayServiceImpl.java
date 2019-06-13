@@ -4,6 +4,7 @@ package me.exrates.service.impl;
 
 import com.google.gson.Gson;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
@@ -11,10 +12,12 @@ import me.exrates.service.LiqpayService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/liqpay.properties")
+@Conditional(MonolitConditional.class)
 public class LiqpayServiceImpl implements LiqpayService {
 
   private @Value("${liqpay.url}") String url;
@@ -46,6 +50,8 @@ public class LiqpayServiceImpl implements LiqpayService {
   @Autowired
   private AlgorithmService algorithmService;
 
+  @Autowired
+  private WithdrawUtils withdrawUtils;
 
   @Transactional
   public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
@@ -156,4 +162,11 @@ public class LiqpayServiceImpl implements LiqpayService {
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     throw new NotImplimentedMethod("for " + params);
   }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
+  }
+
 }

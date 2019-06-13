@@ -6,16 +6,13 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
-<%--CAPTCHA--%>
-<%@ taglib prefix="botDetect" uri="botDetect" %>
-<%--CAPTCHA--%>
+
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/login.js'/>"></script>
-
-
+<link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -27,6 +24,8 @@
                                 && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
 <c:set var="showRegistration" value="${(path != '/register')}"/>
+
+<%@include file="banner.jsp"%>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -34,8 +33,13 @@
         <div class="cols-md-8">
             <ul class="nav header__nav">
                 <li>
-                    <a class="nav__link" href="<c:url value='/ico_dashboard'/>">
-                        ICO
+                    <a class="nav__link predictions" href="<c:url value='https://predictionlab.exrates.me/'/>" target="_blank">
+                        Predictions
+                    </a>
+                </li>
+                <li>
+                    <a class="nav__link ieo-text" href="<c:url value='/ieo_dashboard'/>">
+                        IEO
                     </a>
                 </li>
                 <sec:authorize access="isAuthenticated()">
@@ -47,8 +51,8 @@
                     </li>
                     <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
-                    <loc:message code="dashboard.support"/></a>
+                <li><a href="<c:url value="https://news.exrates.me" />" target="_blank" class="nav__link">
+                    <loc:message code="dashboard.news"/></a>
                 </li>
 
                 <sec:authorize access="isAuthenticated()">
@@ -71,19 +75,8 @@
                     </li>
                 </sec:authorize>
 
-
-                    <li>
-                        <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
-                           class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
-                    </li>
-                    <li>
-                        <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
-                           class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
-                    </li>
-
                     <sec:authorize access="isAuthenticated()">
                         <li id="hello-my-friend"><a class="nav__link" href="">
-
                             <strong><sec:authentication property="principal.username"/></strong></a>
                         </li>
                     </sec:authorize>
@@ -91,7 +84,6 @@
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
                         <li class="pull-left paddingtop10"> <a id="login_link" data-fancybox href="#login" class="focus-white nav__link"><loc:message code="dashboard.loginText"/></a></li>
-                        <%--<a id="login_link" data-fancybox href="#login" class="demo-bar-item">login</a>--%>
                     </sec:authorize>
                 </ul>
             </ul>
@@ -103,7 +95,6 @@
                     <c:if test="${showRegistration}">
                         <li class="pull-left paddingtop10"> <a id="regT" data-fancybox href="#registration" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
-                    <%--<a id="regT" data-fancybox href="#registration" class="demo-bar-item">registration</a>--%>
                 </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
                     <li class="">
@@ -128,6 +119,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a href="#" class="language">KO</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -211,10 +203,13 @@
                         </c:otherwise>
                     </c:choose>
                     <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
-                        Wrong email
+                        <loc:message code="register.emailWrong"/>
                     </div>
                     <div id="email_pwd_restore_notExist" class='field__error' style="display:none">
                         <loc:message code="login.notExists.email"/>
+                    </div>
+                    <div id="ip_banned_incorrect_attempts_exceeded_recover" class='field__error' style="display:none">
+                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
                 </div>
 
@@ -257,44 +252,42 @@
                             <input id="pin" name="l_pin" type="text" placeholder="${pin}" class="form-control input-block-wrapper__input"/>
                         </div>
                         <div id="email_pwd_restore_wrong" class='field__error' style="display:none">
-                            Wrong email
+                            <loc:message code="register.emailWrong"/>
                         </div>
                     </div>
-
-                    <a id="send_pin_again" class="btn btn-link" style="margin-left: 90px;"><loc:message code="login.pin.sendagain"/></a>
-
                     <div id="send_pin_res"></div>
                     <br>
 
                     <div class="field field--btn__new">
-                        <input id="pin_2fa_login_submit" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
+                        <input id="pin_2fa_login_submit" onclick="sendLoginSuccessGtag()" class="btn__new btn__new--form" type="submit" value='<loc:message code="login.submit"/>'/>
                     </div>
                 </form>
             </div>
         </div>
     <%--PIN | END--%>
 
+    <%-- Regitration with referral link | START --%>
+    <a id="pwd_referral_link_for_registration_hide" data-fancybox href="#registration" class="popup__bottom-link" style="display: none"><loc:message code="usermenu.referral"/></a>
+    <input id="referral_link_for_registration" hidden value='${refferalLink}'/>
+    <%-- Regitration with referral link | END --%>
+
+    <%-- Regitration | START --%>
     <div id="registration" class="popup">
         <div class="popup__inner">
             <div class="popup__caption">Registration</div>
 
             <form id="create_me" class="form" method="post">
                 <input id="csrfC" type="hidden"  class="csrfC" name="_csrf"/>
-                <%--<div class="field">--%>
-                    <%--<div class="field__label">Nickname</div>--%>
-                    <%--<input id="nickname" class="field__input" type="text" name="nickname" placeholder="Nickname" required>--%>
-                    <%--<div id="nickname_exists" class='field__error' style="display:none">--%>
-                        <%--Nichname exists--%>
-                    <%--</div>--%>
-                    <%--<div id="nichname_wrong" class='field__error' style="display:none">--%>
-                        <%--Wrong nichname--%>
-                    <%--</div>--%>
-                <%--</div>--%>
+                <input id="userParentEmail" name="parentEmail" hidden value='${parentEmail}'>
+
                 <div class="field">
-                    <div class="field__label">Email</div>
+                    <div id="email_label" class="field__label">Email</div>
                     <input id="email" class="field__input" type="email" name="email" placeholder="Email" required>
                     <div id="reg__email_exists" class='field__error' style="display:none">
                         <loc:message code="register.emailExists"/>
+                    </div>
+                    <div id="ip_banned_incorrect_attempts_exceeded" class='field__error' style="display:none">
+                        <loc:message code="ip.ban.message.incorrectAttemptsExceeded"/>
                     </div>
                     <div id="reg__email_wrong" class='field__error' style="display:none">
                         <loc:message code="register.emailWrong"/>
@@ -322,6 +315,7 @@
             </form>
         </div>
     </div>
+    <%-- Regitration | END --%>
 
     <a id="pwd_unverifiedUser_hide" data-fancybox href="#pwd_unverifiedUser" class="popup__bottom-link" style="display: none"><loc:message code="register.unconfirmedUser"/></a>
 
@@ -377,7 +371,7 @@
             <div class="popup__caption">Confirm the email</div>
 
             <div class="popup__text">
-                We sended the confirmation link to<br>
+                We've sent the confirmation link to<br>
                 <a id="confirm_email" href="" class="popup__text-link"></a>
             </div>
             <div class="popup__text">
@@ -422,14 +416,50 @@
 
 </header>
 
-<%--capcha--%>
-<c:if test="${showEntrance && !isAuth && captchaType==\"RECAPTCHA\"}">
-    <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
-    <c:set value="${pageContext.response.locale}" var="locale"></c:set>
-    <c:if test="${locale=='cn'}">
-        <c:set value="zh-CN" var="locale"></c:set>
-    </c:if>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackHead&render=explicit&hl=${locale}"
-            async defer>
-    </script>
-</c:if>
+<style>
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+    .ieo-text{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .ieo-text:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'Soon';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>

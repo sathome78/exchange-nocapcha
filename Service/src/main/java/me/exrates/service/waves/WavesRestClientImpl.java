@@ -2,25 +2,22 @@ package me.exrates.service.waves;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.waves.WavesAddress;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.exception.WavesRestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -30,6 +27,7 @@ import java.util.stream.Collectors;
 @Log4j2(topic = "waves_log")
 @Service
 @Scope("prototype")
+@Conditional(MonolitConditional.class)
 public class WavesRestClientImpl implements WavesRestClient {
 
     @Autowired
@@ -103,9 +101,17 @@ public class WavesRestClientImpl implements WavesRestClient {
         Map<String, Object> params = new HashMap<>();
         params.put("address", address);
         params.put("limit", MAX_TRANSACTION_QUERY_LIMIT);
-        ResponseEntity<List<List<WavesTransaction>>> transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
-                HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+
+        ResponseEntity<List<List<WavesTransaction>>> transactionsResult;
+        try {
+            transactionsResult = restTemplate.exchange(generateBaseUrl() + accountTransactionsEndpoint,
+                    HttpMethod.GET, new HttpEntity<>(""), new ParameterizedTypeReference<List<List<WavesTransaction>>>() {}, params);
+        }catch (Exception jsonEx) {
+                log.error(jsonEx);
+                return null;
+        }
         return transactionsResult.getBody().stream().flatMap(List::stream).collect(Collectors.toList());
+
     }
 
 

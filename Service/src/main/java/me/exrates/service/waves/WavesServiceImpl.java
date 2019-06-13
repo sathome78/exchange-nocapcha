@@ -1,58 +1,80 @@
 package me.exrates.service.waves;
 
+import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Email;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MerchantCurrencyBasicInfoDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.RefillRequestSetConfirmationsNumberDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.merchants.waves.WavesPayment;
 import me.exrates.model.dto.merchants.waves.WavesTransaction;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.SendMailService;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.UnknownAssetIdException;
+import me.exrates.service.exception.WavesPaymentProcessingException;
+import me.exrates.service.exception.WavesRestException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.ParamMapUtils;
+import me.exrates.service.util.WithdrawUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2(topic = "waves_log")
 public class WavesServiceImpl implements WavesService {
 
     @Autowired
     private WavesRestClient restClient;
-
     @Autowired
     private RefillService refillService;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private SendMailService sendMailService;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private Integer minConfirmations;
     private String mainAccount;
     private String feeAccount;
     private String notifyEmail;
-    private  final Locale notifyEmailLocale = new Locale("RU");
+    private final Locale notifyEmailLocale = new Locale("RU");
 
     private final int WAVES_AMOUNT_SCALE = 8;
     private final long WAVES_DEFAULT_FEE = 100000L;
@@ -84,14 +106,19 @@ public class WavesServiceImpl implements WavesService {
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        String address = restClient.generateNewAddress();
-        String message = messageSource.getMessage("merchants.refill.btc",
-                new Object[]{address}, request.getLocale());
-        return new HashMap<String, String>() {{
-            put("message", message);
-            put("address", address);
-            put("qr", address);
-        }};
+     try {
+         String address = restClient.generateNewAddress();
+         String message = messageSource.getMessage("merchants.refill.btc",
+                 new Object[]{address}, request.getLocale());
+         return new HashMap<String, String>() {{
+             put("message", message);
+             put("address", address);
+             put("qr", address);
+         }};
+     } catch (Exception e){
+         log.error(e);
+         throw e;
+     }
     }
 
     @PostConstruct
@@ -107,7 +134,7 @@ public class WavesServiceImpl implements WavesService {
             initAssets(props);
             long processFixedDelay = Long.parseLong(props.getProperty("waves.process.delay"));
 
-            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 1L, processFixedDelay, TimeUnit.MINUTES);
+            scheduler.scheduleAtFixedRate(this::processWavesTransactionsForKnownAddresses, 3L, processFixedDelay, TimeUnit.MINUTES);
 
         } catch (Exception e) {
             log.error(e);
@@ -127,6 +154,7 @@ public class WavesServiceImpl implements WavesService {
         processWavesPayment(wavesTransaction, blockHeight);
     }
 
+    @Synchronized
     private void processWavesPayment(WavesTransaction transaction, int lastBlockHeight) {
         log.debug("Processing tx: " + transaction);
         int merchantId;
@@ -145,6 +173,9 @@ public class WavesServiceImpl implements WavesService {
             merchantId = assetInfo.getMerchantId();
             currencyId = assetInfo.getCurrencyId();
             requestAmount = scaleFromLong(transaction.getAmount(), assetInfo.getRefillScale());
+        }
+        if (isTransactionDuplicate(transaction.getId(), currencyId, merchantId)) {
+            throw new RuntimeException(String.format("transaction %s currency %d, allready received", transaction.getId(), currencyId));
         }
         Optional<RefillRequestFlatDto> refillRequestResult =
                 refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipient(),
@@ -273,8 +304,27 @@ public class WavesServiceImpl implements WavesService {
         try {
             sendTransaction(dto.getAddress(), mainAccount, dto.getAmount(), assetId);
             log.debug("Providing transaction!");
-            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.of(dto);
+            Integer requestId = dto.getRequestId();
+
+            RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+                    .address(dto.getAddress())
+                    .amount(dto.getAmount())
+                    .currencyId(dto.getCurrencyId())
+                    .merchantId(dto.getMerchantId())
+                    .merchantTransactionId(dto.getHash())
+                    .build();
+
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+            final String username = refillService.getUserGAByRequestId(requestId);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(requestAcceptDto.getAmount().toString(), currencyBase.getName(), username);
         } catch (Exception e) {
             log.error(e);
         }
@@ -298,12 +348,12 @@ public class WavesServiceImpl implements WavesService {
             email.setTo(notifyEmail);
             email.setSubject(messageSource.getMessage("fee.wallet.insufficientCosts.title", null,
                     notifyEmailLocale));
-            email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[] {currencyBase.getName(),
+            email.setMessage(messageSource.getMessage("fee.wallet.insufficientCosts.body", new Object[]{currencyBase.getName(),
                     feeAccount}, notifyEmailLocale));
 
             sendMailService.sendInfoMail(email);
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             log.error(e);
         }
     }
@@ -327,7 +377,7 @@ public class WavesServiceImpl implements WavesService {
         payment.setRecipient(recipientAddress);
         payment.setAmount(unscaleToLong(amount, scale));
         payment.setFee(WAVES_DEFAULT_FEE);
-  //      payment.setFeeAssetId(assetId);
+        //      payment.setFeeAssetId(assetId);
         return restClient.transferCosts(payment);
     }
 
@@ -343,6 +393,13 @@ public class WavesServiceImpl implements WavesService {
     public void shutdown() {
         scheduler.shutdown();
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
+    }
+
 
     void initAssets(Properties wavesProps) {
         currencyBase = currencyService.findByName(currencyBaseName);
@@ -381,6 +438,11 @@ public class WavesServiceImpl implements WavesService {
         } catch (Exception e) {
             throw new MerchantException(e);
         }
+    }
+
+    private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
+        return StringUtils.isEmpty(hash)
+                || refillService.getRequestIdByMerchantIdAndCurrencyIdAndHash(merchantId, currencyId, hash).isPresent();
     }
 
     void setMinConfirmations(Integer minConfirmations) {

@@ -8,7 +8,6 @@ import me.exrates.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +25,8 @@ public class ExratesRetrievalService implements StockExrateRetrievalService {
     public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         return orderService.getCoinmarketDataForActivePairs("", new BackDealInterval("24 HOUR"))
                 .stream()
-                .map(dto -> new StockExchangeStats(dto, stockExchange)).collect(Collectors.toList());
+                .map(dto -> new StockExchangeStats(dto, stockExchange))
+                .collect(Collectors.toList());
     }
 
 }

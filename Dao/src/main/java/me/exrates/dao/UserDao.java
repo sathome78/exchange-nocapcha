@@ -1,145 +1,155 @@
 package me.exrates.dao;
 
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
+import me.exrates.model.AdminAuthorityOption;
+import me.exrates.model.Comment;
+import me.exrates.model.PagingData;
+import me.exrates.model.Policy;
+import me.exrates.model.TemporalToken;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserBalancesDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserShortDto;
+import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 
 public interface UserDao {
 
-  int getIdByNickname(String nickname);
+    int getIdByNickname(String nickname);
 
-  boolean setNickname(User user);
+    boolean setNickname(String newNickName, String userEmail);
 
-  boolean create(User user);
+    boolean create(User user);
 
-  void createUserDoc(int userId, List<Path> paths);
+    void createUserDoc(int userId, List<Path> paths);
 
-  void setUserAvatar(int userId, String path);
+    void setUserAvatar(int userId, String path);
 
-  List<UserFile> findUserDoc(int userId);
+    List<UserFile> findUserDoc(int userId);
 
-  void deleteUserDoc(int docId);
+    void deleteUserDoc(int docId);
 
-  List<UserRole> getAllRoles();
+    List<UserRole> getAllRoles();
 
-  List<User> getUsersByRoles(List<UserRole> listRoles);
+    List<User> getUsersByRoles(List<UserRole> listRoles);
 
-  UserRole getUserRoleById(Integer id);
+    UserRole getUserRoleById(Integer id);
 
-  List<String> getUserRoleAndAuthorities(String email);
+    List<String> getUserRoleAndAuthorities(String email);
 
-  List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
+    List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
 
-  boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
+    boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
 
-  boolean hasAdminAuthorities(Integer userId);
+    boolean hasAdminAuthorities(Integer userId);
 
-  void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);
+    void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);
 
-  boolean removeUserAuthorities(Integer userId);
+    boolean removeUserAuthorities(Integer userId);
 
 
-  User findByEmail(String email);
+    User findByEmail(String email);
 
-  PagingData<List<User>> getUsersByRolesPaginated(List<UserRole> roles, int offset, int limit,
-                                                  String orderColumnName, String orderDirection,
-                                                  String searchValue);
+    PagingData<List<User>> getUsersByRolesPaginated(List<UserRole> roles, int offset, int limit,
+                                                    String orderColumnName, String orderDirection,
+                                                    String searchValue);
 
-  String getBriefInfo(int login);
+    boolean ifNicknameIsUnique(String nickname);
 
-  boolean ifNicknameIsUnique(String nickname);
+    boolean ifEmailIsUnique(String email);
 
-  boolean ifPhoneIsUnique(int phone);
+    String getIP(int userId);
 
-  boolean ifEmailIsUnique(String email);
+    boolean setIP(int id, String ip);
 
-  String getIP(int userId);
+    int getIdByEmail(String email);
 
-  boolean setIP(int id, String ip);
 
-  int getIdByEmail(String email);
+    boolean addIpToLog(Integer userId, String ip, UserEventEnum eventEnum, String url);
 
-  boolean addIPToLog(int userId, String ip);
+    boolean update(UpdateUserDto user);
 
-  boolean update(UpdateUserDto user);
+    Optional<String> findKycReferenceByEmail(String email);
 
     UserShortDto findShortByEmail(String email);
 
+    boolean updateKycStatusByEmail(String email, String result);
+
     User findByNickname(String nickname);
 
-  List<User> getAllUsers();
+    List<User> getAllUsers();
 
-  User getUserById(int id);
+    User getUserById(int id);
 
-  User getCommonReferralRoot();
+    User getCommonReferralRoot();
 
-  void updateCommonReferralRoot(int userId);
+    void updateCommonReferralRoot(int userId);
 
-  UserRole getUserRoles(String email);
+    UserRole getUserRoles(String email);
 
-  boolean createTemporalToken(TemporalToken token);
+    boolean createTemporalToken(TemporalToken token);
 
-  TemporalToken verifyToken(String token);
+    TemporalToken verifyToken(String token);
 
-  boolean deleteTemporalToken(TemporalToken token);
+    boolean deleteTemporalToken(TemporalToken token);
 
-  /**
-   * Delete all tokens for user with concrete TokenType.
-   * Uses in "Send again" in registration.
-   * @param token (TemporalToken)
-   * @return boolean (false/true)
-   */
-  boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
+    boolean deleteTemporalToken(String tempToken);
 
-  List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
+    /**
+     * Delete all tokens for user with concrete TokenType.
+     * Uses in "Send again" in registration.
+     *
+     * @param token (TemporalToken)
+     * @return boolean (false/true)
+     */
+    boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
 
-  boolean updateUserStatus(User user);
+    List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
-  List<TemporalToken> getAllTokens();
+    boolean updateUserStatus(User user);
 
-  boolean delete(User user);
+    List<TemporalToken> getAllTokens();
 
-  String getPreferredLang(int userId);
+    boolean delete(User user);
 
-  boolean setPreferredLang(int userId, Locale locale);
+    String getPreferredLang(int userId);
 
-  String getPreferredLangByEmail(String email);
+    boolean setPreferredLang(int userId, Locale locale);
 
-  boolean insertIp(String email, String ip);
+    String getPreferredLangByEmail(String email);
 
-  UserIpDto getUserIpState(String email, String ip);
+    boolean insertIp(String email, String ip);
 
-  boolean setIpStateConfirmed(int userId, String ip);
+    UserIpDto getUserIpState(String email, String ip);
 
-  boolean setLastRegistrationDate(int userId, String ip);
+    boolean setIpStateConfirmed(int userId, String ip);
 
-  Long saveTemporaryPassword(Integer userId, String password, Integer tokenId);
+    boolean setLastRegistrationDate(int userId, String ip);
 
-  TemporaryPasswordDto getTemporaryPasswordById(Long id);
+    Long saveTemporaryPassword(Integer userId, String password, Integer tokenId);
 
-  boolean updateUserPasswordFromTemporary(Long tempPassId);
+    boolean deleteTemporaryPassword(Long id);
 
-  boolean deleteTemporaryPassword(Long id);
+    List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-  boolean tempDeleteUser(int id);
-
-  boolean tempDeleteUserWallets(int userId);
-
-  List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
-
-  String getAvatarPath(Integer userId);
-
-  Collection<Comment> getUserComments(int id);
+    Collection<Comment> getUserComments(int id);
 
     Optional<Comment> getCommentById(int id);
 
@@ -149,32 +159,92 @@ public interface UserDao {
 
     boolean deleteUserComment(int id);
 
-  Integer retrieveNicknameSearchLimit();
+    void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 
-  List<String> findNicknamesByPart(String part, Integer limit);
+    InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
-  void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
+    String getEmailById(Integer id);
 
-  InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
+    String getEmailByPubId(String pubId);
 
-  String getEmailById(Integer id);
-  
-  UserRole getUserRoleByEmail(String email);
+    String getPubIdByEmail(String email);
 
-  void savePollAsDoneByUser(String email);
+    UserRole getUserRoleByEmail(String email);
 
-  boolean checkPollIsDoneByUser(String email);
+    void savePollAsDoneByUser(String email);
 
-  boolean updateLast2faNotifyDate(String email);
+    boolean checkPollIsDoneByUser(String email);
 
-  LocalDate getLast2faNotifyDate(String email);
+    String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
 
-  List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
+    void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
 
-  String getPinByEmailAndEvent(String email, NotificationMessageEventEnum event);
+    UsersInfoDto getUsersInfo(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
 
-  void updatePinByUserEmail(String userEmail, String pin, NotificationMessageEventEnum event);
+    List<UserBalancesDto> getUserBalances(List<UserRole> userRoles);
+
+    User getUserByTemporalToken(String token);
+
+    String getPassword(int userId);
+
+    Integer updateGaTag(String gatag, String userName);
+
+    int getVerificationStep(String userEmail);
+
+    boolean userExistByEmail(String email);
+
+    String getAvatarPath(Integer userId);
+
+    List<Integer> findFavouriteCurrencyPairsById(int userId);
+
+    boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
+
+    int updateReferenceId(String referenceId, String userEmail);
+
+    String getReferenceIdByUserEmail(String userEmail);
+
+    String getEmailByReferenceId(String referenceId);
+
+    int updateVerificationStep(String userEmail);
+
+    TemporaryPasswordDto getTemporaryPasswordById(Long id);
+
+    boolean updateUserPasswordFromTemporary(Long tempPassId);
+
+    boolean tempDeleteUserWallets(int userId);
+
+    boolean tempDeleteUser(int id);
+
+    Integer retrieveNicknameSearchLimit();
+
+    List<String> findNicknamesByPart(String part, Integer limit);
+
+    boolean updateLast2faNotifyDate(String email);
+
+    List<UserIpReportDto> getUserIpReportByRoleList(List<Integer> userRoleList);
 
     Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
+    long countUserEntrance(String email);
+
+    Integer getUserIdByGaTag(String gaTag);
+
+    String getKycStatusByEmail(String email);
+
+    boolean updatePrivacyDataAndKycReferenceIdByEmail(String email, String refernceUID, String country,
+                                                      String firstName, String lastName, Date birthDay);
+
+    Optional<User> findByKycReferenceId(String referenceId);
+
+    String findKycReferenceByUserEmail(String email);
+
+    List<Policy> getAllPoliciesByUserId(String id);
+
+    boolean existPolicyByUserIdAndPolicy(int id, String policyName);
+
+    boolean updateUserPolicyByEmail(String email, PolicyEnum policyEnum);
+
+    IeoUserStatus findIeoUserStatusByEmail(String email);
+
+    boolean updateUserRole(int userId, UserRole userRole);
 }

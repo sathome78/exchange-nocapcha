@@ -16,7 +16,6 @@ import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.events.AcceptOrderEvent;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -42,7 +41,7 @@ public interface StopOrderService {
     List<StopOrder> getActiveStopOrdersByCurrencyPairsId(List<Integer> pairIds);
 
     @Transactional
-    boolean cancelOrder(ExOrder exOrder, Locale locale);
+    boolean cancelOrder(int orderId, Locale locale);
 
     @Transactional
     boolean setStatus(int orderId, OrderStatus status);
@@ -75,4 +74,8 @@ public interface StopOrderService {
     OrderInfoDto getStopOrderInfo(int orderId, Locale locale);
 
     Object deleteOrderByAdmin(int id, Locale locale);
+
+    List<Integer> getAllOpenedStopOrdersByUserId(Integer userId);
+
+    List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair);
 }

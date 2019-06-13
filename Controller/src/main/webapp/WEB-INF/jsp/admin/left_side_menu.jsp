@@ -40,10 +40,14 @@
                         item['localizedTitle'] +'</a></li>';
                     $('#cryptoWalletsMenu').find('ul').append(link)
                 }
-
-
             });
+            var adkLink = '<li><a href="/2a8fy7b07dxe44/adkWallet"><loc:message code="admin.adk.wallet"/></a></li>';
+            var usdtLink = '<li><a href="/2a8fy7b07dxe44/usdtWallet"><loc:message code="admin.usdt.wallet"/></a></li>';
+            var usdxLink = '<li><a href="/2a8fy7b07dxe44/usdxWallet"><loc:message code="admin.usdx.wallet"/></a></li>';
 
+            $('#cryptoWalletsMenu').find('ul').append(adkLink);
+            $('#cryptoWalletsMenu').find('ul').append(usdtLink);
+            $('#cryptoWalletsMenu').find('ul').append(usdxLink);
             $('#cryptoWalletsMenu').find('ul').show();
 
         })
@@ -111,8 +115,12 @@
                 <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="manageOrder.title"/></a>
             </sec:authorize>
         </li>
-
-
+        <%--ieo--%>
+        <li>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/ieo/page'/>">IEO</a>
+            </sec:authorize>
+        </li>
         <li>
             <%--Финансисты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
@@ -138,7 +146,6 @@
                     <ul>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/generalStats'/>"><loc:message code="admin.generalStats.title"/></a></li>
                         <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                     </ul>
                 </div>
 

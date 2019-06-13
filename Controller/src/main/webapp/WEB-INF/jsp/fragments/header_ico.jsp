@@ -13,6 +13,7 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -25,14 +26,21 @@
                                 && (path != '/login?error')}"/>
 <c:set var="showRegistration" value="${(path != '/register')}"/>
 <input id="user_auth_status" type="hidden" value="${isAuth}"/>
+
+<%@include file="banner.jsp"%>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
         </div>
         <div class="cols-md-8">
             <ul class="nav header__nav">
+                <li>
+                    <a class="nav__link predictions" href="<c:url value='https://predictionlab.exrates.me/'/>" target="_blank">
+                        Predictions
+                    </a>
+                </li>
                 <li id="menu-traiding">
-                    <a class="nav__link" style="color: #d9dbff;" href="<c:url value='#'/>">ICO</a>
+                    <a class="nav__link ieo-text" style="color: #d9dbff;" href="<c:url value='#'/>">IEO</a>
                 </li>
                 <li><a href="/dashboard" class="nav__link"><loc:message
                         code="dashboard.trading"/></a></li>
@@ -44,8 +52,8 @@
                     </li>
                     <li><a href="/dashboard?startupPage=orders" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
-                    <loc:message code="dashboard.support"/></a>
+                <li><a href="<c:url value="https://news.exrates.me" />" target="_blank" class="nav__link">
+                    <loc:message code="dashboard.news"/></a>
                 </li>
 
                 <sec:authorize access="isAuthenticated()">
@@ -68,14 +76,6 @@
                     </li>
                 </sec:authorize>
 
-                <li>
-                    <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
-                       class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
-                </li>
-                <li>
-                    <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
-                       class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
-                </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="hello-my-friend"><a class="nav__link" href="">
 
@@ -122,6 +122,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a href="#" class="language">KO</a></li>
                         <!--
                         <li><a href="#" class="language">AR</a></li>
                         -->
@@ -278,7 +279,7 @@
             <div class="popup__caption">Confirm the email</div>
 
             <div class="popup__text">
-                We sended the confirmation link to<br>
+                We've sent the confirmation link to<br>
                 <a id="confirm_email" href="" class="popup__text-link"></a>
             </div>
             <div class="popup__text">
@@ -334,3 +335,51 @@
             async defer>
     </script>
 </c:if>
+
+<style>
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+    .ieo-text{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .ieo-text:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'Soon';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>

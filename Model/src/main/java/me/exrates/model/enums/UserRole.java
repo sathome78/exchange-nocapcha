@@ -1,7 +1,5 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exceptions.UnsupportedUserRoleIdException;
-
 import java.util.Arrays;
 
 public enum UserRole implements RealCheckableRole {
@@ -16,7 +14,8 @@ public enum UserRole implements RealCheckableRole {
   TRADER(8),
   FIN_OPERATOR(9),
   BOT_TRADER(10, false, false),
-  ICO_MARKET_MAKER(11);
+  ICO_MARKET_MAKER(11),
+  OUTER_MARKET_BOT(12);
 
   private final int role;
 

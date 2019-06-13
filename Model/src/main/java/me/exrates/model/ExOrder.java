@@ -1,13 +1,16 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderEventEnum;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -16,7 +19,7 @@ import java.time.LocalDateTime;
  */
 @Component
 @Getter @Setter
-public class ExOrder {
+public class ExOrder implements Serializable {
     private int id;
     private int userId;
     private int currencyPairId;
@@ -34,7 +37,14 @@ public class ExOrder {
     private Integer sourceId;
     private BigDecimal stop;
     private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
+    private BigDecimal partiallyAcceptedAmount;
+    @JsonIgnore
+    private Long tradeId;
+    @JsonIgnore
+    private OrderEventEnum event;
 
+
+    private long eventTimestamp;
     /*constructors*/
     public ExOrder() {
     }
@@ -54,6 +64,7 @@ public class ExOrder {
         this.sourceId = orderCreateDto.getSourceId();
         this.stop = orderCreateDto.getStop();
         this.orderBaseType = orderCreateDto.getOrderBaseType();
+        this.tradeId = orderCreateDto.getTradeId();
     }
 
     /*hash equals*/
@@ -119,6 +130,7 @@ public class ExOrder {
                 ", dateCreation=" + dateCreation +
                 ", dateAcception=" + dateAcception +
                 ", status=" + status +
+                ", sourceId = " + getSourceId() +
                 '}';
     }
 }

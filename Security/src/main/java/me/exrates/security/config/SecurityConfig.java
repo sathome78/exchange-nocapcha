@@ -4,7 +4,7 @@ import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.*;
 import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
-import me.exrates.security.service.UserDetailsServiceImpl;
+import me.exrates.security.service.impl.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
@@ -132,12 +133,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             /*ADMIN ...*/
             .antMatchers(POST, "/2a8fy7b07dxe44/edituser/submit",
                     "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
+            .antMatchers(POST, "/2a8fy7b07dxe44/usdxWallet/sendTransaction").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
             .antMatchers("/2a8fy7b07dxe44/addComment",
                     "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
             .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
             .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
-            .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**")
+            .antMatchers("/2a8fy7b07dxe44/generalStats", "/2a8fy7b07dxe44/generalStats/**", "/2a8fy7b07dxe44/report/orders")
             .hasAuthority(AdminAuthority.SEE_REPORTS.name())
+
+            .antMatchers(POST, "/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
 
             .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
                     "/2a8fy7b07dxe44/editCmnRefRoot",
@@ -146,6 +150,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/2a8fy7b07dxe44/commissions/editMerchantCommission",
                     "/2a8fy7b07dxe44/merchantAccess/toggleBlock",
                     "/2a8fy7b07dxe44/merchantAccess/setBlockForAll",
+                    "/2a8fy7b07dxe44/merchantAccess/currency/visibility/update",
+                    "/2a8fy7b07dxe44/merchantAccess/currencyPair/visibility/update",
+                    "/2a8fy7b07dxe44/merchantAccess/currencyPair/directLink/update",
                     "/2a8fy7b07dxe44/externalWallets/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
             .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/2a8fy7b07dxe44/addUser", "/2a8fy7b07dxe44/addUser/submit").hasAuthority(UserRole.ADMINISTRATOR.name())
@@ -176,15 +183,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/2a8fy7b07dxe44/autoTrading/**").hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/autoTrading/**")
             .hasAnyAuthority(UserRole.BOT_TRADER.name(), UserRole.ADMINISTRATOR.name())
+            .antMatchers("/2a8fy7b07dxe44/ieo/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
+            /*... ADMIN */
             .antMatchers("/2a8fy7b07dxe44/**",
-                    "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
+            "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
             /*... ADMIN */
             .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
             .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
             .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
             .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
             .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
-            .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ico_dashboard/**", "/registrationConfirm/**",
+            .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/tradingview/**", "/ieo_dashboard/**", "/registrationConfirm/**",
                     "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
             .antMatchers(POST, "/merchants/withdrawal/request/accept",
                     "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
@@ -215,19 +224,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/okpay/payment/failure").permitAll()
             .antMatchers(POST, "/merchants/payeer/payment/status",
                     "/merchants/payeer/payment/success").permitAll()
-            .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
-            .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
+            .antMatchers(POST, "/merchants/qubera/payment/status",
+                    "/merchants/qubera/success").permitAll()
+            .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**").permitAll()
+            .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat-ko/**",  "/chat/history").permitAll()
             .antMatchers(POST, "/public_socket/", "/public_socket/**").permitAll()
             .antMatchers(GET, "/public_socket/", "/public_socket/**").permitAll()
             .antMatchers(GET, "/generateReferral").permitAll()
             .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
             .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
+            .antMatchers(POST, "/merchants/lht/payment/received").permitAll()
             .antMatchers(GET, "/merchants/blockchain/payment/received").permitAll()
             .antMatchers(GET, "/merchants/yandexmoney/token/access").permitAll()
             .antMatchers(GET, "/rest/yandexmoney/payment/process").permitAll()
             .antMatchers(GET, "/public/**").permitAll()
-            .antMatchers("/info/public/**").permitAll()
             .antMatchers(GET, "/openapi/v1/public/**").permitAll()
+            .antMatchers(GET, "/api/v1/public/**").permitAll()
             .antMatchers(GET, "/favicon.ico").permitAll()
             .antMatchers(GET, "/news/**").permitAll()
             .antMatchers(GET, "/pageMaterials/**").permitAll()
@@ -237,12 +249,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers(GET, "/com/captcha/botdetect/**").permitAll()
             .antMatchers(POST, "/captchaSubmit").permitAll()
             .antMatchers(POST, "/news/addNewsVariant").authenticated()
-            .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
+            .antMatchers("/yandex_4b3a16d69d4869cb.html", "/tx").permitAll()
             .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
             .antMatchers("/payeer_510814850.txt").permitAll()
             .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts", "/partners", "/api_docs").permitAll()
             .antMatchers(POST, "/sendFeedback").permitAll()
             .antMatchers(GET, "/utcOffset").permitAll()
+            .antMatchers(GET, "/register", "/502").permitAll()
             .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
             .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
             .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
@@ -250,20 +263,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers( "/gt/**").permitAll()
             .antMatchers( "/test/**").permitAll()
             .antMatchers("/rest/user/resetPasswordConfirm/**").anonymous()
-            .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**").permitAll()
+            .antMatchers("/login", "/create", "/createUser", "/forgotPassword/**", "/resetPasswordConfirm/**", "/adsffefe/csrf", "/trade_pairs").permitAll()
             .antMatchers("/resetPasswordConfirm/**").permitAll()
             .antMatchers("/forgotPassword/**").permitAll()
+            .antMatchers(GET, "/inout/**").permitAll()
+            .antMatchers(POST,"/inout/**").permitAll()
+            .antMatchers(GET,"/getWalletBalanceByCurrencyName").permitAll()
             .antMatchers(GET, "/stockChart/timeFrames").permitAll()
+            .antMatchers(GET, "/nodes/**").permitAll()
+            .antMatchers(GET, "/getQrCode").permitAll()
             .antMatchers("/passwordRecovery").permitAll()
             .antMatchers(POST, "/login/new_pin_send").anonymous()
             .antMatchers(POST, "/register/new_link_to_confirm").permitAll()
             .antMatchers("/updatePassword", "/createPassword").permitAll()
-            .antMatchers(POST, "/createPasswordConfirm").permitAll()
+            .antMatchers(POST, "/ieo/subscribe").permitAll()
+            .antMatchers(POST, "/createPasswordConfirm", "/afgssr/call/refill").permitAll()
             .antMatchers(POST, "/settings/changeNickname/submit").authenticated()
             .antMatchers(POST, "/settings/changePassword/submit").authenticated()
+            .antMatchers(GET, "/getMerchantInputCommissionNotification").authenticated()
             .antMatchers(POST, "/survey/**").authenticated()
             .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
-            UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name())
+            UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name(), UserRole.BOT_TRADER.name(), UserRole.ICO_MARKET_MAKER.name(), UserRole.OUTER_MARKET_BOT.name())
             /*user withdraw action ...*/
             .antMatchers(POST, "/withdraw/request/**").authenticated()
             /*... user withdraw action*/
@@ -300,7 +320,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .invalidateHttpSession(true)
             .and()
             .csrf().ignoringAntMatchers("/login")
-            .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
+            .ignoringAntMatchers("/inout/**", "/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**", "/chat-ko/**",
                     "/public_socket/", "/public_socket/**",
                     "/merchants/perfectmoney/payment/status",
                     "/merchants/perfectmoney/payment/failure",
@@ -310,6 +330,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/advcash/payment/status",
                     "/merchants/edrcoin/payment/received",
                     "/merchants/edc/payment/received",
+                    "/merchants/lht/payment/received",
                     "/merchants/liqpay/payment/failure",
                     "/merchants/liqpay/payment/success",
                     "/merchants/liqpay/payment/status",
@@ -330,13 +351,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     "/merchants/okpay/payment/status",
                     "/merchants/payeer/payment/success",
                     "/merchants/payeer/payment/status",
+                    "/merchants/qubera/payment/success",
+                    "/merchants/qubera/payment/status",
                     "/test/**",
-                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
+                    "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword", "/afgssr/call/refill");
     http
             .headers()
             .frameOptions()
             .sameOrigin();
+  }
 
-
+  @Override
+  public void configure(WebSecurity web) {
+    web.ignoring()
+            .antMatchers(POST, "/api/public/v2/kyc/callback");
   }
 }

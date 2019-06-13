@@ -1,41 +1,56 @@
 package me.exrates.controller.openAPI;
 
 import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.model.BaseResponse;
+import me.exrates.dao.exception.notfound.CurrencyPairNotFoundException;
+import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.constants.ErrorApiTitles;
 import me.exrates.model.dto.openAPI.OpenApiCommissionDto;
+import me.exrates.model.dto.openAPI.TransactionDto;
 import me.exrates.model.dto.openAPI.UserOrdersDto;
+import me.exrates.model.dto.openAPI.UserTradeHistoryDto;
 import me.exrates.model.dto.openAPI.WalletBalanceDto;
+import me.exrates.model.exceptions.OpenApiException;
+import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.OrderService;
+import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.api.InvalidCurrencyPairFormatException;
-import me.exrates.service.exception.api.OpenApiError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import static me.exrates.service.util.OpenApiUtils.formatCurrencyPairNameParam;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
+import static java.util.Objects.nonNull;
+import static me.exrates.service.util.OpenApiUtils.transformCurrencyPair;
+import static me.exrates.utils.ValidationUtil.validateNaturalInt;
 
+@SuppressWarnings("DanglingJavadoc")
 @RestController
 @RequestMapping("/openapi/v1/user")
 public class OpenApiUserInfoController {
 
-    @Autowired
-    private WalletService walletService;
+    private final WalletService walletService;
+    private final OrderService orderService;
+    private final UserService userService;
 
     @Autowired
-    private OrderService orderService;
-
+    public OpenApiUserInfoController(WalletService walletService,
+                                     OrderService orderService,
+                                     UserService userService) {
+        this.walletService = walletService;
+        this.orderService = orderService;
+        this.userService = userService;
+    }
 
     @GetMapping(value = "/balances", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<WalletBalanceDto> userBalances() {
@@ -44,32 +59,51 @@ public class OpenApiUserInfoController {
 
     @GetMapping(value = "/orders/open", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userOpenOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair) {
+        final String currencyPairName = nonNull(currencyPair)
+                ? transformCurrencyPair(currencyPair)
+                : null;
 
-        String currencyPairName = null;
-        if (currencyPair != null) {
-            currencyPairName = formatCurrencyPairNameParam(currencyPair);
-        }
         return orderService.getUserOpenOrders(currencyPairName);
     }
 
     @GetMapping(value = "/orders/closed", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<UserOrdersDto> userClosedOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
-                                          @RequestParam(required = false) Integer limit,
-                                          @RequestParam(required = false) Integer offset) {
+                                                @RequestParam(required = false) Integer limit,
+                                                @RequestParam(required = false) Integer offset) {
+        final String currencyPairName = nonNull(currencyPair)
+                ? transformCurrencyPair(currencyPair)
+                : null;
 
-        String currencyPairName = null;
-        if (currencyPair != null) {
-            currencyPairName = formatCurrencyPairNameParam(currencyPair);
+        try {
+            validateNaturalInt(limit);
+            validateNaturalInt(offset);
+        } catch (InvalidNumberParamException e) {
+            throw new OpenApiException(ErrorApiTitles.API_VALIDATE_NUMBER_ERROR, e.getMessage());
         }
-        validateNaturalInt(limit);
-        validateNaturalInt(offset);
-        return orderService.getUserOrdersHistory(currencyPairName, limit, offset);
+        try {
+            return orderService.getUserClosedOrders(currencyPairName, limit, offset);
+        } catch (CurrencyPairNotFoundException e) {
+            throw new OpenApiException(ErrorApiTitles.API_INVALID_CURRENCY_PAIR_NAME, e.getMessage());
+        } catch (Exception e) {
+            throw new OpenApiException(ErrorApiTitles.API_ORDER_NOT_FOUND, "Failed to closed orders");
+        }
     }
 
-    private void validateNaturalInt(Integer number) {
-        if (number != null && number <= 0) {
-            throw new InvalidNumberParamException("Invalid number: " + number);
+    @GetMapping(value = "/orders/canceled", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<UserOrdersDto>>> userCanceledOrders(@RequestParam(value = "currency_pair", required = false) String currencyPair,
+                                                                                @RequestParam(required = false) Integer limit,
+                                                                                @RequestParam(required = false) Integer offset) {
+        final String currencyPairName = nonNull(currencyPair)
+                ? transformCurrencyPair(currencyPair)
+                : null;
+        try {
+            validateNaturalInt(limit);
+            validateNaturalInt(offset);
+        } catch (InvalidNumberParamException e) {
+            throw new OpenApiException(ErrorApiTitles.API_VALIDATE_NUMBER_ERROR, e.getMessage());
         }
+
+        return ResponseEntity.ok(BaseResponse.success(orderService.getUserCanceledOrders(currencyPairName, limit, offset)));
     }
 
     @GetMapping(value = "/commissions", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -77,49 +111,35 @@ public class OpenApiUserInfoController {
         return new OpenApiCommissionDto(orderService.getAllCommissions());
     }
 
+    @GetMapping(value = "/history/{currency_pair}/trades", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<UserTradeHistoryDto>>> getUserTradeHistoryByCurrencyPair(@PathVariable(value = "currency_pair") String currencyPair,
+                                                                                                     @RequestParam(value = "from_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+                                                                                                     @RequestParam(value = "to_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+                                                                                                     @RequestParam(required = false, defaultValue = "50") Integer limit) {
+        if (fromDate.isAfter(toDate)) {
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_DATES, "From date is after to date");
+        }
+        if (nonNull(limit) && limit <= 0) {
+            throw new OpenApiException(ErrorApiTitles.API_REQUEST_ERROR_LIMIT, "Limit value equals or less than zero");
+        }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(value = AccessDeniedException.class)
-    public OpenApiError accessDeniedExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.ACCESS_DENIED, req.getRequestURL(), exception);
+        final String transformedCurrencyPair = transformCurrencyPair(currencyPair);
+
+        return ResponseEntity.ok(BaseResponse.success(orderService.getUserTradeHistoryByCurrencyPair(transformedCurrencyPair, fromDate, toDate, limit)));
     }
 
-    @ResponseStatus(BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseBody
-    public OpenApiError mismatchArgumentsErrorHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INVALID_PARAM_VALUE, req.getRequestURL(), exception);
+    @GetMapping(value = "/history/{order_id}/transactions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResponse<List<TransactionDto>>> getOrderTransactions(@PathVariable(value = "order_id") Integer orderId) {
+        return ResponseEntity.ok(BaseResponse.success(orderService.getOrderTransactions(orderId)));
     }
 
-    @ResponseStatus(BAD_REQUEST)
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseBody
-    public OpenApiError missingServletRequestParameterHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.MISSING_REQUIRED_PARAM, req.getRequestURL(), exception);
-    }
-
-    @ResponseStatus(NOT_ACCEPTABLE)
-    @ExceptionHandler(CurrencyPairNotFoundException.class)
-    @ResponseBody
-    public OpenApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.CURRENCY_PAIR_NOT_FOUND, req.getRequestURL(), exception);
-    }
-
-
-    @ResponseStatus(NOT_ACCEPTABLE)
-    @ExceptionHandler(InvalidCurrencyPairFormatException.class)
-    @ResponseBody
-    public OpenApiError invalidCurrencyPairFormatExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INVALID_CURRENCY_PAIR_FORMAT, req.getRequestURL(), exception);
-    }
-
-
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(Exception.class)
-    @ResponseBody
-    public OpenApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new OpenApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
-    }
-
-
+//    @GetMapping(value = "/info/email/exists", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, Boolean>> checkEmailExistence(@RequestParam("email") String email) {
+//        try {
+//            userService.findByEmail(email);
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.TRUE));
+//        } catch (UserNotFoundException ex) {
+//            return ResponseEntity.ok(Collections.singletonMap("status", Boolean.FALSE));
+//        }
+//    }
 }

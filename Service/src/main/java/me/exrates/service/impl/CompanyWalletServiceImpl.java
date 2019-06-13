@@ -6,8 +6,8 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.WalletPersistException;
+import me.exrates.service.exception.process.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.process.WalletPersistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     @Transactional(readOnly = true)
     public List<CompanyWallet> getCompanyWallets() {
         List<CompanyWallet> compWalletList = new ArrayList<CompanyWallet>();
-        List<Currency> currList = currencyService.getAllCurrencies();
+        List<Currency> currList = currencyService.getAllActiveCurrencies();
         for (Currency c : currList) {
             CompanyWallet cw = this.findByCurrency(c);
             if (cw != null) {

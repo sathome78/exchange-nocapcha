@@ -6,14 +6,12 @@ import me.exrates.dao.NotificationMessagesDao;
 import me.exrates.model.dto.NotificationResultDto;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.dto.Notificator;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationMessageEventEnum;
+import me.exrates.model.enums.NotificationTypeEnum;
 import me.exrates.service.exception.MessageUndeliweredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by Maks on 29.09.2017.
@@ -41,8 +39,10 @@ public class NotificationMessageServiceImpl implements NotificationMessageServic
         NotificatorService service = notificatorsService.getNotificationServiceByBeanName(notificator.getBeanName());
         NotificationTypeEnum notificationTypeEnum = service.getNotificationType();
         String contactToNotify;
+        log.debug("notify user {} for {}", userEmail, notificationTypeEnum);
         try {
             contactToNotify = service.sendMessageToUser(userEmail, message, subject);
+            System.out.println("LOGIN MESSAGE: " + message);
         } catch (Exception e) {
             log.error(e);
             if (notificationTypeEnum.getCode() != NotificationTypeEnum.EMAIL.getCode()) {

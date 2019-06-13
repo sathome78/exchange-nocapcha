@@ -9,6 +9,7 @@ import me.exrates.model.enums.ReferralTransactionStatusEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -70,7 +71,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
             " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     @Autowired
-    public ReferralTransactionDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
+    public ReferralTransactionDaoImpl(@Qualifier(value = "masterTemplate")final NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -92,6 +93,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     @Override
     public ReferralTransaction create(final ReferralTransaction referralTransaction) {
         final String sql = "INSERT INTO REFERRAL_TRANSACTION (initiator_id, user_id, order_id, referral_level_id) VALUES (:initiatorId, :userId, :orderId, :refLevelId)";
+
         final Map<String, Integer> params = new HashMap<>();
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         params.put("initiatorId", referralTransaction.getInitiatorId());
@@ -144,10 +146,12 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         String sql = "UPDATE REFERRAL_TRANSACTION " +
                 " SET status = :status" +
                 " WHERE id = :transaction_id ";
+
         Map<String, Object> params = new HashMap<String, Object>() {{
             put("transaction_id", refTransactionId);
             put("status", status.name());
         }};
+
         boolean res = jdbcTemplate.update(sql, params) > 0;
         if (!res) throw new RuntimeException("error change status to ref transaction " + refTransactionId);
     }

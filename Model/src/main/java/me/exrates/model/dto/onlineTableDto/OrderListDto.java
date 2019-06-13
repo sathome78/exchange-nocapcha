@@ -2,12 +2,18 @@ package me.exrates.model.dto.onlineTableDto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Created by Valk on 14.04.16.
  */
+@ToString
 @Getter @Setter
 public class OrderListDto extends OnlineTableDto {
   private int id;
@@ -17,6 +23,9 @@ public class OrderListDto extends OnlineTableDto {
   private String amountBase;
   private String amountConvert;
   private String ordersIds;
+  private LocalDateTime created;
+  private LocalDateTime accepted;
+  private Integer orderSourceId;
 
   public OrderListDto(String ordersIds, String exrate, String amountBase, String amountConvert, OperationType orderType, boolean needRefresh) {
     this.ordersIds = ordersIds;

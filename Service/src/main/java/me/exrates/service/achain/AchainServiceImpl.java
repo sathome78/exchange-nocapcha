@@ -3,22 +3,24 @@ package me.exrates.service.achain;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,24 +29,33 @@ import java.util.Map;
  */
 @Log4j2(topic = "achain")
 @Service
+@Conditional(MonolitConditional.class)
 public class AchainServiceImpl implements AchainService {
+
+    private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
+    private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.1).setScale(2, RoundingMode.HALF_UP);
+    public static final String MERCHANT_NAME = "ACHAIN";
 
     private final NodeService nodeService;
     private final CurrencyService currencyService;
     private final MerchantService merchantService;
     private final RefillService refillService;
     private final MessageSource messageSource;
-    private final BigDecimal ACT_COMISSION = new BigDecimal(0.01).setScale(2, RoundingMode.HALF_UP);
-    private final BigDecimal TOKENS_COMISSION = new BigDecimal(0.1).setScale(2, RoundingMode.HALF_UP);
-    private static final String MERCHANT_NAME = "ACHAIN";
+    private final GtagService gtagService;
 
     @Autowired
-    public AchainServiceImpl(NodeService nodeService, CurrencyService currencyService, MerchantService merchantService, RefillService refillService, MessageSource messageSource) {
+    public AchainServiceImpl(NodeService nodeService,
+                             CurrencyService currencyService,
+                             MerchantService merchantService,
+                             RefillService refillService,
+                             MessageSource messageSource,
+                             GtagService gtagService) {
         this.nodeService = nodeService;
         this.currencyService = currencyService;
         this.merchantService = merchantService;
         this.refillService = refillService;
         this.messageSource = messageSource;
+        this.gtagService = gtagService;
     }
 
     @Override
@@ -65,14 +76,14 @@ public class AchainServiceImpl implements AchainService {
         String message = messageSource.getMessage("merchants.refill.btc",
                 new Object[]{fullAddress}, request.getLocale());
         return new HashMap<String, String>() {{
-            put("address",  generated);
+            put("address", generated);
             put("message", message);
             put("qr", fullAddress);
         }};
     }
 
     private String generateRandomSymbolsAndAddToAddress() {
-        return RandomStringUtils.random(32, false ,true);
+        return RandomStringUtils.random(32, false, true);
     }
 
     @Override
@@ -94,15 +105,25 @@ public class AchainServiceImpl implements AchainService {
                 .merchantTransactionId(hash)
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
+
+        Integer requestId;
         log.info("try to accept payment {}", requestAcceptDto);
         try {
+            requestId = refillService.getRequestId(requestAcceptDto);
+            requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         } catch (RefillRequestAppropriateNotFoundException e) {
             log.debug("RefillRequestNotFountException: " + params);
-            Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+            requestId = refillService.createRefillRequestByFact(requestAcceptDto);
             requestAcceptDto.setRequestId(requestId);
+
             refillService.autoAcceptRefillRequest(requestAcceptDto);
         }
+        final String gaTag = refillService.getUserGAByRequestId(requestId);
+
+        log.debug("Process of sending data to Google Analytics...");
+        gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
     }
 
     private boolean isTransactionDuplicate(String hash, int currencyId, int merchantId) {
@@ -119,4 +140,11 @@ public class AchainServiceImpl implements AchainService {
         }
         return TOKENS_COMISSION;
     }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return !address.startsWith(nodeService.getMainAccountAddress());
+    }
+
 }

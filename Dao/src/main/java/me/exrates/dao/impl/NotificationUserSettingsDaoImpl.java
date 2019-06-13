@@ -5,6 +5,7 @@ import me.exrates.dao.NotificationUserSettingsDao;
 import me.exrates.model.dto.NotificationsUserSetting;
 import me.exrates.model.enums.NotificationMessageEventEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class NotificationUserSettingsDaoImpl implements NotificationUserSettingsDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static RowMapper<NotificationsUserSetting> notificationsUserSettingRowMapper = (rs, idx) -> {
@@ -62,6 +64,14 @@ public class NotificationUserSettingsDaoImpl implements NotificationUserSettings
         Map<String, Object> params = new HashMap<>();
         params.put("id", setting.getId());
         params.put("notificatorId", setting.getNotificatorId());
+        namedParameterJdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void delete(Integer userId) {
+        final String sql = " DELETE FROM 2FA_USER_NOTIFICATION_MESSAGE_SETTINGS WHERE user_id = :id ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", userId);
         namedParameterJdbcTemplate.update(sql, params);
     }
 

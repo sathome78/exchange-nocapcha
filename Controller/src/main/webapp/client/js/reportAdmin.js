@@ -5,70 +5,10 @@
 var currentId;
 var currentRole;
 
-function uploadUserWallets(role) {
-    currentRole = role;
-    currentId = 'upload-users-wallets';
-    showDialog({
-        currencyPicker: false,
-        currencyPairPicker: false,
-        directionPicker: false,
-        includeEmptyChecker: true
-    });
-}
-
-function uploadUserWalletsInOut(role) {
-    currentRole = role;
-    currentId = 'upload-users-wallets-inout';
-    showDialog({
-        currencyPicker: false,
-        currencyPairPicker: false,
-        directionPicker: false,
-        includeEmptyChecker: false
-    });
-}
-
-function uploadUserWalletsOrders(role) {
-    currentRole = role;
-    currentId = 'upload-users-wallets-orders';
-    showDialog({
-        currencyPicker: false,
-        currencyPairPicker: false,
-        directionPicker: false,
-        includeEmptyChecker: false
-    });
-}
-
-function uploadUserWalletsOrdersByCurrencyPairs(role) {
-    currentRole = role;
-    currentId = 'upload-users-wallets-orders-by-currency-pairs';
-    showDialog({
-        currencyPicker: false,
-        currencyPairPicker: false,
-        directionPicker: false,
-        includeEmptyChecker: false
-    });
-}
-
-function uploadInputOutputSummaryReport(role) {
-    currentRole = role;
-    currentId = 'downloadInputOutputSummaryReport';
-    showDialog({
-        currencyPairPicker: false,
-        includeEmptyChecker: false
-    });
-}
-
 function uploadUserTransactionsReport(paramsString) {
     currentId = 'upload-users-transactions';
     makeReportByParams(paramsString);
 }
-
-function uploadUserIps(role) {
-    currentRole = role;
-    currentId = 'upload-users-ips';
-    makeReportByParams('role=' + role)
-}
-
 
 function showDialog(params) {
     params.currencyPicker = (params.currencyPicker || params.currencyPicker == undefined) ? "block" : "none";
@@ -105,82 +45,11 @@ function makeReportWithPeriodDialog() {
 
         //wolper 23.04.18
         //start and end dates form the dialog form
-        var startDate=$form.find("#start-date").val();
-        var endDate=$form.find("#end-date").val();
-        var reprtName="downloadUsersWalletsSummaryInOut.csv";
+        var startDate = $form.find("#start-date").val();
+        var endDate = $form.find("#end-date").val();
+        var reprtName = "downloadUsersWalletsSummaryInOut.csv";
 
-        if (currentId == 'downloadInputOutputSummaryReport') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/InputOutputSummary',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        //wolper 23.04.18
-                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        } else if (currentId == 'upload-users-wallets-inout') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/UsersWalletsSummaryInOut',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        //wolper 23.04.18
-                        saveToDisk(data.list, extendsReportName(reprtName, startDate, endDate));
-                        saveToDisk(data.summary, extendsReportName(reprtName, startDate, endDate));
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        } else if (currentId == 'upload-users-wallets') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/usersWalletsSummary',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        //wolper 23.04.18
-                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        } else if (currentId == 'upload-users-wallets-orders') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/userSummaryOrders',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        //wolper 23.04.18
-                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        } else if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/report/userSummaryOrdersByCurrencyPairs',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        //wolper 23.04.18
-                        saveToDisk(data, extendsReportName(reprtName, startDate, endDate));
-                    },
-                    complete: function () {
-                        $loadingDialog.modal("hide");
-                    },
-                }
-            );
-        }  else if (currentId == 'upload-users-transactions') {
+        if (currentId == 'upload-users-transactions') {
             //wolper 23.04.18
             // ??? isn't this branch unreachable
             $.ajax({
@@ -205,22 +74,11 @@ function makeReportWithPeriodDialog() {
 function makeReportByParams(params) {
     if (currentId == 'upload-users-transactions') {
         $.ajax({
-                url: '/2a8fy7b07dxe44/report/downloadTransactions'+"?"+params,
+                url: '/2a8fy7b07dxe44/report/downloadTransactions' + "?" + params,
                 type: 'GET',
                 success: function (data) {
                     //wolper 23.04.18
-                    var reprtName="downloadUsersWalletsSummaryInOut.csv";
-                    saveToDisk(data, extendsReportName(reprtName));
-                }
-            }
-        );
-    } else if (currentId == 'upload-users-ips') {
-        $.ajax({
-                url: '/2a8fy7b07dxe44/report/downloadUserIpInfo' +"?"+params,
-                type: 'GET',
-                success: function (data) {
-                    //wolper 23.04.18
-                    var reprtName="downloadUsersWalletsSummaryInOut.csv";
+                    var reprtName = "downloadUsersWalletsSummaryInOut.csv";
                     saveToDisk(data, extendsReportName(reprtName));
                 }
             }
@@ -266,27 +124,28 @@ function isDatesValid($form) {
 // (but without time, time is excluded from picker value)
 // name is a filename to extend
 // start, end - optional arguments for reporting date interval
-function extendsReportName(name, start, end){
-    var baseName    = name.slice(0,-4);
-    var dateNow     = new Date().toLocaleDateString();
+function extendsReportName(name, start, end) {
+    var baseName = name.slice(0, -4);
+    var dateNow = new Date().toLocaleDateString();
     var dateTimeNow = new Date().toUTCString();
 
-    switch (name){
+    switch (name) {
         case 'totalBalances.csv':
-            return baseName+'_as_of-'+dateTimeNow+ '.csv';
+            return baseName + '_as_of-' + dateTimeNow + '.csv';
 
         case 'inputOutputSummaryWithCommissions.csv':
         case 'currencyPairsComissions.csv':
         case 'currencyPairs.csv':
         case 'currencies.csv':
-            return baseName+'_from-'+start+'_to-'+end+'.csv';
+            return baseName + '_from-' + start + '_to-' + end + '.csv';
 
         case 'downloadUsersWalletsSummaryInOut.csv':
-            var role = currentRole?"_"+currentRole:"";
-            if (start && end) return baseName+'_from-'+start+"_to-"+end+"_"+currentRole + ".csv";
-            else return baseName+'_as_of-'+dateNow+ role + ".csv";
+            var role = currentRole ? "_" + currentRole : "";
+            if (start && end) return baseName + '_from-' + start + "_to-" + end + "_" + currentRole + ".csv";
+            else return baseName + '_as_of-' + dateNow + role + ".csv";
 
-        default: return name;
+        default:
+            return name;
     }
 }
 

@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
@@ -10,20 +11,21 @@ import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
+@Conditional(MonolitConditional.class)
 public class PayeerServiceImpl implements PayeerService {
 
   private @Value("${payeer.url}") String url;
@@ -36,15 +38,16 @@ public class PayeerServiceImpl implements PayeerService {
 
   @Autowired
   private AlgorithmService algorithmService;
-
   @Autowired
   private RefillService refillService;
-
   @Autowired
   private MerchantService merchantService;
-
   @Autowired
   private CurrencyService currencyService;
+  @Autowired
+  private WithdrawUtils withdrawUtils;
+  @Autowired
+  private GtagService gtagService;
 
   @Override
   public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -78,13 +81,14 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   @Override
-  public void processPayment(@RequestBody Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    checkSign(params);
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
+//    checkSign(params);
     Integer requestId = Integer.valueOf(params.get("m_orderid"));
     String merchantTransactionId = params.get("m_operation_id");
     Currency currency = currencyService.findByName(params.get("m_curr"));
     Merchant merchant = merchantService.findByName("Payeer");
     BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("m_amount")));
+
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
         .requestId(requestId)
         .merchantId(merchant.getId())
@@ -93,7 +97,13 @@ public class PayeerServiceImpl implements PayeerService {
         .merchantTransactionId(merchantTransactionId)
         .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
         .build();
+
     refillService.autoAcceptRefillRequest(requestAcceptDto);
+
+    final String gaTag = refillService.getUserGAByRequestId(requestId);
+
+    logger.debug("Process of sending data to Google Analytics...");
+    gtagService.sendGtagEvents(amount.toString(), currency.getName(), gaTag);
   }
 
   private void checkSign(Map<String, String> params) {
@@ -106,5 +116,12 @@ public class PayeerServiceImpl implements PayeerService {
       throw new RefillRequestFakePaymentReceivedException(params.toString());
     }
   }
+
+  @Override
+  public boolean isValidDestinationAddress(String address) {
+
+    return withdrawUtils.isValidDestinationAddress(address);
+  }
+
 
 }

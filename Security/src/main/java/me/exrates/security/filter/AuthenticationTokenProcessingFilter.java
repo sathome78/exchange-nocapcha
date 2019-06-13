@@ -26,15 +26,12 @@ import java.io.IOException;
 public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
     private final String HEADER_SECURITY_TOKEN = "Exrates-Rest-Token";
-    private AuthenticationManager authenticationManager;
-
 
     @Autowired
     private AuthTokenService authTokenService;
 
-    public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
+    public AuthenticationTokenProcessingFilter(String defaultFilterProcessesUrl) {
         super(defaultFilterProcessesUrl);
-        this.authenticationManager = authenticationManager;
         setAuthenticationSuccessHandler((request, response, authentication) ->
         {
             String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
@@ -65,11 +62,9 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException, IOException, ServletException {
+            throws AuthenticationException {
         String token = request.getHeader(HEADER_SECURITY_TOKEN);
-        if (token == null) {
-            token = request.getParameter("token");
-        }
+
         UserDetails userDetails = authTokenService.getUserByToken(token);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -86,5 +81,4 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
     public void setAuthenticationManager(AuthenticationManager authenticationManager) {
         super.setAuthenticationManager(authenticationManager);
     }
-
-    }
+}

@@ -1,5 +1,8 @@
 package me.exrates.service.btcCore;
 
+import com.neemre.btcdcli4j.core.BitcoindException;
+import com.neemre.btcdcli4j.core.CommunicationException;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
@@ -11,17 +14,18 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 /**
  * Created by OLEG on 14.03.2017.
  */
 public interface CoreWalletService {
-  void initCoreClient(String nodePropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine);
+  void initCoreClient(String nodePropertySource, Properties passPropertySource, boolean supportInstantSend, boolean supportSubtractFee, boolean supportReferenceLine, boolean useSendManyForWithdraw);
   
   void initBtcdDaemon(boolean zmqEnabled);
   
   String getNewAddress(String walletPassword);
-  
+
   void backupWallet(String backupFolder);
 
   void shutdown();
@@ -69,4 +73,18 @@ public interface CoreWalletService {
   String getLastBlockHash();
 
   BtcBlockDto getBlockByHash(String blockHash);
+
+    long getBlocksCount() throws BitcoindException, CommunicationException;
+
+    Long getLastBlockTime() throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> listTransaction(int page);
+
+  PagingData<List<BtcTransactionHistoryDto>> listTransaction(int start, int length, String searchValue);
+
+  List<BtcTransactionHistoryDto> getTransactionsByPage(int page, int transactionsPerPage) throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> getTransactionsForPagination(int start, int length) throws BitcoindException, CommunicationException;
+
+  List<BtcTransactionHistoryDto> findTransactions(String value) throws BitcoindException, CommunicationException;
 }

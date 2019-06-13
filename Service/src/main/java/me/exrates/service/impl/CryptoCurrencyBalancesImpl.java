@@ -2,19 +2,21 @@ package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.CryptoCurrencyBalances;
 import me.exrates.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Log4j2
 @Service
+@Conditional(MonolitConditional.class)
 public class CryptoCurrencyBalancesImpl implements CryptoCurrencyBalances {
 
     @Autowired

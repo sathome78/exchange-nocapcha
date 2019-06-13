@@ -22,6 +22,7 @@ var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
+var currentPairName;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
@@ -59,9 +60,6 @@ function subscribeAll() {
         subscribeStatistics();
         subscribeForAlerts();
         subscribeEvents();
-    }
-    if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-        subscribeChart();
     }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
@@ -119,14 +117,10 @@ function subscribeTradeOrders() {
     var tradeOrdersSubscr = fn + currentCurrencyPairId;
     ordersSubscription = client.subscribe(tradeOrdersSubscr, function(message) {
         subscribedCurrencyPairId = currentCurrencyPairId;
-        var messageBody = JSON.parse(message.body);
-        if (messageBody instanceof Array) {
-            messageBody.forEach(function(object){
-                initTradeOrders(object);
-            });
-        } else {
-            initTradeOrders(message.body);
-        }
+        var messageBody = $.parseJSON(message.body);
+        messageBody.forEach(function(object){
+            initTradeOrders(object);
+        });
     }, headers);
     f = enableF;
 }
@@ -160,20 +154,6 @@ function subscribeStatistics() {
     }
 }
 
-function subscribeChart() {
-    if (chartSubscription != undefined) {
-        chartSubscription.unsubscribe();
-    }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
-        }, headers);
-    }
-}
 
 function subscribeEvents() {
     if (eventsSubscrition == undefined) {
@@ -307,7 +287,6 @@ function initTrades(object, currentCurrencyPair) {
 
 
 function initTradeOrders(object) {
-    object = JSON.parse(object);
     if (object.currencyPairId != subscribedCurrencyPairId) {
         return
     }
@@ -329,8 +308,6 @@ function initTradeOrders(object) {
 $(function dashdoardInit() {
     sessionId = $('#session').text();
     csrf = $('.s_csrf').val();
-    var $2faModal = $('#noty2fa_modal');
-    var $2faConfirmModal = $('#noty2fa_confirm_modal');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -383,7 +360,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector('MAIN');
+            trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -469,7 +446,7 @@ $(function dashdoardInit() {
                     var tradingCpData = jQuery.extend(true, {}, cpData);
                     delete(tradingCpData.ICO);
                     var infoCpData = sortCpDataInOrder(cpData);
-                    trading = new TradingClass(data.period, data.chartType, data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
+                    trading = new TradingClass(data.currencyPair.name, data.orderRoleFilterEnabled, tradingCpData);
                     newChartPeriod = data.period;
                     myWallets = new MyWalletsClass();
                     myStatements = new MyStatementsClass();
@@ -507,37 +484,53 @@ $(function dashdoardInit() {
         }*/
         /*...FOR POLL*/
         /*2fa notify*/
+        var $2faModal = $('#g2fa_noty_modal');
+        var $infoModal = $('#first_info_modal');
+        var notify2fa = $("#noty2fa").val() === 'true';
+        var isNew = $('#info_new').val() === 'true';
+        console.log('isnew ' + isNew);
+        console.log('noty2fa ' + notify2fa);
 
-        var notify2fa = $("#noty2fa").val() == 'true';
         if (notify2fa) {
-          $2faModal.modal({
-              backdrop: 'static',
-              keyboard: false
-          });
+            $2faModal.modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        if (isNew) {
+            $infoModal.modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+            checkAgreeButton();
         }
         /*end 2fa notify*/
     } catch (e) {
         /*it's need for ignoring error from old interface*/
     }
 
-    $('#decline_2fa').on('click', function () {
+    $('.decline_2fa').on('click', function () {
         $2faModal.modal('hide');
-        $2faConfirmModal.modal({
-            backdrop: 'static',
-            keyboard: false
-        });
     });
-
-    $('#decline_2fa_finally').on('click', function () {
-        $2faConfirmModal.modal('hide');
-    });
-
-    $('.accept_2fa').on('click', function () {
+    $('#ga-btn').on('click', function () {
         window.location.href = '/settings?2fa';
     });
+    $('.custom-inp-check').on('change', function () {
+        checkAgreeButton();
+    });
+    $('.safety_agree_button').on('click', function () {
+        $infoModal.modal('hide');
+    });
+
 });
 
-
+function checkAgreeButton() {
+    if ($('.custom-inp-check').not(':checked').length === 0) {
+        $('.safety_agree_button').removeAttr('disabled');
+    } else {
+        $('.safety_agree_button').attr('disabled', true);
+    }
+}
 
 function showPage(pageId) {
     if (!pageId) {
@@ -593,6 +586,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            currentPairName = data.currencyPair.name;
             enableF = enableFilter;
             if (period != null) {
                 newChartPeriod = period;
@@ -688,7 +682,6 @@ function doPoll($pollDialog) {
 
     function successRegister (event) {
         if ($('#successRegister').text() != undefined ) {
-            gtag('event', 'sendregister', { 'event_category': 'register', 'event_action': 'sendregister', });
             yaCounter47624182.reachGoal('sendregister');
             console.log('it works!');
             return true;

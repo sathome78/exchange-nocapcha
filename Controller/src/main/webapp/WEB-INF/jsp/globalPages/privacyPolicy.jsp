@@ -23,7 +23,7 @@
 
     <%----------------------------------------%>
     <%@include file="../tools/google_head.jsp"%>
-    <%@include file="../tools/alexa.jsp" %>
+   <%-- <%@include file="../tools/alexa.jsp" %>--%>
     <%--<%@include file="../tools/yandex.jsp" %>--%>
 
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
@@ -34,7 +34,7 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <%--... Alerts --%>
-    <script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.min.js"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/sockjs114.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/stomp.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/kinetic.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/jquery.final-countdown.js'/>"></script>
@@ -50,6 +50,7 @@
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>
+<%@include file="../tools/google_body.jsp"%>
 <main class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2 content legal_content">

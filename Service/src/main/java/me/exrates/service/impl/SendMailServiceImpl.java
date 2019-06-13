@@ -1,140 +1,215 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Email;
-import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.EmailSenderType;
+import me.exrates.model.mail.ListingRequest;
 import me.exrates.service.SendMailService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import me.exrates.service.util.MessageFormatterUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PreDestroy;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+@Log4j2(topic = "email_log")
 @Service
-@PropertySource(value = {"classpath:/mail.properties"})
-public class SendMailServiceImpl implements SendMailService{
+@PropertySource(value = {"classpath:/mail.properties", "classpath:/angular.properties"})
+public class SendMailServiceImpl implements SendMailService {
 
-	@Autowired
-	@Qualifier("SupportMailSender")
-	private JavaMailSender supportMailSender;
+    private final static ExecutorService EXECUTORS = Executors.newCachedThreadPool();
+    private final static ExecutorService SUPPORT_MAIL_EXECUTORS = Executors.newCachedThreadPool();
+    private static final String UTF8 = "UTF-8";
+    @Autowired
+    @Qualifier("SupportMailSender")
+    private JavaMailSender supportMailSender;
+    @Autowired
+    @Qualifier("MandrillMailSender")
+    private JavaMailSender mandrillMailSender;
+    @Autowired
+    @Qualifier("InfoMailSender")
+    private JavaMailSender infoMailSender;
+    @Value("${mail_info.allowedOnly}")
+    private Boolean allowedOnly;
+    @Value("${mail_info.allowedEmails}")
+    private String allowedEmailsList;
+    @Value("${default_mail_type}")
+    private String mailType;
+    @Value("${support.email}")
+    private String supportEmail;
+    @Value("${mandrill.email}")
+    private String mandrillEmail;
+    @Value("${info.email}")
+    private String infoEmail;
+    @Value("${listing.email}")
+    private String listingEmail;
+    @Value("${listing.subject}")
+    private String listingSubject;
 
-	@Autowired
-	@Qualifier("MandrillMailSender")
-	private JavaMailSender mandrillMailSender;
+    @Value("${spring.profile}")
+    private String springProfile;
 
-	@Autowired
-	@Qualifier("InfoMailSender")
-	private JavaMailSender infoMailSender;
-	
-	@Value("${mail_info.allowedOnly}")
-	private Boolean allowedOnly;
-	
-	@Value("${mail_info.allowedEmails}")
-	private String allowedEmailsList;
+    @Value("${front-host}")
+    private String server;
 
-	private final static int THREADS_NUMBER = 4;
-	private final static ExecutorService executors = Executors.newFixedThreadPool(THREADS_NUMBER);
-	private final static ExecutorService supportMailExecutors = Executors.newFixedThreadPool(3);
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void sendMail(Email email) {
+        SUPPORT_MAIL_EXECUTORS.execute(() -> {
+            try {
+                sendMail(email.toBuilder()
+                                .from(supportEmail)
+                                .build(),
+                        supportMailSender);
+            } catch (Exception ex) {
+                log.error(ex);
+                sendMail(email.toBuilder()
+                                .from(infoEmail)
+                                .build(),
+                        infoMailSender);
+            }
+        });
+    }
 
-	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void sendMailMandrill(Email email) {
+        SUPPORT_MAIL_EXECUTORS.execute(() -> {
+            try {
+                sendByType(email, EmailSenderType.valueOf(mailType));
+            } catch (Exception e) {
+                log.error(e);
+                sendMail(email.toBuilder()
+                                .from(supportEmail)
+                                .build(),
+                        supportMailSender);
+            }
+        });
+    }
 
-	private final String SUPPORT_EMAIL = "mail@exrates.top";
-	private final String MANDRILL_EMAIL = "no-reply@exrates.me";
-	private final String INFO_EMAIL = "no-reply@exrates.top";
+    private void sendByType(Email email, EmailSenderType type) {
+        switch (type) {
+            case gmail: {
+                sendInfoMail(email);
+                break;
+            }
+            case mandrill: {
+                sendMail(email.toBuilder()
+                                .from(mandrillEmail)
+                                .build(),
+                        mandrillMailSender);
+                break;
+            }
+        }
+    }
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void sendMail(Email email){
-		supportMailExecutors.execute(() -> {
-			try {
-				sendMail(email, SUPPORT_EMAIL, supportMailSender);
-			} catch (Exception e) {
-				logger.error(e);
-				sendMail(email, INFO_EMAIL, infoMailSender);
-			}
-		});
-	}
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void sendInfoMail(Email email) {
+        if (allowedOnly) {
+            String[] allowedEmails = allowedEmailsList.split(",");
+            if (Stream.of(allowedEmails).noneMatch(mail -> mail.equals(email.getTo()))) {
+                return;
+            }
+        }
+        EXECUTORS.execute(() -> {
+            try {
+                sendMail(email.toBuilder()
+                                .from(infoEmail)
+                                .build(),
+                        springProfile.equalsIgnoreCase("prod") ? mandrillMailSender : infoMailSender);
+            } catch (MailException ex) {
+                log.error(ex);
+                sendMail(email.toBuilder()
+                                .from(supportEmail)
+                                .build(),
+                        supportMailSender);
+            }
+        });
+    }
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	public void sendMailMandrill(Email email){
-		supportMailExecutors.execute(() -> {
-			try {
-				sendMail(email, MANDRILL_EMAIL, mandrillMailSender);
-			} catch (Exception e) {
-				logger.error(e);
-				sendMail(email, INFO_EMAIL, infoMailSender);
-			}
-		});
-	}
-
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
-	@Override
-	public void sendInfoMail(Email email) {
-		if (allowedOnly) {
-			String[] allowedEmails = allowedEmailsList.split(",");
-			if (Stream.of(allowedEmails).noneMatch(mail -> mail.equals(email.getTo()))) {
-				return;
-			}
-		}
-		executors.execute(() -> {
-			try {
-				sendMail(email, INFO_EMAIL, infoMailSender);
-			} catch (MailException e) {
-				logger.error(e);
-				sendMail(email, SUPPORT_EMAIL, supportMailSender);
-			}
-		});
-
-	}
-
-	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
-		email.setFrom(fromAddress);
-		try {
-			mailSender.send(mimeMessage -> {
+    private void sendMail(Email email, JavaMailSender mailSender) {
+        StopWatch stopWatch = StopWatch.createStarted();
+        log.debug("try to send email {} to {}, time {}", email.getSubject(), email.getTo());
+        try {
+            mailSender.send(mimeMessage -> {
                 MimeMessageHelper message;
-                message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+                message = new MimeMessageHelper(mimeMessage, true, UTF8);
                 message.setFrom(email.getFrom());
                 message.setTo(email.getTo());
                 message.setSubject(email.getSubject());
-                message.setText(email.getMessage(), true);
+                message.setText(prepareTemplate(email.getMessage()), true);
                 if (email.getAttachments() != null) {
                     for (Email.Attachment attachment : email.getAttachments())
                         message.addAttachment(attachment.getName(), attachment.getResource(), attachment.getContentType());
                 }
             });
-			logger.info("Email sent: " + email);
-		} catch (Exception e) {
-			logger.error("Could not send email {}. Reason: {}", email, e.getMessage());
-		}
+            log.info("Email sent: {}, duration {} seconds", email, stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (Exception ex) {
+            log.error("Could not send email {}. Reason: {}", email, ex.getMessage());
+        }
+    }
 
-	}
+    @Override
+    public void sendFeedbackMail(String senderName, String senderMail, String messageBody, String mailTo) {
+        sendMail(Email.builder()
+                .from(senderMail)
+                .to(mailTo)
+                .message(messageBody)
+                .subject(String.format("Feedback from %s -- %s", senderName, senderMail))
+                .build());
+    }
 
-	@Override
-	public void sendFeedbackMail(String senderName, String senderMail, String messageBody, String mailTo) {
-		Email email = new Email();
-		email.setFrom(senderMail);
-		email.setTo(mailTo);
-		email.setMessage(messageBody);
-		email.setSubject("Feedback from " + senderName + " -- " + senderMail);
-		sendMail(email);
-	}
+    public void sendListingRequestEmail(ListingRequest request) {
+        final String name = request.getName();
+        final String email = request.getEmail();
+        final String telegram = request.getTelegram();
+        final String text = request.getText();
 
+        sendInfoMail(Email.builder()
+                .to(listingEmail)
+                .subject(listingSubject)
+                .message(MessageFormatterUtil.format(name, email, telegram, text))
+                .build());
+    }
 
-	@PreDestroy
-	public void destroy() {
-		executors.shutdown();
-		supportMailExecutors.shutdown();
-	}
+    @PreDestroy
+    public void destroy() {
+        EXECUTORS.shutdown();
+        SUPPORT_MAIL_EXECUTORS.shutdown();
+    }
 
-
+    private String prepareTemplate(String text) {
+        File file;
+        String html;
+        try {
+            file = ResourceUtils.getFile("classpath:email/template.html");
+            byte[] encoded = Files.readAllBytes(Paths.get(file.getAbsolutePath()));
+            html = new String(encoded, StandardCharsets.UTF_8.name());
+        } catch (IOException e) {
+            return text;
+        }
+        html = html.replace("{::text::}", text);
+        return html;
+    }
 }

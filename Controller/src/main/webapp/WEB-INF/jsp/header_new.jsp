@@ -4,10 +4,13 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:500,700" rel="stylesheet">
 
+<%@include file="fragments/banner.jsp"%>
 <header>
     <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
     <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
+    <%@include file="../jsp/tools/google_head.jsp"%>
     <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
     <sec:authorize access="isAuthenticated()" var="isAuth"/>
     <c:set var="showEntrance" value="${
@@ -95,3 +98,30 @@
             async defer>
     </script>
 </c:if>
+
+<style>
+    .nav__link{
+        padding: 14px 10px !important;
+    }
+    .predictions{
+        position: relative;
+        padding-right: 34px !important;
+    }
+    .predictions:after{
+        position: absolute;
+        top: 8px;
+        right: 0;
+        content:'New';
+        display: inline-block;
+        background-color: #34b646;
+        padding: 0px 8px;
+        -webkit-border-radius: 11px;
+        -moz-border-radius: 11px;
+        border-radius: 11px;
+        text-transform: uppercase;
+        color:#fff;
+        font-size: 8px;
+        line-height: 12px;
+        font-family: 'Roboto';
+    }
+</style>

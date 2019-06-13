@@ -2,23 +2,20 @@ package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.Merchant;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
 import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.ripple.RippleService;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,6 +25,7 @@ import java.util.concurrent.Executors;
 
 @Service
 @Log4j2
+@Conditional(MonolitConditional.class)
 public class RippleJobs {
 
     @Autowired
@@ -40,7 +38,7 @@ public class RippleJobs {
 
     private final static ExecutorService ordersExecutors = Executors.newSingleThreadExecutor();
 
-    @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
+    @Scheduled(initialDelay = 180000, fixedDelay = 1000 * 60 * 5)
     private void checkWithdrawals() {
         Merchant merchant = merchantService.findByName(XRP_MERCHANT);
         List<WithdrawRequestFlatDto> dtos = withdrawService.getRequestsByMerchantIdAndStatus(merchant.getId(),

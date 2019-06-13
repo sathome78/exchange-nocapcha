@@ -9,11 +9,17 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillAddressFilterData;
 import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.dto.ngDto.RefillOnConfirmationDto;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
+import me.exrates.model.vo.WalletOperationMsDto;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,28 +30,32 @@ import java.util.Optional;
  */
 public interface RefillService {
 
-  Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
+    Map<String, String> callRefillIRefillable(RefillRequestCreateDto request);
 
-  Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+    Map<String, Object> createRefillRequest(RefillRequestCreateDto requestCreateDto);
+
+    Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+
+    List<String> getListOfValidAddressByMerchantIdAndCurrency(Integer merchantId, Integer currencyId);
 
     @Transactional(readOnly = true)
     Integer getMerchantIdByAddressAndCurrencyAndUser(String address, Integer currencyId, Integer userId);
 
     List<MerchantCurrency> retrieveAddressAndAdditionalParamsForRefillForMerchantCurrencies(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
-  Integer createRefillRequestByFact(RefillRequestAcceptDto request);
+    Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
-  void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
+    Integer createRefillRequestByFact(RefillRequestAcceptDto request, int userId, int commissionId, RefillStatusEnum statusEnum);
 
-  List<RefillRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+    void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
 
-  List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
+    List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
-  Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
-      String address,
-      Integer merchantId,
-      Integer currencyId,
-      String hash);
+    Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+            String address,
+            Integer merchantId,
+            Integer currencyId,
+            String hash);
 
     Optional<Integer> getRequestIdByMerchantIdAndCurrencyIdAndHash(
             Integer merchantId,
@@ -59,84 +69,134 @@ public interface RefillService {
 
     Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
 
-  Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
-      String address,
-      Integer merchantId,
-      Integer currencyId);
+    Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+            String address,
+            Integer merchantId,
+            Integer currencyId);
 
-  List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
+    List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
-  Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+    Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
 
-  void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException;
+    void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException;
 
-  void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) throws RefillRequestAppropriateNotFoundException;
+    void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) throws RefillRequestAppropriateNotFoundException;
 
-  void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+    @Transactional
+    Integer createAndAutoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
-  void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+    void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
-  void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
+    void autoAcceptRefillEmptyRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
-  void finalizeAcceptRefillRequest(Integer requestId);
+    void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
-  RefillRequestFlatDto getFlatById(Integer id);
+    void finalizeAcceptRefillRequest(Integer requestId);
 
-  void revokeRefillRequest(int requestId);
+    @Transactional
+    void declineMerchantRefillRequest(Integer requestId);
 
-  List<InvoiceBank> findBanksForCurrency(Integer currencyId);
+    RefillRequestFlatDto getFlatById(Integer id);
 
-  Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale);
+    void revokeRefillRequest(int requestId);
 
-  Integer clearExpiredInvoices() throws Exception;
+    List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
-  DataTable<List<RefillRequestsAdminTableDto>> getRefillRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, RefillFilterData refillFilterData, String authorizedUserEmail, Locale locale);
+    Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale);
 
-  boolean checkInputRequestsLimit(int currencyId, String email);
+    Integer clearExpiredInvoices() throws Exception;
 
-  void takeInWorkRefillRequest(int requestId, Integer requesterAdminId);
+    DataTable<List<RefillRequestsAdminTableDto>> getRefillRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, RefillFilterData refillFilterData, String authorizedUserEmail, Locale locale);
 
-  void returnFromWorkRefillRequest(int requestId, Integer requesterAdminId);
+    boolean checkInputRequestsLimit(int currencyId, String email);
 
-  void declineRefillRequest(int requestId, Integer requesterAdminId, String comment);
+    void takeInWorkRefillRequest(int requestId, Integer requesterAdminId);
 
-  Boolean existsClosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
+    void returnFromWorkRefillRequest(int requestId, Integer requesterAdminId);
 
-  RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
+    void declineRefillRequest(int requestId, Integer requesterAdminId, String comment);
 
-  @Transactional
-  Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+    Boolean existsClosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 
-  Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
-                                                                                       String merchantTransactionId,
-                                                                                       String merchantName,
-                                                                                       String currencyName);
+    RefillRequestsAdminTableDto getRefillRequestById(Integer id, String authorizedUserEmail);
 
-  Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
+    RefillRequestFlatAdditionalDataDto getAdditionalData(int requestId);
 
-  Optional<InvoiceBank> findInvoiceBankById(Integer id);
+    @Transactional
+    Integer manualCreateRefillRequestCrypto(RefillRequestManualDto refillDto, Locale locale) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
 
-  List<String> findAllAddresses(Integer merchantId, Integer currencyId);
-  
-  String getPaymentMessageForTag(String serviceBeanName, String tag, Locale locale);
+    Optional<RefillRequestBtcInfoDto> findRefillRequestByAddressAndMerchantTransactionId(String address,
+                                                                                         String merchantTransactionId,
+                                                                                         String merchantName,
+                                                                                         String currencyName);
 
-  List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+    Optional<String> getLastBlockHashForMerchantAndCurrency(Integer merchantId, Integer currencyId);
+
+    Optional<InvoiceBank> findInvoiceBankById(Integer id);
+
+    List<String> findAllAddresses(Integer merchantId, Integer currencyId);
+
+    List<String> findAllAddresses(Integer merchantId, Integer currencyId, List<Boolean> isValidStatuses);
+
+    List<RefillRequestFlatDto> findAllNotAcceptedByAddressAndMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     int getTxOffsetForAddress(String address);
 
     void updateTxOffsetForAddress(String address, Integer offset);
 
-  void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded);
+    void updateAddressNeedTransfer(String address, Integer merchantId, Integer currencyId, boolean isNeeded);
 
-  List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
+    List<RefillRequestAddressDto> findAllAddressesNeededToTransfer(Integer merchantId, Integer currencyId);
 
-  List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
+    List<RefillRequestAddressDto> findByAddressMerchantAndCurrency(String address, Integer merchantId, Integer currencyId);
 
     DataTable<List<RefillRequestAddressShortDto>> getAdressesShortDto(DataTableParams dataTableParams, RefillAddressFilterData filterData);
 
-  List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
+    List<Integer> getUnconfirmedTxsCurrencyIdsForTokens(int parentTokenId);
 
-  List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId);
+    List<RefillRequestFlatDto> getInExamineWithChildTokensByMerchantIdAndCurrencyIdList(int merchantId, int currencyId);
 
     List<RefillRequestAddressDto> findAddressDtos(Integer merchantId, Integer currencyId);
+
+    void invalidateAddress(String address, Integer merchantId, Integer currencyId);
+
+    List<RefillRequestFlatForReportDto> findAllByPeriodAndRoles(LocalDateTime startTime,
+                                                                LocalDateTime endTime,
+                                                                List<UserRole> roles,
+                                                                int requesterId);
+
+    String getUsernameByAddressAndCurrencyIdAndMerchantId(String address, int currencyId, int merchantId);
+
+    String getUserGAByRequestId(int requestId);
+
+    Integer getRequestId(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
+
+    void blockUserByFrozeTx(String address, int merchantId, int currencyId);
+
+    List<RefillRequestAddressShortDto> getBlockedAddresses(int merchantId, int currencyId);
+
+    @Transactional
+    int createRequestByFactAndSetHash(RefillRequestAcceptDto requestAcceptDto);
+
+    @Transactional
+    void setHashByRequestId(int requestId, String hash) throws DuplicatedMerchantTransactionIdOrAttemptToRewriteException;
+
+    @Transactional
+    void setInnerTransferHash(int requestId, String hash);
+
+    List<RefillRequestAddressDto> findAddressDtosWithMerchantChild(int merchantId);
+
+    List<RefillOnConfirmationDto> getOnConfirmationRefills(String email, int currencyId);
+
+    Integer findFlatByUserIdAndMerchantIdAndCurrencyId(int userId, int id, int currencyId);
+
+    default void processRefillRequest(WalletOperationMsDto walletOperationMsDto) {
+        throw new NotImplementedException();
+    }
+
+    String getPrivKeyByAddress(String address);
+
+    boolean setPropertyNeedTransfer(int userId, int currencyId, int merchantId, String address, Boolean needTransfer);
+
+    boolean changeRefillRequestStatusToOnPending(int id);
 }

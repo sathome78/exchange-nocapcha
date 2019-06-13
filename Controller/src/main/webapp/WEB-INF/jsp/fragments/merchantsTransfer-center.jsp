@@ -6,7 +6,7 @@
     </label>
   </c:if>
   <c:choose>
-    <c:when test="${empty merchantCurrencyData}">
+    <c:when test="${empty merchantCurrencyData || accessToOperationForUser eq false}">
       <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable"/></p>
     </c:when>
     <c:otherwise>
@@ -43,7 +43,9 @@
                      data-system-min-sum="${minTransferSum}"
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id=".start-transfer"/>
+                     data-submit-button-id=".start-transfer"
+                     <c:if test="${checkingZeroBalance}">disabled</c:if>
+              />
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>

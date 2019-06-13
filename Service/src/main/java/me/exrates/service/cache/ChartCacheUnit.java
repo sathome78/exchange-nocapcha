@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.chart.ChartTimeFrame;
 import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.OrderService;
 import me.exrates.service.events.ChartCacheUpdateEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -13,7 +12,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -69,14 +70,9 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
     @Override
     public List<CandleChartItemDto> getData() {
-        log.debug("getting data {} {}", currencyPairId, timeFrame);
         if (cachedData == null || isUpdateCasheRequired()) {
-            System.out.println("need to update data");
-            log.debug("update data {} {}", currencyPairId, timeFrame);
             updateCache(cachedData != null );
-            System.out.println("end update data");
         }
-        log.debug("return data {} {} size {}", currencyPairId, timeFrame, cachedData == null ? "null" : cachedData.size());
         return cachedData;
     }
 
@@ -124,18 +120,15 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 //    }
     @Override
     public void setNeedToUpdate() {
-        log.debug("setting update data {} {}", currencyPairId, timeFrame);
         if (!lazyUpdate) {
-            log.debug("not lazy update data {} {}", currencyPairId, timeFrame);
             if (timerLock.tryLock()) {
                 timerLock.lock();
                 new Timer().schedule(new TimerTask() {
                     @Override
                     public void run() {
-                            log.debug("execute task update data {} {}", currencyPairId, timeFrame);
                             timerLock = new ReentrantLock();
                             updateCache(true);
-                            eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));
+                            /*eventPublisher.publishEvent(new ChartCacheUpdateEvent(getLastData(), timeFrame, currencyPairId));*/
                     }
                 }, getMinUpdateIntervalSeconds() * 1000);
 
@@ -149,13 +142,10 @@ public class ChartCacheUnit implements ChartsCacheInterface {
 
 
     private void updateCache(boolean appendLastEntriesOnly) {
-        log.debug("try update cahce {} {}", currencyPairId, timeFrame);
         if (tryLockWithTimeout()) {
             lastLock = LocalDateTime.now();
-            log.debug("lock was unlocked {} {}", currencyPairId, timeFrame);
             try {
                 performUpdate(appendLastEntriesOnly);
-                log.debug("end update cache {} {}", currencyPairId, timeFrame);
                 barrier.reset();
             } finally {
                 if (lock.isHeldByCurrentThread()) {
@@ -163,7 +153,6 @@ public class ChartCacheUnit implements ChartsCacheInterface {
                 }
             }
         } else {
-                log.debug("wait update data {} {}", currencyPairId, timeFrame);
                 try {
                     barrier.await(30, TimeUnit.SECONDS);
                     /*if (cachedData == null) {
@@ -186,15 +175,11 @@ public class ChartCacheUnit implements ChartsCacheInterface {
     }
 
     private void performUpdate(boolean appendLastEntriesOnly) {
-        log.debug("update cache {} {}", currencyPairId, timeFrame);
         if (appendLastEntriesOnly && cachedData != null && !cachedData.isEmpty() ) {
-            cachedData.forEach(System.out::println);
             CandleChartItemDto lastBar = cachedData.remove(cachedData.size() - 1);
             LocalDateTime lastBarStartTime = lastBar.getBeginPeriod();
             List<CandleChartItemDto> newData = orderService.getLastDataForCandleChart(currencyPairId, lastBarStartTime, timeFrame.getResolution());
-            newData.forEach(System.out::println);
             cachedData.addAll(newData);
-            cachedData.forEach(System.out::println);
         } else {
             setCachedData(orderService.getDataForCandleChart(currencyPairId, timeFrame));
         }

@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.invoice.IeoStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.TransferStatusEnum;
@@ -16,15 +17,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.model.enums.TransactionSourceType.USER_TRANSFER;
-import static me.exrates.model.enums.TransactionSourceType.REFILL;
-import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
+import static me.exrates.model.enums.TransactionSourceType.*;
 
 /**
  * Created by Ajet on 23.07.2016.
  */
 @Log4j2
-@Getter @Setter
+@Getter
+@Setter
 @ToString
 public class MyInputOutputHistoryDto extends OnlineTableDto {
   @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -42,6 +42,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private Integer userId;
   private String bankAccount;
   private InvoiceStatus status;
+  @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime statusUpdateDate;
   private String summaryStatus;
   private String userFullName;
@@ -49,10 +50,13 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private TransactionSourceType sourceType;
   private Integer sourceId;
   private Integer confirmation;
+  private Integer neededConfirmations;
   private Integer adminHolderId;
   private Integer authorisedUserId;
   private List<Map<String, Object>> buttons;
   private String transactionHash;
+  private String market;
+  private Boolean accepted;
 
 
   public MyInputOutputHistoryDto() {
@@ -71,6 +75,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
       this.status = WithdrawStatusEnum.convert(statusId);
     } else if (sourceType == USER_TRANSFER) {
       this.status = TransferStatusEnum.convert(statusId);
+    } else if (sourceType == IEO) {
+      this.status = IeoStatusEnum.convert(statusId);
     }
   }
 

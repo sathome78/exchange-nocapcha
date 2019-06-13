@@ -1,8 +1,9 @@
 package me.exrates.dao.impl;
 
+import lombok.RequiredArgsConstructor;
 import me.exrates.dao.ApiAuthTokenDao;
+import me.exrates.dao.rowmappers.ApiAuthTokenRowMapper;
 import me.exrates.model.ApiAuthToken;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,26 +12,28 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Created by OLEG on 04.11.2016.
- */
+import static java.util.Collections.singletonMap;
+
 @Repository
+@RequiredArgsConstructor
 public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
-    @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     @Override
     public long createToken(ApiAuthToken token) {
-        String sql = "INSERT INTO API_AUTH_TOKEN(username, value) VALUES(:username, :value)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("username", token.getUsername())
-                .addValue("value", token.getValue());
-        int result = jdbcTemplate.update(sql, params, keyHolder);
+                .addValue("value", token.getValue())
+                .addValue("expired_at", token.getExpiredAt());
+
+        int result = namedParameterJdbcTemplate.update(INSERT_API_AUTH_TOKEN, params, keyHolder);
         long id = keyHolder.getKey().longValue();
         if (result <= 0) {
             id = 0;
@@ -40,40 +43,53 @@ public class ApiAuthTokenDaoImpl implements ApiAuthTokenDao {
 
     @Override
     public Optional<ApiAuthToken> retrieveTokenById(Long id) {
-        String sql = "SELECT id, username, value, last_request FROM API_AUTH_TOKEN WHERE id = :id";
-        Map<String, Long> params = Collections.singletonMap("id", id);
+        Map<String, Long> params = singletonMap("id", id);
         try {
-            return Optional.of(jdbcTemplate.queryForObject(sql, params, (rs, row) -> {
-                ApiAuthToken token = new ApiAuthToken();
-                token.setId(rs.getLong("id"));
-                token.setUsername(rs.getString("username"));
-                token.setValue(rs.getString("value"));
-                token.seLastRequest(rs.getTimestamp("last_request").toLocalDateTime());
-                return token;
-            }));
+            return Optional.of(namedParameterJdbcTemplate.queryForObject(SELECT_TOKEN_BY_ID, params, new ApiAuthTokenRowMapper()));
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
 
-    public boolean prolongToken(Long id) {
-        String sql = "UPDATE API_AUTH_TOKEN SET last_request = CURRENT_TIMESTAMP WHERE id = :id";
-        Map<String, Object> params = Collections.singletonMap("id", id);
-        return jdbcTemplate.update(sql, params) == 1;
-    }
-
     @Override
-    public  boolean deleteExpiredToken(Long id) {
+    public boolean deleteExpiredToken(Long id) {
         String sql = "DELETE FROM API_AUTH_TOKEN WHERE id = :id";
-        Map<String, Object> params = Collections.singletonMap("id", id);
-        return jdbcTemplate.update(sql, params) == 1;
+        Map<String, Object> params = singletonMap("id", id);
+        return namedParameterJdbcTemplate.update(sql, params) == 1;
     }
 
     @Override
-    public int deleteAllExpired(long tokenDuration) {
-        String sql = "DELETE FROM API_AUTH_TOKEN WHERE DATE_ADD(last_request,INTERVAL :duration SECOND) < now()";
-        return jdbcTemplate.update(sql, Collections.singletonMap("duration", tokenDuration));
+    public int deleteAllExpired() {
+        String sql = "DELETE FROM API_AUTH_TOKEN WHERE expired_at < now()";
+        return namedParameterJdbcTemplate.update(sql, Collections.emptyMap());
     }
 
+    @Override
+    public boolean deleteAllByUsername(String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE username = :username";
 
+        return namedParameterJdbcTemplate.update(sql, Collections.singletonMap("username", username)) > 0;
+    }
+
+    @Override
+    public boolean deleteAllExceptCurrent(Long tokenId, String username) {
+        final String sql = "DELETE FROM API_AUTH_TOKEN WHERE id NOT IN (:ids) AND username = :username";
+
+        final Map<String, Object> params = new HashMap<>();
+        params.put("ids", Collections.singletonList(tokenId));
+        params.put("username", username);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean updateExpiration(Long tokenId, Date expiredAt) {
+        final String sql = "UPDATE API_AUTH_TOKEN SET expired_at = :expired_at WHERE id = :id";
+
+        final Map<String, Object> params = new HashMap<>();
+        params.put("id", tokenId);
+        params.put("expired_at", expiredAt);
+
+        return namedParameterJdbcTemplate.update(sql, params) > 0;
+    }
 }

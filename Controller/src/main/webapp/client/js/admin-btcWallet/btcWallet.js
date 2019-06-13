@@ -13,7 +13,7 @@ $(function () {
    urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + merchantName + '/';
 
 
-    updateTxHistoryTable();
+
     retrieveFee();
     checkSendBtcFormFields();
     refreshSubtractFeeStatus();
@@ -29,6 +29,11 @@ $(function () {
         $($newPaymentDiv).find('.rm-button-placeholder').append($removeButton);
         $('#payments').append($newPaymentDiv);
         checkSendBtcFormFields();
+    });
+
+    $('.btc_show_data').on('click', function(e) {
+        // updateTxHistoryTable();
+        updateTxHistoryTablePagination();
     });
 
     $('#send-btc-form').on('click', '.remove-payment', function (e) {
@@ -109,7 +114,8 @@ $(function () {
                 data['results'].forEach(function (e) {
                     $btcResultInfoTable.append(tmpl($tmpl, e));
                 });
-                updateTxHistoryTable();
+                // updateTxHistoryTable();
+                updateTxHistoryTablePagination();
                 $($btcSendResultModal).modal();
 
             },
@@ -161,7 +167,8 @@ $(function () {
                 data['results'].forEach(function (e) {
                     $btcResultInfoTable.append(tmpl($tmpl, e));
                 });
-                updateTxHistoryTable();
+                // updateTxHistoryTable();
+                updateTxHistoryTablePagination();
                 $($btcSendResultModal).modal();
 
             },
@@ -256,9 +263,6 @@ function fillConfirmModal() {
 
 }
 
-
-
-
 function updateTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');
     var viewMessage = $('#viewMessage').text();
@@ -349,6 +353,111 @@ function updateTxHistoryTable() {
                 0,
                 "desc"
             ]],
+            buttons: [
+                {
+                    extend: 'csv',
+                    text: 'CSV',
+                    fieldSeparator: ';',
+                    bom:true,
+                    charset: 'UTF8',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6]
+                    }
+
+                }
+            ]
+        });}
+}
+
+function updateTxHistoryTablePagination() {
+    var $txHistoryTable = $('#txHistory');
+    var viewMessage = $('#viewMessage').text();
+    var url = urlBase + 'transactions/pagination';
+
+    if ($.fn.dataTable.isDataTable('#txHistory')) {
+        txHistoryDataTable = $($txHistoryTable).DataTable();
+        txHistoryDataTable.ajax.url(url).load();
+    } else {
+        txHistoryDataTable = $($txHistoryTable).DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": "data"
+            },
+            "serverSide": true,
+            "paging": true,
+            "info": true,
+            "columns": [
+                {
+                    "data": "time",
+                    "render": function (data) {
+                        return data.replace(' ', '<br/>');
+                    },
+                    "className": "text-center"
+                },
+                {
+                    "data": "txId",
+                    "render": function (data) {
+                        var inputValue = data ? data : '';
+                        return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
+                            'class="form-control input-block-wrapper__input">';
+                    }
+                },
+                {
+                    "data": "category",
+                    "render": function (data) {
+                        var dataClass;
+                        if (data === 'receive') {
+                            dataClass = 'class="green"';
+                        } else if (data === 'send') {
+                            dataClass = 'class="red"';
+                        } else {
+                            dataClass = '';
+                        }
+                        return '<span '+ dataClass + '><strong>' + data + '</strong></span>'
+                    }
+                },
+                {
+                    "data": "address",
+                    "render": function (data) {
+                        var inputValue = data ? data : '';
+                        return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
+                            'class="form-control input-block-wrapper__input">';
+                    }
+                },
+                {
+                    "data": "blockhash",
+                    "render": function (data) {
+                        var inputValue = data ? data : '';
+                        return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
+                            'class="form-control input-block-wrapper__input">';
+                    }
+                },
+                {
+                    "data": "amount"
+                },
+                {
+                    "data": "fee"
+                },
+                {
+                    "data": "confirmations"
+                },
+                {
+                    "data": "",
+                    "render": function () {
+                        return '<button class="btn btn-sm btn-info" onclick="viewTransactionData(this)">' + viewMessage + '</button>'
+                    }
+                },
+                {
+                    "data": "txId",
+                    "visible": false
+                },
+                {
+                    "data": "address",
+                    "visible": false
+                }
+
+            ],
+            dom: "<'download-btn col-md-12'B>lftip",
             buttons: [
                 {
                     extend: 'csv',

@@ -7,12 +7,21 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.StopOrder;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.OrderBasicInfoDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.StopOrderSummaryDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderBaseType;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.CurrencyService;
@@ -20,19 +29,18 @@ import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.events.AcceptOrderEvent;
-import me.exrates.service.exception.NotCreatableOrderException;
-import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.IncorrectCurrentUserException;
 import me.exrates.service.exception.StopOrderNoConditionException;
+import me.exrates.service.exception.process.NotCreatableOrderException;
+import me.exrates.service.exception.process.OrderAcceptionException;
+import me.exrates.service.exception.process.OrderCancellingException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -43,6 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.util.Objects.isNull;
 
 /**
  * Created by maks on 20.04.2017.
@@ -71,7 +81,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Autowired
     private CurrencyService currencyService;
 
-    private final static int THREADS_NUMBER = 50;
+    private final static int THREADS_NUMBER = 10;
     private final static ExecutorService checkExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
     private ConcurrentMap<Integer, Object> buyLocks = new ConcurrentHashMap<>();
     private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
@@ -81,7 +91,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional
     @Override
     public String create(OrderCreateDto orderCreateDto, OrderActionEnum actionEnum, Locale locale) {
-        Integer orderId = orderService.createOrder(orderCreateDto, actionEnum);
+        int orderId = orderService.createOrder(orderCreateDto, actionEnum);
         if (orderId <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
         }
@@ -102,18 +112,13 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     public void proceedStopOrders(int pairId, NavigableSet<StopOrderSummaryDto> orders) {
-           orders.forEach(p->{
-               try {
-                   ordersExecutors.execute(new Runnable() {
-                       @Override
-                       public void run() {
-                           proceedStopOrderAndRemove(p.getOrderId());
-                       }
-                   });
-               } catch (Exception e) {
-                   log.error("error processing stop order {}", e);
-               }
-           });
+        orders.forEach(p -> {
+            try {
+                ordersExecutors.execute(() -> proceedStopOrderAndRemove(p.getOrderId()));
+            } catch (Exception e) {
+                log.error("error processing stop order {}", e);
+            }
+        });
     }
 
     @Transactional
@@ -128,6 +133,8 @@ public class StopOrderServiceImpl implements StopOrderService {
                 new StopOrderSummaryDto(stopOrderId, stopOrder.getStop(), stopOrder.getOperationType()));
         try {
             this.proceedStopOrder(new ExOrder(stopOrder));
+        } catch (OrderCancellingException e) {
+            log.error("order not acceptable, error processing stop-order  {}", e);
         } catch (Exception e) {
             log.error("error processing stop-order  {}", e);
             stopOrdersHolder.addOrder(new ExOrder(stopOrder));
@@ -136,10 +143,10 @@ public class StopOrderServiceImpl implements StopOrderService {
 
 
     @Transactional
-    private void proceedStopOrder(ExOrder exOrder) {
+    public void proceedStopOrder(ExOrder exOrder) {
         OrderCreateDto newOrder = orderService.prepareNewOrder(currencyService.findCurrencyPairById(
                 exOrder.getCurrencyPair().getId()), exOrder.getOperationType(),
-                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.STOP_LIMIT);
+                userService.getEmailById(exOrder.getUserId()), exOrder.getAmountBase(), exOrder.getExRate(), OrderBaseType.LIMIT);
         if (newOrder == null) {
             throw new RuntimeException("error preparing new order");
         }
@@ -152,7 +159,7 @@ public class StopOrderServiceImpl implements StopOrderService {
     }
 
     @Transactional
-    private void cancelCostsReserveForStopOrder(ExOrder dto, Locale locale, OrderActionEnum actionEnum) {
+    public void cancelCostsReserveForStopOrder(ExOrder dto, Locale locale, OrderActionEnum actionEnum) {
         WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(
                 dto.getId(), dto.getOperationType(), dto.getCurrencyPairId());
         OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
@@ -177,12 +184,38 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     @Transactional
-    public boolean cancelOrder(ExOrder exOrder, Locale locale) {
+    public boolean cancelOrder(int orderId, Locale locale) {
+        OrderCreateDto orderCreateDto = this.getOrderById(orderId, true);
+        if (orderCreateDto == null) {
+            throw new OrderCancellingException(messageSource.getMessage("orderinfo.searcherror", null, locale));
+        }
+        if (isNull(locale)) {
+            final String currentUserEmail = getUserEmailFromSecurityContext();
+
+            final int userId = orderCreateDto.getUserId();
+
+            final String creatorEmail = userService.getEmailById(userId);
+            if (!currentUserEmail.equals(creatorEmail)) {
+                throw new IncorrectCurrentUserException(String.format("Creator email: %s and currentUser email: %s are different", creatorEmail, currentUserEmail));
+            }
+            locale = userService.getUserLocaleForMobile(currentUserEmail);
+        }
+
+        if (orderCreateDto.getStatus() != OrderStatus.OPENED) {
+            throw new OrderCancellingException(messageSource.getMessage("order.cannotcancel.allreadycancelled", null, locale));
+        }
+        ExOrder exOrder = new ExOrder(orderCreateDto);
         boolean res;
         cancelCostsReserveForStopOrder(exOrder, locale, OrderActionEnum.CANCEL);
         res = this.setStatus(exOrder.getId(), OrderStatus.CANCELLED);
-        stopOrdersHolder.delete(exOrder.getCurrencyPairId(),
-                    new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+        if (res) {
+            try {
+                stopOrdersHolder.delete(exOrder.getCurrencyPairId(),
+                        new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return res;
     }
 
@@ -201,16 +234,11 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Override
     @TransactionalEventListener
     public void onLimitOrderAccept(AcceptOrderEvent event) {
-        log.debug("orderAcceptedd");
+        log.debug("orderAccepted");
         ExOrder exOrder = (ExOrder) event.getSource();
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
-        checkExecutors.execute(() -> {
-            checkOrders(exOrder, OperationType.BUY);
-
-        });
-        checkExecutors.execute(() -> {
-            checkOrders(exOrder, OperationType.SELL);
-        });
+        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.BUY));
+        checkExecutors.execute(() -> checkOrders(exOrder, OperationType.SELL));
     }
 
 
@@ -269,26 +297,26 @@ public class StopOrderServiceImpl implements StopOrderService {
         log.debug("stop order created {}", exOrder.getId());
         try {
             BigDecimal currentRate = ratesHolder.getCurrentRate(exOrder.getCurrencyPairId(), exOrder.getOperationType());
-            log.debug("current rate {}, stop {}", currentRate, exOrder.getStop() );
+            log.debug("current rate {}, stop {}", currentRate, exOrder.getStop());
             switch (exOrder.getOperationType()) {
                 case SELL: {
-                        if (currentRate != null && exOrder.getStop().compareTo(currentRate) >= 0) {
-                            log.error("try to proceed sell stop order {}", exOrder.getId());
-                            this.proceedStopOrder(exOrder);
-                        } else {
-                            log.error("add buy order to holder {}", exOrder.getId());
-                            stopOrdersHolder.addOrder(exOrder);
-                        }
+                    if (currentRate != null && exOrder.getStop().compareTo(currentRate) >= 0) {
+                        log.error("try to proceed sell stop order {}", exOrder.getId());
+                        this.proceedStopOrder(exOrder);
+                    } else {
+                        log.error("add buy order to holder {}", exOrder.getId());
+                        stopOrdersHolder.addOrder(exOrder);
                     }
-                    break;
+                }
+                break;
                 case BUY: {
-                        if (currentRate != null && exOrder.getStop().compareTo(currentRate) <= 0) {
-                            log.error("try to proceed buy stop order {}", exOrder.getId());
-                            this.proceedStopOrder(exOrder);
-                        } else {
-                            log.error("add buy order to holder {}", exOrder.getId());
-                            stopOrdersHolder.addOrder(exOrder);
-                        }
+                    if (currentRate != null && exOrder.getStop().compareTo(currentRate) <= 0) {
+                        log.error("try to proceed buy stop order {}", exOrder.getId());
+                        this.proceedStopOrder(exOrder);
+                    } else {
+                        log.error("add buy order to holder {}", exOrder.getId());
+                        stopOrdersHolder.addOrder(exOrder);
+                    }
                     break;
                 }
             }
@@ -315,8 +343,8 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Transactional(readOnly = true)
     @Override
     public List<OrderWideListDto> getUsersStopOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                                  OperationType operationType,
-                                                                  Integer offset, Integer limit, Locale locale) {
+                                                                      OperationType operationType,
+                                                                      Integer offset, Integer limit, Locale locale) {
         return stopOrderDao.getMyOrdersWithState(email, currencyPair, status, operationType, null, offset, limit, locale);
     }
 
@@ -340,14 +368,28 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     public Object deleteOrderByAdmin(int id, Locale locale) {
-        OrderCreateDto orderCreateDto = this.getOrderById(id, true);
-        log.debug("order {}", orderCreateDto);
-        return this.cancelOrder(new ExOrder(orderCreateDto), locale);
+        return this.cancelOrder(id, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Integer> getAllOpenedStopOrdersByUserId(Integer userId) {
+        return stopOrderDao.getAllOpenedStopOrdersByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair) {
+        return stopOrderDao.getOpenedStopOrdersByCurrencyPair(userId, currencyPair);
     }
 
     @PreDestroy
     private void shutdown() {
         checkExecutors.shutdown();
         ordersExecutors.shutdown();
+    }
+
+    private String getUserEmailFromSecurityContext() {
+        return userService.getUserEmailFromSecurityContext();
     }
 }

@@ -1,8 +1,7 @@
 package me.exrates.service.nem;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.*;
-import me.exrates.model.dto.MosaicIdDto;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -13,22 +12,15 @@ import org.json.JSONObject;
 import org.nem.core.crypto.PrivateKey;
 import org.nem.core.messages.PlainMessage;
 import org.nem.core.model.*;
-import org.nem.core.model.Transaction;
 import org.nem.core.model.mosaic.Mosaic;
 import org.nem.core.model.mosaic.MosaicFeeInformationLookup;
-import org.nem.core.model.mosaic.MosaicId;
-import org.nem.core.model.mosaic.MosaicTransferFeeCalculator;
-import org.nem.core.model.namespace.NamespaceId;
 import org.nem.core.model.ncc.RequestPrepareAnnounce;
 import org.nem.core.model.primitive.Amount;
-import org.nem.core.model.primitive.BlockHeight;
-import org.nem.core.model.primitive.Quantity;
-import org.nem.core.serialization.DeserializationContext;
 import org.nem.core.serialization.JsonSerializer;
-import org.nem.core.serialization.SimpleAccountLookup;
 import org.nem.core.time.TimeInstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +36,7 @@ import java.util.HashMap;
 @Log4j2(topic = "nem_log")
 @Service
 @PropertySource("classpath:/merchants/nem.properties")
+@Conditional(MonolitConditional.class)
 public class NemTransactionsService {
 
     private @Value("${nem.transaction.version}")Integer version;

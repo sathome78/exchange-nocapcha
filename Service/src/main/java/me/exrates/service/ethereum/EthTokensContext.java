@@ -1,8 +1,9 @@
 package me.exrates.service.ethereum;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.service.ethereum.EthTokenService;
+import me.exrates.model.condition.MonolitConditional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 @Log4j2
 @Component
+@Conditional(MonolitConditional.class)
 public class EthTokensContext {
 
     @Autowired
@@ -24,9 +26,9 @@ public class EthTokensContext {
 
     @PostConstruct
     private void init() {
-        merchantServiceMap.forEach((k,v)-> {
+        merchantServiceMap.forEach((k, v) -> {
             merchantMapByCurrencies.put(v.currencyId(), v);
-            v.getContractAddress().forEach((address)->{
+            v.getContractAddress().forEach((address) -> {
                 contractAddressByCurrencies.put(address, v.currencyId());
             });
         });
@@ -36,15 +38,15 @@ public class EthTokensContext {
         return merchantMapByCurrencies.get(currencyId);
     }
 
-    public boolean isContract(String contract){
-        if (contractAddressByCurrencies.get(contract) == null){
+    public boolean isContract(String contract) {
+        if (contractAddressByCurrencies.get(contract) == null) {
             return false;
-        }else {
+        } else {
             return true;
         }
     }
 
-    public EthTokenService getByContract(String contract){
+    public EthTokenService getByContract(String contract) {
         return getByCurrencyId(contractAddressByCurrencies.get(contract));
     }
 

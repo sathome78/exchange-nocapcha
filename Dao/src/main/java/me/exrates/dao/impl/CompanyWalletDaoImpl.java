@@ -4,6 +4,7 @@ import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class CompanyWalletDaoImpl implements CompanyWalletDao {
 
     @Autowired
+    @Qualifier(value = "masterTemplate")
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
@@ -45,11 +47,13 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
     @Override
     public CompanyWallet findByCurrencyId(Currency currency) {
         final String sql = "SELECT * FROM  COMPANY_WALLET WHERE currency_id = :currencyId";
+
         final Map<String,Integer> params = new HashMap<String, Integer>(){
             {
                 put("currencyId", currency.getId());
             }
         };
+
         final CompanyWallet companyWallet = new CompanyWallet();
         try {
             return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
@@ -59,7 +63,7 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
                 companyWallet.setCurrency(currency);
                 return companyWallet;
             });
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException ex) {
             return null;
         }
     }
@@ -106,11 +110,12 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
         String sql = "UPDATE COMPANY_WALLET " +
             " SET commission_balance = commission_balance - :amount" +
             " WHERE id = :company_wallet_id ";
+
         Map<String, Object> params = new HashMap<String, Object>(){{
             put("company_wallet_id", id);
             put("amount", amount);
         }};
+
         return jdbcTemplate.update(sql, params) > 0;
     }
- 
 }

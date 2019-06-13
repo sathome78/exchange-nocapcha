@@ -15,13 +15,13 @@ var notifications;
 
 var ordersSubscription;
 var tradesSubscription;
-var chartSubscription;
 var eventsSubscrition;
 var alertsSubscription;
 var currencyPairStatisticSubscription;
 var personalSubscription;
 var connectedPS = false;
 var currentCurrencyPairId;
+var currentPairName;
 var subscribedCurrencyPairId;
 var chartPeriod;
 var newChartPeriod = null;
@@ -60,7 +60,6 @@ function subscribeAll() {
         subscribeEvents();
     }
     if (connectedPS && (subscribedCurrencyPairId != currentCurrencyPairId || newChartPeriod != chartPeriod)) {
-        subscribeChart();
     }
     if (connectedPS && subscribedCurrencyPairId != currentCurrencyPairId) {
         subscribeTrades();
@@ -156,21 +155,6 @@ function subscribeStatistics() {
             messageBody.forEach(function(object){
                 handleStatisticMessages(JSON.parse(object));
             });
-        }, headers);
-    }
-}
-
-function subscribeChart() {
-    if (chartSubscription != undefined) {
-        chartSubscription.unsubscribe();
-    }
-    if (currentCurrencyPairId != null && newChartPeriod != null) {
-        var headers = {'X-CSRF-TOKEN': csrf};
-        var path = '/app/charts2/' + currentCurrencyPairId + '/' + newChartPeriod;
-        chartSubscription = client.subscribe(path, function (message) {
-            chartPeriod = newChartPeriod;
-            var messageBody = JSON.parse(message.body);
-            trading.getChart().drawChart(messageBody.data);
         }, headers);
     }
 }
@@ -382,7 +366,7 @@ $(function dashdoardInit() {
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
-            trading.syncCurrencyPairSelector();
+            trading.syncCurrencyPairSelector(currentPairName);
             showPage('trading');
             trading.updateAndShowAll();
             trading.fillOrderCreationFormFields();
@@ -577,6 +561,7 @@ function syncCurrentParams(currencyPairName, period, chart, showAllPairs, enable
             $('.currencyConvertName').text(data.currencyPair.currency2.name);
             /**/
             currentCurrencyPairId = data.currencyPair.id;
+            currentPairName = data.currencyPair.name;
             enableF = enableFilter;
             if (period != null) {
                 newChartResolution = period;
@@ -672,7 +657,6 @@ function doPoll($pollDialog) {
 
     function successRegister (event) {
         if ($('#successRegister').text() != undefined ) {
-            gtag('event', 'sendregister', { 'event_category': 'register', 'event_action': 'sendregister', });
             yaCounter47624182.reachGoal('sendregister');
             console.log('it works!');
             return true;

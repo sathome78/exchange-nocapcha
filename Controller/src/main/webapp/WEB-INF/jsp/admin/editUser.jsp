@@ -42,7 +42,9 @@
   <script type="text/javascript" src="<c:url value='/client/js/2faSettings.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
+  <%--delete?--%>
   <script type="text/javascript" src="<c:url value='/client/js/reportAdmin.js'/>"></script>
+
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
@@ -95,6 +97,14 @@
               <loc:message code="admin.referral"/>
             </button>
           </sec:authorize>
+
+          <%--Access for operation | START--%>
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <button class="adminForm-toggler yellow-box">
+              Access
+            </button>
+          </sec:authorize>
+          <%--Access for operation | END--%>
 
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
             <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
@@ -179,21 +189,6 @@
 
                     <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-password" path="password"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.password"/></label>
-                      </div>
-                      <div class="col-md-9 input-block-wrapper__input-wrapper">
-                        <form:password path="password"
-                                       class="input-block-wrapper__input admin-form-input"
-                                       id="user-password"/>
-                        <form:errors path="password" class="input-block-wrapper__input"
-                                     style="color:red"/>
-                      </div>
-                    </div>
-
-                    <div class="input-block-wrapper">
-                      <div class="col-md-3 input-block-wrapper__label-wrapper">
                         <label for="user-phone"
                                class="input-block-wrapper__label"><loc:message
                                 code="admin.phone"/></label>
@@ -215,6 +210,9 @@
                                   code="admin.role"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
+                          <%--<form:input path="role" id="user-role"
+                                      class="input-block-wrapper__input admin-form-input"
+                                      name="user-role" />--%>
                           <form:select path="role" id="user-role"
                                        class="input-block-wrapper__input admin-form-input"
                                        name="user-role">
@@ -232,9 +230,9 @@
                     </sec:authorize>
                     <div class="input-block-wrapper">
                       <div class="col-md-3 input-block-wrapper__label-wrapper">
-                        <label for="user-status"
-                               class="input-block-wrapper__label"><loc:message
-                                code="admin.status"/></label>
+                        <label for="user-status" class="input-block-wrapper__label">
+                          <loc:message code="admin.status"/>
+                        </label>
                       </div>
                       <div class="col-md-9 input-block-wrapper__input-wrapper">
                         <form:select path="userStatus" id="user-status"
@@ -242,7 +240,7 @@
                                      name="user-status">
                           <c:forEach items="${statusList}" var="status">
                             <option value="${status}"
-                                    <c:if test="${status eq user.status}">SELECTED</c:if>>${status}</option>
+                                    <c:if test="${status eq user.userStatus}">SELECTED</c:if>>${status}</option>
                           </c:forEach>
                         </form:select>
                       </div>
@@ -298,7 +296,7 @@
                   </div>
                 </c:when>
               </c:choose>
-              <%@include file="../fragments/admin-settings-user-2fa.jsp" %>
+             <%-- <%@include file="../fragments/admin-settings-user-2fa.jsp" %>--%>
             </div>
           </div>
         </div>
@@ -368,19 +366,7 @@
                   </div>
 
                 </div>
-                <%--TIME--%>
-                <div class="input-block-wrapper">
-                  <div class="col-md-3 input-block-wrapper__label-wrapper">
-                    <label class="input-block-wrapper__label">
-                      <loc:message code="ordersearch.date"/>
-                    </label>
-                  </div>
-                  <div class="col-md-9 input-block-wrapper__input-wrapper">
-                    <input id="datetimepicker_start" type="text" name="startDate">
-                    <input id="datetimepicker_end" type="text" name="endDate">
-                  </div>
 
-                </div>
                 <%--AMOUNT--%>
                 <div class="input-block-wrapper">
                   <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -413,6 +399,26 @@
               </form>
 
             </div>
+
+              <%--TIME--%>
+              <div class="input-block-wrapper">
+                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                  <label class="input-block-wrapper__label">
+                    <loc:message code="ordersearch.date"/>
+                  </label>
+                </div>
+
+              <form id="transaction-search-datetime-form">
+                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                  <input id="datetimepicker_start" type="text" name="startDate">
+                  <input id="datetimepicker_end" type="text" name="endDate">
+                  <button id="transactions_change_date" class="blue-box"><loc:message
+                          code="admin.user.transactions.aplly_dates"/></button>
+                </div>
+
+                </form>
+              </div>
+
 
 
             <table id="transactionsTable"
@@ -460,6 +466,8 @@
                 <div class="col-md-12">
                     <button class="blue-box" id="wallets-table-init">
                         <loc:message code="admin.datatable.showData"/></button>
+                  <button class="blue-box" id="wallets-table-balances-only">
+                    <loc:message code="admin.datatable.showBalances"/></button>
                 </div>
                 <span hidden id="walletsExtendedInfoRequired">${walletsExtendedInfoRequired}</span>
             <table id="walletsTable"
@@ -470,14 +478,15 @@
                     <thead>
                     <tr>
                         <th></th>
+                        <th><loc:message code="mywallets.totalBalance"/></th>
                         <th><loc:message code="mywallets.abalance"/></th>
+                        <th><loc:message code="mywallets.rbalance"/></th>
                         <th><loc:message code="mywallets.reservedonorders"/></th>
                         <th><loc:message code="mywallets.reservedonwithdraw"/></th>
                         <th><loc:message code="userWallet.input"/></th>
                         <th><loc:message code="userWallet.sell"/></th>
                         <th><loc:message code="userWallet.buy"/></th>
                         <th><loc:message code="userWallet.output"/></th>
-                        <th><loc:message code="mywallets.rbalance"/></th>
                     </tr>
                     </thead>
                 </c:when>
@@ -485,6 +494,7 @@
                     <thead>
                     <tr>
                         <th></th>
+                        <th><loc:message code="mywallets.totalBalance"/></th>
                         <th><loc:message code="mywallets.abalance"/></th>
                         <th><loc:message code="mywallets.rbalance"/></th>
                     </tr>
@@ -730,6 +740,10 @@
           </div>
         <%--Access management--%>
 
+          <%--Access for operation | START--%>
+          <%@include file='../fragments/admin/editUser/accessToOperationsForTheUser.jsp' %>
+          <%--Access for operation | END--%>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
           <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
             <div id="panel6" class="tab-pane">
@@ -761,8 +775,8 @@
               </div>
             </div>
           </c:if>
-
         </sec:authorize>
+
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
         <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
         <div id="panel6" class="tab-pane">

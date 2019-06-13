@@ -25,13 +25,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
 
-    
+
     @Value("${ws.lib.url}")
     private String clientLibraryUrl;
-    
+
     @Value("${ws.origin}")
     private String allowedOrigins;
-    
+
     @Autowired
     public WebSocketConfig(final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.handlers = handlers;
@@ -40,7 +40,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
-        String[] origins = allowedOrigins.split(",");
+        String [] origins = allowedOrigins.contains(",")
+                ? allowedOrigins.split(",")
+                : new String[]{allowedOrigins};
         registry.addHandler(handlers.get(EN), "/chat-en").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
         registry.addHandler(handlers.get(RU), "/chat-ru").setAllowedOrigins(origins).withSockJS()
@@ -50,6 +52,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(handlers.get(AR), "/chat-ar").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
         registry.addHandler(handlers.get(IN), "/chat-in").setAllowedOrigins(origins).withSockJS()
+                .setClientLibraryUrl(clientLibraryUrl);
+        registry.addHandler(handlers.get(KO), "/chat-ko").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
     }
 
@@ -72,9 +76,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public ChatWebSocketHandler chatARWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
-    
+
     @Bean(name = "chatIN")
     public ChatWebSocketHandler chatINWebSocketHandler() {
+        return new ChatWebSocketHandler();
+    }
+
+    @Bean(name = "chatKO")
+    public ChatWebSocketHandler chatKOWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
 

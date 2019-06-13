@@ -38,4 +38,10 @@ public interface StopOrderDao {
     PagingData<List<OrderBasicInfoDto>> searchOrders(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
     OrderInfoDto getStopOrderInfo(int orderId, Locale locale);
+
+    boolean updateOrder(int orderId, StopOrder order);
+
+    List<Integer> getAllOpenedStopOrdersByUserId(Integer userId);
+
+    List<Integer> getOpenedStopOrdersByCurrencyPair(Integer userId, String currencyPair);
 }

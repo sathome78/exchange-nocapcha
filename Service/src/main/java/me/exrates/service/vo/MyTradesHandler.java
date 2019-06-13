@@ -4,12 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.stomp.StompMessenger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
@@ -59,9 +57,10 @@ public class MyTradesHandler {
                 Thread.sleep(LATENCY);
             } catch (InterruptedException e) {
                 log.error("interrupted ", e);
+            } finally {
+                semaphore.release();
+                stompMessenger.sendMyTradesToUser(userId, currencyPairId);
             }
-            semaphore.release();
-            stompMessenger.sendMyTradesToUser(userId, currencyPairId);
         }
     }
 

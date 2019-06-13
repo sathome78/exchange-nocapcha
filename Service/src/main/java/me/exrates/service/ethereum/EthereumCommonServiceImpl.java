@@ -1,20 +1,28 @@
 package me.exrates.service.ethereum;
 
-import me.exrates.dao.EthereumNodeDao;
 import me.exrates.dao.MerchantSpecParamsDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.*;
-import me.exrates.service.*;
+import me.exrates.model.dto.MerchantSpecParamDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.RefillRequestAddressDto;
+import me.exrates.model.dto.RefillRequestBtcInfoDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestPutOnBchExamDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.GtagService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.RefillService;
 import me.exrates.service.exception.EthereumException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.util.WithdrawUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
@@ -38,7 +46,15 @@ import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -50,34 +66,21 @@ import java.util.concurrent.TimeUnit;
 public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     @Autowired
-    private EthereumNodeDao ethereumNodeDao;
-
-    @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private MerchantService merchantService;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private PlatformTransactionManager txManager;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private RefillService refillService;
-
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
-
     @Autowired
     private MerchantSpecParamsDao specParamsDao;
-
     @Autowired
     private EthTokensContext ethTokensContext;
+    @Autowired
+    private WithdrawUtils withdrawUtils;
+    @Autowired
+    private GtagService gtagService;
 
     private String url;
 
@@ -159,6 +162,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private final ScheduledExecutorService checkerScheduler = Executors.newScheduledThreadPool(1);
 
+    private final ScheduledExecutorService etiReconnectScheduler = Executors.newScheduledThreadPool(1);
+
     private static final String LAST_BLOCK_PARAM = "LastRecievedBlock";
 
     public EthereumCommonServiceImpl(String propertySource, String merchantName, String currencyName, Integer minConfirmations) {
@@ -175,7 +180,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             this.currencyName = currencyName;
             this.minConfirmations = minConfirmations;
             this.log = LogManager.getLogger(props.getProperty("ethereum.log"));
-            if (merchantName.equals("Ethereum")){
+            if (merchantName.equals("Ethereum")) {
                 this.transferAccAddress = props.getProperty("ethereum.transferAccAddress");
                 this.transferAccPrivateKey = props.getProperty("ethereum.transferAccPrivateKey");
                 this.transferAccPublicKey = props.getProperty("ethereum.transferAccPublicKey");
@@ -198,12 +203,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 checkSession();
             }
-        }, 1, 8, TimeUnit.MINUTES);
+        }, 3, 8, TimeUnit.MINUTES);
 
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 transferFundsToMainAccount();
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e);
             }
         }, 4, 20, TimeUnit.MINUTES);
@@ -212,9 +217,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             public void run() {
                 try {
                     if (subscribeCreated == true) {
-                       saveLastBlock(currentBlockNumber.toString());
+                        saveLastBlock(currentBlockNumber.toString());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     log.error(e);
                 }
             }
@@ -225,6 +230,16 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 checkUnconfirmedTokensTransactions(currentBlockNumber);
             }
         }, 5, 5, TimeUnit.MINUTES);
+
+        if (currencyName.equals("ETI")) {
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                    checkConnection();
+                } catch (Exception e) {
+                    log.error(e);
+                }
+            }, 4, 3, TimeUnit.MINUTES);
+        }
     }
 
     @Override
@@ -237,7 +252,20 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         throw new NotImplimentedMethod("for " + params);
     }
 
-    public void createSubscribe(){
+    private void checkConnection() {
+        observable = null;
+        web3j.shutdown();
+        web3j = Web3j.build(new HttpService(url));
+        String lastBlock = loadLastBlock();
+        if (currentBlockNumber.compareTo(new BigInteger(lastBlock)) > 0) {
+            saveLastBlock(currentBlockNumber.toString());
+            createSubscribe(currentBlockNumber.toString());
+        } else {
+            createSubscribe(lastBlock);
+        }
+    }
+
+    public void createSubscribe(String lastBlock) {
         try {
             log.debug(merchantName + " Connecting ethereum...");
 
@@ -257,8 +285,10 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             final String[] currentHash = new String[1];
             currentHash[0] = "";
 
-            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(loadLastBlock())));
+            observable = web3j.catchUpToLatestAndSubscribeToNewTransactionsObservable(new DefaultBlockParameterNumber(Long.parseLong(lastBlock)));
+            log.info("start subscribe method");
             subscription = observable.subscribe(ethBlock -> {
+                log.info("new block {}", ethBlock.getBlockNumber());
                 if (merchantName.equals("Ethereum")) {
                     if (ethBlock.getFrom().equals(credentialsMain.getAddress())) {
                         counter[0]++;
@@ -268,32 +298,32 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
 //                log.debug(merchantName + " block: " + ethBlock.getBlockNumber());
 
-/*-------------Tokens--------------*/
-                if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")){
+                /*-------------Tokens--------------*/
+                if (ethBlock.getTo() != null && ethTokensContext.isContract(ethBlock.getTo()) && merchantName.equals("Ethereum")) {
                     ethTokensContext.getByContract(ethBlock.getTo()).tokenTransaction(ethBlock);
                 }
 
                 if (ethBlock.getTo() != null && ethBlock.getInput().contains("0xb61d27f6")
-                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34,74))){
-                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34,74)).tokenTransaction(ethBlock);
+                        && merchantName.equals("Ethereum") && ethTokensContext.isContract("0x" + ethBlock.getInput().substring(34, 74))) {
+                    ethTokensContext.getByContract("0x" + ethBlock.getInput().substring(34, 74)).tokenTransaction(ethBlock);
                 }
-/*---------------------------------*/
+                /*---------------------------------*/
 
                 counter[0]++;
 
                 String recipient = ethBlock.getTo();
 
-                if (accounts.contains(recipient)){
-                    if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(recipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()){
+                if (accounts.contains(recipient)) {
+                    if (!refillService.getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(recipient, merchant.getId(), currency.getId(), ethBlock.getHash()).isPresent()) {
                         BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
                         log.debug(merchantName + " recipient: " + recipient + ", amount: " + amount);
 
                         Integer requestId = refillService.createRefillRequestByFact(RefillRequestAcceptDto.builder()
-                                        .address(recipient)
-                                        .amount(amount)
-                                        .merchantId(merchant.getId())
-                                        .currencyId(currency.getId())
-                                        .merchantTransactionId(ethBlock.getHash()).build());
+                                .address(recipient)
+                                .amount(amount)
+                                .merchantId(merchant.getId())
+                                .currencyId(currency.getId())
+                                .merchantTransactionId(ethBlock.getHash()).build());
 
                         try {
                             refillService.putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto.builder()
@@ -313,11 +343,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     }
                 }
 
-                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())){
+                if (!currentBlockNumber.equals(ethBlock.getBlockNumber())) {
                     log.info(merchantName + " Current block number: " + ethBlock.getBlockNumber());
 
                     try {
-                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())){
+                        if (!String.valueOf(counter[0]).equals(web3j.ethGetBlockTransactionCountByHash(currentHash[0]).send().getTransactionCount().toString())) {
 
                             log.info(merchantName + " Block number for review: " + currentBlockNumber.add(new BigInteger("1")));
                             log.info(merchantName + " Txs counter: " + counter[0]);
@@ -334,11 +364,11 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                     pendingTransactions.forEach(transaction ->
                             {
                                 try {
-                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult()==null){
+                                    if (web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult() == null) {
                                         return;
                                     }
                                     BigInteger transactionBlockNumber = web3j.ethGetTransactionByHash(transaction.getMerchantTransactionId()).send().getResult().getBlockNumber();
-                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() >= minConfirmations){
+                                    if (ethBlock.getBlockNumber().subtract(transactionBlockNumber).intValue() >= minConfirmations) {
                                         provideTransactionAndTransferFunds(transaction.getAddress(), transaction.getMerchantTransactionId());
                                         saveLastBlock(ethBlock.getBlockNumber().toString());
                                         log.debug(merchantName + " Transaction: " + transaction + " - PROVIDED!!!");
@@ -359,7 +389,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
                 currentBlockNumber = ethBlock.getBlockNumber();
                 currentHash[0] = ethBlock.getBlockHash();
 
-                });
+            });
+
+            log.info("dubscr {}", subscription.isUnsubscribed());
 
         } catch (Exception e) {
             subscribeCreated = false;
@@ -371,8 +403,9 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
         try {
             web3j.netVersion().send();
-            if (subscription == null || subscribeCreated == false || subscription.isUnsubscribed()){
-                createSubscribe();
+            if (subscription == null || subscribeCreated == false || subscription.isUnsubscribed()) {
+
+                createSubscribe(loadLastBlock());
             }
             subscribeCreated = true;
         } catch (IOException e) {
@@ -403,8 +436,8 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
             mapAddress.put("privKey", String.valueOf(credentials.getEcKeyPair().getPrivateKey()));
             mapAddress.put("pubKey", String.valueOf(credentials.getEcKeyPair().getPublicKey()));
 
-        }catch (EthereumException | IOException | NoSuchAlgorithmException
-                | InvalidAlgorithmParameterException | NoSuchProviderException | CipherException e){
+        } catch (EthereumException | IOException | NoSuchAlgorithmException
+                | InvalidAlgorithmParameterException | NoSuchProviderException | CipherException e) {
             log.error(merchantName + " " + e);
         }
 
@@ -418,37 +451,48 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
         return mapAddress;
     }
 
-    private void provideTransactionAndTransferFunds(String address, String merchantTransactionId){
+    private void provideTransactionAndTransferFunds(String address, String merchantTransactionId) {
         try {
             Optional<RefillRequestBtcInfoDto> refillRequestInfoDto = refillService.findRefillRequestByAddressAndMerchantTransactionId(address, merchantTransactionId, merchantName, currencyName);
             log.debug("Providing transaction!");
+            Integer requestId = refillRequestInfoDto.get().getId();
+
             RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-                        .requestId(refillRequestInfoDto.get().getId())
-                        .address(refillRequestInfoDto.get().getAddress())
-                        .amount(refillRequestInfoDto.get().getAmount())
-                        .currencyId(currencyService.findByName(currencyName).getId())
-                        .merchantId(merchantService.findByName(merchantName).getId())
-                        .merchantTransactionId(merchantTransactionId)
-                        .build();
-                refillService.autoAcceptRefillRequest(requestAcceptDto);
-                log.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
+                    .address(refillRequestInfoDto.get().getAddress())
+                    .amount(refillRequestInfoDto.get().getAmount())
+                    .currencyId(currencyService.findByName(currencyName).getId())
+                    .merchantId(merchantService.findByName(merchantName).getId())
+                    .merchantTransactionId(merchantTransactionId)
+                    .build();
 
-                refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
+            if (Objects.isNull(requestId)) {
+                requestId = refillService.getRequestId(requestAcceptDto);
+            }
+            requestAcceptDto.setRequestId(requestId);
 
+            refillService.autoAcceptRefillRequest(requestAcceptDto);
+            log.debug(merchantName + " Ethereum transaction " + requestAcceptDto.toString() + " --- PROVIDED!!!");
+
+            refillService.updateAddressNeedTransfer(requestAcceptDto.getAddress(), merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId(), true);
+
+            final String gaTag = refillService.getUserGAByRequestId(requestId);
+
+            log.debug("Process of sending data to Google Analytics...");
+            gtagService.sendGtagEvents(refillRequestInfoDto.get().getAmount().toString(), currencyName, gaTag);
         } catch (Exception e) {
             log.error(e);
         }
 
     }
 
-    private void transferFundsToMainAccount(){
+    private void transferFundsToMainAccount() {
         List<RefillRequestAddressDto> listRefillRequestAddressDto = refillService.findAllAddressesNeededToTransfer(merchantService.findByName(merchantName).getId(), currencyService.findByName(currencyName).getId());
         for (RefillRequestAddressDto refillRequestAddressDto : listRefillRequestAddressDto) {
             try {
                 log.info("Start method transferFundsToMainAccount...");
                 BigDecimal ethBalance = Convert.fromWei(String.valueOf(web3j.ethGetBalance(refillRequestAddressDto.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance()), Convert.Unit.ETHER);
 
-                if ( ethBalance.compareTo(minBalanceForTransfer) <= 0){
+                if (ethBalance.compareTo(minBalanceForTransfer) <= 0) {
                     refillService.updateAddressNeedTransfer(refillRequestAddressDto.getAddress(), merchantService.findByName(merchantName).getId(),
                             currencyService.findByName(currencyName).getId(), false);
                     continue;
@@ -489,7 +533,7 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private void checkUnconfirmedTokensTransactions(BigInteger blockNumber) {
         List<Integer> currencyNames = refillService.getUnconfirmedTxsCurrencyIdsForTokens(merchantId);
-        currencyNames.forEach(p->{
+        currencyNames.forEach(p -> {
             log.debug("unconfirmed for {}", p);
             getByCurrencyId(p).checkTransaction(blockNumber);
         });
@@ -497,6 +541,12 @@ public class EthereumCommonServiceImpl implements EthereumCommonService {
 
     private EthTokenService getByCurrencyId(int currencyId) {
         return ethTokensContext.getByCurrencyId(currencyId);
+    }
+
+    @Override
+    public boolean isValidDestinationAddress(String address) {
+
+        return withdrawUtils.isValidDestinationAddress(address);
     }
 
 }

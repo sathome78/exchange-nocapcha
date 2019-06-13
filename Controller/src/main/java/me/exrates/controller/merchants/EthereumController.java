@@ -42,10 +42,9 @@ public class EthereumController {
 
     @RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
-                                                 final @PathVariable String merchantName,
-                                                 final Principal principal,
-                                                 final Locale locale)
-    {
+                                                              final @PathVariable String merchantName,
+                                                              final Principal principal,
+                                                              final Locale locale) {
         /*if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
@@ -80,7 +79,7 @@ public class EthereumController {
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.error(e);
-            return new ResponseEntity<>(error, NOT_FOUND);
+            return new ResponseEntity<>(error, NOT_FOUND_ERROR);
         }*/
         return new ResponseEntity<>(HttpStatus.OK);
     }

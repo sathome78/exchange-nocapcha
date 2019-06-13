@@ -1,199 +1,206 @@
 package me.exrates.service;
 
-import me.exrates.model.*;
-import me.exrates.model.dto.*;
-import me.exrates.model.enums.NotificationMessageEventEnum;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserCommentTopicEnum;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.AdminAuthorityOption;
+import me.exrates.model.Comment;
+import me.exrates.model.TemporalToken;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.CallbackURL;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserIpReportDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.ieo.IeoUserStatus;
+import me.exrates.model.dto.kyc.VerificationStep;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.service.exception.CallBackUrlAlreadyExistException;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 public interface UserService {
 
-  int getIdByEmail(String email);
+    int getIdByEmail(String email);
 
-  int getIdByNickname(String nickname);
+    int getIdByNickname(String nickname);
 
-  /**
-   * Stores preferred locale for user in DB
-   *
-   * @param user
-   * @return "true" if data saved successfully, or "false" if none
-   */
-  boolean setNickname(User user);
+    boolean setNickname(String newNickName, String userEmail);
 
-  User findByEmail(String email);
+    boolean hasNickname(String userEmail);
 
-  User findByNickname(String nickname);
+    User findByEmail(String email);
 
-  void createUserFile(int userId, List<Path> paths);
+    User findByNickname(String nickname);
 
-  void setUserAvatar(int userId, Path path);
+    void createUserFile(int userId, List<Path> paths);
 
-  void deleteUserFile(int docId);
+    void setUserAvatar(int userId, Path path);
 
-  List<UserFile> findUserDoc(int userId);
+    void deleteUserFile(int docId);
 
-  boolean isGlobal2FaActive();
-
-  void setGlobal2FaActive(boolean global2FaActive);
+    List<UserFile> findUserDoc(int userId);
 
     List<String> getLocalesList();
 
     boolean create(User user, Locale locale, String source);
 
-  boolean ifNicknameIsUnique(String nickname);
+    boolean ifNicknameIsUnique(String nickname);
 
-  boolean ifEmailIsUnique(String email);
+    boolean ifEmailIsUnique(String email);
 
-  String logIP(String email, String host);
+    boolean userExistByEmail(String email);
 
-  List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
+    List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
-  @Transactional(rollbackFor = Exception.class)
-  boolean createUserRest(User user, Locale locale);
+    @Transactional(rollbackFor = Exception.class)
+    boolean createUserRest(User user, Locale locale);
 
-  int verifyUserEmail(String token);
+    int verifyUserEmail(String token);
 
-  List<UserRole> getAllRoles();
+    void logIP(Integer userId, String ip, UserEventEnum eventEnum, String url);
 
-  User getUserById(int id);
+    List<UserRole> getAllRoles();
 
-  boolean createUserByAdmin(User user);
+    User getUserById(int id);
 
-  boolean updateUserByAdmin(UpdateUserDto user);
+    boolean createUserByAdmin(User user);
 
-  @Transactional(rollbackFor = Exception.class)
-  boolean updateUserSettings(UpdateUserDto user);
+    boolean updateUserByAdmin(UpdateUserDto user);
 
-  boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
+    @Transactional(rollbackFor = Exception.class)
+    boolean updateUserSettings(UpdateUserDto user);
 
-  boolean update(UpdateUserDto user, Locale locale);
+    boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
 
-  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
+    boolean update(UpdateUserDto user, Locale locale);
 
-  List<TemporalToken> getAllTokens();
+    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
 
-  boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
+    List<TemporalToken> getAllTokens();
 
-  @Transactional(rollbackFor = Exception.class)
-  void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
+    boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
-  void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
+    @Transactional(rollbackFor = Exception.class)
+    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass, String... params);
 
-  boolean createTemporalToken(TemporalToken token);
+    void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
-  User getCommonReferralRoot();
+    boolean createTemporalToken(TemporalToken token);
 
-  void checkFinPassword(String enteredFinPassword, User storedUser, Locale locale);
+    User getCommonReferralRoot();
 
-  void updateCommonReferralRoot(int userId);
+    void checkFinPassword(String enteredFinPassword, User storedUser, Locale locale);
 
-  /**
-   * Returns preferred locale for user stored in DB
-   *
-   * @param userId
-   * @return string mnemonic of locale
-   */
-  String getPreferedLang(int userId);
+    void updateCommonReferralRoot(int userId);
 
-  String getPreferedLangByEmail(String email);
+    int setCallbackURL(int userId, CallbackURL callbackURL) throws CallBackUrlAlreadyExistException;
 
-  /**
-   * Stores preferred locale for user in DB
-   *
-   * @param userId
-   * @param locale
-   * @return "true" if data saved successfully, or "false" if none
-   */
-  boolean setPreferedLang(int userId, Locale locale);
+    int updateCallbackURL(int userId, CallbackURL callbackURL);
 
-  /**
-   * Stores IP-address in DB for user. Data is stored in table USER_IP
-   *
-   * @param email is email the user as his identifier
-   * @param ip    is IP-address
-   * @return "true" if data saved successfully, or "false" if none
-   */
-  boolean insertIp(String email, String ip);
+    /**
+     * Returns preferred locale for user stored in DB
+     *
+     * @param userId
+     * @return string mnemonic of locale
+     */
+    String getPreferedLang(int userId);
 
-  /**
-   * Returns IP-address state for user
-   *
-   * @param email is email for search the user
-   * @param ip    is IP-address for check
-   * @return one of the values the enum UserIpState: CONFIRMED or NOT_CONFIRMED
-   */
-  public UserIpDto getUserIpState(String email, String ip);
+    String getPreferedLangByEmail(String email);
 
-  /**
-   * Saves in DB last date for IP? when user auth successfully
-   *
-   * @param userId is ID the user
-   * @param ip     is ip-address from which user auth
-   * @return "true" if data saved successfully, or "false" if none
-   */
-  boolean setLastRegistrationDate(int userId, String ip);
+    /**
+     * Stores preferred locale for user in DB
+     *
+     * @param userId
+     * @param locale
+     * @return "true" if data saved successfully, or "false" if none
+     */
+    boolean setPreferedLang(int userId, Locale locale);
 
-  List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
+    /**
+     * Stores IP-address in DB for user. Data is stored in table USER_IP
+     *
+     * @param email is email the user as his identifier
+     * @param ip    is IP-address
+     * @return "true" if data saved successfully, or "false" if none
+     */
+    boolean insertIp(String email, String ip);
 
-  void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
+    /**
+     * Returns IP-address state for user
+     *
+     * @param email is email for search the user
+     * @param ip    is IP-address for check
+     * @return one of the values the enum UserIpState: CONFIRMED or NOT_CONFIRMED
+     */
+    UserIpDto getUserIpState(String email, String ip);
 
-  boolean replaceUserPassAndDelete(String token, Long tempPassId);
+    /**
+     * Saves in DB last date for IP? when user auth successfully
+     *
+     * @param userId is ID the user
+     * @param ip     is ip-address from which user auth
+     * @return "true" if data saved successfully, or "false" if none
+     */
+    boolean setLastRegistrationDate(int userId, String ip);
 
-  boolean removeTemporaryPassword(Long id);
+    List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-  @Transactional
-  boolean tempDeleteUser(String email);
+    void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
 
-  String getAvatarPath(Integer userId);
+    boolean replaceUserPassAndDelete(String token, Long tempPassId);
 
-  Locale getUserLocaleForMobile(String email);
+    boolean removeTemporaryPassword(Long id);
 
-  Collection<Comment> getUserComments(int id, String authenticatedAdminEmail);
+    @Transactional
+    boolean tempDeleteUser(String email);
 
-  boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage);
+    String getAvatarPath(Integer userId);
+
+    Locale getUserLocaleForMobile(String email);
+
+    Collection<Comment> getUserComments(int id, String authenticatedAdminEmail);
+
+    boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage);
 
     void editUserComment(int commentId, String newComment, String email, boolean sendMessage, String authenticatedAdminEmail);
 
     boolean deleteUserComment(int id);
 
-  List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
+    List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
-  List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
+    List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
 
-  void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
+    void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
 
-  List<String> findNicknamesByPart(String part);
+    List<String> findNicknamesByPart(String part);
 
-  UserRole getUserRoleFromSecurityContext();
+    UserRole getUserRoleFromSecurityContext();
 
-  void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
+    void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 
-  InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
+    InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
-  String getEmailById(Integer id);
-  
-  UserRole getUserRoleFromDB(String email);
+    String getEmailById(Integer id);
 
-  UserRole getUserRoleFromDB(Integer userId);
+    UserRole getUserRoleFromDB(String email);
 
-  @Transactional
-  String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event);
+    UserRole getUserRoleFromDB(Integer userId);
 
-  boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
+    @Transactional
+    String updatePinForUserForEvent(String userEmail, NotificationMessageEventEnum event);
+
+    boolean checkPin(String email, String pin, NotificationMessageEventEnum event);
 
     boolean isLogin2faUsed(String email);
 
@@ -201,8 +208,76 @@ public interface UserService {
 
     List<UserIpReportDto> getUserIpReportForRoles(List<Integer> roleIds);
 
-  Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
-
+    Integer getNewRegisteredUserNumber(LocalDateTime startTime, LocalDateTime endTime);
 
     String getUserEmailFromSecurityContext();
+
+    TemporalToken getTemporalTokenByValue(String token);
+
+    User getUserByTemporalToken(String token);
+
+    boolean checkPassword(int userId, String password);
+
+    long countUserIps(String userEmail);
+
+    boolean isGlobal2FaActive();
+
+    List<Integer> getUserFavouriteCurrencyPairs(String email);
+
+    boolean manageUserFavouriteCurrencyPair(String email, int currencyPairId, boolean delete);
+
+    boolean deleteTempTokenByValue(String value);
+
+    void updateGaTag(String gaCookie, String username);
+
+    String getReferenceId();
+
+    int updateVerificationStep(String reference);
+
+    VerificationStep getVerificationStep();
+
+    VerificationStep getVerificationStep(String userEmail);
+
+    int updateReferenceId(String referenceId);
+
+    String getEmailByReferenceId(String referenceId);
+
+    String getCallBackUrlById(int userId, Integer currencyPairId);
+
+    String getCallBackUrlByUserAcceptorId(int userAcceptorId, Integer currencyPairId);
+
+    String findEmailById(int id);
+
+    void blockUserByRequest(int userId);
+
+    UsersInfoDto getUsersInfoFromCache(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    UsersInfoDto getUsersInfoFromDatabase(LocalDateTime startTime, LocalDateTime endTime, List<UserRole> userRoles);
+
+    TemporalToken verifyUserEmailForForgetPassword(String token);
+
+    String getUserKycStatusByEmail(String email);
+
+    boolean updatePrivateDataAndKycReference(String email, String referenceUID, String country, String firstName,
+                                             String lastName, Date birthDate);
+
+    User findByKycReferenceId(String referenceId);
+
+    boolean updateKycStatusByEmail(String email, String status);
+
+    boolean updateKycStatus(String status);
+
+    String getKycReferenceByEmail(String email);
+
+    boolean addPolicyToUser(String email, String policy);
+
+    IeoUserStatus findIeoUserStatusByEmail(String email);
+
+    boolean updateUserRole(int userId, UserRole userRole);
+
+    boolean existPolicyByUserIdAndPolicy(int id, String name);
+
+    String getEmailByPubId(String pubId);
+
+    String getPubIdByEmail(String email);
 }

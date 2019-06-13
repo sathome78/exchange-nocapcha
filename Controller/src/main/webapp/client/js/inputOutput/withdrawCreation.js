@@ -4,7 +4,7 @@
 /**
  * Created by ValkSam on 10.04.2017.
  */
-
+var currencyName;
 $(function withdrawCreation() {
     const $container = $("#merchants-output-center");
     const operationType = $container.find("#operationType").html();
@@ -12,6 +12,7 @@ $(function withdrawCreation() {
     const $withdrawDetailedParamsDialog = $container.find('#dialog-withdraw-detailed-params-enter');
     const $loadingDialog = $container.find('#loading-process-modal');
     const $finPasswordDialog = $container.find('#finPassModal');
+    const $walletAddressDialog = $container.find('#walletAddressModal');
     const $amountHolder = $container.find("#sum");
     const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
     const $destinationTagHolder = $withdrawParamsDialog.find("#address-tag");
@@ -32,7 +33,6 @@ $(function withdrawCreation() {
     var $continueButton = $('#continue-btn');
 
     var currency;
-    var currencyName;
     var merchant;
     var merchantName;
     var merchantMinSum;
@@ -169,10 +169,25 @@ $(function withdrawCreation() {
                 if (!checkWithdrawParamsEnter(destination)) {
                     return;
                 }
-                $withdrawParamsDialog.one('hidden.bs.modal', function () {
-                    performWithdraw();
+                $.ajax({
+                    url: '/withdraw/check?wallet=' + destination + '&merchant=' + merchant,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                    type: 'GET'
+                }).success(function (result) {
+                    if (result) {
+                        $withdrawParamsDialog.one('hidden.bs.modal', function () {
+                            performWithdraw();
+                        });
+                        $withdrawParamsDialog.modal("hide");
+                    } else {
+                        $walletAddressDialog.modal({
+                            backdrop: 'static'
+                        });
+                        $withdrawParamsDialog.modal("hide");
+                    }
                 });
-                $withdrawParamsDialog.modal("hide");
             });
             /**/
             $withdrawParamsDialog.modal();
@@ -413,4 +428,9 @@ $(function withdrawCreation() {
 
 });
 
+function toTransfer () {
+    transferUrl="/merchants/transfer?currency=";
+    transferUrl+=currencyName;
+    window.open(transferUrl);
+};
 

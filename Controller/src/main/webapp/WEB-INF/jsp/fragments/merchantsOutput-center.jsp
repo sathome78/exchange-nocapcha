@@ -10,7 +10,7 @@
     </label>
   </c:if>
   <c:choose>
-    <c:when test="${empty merchantCurrencyData}">
+    <c:when test="${empty merchantCurrencyData || accessToOperationForUser eq false}">
       <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable"/></p>
     </c:when>
     <c:otherwise>
@@ -47,7 +47,9 @@
                      data-system-min-sum="${minWithdrawSum}"
                      data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id=".start-withdraw"/>
+                     data-submit-button-id=".start-withdraw"
+                     <c:if test="${checkingZeroBalance}">disabled</c:if>
+              />
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
@@ -100,7 +102,7 @@
                           data-comission-depends-on-destination-tag="${merchantCurrency.comissionDependsOnDestinationTag}"
                           data-additional-field-needed="${merchantCurrency.additionalTagForWithdrawAddressIsUsed}"
                           data-additional-field-name="${merchantCurrency.additionalFieldName}"
-                          data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
+                          data-merchant-image-id="${merchantImage.id}"><loc:message code="merchants.withdraw"/>
                   </button>
                 </div>
                 <br>
@@ -115,6 +117,7 @@
   <%@include file="modal/pin_modal.jsp"%>
   <%@include file="modal/loading_modal.jsp" %>
   <%@include file="modal/check_fin_pass_modal.jsp" %>
+  <%@include file="modal/check_wallet_address_modal.jsp" %>
   <%@include file="modal/dialogWithdrawCreation_modal.jsp" %>
   <%@include file="modal/dialogWithdrawDetailedParamsEnter_modal.jsp" %>
 

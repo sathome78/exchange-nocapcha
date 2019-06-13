@@ -1,6 +1,6 @@
 
 
-function ChartAmchartsClass2(currencyPair, subscribeCallback) {
+function ChartAmchartsClass2(currencyPair) {
 
     if (ChartAmchartsClass2.__instance) {
         return ChartAmchartsClass2.__instance;
@@ -27,12 +27,12 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
     };
 
 
-    this.switchCurrencyPair = function () {
-        var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');
+    this.switchCurrencyPair = function (pairName) {
+        /*var currencyPairName = $('.currency-pair-selector__menu-item.active').prop('id');*/
 
-        stockChart.setSymbol(currencyPairName, function () {
+        stockChart.setSymbol(pairName, function () {
 
-            stockChart.setSymbol(currencyPairName, function () {
+            stockChart.setSymbol(pairName, function () {
 
                 stockChart.resetData()
             })
@@ -41,7 +41,7 @@ function ChartAmchartsClass2(currencyPair, subscribeCallback) {
 
 
     function initChartWidget(currencyPair) {
-        var host = window.location.href
+        var host = location.protocol + '//' + location.host + '/dashboard';
         datafeed = new Datafeeds.UDFCompatibleDatafeed(host, 20000);
         var lang = $("#language").text().toLowerCase().trim();
 

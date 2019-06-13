@@ -1,13 +1,16 @@
 $(function () {
     const $datetimepickerStart = $('#datetimepicker_start');
     const $datetimepickerEnd = $('#datetimepicker_end');
+    const $datepickerBalances = $('#datepicker-balances');
+    const $datepickerInOut = $('#datepicker-inout');
     const $timepickerMailing = $('#timepicker_mailtime');
     const $emailsTable = $('#report-emails-table');
     const $addEmailModal = $('#add-email-modal');
     const $balancesTable = $('#total-balances-table');
-    const $balancesExternalWalletsTable = $('#balances-external-wallets-table');
+    const $balancesSliceStatisticTable = $('#balances-slice-statistic-table');
 
     const datetimeFormat = 'YYYY-MM-DD HH:mm';
+    const dateFormat = 'YYYY-MM-DD';
     const timeFormat = 'HH:mm';
 
     var emailsDataTable;
@@ -15,9 +18,7 @@ $(function () {
 
     var balancesDataTable;
     var balancesUrl = '/2a8fy7b07dxe44/generalStats/groupTotalBalances';
-    var balancesExternalWalletsUrl = '/2a8fy7b07dxe44/generalStats/balancesExternalWallets';
-
-
+    var balancesSliceStatisticUrl = '/2a8fy7b07dxe44/generalStats/balancesSliceStatistic';
 
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
@@ -32,45 +33,58 @@ $(function () {
 
     $($datetimepickerStart).datetimepicker({
         format: datetimeFormat,
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
-        lang:'ru',
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        lang: 'ru',
         defaultDate: moment().subtract(1, 'days').toDate(),
         defaultTime: '00:00'
     });
     $($datetimepickerEnd).datetimepicker({
         format: datetimeFormat,
-        formatDate: 'YYYY-MM-DD',
-        formatTime: 'HH:mm',
-        lang:'ru',
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        lang: 'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $($datepickerBalances).datetimepicker({
+        format: datetimeFormat,
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        changeMonth: true,
+        changeYear: true,
+        pickTime: false,
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $($datepickerInOut).datetimepicker({
+        format: datetimeFormat,
+        formatDate: dateFormat,
+        formatTime: timeFormat,
+        changeMonth: true,
+        changeYear: true,
+        pickTime: false,
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
     $($timepickerMailing).datetimepicker({
-        datepicker:false,
+        datepicker: false,
         format: timeFormat,
         formatTime: timeFormat,
-        lang:'ru',
+        lang: 'ru',
         defaultTime: '00:00'
     });
 
     $($datetimepickerEnd).val(moment($($datetimepickerEnd).datetimepicker('getValue')).format(datetimeFormat));
     $($datetimepickerStart).val(moment($($datetimepickerStart).datetimepicker('getValue')).format(datetimeFormat));
+    $($datepickerBalances).val(moment($($datepickerBalances).datetimepicker('getValue')).format(datetimeFormat));
+    $($datepickerInOut).val(moment($($datepickerInOut).datetimepicker('getValue')).format(datetimeFormat));
     $($timepickerMailing).val('00:00');
-    refreshUsersNumber();
     refreshMailingTime();
     refreshMailingStatus();
 
-
-
-    $('#refresh-users').click(refreshUsersNumber);
-    $('#download-currencies-report').click(getCurrenciesTurnover);
-    $('#download-currency-pairs-report').click(getCurrencyPairsTurnover);
-    $('#download-currency-pairs-comissions').click(getCurrencyPairsComissions);
-    $('#download-input-output-summary-with-commissions').click(getInputOutputSummaryWithCommissions);
     $('#mailing-status-indicator').find('i').click(updateMailingStatus);
     $('#mail-time-submit').click(updateMailingTime);
-    $('#download-total-balances').click(getTotalBalancesForRoles);
     $($addEmailModal).on('click', '#submit-email', function () {
         addSubscriberEmail(emailsDataTable);
     });
@@ -155,14 +169,14 @@ $(function () {
                 extend: 'csv',
                 text: 'CSV',
                 fieldSeparator: ';',
-                bom:true,
+                bom: true,
                 charset: 'UTF8'
             }]
         };
 
-       $($balancesTable).find('th').filter(function (index) {
+        $($balancesTable).find('th').filter(function (index) {
             return index > 3
-        }).map(function(){
+        }).map(function () {
             return $.trim($(this).text());
         }).get().forEach(function (item) {
             options['columns'].push({
@@ -180,13 +194,13 @@ $(function () {
 
     }
 
-    if ($.fn.dataTable.isDataTable('#balances-external-wallets-table')) {
-        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable();
+    if ($.fn.dataTable.isDataTable('#balances-slice-statistic-table')) {
+        balancesExternalWalletsDataTable = $($balancesSliceStatisticTable).DataTable();
         balancesExternalWalletsDataTable.ajax.reload();
     } else {
         var options = {
             "ajax": {
-                "url": balancesExternalWalletsUrl,
+                "url": balancesSliceStatisticUrl,
                 "dataSrc": ""
             },
             "paging": false,
@@ -197,13 +211,21 @@ $(function () {
             "order": [],
             "columns": [
                 {
-                    data: 'currencyId'
+                    "data": 'currencyId'
                 },
                 {
-                    data: 'currencyName'
+                    "data": 'currencyName'
                 },
                 {
-                    data: 'totalReal',
+                    "data": "signOfCertainty",
+                    "render": function (data, type, row) {
+                        if (data === true) {
+                            return 1;
+                        } else return 0;
+                    }
+                },
+                {
+                    "data": 'usdRate',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -212,7 +234,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'mainWalletBalance',
+                    "data": 'btcRate',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -221,7 +243,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'reservedWalletBalance',
+                    "data": 'totalWalletBalance',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -230,7 +252,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'coldWalletBalance',
+                    "data": 'totalWalletBalanceUSD',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -239,7 +261,7 @@ $(function () {
                     }
                 },
                 {
-                    data: 'totalWalletsDifference',
+                    "data": 'totalWalletBalanceBTC',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
@@ -248,13 +270,61 @@ $(function () {
                     }
                 },
                 {
-                    data: 'totalWalletsDifferenceUSD',
+                    "data": 'totalExratesBalance',
                     "render": function (data, type, row) {
                         if (type === 'display') {
                             return numbroWithCommas(data);
                         }
                         return data;
                     }
+                },
+                {
+                    "data": 'totalExratesBalanceUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'totalExratesBalanceBTC',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviation',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviationUSD',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": 'deviationBTC',
+                    "render": function (data, type, row) {
+                        if (type === 'display') {
+                            return numbroWithCommas(data);
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "lastUpdatedDate"
                 }
 
             ],
@@ -262,84 +332,304 @@ $(function () {
                 extend: 'csv',
                 text: 'CSV',
                 fieldSeparator: ';',
-                bom:true,
+                bom: true,
                 charset: 'UTF8'
             }]
         };
 
-        $($balancesExternalWalletsTable).find('th').filter(function (index) {
-            return index > 7
-        }).map(function(){
-            return $.trim($(this).text());
-        }).get().forEach(function (item) {
-            options['columns'].push({
-                data: 'balances.' + item
-            });
-        });
-
-        balancesExternalWalletsDataTable = $($balancesExternalWalletsTable).DataTable(options);
+        balancesExternalWalletsDataTable = $($balancesSliceStatisticTable).DataTable(options);
 
     }
-
-
 });
 
-function refreshUsersNumber() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/newUsers?' + getTimeParams();
-    $.get(fullUrl, function (data) {
-        $('#new-users-quantity').text(data)
-    })
+function getArchiveBalances() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReports?date=' + $('#datepicker-balances').val().replace(' ', '_');
+
+    if ($.fn.dataTable.isDataTable('#archive-balances-table')) {
+        $('#archive-balances-table').DataTable().ajax.url(url).load();
+    } else {
+        $('#archive-balances-table').DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "id",
+                    "visible": false
+                },
+                {
+                    "data": "file_name",
+                    "render": function (data, type, full, meta) {
+                        return '<a href="javascript:void(0)" onclick="getWalletBalancesToDownload(' + full.id + ')">' + data + '</a>';
+                    }
+                }
+            ]
+        });
+    }
+}
+
+function getWalletBalancesToDownload(id) {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getArchiveInputOutput() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutReports?date=' + $('#datepicker-inout').val().replace(' ', '_');
+
+    if ($.fn.dataTable.isDataTable('#archive-inout-table')) {
+        $('#archive-inout-table').DataTable().ajax.url(url).load();
+    } else {
+        $('#archive-inout-table').DataTable({
+            "ajax": {
+                "url": url,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "id",
+                    "visible": false
+                },
+                {
+                    "data": "file_name",
+                    "render": function (data, type, full, meta) {
+                        return '<a href="javascript:void(0)" onclick="getInOutSummaryToDownload(' + full.id + ')">' + data + '</a>';
+                    }
+                }
+            ]
+        });
+    }
+}
+
+function getInOutSummaryToDownload(id) {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutReport/' + id;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getTurnoverStatisticByPairsToDownload() {
+    getCurrencyPairsTurnover();
 }
 
 function getCurrencyPairsTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencyPairs.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+    var url = '/2a8fy7b07dxe44/generalStats/currencyPairTurnover?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getInOutStatisticByPairsToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveInOutSummaryReportForPeriod?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getWalletBalancesForPeriodToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriod?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function getWalletBalancesForPeriodWithInOutToDownload() {
+    var url = '/2a8fy7b07dxe44/generalStats/archiveBalancesReportForPeriodWithInOut?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadUserWallets() {
+    var url = '/2a8fy7b07dxe44/report/usersWalletsSummary?' + getTimeParams() + '&' + getUserEmail();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadUserWalletsOrders() {
+    var url = '/2a8fy7b07dxe44/report/userSummaryOrders?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadInputOutputSummaryReport() {
+    var url = '/2a8fy7b07dxe44/report/inputOutputSummary?' + getTimeParams() + '&' + getRoleParams();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "blob";
+    req.onload = function (event) {
+        var blob = req.response;
+        var header = req.getResponseHeader('Content-Disposition');
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = header.match(/filename="(.+)"/)[1];
+        link.click();
+    };
+    req.send();
+}
+
+function uploadReportStatsByCoin() {
+    var url = '/2a8fy7b07dxe44/report/coin';
+    var selectedCurrency = $('#currency-for-report').children("option:selected").val();
+
+    var substr1 = selectedCurrency.substr(selectedCurrency.indexOf("id=")+3);
+    var currencyIdNumber = substr1.substr(0, substr1.indexOf(","));
+
+    var params = "currencyId="+currencyIdNumber;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader('X-CSRF-Token', $("input[name='_csrf']").val());
+    xhr.responseType = 'blob';
+
+    xhr.onreadystatechange = function () {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            var blob = xhr.response;
+            var header = xhr.getResponseHeader('Content-Disposition');
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = header.match(/filename="(.+)"/)[1];
+            link.click();
+        }
+    };
+    xhr.send(params);
+}
+
+function sendToReserveAddress() {
+    var data = {
+        transactionCount: $("#send-to-reserve-address-count").val(),
+        transactionAmount: $("#send-to-reserve-address-amount").val()
+    };
+    $.ajax('/2a8fy7b07dxe44/bitcoin/b2x/sendToReserve', {
+        data: data,
+        type: 'POST',
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        }
+    }).done(function () {
+        alert("Done");
     })
 }
 
-function getCurrencyPairsComissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/ordersCommissions?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencyPairsComissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
+function refreshUsersInfo() {
+    const url = '/2a8fy7b07dxe44/generalStats/usersInfo?' + getTimeParams() + '&' + getRoleParams();
+    $.get(url, function (data) {
+        $('#new-users-quantity').text(data.newUsers);
+        $('#all-users-quantity').text(data.allUsers);
+        $('#active-users-quantity').text(data.activeUsers);
+        $('#not-zero-balances-users-quantity').text(data.notZeroBalanceUsers);
+        $('#success-input-users-quantity').text(data.oneOrMoreSuccessInputUsers);
+        $('#success-output-users-quantity').text(data.oneOrMoreSuccessOutputUsers);
     })
-}
-
-function getCurrenciesTurnover() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/currencyTurnover?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('currencies.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-
-}
-
-function getTotalBalancesForRoles() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/totalBalances?' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data, extendsReportName('totalBalances.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-}
-
-function getInputOutputSummaryWithCommissions() {
-    const fullUrl = '/2a8fy7b07dxe44/generalStats/inputOutputSummaryWithCommissions?' + getTimeParams() + '&' + getRoleParams();
-    $.get(fullUrl, function (data) {
-        saveToDisk(data,  extendsReportName('inputOutputSummaryWithCommissions.csv', getStartDateFromPicker(), getEndDateFromPicker()))
-    })
-
 }
 
 function getTimeParams() {
-    return 'startTime=' +
-        $('#datetimepicker_start').val().replace(' ', '_') + '&endTime=' +
-        $('#datetimepicker_end').val().replace(' ', '_');
+    var startTime = $('#datetimepicker_start').val().replace(' ', '_');
+    var endTime = $('#datetimepicker_end').val().replace(' ', '_');
+    return 'startTime=' + startTime + '&endTime=' + endTime;
 }
 
 function getRoleParams() {
-   return 'roles=' + $('.roleFilter').filter(function (i, elem) {
+    var roles = $('.roleFilter').filter(function (i, elem) {
         return $(elem).prop('checked')
     }).map(function (i, elem) {
         return $(elem).attr('name')
-    }).toArray().join(',')
+    }).toArray().join(',');
+    return 'roles=' + roles
+}
+
+function getUserEmail() {
+    var email = $('#user-email').val();
+    return 'userEmail=' + email;
 }
 
 function refreshMailingTime() {
@@ -362,7 +652,6 @@ function refreshMailingStatus() {
 
     })
 }
-
 
 function updateMailingTime() {
     var data = {
@@ -427,22 +716,6 @@ function deleteSubscriberEmail(email, datatable) {
     }).done(function () {
         datatable.ajax.reload(null, false);
     })
-}
-
-
-
-function getStartDateFromPicker() {
-   return getDateFromPicker($('#datetimepicker_start'))
-}
-
-
-function getEndDateFromPicker() {
-    return getDateFromPicker($('#datetimepicker_end'))
-}
-
-function getDateFromPicker($datepicker) {
-    var date = $($datepicker).datetimepicker('getValue');
-    return moment(date).format('YYYY-MM-DD HH-mm');
 }
 
 function numbroWithCommas(value) {

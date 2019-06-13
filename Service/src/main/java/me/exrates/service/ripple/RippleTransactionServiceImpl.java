@@ -1,16 +1,17 @@
 package me.exrates.service.ripple;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.service.TransactionService;
 import me.exrates.service.exception.RippleCheckConsensusException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import java.util.Map;
 @Log4j2(topic = "ripple_log")
 @Service
 @PropertySource("classpath:/merchants/ripple.properties")
+@Conditional(MonolitConditional.class)
 public class RippleTransactionServiceImpl implements RippleTransactionService {
 
     @Autowired

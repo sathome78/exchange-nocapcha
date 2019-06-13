@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.model.EDCAccount;
 import me.exrates.model.Transaction;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.service.EDCServiceNode;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
@@ -17,10 +18,9 @@ import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
 import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.util.BiTuple;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,19 +37,19 @@ import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.springframework.transaction.annotation.Propagation.NESTED;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Log4j2(topic = "edc_log")
 @Service
 @PropertySource({"classpath:/merchants/edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
+@Conditional(MonolitConditional.class)
 public class EDCServiceNodeImpl implements EDCServiceNode {
 
   private @Value("${edcmerchant.token}") String token;
   private @Value("${edcmerchant.main_account}") String main_account;
   private @Value("${edcmerchant.hook}") String hook;
+  private @Value("${edcmerchant.new_account}") String urlCreateNewAccount;
 
   private @Value("${edc.blockchain.host_delayed}") String RPC_URL_DELAYED;
   private @Value("${edc.blockchain.host_fast}") String RPC_URL_FAST;
@@ -255,7 +255,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     throw new RuntimeException("Invalid response from server:\n" + json);
   }
 
-  private String extractBalance(final String accountId, final int invoiceId) throws IOException {
+  public String extractBalance(final String accountId, final int invoiceId) throws IOException {
     final String LIST_ACCOUNT_BALANCE = "{\"method\": \"list_account_balances\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %s}";
     final String response = makeRpcCallFast(LIST_ACCOUNT_BALANCE, accountId, invoiceId);
     JsonParser parser = new JsonParser();
@@ -347,7 +347,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     formBuilder.add("hook", hook);
 
     final Request request = new Request.Builder()
-        .url("https://receive.edinarcoin.com/new-account/" + token)
+        .url(urlCreateNewAccount + token)
         .post(formBuilder.build())
         .build();
     final String returnResponse;

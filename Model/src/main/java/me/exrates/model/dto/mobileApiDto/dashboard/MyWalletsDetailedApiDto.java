@@ -17,6 +17,7 @@ public class MyWalletsDetailedApiDto {
     private Integer userId;
     private Integer currencyId;
     private String currencyName;
+    private Integer currencyPrecision;
     private BigDecimal activeBalance;
     private BigDecimal onConfirmation;
     private BigDecimal onConfirmationStage;
@@ -30,6 +31,7 @@ public class MyWalletsDetailedApiDto {
         this.userId = dto.getUserId();
         this.currencyId = dto.getCurrencyId();
         this.currencyName = dto.getCurrencyName();
+        this.currencyPrecision = dto.getCurrencyPrecision();
         this.activeBalance = BigDecimalProcessing.parseLocale(dto.getActiveBalance() ,locale, 2);
         this.onConfirmation = BigDecimalProcessing.parseLocale(dto.getOnConfirmation() ,locale, 2);
         this.onConfirmationStage = BigDecimalProcessing.parseLocale(dto.getOnConfirmationStage() ,locale, 0);

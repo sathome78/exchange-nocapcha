@@ -59,11 +59,14 @@
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
-                                <th></th>
+                                <th><loc:message code="admin.currencyLimits.currencyId"/></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
+                                <th><loc:message code="admin.currencyLimits.usdRate"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                            <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
-                        </tr>
+                                <th><loc:message code="admin.currencyLimits.minLimitUsdRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
+                                <th><loc:message code="admin.currencyLimits.changeAutomaticallyByUSD"/></th>
+                            </tr>
                             </thead>
                         </table>
                     </div>
@@ -114,7 +117,7 @@
 
         </div>
 </main>
-<div id="editLimitModal" class="modal modal-small fade">
+<div id="editLimitModal" class="modal modal-md fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -122,7 +125,7 @@
                         aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title"><loc:message code="admin.currencyLimits.modalTitle"/></h4>
             </div>
-            <div class="modal-body">
+            <div>
                 <form id="edit-currency-limit-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="currencyId">
                     <div class="input-block-wrapper">
@@ -148,6 +151,8 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input name="roleName" class="input-block-wrapper__input" readonly type="text">
+                            <input type='checkbox' id="allRolesEdit" name="allRolesEdit"/>
+                            <label class="input-block-wrapper__label"><loc:message code="admin.currencyLimits.allRoles"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -156,7 +161,25 @@
                                     code="admin.currencyLimits.minLimit"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input name="minAmount" class="input-block-wrapper__input" type="number">
+                            <input id="minAmount" name="minAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.minLimitUSD"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="minAmountUSD" name="minAmountUSD" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="admin.currencyLimits.usdRate"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="usdRate" name="usdRate" class="input-block-wrapper__input" type="number" readonly>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
