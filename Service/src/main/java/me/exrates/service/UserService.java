@@ -5,13 +5,11 @@ import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.CallbackURL;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.enums.*;
@@ -280,4 +278,6 @@ public interface UserService {
     String getEmailByPubId(String pubId);
 
     String getPubIdByEmail(String email);
+
+    DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams);
 }
