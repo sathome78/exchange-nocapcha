@@ -1707,7 +1707,10 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/ip", method = GET)
     public String getUsersInfo(Model model) {
-        model.addAttribute("events", UserEventEnum.values());
+        model.addAttribute("events", Arrays
+                                                    .stream(UserEventEnum.values())
+                                                    .filter(UserEventEnum::isIpLogged)
+                                                    .toArray());
         return "admin/ipAdresses";
     }
 
