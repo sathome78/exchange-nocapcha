@@ -242,6 +242,7 @@ public class NgDashboardController {
             @RequestParam(required = false, name = "hideCanceled", defaultValue = "false") Boolean hideCanceled,
             @RequestParam(required = false, name = "dateFrom") String dateFrom,
             @RequestParam(required = false, name = "dateTo") String dateTo,
+            @RequestParam(required = false, name = "limited", defaultValue = "false") Boolean limited,
             HttpServletRequest request) {
         Integer userId = userService.getIdByEmail(getPrincipalEmail());
         Locale locale = localeResolver.resolveLocale(request);
@@ -271,6 +272,7 @@ public class NgDashboardController {
                     sortByCreated,
                     dateTimeFrom,
                     dateTimeTo,
+                    limited,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
@@ -330,6 +332,7 @@ public class NgDashboardController {
                     "DESC",
                     null,
                     null,
+                    true,
                     locale);
 
             PagedResult<OrderWideListDto> pagedResult = new PagedResult<>();
