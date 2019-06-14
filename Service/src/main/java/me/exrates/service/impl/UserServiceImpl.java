@@ -8,22 +8,13 @@ import com.google.common.cache.CacheBuilder;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
-import me.exrates.model.AdminAuthorityOption;
-import me.exrates.model.Comment;
-import me.exrates.model.Email;
-import me.exrates.model.TemporalToken;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.dto.CallbackURL;
-import me.exrates.model.dto.NotificationsUserSetting;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserBalancesDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.*;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.api.RateDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.kyc.VerificationStep;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
@@ -1098,6 +1089,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getPubIdByEmail(String email) {
         return userDao.getPubIdByEmail(email);
+    }
+
+    @Override
+    public DataTable<List<IpLogDto>> getIpAdressesTable(AdminIpLogsFilterData adminOrderFilterData, DataTableParams dataTableParams) {
+        PagingData<List<IpLogDto>> searchResult = userDao.getIpLogPage(adminOrderFilterData, dataTableParams);
+        DataTable<List<IpLogDto>> output = new DataTable<>();
+        output.setData(searchResult.getData());
+        output.setRecordsTotal(searchResult.getTotal());
+        output.setRecordsFiltered(searchResult.getFiltered());
+        return output;
     }
 
 }

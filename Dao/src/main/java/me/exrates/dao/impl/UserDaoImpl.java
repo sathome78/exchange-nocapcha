@@ -10,19 +10,16 @@ import me.exrates.model.Policy;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserBalancesDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserIpReportDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UserShortDto;
-import me.exrates.model.dto.UsersInfoDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminIpLogsFilterData;
 import me.exrates.model.dto.ieo.IeoUserStatus;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,17 +46,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -581,6 +568,45 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("event", eventEnum.name());
         namedParameters.put("url", url);
         return masterTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public PagingData<List<IpLogDto>> getIpLogPage(AdminIpLogsFilterData adminOrderFilterData,
+                                                   DataTableParams dataTableParams) {
+        String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
+        String orderBy = dataTableParams.getOrderByClause();
+        String criteria = adminOrderFilterData.getSQLFilterClause();
+        String sqlSelect = "SELECT * ";
+        String sqlSelectCount = "SELECT COUNT(*) ";
+        String sqlFrom = " FROM IP_Log JOIN USER ON USER.id = IP_Log.user_id ";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("offset", dataTableParams.getStart());
+        namedParameters.put("limit", dataTableParams.getLength());
+        namedParameters.putAll(adminOrderFilterData.getNamedParams());
+        String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
+        String selectQuery = String.join(" ", sqlSelect, sqlFrom, whereClause, orderBy, limitAndOffset);
+        String selectCountQuery = String.join(" ", sqlSelectCount, sqlFrom, whereClause);
+        PagingData<List<IpLogDto>> result = new PagingData<>();
+        List<IpLogDto> infoDtoList = new ArrayList<>();
+        int total = slaveTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
+        if (total > 0) {
+            infoDtoList = slaveTemplate.query(selectQuery, namedParameters, (rs, rowNum) ->
+                    IpLogDto
+                            .builder()
+                            .id(rs.getInt("id"))
+                            .ip(rs.getString("ip"))
+                            .dateTime(rs.getTimestamp("date").toLocalDateTime())
+                            .email(rs.getString("email"))
+                            .event(rs.getString("event"))
+                            .url(rs.getString("url"))
+                            .build());
+        }
+        result.setData(infoDtoList);
+        result.setTotal(total);
+        result.setFiltered(total);
+        return result;
+
+
     }
 
     public boolean update(UpdateUserDto user) {
