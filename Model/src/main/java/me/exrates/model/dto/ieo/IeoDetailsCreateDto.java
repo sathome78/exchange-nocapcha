@@ -38,7 +38,7 @@ public class IeoDetailsCreateDto {
     @NotNull(message = "available balance must not be null")
     private BigDecimal availableBalance;
     @NotNull(message = "Min amount must not be null")
-    @DecimalMin(value = "0.00001", message = "Min amount must not be higher than 0.00001")
+    @DecimalMin(value = "0.00001", message = "Amount must be greater than 0.00001")
     private BigDecimal minAmount;
     @NotNull(message = "Max amount per user must not be null")
     private BigDecimal maxAmountPerUser;
