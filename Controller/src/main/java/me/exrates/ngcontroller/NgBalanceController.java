@@ -174,10 +174,8 @@ public class NgBalanceController {
         throw new NgBalanceException("Failed to revoke such for operation " + operation);
     }
 
-    // apiUrl/info/private/v2/balances/totalBalance
     @SuppressWarnings("Duplicates")
     @GetMapping("/totalBalance")
-    @ResponseBody
     public Map<String, Object> getUserTotalBalance(HttpServletRequest request) {
         List<MyWalletsStatisticsDto> resultWallet = walletService.getAllWalletsForUserReduced(null, getPrincipalEmail(),
                 localeResolver.resolveLocale(request), CurrencyPairType.MAIN);
