@@ -100,7 +100,7 @@ public class WalletsApi {
         try {
             currencyService.updateCurrencyBalances(getBalancesFromApi());
         } catch (Exception ex) {
-            log.info("--> In processing 'WalletsApi' occurred error", ex);
+            log.error("--> In processing 'WalletsApi' occurred error", ex);
         }
     }
 

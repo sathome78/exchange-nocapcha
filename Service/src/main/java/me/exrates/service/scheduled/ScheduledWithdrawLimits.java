@@ -26,7 +26,7 @@ public class ScheduledWithdrawLimits {
         try {
             currencyService.updateWithdrawLimits();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledWithdrawLimits' occurred error", ex);
+            log.error("--> In processing 'ScheduledWithdrawLimits' occurred error", ex);
         }
     }
 }

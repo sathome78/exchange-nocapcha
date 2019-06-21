@@ -26,7 +26,7 @@ public class ScheduledMerchantCommissionsLimits {
         try {
             merchantService.updateMerchantCommissionsLimits();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledMerchantCommissionsLimits' occurred error", ex);
+            log.error("--> In processing 'ScheduledMerchantCommissionsLimits' occurred error", ex);
         }
     }
 }

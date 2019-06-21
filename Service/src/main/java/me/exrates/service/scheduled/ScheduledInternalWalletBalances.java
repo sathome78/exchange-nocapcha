@@ -26,7 +26,7 @@ public class ScheduledInternalWalletBalances {
         try {
             walletService.updateInternalWalletBalances();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledInternalWalletBalances' occurred error", ex);
+            log.error("--> In processing 'ScheduledInternalWalletBalances' occurred error", ex);
         }
     }
 }

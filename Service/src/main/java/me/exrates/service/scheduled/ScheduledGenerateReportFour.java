@@ -26,7 +26,7 @@ public class ScheduledGenerateReportFour {
         try {
             reportService.generateWalletBalancesReportObject();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledGenerateReportFour' occurred error", ex);
+            log.error("--> In processing 'ScheduledGenerateReportFour' occurred error", ex);
         }
     }
 }

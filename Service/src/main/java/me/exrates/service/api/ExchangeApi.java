@@ -69,7 +69,7 @@ public class ExchangeApi {
         try {
             currencyService.updateCurrencyExchangeRates(getRatesFromApi());
         } catch (Exception ex) {
-            log.info("--> In processing 'ExchangeApi' occurred error", ex);
+            log.error("--> In processing 'ExchangeApi' occurred error", ex);
         }
     }
 

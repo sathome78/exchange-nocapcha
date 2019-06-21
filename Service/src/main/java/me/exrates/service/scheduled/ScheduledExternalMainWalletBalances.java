@@ -26,7 +26,7 @@ public class ScheduledExternalMainWalletBalances {
         try {
             walletService.updateExternalMainWalletBalances();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledExternalMainWalletBalances' occurred error", ex);
+            log.error("--> In processing 'ScheduledExternalMainWalletBalances' occurred error", ex);
         }
     }
 }

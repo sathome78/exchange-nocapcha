@@ -26,7 +26,7 @@ public class ScheduledGenerateReportTwo {
         try {
             reportService.generateInputOutputSummaryReportObject();
         } catch (Exception ex) {
-            log.info("--> In processing 'ScheduledGenerateReportTwo' occurred error", ex);
+            log.error("--> In processing 'ScheduledGenerateReportTwo' occurred error", ex);
         }
     }
 }
