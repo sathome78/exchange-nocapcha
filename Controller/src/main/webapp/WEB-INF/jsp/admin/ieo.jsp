@@ -58,7 +58,7 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea rows="7" cols="85" name="description"></textarea>
+                            <textarea name="description"></textarea>
                         </div>
                     </div>
                     <%--Currency Description--%>
@@ -69,7 +69,7 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper" style="height: auto;">
-                            <textarea rows="7" cols="85" name="currencyDescription"></textarea>
+                            <textarea name="currencyDescription"></textarea>
                         </div>
                     </div>
                     <%--coin name--%>
