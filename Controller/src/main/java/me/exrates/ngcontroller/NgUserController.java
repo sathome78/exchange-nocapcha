@@ -168,7 +168,7 @@ public class NgUserController {
         }
 
         boolean registered = ngUserService.registerUser(userEmailDto, request);
-        String ipAddress  = IpUtils.getIpForDbLog(request);
+        String ipAddress = IpUtils.getIpForDbLog(request);
         if (registered) {
             ipBlockingService.successfulProcessing(ipAddress, IpTypesOfChecking.REGISTER);
             return ResponseEntity.ok().build();
@@ -218,6 +218,11 @@ public class NgUserController {
     @GetMapping("/validateTempToken/{token}")
     public ResponseModel<Boolean> checkTempToken(@PathVariable("token") String token) {
         return new ResponseModel<>(ngUserService.validateTempToken(token));
+    }
+
+    @GetMapping("/publicId/{userId}")
+    public ResponseModel<String> getUserPublicId(@PathVariable("userId") Integer userId) {
+        return new ResponseModel<>(ngUserService.getUserPublicId(userId));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
