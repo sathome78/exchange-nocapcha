@@ -258,5 +258,5 @@ public interface UserDao {
 
     boolean updateUserRole(int userId, UserRole userRole);
 
-    String getUserPublicId(Integer userId);
+    String getUserPublicId(String userEmail);
 }

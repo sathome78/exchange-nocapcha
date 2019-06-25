@@ -241,8 +241,10 @@ public class NgUserServiceImpl implements NgUserService {
 
     @Transactional(readOnly = true)
     @Override
-    public String getUserPublicId(Integer userId) {
-        return userDao.getUserPublicId(userId);
+    public String getUserPublicId() {
+        final String userEmail = userService.getUserEmailFromSecurityContext();
+
+        return userDao.getUserPublicId(userEmail);
     }
 
     @Transactional(rollbackFor = Exception.class)

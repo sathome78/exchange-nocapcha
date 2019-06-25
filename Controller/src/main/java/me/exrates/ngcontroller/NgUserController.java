@@ -220,9 +220,9 @@ public class NgUserController {
         return new ResponseModel<>(ngUserService.validateTempToken(token));
     }
 
-    @GetMapping("/publicId/{userId}")
-    public ResponseModel<String> getUserPublicId(@PathVariable("userId") Integer userId) {
-        return new ResponseModel<>(ngUserService.getUserPublicId(userId));
+    @GetMapping("/publicId")
+    public ResponseModel<String> getUserPublicId() {
+        return new ResponseModel<>(ngUserService.getUserPublicId());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

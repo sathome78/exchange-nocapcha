@@ -24,5 +24,5 @@ public interface NgUserService {
 
     void resendEmailForFinishRegistration(User user);
 
-    String getUserPublicId(Integer userId);
+    String getUserPublicId();
 }

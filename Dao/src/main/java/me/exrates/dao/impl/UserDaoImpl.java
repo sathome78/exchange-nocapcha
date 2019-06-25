@@ -1545,10 +1545,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public String getUserPublicId(Integer userId) {
-        final String sql = "SELECT u.pub_id AS public_id FROM USER u WHERE u.id = :user_id";
+    public String getUserPublicId(String userEmail) {
+        final String sql = "SELECT u.pub_id FROM USER u WHERE u.email = :user_email";
 
-        final Map<String, Object> params = Collections.singletonMap("user_id", userId);
+        final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
 
         return slaveTemplate.queryForObject(sql, params, String.class);
     }

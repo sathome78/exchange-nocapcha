@@ -572,15 +572,15 @@ public class NgUserControllerTest extends AngularApiCommonTest {
 
     @Test
     public void getUserPublicId_isOk() throws Exception {
-        when(ngUserService.getUserPublicId(anyInt())).thenReturn("publicId");
+        when(ngUserService.getUserPublicId()).thenReturn("publicId");
 
-        mockMvc.perform(get(BASE_URL + "/publicId/{userId}", 1)
+        mockMvc.perform(get(BASE_URL + "/publicId")
                 .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data", is("publicId")))
                 .andExpect(jsonPath("$.error", is(nullValue())));
 
-        verify(ngUserService, times(1)).getUserPublicId(anyInt());
+        verify(ngUserService, times(1)).getUserPublicId();
     }
 
     private User getMockUser(UserStatus active) {
