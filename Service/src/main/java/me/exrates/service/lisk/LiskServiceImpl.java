@@ -13,6 +13,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.dto.merchants.lisk.LiskAccount;
 import me.exrates.model.dto.merchants.lisk.LiskTransaction;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.GtagService;
 import me.exrates.service.MerchantService;
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 public class LiskServiceImpl implements LiskService {
 
     private final BigDecimal DEFAULT_LSK_TX_FEE = BigDecimal.valueOf(0.1);
+    private final String CODE_FROM_AWS = "lisk_code";
 
     @Autowired
     private RefillService refillService;
@@ -63,6 +65,8 @@ public class LiskServiceImpl implements LiskService {
     private WithdrawUtils withdrawUtils;
     @Autowired
     private GtagService gtagService;
+    @Autowired
+    private AlgorithmService algorithmService;
 
     private LiskRestClient liskRestClient;
 
@@ -106,7 +110,7 @@ public class LiskServiceImpl implements LiskService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         try {
-            //TODO
+            //TODO encodeByKey AND decodeByKey
             String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
             LiskAccount account = createNewLiskAccount(secret);
             String address = account.getAddress();
@@ -117,7 +121,7 @@ public class LiskServiceImpl implements LiskService {
                 put("message", message);
                 put("address", address);
                 put("pubKey", account.getPublicKey());
-                put("brainPrivKey", secret);
+                put("brainPrivKey", algorithmService.encodeByKey(CODE_FROM_AWS, secret));
                 put("qr", address);
             }};
             return result;
@@ -251,7 +255,9 @@ public class LiskServiceImpl implements LiskService {
                 requestAcceptDto.setRequestId(requestId);
 
                 RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
-                sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
+                sendTransaction(algorithmService.decodeByKey(CODE_FROM_AWS, flatDto.getBrainPrivKey()),
+                        dto.getAmount(), mainAddress);
+
                 refillService.autoAcceptRefillRequest(requestAcceptDto);
 
                 final String gaTag = refillService.getUserGAByRequestId(requestId);

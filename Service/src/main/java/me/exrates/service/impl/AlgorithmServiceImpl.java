@@ -37,7 +37,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 @Service
 @Log4j2(topic = "algorithm_log")
-@PropertySource("classpath:/merchants/env.properties")
+@PropertySource("classpath:/env.properties")
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
@@ -156,8 +156,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     @Override
-    public String encodeByKey(String txt) {
-        String key = getSecret();
+    public String encodeByKey(String code, String txt) {
+        String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
             return enc.encode(text.getBytes(DEFAULT_ENCODING));
@@ -167,7 +167,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     @Override
-    public String decodeByKey(String text) {
+    public String decodeByKey(String code, String text) {
         String txt;
         String key;
         try {
@@ -175,13 +175,13 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         } catch (IOException e) {
             return null;
         }
-        key = getSecret();
+        key = getSecret(code);
         return xorMessage(txt, key);
     }
 
     //    У инстанса должна быть iam policy, на чтение aws секретов!!!!!
     //  Подключение к AWS Серверу для получения ключа
-    private String getSecret() {
+    private String getSecret(String code) {
         String region = "us-east-2";
 
         // Create a Secrets Manager client
@@ -226,7 +226,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             secret = new String(Base64.getDecoder().decode(getSecretValueResult.getSecretBinary()).array());
         }
     // парсим строку, что бы получить Value по конкретному ключу
-        secret = secret.substring(secret.indexOf("key_phrase") + "key_phrase".length());
+        secret = secret.substring(secret.indexOf(code) + code.length());
         secret = secret.substring(0, secret.indexOf("\""));
         return secret;
 
