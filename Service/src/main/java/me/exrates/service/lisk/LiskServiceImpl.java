@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 public class LiskServiceImpl implements LiskService {
 
     private final BigDecimal DEFAULT_LSK_TX_FEE = BigDecimal.valueOf(0.1);
-    private final String CODE_FROM_AWS = "lisk_code";
+    private final String CODE_FROM_AWS = "lisk_code\":\"";
 
     @Autowired
     private RefillService refillService;
