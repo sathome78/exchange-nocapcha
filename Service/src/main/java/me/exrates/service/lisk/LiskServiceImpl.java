@@ -106,6 +106,7 @@ public class LiskServiceImpl implements LiskService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         try {
+            //TODO
             String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
             LiskAccount account = createNewLiskAccount(secret);
             String address = account.getAddress();
