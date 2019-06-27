@@ -9,6 +9,7 @@ import com.amazonaws.services.secretsmanager.model.InternalServiceErrorException
 import com.amazonaws.services.secretsmanager.model.InvalidRequestException;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
@@ -16,6 +17,7 @@ import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import sun.misc.BASE64Decoder;
@@ -38,6 +40,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Service
 @Log4j2(topic = "algorithm_log")
 @PropertySource("classpath:/env.properties")
+@Conditional(MonolitConditional.class)
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
