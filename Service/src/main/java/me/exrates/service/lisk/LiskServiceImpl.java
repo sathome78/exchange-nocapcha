@@ -72,6 +72,7 @@ public class LiskServiceImpl implements LiskService {
     private final String currencyName;
     private String propertySource;
     private String mainAddress;
+    // TODO need to add correct passphrases to mainSecret for withdraw()
     private String mainSecret;
     private Integer minConfirmations;
 
@@ -261,6 +262,8 @@ public class LiskServiceImpl implements LiskService {
         }
     }
 
+
+    // TODO need to add correct passphrases to mainSecret for withdraw()
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
         if (!"LSK".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
