@@ -37,6 +37,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
  */
 @Service
 @Log4j2(topic = "algorithm_log")
+@PropertySource("classpath:/merchants/env.properties")
 public class AlgorithmServiceImpl implements AlgorithmService {
 
     private static final String DEFAULT_ENCODING = "UTF-8";
@@ -56,7 +57,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Autowired
     private CurrencyService currencyService;
 
-    // тянуть из свойств
+    @Value("${env.name}")
     private String environment;
 
     @Autowired
