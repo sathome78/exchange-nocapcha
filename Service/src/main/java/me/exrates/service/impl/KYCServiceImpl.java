@@ -219,9 +219,10 @@ public class KYCServiceImpl implements KYCService {
                 log.error("Reference id is null, cannot get status, email {}", email);
                 throw new NgDashboardException("Reference id is null", Constants.ErrorApi.QUBERA_KYC_ERROR_GET_STATUS);
             }
-            KycResponseStatusDto response =
-                    kycHttpClient.getCurrentKycStatus(referenceId);
+            KycResponseStatusDto response = kycHttpClient.getCurrentKycStatus(referenceId);
+
             status = response.getStatus();
+            userService.updateKycStatus(status);
         }
         return status;
     }
@@ -237,7 +238,9 @@ public class KYCServiceImpl implements KYCService {
                 throw new NgDashboardException("Reference id is null", Constants.ErrorApi.SHUFTI_PRO_KYC_ERROR_GET_STATUS);
             }
             EventStatus eventStatus = this.getVerificationStatus(referenceId);
+
             status = eventStatus.name();
+            userService.updateKycStatus(status);
         }
         return status;
     }
