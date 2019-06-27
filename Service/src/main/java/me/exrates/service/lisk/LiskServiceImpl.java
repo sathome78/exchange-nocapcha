@@ -99,12 +99,7 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
-        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 30L, TimeUnit.MINUTES);
-    }
-
-    @PreDestroy
-    private void shutdown() {
-        scheduler.shutdown();
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 1L, TimeUnit.MINUTES);
     }
 
     @Override
@@ -127,8 +122,53 @@ public class LiskServiceImpl implements LiskService {
         } catch (MnemonicException.MnemonicLengthException e) {
             throw new LiskCreateAddressException(e);
         }
+    }
 
+    @Override
+    public void processTransactionsForKnownAddresses() {
+        log.info("Start checking {} transactions", currencyName);
+        Currency currency = currencyService.findByName(currencyName);
+        Merchant merchant = merchantService.findByName(merchantName);
+        refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> {
+            try {
+                int offset = refillService.getTxOffsetForAddress(address);
+                List<LiskTransaction> userTransactions = liskRestClient.getAllTransactionsByRecipient(address, offset);
+                log.debug("Address {}, Transactions found: {}", address, userTransactions);
+                boolean containsUnconfirmedTransactions = false;
+                int newOffset = offset;
+                for (LiskTransaction transaction : userTransactions) {
+                    Optional<RefillRequestFlatDto> refillRequestResult = refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipientId(),
+                            merchant.getId(), currency.getId(), transaction.getId());
+                    if ((refillRequestResult.isPresent() && refillRequestResult.get().getStatus().isSuccessEndStatus())) {
+                        if (!containsUnconfirmedTransactions) {
+                            newOffset++;
+                        }
+                    } else {
+                        if (!containsUnconfirmedTransactions) {
+                            containsUnconfirmedTransactions = true;
+                        }
+                        Map<String, String> params = new HashMap<String, String>() {{
+                            put("merchantId", String.valueOf(merchant.getId()));
+                            put("currencyId", String.valueOf(currency.getId()));
+                            put("address", transaction.getRecipientId());
+                            put("txId", transaction.getId());
+                        }};
+                        refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
 
+                        try {
+                            processPayment(params);
+                        } catch (RefillRequestAppropriateNotFoundException e) {
+                            log.error(e);
+                        }
+                    }
+                }
+                if (newOffset != offset) {
+                    refillService.updateTxOffsetForAddress(address, newOffset);
+                }
+            } catch (Exception e) {
+                log.error("Exception for currency {} merchant {}: {}", currencyName, merchantName, ExceptionUtils.getStackTrace(e));
+            }
+        });
     }
 
     @Override
@@ -208,9 +248,9 @@ public class LiskServiceImpl implements LiskService {
                 }
                 requestAcceptDto.setRequestId(requestId);
 
-                refillService.autoAcceptRefillRequest(requestAcceptDto);
                 RefillRequestFlatDto flatDto = refillService.getFlatById(requestId);
                 sendTransaction(flatDto.getBrainPrivKey(), dto.getAmount(), mainAddress);
+                refillService.autoAcceptRefillRequest(requestAcceptDto);
 
                 final String gaTag = refillService.getUserGAByRequestId(requestId);
                 log.debug("Process of sending data to Google Analytics...");
@@ -220,55 +260,6 @@ public class LiskServiceImpl implements LiskService {
             log.error(e);
         }
     }
-
-
-    @Override
-    public void processTransactionsForKnownAddresses() {
-        log.info("Start checking {} transactions", currencyName);
-        Currency currency = currencyService.findByName(currencyName);
-        Merchant merchant = merchantService.findByName(merchantName);
-        refillService.findAllAddresses(merchant.getId(), currency.getId()).forEach(address -> {
-            try {
-                int offset = refillService.getTxOffsetForAddress(address);
-                List<LiskTransaction> userTransactions = liskRestClient.getAllTransactionsByRecipient(address, offset);
-                log.debug("Address {}, Transactions found: {}", address, userTransactions);
-                boolean containsUnconfirmedTransactions = false;
-                int newOffset = offset;
-                for (LiskTransaction transaction : userTransactions) {
-                    Optional<RefillRequestFlatDto> refillRequestResult = refillService.findFlatByAddressAndMerchantIdAndCurrencyIdAndHash(transaction.getRecipientId(),
-                            merchant.getId(), currency.getId(), transaction.getId());
-                    if ((refillRequestResult.isPresent() && refillRequestResult.get().getStatus().isSuccessEndStatus())) {
-                        if (!containsUnconfirmedTransactions) {
-                            newOffset++;
-                        }
-                    } else {
-                        if (!containsUnconfirmedTransactions) {
-                            containsUnconfirmedTransactions = true;
-                        }
-                        Map<String, String> params = new HashMap<String, String>() {{
-                            put("merchantId", String.valueOf(merchant.getId()));
-                            put("currencyId", String.valueOf(currency.getId()));
-                            put("address", transaction.getRecipientId());
-                            put("txId", transaction.getId());
-                        }};
-                        refillRequestResult.ifPresent(request -> params.put("requestId", String.valueOf(request.getId())));
-
-                        try {
-                            processPayment(params);
-                        } catch (RefillRequestAppropriateNotFoundException e) {
-                            log.error(e);
-                        }
-                    }
-                }
-                if (newOffset != offset) {
-                    refillService.updateTxOffsetForAddress(address, newOffset);
-                }
-            } catch (Exception e) {
-                log.error("Exception for currency {} merchant {}: {}", currencyName, merchantName, ExceptionUtils.getStackTrace(e));
-            }
-        });
-    }
-
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
@@ -304,7 +295,6 @@ public class LiskServiceImpl implements LiskService {
         return sendTransaction(secret, LiskTransaction.unscaleAmountToLiskFormat(amount), recipientId);
     }
 
-
     @Override
     public LiskAccount createNewLiskAccount(String secret) {
         return liskSpecialMethodService.createAccount(secret);
@@ -320,6 +310,11 @@ public class LiskServiceImpl implements LiskService {
     public boolean isValidDestinationAddress(String address) {
 
         return withdrawUtils.isValidDestinationAddress(address);
+    }
+
+    @PreDestroy
+    private void shutdown() {
+        scheduler.shutdown();
     }
 
 }

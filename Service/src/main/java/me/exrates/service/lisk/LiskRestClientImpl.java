@@ -11,15 +11,26 @@ import me.exrates.model.dto.merchants.lisk.LiskTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-import static me.exrates.service.lisk.LiskRestUtils.*;
+import static me.exrates.service.lisk.LiskRestUtils.extractListFromResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponse;
+import static me.exrates.service.lisk.LiskRestUtils.extractObjectFromResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.extractTargetNodeFromLiskResponseAdditional;
+import static me.exrates.service.lisk.LiskRestUtils.getURIWithParams;
 
 @Log4j2(topic = "lisk_log")
 @Conditional(MonolitConditional.class)
@@ -127,13 +138,21 @@ public class LiskRestClientImpl implements LiskRestClient {
 
     @Override
     public String sendTransaction(LiskSendTxDto dto) {
+
         //Get signed transaction with data
         String responseFromMicroservice = restTemplate.postForObject(microserviceUrl.concat(getSignedTransactionWithData), dto, String.class);
 
         log.info("*** Lisk *** Signed transactions (/api/transfer) from microservice: "+responseFromMicroservice);
 
+
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(responseFromMicroservice, headers);
+
         //Post signed transaction with data into network
-        String postSignedTrans = restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), responseFromMicroservice, String.class);
+        String postSignedTrans = restTemplate.postForObject(absoluteURI(sendTransactionEndpoint), entity, String.class);
 
         log.info("*** Lisk *** Posted signed transactions: "+postSignedTrans);
 
