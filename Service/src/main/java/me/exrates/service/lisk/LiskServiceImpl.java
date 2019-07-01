@@ -104,13 +104,12 @@ public class LiskServiceImpl implements LiskService {
     @PostConstruct
     private void init() {
         liskRestClient.initClient(propertySource);
-        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 1L, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::processTransactionsForKnownAddresses, 3L, 3L, TimeUnit.MINUTES);
     }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
         try {
-            //TODO encodeByKey AND decodeByKey
             String secret = String.join(" ", MnemonicCode.INSTANCE.toMnemonic(SecureRandom.getSeed(16)));
             LiskAccount account = createNewLiskAccount(secret);
             String address = account.getAddress();
