@@ -208,7 +208,7 @@ public interface UserDao {
 
     boolean manageUserFavouriteCurrencyPair(int userId, int currencyPairId, boolean delete);
 
-    int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail);
+    boolean updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail);
 
     String getReferenceIdByUserEmail(String userEmail);
 
@@ -256,4 +256,6 @@ public interface UserDao {
     boolean updateUserRole(int userId, UserRole userRole);
 
     String getUserPublicId(String userEmail);
+
+    boolean updateCountryCode(String countryCode, String userEmail);
 }

@@ -1252,15 +1252,15 @@ public class UserDaoImpl implements UserDao {
 
     @Transactional
     @Override
-    public int updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
-        final String sql = "UPDATE USER SET kyc_reference = :kyc_reference, kyc_status = :kyc_status WHERE email = :email";
+    public boolean updateReferenceIdAndStatus(String referenceId, EventStatus status, String userEmail) {
+        final String sql = "UPDATE USER u SET u.kyc_reference = :reference, u.kyc_status = :status WHERE u.email = :email";
 
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("kyc_reference", referenceId);
-            put("kyc_status", status.name());
+            put("reference", referenceId);
+            put("status", status.name());
             put("email", userEmail);
         }};
-        return masterTemplate.update(sql, params);
+        return masterTemplate.update(sql, params) > 0;
     }
 
     @Transactional(readOnly = true)
@@ -1547,5 +1547,16 @@ public class UserDaoImpl implements UserDao {
         final Map<String, Object> params = Collections.singletonMap("user_email", userEmail);
 
         return slaveTemplate.queryForObject(sql, params, String.class);
+    }
+
+    @Override
+    public boolean updateCountryCode(String countryCode, String userEmail) {
+        final String sql = "UPDATE USER u SET u.country = :code WHERE u.email = :email";
+
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("code", countryCode);
+            put("email", userEmail);
+        }};
+        return masterTemplate.update(sql, params) > 0;
     }
 }
