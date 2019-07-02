@@ -154,16 +154,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         return result.toString();
     }
 
-    public static void main(String[] args) {
-        AlgorithmServiceImpl algorithmService = new AlgorithmServiceImpl();
-        String str = algorithmService.encodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd","dust pepper gallery uphold glow advance ivory quote chalk top spring young");
-        System.out.println(str);
-//        System.out.println(algorithmService.decodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",str));
-    }
-
     @Override
     public String encodeByKey(String code, String txt) {
-        String key = code;//getSecret(code);
+        String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
             return base64Encode(text);
