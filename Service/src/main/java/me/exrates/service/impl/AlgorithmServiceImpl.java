@@ -20,10 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.InvalidParameterException;
@@ -42,10 +39,6 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @PropertySource("classpath:/env.properties")
 @Conditional(MonolitConditional.class)
 public class AlgorithmServiceImpl implements AlgorithmService {
-
-    private static final String DEFAULT_ENCODING = "UTF-8";
-    private static BASE64Encoder enc = new BASE64Encoder();
-    private static BASE64Decoder dec = new BASE64Decoder();
 
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
@@ -163,8 +156,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
-            return enc.encode(text.getBytes(DEFAULT_ENCODING));
-        } catch (UnsupportedEncodingException e) {
+            return base64Encode(text);
+        } catch (Exception e) {
             return null;
         }
     }
@@ -174,8 +167,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         String txt;
         String key;
         try {
-            txt = new String(dec.decodeBuffer(text), DEFAULT_ENCODING);
-        } catch (IOException e) {
+            txt = base64Decode(text);
+        } catch (Exception e) {
             return null;
         }
         key = getSecret(code);
