@@ -43,10 +43,6 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Conditional(MonolitConditional.class)
 public class AlgorithmServiceImpl implements AlgorithmService {
 
-    private static final String DEFAULT_ENCODING = "UTF-8";
-    private static BASE64Encoder enc = new BASE64Encoder();
-    private static BASE64Decoder dec = new BASE64Decoder();
-
     private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
@@ -158,13 +154,20 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         return result.toString();
     }
 
+    public static void main(String[] args) {
+        AlgorithmServiceImpl algorithmService = new AlgorithmServiceImpl();
+        String str = algorithmService.encodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd","Vode symbols code here and here and here busy chisf");
+        System.out.println(str);
+        System.out.println(algorithmService.decodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",str));
+    }
+
     @Override
     public String encodeByKey(String code, String txt) {
         String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
-            return enc.encode(text.getBytes(DEFAULT_ENCODING));
-        } catch (UnsupportedEncodingException e) {
+            return base64Encode(text);
+        } catch (Exception e) {
             return null;
         }
     }
@@ -174,8 +177,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         String txt;
         String key;
         try {
-            txt = new String(dec.decodeBuffer(text), DEFAULT_ENCODING);
-        } catch (IOException e) {
+            txt = base64Decode(text);
+        } catch (Exception e) {
             return null;
         }
         key = getSecret(code);
