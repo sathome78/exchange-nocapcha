@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.QuberaDao;
 import me.exrates.dao.exception.notfound.UserNotFoundException;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,15 +32,21 @@ public class QuberaDaoImpl implements QuberaDao {
     }
 
     @Override
-    public boolean saveUserDetails(int userId, int currencyId, String accountNumber, String iban) {
-        String sql = "INSERT INTO QUBERA_USER_DETAILS (user_id, currency_id, account_number, iban) "
-                + " VALUES (user_id = :user_id, currency_id = :currency_id, account_number = :account_number, iban = :iban) "
+    public boolean saveUserDetails(QuberaUserData userData) {
+        String sql = "INSERT INTO QUBERA_USER_DETAILS (user_id, currency_id, account_number, iban, address, city, first_name, last_name, country_code) "
+                + " VALUES (user_id = :user_id, currency_id = :currency_id, account_number = :account_number, iban = :iban, address = :address, city = :city, " +
+                "first_name = :first_name, last_name = :last_name, country_code = :country_code ) "
                 + " ON DUPLICATE KEY UPDATE account_number = :account_number, iban = :iban";
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("user_id", userId);
-        params.addValue("currency_id", currencyId);
-        params.addValue("account_number", accountNumber);
-        params.addValue("iban", iban);
+        params.addValue("user_id", userData.getUserId());
+        params.addValue("currency_id", userData.getCurrencyId());
+        params.addValue("account_number", userData.getAccountNumber());
+        params.addValue("iban", userData.getIban());
+        params.addValue("address", userData.getAddress());
+        params.addValue("city", userData.getCity());
+        params.addValue("first_name", userData.getFirsName());
+        params.addValue("last_name", userData.getLastName());
+        params.addValue("country_code", userData.getCountryCode());
         return masterJdbcTemplate.update(sql, params) > 0;
     }
 
@@ -91,7 +98,7 @@ public class QuberaDaoImpl implements QuberaDao {
 
     @Override
     public Integer findUserIdByAccountNumber(String accountNumber) {
-        String sql = "SELECT user_id FROM QUBERA_USER_DETAILS  WHERE account_number = :account_number;";
+        String sql = "SELECT qud.user_id FROM QUBERA_USER_DETAILS qud WHERE qud.account_number = :account_number;";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("account_number", accountNumber);
         try {

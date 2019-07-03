@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.constants.Constants;
@@ -136,9 +137,12 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public AccountQuberaResponseDto createAccount(AccountCreateDto accountCreateDto) {
-        String account = accountCreateDto.getStringFromParams();
         User user = userService.findByEmail(accountCreateDto.getEmail());
         Currency currency = currencyService.findByName(accountCreateDto.getCurrencyCode());
+
+        QuberaUserData userData = QuberaUserData.of(accountCreateDto, user.getId(), currency.getId());
+
+        String account = userData.buildAccountString();
         if (account.length() >= thresholdLength) {
             String error = "Count chars of request is over limit {}" + account.length();
             logger.error(error);
@@ -147,8 +151,10 @@ public class QuberaServiceImpl implements QuberaService {
 
         AccountQuberaRequestDto requestDto = new AccountQuberaRequestDto(account, accountCreateDto.getCurrencyCode(), poolId);
         AccountQuberaResponseDto responseDto = kycHttpClient.createAccount(requestDto);
-        boolean saveUserDetails = quberaDao.saveUserDetails(user.getId(), currency.getId(),
-                responseDto.getAccountNumber(), responseDto.getIban());
+        userData.setIban(responseDto.getIban());
+        userData.setAccountNumber(responseDto.getAccountNumber());
+
+        boolean saveUserDetails = quberaDao.saveUserDetails(userData);
 
         if (saveUserDetails) {
             return responseDto;

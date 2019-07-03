@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.QuberaUserData;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 
 import java.util.Map;
@@ -10,7 +11,7 @@ public interface QuberaDao {
 
     boolean logResponse(QuberaRequestDto requestDto);
 
-    boolean saveUserDetails(int userId, int currencyId, String accountNumber, String iban);
+    boolean saveUserDetails(QuberaUserData userData);
 
     Map<String, String> getUserDetailsForCurrency(int userId, int currencyId);
 
