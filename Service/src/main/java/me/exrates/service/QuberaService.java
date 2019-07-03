@@ -5,6 +5,7 @@ import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.service.merchantStrategy.IRefillable;
@@ -66,4 +67,6 @@ public interface QuberaService extends IRefillable, IWithdrawable {
     ResponsePaymentDto createExternalPayment(ExternalPaymentDto externalPaymentDto, String email);
 
     String confirmExternalPayment(Integer paymentId);
+
+    QuberaPaymentInfoDto getInfoForPayment(String email);
 }

@@ -2,8 +2,8 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
@@ -78,6 +78,12 @@ public class QuberaMerchantController {
         accountCreateDto.setEmail(getPrincipalEmail());
         AccountQuberaResponseDto result = quberaService.createAccount(accountCreateDto);
         return new ResponseModel<>(result);
+    }
+
+    @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/info")
+    public ResponseModel<?> getInfoForPayment() {
+        String email = getPrincipalEmail();
+        return new ResponseModel<>(quberaService.getInfoForPayment(email));
     }
 
     @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/check/{currency}")

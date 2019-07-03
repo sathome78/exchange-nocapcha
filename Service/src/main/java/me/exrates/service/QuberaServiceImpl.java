@@ -9,17 +9,18 @@ import me.exrates.model.User;
 import me.exrates.model.condition.MonolitConditional;
 import me.exrates.model.constants.Constants;
 import me.exrates.model.dto.AccountCreateDto;
-import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
-import me.exrates.model.dto.qubera.ExternalPaymentDto;
-import me.exrates.model.dto.qubera.PaymentRequestDto;
-import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
-import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.model.dto.qubera.AccountInfoDto;
+import me.exrates.model.dto.qubera.ExternalPaymentDto;
+import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
+import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
+import me.exrates.model.dto.qubera.QuberaRequestDto;
+import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -262,5 +263,17 @@ public class QuberaServiceImpl implements QuberaService {
     @Override
     public String confirmExternalPayment(Integer paymentId) {
         return kycHttpClient.confirmExternalPayment(paymentId);
+    }
+
+    @Override
+    public QuberaPaymentInfoDto getInfoForPayment(String email) {
+        User user = userService.findByEmail(email);
+
+        if (!quberaDao.existAccountByUserEmailAndCurrencyName(email, "EUR")) {
+            return null;
+        }
+
+        QuberaUserData userData = quberaDao.getUserDataByUserId(user.getId());
+        return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
     }
 }

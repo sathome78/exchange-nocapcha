@@ -18,4 +18,6 @@ public interface QuberaDao {
     boolean existAccountByUserEmailAndCurrencyName(String email, String currency);
 
     String getAccountByUserEmail(String email);
+
+    QuberaUserData getUserDataByUserId(int userId);
 }

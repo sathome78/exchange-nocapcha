@@ -9,6 +9,7 @@ import me.exrates.model.dto.qubera.QuberaRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,8 +22,24 @@ import java.util.Map;
 @Log4j2
 public class QuberaDaoImpl implements QuberaDao {
 
+    private static final String columns = "user_id, currency_id, account_number, iban, address, city, first_name, last_name, country_code";
+
     private final NamedParameterJdbcTemplate masterJdbcTemplate;
     private final NamedParameterJdbcTemplate slaveJdbcTemplate;
+
+    private final RowMapper<QuberaUserData> quberaUserDataRowMapper = (rs, row) -> {
+        QuberaUserData quberaUserData = new QuberaUserData();
+        quberaUserData.setUserId(rs.getInt("user_id"));
+        quberaUserData.setAccountNumber(rs.getString("account_number"));
+        quberaUserData.setIban(rs.getString("iban"));
+        quberaUserData.setCurrencyId(rs.getInt("currency_id"));
+        quberaUserData.setFirsName(rs.getObject("first_name") == null ? null : rs.getString("first_name"));
+        quberaUserData.setLastName(rs.getObject("last_name") == null ? null : rs.getString("last_name"));
+        quberaUserData.setAddress(rs.getObject("address") == null ? null : rs.getString("address"));
+        quberaUserData.setCity(rs.getObject("city") == null ? null : rs.getString("city"));
+        quberaUserData.setCountryCode(rs.getObject("country_code") == null ? null : rs.getString("country_code"));
+        return quberaUserData;
+    };
 
     @Autowired
     public QuberaDaoImpl(@Qualifier("masterTemplate") NamedParameterJdbcTemplate masterJdbcTemplate,
@@ -94,6 +111,14 @@ public class QuberaDaoImpl implements QuberaDao {
                 " WHERE u.email = :email";
 
         return slaveJdbcTemplate.queryForObject(sql, Collections.singletonMap("email", email), String.class);
+    }
+
+    @Override
+    public QuberaUserData getUserDataByUserId(int userId) {
+        String sql = "SELECT " + columns + " FROM QUBERA_USER_DETAILS WHERE user_id = :user_id";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("user_id", userId);
+        return slaveJdbcTemplate.queryForObject(sql, params, quberaUserDataRowMapper);
     }
 
     @Override
