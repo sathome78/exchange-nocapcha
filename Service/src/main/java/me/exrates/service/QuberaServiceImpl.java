@@ -3,6 +3,7 @@ package me.exrates.service;
 import com.google.common.collect.Maps;
 import me.exrates.dao.QuberaDao;
 import me.exrates.model.Currency;
+import me.exrates.model.Email;
 import me.exrates.model.Merchant;
 import me.exrates.model.QuberaUserData;
 import me.exrates.model.User;
@@ -13,6 +14,7 @@ import me.exrates.model.dto.AccountQuberaRequestDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.ExternalPaymentDto;
@@ -21,11 +23,14 @@ import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaPaymentToMasterDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.kyc.http.KycHttpClient;
+import me.exrates.service.stomp.StompMessenger;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +56,8 @@ public class QuberaServiceImpl implements QuberaService {
     private final QuberaDao quberaDao;
     private final KycHttpClient kycHttpClient;
     private final UserService userService;
+    private final StompMessenger stompMessenger;
+    private final SendMailService sendMailService;
 
     private @Value("${qubera.threshold.length}")
     int thresholdLength;
@@ -66,7 +73,9 @@ public class QuberaServiceImpl implements QuberaService {
                              RefillService refillService,
                              QuberaDao quberaDao,
                              KycHttpClient kycHttpClient,
-                             UserService userService) {
+                             UserService userService,
+                             StompMessenger stompMessenger,
+                             SendMailService sendMailService) {
         this.currencyService = currencyService;
         this.gtagService = gtagService;
         this.merchantService = merchantService;
@@ -74,6 +83,8 @@ public class QuberaServiceImpl implements QuberaService {
         this.quberaDao = quberaDao;
         this.kycHttpClient = kycHttpClient;
         this.userService = userService;
+        this.stompMessenger = stompMessenger;
+        this.sendMailService = sendMailService;
     }
 
     @Override
@@ -113,7 +124,7 @@ public class QuberaServiceImpl implements QuberaService {
         requestAcceptDto.setRequestId(requestId);
 
         refillService.autoAcceptRefillRequest(requestAcceptDto);
-        // todo send notification to transfer to master account
+        sendNotification(userId, paymentAmount);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
         logger.info("Process of sending data to Google Analytics...");
@@ -178,7 +189,6 @@ public class QuberaServiceImpl implements QuberaService {
             throw new NgDashboardException("Account not found " + email,
                     Constants.ErrorApi.QUBERA_ACCOUNT_NOT_FOUND_ERROR);
         }
-
         return kycHttpClient.getBalanceAccount(account);
     }
 
@@ -197,7 +207,6 @@ public class QuberaServiceImpl implements QuberaService {
         paymentToMasterDto.setAccountNumber(account);
         paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
         paymentToMasterDto.setNarrative("Inner transfer");
-
         return kycHttpClient.createPaymentInternal(paymentToMasterDto, true);
     }
 
@@ -217,7 +226,6 @@ public class QuberaServiceImpl implements QuberaService {
         paymentToMasterDto.setBeneficiaryAccountNumber(masterAccount);
         paymentToMasterDto.setCurrencyCode(paymentRequestDto.getCurrencyCode());
         paymentToMasterDto.setNarrative("Inner transfer");
-
         return kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
     }
 
@@ -275,5 +283,22 @@ public class QuberaServiceImpl implements QuberaService {
 
         QuberaUserData userData = quberaDao.getUserDataByUserId(user.getId());
         return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
+    }
+
+    public void sendNotification(int userId, String paymentAmount) {
+        User user = userService.getUserById(userId);
+        String msg = "Success deposit amount " + paymentAmount + " EUR.";
+        UserNotificationMessage message =
+                new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.SUCCESS, msg);
+        try {
+            stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+        } catch (Exception e) {
+        }
+
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setSubject("Deposit fiat");
+        email.setMessage(msg);
+        sendMailService.sendMail(email);
     }
 }
