@@ -151,19 +151,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         return result.toString();
     }
 
-    public static void main(String[] args) {
-        AlgorithmServiceImpl algorithmService = new AlgorithmServiceImpl();
-
-        String str = algorithmService.encodeByKey("mcwecnewfh239hf209f20fhwiufbwpbf2d72hd",
-                "wedding spin post trim around reform nose dolphin basic rigid lunch define");
-        System.out.println(str);
-        System.out.println(algorithmService.decodeByKey("jnwkfbwkfb49f39f8f43fhFF",
-                str));
-    }
-
     @Override
     public String encodeByKey(String code, String txt) {
-        String key = code;//getSecret(code);
+        String key = getSecret(code);
         String text = xorMessage(txt, key);
         try {
             return base64Encode(text);
@@ -181,7 +171,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         } catch (Exception e) {
             return null;
         }
-        key = code;//getSecret(code);
+        key = getSecret(code);
         return xorMessage(txt, key);
     }
 
