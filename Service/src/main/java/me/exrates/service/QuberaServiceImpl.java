@@ -94,7 +94,11 @@ public class QuberaServiceImpl implements QuberaService {
             throw new RefillRequestIdNeededException(request.toString());
         }
 
-        //todo check params
+        PaymentRequestDto paymentRequestDto = new PaymentRequestDto(request.getAmount(), request.getCurrencyName());
+
+        //create request to make payment to master account
+        ResponsePaymentDto paymentToMaster = createPaymentToMaster(request.getUserEmail(), paymentRequestDto);
+
         Map<String, String> details = quberaDao.getUserDetailsForCurrency(request.getUserId(), request.getCurrencyId());
         Map<String, String> refillParams = Maps.newHashMap();
         String iban = details.getOrDefault("iban", "");
@@ -102,6 +106,13 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("iban", iban);
         refillParams.put("currency", request.getCurrencyName());
         refillParams.put("accountNumber", accountNumber);
+        refillParams.put("paymentAmount", paymentToMaster.getTransactionAmount().toPlainString());
+
+        try {
+            processPayment(refillParams);
+        } catch (RefillRequestAppropriateNotFoundException e) {
+            logger.error("Some exception happens " + e.getMessage());
+        }
         return refillParams;
     }
 

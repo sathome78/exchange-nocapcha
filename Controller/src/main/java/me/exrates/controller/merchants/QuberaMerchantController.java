@@ -5,6 +5,7 @@ import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
+import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.ngExceptions.NgDashboardException;
@@ -24,18 +25,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Map;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @RestController
 public class QuberaMerchantController {
@@ -57,21 +53,22 @@ public class QuberaMerchantController {
             if (!(requestDto.getState().equalsIgnoreCase("Rejected"))) {
                 quberaService.processPayment(requestDto.getParams());
             } else {
-                // todo the payment was rejected
+                logger.info("Payment was rejected, payment_id " + requestDto.getPaymentId() + ", amount " +
+                        requestDto.getPaymentAmount().toPlainString());
             }
             return ResponseEntity.ok("Thank you");
         } catch (RefillRequestAlreadyAcceptedException e) {
             return ResponseEntity.ok("Thank you");
         } catch (Exception e) {
-            return new ResponseEntity<>(BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
-    @RequestMapping(value = "/merchants/qubera/payment/success", method = RequestMethod.GET)
-    public ResponseEntity successPayment(@RequestParam Map<String, String> response) {
-        logger.debug(response);
-        return ResponseEntity.ok().build();
-    }
+//    @RequestMapping(value = "/merchants/qubera/payment/success", method = RequestMethod.GET)
+//    public ResponseEntity successPayment(@RequestParam Map<String, String> response) {
+//        logger.debug(response);
+//        return ResponseEntity.ok().build();
+//    }
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseModel<AccountQuberaResponseDto> createAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
@@ -81,7 +78,7 @@ public class QuberaMerchantController {
     }
 
     @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/info")
-    public ResponseModel<?> getInfoForPayment() {
+    public ResponseModel<QuberaPaymentInfoDto> getInfoForPayment() {
         String email = getPrincipalEmail();
         return new ResponseModel<>(quberaService.getInfoForPayment(email));
     }
