@@ -15,12 +15,12 @@ public interface QuberaService extends IRefillable, IWithdrawable {
 
     @Override
     default Boolean createdRefillRequestRecordNeeded() {
-        return true;
+        return false;
     }
 
     @Override
     default Boolean needToCreateRefillRequestRecord() {
-        return true;
+        return false;
     }
 
     @Override

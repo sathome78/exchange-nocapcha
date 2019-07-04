@@ -25,12 +25,11 @@ import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestIdNeededException;
 import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.stomp.StompMessenger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +57,7 @@ public class QuberaServiceImpl implements QuberaService {
     private final UserService userService;
     private final StompMessenger stompMessenger;
     private final SendMailService sendMailService;
+    private final CommissionService commissionService;
 
     private @Value("${qubera.threshold.length}")
     int thresholdLength;
@@ -75,7 +75,8 @@ public class QuberaServiceImpl implements QuberaService {
                              KycHttpClient kycHttpClient,
                              UserService userService,
                              StompMessenger stompMessenger,
-                             SendMailService sendMailService) {
+                             SendMailService sendMailService,
+                             CommissionService commissionService) {
         this.currencyService = currencyService;
         this.gtagService = gtagService;
         this.merchantService = merchantService;
@@ -85,14 +86,11 @@ public class QuberaServiceImpl implements QuberaService {
         this.userService = userService;
         this.stompMessenger = stompMessenger;
         this.sendMailService = sendMailService;
+        this.commissionService = commissionService;
     }
 
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request) {
-        Integer requestId = request.getId();
-        if (requestId == null) {
-            throw new RefillRequestIdNeededException(request.toString());
-        }
 
         PaymentRequestDto paymentRequestDto = new PaymentRequestDto(request.getAmount(), request.getCurrencyName());
 
@@ -107,6 +105,7 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("currency", request.getCurrencyName());
         refillParams.put("accountNumber", accountNumber);
         refillParams.put("paymentAmount", paymentToMaster.getTransactionAmount().toPlainString());
+        refillParams.put("paymentId", paymentToMaster.getPaymentId().toString());
 
         try {
             processPayment(refillParams);
@@ -128,13 +127,12 @@ public class QuberaServiceImpl implements QuberaService {
                 .merchantId(merchant.getId())
                 .currencyId(currency.getId())
                 .amount(new BigDecimal(paymentAmount))
+                .address(StringUtils.EMPTY)
                 .merchantTransactionId(params.get("paymentId"))
                 .toMainAccountTransferringConfirmNeeded(this.toMainAccountTransferringConfirmNeeded())
                 .build();
-        Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto, userId, 0, RefillStatusEnum.ACCEPTED_AUTO);
-        requestAcceptDto.setRequestId(requestId);
-
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
+        Integer requestId = refillService.createAndAutoAcceptRefillRequest(requestAcceptDto, userId);
+        params.put("request_id", requestId.toString());
         sendNotification(userId, paymentAmount);
 
         final String gaTag = refillService.getUserGAByRequestId(requestId);
@@ -310,6 +308,6 @@ public class QuberaServiceImpl implements QuberaService {
         email.setTo(user.getEmail());
         email.setSubject("Deposit fiat");
         email.setMessage(msg);
-        sendMailService.sendMail(email);
+        sendMailService.sendInfoMail(email);
     }
 }
