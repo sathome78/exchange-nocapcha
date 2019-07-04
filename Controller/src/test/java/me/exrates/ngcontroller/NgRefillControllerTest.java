@@ -179,6 +179,7 @@ public class NgRefillControllerTest extends AngularApiCommonTest {
         verify(currencyService, times(1)).findByName(anyString());
     }
 
+    @Ignore
     @Test
     public void inputCredits_currency_isOk() throws Exception {
         Mockito.when(currencyService.findByName(anyString())).thenReturn(getMockCurrency("TEST_NAME"));

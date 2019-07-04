@@ -2,6 +2,7 @@ package me.exrates.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,7 +48,7 @@ public class IEODetails {
     private int version;
     private String content;
 
-    @JsonIgnore
+    @JsonProperty(value = "multiplyProcessing")
     private Boolean testIeo;
     @JsonIgnore
     private Integer countTestTransaction;
