@@ -119,37 +119,37 @@ public class QuberaMerchantController {
         return new ResponseModel<>(result);
     }
 
-    @PostMapping(value = "/merchants/qubera/payment/internal", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createInternalPayment() {
-        return null;
-    }
-
-    @PostMapping(value = "/merchants/qubera/payment/external", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createExternalPayment() {
-        return null;
-    }
-
-    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<ResponsePaymentDto> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-        ResponsePaymentDto result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
-        return new ResponseModel<>(result);
-    }
-
-    @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<ResponsePaymentDto> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
-        ResponsePaymentDto result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
-        return new ResponseModel<>(result);
-    }
-
-    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/toMaster")
-    public ResponseModel<String> confirmPaymentToMaster(@PathVariable Integer paymentId) {
-        return new ResponseModel<>(quberaService.confirmPaymentToMaster(paymentId));
-    }
-
-    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/fromMaster")
-    public ResponseModel<String> confirmPaymentFromMaster(@PathVariable Integer paymentId) {
-        return new ResponseModel<>(quberaService.confirmPaymentFRomMaster(paymentId));
-    }
+//    @PostMapping(value = "/merchants/qubera/payment/internal", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<?> createInternalPayment() {
+//        return null;
+//    }
+//
+//    @PostMapping(value = "/merchants/qubera/payment/external", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<?> createExternalPayment() {
+//        return null;
+//    }
+//
+//    @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/toMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<ResponsePaymentDto> createPaymentToMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+//        ResponsePaymentDto result = quberaService.createPaymentToMaster(getPrincipalEmail(), paymentRequestDto);
+//        return new ResponseModel<>(result);
+//    }
+//
+//    @PostMapping(value = "/merchants/qubera/payment/fromMaster", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseModel<ResponsePaymentDto> createPaymentFromMaster(@RequestBody @Valid PaymentRequestDto paymentRequestDto) {
+//        ResponsePaymentDto result = quberaService.createPaymentFromMater(getPrincipalEmail(), paymentRequestDto);
+//        return new ResponseModel<>(result);
+//    }
+//
+//    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/toMaster")
+//    public ResponseModel<String> confirmPaymentToMaster(@PathVariable Integer paymentId) {
+//        return new ResponseModel<>(quberaService.confirmPaymentToMaster(paymentId));
+//    }
+//
+//    @PutMapping(value = "/merchants/qubera/confirm/{paymentId}/fromMaster")
+//    public ResponseModel<String> confirmPaymentFromMaster(@PathVariable Integer paymentId) {
+//        return new ResponseModel<>(quberaService.confirmPaymentFRomMaster(paymentId));
+//    }
 
     private String getPrincipalEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
