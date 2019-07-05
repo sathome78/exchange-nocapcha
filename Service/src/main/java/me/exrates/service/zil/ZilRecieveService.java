@@ -6,6 +6,7 @@ import com.firestack.laksaj.blockchain.TxBlock;
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
+import com.firestack.laksaj.transaction.Transaction;
 import com.google.gson.Gson;
 
 import javax.annotation.PostConstruct;
@@ -31,8 +32,11 @@ public class ZilRecieveService {
         Rep<String> numTxBlocks = client.getNumTxBlocks();
         Rep<Double> txBlockRate = client.getTxBlockRate();
         Rep<BlockList> blockListing = client.getTxBlockListing(5);
-        System.out.println(new Gson().toJson(txBlock));
-        System.out.println(new Gson().toJson(blockListing));
+        Rep<String> numTransactions = client.getNumTransactions();
+        Rep<BlockchainInfo> blockchainInfo = client.getBlockchainInfo();
+        Rep<Transaction> transaction = client.getTransaction("655107c300e86ee6e819af1cbfce097db1510e8cd971d99f32ce2772dcad42f2");
+//        System.out.println(new Gson().toJson(transaction));
+        System.out.println(new Gson().toJson(numTransactions));
     }
 
     void checkRefills(){
