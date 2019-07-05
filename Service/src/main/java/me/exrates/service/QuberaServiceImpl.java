@@ -300,6 +300,32 @@ public class QuberaServiceImpl implements QuberaService {
         return new QuberaPaymentInfoDto(userData.getIban(), userData.getAccountNumber(), null);
     }
 
+    @Override
+    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+
+        Integer userId = quberaDao.findUserIdByAccountNumber(quberaRequestDto.getAccountNumber());
+        User user = userService.getUserById(userId);
+        String msg;
+        UserNotificationMessage message;
+        if (quberaRequestDto.getState().equalsIgnoreCase("Rejected")) {
+            msg = "Your payment was rejected, reason " + quberaRequestDto.getRejectionReason();
+            message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.ERROR, msg);
+        } else {
+            msg = "Your payment was confirmed, amount " + quberaRequestDto.getPaymentAmount().toPlainString() + " " + quberaRequestDto.getCurrency();
+            message = new UserNotificationMessage(WsSourceTypeEnum.FIAT, UserNotificationType.SUCCESS, msg);
+        }
+        try {
+            stompMessenger.sendPersonalMessageToUser(user.getEmail(), message);
+        } catch (Exception e) {
+        }
+
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setSubject("Deposit for your bank account");
+        email.setMessage(msg);
+        sendMailService.sendInfoMail(email);
+    }
+
     public void sendNotification(int userId, String paymentAmount) {
         User user = userService.getUserById(userId);
         String msg = "Success deposit amount " + paymentAmount + " EUR.";

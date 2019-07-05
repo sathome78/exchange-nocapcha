@@ -102,13 +102,13 @@ public class QuberaServiceMsImpl implements QuberaService {
     }
 
     @Override
-    public String confirmPaymentToMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentToMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
-    public String confirmPaymentFRomMaster(Integer paymentId) {
-        return null;
+    public boolean confirmPaymentFRomMaster(Integer paymentId) {
+        return true;
     }
 
     @Override
@@ -124,6 +124,11 @@ public class QuberaServiceMsImpl implements QuberaService {
     @Override
     public QuberaPaymentInfoDto getInfoForPayment(String email) {
         return null;
+    }
+
+    @Override
+    public void sendNotification(QuberaRequestDto quberaRequestDto) {
+
     }
 
     @Override

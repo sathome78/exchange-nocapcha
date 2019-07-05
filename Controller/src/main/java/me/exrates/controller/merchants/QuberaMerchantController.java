@@ -2,16 +2,21 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Email;
 import me.exrates.model.Payment;
+import me.exrates.model.User;
 import me.exrates.model.dto.AccountCreateDto;
 import me.exrates.model.dto.AccountQuberaResponseDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
+import me.exrates.model.dto.UserNotificationMessage;
 import me.exrates.model.dto.qubera.AccountInfoDto;
 import me.exrates.model.dto.qubera.PaymentRequestDto;
 import me.exrates.model.dto.qubera.QuberaPaymentInfoDto;
 import me.exrates.model.dto.qubera.QuberaRequestDto;
 import me.exrates.model.dto.qubera.ResponsePaymentDto;
+import me.exrates.model.enums.UserNotificationType;
+import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngModel.response.ResponseModel;
@@ -65,12 +70,7 @@ public class QuberaMerchantController {
         logger.info("Response: " + requestDto.getParams());
         quberaService.logResponse(requestDto);
         try {
-            if (!(requestDto.getState().equalsIgnoreCase("Rejected"))) {
-                quberaService.processPayment(requestDto.getParams());
-            } else {
-                logger.info("Payment was rejected, payment_id " + requestDto.getPaymentId() + ", amount " +
-                        requestDto.getPaymentAmount().toPlainString());
-            }
+           quberaService.sendNotification(requestDto);
             return ResponseEntity.ok("Thank you");
         } catch (RefillRequestAlreadyAcceptedException e) {
             return ResponseEntity.ok("Thank you");
@@ -80,7 +80,7 @@ public class QuberaMerchantController {
     }
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/payment/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<?> createPayment(@RequestBody RefillRequestParamsDto requestParamsDto) {
+    public ResponseModel<?> createPaymentToMasterAccount(@RequestBody RefillRequestParamsDto requestParamsDto) {
         Locale locale = Locale.ENGLISH;
         RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
         Payment payment = new Payment(INPUT);
@@ -96,7 +96,7 @@ public class QuberaMerchantController {
 
 
     @PostMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseModel<AccountQuberaResponseDto> createAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
+    public ResponseModel<AccountQuberaResponseDto> createBankAccount(@RequestBody @Valid AccountCreateDto accountCreateDto) {
         accountCreateDto.setEmail(getPrincipalEmail());
         AccountQuberaResponseDto result = quberaService.createAccount(accountCreateDto);
         return new ResponseModel<>(result);
@@ -114,7 +114,7 @@ public class QuberaMerchantController {
     }
 
     @GetMapping(value = API_PRIVATE_V2 + "/merchants/qubera/account/info")
-    public ResponseModel<AccountInfoDto> getUserAccountInfo() {
+    public ResponseModel<AccountInfoDto> getUserAccountBalanceInfo() {
         AccountInfoDto result = quberaService.getInfoAccount(getPrincipalEmail());
         return new ResponseModel<>(result);
     }
