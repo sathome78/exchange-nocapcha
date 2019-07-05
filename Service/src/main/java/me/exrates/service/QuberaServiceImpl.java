@@ -26,6 +26,7 @@ import me.exrates.model.dto.qubera.ResponsePaymentDto;
 import me.exrates.model.enums.UserNotificationType;
 import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
+import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.stomp.StompMessenger;
@@ -107,10 +108,15 @@ public class QuberaServiceImpl implements QuberaService {
         refillParams.put("paymentAmount", paymentToMaster.getTransactionAmount().toPlainString());
         refillParams.put("paymentId", paymentToMaster.getPaymentId().toString());
 
-        try {
-            processPayment(refillParams);
-        } catch (RefillRequestAppropriateNotFoundException e) {
-            logger.error("Some exception happens " + e.getMessage());
+        if (confirmPaymentToMaster(paymentToMaster.getPaymentId())) {
+            try {
+                processPayment(refillParams);
+            } catch (RefillRequestAppropriateNotFoundException e) {
+                logger.error("Some exception happens " + e.getMessage());
+            }
+        } else {
+            logger.error("Payment not confirmed {}" + paymentToMaster.getPaymentId());
+            throw new NgRefillException("Payment not confirmed {}" + paymentToMaster.getPaymentId());
         }
         return refillParams;
     }
@@ -239,12 +245,12 @@ public class QuberaServiceImpl implements QuberaService {
     }
 
     @Override
-    public String confirmPaymentToMaster(Integer paymentId) {
+    public boolean confirmPaymentToMaster(Integer paymentId) {
         return kycHttpClient.confirmInternalPayment(paymentId, true);
     }
 
     @Override
-    public String confirmPaymentFRomMaster(Integer paymentId) {
+    public boolean confirmPaymentFRomMaster(Integer paymentId) {
         return kycHttpClient.confirmInternalPayment(paymentId, false);
     }
 
