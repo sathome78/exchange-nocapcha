@@ -1,6 +1,8 @@
 package me.exrates.service.zil;
 
+import com.firestack.laksaj.blockchain.BlockchainInfo;
 import com.firestack.laksaj.blockchain.DsBlock;
+import com.firestack.laksaj.blockchain.TxBlock;
 import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
@@ -20,7 +22,10 @@ public class ZilRecieveService {
     public static void main(String[] args) throws IOException, ZilliqaAPIException {
         new ZilRecieveService().init();
         Rep<DsBlock> dsBlock = client.getLatestDsBlock();
-        System.out.println(dsBlock);
+        Rep<String> numDSBlocks = client.getNumDSBlocks();
+        Rep<BlockchainInfo> blockchainInfo = client.getBlockchainInfo();
+        Rep<TxBlock> txBlock = client.getLatestTxBlock();
+        System.out.println(txBlock);
     }
 
     int getLastBlock(){
