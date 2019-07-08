@@ -1,5 +1,8 @@
 package me.exrates.service.zil;
 
+import com.firestack.laksaj.jsonrpc.HttpProvider;
+import com.firestack.laksaj.jsonrpc.Rep;
+import com.firestack.laksaj.transaction.Transaction;
 import com.google.gson.Gson;
 
 import javax.annotation.PostConstruct;
