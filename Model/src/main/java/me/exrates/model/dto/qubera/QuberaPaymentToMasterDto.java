@@ -1,6 +1,7 @@
 package me.exrates.model.dto.qubera;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

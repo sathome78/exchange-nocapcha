@@ -28,6 +28,7 @@ import me.exrates.model.enums.WsSourceTypeEnum;
 import me.exrates.model.ngExceptions.NgDashboardException;
 import me.exrates.model.ngExceptions.NgRefillException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.invoice.MerchantException;
 import me.exrates.service.kyc.http.KycHttpClient;
 import me.exrates.service.stomp.StompMessenger;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -148,7 +150,22 @@ public class QuberaServiceImpl implements QuberaService {
 
     @Override
     public Map<String, String> withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-        return null;
+
+        QuberaUserData quberaUserData = quberaDao.getUserDataByUserId(withdrawMerchantOperationDto.getUserId());
+
+        QuberaPaymentToMasterDto paymentToMasterDto = QuberaPaymentToMasterDto.builder()
+                .accountNumber(quberaUserData.getAccountNumber())
+                .beneficiaryAccountNumber(masterAccount)
+                .amount(new BigDecimal(withdrawMerchantOperationDto.getAmount()))
+                .currencyCode(withdrawMerchantOperationDto.getCurrency())
+                .narrative("Payment from master")
+                .build();
+
+        ResponsePaymentDto responsePaymentDto = kycHttpClient.createPaymentInternal(paymentToMasterDto, false);
+        if (!kycHttpClient.confirmInternalPayment(responsePaymentDto.getPaymentId(), true)) {
+            throw new MerchantException("Payment not confirmed");
+        }
+        return Collections.emptyMap();
     }
 
     @Override
