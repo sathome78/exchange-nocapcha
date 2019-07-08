@@ -1,16 +1,12 @@
 package me.exrates.service.zil;
 
-import com.firestack.laksaj.blockchain.BlockList;
-import com.firestack.laksaj.blockchain.BlockchainInfo;
 import com.firestack.laksaj.blockchain.TxBlock;
-import com.firestack.laksaj.exception.ZilliqaAPIException;
 import com.firestack.laksaj.jsonrpc.HttpProvider;
 import com.firestack.laksaj.jsonrpc.Rep;
 import com.firestack.laksaj.transaction.Transaction;
 import com.google.gson.Gson;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 
 public class ZilRecieveService {
 
@@ -21,22 +17,19 @@ public class ZilRecieveService {
         client = new HttpProvider("https://api.zilliqa.com/");
     }
 
-    public static void main(String[] args) throws IOException, ZilliqaAPIException {
+    public static void main(String[] args) throws Exception {
         ZilRecieveService zilRecieveService = new ZilRecieveService();
         zilRecieveService.init();
 //        zilRecieveService.checkRefills();
 
 
         Rep<TxBlock> txBlock = client.getTxBlock("160590");
-//        Rep<TxBlock> txBlock = client.getLatestTxBlock();
-        Rep<String> numTxBlocks = client.getNumTxBlocks();
-        Rep<Double> txBlockRate = client.getTxBlockRate();
-        Rep<BlockList> blockListing = client.getTxBlockListing(5);
-        Rep<String> numTransactions = client.getNumTransactions();
-        Rep<BlockchainInfo> blockchainInfo = client.getBlockchainInfo();
-        Rep<Transaction> transaction = client.getTransaction("655107c300e86ee6e819af1cbfce097db1510e8cd971d99f32ce2772dcad42f2");
-//        System.out.println(new Gson().toJson(transaction));
-        System.out.println(new Gson().toJson(numTransactions));
+
+        Rep<Transaction> transaction = client.getTransaction("6b7094293e2991c1d4865e825bfdd59997d5169a6e3e58b7ed88f7d9aa00cc0b");
+        System.out.println(new Gson().toJson(transaction));
+
+//        Rep<TransactionList> transactionList = client.getRecentTransactions();
+//        System.out.println(new Gson().toJson(transactionList));
     }
 
     void checkRefills(){

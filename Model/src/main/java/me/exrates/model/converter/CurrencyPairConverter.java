@@ -1,5 +1,6 @@
 package me.exrates.model.converter;
 
+
 import com.google.gson.Gson;
 import me.exrates.model.CurrencyPair;
 import org.springframework.core.convert.converter.Converter;
